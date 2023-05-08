@@ -1,0 +1,82 @@
+START: 2022-01-01
+END: 2026-01-01
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    PRICE: 1.5  # NOK/Sm3
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: "2.20" #kg/Sm3
+        TAX: 1.51 # NOK/Sm3
+
+FACILITY_INPUTS:
+  - NAME: compressor_sampled_1d
+    FILE: compressor_sampled_1d.csv
+    TYPE: COMPRESSOR_TABULAR
+  - NAME: pump_single_speed
+    FILE: pumpchart.csv
+    TYPE: PUMP_CHART_SINGLE_SPEED
+    UNITS:
+      EFFICIENCY: FRACTION
+      HEAD: M
+      RATE: AM3_PER_HOUR
+
+INSTALLATIONS:
+  - NAME: installation
+    HCEXPORT: 17
+    FUEL: fuel_gas
+    FUELCONSUMERS:
+      - NAME: compressor_system_v2
+        CATEGORY: COMPRESSOR
+        TYPE: COMPRESSOR_SYSTEM@v2
+        CONSUMERS:
+          - NAME: compressor1
+            ENERGY_USAGE_MODEL: compressor_sampled_1d
+          - NAME: compressor2
+            ENERGY_USAGE_MODEL: compressor_sampled_1d
+          - NAME: compressor3
+            ENERGY_USAGE_MODEL: compressor_sampled_1d
+        OPERATIONAL_SETTINGS:
+          - CONDITION: true
+            POWERLOSSFACTOR: 0.0
+            TOTAL_SYSTEM_RATE: 1
+            RATES: [1000000, 5000000, 6000000]
+            INLET_PRESSURE: 50
+            OUTLET_PRESSURE: 250
+            CROSSOVER: [0, 1, 1]
+      - NAME: pump_system_v2
+        CATEGORY: PUMP
+        TYPE: PUMP_SYSTEM@v2
+        CONSUMERS:
+          - NAME: pump1
+            ENERGY_USAGE_MODEL: pump_single_speed
+          - NAME: pump2
+            ENERGY_USAGE_MODEL: pump_single_speed
+          - NAME: pump3
+            ENERGY_USAGE_MODEL: pump_single_speed
+        OPERATIONAL_SETTINGS:
+          - CONDITION: true
+            POWERLOSSFACTOR: 0.0
+            TOTAL_SYSTEM_RATE: 1
+            RATES: [4000000, 5000000, 6000000]
+            INLET_PRESSURE: 50
+            OUTLET_PRESSURE: 250
+            FLUID_DENSITY: 2
+            CROSSOVER: [0, 1, 1]
+      - NAME: compressor_system
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR_SYSTEM
+          COMPRESSORS:
+            - NAME: compressor1
+              COMPRESSOR_MODEL: compressor_sampled_1d
+            - NAME: compressor2
+              COMPRESSOR_MODEL: compressor_sampled_1d
+            - NAME: compressor3
+              COMPRESSOR_MODEL: compressor_sampled_1d
+          OPERATIONAL_SETTINGS:
+            - RATES: [1000000, 5000000, 6000000]
+              SUCTION_PRESSURE: 50
+              DISCHARGE_PRESSURE: 250
+              CROSSOVER: [0, 1, 1]

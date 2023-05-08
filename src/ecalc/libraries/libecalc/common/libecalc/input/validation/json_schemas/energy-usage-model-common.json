@@ -1,0 +1,33 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/energy_usage_model_common.json",
+  "title": "ENERGY_USAGE_MODEL",
+  "description": "Specifies the data used when calculating the energy usage of a consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+  "type": "object",
+  "definitions": {
+    "CONDITION": {
+      "title": "CONDITION",
+      "description": "Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
+      "$ref": "#/definitions/number_or_string"
+    },
+    "CONDITIONS": {
+      "title": "CONDITIONS",
+      "description": "Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITIONS",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/definitions.json#definitions/LIST_OF_NUMBERS_OR_STRINGS"
+    },
+    "POWERLOSSFACTOR": {
+      "title": "POWERLOSSFACTOR",
+      "description": "A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
+      "$ref": "#/definitions/number_or_string"
+    },
+    "number_or_string": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    }
+  }
+}

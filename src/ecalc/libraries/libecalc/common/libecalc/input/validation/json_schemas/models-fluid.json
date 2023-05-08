@@ -1,0 +1,128 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/models-fluid.json",
+  "title": "MODELS",
+  "description": "A fluid model.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+  "type": "object",
+  "definitions": {
+    "FLUID_MODEL": {
+      "title": "FLUID_MODEL",
+      "description": "Fluid model.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+      "type": "object",
+      "oneOf": [
+        { "$ref": "#/definitions/PREDEFINED_FLUID_MODEL" },
+        { "$ref": "#/definitions/FLUID_MODEL_FROM_COMPOSITION" }
+      ]
+    },
+    "EOS_MODEL": {
+      "title": "EOS_MODEL",
+      "description": "Eos model for fluid. Supported values are SRK, PR, GERG_SRK and GERG_PR. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+      "type": "string",
+      "oneOf": [
+        {
+          "const": "SRK"
+        },
+        {
+          "const": "PR"
+        },
+        {
+          "const": "GERG_SRK"
+        },
+        {
+          "const": "GERG_PR"
+        }
+      ]
+    },
+    "PREDEFINED_FLUID_MODEL": {
+      "title": "PREDEFINED_FLUID_MODEL",
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the model.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "const": "FLUID"
+        },
+        "FLUID_MODEL_TYPE": {
+          "const": "PREDEFINED"
+        },
+        "EOS_MODEL": { "$ref": "#/definitions/EOS_MODEL" },
+        "GAS_TYPE": { "$ref": "#/definitions/PREDEFINED_FLUID_TYPE" }
+      },
+      "additionalProperties": false,
+      "required": ["TYPE"]
+    },
+    "PREDEFINED_FLUID_TYPE": {
+      "title": "PREDEFINED_FLUID_TYPE",
+      "description": "Type of predefined fluid. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+      "type": "string",
+      "oneOf": [
+        {
+          "title": "ULTRA_DRY",
+          "description": "",
+          "const": "ULTRA_DRY"
+        },
+        {
+          "title": "DRY",
+          "description": "",
+          "const": "DRY"
+        },
+        {
+          "title": "MEDIUM",
+          "description": "",
+          "const": "MEDIUM"
+        },
+        {
+          "title": "RICH",
+          "description": "",
+          "const": "RICH"
+        },
+        {
+          "title": "ULTRA_RICH",
+          "description": "",
+          "const": "ULTRA_RICH"
+        }
+      ]
+    },
+    "FLUID_MODEL_FROM_COMPOSITION": {
+      "title": "FLUID_MODEL_FROM_COMPOSITION",
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the model.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "CONST": "FLUID"
+        },
+        "FLUID_MODEL_TYPE": {
+          "const": "COMPOSITION"
+        },
+        "EOS_MODEL": { "$ref": "#/definitions/EOS_MODEL" },
+        "COMPOSITION": {
+          "title": "COMPOSITION",
+          "description": "Components in fluid and amount (relative to the others) in mole weights",
+          "type": "object",
+          "properties": {
+            "water": { "type": "number" },
+            "H2O": { "type": "number" },
+            "nitrogen": { "type": "number" },
+            "CO2": { "type": "number" },
+            "methane": { "type": "number" },
+            "ethane": { "type": "number" },
+            "propane": { "type": "number" },
+            "i_butane": { "type": "number" },
+            "n_butane": { "type": "number" },
+            "i_pentane": { "type": "number" },
+            "n_pentane": { "type": "number" },
+            "n_hexane": { "type": "number" }
+          },
+          "additionalProperties": false,
+          "required": ["methane"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["TYPE", "COMPOSITION"]
+    }
+  }
+}

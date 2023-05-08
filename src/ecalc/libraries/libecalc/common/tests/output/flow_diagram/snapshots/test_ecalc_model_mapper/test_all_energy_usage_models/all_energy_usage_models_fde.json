@@ -1,0 +1,1455 @@
+{
+    "edges": [
+        {
+            "flow": "fuel-flow",
+            "from_node": "fuel-input",
+            "to_node": "installation-MAIN_INSTALLATION"
+        },
+        {
+            "flow": "emission-flow",
+            "from_node": "installation-MAIN_INSTALLATION",
+            "to_node": "emission-output"
+        }
+    ],
+    "end_date": "2020-12-31 00:00:00",
+    "flows": [
+        {
+            "id": "fuel-flow",
+            "label": "Fuel",
+            "type": "fuel-flow"
+        },
+        {
+            "id": "emission-flow",
+            "label": "Emissions",
+            "type": "emission-flow"
+        }
+    ],
+    "id": "area",
+    "nodes": [
+        {
+            "id": "fuel-input",
+            "subdiagram": null,
+            "title": "Fuel",
+            "type": "input-output-node"
+        },
+        {
+            "id": "installation-MAIN_INSTALLATION",
+            "subdiagram": [
+                {
+                    "edges": [
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-generator-set-GeneratorSet"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-flare"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_1d_compressor_sampled"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-tabulated"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-sampled_compressor_system"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-generic_from_design_point_compressor_train_consumer"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_unknown_stages_consumer"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-deh"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-salt_water_injection_tabular"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-water_injection_single_speed"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-water_injection_variable_speed"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-waterinj"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_compressor_system"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-flare",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-single_1d_compressor_sampled",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-tabulated",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
+                            "to_node": "emission-output"
+                        }
+                    ],
+                    "end_date": "2018-01-01 00:00:00",
+                    "flows": [
+                        {
+                            "id": "fuel-flow",
+                            "label": "Fuel",
+                            "type": "fuel-flow"
+                        },
+                        {
+                            "id": "electricity-flow",
+                            "label": "Electricity",
+                            "type": "electricity-flow"
+                        },
+                        {
+                            "id": "emission-flow",
+                            "label": "Emissions",
+                            "type": "emission-flow"
+                        }
+                    ],
+                    "id": "installation-MAIN_INSTALLATION",
+                    "nodes": [
+                        {
+                            "id": "fuel-input",
+                            "subdiagram": null,
+                            "title": "Fuel",
+                            "type": "input-output-node"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "subdiagram": null,
+                            "title": "GeneratorSet",
+                            "type": "generator"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-flare",
+                            "subdiagram": null,
+                            "title": "flare",
+                            "type": "direct"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_1d_compressor_sampled",
+                            "subdiagram": null,
+                            "title": "single_1d_compressor_sampled",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-tabulated",
+                            "subdiagram": null,
+                            "title": "tabulated",
+                            "type": "tabulated"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
+                                    "nodes": [
+                                        {
+                                            "id": "sampled_train1",
+                                            "subdiagram": [],
+                                            "title": "sampled_train1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "sampled_train2",
+                                            "subdiagram": [],
+                                            "title": "sampled_train2",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "sampled_compressor_system"
+                                }
+                            ],
+                            "title": "sampled_compressor_system",
+                            "type": "compressor-system"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
+                                    "nodes": [
+                                        {
+                                            "id": "turbine_driven_compressor_train stage 0",
+                                            "subdiagram": null,
+                                            "title": "turbine_driven_compressor_train stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "turbine_driven_compressor_train stage 1",
+                                            "subdiagram": null,
+                                            "title": "turbine_driven_compressor_train stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "turbine_driven_compressor_train"
+                                }
+                            ],
+                            "title": "turbine_driven_compressor_train",
+                            "type": "turbine"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-generic_from_design_point_compressor_train_consumer",
+                            "subdiagram": null,
+                            "title": "generic_from_design_point_compressor_train_consumer",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer",
+                                    "nodes": [
+                                        {
+                                            "id": "simplified_variable_speed_compressor_train_known_stages_consumer stage 0",
+                                            "subdiagram": null,
+                                            "title": "simplified_variable_speed_compressor_train_known_stages_consumer stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "simplified_variable_speed_compressor_train_known_stages_consumer stage 1",
+                                            "subdiagram": null,
+                                            "title": "simplified_variable_speed_compressor_train_known_stages_consumer stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "simplified_variable_speed_compressor_train_known_stages_consumer"
+                                }
+                            ],
+                            "title": "simplified_variable_speed_compressor_train_known_stages_consumer",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_unknown_stages_consumer",
+                            "subdiagram": null,
+                            "title": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-deh",
+                            "subdiagram": null,
+                            "title": "deh",
+                            "type": "direct"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-salt_water_injection_tabular",
+                            "subdiagram": null,
+                            "title": "salt_water_injection_tabular",
+                            "type": "tabulated"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-water_injection_single_speed",
+                            "subdiagram": null,
+                            "title": "water_injection_single_speed",
+                            "type": "pump"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-water_injection_variable_speed",
+                            "subdiagram": null,
+                            "title": "water_injection_variable_speed",
+                            "type": "pump"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-waterinj",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-waterinj",
+                                    "nodes": [
+                                        {
+                                            "id": "pump1",
+                                            "subdiagram": null,
+                                            "title": "pump1",
+                                            "type": "pump"
+                                        },
+                                        {
+                                            "id": "pump2",
+                                            "subdiagram": null,
+                                            "title": "pump2",
+                                            "type": "pump"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "waterinj"
+                                }
+                            ],
+                            "title": "waterinj",
+                            "type": "pump-system"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_compressor_system",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-simplified_compressor_system",
+                                    "nodes": [
+                                        {
+                                            "id": "simplified_train1",
+                                            "subdiagram": [],
+                                            "title": "simplified_train1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "simplified_train2",
+                                            "subdiagram": [],
+                                            "title": "simplified_train2",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "simplified_compressor_system"
+                                }
+                            ],
+                            "title": "simplified_compressor_system",
+                            "type": "compressor-system"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
+                                    "nodes": [
+                                        {
+                                            "id": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 0",
+                                            "subdiagram": null,
+                                            "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 1",
+                                            "subdiagram": null,
+                                            "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid"
+                                }
+                            ],
+                            "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts",
+                                    "nodes": [
+                                        {
+                                            "id": "variable_speed_compressor_train_predefined_charts stage 0",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_predefined_charts stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_predefined_charts stage 1",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_predefined_charts stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "variable_speed_compressor_train_predefined_charts"
+                                }
+                            ],
+                            "title": "variable_speed_compressor_train_predefined_charts",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_asv_pressure_control stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_asv_pressure_control stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_asv_pressure_control stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_asv_pressure_control stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_asv_pressure_control"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_asv_pressure_control",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_upstream_choke_pressure_control stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_upstream_choke_pressure_control stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_upstream_choke_pressure_control stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_upstream_choke_pressure_control stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_upstream_choke_pressure_control"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_upstream_choke_pressure_control",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_downstream_choke_pressure_control"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_downstream_choke_pressure_control",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
+                                    "nodes": [
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 0",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 1",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 2",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 2",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 3",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 3",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 4",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 4",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure"
+                                }
+                            ],
+                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "emission-output",
+                            "subdiagram": null,
+                            "title": "Emission",
+                            "type": "input-output-node"
+                        }
+                    ],
+                    "start_date": "1900-01-01 00:00:00",
+                    "title": "MAIN_INSTALLATION"
+                },
+                {
+                    "edges": [
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-generator-set-GeneratorSet"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-flare"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_1d_compressor_sampled"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-tabulated"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-sampled_compressor_system"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "MAIN_INSTALLATION-consumer-compressor_system_variable_speed_compressor_trains"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-generic_from_design_point_compressor_train_consumer"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_unknown_stages_consumer"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-deh"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-late_start_consumer"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-late_start_consumer_evolving_type"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-salt_water_injection_tabular"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-water_injection_single_speed"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-water_injection_variable_speed"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-waterinj"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_compressor_system"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure"
+                        },
+                        {
+                            "flow": "electricity-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-flare",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-single_1d_compressor_sampled",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-tabulated",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "MAIN_INSTALLATION-consumer-compressor_system_variable_speed_compressor_trains",
+                            "to_node": "emission-output"
+                        }
+                    ],
+                    "end_date": "2020-12-31 00:00:00",
+                    "flows": [
+                        {
+                            "id": "fuel-flow",
+                            "label": "Fuel",
+                            "type": "fuel-flow"
+                        },
+                        {
+                            "id": "electricity-flow",
+                            "label": "Electricity",
+                            "type": "electricity-flow"
+                        },
+                        {
+                            "id": "emission-flow",
+                            "label": "Emissions",
+                            "type": "emission-flow"
+                        }
+                    ],
+                    "id": "installation-MAIN_INSTALLATION",
+                    "nodes": [
+                        {
+                            "id": "fuel-input",
+                            "subdiagram": null,
+                            "title": "Fuel",
+                            "type": "input-output-node"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-generator-set-GeneratorSet",
+                            "subdiagram": null,
+                            "title": "GeneratorSet",
+                            "type": "generator"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-flare",
+                            "subdiagram": null,
+                            "title": "flare",
+                            "type": "direct"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_1d_compressor_sampled",
+                            "subdiagram": null,
+                            "title": "single_1d_compressor_sampled",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-tabulated",
+                            "subdiagram": null,
+                            "title": "tabulated",
+                            "type": "tabulated"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
+                                    "nodes": [
+                                        {
+                                            "id": "sampled_train1",
+                                            "subdiagram": [],
+                                            "title": "sampled_train1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "sampled_train2",
+                                            "subdiagram": [],
+                                            "title": "sampled_train2",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "sampled_compressor_system"
+                                }
+                            ],
+                            "title": "sampled_compressor_system",
+                            "type": "compressor-system"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
+                                    "nodes": [
+                                        {
+                                            "id": "turbine_driven_compressor_train stage 0",
+                                            "subdiagram": null,
+                                            "title": "turbine_driven_compressor_train stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "turbine_driven_compressor_train stage 1",
+                                            "subdiagram": null,
+                                            "title": "turbine_driven_compressor_train stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "turbine_driven_compressor_train"
+                                }
+                            ],
+                            "title": "turbine_driven_compressor_train",
+                            "type": "turbine"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-compressor_system_variable_speed_compressor_trains",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2019-01-01 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-compressor_system_variable_speed_compressor_trains",
+                                    "nodes": [
+                                        {
+                                            "id": "train1",
+                                            "subdiagram": {
+                                                "edges": [],
+                                                "end_date": "2019-01-01 00:00:00",
+                                                "flows": [],
+                                                "id": "train1",
+                                                "nodes": [
+                                                    {
+                                                        "id": "train1 stage 0",
+                                                        "subdiagram": null,
+                                                        "title": "train1 stage 0",
+                                                        "type": "compressor"
+                                                    },
+                                                    {
+                                                        "id": "train1 stage 1",
+                                                        "subdiagram": null,
+                                                        "title": "train1 stage 1",
+                                                        "type": "compressor"
+                                                    }
+                                                ],
+                                                "start_date": "2018-01-01 00:00:00",
+                                                "title": "train1"
+                                            },
+                                            "title": "train1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "train2",
+                                            "subdiagram": {
+                                                "edges": [],
+                                                "end_date": "2019-01-01 00:00:00",
+                                                "flows": [],
+                                                "id": "train2",
+                                                "nodes": [
+                                                    {
+                                                        "id": "train2 stage 0",
+                                                        "subdiagram": null,
+                                                        "title": "train2 stage 0",
+                                                        "type": "compressor"
+                                                    },
+                                                    {
+                                                        "id": "train2 stage 1",
+                                                        "subdiagram": null,
+                                                        "title": "train2 stage 1",
+                                                        "type": "compressor"
+                                                    }
+                                                ],
+                                                "start_date": "2018-01-01 00:00:00",
+                                                "title": "train2"
+                                            },
+                                            "title": "train2",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "train3",
+                                            "subdiagram": {
+                                                "edges": [],
+                                                "end_date": "2019-01-01 00:00:00",
+                                                "flows": [],
+                                                "id": "train3",
+                                                "nodes": [
+                                                    {
+                                                        "id": "train3 stage 0",
+                                                        "subdiagram": null,
+                                                        "title": "train3 stage 0",
+                                                        "type": "compressor"
+                                                    },
+                                                    {
+                                                        "id": "train3 stage 1",
+                                                        "subdiagram": null,
+                                                        "title": "train3 stage 1",
+                                                        "type": "compressor"
+                                                    }
+                                                ],
+                                                "start_date": "2018-01-01 00:00:00",
+                                                "title": "train3"
+                                            },
+                                            "title": "train3",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "2018-01-01 00:00:00",
+                                    "title": "compressor_system_variable_speed_compressor_trains"
+                                },
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-compressor_system_variable_speed_compressor_trains",
+                                    "nodes": [
+                                        {
+                                            "id": "train1_upgraded",
+                                            "subdiagram": {
+                                                "edges": [],
+                                                "end_date": "2020-12-31 00:00:00",
+                                                "flows": [],
+                                                "id": "train1_upgraded",
+                                                "nodes": [
+                                                    {
+                                                        "id": "train1_upgraded stage 0",
+                                                        "subdiagram": null,
+                                                        "title": "train1_upgraded stage 0",
+                                                        "type": "compressor"
+                                                    },
+                                                    {
+                                                        "id": "train1_upgraded stage 1",
+                                                        "subdiagram": null,
+                                                        "title": "train1_upgraded stage 1",
+                                                        "type": "compressor"
+                                                    }
+                                                ],
+                                                "start_date": "2019-01-01 00:00:00",
+                                                "title": "train1_upgraded"
+                                            },
+                                            "title": "train1_upgraded",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "train2_upgraded",
+                                            "subdiagram": {
+                                                "edges": [],
+                                                "end_date": "2020-12-31 00:00:00",
+                                                "flows": [],
+                                                "id": "train2_upgraded",
+                                                "nodes": [
+                                                    {
+                                                        "id": "train2_upgraded stage 0",
+                                                        "subdiagram": null,
+                                                        "title": "train2_upgraded stage 0",
+                                                        "type": "compressor"
+                                                    },
+                                                    {
+                                                        "id": "train2_upgraded stage 1",
+                                                        "subdiagram": null,
+                                                        "title": "train2_upgraded stage 1",
+                                                        "type": "compressor"
+                                                    }
+                                                ],
+                                                "start_date": "2019-01-01 00:00:00",
+                                                "title": "train2_upgraded"
+                                            },
+                                            "title": "train2_upgraded",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "2019-01-01 00:00:00",
+                                    "title": "compressor_system_variable_speed_compressor_trains"
+                                }
+                            ],
+                            "title": "compressor_system_variable_speed_compressor_trains",
+                            "type": "compressor-system"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-generic_from_design_point_compressor_train_consumer",
+                            "subdiagram": null,
+                            "title": "generic_from_design_point_compressor_train_consumer",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer",
+                                    "nodes": [
+                                        {
+                                            "id": "simplified_variable_speed_compressor_train_known_stages_consumer stage 0",
+                                            "subdiagram": null,
+                                            "title": "simplified_variable_speed_compressor_train_known_stages_consumer stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "simplified_variable_speed_compressor_train_known_stages_consumer stage 1",
+                                            "subdiagram": null,
+                                            "title": "simplified_variable_speed_compressor_train_known_stages_consumer stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "simplified_variable_speed_compressor_train_known_stages_consumer"
+                                }
+                            ],
+                            "title": "simplified_variable_speed_compressor_train_known_stages_consumer",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_unknown_stages_consumer",
+                            "subdiagram": null,
+                            "title": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-deh",
+                            "subdiagram": null,
+                            "title": "deh",
+                            "type": "direct"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-late_start_consumer",
+                            "subdiagram": null,
+                            "title": "late_start_consumer",
+                            "type": "direct"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-late_start_consumer_evolving_type",
+                            "subdiagram": null,
+                            "title": "late_start_consumer_evolving_type",
+                            "type": "direct"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-salt_water_injection_tabular",
+                            "subdiagram": null,
+                            "title": "salt_water_injection_tabular",
+                            "type": "tabulated"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-water_injection_single_speed",
+                            "subdiagram": null,
+                            "title": "water_injection_single_speed",
+                            "type": "pump"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-water_injection_variable_speed",
+                            "subdiagram": null,
+                            "title": "water_injection_variable_speed",
+                            "type": "pump"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-waterinj",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-waterinj",
+                                    "nodes": [
+                                        {
+                                            "id": "pump1",
+                                            "subdiagram": null,
+                                            "title": "pump1",
+                                            "type": "pump"
+                                        },
+                                        {
+                                            "id": "pump2",
+                                            "subdiagram": null,
+                                            "title": "pump2",
+                                            "type": "pump"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "waterinj"
+                                }
+                            ],
+                            "title": "waterinj",
+                            "type": "pump-system"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_compressor_system",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-simplified_compressor_system",
+                                    "nodes": [
+                                        {
+                                            "id": "simplified_train1",
+                                            "subdiagram": [],
+                                            "title": "simplified_train1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "simplified_train2",
+                                            "subdiagram": [],
+                                            "title": "simplified_train2",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "simplified_compressor_system"
+                                }
+                            ],
+                            "title": "simplified_compressor_system",
+                            "type": "compressor-system"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
+                                    "nodes": [
+                                        {
+                                            "id": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 0",
+                                            "subdiagram": null,
+                                            "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 1",
+                                            "subdiagram": null,
+                                            "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid"
+                                }
+                            ],
+                            "title": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts",
+                                    "nodes": [
+                                        {
+                                            "id": "variable_speed_compressor_train_predefined_charts stage 0",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_predefined_charts stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_predefined_charts stage 1",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_predefined_charts stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "variable_speed_compressor_train_predefined_charts"
+                                }
+                            ],
+                            "title": "variable_speed_compressor_train_predefined_charts",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_asv_pressure_control stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_asv_pressure_control stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_asv_pressure_control stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_asv_pressure_control stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_asv_pressure_control"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_asv_pressure_control",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_upstream_choke_pressure_control stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_upstream_choke_pressure_control stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_upstream_choke_pressure_control stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_upstream_choke_pressure_control stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_upstream_choke_pressure_control"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_upstream_choke_pressure_control",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_downstream_choke_pressure_control"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_downstream_choke_pressure_control",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
+                                    "nodes": [
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 0",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 1",
+                                            "subdiagram": null,
+                                            "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure stage 1",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure"
+                                }
+                            ],
+                            "title": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
+                                    "nodes": [
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 0",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 0",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 1",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 2",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 2",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 3",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 3",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 4",
+                                            "subdiagram": null,
+                                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure stage 4",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "1900-01-01 00:00:00",
+                                    "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure"
+                                }
+                            ],
+                            "title": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
+                            "type": "compressor"
+                        },
+                        {
+                            "id": "emission-output",
+                            "subdiagram": null,
+                            "title": "Emission",
+                            "type": "input-output-node"
+                        }
+                    ],
+                    "start_date": "2018-01-01 00:00:00",
+                    "title": "MAIN_INSTALLATION"
+                }
+            ],
+            "title": "MAIN_INSTALLATION",
+            "type": "installation"
+        },
+        {
+            "id": "emission-output",
+            "subdiagram": null,
+            "title": "Emission",
+            "type": "input-output-node"
+        }
+    ],
+    "start_date": "1900-01-01 00:00:00",
+    "title": "Area"
+}

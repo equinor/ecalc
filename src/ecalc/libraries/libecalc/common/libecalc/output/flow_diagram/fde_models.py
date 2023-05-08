@@ -1,0 +1,90 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import List, Optional, Union
+
+from pydantic import BaseModel
+
+
+class NodeType:
+    GENERATOR = "generator"
+    INSTALLATION = "installation"
+    CABLE = "cable"
+    COMPRESSOR = "compressor"
+    COMPRESSOR_SYSTEM = "compressor-system"
+    DIRECT = "direct"
+    ENGINE = "engine"
+    ENGINE_GENERATOR_SET = "engine-generator-set"
+    INPUT_OUTPUT_NODE = "input-output-node"
+    PUMP = "pump"
+    PUMP_SYSTEM = "pump-system"
+    TABULATED = "tabulated"
+    TURBINE = "turbine"
+    TURBINE_GENERATOR_SET = "turbine-generator-set"
+    WIND_TURBINE = "wind-turbine"
+    WIND_TURBINE_SYSTEM = "wind-turbine-system"
+
+
+class FlowType:
+    FUEL = "fuel-flow"
+    EMISSION = "emission-flow"
+    ELECTRICITY = "electricity-flow"
+
+
+def to_camel_case(string: str) -> str:
+    string_split = string.split("_")
+    return string_split[0] + "".join(word.capitalize() for word in string_split[1:])
+
+
+class FlowDiagramBaseModel(BaseModel):
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+
+
+class FlowDiagram(FlowDiagramBaseModel):
+    id: str
+    title: str
+    nodes: List[Node]
+    edges: List[Edge]
+    flows: List[Flow]
+    start_date: datetime
+    end_date: datetime
+
+    class Config:
+        alias_generator = to_camel_case
+        allow_population_by_field_name = True
+
+
+class Flow(FlowDiagramBaseModel):
+    id: str
+    label: str
+    type: str
+
+    class Config:
+        frozen = True
+
+
+class Edge(FlowDiagramBaseModel):
+    from_node: str
+    to_node: str
+    flow: str
+
+    class Config:
+        frozen = True
+        alias_generator = to_camel_case
+        allow_population_by_field_name = True
+
+
+class Node(FlowDiagramBaseModel):
+    id: str
+    title: Optional[str] = None
+    type: Optional[str] = None
+    subdiagram: Optional[Union[FlowDiagram, List[FlowDiagram]]]
+
+    class Config:
+        frozen = True
+
+
+FlowDiagram.update_forward_refs()

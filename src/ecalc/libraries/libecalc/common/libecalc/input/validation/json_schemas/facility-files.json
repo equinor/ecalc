@@ -1,0 +1,134 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/facility-files.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Facility files",
+  "properties": {
+    "FACILITY_INPUTS": {
+      "title": "FACILITY_INPUTS",
+      "description": "Defines input files which characterize various facility elements.\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "NAME": {
+            "title": "NAME",
+            "description": "Name of the facility input.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+            "type": "string"
+          },
+          "FILE": {
+            "title": "FILE",
+            "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+            "type": "string"
+          },
+          "TYPE": {
+            "title": "TYPE",
+            "description": "Defines the type of model applied on the data in the file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+            "type": "string",
+            "anyOf": [
+              {
+                "title": "ELECTRICITY2FUEL",
+                "description": "Table specifying the relationship between electrical load and fuel consumption for an entire generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE#use-in-facility-inputs",
+                "const": "ELECTRICITY2FUEL"
+              },
+              {
+                "title": "TABULAR",
+                "description": "Consumer energy function for pure barycentric interpolation, no extrapolation outside convex area.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE#use-in-facility-inputs",
+                "const": "TABULAR"
+              },
+              {
+                "title": "COMPRESSOR_TABULAR",
+                "description": "Consumer energy function for compressor (or compressor train) in tabular format.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE.html#use-in-facility-inputs",
+                "const": "COMPRESSOR_TABULAR"
+              },
+              {
+                "title": "PUMP_CHART_SINGLE_SPEED",
+                "description": "Pump chart data for single speed pump.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE#use-in-facility-inputs",
+                "const": "PUMP_CHART_SINGLE_SPEED"
+              },
+              {
+                "title": "PUMP_CHART_VARIABLE_SPEED",
+                "description": "Pump chart data for variable speed (VSD) pump.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE#use-in-facility-inputs",
+                "const": "PUMP_CHART_VARIABLE_SPEED"
+              }
+            ]
+          },
+          "HEAD_MARGIN": {
+            "title": "HEAD_MARGIN",
+            "description": "Adjustment of the head margin for power calibration.\n\n$ECALC_DOCS_KEYWORDS_URL/HEAD_MARGIN",
+            "type": "number"
+          },
+          "ADJUSTMENT": {
+            "title": "ADJUSTMENT",
+            "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
+            "type": "object",
+            "properties": {
+              "CONSTANT": {
+                "title": "CONSTANT",
+                "description": "Adjust input data with a constant value.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSTANT",
+                "type": "number"
+              },
+              "FACTOR": {
+                "title": "FACTOR",
+                "description": "Adjust input data with a constant multiplier.\n\n$ECALC_DOCS_KEYWORDS_URL/FACTOR",
+                "type": "number"
+              }
+            },
+            "oneOf": [
+              {
+                "required": ["CONSTANT"]
+              },
+              {
+                "required": ["FACTOR"]
+              }
+            ]
+          },
+          "UNITS": {
+            "title": "pump_chart_units",
+            "description": "Units for pump charts: RATE, HEAD and EFFICIENCY.",
+            "type": "object",
+            "properties": {
+              "RATE": {
+                "title": "RATE",
+                "description": "Unit for rate in pump chart. Currently only AM3_PER_HOUR is supported",
+                "const": "AM3_PER_HOUR"
+              },
+              "HEAD": {
+                "title": "HEAD",
+                "description": "Unit for head in pump chart. Supported units are M (default), KJ_PER_KG and JOULE_PER_KG",
+                "anyOf": [
+                  { "const": "M" },
+                  { "const": "KJ_PER_KG" },
+                  { "const": "JOULE_PER_KG" }
+                ]
+              },
+              "EFFICIENCY": {
+                "title": "EFFICIENCY",
+                "description": "Unit of efficiency in pump chart. Supported units are PERCENTAGE (default) and FRACTION.",
+                "anyOf": [{ "const": "FRACTION" }, { "const": "PERCENTAGE" }]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false,
+        "if": {
+          "anyOf": [
+            {
+              "properties": { "TYPE": { "const": "PUMP_CHART_SINGLE_SPEED" } },
+              "required": ["TYPE"]
+            },
+            {
+              "properties": {
+                "TYPE": { "const": "PUMP_CHART_VARIABLE_SPEED" }
+              },
+              "required": ["TYPE"]
+            }
+          ]
+        },
+        "then": { "required": ["NAME", "FILE", "TYPE", "UNITS"] },
+        "else": { "required": ["NAME", "FILE", "TYPE"] }
+      }
+    }
+  }
+}

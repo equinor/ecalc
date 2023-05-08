@@ -1,0 +1,26 @@
+name: Pre CI
+
+on:
+  # Workflow dispatch is used for manual triggers
+  workflow_dispatch:
+  # Workflow call is used for called from another workflow
+  workflow_call:
+
+jobs:
+  pre-commit: # Static analyzers, formatters and verifying pre-commit hooks has been run for both API and Web
+    name: Build & Run Pre Commit hooks to verify code structure, quality etc. from pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+
+      - name: Install pre-commit
+        run: pip install pre-commit==3.2.2
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --verbose

@@ -1,0 +1,89 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/energy_usage_model.json",
+  "title": "ENERGY_USAGE_MODEL",
+  "description": "Specifies the data used when calculating the energy usage of a consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+  "type": "object",
+  "properties": {
+    "ENERGY_USAGE_MODEL": {
+      "title": "ENERGY_USAGE_MODEL",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+      "type": "object",
+      "properties": {
+        "TYPE": { "$ref": "#/definitions/TYPE" }
+      },
+      "oneOf": [
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-direct.json#definitions/ENERGY_USAGE_MODEL_DIRECT"
+        },
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-consumer-systems.json#definitions/ENERGY_USAGE_MODEL_PUMP_SYSTEM"
+        },
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-consumer-systems.json#definitions/ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM"
+        },
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_COMPRESSOR"
+        },
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_COMPRESSOR_MULTIPLE_STREAMS_AND_PRESSURES"
+        },
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_PUMP"
+        },
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_TABULATED"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "VARIABLES": {
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/definitions.json#definitions/VARIABLES"
+    },
+    "ENERGYFUNCTION": {
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/definitions.json#definitions/ENERGYFUNCTION"
+    },
+    "TYPE": {
+      "title": "TYPE",
+      "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+      "type": "string",
+      "anyOf": [
+        {
+          "title": "DIRECT",
+          "description": "Energy usage model for direct consumers. No energy function involved. \n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#direct",
+          "const": "DIRECT"
+        },
+        {
+          "title": "PUMP_SYSTEM",
+          "description": "Energy usage model for pump systems. \n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#pump-system",
+          "const": "PUMP_SYSTEM"
+        },
+        {
+          "title": "COMPRESSOR_SYSTEM",
+          "description": "Energy usage model for compressor systems. \n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#compressor-system",
+          "const": "COMPRESSOR_SYSTEM"
+        },
+        {
+          "title": "TABULATED",
+          "description": "Energy usage model for tabulated energy usage. \n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#tabulated",
+          "const": "TABULATED"
+        },
+        {
+          "title": "COMPRESSOR",
+          "description": "Energy usage model for compressor. \n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#compressor",
+          "const": "COMPRESSOR"
+        },
+        {
+          "title": "PUMP",
+          "description": "Energy usage model for pump. \n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#pump",
+          "const": "PUMP"
+        },
+        {
+          "title": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
+          "description": "Energy usage model for variable speed compressor train with multiple streams. \n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL/#variable_speed_compressor_train_multiple_streams_and_pressures-energy-usage-model",
+          "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/definitions.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "An ecalc yaml file",
+  "definitions": {
+    "LIST_OF_NUMBERS": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "LIST_OF_NUMBERS_OR_STRINGS": {
+      "type": "array",
+      "oneOf": [
+        {
+          "items": {
+            "type": "number"
+          }
+        },
+        {
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "VARIABLES": {
+      "type": "object",
+      "title": "VARIABLES",
+      "description": "Defines variables used in an energy usage model by means of expressions or constants.\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
+      "patternProperties": {
+        "^[a-zA-Z0-9_]+$": {
+          "properties": {
+            "VALUE": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "CUMULATIVES": {
+      "title": "CUMULATIVES",
+      "description": "Missing documentation.\n\n$ECALC_DOCS_KEYWORDS_URL/CUMULATIVES",
+      "type": "object",
+      "properties": {
+        "^[a-zA-Z0-9_\\[,\\]]+$": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
+    "ENERGYFUNCTION": {
+      "title": "ENERGYFUNCTION",
+      "description": "Definition of energy function of equipment.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGYFUNCTION",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "CONSUMERSYSTEM": {
+              "title": "CONSUMERSYSTEM",
+              "description": "Defines the start of an energy function.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERSYSTEM",
+              "type": "object",
+              "properties": {
+                "CONSUMERELEMENTS": {
+                  "title": "CONSUMERELEMENTS",
+                  "description": "A list of keys referring to elements in FACILITY_INPUTS.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERELEMENTS",
+                  "type": "array"
+                },
+                "FLUID": {
+                  "title": "FLUID",
+                  "description": "Specification of the fluids flowing through the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/FLUID",
+                  "type": "object",
+                  "properties": {
+                    "DENSITY": {
+                      "title": "DENSITY",
+                      "description": "Density of the fluid in kg/m3.\n\n$ECALC_DOCS_KEYWORDS_URL/DENSITY",
+                      "type": "number"
+                    }
+                  },
+                  "required": ["DENSITY"],
+                  "additionalProperties": false
+                },
+                "RATE": {
+                  "title": "RATE",
+                  "description": "Expression defining the total rate for the system.\n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+                  "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                },
+                "PRIORITY": {
+                  "title": "PRIORITY",
+                  "description": "Lists the order of operational modes.\n\n$ECALC_DOCS_KEYWORDS_URL/PRIORITY",
+                  "type": "array",
+                  "items": {
+                    "properties": {
+                      "CONSUMERS": {
+                        "title": "CONSUMERS",
+                        "description": "List of consumers in the system.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",
+                        "$ref": "#definitions/LIST_OF_NUMBERS"
+                      },
+                      "FRACTIONS": {
+                        "title": "FRACTIONS",
+                        "description": "List of fractions per consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/FRACTIONS",
+                        "$ref": "#definitions/LIST_OF_NUMBERS_OR_STRINGS"
+                      },
+                      "SUCTION_PRESSURE": {
+                        "title": "SUCTION_PRESSURE",
+                        "description": "List specifying the suction pressure for each consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+                        "$ref": "#definitions/LIST_OF_NUMBERS_OR_STRINGS"
+                      },
+                      "DISCHARGE_PRESSURE": {
+                        "title": "DISCHARGE_PRESSURE",
+                        "description": "List specifying the discharge pressure for each consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+                        "$ref": "#definitions/LIST_OF_NUMBERS_OR_STRINGS"
+                      },
+                      "CROSSOVER": {
+                        "title": "CROSSOVER",
+                        "description": "Specifies if rates are to be crossed over to another consumer if the rate capacity is exceeded.\n\n$ECALC_DOCS_KEYWORDS_URL/CROSSOVER",
+                        "$ref": "#definitions/LIST_OF_NUMBERS"
+                      }
+                    },
+                    "required": [
+                      "CONSUMERS",
+                      "FRACTIONS",
+                      "SUCTION_PRESSURE",
+                      "DISCHARGE_PRESSURE"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "required": ["CONSUMERSYSTEM"]
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+forecastYear	forecastMonth	turbineFuelGasConsumption	turbineFuelGasCo2Mass	turbineFuelGasNoxMass	turbineFuelGasNmvocMass	turbineFuelGasCh4Mass	gasTurbineGeneratorConsumption	fromShoreConsumption
+#Years	Months	Fuel Consumption[Sm3]	CO2 From Fuel Gas[t]	NOX From Fuel Gas[t]	NMVOC From Fuel Gas[t]	CH4 From Fuel Gas[t]	Total Electricity Generated[GWh]	Total Electricity Consumed From Power-From-Shore[GWh]
+2021	01	0	0	0	0	0	0	0
+2022	01	50156012	105829.2	459.4291	12.03744	45.64197	159.432	0
+2023	01	0	0	0	0	0	0	159.432
+2024	01	0	0	0	0	0	0	149.328
+2025	01	0	0	0	0	0	0	168.192
+2026	01	0	0	0	0	0	0	168.192
+2027	01	0	0	0	0	0	0	168.192
+2028	01	0	0	0	0	0	0	154.5984
+2029	01	0	0	0	0	0	0	168.192
+2030	01	0	0	0	0	0	0	168.192
+2031	01	0	0	0	0	0	0	168.192
+2032	01	0	0	0	0	0	0	154.5984
+2033	01	0	0	0	0	0	0	175.2

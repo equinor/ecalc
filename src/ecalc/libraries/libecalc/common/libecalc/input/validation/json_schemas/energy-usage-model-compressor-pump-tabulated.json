@@ -1,0 +1,229 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/energy_usage_model_compressor_pump_tabular.json",
+  "title": "ENERGY_USAGE_MODEL",
+  "description": "Specifies the data used when calculating the energy usage of a consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+  "type": "object",
+  "definitions": {
+    "ENERGY_USAGE_MODEL_COMPRESSOR": {
+      "title": "ENERGY_USAGE_MODEL COMPRESSOR",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#compressor",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "COMPRESSOR"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "ENERGYFUNCTION": {
+          "title": "ENERGYFUNCTION",
+          "description": "The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS"
+        },
+        "RATE": {
+          "title": "RATE",
+          "description": "Fluid (gas) rate through the compressor in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        },
+        "SUCTION_PRESSURE": {
+          "title": "SUCTION_PRESSURE",
+          "description": "Fluid (gas) pressure at compressor inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        },
+        "DISCHARGE_PRESSURE": {
+          "title": "DISCHARGE_PRESSURE",
+          "description": "Fluid (gas) pressure at compressor outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["TYPE", "ENERGYFUNCTION"],
+      "anyOf": [
+        { "required": ["RATE"] },
+        { "required": ["SUCTION_PRESSURE"] },
+        { "required": ["DISCHARGE_PRESSURE"] }
+      ]
+    },
+    "ENERGY_USAGE_MODEL_COMPRESSOR_MULTIPLE_STREAMS_AND_PRESSURES": {
+      "title": "ENERGY_USAGE_MODEL_COMPRESSOR_MULTIPLE_STREAMS_AND_PRESSURES",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#compressor-train-multiple-streams-and-pressures",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
+        },
+        "RATE_UNIT": {
+          "title": "RATE_UNIT",
+          "description": "Defaults to SM3_PER_DAY, only SM3_PER_DAY implemented for now",
+          "type": "string",
+          "const": "SM3_PER_DAY"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "COMPRESSOR_TRAIN_MODEL": {
+          "title": "COMPRESSOR_TRAIN_MODEL",
+          "description": "The compressor train model, reference to a compressor type model defined in MODELS"
+        },
+        "RATE_PER_STREAM": {
+          "title": "RATE_PER_STREAM",
+          "description": "Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+          "type": "array"
+        },
+        "SUCTION_PRESSURE": {
+          "title": "SUCTION_PRESSURE",
+          "description": "Fluid (gas) pressure at compressor train inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        },
+        "DISCHARGE_PRESSURE": {
+          "title": "DISCHARGE_PRESSURE",
+          "description": "Fluid (gas) pressure at compressor train outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        },
+        "INTERSTAGE_CONTROL_PRESSURE": {
+          "title": "INTERSTAGE_PRESSURE",
+          "description": "Fluid (gas) pressure at compressor train outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "TYPE",
+        "COMPRESSOR_TRAIN_MODEL",
+        "RATE_PER_STREAM",
+        "SUCTION_PRESSURE",
+        "DISCHARGE_PRESSURE"
+      ]
+    },
+    "ENERGY_USAGE_MODEL_PUMP": {
+      "title": "ENERGY_USAGE_MODEL PUMP",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#pump",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "PUMP"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "ENERGYFUNCTION": {
+          "title": "ENERGYFUNCTION",
+          "description": "The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS"
+        },
+        "RATE": {
+          "title": "RATE",
+          "description": "Fluid rate through the compressor in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        },
+        "SUCTION_PRESSURE": {
+          "title": "SUCTION_PRESSURE",
+          "description": "Fluid pressure at compressor inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        },
+        "DISCHARGE_PRESSURE": {
+          "title": "DISCHARGE_PRESSURE",
+          "description": "Fluid pressure at compressor outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        },
+        "FLUID_DENSITY": {
+          "$ref": "#/definitions/FLUID_DENSITY"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "TYPE",
+        "ENERGYFUNCTION",
+        "RATE",
+        "SUCTION_PRESSURE",
+        "DISCHARGE_PRESSURE",
+        "FLUID_DENSITY"
+      ]
+    },
+    "ENERGY_USAGE_MODEL_TABULATED": {
+      "title": "ENERGY_USAGE_MODEL TABULATED",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#tabulated",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "TABULATED"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "ENERGYFUNCTION": {
+          "title": "ENERGYFUNCTION",
+          "description": "The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS"
+        },
+        "VARIABLES": {
+          "title": "VARIABLES",
+          "description": "Variables for the tabulated energy function \n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES#variables",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VARIABLE"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["TYPE", "ENERGYFUNCTION", "VARIABLES"]
+    },
+    "VARIABLE": {
+      "title": "VARIABLE",
+      "description": "Variable for the tabulated energy function. \n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES#variables",
+      "type": "object",
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of variable. Must correspond exactly to header/column name in the energy function",
+          "type": "string"
+        },
+        "EXPRESSION": {
+          "title": "EXPRESSION",
+          "description": "Expression defining the variable",
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["NAME", "EXPRESSION"]
+    },
+    "FLUID_DENSITY": {
+      "title": "FLUID_DENSITY",
+      "description": "Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+    }
+  }
+}

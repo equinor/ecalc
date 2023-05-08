@@ -1,0 +1,184 @@
+[
+    {
+        "edges": [
+            {
+                "flow": "fuel-flow",
+                "fromNode": "fuel-input",
+                "toNode": "installation-Installation A"
+            },
+            {
+                "flow": "emission-flow",
+                "fromNode": "installation-Installation A",
+                "toNode": "emission-output"
+            }
+        ],
+        "endDate": "1901-01-01T00:00:00Z",
+        "flows": [
+            {
+                "id": "fuel-flow",
+                "label": "Fuel",
+                "type": "fuel-flow"
+            },
+            {
+                "id": "emission-flow",
+                "label": "Emissions",
+                "type": "emission-flow"
+            }
+        ],
+        "id": "area",
+        "nodes": [
+            {
+                "id": "fuel-input",
+                "subdiagram": null,
+                "title": "Fuel",
+                "type": "input-output-node"
+            },
+            {
+                "id": "installation-Installation A",
+                "subdiagram": [
+                    {
+                        "edges": [
+                            {
+                                "flow": "fuel-flow",
+                                "fromNode": "fuel-input",
+                                "toNode": "Installation A-generator-set-Generator set A"
+                            },
+                            {
+                                "flow": "fuel-flow",
+                                "fromNode": "fuel-input",
+                                "toNode": "Installation A-consumer-Flare"
+                            },
+                            {
+                                "flow": "fuel-flow",
+                                "fromNode": "fuel-input",
+                                "toNode": "Installation A-consumer-Gas export compressor"
+                            },
+                            {
+                                "flow": "electricity-flow",
+                                "fromNode": "Installation A-generator-set-Generator set A",
+                                "toNode": "Installation A-consumer-Base production load"
+                            },
+                            {
+                                "flow": "electricity-flow",
+                                "fromNode": "Installation A-generator-set-Generator set A",
+                                "toNode": "Installation A-consumer-Gas injection compressor"
+                            },
+                            {
+                                "flow": "electricity-flow",
+                                "fromNode": "Installation A-generator-set-Generator set A",
+                                "toNode": "Installation A-consumer-Produced water reinjection pump"
+                            },
+                            {
+                                "flow": "electricity-flow",
+                                "fromNode": "Installation A-generator-set-Generator set A",
+                                "toNode": "Installation A-consumer-Sea water injection pump"
+                            },
+                            {
+                                "flow": "emission-flow",
+                                "fromNode": "Installation A-generator-set-Generator set A",
+                                "toNode": "emission-output"
+                            },
+                            {
+                                "flow": "emission-flow",
+                                "fromNode": "Installation A-consumer-Flare",
+                                "toNode": "emission-output"
+                            },
+                            {
+                                "flow": "emission-flow",
+                                "fromNode": "Installation A-consumer-Gas export compressor",
+                                "toNode": "emission-output"
+                            }
+                        ],
+                        "endDate": "1901-01-01T00:00:00Z",
+                        "flows": [
+                            {
+                                "id": "fuel-flow",
+                                "label": "Fuel",
+                                "type": "fuel-flow"
+                            },
+                            {
+                                "id": "electricity-flow",
+                                "label": "Electricity",
+                                "type": "electricity-flow"
+                            },
+                            {
+                                "id": "emission-flow",
+                                "label": "Emissions",
+                                "type": "emission-flow"
+                            }
+                        ],
+                        "id": "installation-Installation A",
+                        "nodes": [
+                            {
+                                "id": "fuel-input",
+                                "subdiagram": null,
+                                "title": "Fuel",
+                                "type": "input-output-node"
+                            },
+                            {
+                                "id": "Installation A-generator-set-Generator set A",
+                                "subdiagram": null,
+                                "title": "Generator set A",
+                                "type": "generator"
+                            },
+                            {
+                                "id": "Installation A-consumer-Flare",
+                                "subdiagram": null,
+                                "title": "Flare",
+                                "type": "direct"
+                            },
+                            {
+                                "id": "Installation A-consumer-Gas export compressor",
+                                "subdiagram": null,
+                                "title": "Gas export compressor",
+                                "type": "compressor"
+                            },
+                            {
+                                "id": "Installation A-consumer-Base production load",
+                                "subdiagram": null,
+                                "title": "Base production load",
+                                "type": "direct"
+                            },
+                            {
+                                "id": "Installation A-consumer-Gas injection compressor",
+                                "subdiagram": null,
+                                "title": "Gas injection compressor",
+                                "type": "compressor"
+                            },
+                            {
+                                "id": "Installation A-consumer-Produced water reinjection pump",
+                                "subdiagram": null,
+                                "title": "Produced water reinjection pump",
+                                "type": "pump"
+                            },
+                            {
+                                "id": "Installation A-consumer-Sea water injection pump",
+                                "subdiagram": null,
+                                "title": "Sea water injection pump",
+                                "type": "tabulated"
+                            },
+                            {
+                                "id": "emission-output",
+                                "subdiagram": null,
+                                "title": "Emission",
+                                "type": "input-output-node"
+                            }
+                        ],
+                        "startDate": "1900-01-01T00:00:00Z",
+                        "title": "Installation A"
+                    }
+                ],
+                "title": "Installation A",
+                "type": "installation"
+            },
+            {
+                "id": "emission-output",
+                "subdiagram": null,
+                "title": "Emission",
+                "type": "input-output-node"
+            }
+        ],
+        "startDate": "1900-01-01T00:00:00Z",
+        "title": "Area"
+    }
+]

@@ -1,0 +1,279 @@
+{
+    "edges": [
+        {
+            "flow": "fuel-flow",
+            "from_node": "fuel-input",
+            "to_node": "installation-Installation1"
+        },
+        {
+            "flow": "emission-flow",
+            "from_node": "installation-Installation1",
+            "to_node": "emission-output"
+        }
+    ],
+    "end_date": "2020-12-31 00:00:00",
+    "flows": [
+        {
+            "id": "fuel-flow",
+            "label": "Fuel",
+            "type": "fuel-flow"
+        },
+        {
+            "id": "emission-flow",
+            "label": "Emissions",
+            "type": "emission-flow"
+        }
+    ],
+    "id": "area",
+    "nodes": [
+        {
+            "id": "fuel-input",
+            "subdiagram": null,
+            "title": "Fuel",
+            "type": "input-output-node"
+        },
+        {
+            "id": "installation-Installation1",
+            "subdiagram": [
+                {
+                    "edges": [
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "Installation1-consumer-Compressor system 1"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "Installation1-consumer-Compressor system 1",
+                            "to_node": "emission-output"
+                        }
+                    ],
+                    "end_date": "2019-01-01 00:00:00",
+                    "flows": [
+                        {
+                            "id": "fuel-flow",
+                            "label": "Fuel",
+                            "type": "fuel-flow"
+                        },
+                        {
+                            "id": "electricity-flow",
+                            "label": "Electricity",
+                            "type": "electricity-flow"
+                        },
+                        {
+                            "id": "emission-flow",
+                            "label": "Emissions",
+                            "type": "emission-flow"
+                        }
+                    ],
+                    "id": "installation-Installation1",
+                    "nodes": [
+                        {
+                            "id": "fuel-input",
+                            "subdiagram": null,
+                            "title": "Fuel",
+                            "type": "input-output-node"
+                        },
+                        {
+                            "id": "Installation1-consumer-Compressor system 1",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-01-01 00:00:00",
+                                    "flows": [],
+                                    "id": "Installation1-consumer-Compressor system 1",
+                                    "nodes": [
+                                        {
+                                            "id": "compressor1",
+                                            "subdiagram": [],
+                                            "title": "compressor1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "compressor2",
+                                            "subdiagram": [],
+                                            "title": "compressor2",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "2018-01-01 00:00:00",
+                                    "title": "Compressor system 1"
+                                },
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "Installation1-consumer-Compressor system 1",
+                                    "nodes": [
+                                        {
+                                            "id": "compressor1",
+                                            "subdiagram": [],
+                                            "title": "compressor1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "compressor2",
+                                            "subdiagram": [],
+                                            "title": "compressor2",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "compressor3",
+                                            "subdiagram": [],
+                                            "title": "compressor3",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "2020-01-01 00:00:00",
+                                    "title": "Compressor system 1"
+                                }
+                            ],
+                            "title": "Compressor system 1",
+                            "type": "compressor-system"
+                        },
+                        {
+                            "id": "emission-output",
+                            "subdiagram": null,
+                            "title": "Emission",
+                            "type": "input-output-node"
+                        }
+                    ],
+                    "start_date": "2018-01-01 00:00:00",
+                    "title": "Installation1"
+                },
+                {
+                    "edges": [
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "Installation1-consumer-Compressor system 1"
+                        },
+                        {
+                            "flow": "fuel-flow",
+                            "from_node": "fuel-input",
+                            "to_node": "Installation1-consumer-Compressor 1"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "Installation1-consumer-Compressor system 1",
+                            "to_node": "emission-output"
+                        },
+                        {
+                            "flow": "emission-flow",
+                            "from_node": "Installation1-consumer-Compressor 1",
+                            "to_node": "emission-output"
+                        }
+                    ],
+                    "end_date": "2020-12-31 00:00:00",
+                    "flows": [
+                        {
+                            "id": "fuel-flow",
+                            "label": "Fuel",
+                            "type": "fuel-flow"
+                        },
+                        {
+                            "id": "electricity-flow",
+                            "label": "Electricity",
+                            "type": "electricity-flow"
+                        },
+                        {
+                            "id": "emission-flow",
+                            "label": "Emissions",
+                            "type": "emission-flow"
+                        }
+                    ],
+                    "id": "installation-Installation1",
+                    "nodes": [
+                        {
+                            "id": "fuel-input",
+                            "subdiagram": null,
+                            "title": "Fuel",
+                            "type": "input-output-node"
+                        },
+                        {
+                            "id": "Installation1-consumer-Compressor system 1",
+                            "subdiagram": [
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-01-01 00:00:00",
+                                    "flows": [],
+                                    "id": "Installation1-consumer-Compressor system 1",
+                                    "nodes": [
+                                        {
+                                            "id": "compressor1",
+                                            "subdiagram": [],
+                                            "title": "compressor1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "compressor2",
+                                            "subdiagram": [],
+                                            "title": "compressor2",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "2018-01-01 00:00:00",
+                                    "title": "Compressor system 1"
+                                },
+                                {
+                                    "edges": [],
+                                    "end_date": "2020-12-31 00:00:00",
+                                    "flows": [],
+                                    "id": "Installation1-consumer-Compressor system 1",
+                                    "nodes": [
+                                        {
+                                            "id": "compressor1",
+                                            "subdiagram": [],
+                                            "title": "compressor1",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "compressor2",
+                                            "subdiagram": [],
+                                            "title": "compressor2",
+                                            "type": "compressor"
+                                        },
+                                        {
+                                            "id": "compressor3",
+                                            "subdiagram": [],
+                                            "title": "compressor3",
+                                            "type": "compressor"
+                                        }
+                                    ],
+                                    "start_date": "2020-01-01 00:00:00",
+                                    "title": "Compressor system 1"
+                                }
+                            ],
+                            "title": "Compressor system 1",
+                            "type": "compressor-system"
+                        },
+                        {
+                            "id": "Installation1-consumer-Compressor 1",
+                            "subdiagram": null,
+                            "title": "Compressor 1",
+                            "type": "direct"
+                        },
+                        {
+                            "id": "emission-output",
+                            "subdiagram": null,
+                            "title": "Emission",
+                            "type": "input-output-node"
+                        }
+                    ],
+                    "start_date": "2019-01-01 00:00:00",
+                    "title": "Installation1"
+                }
+            ],
+            "title": "Installation1",
+            "type": "installation"
+        },
+        {
+            "id": "emission-output",
+            "subdiagram": null,
+            "title": "Emission",
+            "type": "input-output-node"
+        }
+    ],
+    "start_date": "2018-01-01 00:00:00",
+    "title": "Area"
+}

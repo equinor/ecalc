@@ -1,0 +1,40 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/models-compressor-with-turbine.json",
+  "title": "MODELS",
+  "description": "A model which combines a compressor model (electric) with a turbine model.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+  "type": "object",
+  "definitions": {
+    "COMPRESSOR_WITH_TURBINE": {
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the model.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the type of model.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "COMPRESSOR_WITH_TURBINE"
+        },
+        "COMPRESSOR_MODEL": {
+          "title": "COMPRESSOR_MODEL",
+          "description": "Reference to a compressor model",
+          "type": "string"
+        },
+        "TURBINE_MODEL": {
+          "title": "TURBINE_MODEL",
+          "description": "Reference to a turbine model",
+          "type": "string"
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "description": "Constant to adjust power usage in MW",
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["NAME", "TYPE", "COMPRESSOR_MODEL", "TURBINE_MODEL"]
+    }
+  }
+}

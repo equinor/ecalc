@@ -1,0 +1,38 @@
+name: release-please
+
+on:
+  # Workflow dispatch is used for manual triggers
+  workflow_dispatch:
+  # Workflow call is used for called from another workflow
+  workflow_call:
+
+
+jobs:
+  release-please:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          release-type: simple
+          package-name: libecalc
+          changelog-path: docs/docs/changelog/changelog.md
+          changelog-types: '[{ "type": "feat", "section": "Features", "hidden": false },{ "type": "feature", "section": "Features", "hidden": false },{ "type": "fix", "section": "Bug Fixes", "hidden": false },{ "type": "perf", "section": "Performance Improvements", "hidden": false },{ "type": "revert", "section": "Reverts", "hidden": false },{ "type": "docs", "section": "Documentation", "hidden": false },{ "type": "style", "section": "Styles", "hidden": false },{ "type": "chore", "section": "Miscellaneous Chores", "hidden": false },{ "type": "refactor", "section": "Code Refactoring", "hidden": false },{ "type": "test", "section": "Tests", "hidden": false },{ "type": "build", "section": "Build System", "hidden": false },{ "type": "ci", "section": "Continuous Integration", "hidden": false }]'
+          extra-files: |
+            pyproject.toml
+            src/ecalc/libraries/libecalc/common/libecalc/version.py
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+
+  deploy-prod:
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+    needs: release-please
+    uses: equinor/ecalc/.github/workflows/publish.yml@main
+    secrets:
+        pypi_token: ${{ secrets.PYPI_TOKEN }}
+    if: ${{ needs.release-please.outputs.release_created }}

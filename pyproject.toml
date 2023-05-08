@@ -1,0 +1,147 @@
+[tool.poetry]
+name = "libecalc"
+# DO_NOT_EDIT: Version number automatically changed in CICD
+version = "8.2.1"  # x-release-please-version
+# END_DO_NOT_EDIT
+description = "eCalc™ - energy and emission Calculator - is a calculator for energy usage and emissions related to reservoir drainage."
+keywords = ["energy", "emission", "scientific", "engineering"]
+authors = ["eCalc Team <fg_ecalc@equinor.com>"]
+
+license = "GPL-3.0-only"
+readme = "README.md"
+homepage = "https://github.com/equinor/ecalc"
+repository = "https://github.com/equinor/ecalc"
+classifiers=[
+    "Development Status :: 5 - Production/Stable", # TODO? or 4 - Beta?
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Natural Language :: English",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)", # TODO: or later?
+]
+packages = [
+    { include = "cli", from = "src/ecalc/cli" },
+    { include = "neqsim_ecalc_wrapper", from = "src/ecalc/libraries/neqsim" },
+    { include = "libecalc", from = "src/ecalc/libraries/libecalc/common" },
+    { include = "libecalc", from = "src/ecalc/libraries/libecalc/fixtures" },
+]
+
+[tool.poetry.scripts]
+ecalc = 'cli.main:main'
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.12"
+pydantic = ">1.9.1"
+PyYAML = "^6.0"
+numpy = "^1.24"
+pandas = "^2.0"
+scipy = "^1.6"
+"ruamel.yaml" = "^0.17.21"
+Shapely = "^2.0"
+networkx = "^3.1"
+orjson = "^3.8.11"
+py4j = "^0.10"
+typer = {version = "^0.7.0", extras = ["all"]}
+rich = "^12.6.0"
+jupyter = {version = "^1.0.0", optional = true}
+matplotlib = {version = "^3.7.1", optional = true}
+typer-cli = "0.0.13"
+
+[tool.poetry.dev-dependencies]
+pytest-snapshot = "^0.9"
+pytest = "^7.3"
+jsonschema = "^4.17"
+coverage = {version="^7.2.5", extras=["toml"]}
+pdoc = "^13.1.1"
+nbconvert = "^7.4.0"
+
+[tool.poetry.extras]
+notebooks = ["jupyter", "matplotlib"]
+
+[build-system]
+requires = ["poetry-core>=1.4.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+# plugins, plugin config etc
+[tool.pytest.ini_options]
+markers = [
+    "e2e: e2e tests.",
+    "integtest: integration test",
+    "slow: slow tests, often snapshot, but not necessarily. > 1 second.",
+    "snapshot: snapshot tests, notoriously slow, but not necessarily.",
+]
+
+[tool.mypy]
+ignore_missing_imports = true
+warn_return_any = false
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = false
+disable_error_code = ["call-overload", "union-attr", "valid-type", "return-value", "attr-defined", "assignment"]
+namespace_packages = true
+explicit_package_bases = true
+plugins = ['pydantic.mypy', 'numpy.typing.mypy_plugin']
+
+[tool.coverage.run]
+omit=["^./__init__.py", "^api/.*"]
+
+[tool.ruff]
+
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    "UP", # Python upgrade, automatically upgrade syntax for newer versions of the language.
+    "S", # flake8-bandit
+]
+
+target-version = "py38"
+
+# Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "B012", # TODO: Concider mitigation: `return` inside `finally` blocks cause exceptions to be silenced
+    "B023", # FIXME: Potentially bugs in compressor code! Function definition does not bind loop variable. tracked by issue 3975
+    "B904", # FIXME: Within an except clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+    "B905",  # strict= parameter in zip() was added in python 3.10
+    "UP006", # Avoid switching type annotations to 3.10
+    "UP007", # Avoid switching type annotations to 3.10
+    "S101",  # Allow use of assert (especially for tests)
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["E402", "F401"]
+
+
+[tool.interrogate]  # Monitor doc-string coverage
+fail-under = 30 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = true
+ignore-property-decorators = false
+ignore-module = true
+ignore-nested-functions = true
+ignore-nested-classes = true
+ignore-setters = false
+quiet = false

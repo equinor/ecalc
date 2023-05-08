@@ -1,0 +1,21 @@
+name: "On push to any branch"
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+    tags-ignore:
+      - '**'
+
+jobs:
+  pre-ci:
+    uses: ./.github/workflows/pre-ci.yml
+
+  lib-ci:
+    uses: ./.github/workflows/lib-ci.yml
+
+  examples-ci:
+    uses: ./.github/workflows/examples-ci.yml
+
+  docs-ci:
+    uses: ./.github/workflows/docs-ci.yml

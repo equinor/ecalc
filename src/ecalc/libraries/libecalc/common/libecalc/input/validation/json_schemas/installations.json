@@ -1,0 +1,108 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/installations.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Installations",
+  "properties": {
+    "INSTALLATIONS": {
+      "title": "INSTALLATIONS",
+      "description": "Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "NAME": {
+            "title": "NAME",
+            "description": "Name of the installation.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+            "type": "string"
+          },
+          "CATEGORY": {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/category.json#properties/CATEGORY"
+          },
+          "HCEXPORT": {
+            "title": "HCEXPORT",
+            "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/HCEXPORT",
+            "oneOf": [
+              {
+                "type": "object",
+                "patternProperties": {
+                  "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                    "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+              }
+            ]
+          },
+          "FUEL": {
+            "$ref": "#/definitions/FUEL"
+          },
+          "REGULARITY": {
+            "title": "REGULARITY",
+            "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
+
+            "oneOf": [
+              {
+                "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+              },
+              {
+                "type": "object",
+                "patternProperties": {
+                  "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                    "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "GENERATORSETS": {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS"
+          },
+          "FUELCONSUMERS": {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/fuel-consumers.json#properties/FUELCONSUMERS"
+          },
+          "DIRECT_EMITTERS": {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS"
+          }
+        },
+        "required": ["NAME", "HCEXPORT", "FUEL"],
+        "anyOf": [
+          {
+            "required": ["GENERATORSETS", "FUELCONSUMERS"]
+          },
+          {
+            "required": ["GENERATORSETS"]
+          },
+          {
+            "required": ["FUELCONSUMERS"]
+          }
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "definitions": {
+    "FUEL": {
+      "title": "FUEL",
+      "description": "Main fuel type for installation.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+      "oneOf": [
+        {
+          "type": "object",
+          "patternProperties": {
+            "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  }
+}

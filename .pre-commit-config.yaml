@@ -1,0 +1,44 @@
+# using default_language_version
+# to avoid issues with RH 7
+default_language_version:
+  node: 16.15.1
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: 'v0.0.261'
+    hooks:
+      - id: ruff
+        files: ^src/.*\.py$
+        exclude: gen/|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist
+        args:
+          - --fix
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: ['--line-length=120', '--include=\.pyi?$']
+        exclude: gen/
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.2.0
+    hooks:
+      - id: mypy
+        files: ^(src/ecalc/libraries/libecalc)
+        exclude: tests|src/ecalc/libraries/libecalc/common/libecalc/input/yaml
+        args: ['--config-file=./pyproject.toml']
+        additional_dependencies:
+          - types-PyYAML
+          - pydantic
+          - numpy
+          - types-requests
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.5.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ['@commitlint/config-conventional']
+
+  - repo: https://github.com/econchick/interrogate
+    rev: 1.5.0
+    hooks:
+      - id: interrogate
+        exclude: tests|neqsim|fixtures|conftest

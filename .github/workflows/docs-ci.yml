@@ -1,0 +1,53 @@
+name: Test Docs
+
+on:
+  # Workflow dispatch is used for manual triggers
+  workflow_dispatch:
+  # Workflow call is used for called from another workflow
+  workflow_call:
+
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3.5.0
+
+    - name: Install Poetry
+      run: pipx install poetry
+
+    - name: Setup Python
+      uses: actions/setup-python@v4.5.0
+      with:
+        python-version: "3.8"
+        cache: 'poetry'
+
+    - name: Check pyproject.toml validity
+      run: poetry check --no-interaction
+
+    - name: Install deps
+      run: poetry install --no-interaction
+    
+    - name: Generate CLI reference
+      run: |
+        cd src/ecalc/cli
+        poetry run python generate_docs.py > ../../../docs/docs/about/references/cli_reference.md
+
+    - name: Setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: npm
+        cache-dependency-path: docs/package-lock.json
+
+    - name: Install dependencies and test by building website
+      run: |
+        cd docs
+        npm ci --ignore-scripts
+        npm run build
+
+    - name: Generate API reference
+      run: |
+        cd docs
+        poetry run python make-api-reference.py

@@ -1,0 +1,10 @@
+# Each line is a file pattern followed by one or more owners.
+
+# eCalc Lib
+/src/ecalc/ @equinor/ecalc-core-library-team
+
+# Examples
+/examples/ @equinor/ecalc-core-library-team
+
+# Documentation
+/docs/ @equinor/ecalc-technical-doc-writers
