@@ -1,0 +1,25 @@
+name: "Main CI/CD"
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  pre-ci:
+    uses: ./.github/workflows/pre-ci.yml
+
+  lib-ci:
+    uses: ./.github/workflows/lib-ci.yml
+
+  docs-ci:
+    uses: ./.github/workflows/docs-ci.yml
+
+  docs-publish:
+    uses: ./.github/workflows/docs-publish.yml
+    secrets: inherit
+    needs: [docs-ci]
+    
+  release-please:
+    uses: ./.github/workflows/release-please.yml
+    secrets: inherit
+    needs: [lib-ci]

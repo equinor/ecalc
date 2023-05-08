@@ -1,0 +1,230 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/models-compressor-chart.json",
+  "title": "MODELS",
+  "description": "Model of a compressor chart which may be used in a compressor (train) model.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+  "type": "object",
+  "definitions": {
+    "COMPRESSOR_CHART": {
+      "oneOf": [
+        {
+          "title": "VARIABLE_SPEED",
+          "description": "Variable speed compressor chart.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "object",
+          "properties": {
+            "NAME": { "$ref": "#/definitions/NAME" },
+            "TYPE": { "$ref": "#/definitions/TYPE" },
+            "CHART_TYPE": {
+              "const": "VARIABLE_SPEED"
+            },
+            "CURVES": {
+              "$ref": "#/definitions/CURVES"
+            },
+            "UNITS": {
+              "$ref": "#/definitions/UNITS"
+            }
+          },
+          "additionalProperties": false,
+          "required": ["NAME", "TYPE", "CHART_TYPE", "CURVES", "UNITS"]
+        },
+        {
+          "title": "SINGLE_SPEED",
+          "description": "Single speed compressor chart.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "object",
+          "properties": {
+            "NAME": { "$ref": "#/definitions/NAME" },
+            "TYPE": { "$ref": "#/definitions/TYPE" },
+            "CHART_TYPE": {
+              "const": "SINGLE_SPEED"
+            },
+            "CURVE": {
+              "$ref": "#/definitions/CURVE"
+            },
+            "UNITS": {
+              "$ref": "#/definitions/UNITS"
+            }
+          },
+          "additionalProperties": false,
+          "required": ["NAME", "TYPE", "CHART_TYPE", "CURVE", "UNITS"]
+        },
+        {
+          "title": "GENERIC_FROM_INPUT",
+          "description": "Generic compressor chart from input.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "object",
+          "properties": {
+            "NAME": { "$ref": "#/definitions/NAME" },
+            "TYPE": { "$ref": "#/definitions/TYPE" },
+            "CHART_TYPE": {
+              "const": "GENERIC_FROM_INPUT"
+            },
+            "POLYTROPIC_EFFICIENCY": {
+              "$ref": "#/definitions/POLYTROPIC_EFFICIENCY"
+            },
+            "UNITS": {
+              "$ref": "#/definitions/UNITS_GENERIC_FROM_INPUT"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "NAME",
+            "TYPE",
+            "CHART_TYPE",
+            "POLYTROPIC_EFFICIENCY",
+            "UNITS"
+          ]
+        },
+        {
+          "title": "GENERIC_FROM_DESIGN_POINT",
+          "description": "Generic compressor chart from input.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "object",
+          "properties": {
+            "NAME": { "$ref": "#/definitions/NAME" },
+            "TYPE": { "$ref": "#/definitions/TYPE" },
+            "CHART_TYPE": {
+              "const": "GENERIC_FROM_DESIGN_POINT"
+            },
+            "POLYTROPIC_EFFICIENCY": {
+              "$ref": "#/definitions/POLYTROPIC_EFFICIENCY"
+            },
+            "DESIGN_RATE": { "$ref": "#/definitions/DESIGN_RATE" },
+            "DESIGN_HEAD": { "$ref": "#/definitions/DESIGN_HEAD" },
+            "UNITS": { "$ref": "#/definitions/UNITS" }
+          },
+          "additionalProperties": false,
+          "required": [
+            "NAME",
+            "TYPE",
+            "CHART_TYPE",
+            "POLYTROPIC_EFFICIENCY",
+            "DESIGN_RATE",
+            "DESIGN_HEAD",
+            "UNITS"
+          ]
+        }
+      ]
+    },
+    "NAME": {
+      "title": "NAME",
+      "description": "Name of the model.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+      "type": "string"
+    },
+    "TYPE": {
+      "title": "TYPE",
+      "description": "Defines the type of model.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+      "type": "string",
+      "const": "COMPRESSOR_CHART"
+    },
+    "UNITS": {
+      "title": "compressor_chart_units",
+      "description": "Units for compressor chart: RATE, HEAD and EFFICIENCY.",
+      "type": "object",
+      "properties": {
+        "RATE": {
+          "title": "RATE",
+          "description": "Unit for rate in compressor chart. Currently only AM3_PER_HOUR is supported",
+          "const": "AM3_PER_HOUR"
+        },
+        "HEAD": {
+          "title": "HEAD",
+          "description": "Unit for head in compressor chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG (default)",
+          "anyOf": [
+            { "const": "M" },
+            { "const": "KJ_PER_KG" },
+            { "const": "JOULE_PER_KG" }
+          ]
+        },
+        "EFFICIENCY": {
+          "title": "EFFICIENCY",
+          "description": "Unit of efficiency in compressor chart. Supported units are PERCENTAGE and FRACTION (default).",
+          "anyOf": [{ "const": "FRACTION" }, { "const": "PERCENTAGE" }]
+        }
+      },
+      "required": ["RATE", "HEAD", "EFFICIENCY"],
+      "additionalProperties": false
+    },
+    "UNITS_GENERIC_FROM_INPUT": {
+      "title": "compressor_chart_units",
+      "description": "Units for compressor chart generic from input: EFFICIENCY",
+      "type": "object",
+      "properties": {
+        "EFFICIENCY": {
+          "title": "EFFICIENCY",
+          "description": "Unit of efficiency in compressor chart. Supported units are PERCENTAGE and FRACTION (default).",
+          "anyOf": [{ "const": "FRACTION" }, { "const": "PERCENTAGE" }]
+        }
+      },
+      "required": ["EFFICIENCY"],
+      "additionalProperties": false
+    },
+    "POLYTROPIC_EFFICIENCY": {
+      "title": "POLYTROPIC_EFFICIENCY",
+      "description": "Polytropic efficiency for compressor chart",
+      "type": "number"
+    },
+    "CURVES": {
+      "title": "CURVES",
+      "description": "Compressor chart curves, one per speed.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "FILE": {
+              "title": "FILE",
+              "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "SPEED": { "type": "number" },
+              "RATE": { "type": "array", "items": { "type": "number" } },
+              "HEAD": { "type": "array", "items": { "type": "number" } },
+              "EFFICIENCY": { "type": "array", "items": { "type": "number" } }
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    },
+    "CURVE": {
+      "title": "CURVE",
+      "description": "Compressor chart curve, single speed.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "FILE": {
+              "title": "FILE",
+              "description": "Specifies the name of an input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "SPEED": { "type": "number" },
+            "RATE": { "type": "array", "items": { "type": "number" } },
+            "HEAD": { "type": "array", "items": { "type": "number" } },
+            "EFFICIENCY": { "type": "array", "items": { "type": "number" } }
+          }
+        }
+      ]
+    },
+    "DESIGN_RATE": {
+      "title": "DESIGN_RATE",
+      "description": "Design rate for generic compressor chart",
+      "type": "number"
+    },
+    "DESIGN_HEAD": {
+      "title": "DESIGN_HEAD",
+      "description": "Design head for generic compressor chart",
+      "type": "number"
+    }
+  }
+}

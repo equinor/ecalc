@@ -1,0 +1,53 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/models-turbine.json",
+  "title": "MODELS",
+  "description": "A turbine model.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+  "type": "object",
+  "definitions": {
+    "TURBINE": {
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the model.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the type of model.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "TURBINE"
+        },
+        "LOWER_HEATING_VALUE": {
+          "title": "LOWER_HEATING_VALUE",
+          "description": "Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
+          "type": "number"
+        },
+        "TURBINE_LOADS": {
+          "title": "TURBINE_LOADS",
+          "description": "Load values [MW] in load vs efficiency table for turbine. Number of elements must correspond to number of elements in TURBINE_EFFICIENCIES. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "TURBINE_EFFICIENCIES": {
+          "title": "TURBINE_EFFICIENCIES",
+          "description": "Efficiency values in load vs efficiency table for turbine. Efficiency is given as fraction between 0 and 1 corresponding to 0-100%. Number of elements must correspond to number of elements in TURBINE_LOADS. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "description": "Constant to adjust power usage in MW",
+          "type": "number"
+        }
+      },
+      "required": [
+        "NAME",
+        "TYPE",
+        "LOWER_HEATING_VALUE",
+        "TURBINE_LOADS",
+        "TURBINE_EFFICIENCIES"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

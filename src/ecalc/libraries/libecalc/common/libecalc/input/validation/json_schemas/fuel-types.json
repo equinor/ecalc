@@ -1,0 +1,70 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/fuel-types.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Fuel types",
+  "properties": {
+    "FUEL_TYPES": {
+      "title": "FUEL_TYPES",
+      "description": "Specifies the various fuel types and associated emissions used in the model.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "NAME": {
+            "type": "string",
+            "title": "NAME",
+            "description": "Name of the fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME"
+          },
+          "PRICE": {
+            "title": "PRICE",
+            "description": "Price or sales value of fuel in NOK per Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/PRICE",
+            "type": ["number", "string"]
+          },
+          "CATEGORY": {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/category.json#properties/CATEGORY"
+          },
+          "EMISSIONS": {
+            "title": "EMISSIONS",
+            "description": "Emission types and their attributes for this fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/EMISSIONS",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["NAME", "FACTOR"],
+              "properties": {
+                "NAME": {
+                  "title": "NAME",
+                  "description": "Name of the emission.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+                  "type": "string"
+                },
+                "FACTOR": {
+                  "title": "FACTOR",
+                  "description": "Emission factor for fuel in kg emission/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\n$ECALC_DOCS_KEYWORDS_URL/FACTOR",
+                  "type": ["number", "string"]
+                },
+                "TAX": {
+                  "title": "TAX",
+                  "description": "Emission tax per volume fuel burned, i.e. NOK/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\n$ECALC_DOCS_KEYWORDS_URL/TAX",
+                  "type": ["number", "string"]
+                },
+                "QUOTA": {
+                  "title": "QUOTA",
+                  "description": "Emission tax per kg emission emitted, i.e. NOK/kg emission. May be a constant number or an expression using vectors from a time series input.\n\n$ECALC_DOCS_KEYWORDS_URL/QUOTA",
+                  "type": ["number", "string"]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "LOWER_HEATING_VALUE": {
+            "title": "LOWER_HEATING_VALUE",
+            "description": "Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["NAME"]
+      }
+    }
+  }
+}

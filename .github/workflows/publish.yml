@@ -1,0 +1,51 @@
+name: Publish libeCalc package to PyPI
+
+on:
+  workflow_call:
+    secrets:
+      PYPI_TOKEN:
+        required: true
+  workflow_dispatch:  # Trigger manually, if needed
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v4.3.0
+        with:
+          python-version: '3.9'
+
+      - uses: snok/install-poetry@v1.3.3
+        with:
+          virtualenvs-create: true
+
+      - name: Check pyproject.toml validity
+        run: poetry check --no-interaction
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v3.0.11
+        with:
+          path: ${{github.workspace}}/.venv
+          key: poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: poetry-
+
+      - name: Install dependencies  # if cache has changed
+        if: steps.cache-deps.cache-hit != 'true'
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --no-interaction
+
+# TODO: Uncomment when open-sourced
+#      - name: Publish to PyPI
+#        env:
+#          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+#        run: |
+#          poetry config pypi-token.pypi $PYPI_TOKEN
+#          poetry publish --build

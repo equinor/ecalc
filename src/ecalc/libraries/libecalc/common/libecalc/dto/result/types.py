@@ -1,0 +1,16 @@
+from __future__ import annotations
+
+from enum import Enum
+from typing import Optional
+
+opt_float: Optional[float] = Optional[float]
+
+
+class CompressorTrainCommonShaftFailureStatus(str, Enum):
+    TARGET_DISCHARGE_PRESSURE_TOO_HIGH = "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+    TARGET_DISCHARGE_PRESSURE_TOO_LOW = "TARGET_DISCHARGE_PRESSURE_TOO_LOW"
+    SUCTION_PRESSURE_TOO_LOW = "SUCTION_PRESSURE_TOO_LOW"
+    ABOVE_MAXIMUM_FLOW_RATE = "ABOVE_MAXIMUM_FLOW_RATE"
+    BELOW_MINIMUM_FLOW_RATE = "BELOW_MINIMUM_FLOW_RATE"
+    ABOVE_MAXIMUM_POWER = "ABOVE_MAXIMUM_POWER"
+    NOT_CALCULATED = "NOT_CALCULATED"

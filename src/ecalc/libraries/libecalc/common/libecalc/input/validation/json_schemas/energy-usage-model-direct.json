@@ -1,0 +1,67 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/energy_usage_model_direct.json",
+  "title": "ENERGY_USAGE_MODEL",
+  "description": "Specifies the data used when calculating the energy usage of a consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+  "type": "object",
+  "definitions": {
+    "ENERGY_USAGE_MODEL_DIRECT": {
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "DIRECT"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "LOAD": {
+          "$ref": "#/definitions/LOAD"
+        },
+        "FUELRATE": {
+          "$ref": "#/definitions/FUELRATE"
+        },
+        "CONSUMPTION_RATE_TYPE": {
+          "$ref": "#/definitions/CONSUMPTION_RATE_TYPE"
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": ["LOAD", "TYPE"]
+        },
+        {
+          "required": ["FUELRATE", "TYPE"]
+        }
+      ]
+    },
+    "LOAD": {
+      "title": "LOAD",
+      "description": "Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+    },
+    "FUELRATE": {
+      "title": "FUELRATE",
+      "description": "Fuel rate of the facility.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELRATE",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+    },
+    "CONSUMPTION_RATE_TYPE": {
+      "title": "CONSUMPTION_RATE_TYPE",
+      "description": "Defines the energy usage rate as stream day or calendar day.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMPTION_RATE_TYPE#consumption-rate-type",
+      "oneOf": [
+        {
+          "const": "STREAM_DAY"
+        },
+        {
+          "const": "CALENDAR_DAY"
+        }
+      ]
+    }
+  }
+}

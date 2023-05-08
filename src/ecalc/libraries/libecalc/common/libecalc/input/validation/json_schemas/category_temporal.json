@@ -1,0 +1,24 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/category_temporal.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Category",
+  "properties": {
+    "CATEGORY": {
+      "oneOf": [
+        {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/category.json#properties/CATEGORY"
+        },
+        {
+          "type": "object",
+          "patternProperties": {
+            "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+              "$ref": "$SERVER_NAME/api/v1/schema-validation/category.json#properties/CATEGORY"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

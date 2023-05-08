@@ -1,0 +1,27 @@
+{
+  "name": "Node.js",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "8gb"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint"]
+    }
+  },
+  "onCreateCommand": "cd docs && npm install && conda install -y pre-commit && pre-commit install",
+  "postStartCommand": "cd docs && npm run start",
+
+  "remoteUser": "node",
+  "features": {
+    "git": "latest",
+    "ghcr.io/devcontainers/features/conda:1": {
+      "version": "latest"
+    }
+  }
+}

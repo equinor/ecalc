@@ -1,0 +1,69 @@
+name: Generate documentation
+
+on:
+  # Workflow dispatch is used for manual triggers
+  workflow_dispatch:
+  # Workflow call is used for called from another workflow
+  workflow_call:
+
+env:
+  GITHUB_PAGES_BRANCH: gh-pages
+
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3.5.0
+
+    - name: Install Poetry
+      run: pipx install poetry
+
+    - name: Setup Python
+      uses: actions/setup-python@v4.5.0
+      with:
+        python-version: "3.8"
+        cache: 'poetry'
+
+    - name: Check pyproject.toml validity
+      run: poetry check --no-interaction
+
+    - name: Install deps
+      run: poetry install --no-interaction
+    
+    - name: Generate CLI reference
+      run: |
+        cd src/ecalc/cli
+        poetry run python generate_docs.py > ../../../docs/docs/about/references/cli_reference.md
+
+    - name: Setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: npm
+        cache-dependency-path: docs/package-lock.json
+
+    - name: Install dependencies and build website
+      run: |
+        cd docs
+        npm ci --ignore-scripts
+        npm run build
+
+    - name: Generate API reference
+      run: |
+        cd docs
+        poetry run python make-api-reference.py
+
+    - name: Push static files to Github Pages branch
+      run: |
+        cd docs/build
+        CREATED_FROM_REF=$(git rev-parse --short HEAD)
+        git init
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git checkout -b $GITHUB_PAGES_BRANCH
+        git remote add $GITHUB_PAGES_BRANCH https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/equinor/ecalc
+        git add .
+        git commit -m "Built from commit '$CREATED_FROM_REF'"
+        git push -f --set-upstream gh-pages gh-pages

@@ -1,0 +1,68 @@
+name: CLI CI (Build and test)
+on:
+  # Workflow dispatch is used for manual triggers
+  workflow_dispatch:
+  # Workflow call is used for called from another workflow
+  workflow_call:
+
+env:
+  CODE_COVERAGE_BRANCH: coverage-report
+
+# TODO: BuildX and publish to use as in order for web to always be able to fetch image to matching branch?
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run library tests
+        run: docker build -t ecalc-lib-test --target coverage -f Dockerfile ./
+
+  run-tests-with-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.5.0
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Setup Python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: "3.8"
+          cache: 'poetry'
+
+      - name: Check pyproject.toml validity
+        run: poetry check --no-interaction
+
+      - name: Install deps
+        run: poetry install --no-interaction
+
+      - name: Run tests with coverage
+        run: poetry run python -m coverage run -m pytest
+
+      - name: Get Test Coverage score
+        id: total
+        run: |
+          poetry run python -m coverage html -d build/
+          poetry run python -m coverage json -o build/coverage.json
+          echo '# Code Coverage Report\n See the index.html for a more detailed report.\n' >> build/README.md
+          echo "$(poetry run python -m coverage report --format=markdown)" >> build/README.md
+          rm build/.gitignore
+
+      - name: Build artifacts
+        run: poetry build
+
+      - name: Push coverage report to coverage-report branch
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          cd build
+          CREATED_FROM_REF=$(git rev-parse --short HEAD)
+          git init
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git checkout -b $CODE_COVERAGE_BRANCH
+          git remote add $CODE_COVERAGE_BRANCH https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/equinor/ecalc
+          git add .
+          git commit -m "Built from commit '$CREATED_FROM_REF'"
+          git push -f --set-upstream $CODE_COVERAGE_BRANCH $CODE_COVERAGE_BRANCH

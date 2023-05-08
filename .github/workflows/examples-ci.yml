@@ -1,0 +1,35 @@
+name: Example Notebooks CI
+on:
+  # Workflow dispatch is used for manual triggers
+  workflow_dispatch:
+  # Workflow call is used for called from another workflow
+  workflow_call:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.5.0
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Setup Python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: "3.8"
+          cache: 'poetry'
+
+      - name: Check pyproject.toml validity
+        run: poetry check --no-interaction
+
+      - name: Install deps
+        run: poetry install --no-interaction --all-extras
+
+      - name: Convert example Jupyter notebooks to Python code
+        run : poetry run jupyter nbconvert --to python examples/*.ipynb
+
+      # This will not log any tests per se, but it will fail if there are any errors raised in the generated Python files.
+      - name: Run tests
+        run: poetry run pytest examples/*.py

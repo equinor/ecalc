@@ -1,0 +1,43 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/models.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Models",
+  "properties": {
+    "MODELS": {
+      "title": "MODELS",
+      "description": "Defines input files which characterize various facility elements.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-compressor-train-simplified.json#definitions/SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN"
+          },
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/VARIABLE_SPEED_COMPRESSOR_TRAIN"
+          },
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train-multiple-streams-and-pressures.json#definitions/VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
+          },
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-single-speed-compressor-train.json#definitions/SINGLE_SPEED_COMPRESSOR_TRAIN"
+          },
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-compressor-with-turbine.json#definitions/COMPRESSOR_WITH_TURBINE"
+          },
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-fluid.json#definitions/FLUID_MODEL"
+          },
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-turbine.json"
+          },
+          {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/models-compressor-chart.json#definitions/COMPRESSOR_CHART"
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

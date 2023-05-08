@@ -1,0 +1,627 @@
+TIME_SERIES:
+  - NAME: SIM1
+    TYPE: MISCELLANEOUS
+    FILE: sim/base_profile.csv
+    INTERPOLATION_TYPE: LEFT
+  - NAME: FLARE
+    TYPE: MISCELLANEOUS
+    FILE: sim/flare.csv #!include, commented !include is now supported
+    INTERPOLATION_TYPE: RIGHT
+    EXTRAPOLATION: FALSE
+    INFLUENCE_TIME_VECTOR: FALSE
+
+FACILITY_INPUTS:
+  - NAME: genset
+    FILE: einput/genset.csv
+    TYPE: ELECTRICITY2FUEL
+  - NAME: swinj
+    FILE: einput/pump_tabular.csv
+    TYPE: TABULAR
+  - NAME: waterinj
+    FILE: einput/pumpchart.csv
+    TYPE: PUMP_CHART_SINGLE_SPEED
+    UNITS:
+      EFFICIENCY: PERCENTAGE
+      HEAD: M
+      RATE: AM3_PER_HOUR
+  - NAME: pumpchart_variable_speed
+    FILE: einput/pumpchart_variable_speed.csv
+    TYPE: PUMP_CHART_VARIABLE_SPEED
+    UNITS:
+      EFFICIENCY: FRACTION
+      HEAD: M
+      RATE: AM3_PER_HOUR
+    ADJUSTMENT:
+      CONSTANT: 1.0
+      FACTOR: 0.8
+  - NAME: compressor_sampled_1d
+    FILE: einput/compressor_sampled_1d.csv
+    TYPE: COMPRESSOR_TABULAR
+  - NAME: tabular
+    FILE: einput/tabular.csv
+    TYPE: TABULAR
+
+VARIABLES:
+  salt_water_injection:
+    2017-01-01:
+      VALUE: SIM1;WATER_INJ {-} SIM1;WATER_PROD {+} SIM1;WATER_PROD {*} (SIM1;WATER_PROD < 1500) {+} (SIM1;WATER_PROD {-} 17000) {*} (SIM1;WATER_PROD > 17000) {*} (SIM1;WATER_PROD < 18500)
+
+MODELS:
+  - NAME: predefined_compressor_chart_curves_from_file
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: VARIABLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: M # M or KJ_PER_KG
+      EFFICIENCY: FRACTION
+    CURVES:
+      FILE: einput/predefined_compressor_chart_curves.csv
+  - NAME: predefined_compressor_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: VARIABLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: M # M or KJ_PER_KG
+      EFFICIENCY: FRACTION
+    CURVES:
+      - SPEED: 7689
+        RATE: [2900.0666, 3503.8068, 4002.5554, 4595.0148]
+        HEAD: [8412.9156, 7996.2541, 7363.8161, 6127.1702]
+        EFFICIENCY: [0.723, 0.7469, 0.7449, 0.7015]
+      - SPEED: 8787
+        RATE: [3305.5723, 4000.1546, 4499.2342, 4996.8728, 5241.9892]
+        HEAD: [10950.9557, 10393.3867, 9707.491, 8593.8586, 7974.6002]
+        EFFICIENCY: [0.7241, 0.7449, 0.7464, 0.722, 0.7007]
+      - SPEED: 9886
+        RATE: [3708.8713, 4502.2531, 4993.5959, 5507.8114, 5924.3308]
+        HEAD: [13845.3808, 13182.6922, 12425.3699, 11276.3984, 10054.3539]
+        EFFICIENCY: [ 0.723, 0.7473, 0.748, 0.7306, 0.704]
+      - SPEED: 10435
+        RATE: [3928.0389, 4507.4654, 5002.1249, 5498.9912, 6248.5937]
+        HEAD: [15435.484, 14982.7351, 14350.2222, 13361.3245, 11183.0276]
+        EFFICIENCY: [0.7232, 0.7437, 0.7453, 0.7414, 0.701]
+      - SPEED: 10984
+        RATE: [4138.6974, 5002.4758, 5494.3704, 6008.6962, 6560.148]
+        HEAD: [17078.8952, 16274.9249, 15428.5063, 14261.7156, 12382.7538]
+        EFFICIENCY: [0.7226, 0.7462, 0.7468, 0.7349, 0.7023]
+      - SPEED: 11533
+        RATE: [4327.9175, 4998.517, 5505.8851, 6027.6167, 6506.9064, 6908.2832, ]
+        HEAD: [18882.3055, 18235.1912, 17531.6259, 16489.7195, 15037.1474, 13618.7919]
+        EFFICIENCY: [0.7254, 0.7444, 0.745, 0.7466, 0.7266, 0.7019]
+      - SPEED: 10767
+        RATE: [4052.9057, 4500.6637, 4999.41, 5492.822, 6000.6263, 6439.4876]
+        HEAD: [16447, 16081, 15546, 14640, 13454, 11973]
+        EFFICIENCY: [0.724, 0.738, 0.7479, 0.74766, 0.7298, 0.7014]
+  - NAME: medium_gas
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: MEDIUM
+  - NAME: rich_gas
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: RICH
+  - NAME: user_defined_fluid_composition
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: COMPOSITION
+    EOS_MODEL: SRK
+    COMPOSITION:
+      water: 0
+      nitrogen: 0.74373
+      CO2: 2.415619
+      methane: 85.60145
+      ethane: 6.707826
+      propane: 2.611471
+      i_butane: 0.45077
+      n_butane: 0.691702
+      i_pentane: 0.210714
+      n_pentane: 0.197937
+      n_hexane: 0.368786
+  - NAME: simplified_variable_speed_compressor_train_known_stages
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart
+  - NAME: generic_chart_from_design_point
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: GENERIC_FROM_DESIGN_POINT
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: KJ_PER_KG
+      EFFICIENCY: FRACTION
+    POLYTROPIC_EFFICIENCY: 0.75
+    DESIGN_RATE: 5000
+    DESIGN_HEAD: 100
+  - NAME: generic_from_design_point_compressor_train
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    COMPRESSOR_TRAIN:
+      MAXIMUM_PRESSURE_RATIO_PER_STAGE: 3.5
+      COMPRESSOR_CHART: generic_chart_from_design_point
+      INLET_TEMPERATURE: 30
+  - NAME: generic_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: GENERIC_FROM_INPUT
+    UNITS:
+      EFFICIENCY: FRACTION
+    POLYTROPIC_EFFICIENCY: 0.75
+  - NAME: simplified_variable_speed_compressor_train_unknown_stages
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    COMPRESSOR_TRAIN:
+      MAXIMUM_PRESSURE_RATIO_PER_STAGE: 3.5
+      COMPRESSOR_CHART: generic_chart
+      INLET_TEMPERATURE: 30
+  - NAME: compressor_with_turbine
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: simplified_variable_speed_compressor_train_known_stages
+    TURBINE_MODEL: turbine
+  - NAME: user_defined_single_speed_compressor_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: SINGLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: KJ_PER_KG
+      EFFICIENCY: FRACTION
+    CURVE:
+      RATE: [1735, 1882, 2027, 2182, 2322, 2467, 2615, 2762, 2907, 3054, 3201]
+      HEAD: [95.942, 92.999, 89.663, 86.426, 81.325, 76.126, 70.142, 63.569, 56.604, 49.639, 42.477]
+      EFFICIENCY: [0.7121, 0.7214, 0.7281, 0.7286, 0.7194, 0.7108, 0.7001, 0.6744, 0.6364, 0.5859, 0.5185]
+  - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_medium_gas
+    TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    PRESSURE_CONTROL: DOWNSTREAM_CHOKE
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+          CONTROL_MARGIN: 10
+          CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
+    TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: user_defined_fluid_composition
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: turbine
+    TYPE: TURBINE
+    LOWER_HEATING_VALUE: 38 # MJ/Sm3
+    TURBINE_LOADS: [0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767] # MW
+    TURBINE_EFFICIENCIES: [0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362]
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
+    TURBINE_MODEL: turbine
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: advanced_variable_speed_compressor_train
+    TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
+    # All streams defined ahead of stage
+    # Default outlet stream after last stage should not be defined
+    STREAMS: # All inlet streams must have fluid models with the same eos model
+      - NAME: in_stream_stage_1
+        TYPE: INGOING # Need to defined if stream is ingoing or outgoing to know if a fluid model should be specified for it
+        FLUID_MODEL: rich_gas
+      - NAME: in_stream_stage_2
+        TYPE: INGOING
+        FLUID_MODEL: medium_gas
+      - NAME: another_in_stream_stage_2
+        TYPE: INGOING
+        FLUID_MODEL: medium_gas
+      - NAME: out_stream_stage_4_export
+        TYPE: OUTGOING
+        # No fluid definition for outgoing streams, this will be the result for outlet of stage ahead
+    STAGES:
+    # Only one stage may have PRESSURE_CONTROL (ahead of stage) as only one interstage outletstream/pressure supported
+    # PRESSURE_CONTROL may be used to set an additional control pressure ahead of a stage, and to set a pressure control
+    # related to an in- or output stream, just specify these the same stage.
+    # There may be several in- and output streams
+    # STREAM required for first stage. Optional for other stages. If ingoing streams are defined for other stages,
+    # this will be mixed with the outlet of the previous stage. Both streams will have the pressure defined for this stage
+    # and either follow the pressure at that stage given the speed, or be defined by the pressure control if used
+      - INLET_TEMPERATURE: 30
+        COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file #variable_speed_compressor_chart_stage_1 # Assume defined in MODELS
+        STREAM:
+          - in_stream_stage_1
+      - INLET_TEMPERATURE: 30
+        COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file #variable_speed_compressor_chart_stage_2
+        STREAM:
+          - in_stream_stage_2
+          - another_in_stream_stage_2 # Will be mixed/flashed with the stream coming from stage 1 before entering stage 2 compressor
+        # Will be added with outlet stream of previous stage. This stream to be defined with a rate and pressure, and
+        # final pressure of stream for next stage based on outlet pressure of previous stream and this stream
+      - INLET_TEMPERATURE: 30
+        COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file #variable_speed_compressor_chart_stage_3
+        # No stream defined, meaning that there is no ingoing or outgoing streams ahead of this stage
+      - INLET_TEMPERATURE: 30
+        COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file #variable_speed_compressor_chart_stage_4
+        STREAM:
+          - out_stream_stage_4_export
+        INTERSTAGE_CONTROL_PRESSURE:
+          # An interstage pressure control is defined before this stage. The pressure controls below, defines what will
+          # be used to control the pressure if the speed is governed by the other
+          # Available values are (currently); UPSTREAM_CHOKE, DOWNSTREAM_CHOKE, INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE, COMMON_ASV
+          UPSTREAM_PRESSURE_CONTROL: UPSTREAM_CHOKE
+          DOWNSTREAM_PRESSURE_CONTROL: INDIVIDUAL_ASV_PRESSURE
+      - INLET_TEMPERATURE: 30
+        COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file #variable_speed_compressor_chart_stage_5
+      # The final outlet stream does not need to be defined, what going out of the last compressor is the outlet stream
+    PRESSURE_CONTROL: INDIVIDUAL_ASV_PRESSURE
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: single_speed_compressor_train_upstream_choke_pressure_control
+    TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    PRESSURE_CONTROL: UPSTREAM_CHOKE # Supported: UPSTREAM_CHOKE, DOWNSTREAM_CHOKE, INDIVIDUAL_ASV_RATE
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: single_speed_compressor_train_asv_pressure_control
+    TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    PRESSURE_CONTROL: INDIVIDUAL_ASV_RATE  # Supported: UPSTREAM_CHOKE, DOWNSTREAM_CHOKE, INDIVIDUAL_ASV_RATE, INDIVIDUAL_ASV_PRESSURE, COMMON_ASV
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: single_speed_compressor_train_downstream_choke_pressure_control
+    TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    PRESSURE_CONTROL: DOWNSTREAM_CHOKE # Also supported: UPSTREAM_CHOKE, INDIVIDUAL_ASV_RATE, INDIVIDUAL_ASV_PRESSURE, COMMON_ASV
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: single_speed_compressor_train_downstream_choking_and_maximum_discharge_pressure
+    TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    PRESSURE_CONTROL: DOWNSTREAM_CHOKE # Also supported: UPSTREAM_CHOKE, INDIVIDUAL_ASV_RATE
+    MAXIMUM_DISCHARGE_PRESSURE: 350.0
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: user_defined_single_speed_compressor_chart
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: medium_gas_gerg
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: PREDEFINED
+    EOS_MODEL: GERG_SRK
+    GAS_TYPE: MEDIUM
+  - NAME: user_defined_fluid_composition_gerg
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: COMPOSITION
+    EOS_MODEL: GERG_PR
+    COMPOSITION:
+      methane: 85.60145
+      ethane: 6.707826
+  - NAME: simplified_variable_speed_compressor_train_predefined_variable_speed_chart_gerg_fluid_calculations
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas_gerg
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart
+    POWER_ADJUSTMENT_CONSTANT: 1
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    PRICE: 1.5  # NOK/Sm3
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: "2.20" # kg/Sm3
+        TAX: 1.51 # NOK/Sm3
+
+INSTALLATIONS:
+  - NAME: MAIN_INSTALLATION
+    HCEXPORT:
+      SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000
+    REGULARITY: SIM1;REGULARITY
+    FUEL: fuel_gas
+    CATEGORY: FIXED
+    GENERATORSETS:
+      - NAME: GeneratorSet
+        CATEGORY: TURBINE-GENERATOR
+        FUEL: fuel_gas
+        ELECTRICITY2FUEL:
+          1900-01-01: genset
+          2018-01-01: genset
+        CONSUMERS:
+          - NAME: generic_from_design_point_compressor_train_consumer
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: generic_from_design_point_compressor_train
+              RATE: 5000000
+              SUCTION_PRESSURE: 50
+              DISCHARGE_PRESSURE: 250
+              CONDITION: '1 > 0'
+              POWERLOSSFACTOR: 0.05
+          - NAME: simplified_variable_speed_compressor_train_known_stages_consumer
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: simplified_variable_speed_compressor_train_known_stages
+              RATE: 5000000
+              SUCTION_PRESSURE: 50
+              DISCHARGE_PRESSURE: 250
+          - NAME: simplified_variable_speed_compressor_train_unknown_stages_consumer
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: simplified_variable_speed_compressor_train_unknown_stages
+              RATE: 5000000
+              SUCTION_PRESSURE: 50
+              DISCHARGE_PRESSURE: 250
+          - NAME: deh
+            CATEGORY: FIXED-PRODUCTION-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 4.1 # MW
+              CONDITION: SIM1;GAS_LIFT > 0
+              POWERLOSSFACTOR: 0.05
+          - NAME: late_start_consumer
+            CATEGORY: FIXED-PRODUCTION-LOAD
+            ENERGY_USAGE_MODEL:
+              2018-01-01:
+                TYPE: DIRECT
+                LOAD: 1 # MW
+              2019-01-01:
+                TYPE: DIRECT
+                LOAD: 2 # MW
+              2020-01-01:
+                TYPE: DIRECT
+                LOAD: 0 # MW
+          - NAME: late_start_consumer_evolving_type
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              2018-01-01:
+                TYPE: DIRECT
+                LOAD: 1 # MW
+              2019-01-01:
+                TYPE: TABULATED
+                ENERGYFUNCTION: swinj
+                VARIABLES:
+                  - NAME: RATE
+                    EXPRESSION: $var.salt_water_injection
+          - NAME: salt_water_injection_tabular
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: TABULATED
+              ENERGYFUNCTION: swinj
+              VARIABLES:
+                - NAME: RATE
+                  EXPRESSION: $var.salt_water_injection
+          - NAME: water_injection_single_speed
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP
+              ENERGYFUNCTION: waterinj
+              RATE: SIM1;WATER_INJ
+              SUCTION_PRESSURE: 3
+              DISCHARGE_PRESSURE: 200
+              FLUID_DENSITY: 1000
+              CONDITION: SIM1;GAS_PROD > 0
+          - NAME: water_injection_variable_speed
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP
+              ENERGYFUNCTION: pumpchart_variable_speed
+              RATE: SIM1;WATER_INJ
+              SUCTION_PRESSURE: 3
+              DISCHARGE_PRESSURE: 20
+              FLUID_DENSITY: 1000
+              CONDITION: SIM1;GAS_LIFT > 0
+              POWERLOSSFACTOR: SIM1;POWERLOSS_CONSTANT {+} 0.05
+          - NAME: waterinj
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP_SYSTEM
+              CONDITION: 'SIM1;WATER_PROD >0'
+              PUMPS:
+                - NAME: pump1
+                  CHART: waterinj
+                - NAME: pump2
+                  CHART: waterinj
+              FLUID_DENSITY: 1026
+              TOTAL_SYSTEM_RATE: SIM1;WATER_INJ
+              POWERLOSSFACTOR: 0.05
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS: [1, 0]
+                  SUCTION_PRESSURES: [3, 3]
+                  DISCHARGE_PRESSURES: [200,200]
+                  CROSSOVER: [2, 0]
+                - RATE_FRACTIONS: [0.5, 0.5]
+                  SUCTION_PRESSURE: 3
+                  DISCHARGE_PRESSURE: 200
+          - NAME: simplified_compressor_system
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR_SYSTEM
+              POWERLOSSFACTOR: 0.05
+              COMPRESSORS:
+                - NAME: simplified_train1
+                  COMPRESSOR_MODEL: simplified_variable_speed_compressor_train_known_stages
+                - NAME: simplified_train2
+                  COMPRESSOR_MODEL: simplified_variable_speed_compressor_train_known_stages
+              OPERATIONAL_SETTINGS:
+                - RATES:
+                    - SIM1;GAS_PROD {*} 3
+                    - SIM1;GAS_PROD {*} 3
+                  SUCTION_PRESSURE: 100
+                  DISCHARGE_PRESSURE: 400
+          - NAME: simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: simplified_variable_speed_compressor_train_predefined_variable_speed_chart_gerg_fluid_calculations
+              RATE: 5000000
+              SUCTION_PRESSURE: 50
+              DISCHARGE_PRESSURE: 250
+          - NAME: variable_speed_compressor_train_predefined_charts
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: variable_speed_compressor_train_predefined_variable_speed_chart_medium_gas
+              RATE: 5000000
+              SUCTION_PRESSURE: 50
+              DISCHARGE_PRESSURE: 250
+          - NAME: single_speed_compressor_train_asv_pressure_control
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: single_speed_compressor_train_asv_pressure_control
+              RATE: 5800000.0
+              SUCTION_PRESSURE: 80.0
+              DISCHARGE_PRESSURE: 300.0
+          - NAME: single_speed_compressor_train_upstream_choke_pressure_control
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: single_speed_compressor_train_upstream_choke_pressure_control
+              RATE: 5800000.0
+              SUCTION_PRESSURE: 80.0
+              DISCHARGE_PRESSURE: 300.0
+          - NAME: single_speed_compressor_train_downstream_choke_pressure_control
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: single_speed_compressor_train_downstream_choke_pressure_control
+              RATE: 5800000.0
+              SUCTION_PRESSURE: 80.0
+              DISCHARGE_PRESSURE: 300.0
+          - NAME: single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: single_speed_compressor_train_downstream_choking_and_maximum_discharge_pressure
+              RATE: 1000000.0
+              SUCTION_PRESSURE: 80.0
+              DISCHARGE_PRESSURE: 300.0
+          - NAME: variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
+              COMPRESSOR_TRAIN_MODEL: advanced_variable_speed_compressor_train
+              RATE_PER_STREAM: # One rate per stream defined in the compressor_train_function
+                - 900000
+                - 250000
+                - 250000
+                - 1000000
+              RATE_UNIT: SM3_PER_DAY # alternative units to support AM3_PER_HOUR, KG_PER_HOUR. Defaults to SM3_PER_DAY, only SM3_PER_DAY implemented for now, prepare for support of other units in yaml/dto layer now
+              SUCTION_PRESSURE: 10
+              INTERSTAGE_CONTROL_PRESSURE: 90 # This is only allowed and required if the compressor train function has an interstage control pressure defined
+              DISCHARGE_PRESSURE: 600
+              POWERLOSSFACTOR: 0.05
+    FUELCONSUMERS:
+      - NAME: flare
+        CATEGORY: FLARE
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: FLARE;FLARE_RATE
+      - NAME: single_1d_compressor_sampled
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR
+          ENERGYFUNCTION: compressor_sampled_1d
+          RATE: SIM1;GAS_PROD {/} 2
+          SUCTION_PRESSURE: 200
+          DISCHARGE_PRESSURE: 400
+      - NAME: tabulated
+        CATEGORY: MISCELLANEOUS
+        ENERGY_USAGE_MODEL:
+          TYPE: TABULATED
+          ENERGYFUNCTION: tabular
+          VARIABLES:
+            - NAME: VARIABLE1
+              EXPRESSION: SIM1;GAS_LIFT
+      - NAME: sampled_compressor_system
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR_SYSTEM
+          POWERLOSSFACTOR: 0.05
+          COMPRESSORS:
+            - NAME: sampled_train1
+              COMPRESSOR_MODEL: compressor_sampled_1d
+            - NAME: sampled_train2
+              COMPRESSOR_MODEL: compressor_sampled_1d
+          OPERATIONAL_SETTINGS:
+            - RATES:
+                - SIM1;GAS_PROD {/} 2
+                - SIM1;GAS_PROD {/} 2
+              SUCTION_PRESSURE: 200
+              DISCHARGE_PRESSURE: 400
+      - NAME: turbine_driven_compressor_train
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR
+          ENERGYFUNCTION: compressor_with_turbine
+          RATE: 5000000
+          SUCTION_PRESSURE: 30
+          DISCHARGE_PRESSURE: 200
+      - NAME: compressor_system_variable_speed_compressor_trains
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          2018-01-01:
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: train1
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+              - NAME: train2
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+              - NAME: train3
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+            OPERATIONAL_SETTINGS:
+              - RATES:
+                  - SIM1;GAS_PROD {/} 2
+                  - SIM1;GAS_PROD {/} 2
+                  - SIM1;GAS_PROD {/} 2
+                SUCTION_PRESSURE: 50
+                DISCHARGE_PRESSURE: 250
+          2019-01-01:
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0
+            COMPRESSORS:
+              - NAME: train1_upgraded
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+              - NAME: train2_upgraded
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+            OPERATIONAL_SETTINGS:
+              - RATES:
+                  - SIM1;GAS_PROD {/} 2
+                  - SIM1;GAS_PROD {/} 2
+                SUCTION_PRESSURE: 50
+                DISCHARGE_PRESSURE: 250
+    DIRECT_EMITTERS:
+      - NAME: methane_direct
+        EMISSION_NAME: CH4
+        CATEGORY: COLD-VENTING-FUGITIVE
+        EMITTER_MODEL:
+          EMISSION_RATE: FLARE;METHANE_RATE
+          QUOTA: 1 # TAX per emission volume, NOK/emission rate unit as given in EMISSION_RATE

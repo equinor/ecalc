@@ -1,0 +1,217 @@
+TIME_SERIES:
+  - NAME: SIM
+    TYPE: MISCELLANEOUS
+    FILE: base_profile.csv
+    INTERPOLATION_TYPE: LEFT
+
+FACILITY_INPUTS:
+  - NAME: genset
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
+  - NAME: gasexp
+    FILE: compressor_sampled.csv
+    TYPE: COMPRESSOR_TABULAR
+  - NAME: pump_chart
+    FILE: pump_chart.csv
+    TYPE: PUMP_CHART_SINGLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: M
+      EFFICIENCY: PERCENTAGE
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    PRICE: 1.5  # NOK/Sm3
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: CO2
+        FACTOR: 2.20 #kg/Sm3
+        TAX: 1.51 # NOK/Sm3
+      - NAME: CH4
+        FACTOR: 0.01 #kg/Sm3
+        TAX: 0.9 # NOK/Sm3
+  - NAME: bad_fuel_gas
+    PRICE: 0.5  # NOK/Sm3
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: CO2
+        FACTOR: 5.0 #kg/Sm3
+        TAX: 1.51 # NOK/Sm3
+      - NAME: CH4
+        FACTOR: 0.01 #kg/Sm3
+        TAX: 0.9 # NOK/Sm3
+
+MODELS:
+  - NAME: generic_from_design_point_compressor_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: GENERIC_FROM_DESIGN_POINT
+    POLYTROPIC_EFFICIENCY: 0.75
+    DESIGN_RATE: 10000
+    DESIGN_HEAD: 80
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: KJ_PER_KG
+      EFFICIENCY: FRACTION
+  - NAME: predefined_variable_speed_compressor_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: VARIABLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: M # M or KJ_PER_KG
+      EFFICIENCY: FRACTION
+    CURVES:
+      FILE: compressor_chart.csv
+  - NAME: medium_fluid
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: MEDIUM
+  - NAME: turbine
+    TYPE: TURBINE
+    LOWER_HEATING_VALUE: 38 # MJ/Sm3
+    TURBINE_LOADS: [0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767] # MW
+    TURBINE_EFFICIENCIES: [0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362]
+  - NAME: simplified_compressor_train_model
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_fluid
+    COMPRESSOR_TRAIN:
+      STAGES:
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: generic_from_design_point_compressor_chart
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: generic_from_design_point_compressor_chart
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_variable_speed_compressor_chart
+
+VARIABLES:
+  hydrocarbon_export_sm3_per_day:
+    VALUE: SIM;OIL_PROD {+} SIM;GAS_PROD {/} 1000
+  gas_export_rate_sm3_per_day:
+    VALUE: SIM;GAS_PROD
+  water_injection_rate:
+    VALUE: SIM;WATER_INJ
+  gas_export_condition:
+    VALUE: SIM;GAS_PROD > 0
+  base_production_load_mw:
+    VALUE: 7.6 {+} 4.1 {*} (SIM;GAS_LIFT > 0)
+  water_injection_condition:
+    VALUE: SIM;WATER_PROD >0
+  flare_a_fuel_rate_sm3_day:
+    2020-06-01:
+      VALUE: 5000
+    2030-01-01:
+      VALUE: 2000
+  flare_b_fuel_rate_sm3_day:
+    2020-06-01:
+      VALUE: 10000
+    2030-01-01:
+      VALUE: 7000
+
+INSTALLATIONS:
+  - NAME: Installation A
+    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
+    FUEL: fuel_gas
+    CATEGORY: FIXED
+    GENERATORSETS:
+      - NAME: Generator set A
+        CATEGORY: TURBINE-GENERATOR
+        ELECTRICITY2FUEL: genset
+        CONSUMERS:
+          - NAME: Fixed production loads A
+            CATEGORY: FIXED-PRODUCTION-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: $var.base_production_load_mw
+          - NAME: Gas export compressors system A
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR_SYSTEM
+              COMPRESSORS:
+                - NAME: train1_A
+                  COMPRESSOR_MODEL: simplified_compressor_train_model
+                - NAME: train2_A
+                  COMPRESSOR_MODEL: simplified_compressor_train_model
+              TOTAL_SYSTEM_RATE: $var.gas_export_rate_sm3_per_day
+              OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [1.0, 0.0]
+                SUCTION_PRESSURE: 20
+                DISCHARGE_PRESSURE: 120
+              - RATE_FRACTIONS: [0.5, 0.5]
+                SUCTION_PRESSURE: 20
+                DISCHARGE_PRESSURE: 120
+          - NAME: Water injection pump system A
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP_SYSTEM
+              PUMPS:
+                - NAME: pump1
+                  CHART: pump_chart
+                - NAME: pump2
+                  CHART: pump_chart
+                - NAME: pump3
+                  CHART: pump_chart
+                - NAME: pump4
+                  CHART: pump_chart
+              FLUID_DENSITY: 1026
+              TOTAL_SYSTEM_RATE: $var.water_injection_rate
+              CONDITION: $var.water_injection_condition
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS: [1, 0, 0, 0]
+                  SUCTION_PRESSURES: [3, 3, 3, 3]
+                  DISCHARGE_PRESSURES: [200, 200, 200, 200]
+                  CROSSOVER: [2, 0, 0, 0]
+                - RATE_FRACTIONS: [0.5, 0.5, 0, 0]
+                  SUCTION_PRESSURE: 3
+                  DISCHARGE_PRESSURE: 200
+                - RATE_FRACTIONS: [0.33, 0.33, 0.34, 0]
+                  SUCTION_PRESSURE: 3
+                  DISCHARGE_PRESSURE: 200
+                - RATE_FRACTIONS:  [0.25, 0.25, 0.25, 0.25]
+                  SUCTION_PRESSURE: 3
+                  DISCHARGE_PRESSURE: 200
+          - NAME: Single pump A
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP
+              CONDITION: $var.water_injection_condition
+              ENERGYFUNCTION: pump_chart
+              RATE: 5000
+              SUCTION_PRESSURE: 3
+              DISCHARGE_PRESSURE: 200
+              FLUID_DENSITY: 1026
+    FUELCONSUMERS:
+      - NAME: Flare A
+        CATEGORY: FLARE
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: $var.flare_a_fuel_rate_sm3_day
+
+  - NAME: Installation B
+    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
+    FUEL: bad_fuel_gas
+    CATEGORY: FIXED
+    GENERATORSETS:
+      - NAME: Generator set B
+        CATEGORY: TURBINE-GENERATOR
+        ELECTRICITY2FUEL: genset
+        CONSUMERS:
+          - NAME: Fixed production loads B
+            CATEGORY: FIXED-PRODUCTION-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 7.6
+    FUELCONSUMERS:
+      - NAME: Flare B
+        CATEGORY: FLARE
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: $var.flare_b_fuel_rate_sm3_day
+      - NAME: Gas export compressors B
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR
+          ENERGYFUNCTION: gasexp
+          CONDITION: $var.gas_export_condition
+          RATE: $var.gas_export_rate_sm3_per_day
+          SUCTION_PRESSURE: 20
+          DISCHARGE_PRESSURE: 200

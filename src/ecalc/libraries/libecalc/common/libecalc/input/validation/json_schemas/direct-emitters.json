@@ -1,0 +1,59 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/direct-emitters.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Direct Emitters",
+  "definitions": {
+    "DIRECTEMITTERS": {
+      "title": "DIRECTEMITTERS",
+      "description": "Covers the direct emissions on the installation that are not consuming energy",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "NAME": {
+            "title": "NAME",
+            "description": "Name of the emitter.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+            "type": "string"
+          },
+          "CATEGORY": {
+            "$ref": "$SERVER_NAME/api/v1/schema-validation/category_temporal.json#properties/CATEGORY"
+          },
+          "EMISSION_NAME": {
+            "title": "EMISSION_NAME",
+            "description": "Name of emission",
+            "type": "string"
+          },
+          "EMITTER_MODEL": {
+            "$ref": "#/definitions/EMITTER_MODEL"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["NAME", "CATEGORY", "EMISSION_NAME", "EMITTER_MODEL"]
+      }
+    },
+    "EMITTER_MODEL": {
+      "type": "object",
+      "properties": {
+        "EMISSION_RATE": {
+          "patternProperties": {
+            "^[a-zA-Z0-9_]+$": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "description": "Emission rate expression or time series"
+        },
+        "QUOTA": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

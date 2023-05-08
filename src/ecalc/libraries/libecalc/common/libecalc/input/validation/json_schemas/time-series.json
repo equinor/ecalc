@@ -1,0 +1,146 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/time-series.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Time series",
+  "properties": {
+    "TIME_SERIES": {
+      "title": "TIME_SERIES",
+      "description": "Defines the inputs for time dependent variables, or “reservoir variables”.\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "NAME": {
+                "title": "NAME",
+                "description": "Name of the time series.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+                "type": "string"
+              },
+              "FILE": {
+                "title": "FILE",
+                "description": "Specifies the name of a time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+                "type": "string"
+              },
+              "TYPE": {
+                "title": "MISCELLANEOUS",
+                "description": "User defined file. All file interpretation options need to be set manually.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE#use-in-time-series",
+                "const": "MISCELLANEOUS"
+              },
+              "INFLUENCE_TIME_VECTOR": {
+                "title": "INFLUENCE_TIME_VECTOR",
+                "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\n$ECALC_DOCS_KEYWORDS_URL/INFLUENCE_TIME_VECTOR",
+                "type": "boolean"
+              },
+              "EXTRAPOLATION": {
+                "title": "EXTRAPOLATION",
+                "description": "Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval.\n\n$ECALC_DOCS_KEYWORDS_URL/EXTRAPOLATION",
+                "type": "boolean"
+              },
+              "INTERPOLATION_TYPE": {
+                "title": "INTERPOLATION_TYPE",
+                "description": "Defines how the time series are interpolated between input time steps.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                "type": "string",
+                "anyOf": [
+                  {
+                    "title": "LEFT",
+                    "description": "The value at a certain time step is defining the value in the time interval before this time step.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                    "const": "LEFT"
+                  },
+                  {
+                    "title": "RIGHT",
+                    "description": "The value at a certain time step is defining the value in the time interval after this time step.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                    "const": "RIGHT"
+                  },
+                  {
+                    "title": "LINEAR",
+                    "description": "The value will be linearly interpolated between the time steps.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                    "const": "LINEAR"
+                  }
+                ]
+              },
+              "additionalProperties": false,
+              "required": [
+                "NAME",
+                "FILE",
+                "TYPE",
+                "INFLUENCE_TIME_VECTOR",
+                "EXTRAPOLATION",
+                "INTERPOLATION_TYPE"
+              ]
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "NAME": {
+                "title": "NAME",
+                "description": "Name of the time series.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+                "type": "string"
+              },
+              "FILE": {
+                "title": "FILE",
+                "description": "Specifies the name of a time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/FILE",
+                "type": "string"
+              },
+              "TYPE": {
+                "title": "TYPE",
+                "description": "Defines the type of time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+                "type": "string",
+                "anyOf": [
+                  {
+                    "title": "DEFAULT",
+                    "description": "Reservoir profiles given in a CSV file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE#use-in-time-series",
+                    "const": "DEFAULT"
+                  }
+                ]
+              },
+              "INFLUENCE_TIME_VECTOR": {
+                "title": "INFLUENCE_TIME_VECTOR",
+                "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\n$ECALC_DOCS_KEYWORDS_URL/INFLUENCE_TIME_VECTOR",
+                "type": "boolean"
+              },
+              "EXTRAPOLATION": {
+                "title": "EXTRAPOLATION",
+                "description": "Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval.\n\n$ECALC_DOCS_KEYWORDS_URL/EXTRAPOLATION",
+                "type": "boolean"
+              },
+              "INTERPOLATION_TYPE": {
+                "title": "INTERPOLATION_TYPE",
+                "description": "Defines how the time series are interpolated between input time steps.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                "type": "string",
+                "anyOf": [
+                  {
+                    "title": "LEFT",
+                    "description": "The value at a certain time step is defining the value in the time interval before this time step.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                    "const": "LEFT"
+                  },
+                  {
+                    "title": "RIGHT",
+                    "description": "The value at a certain time step is defining the value in the time interval after this time step.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                    "const": "RIGHT"
+                  },
+                  {
+                    "title": "LINEAR",
+                    "description": "The value will be linearly interpolated between the time steps.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
+                    "const": "LINEAR"
+                  }
+                ]
+              },
+              "additionalProperties": false,
+              "required": [
+                "NAME",
+                "FILE",
+                "TYPE",
+                "INFLUENCE_TIME_VECTOR",
+                "EXTRAPOLATION",
+                "INTERPOLATION_TYPE"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

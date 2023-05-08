@@ -1,0 +1,71 @@
+from __future__ import annotations
+
+import numpy as np
+from libecalc import dto
+from libecalc.common.units import Unit
+from libecalc.core.models.base import BaseModel
+from libecalc.core.models.results import TurbineResult
+from scipy.interpolate import interp1d
+
+SECONDS_PER_DAY = 86400
+
+
+class TurbineModel(BaseModel):
+    def __init__(
+        self,
+        data_transfer_object: dto.Turbine,
+    ):
+        self.data_transfer_object = data_transfer_object
+        self.fuel_lower_heating_value = np.array(data_transfer_object.lower_heating_value)
+        load_values = np.array(data_transfer_object.turbine_loads)
+        self._maximum_load = load_values.max()
+        efficiency_values = np.array(data_transfer_object.turbine_efficiency_fractions)
+        self._efficiency_function = interp1d(
+            x=load_values,
+            y=efficiency_values,
+            bounds_error=False,
+            fill_value=(0, efficiency_values[-1]),
+        )
+
+    @property
+    def max_power(self):
+        return (
+            self._maximum_load * self.data_transfer_object.energy_usage_adjustment_factor
+            - self.data_transfer_object.energy_usage_adjustment_constant
+        )
+
+    def evaluate(self, load: np.ndarray, fuel_lower_heating_value: float = 0) -> TurbineResult:
+        load_adjusted = np.where(
+            load > 0,
+            (load + self.data_transfer_object.energy_usage_adjustment_constant)
+            / self.data_transfer_object.energy_usage_adjustment_factor,
+            load,
+        )
+        lower_heating_value_to_use = (
+            fuel_lower_heating_value if fuel_lower_heating_value > 0 else self.fuel_lower_heating_value
+        )
+        efficiency = self._efficiency_function(x=load_adjusted)
+
+        # To avoid divide by zero we use np.divide with out array and where clause.
+        fuel_usage = np.divide(
+            np.divide(
+                load_adjusted * SECONDS_PER_DAY,
+                lower_heating_value_to_use,
+                out=np.zeros_like(load_adjusted),
+                where=lower_heating_value_to_use != 0,
+            ),
+            efficiency,
+            out=np.zeros_like(load_adjusted),
+            where=np.logical_and(lower_heating_value_to_use != 0, efficiency != 0),
+        )
+
+        return TurbineResult(
+            load=list(load_adjusted),
+            efficiency=list(efficiency),
+            fuel_rate=list(fuel_usage),
+            energy_usage=list(fuel_usage),
+            energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            power=list(load_adjusted),
+            power_unit=Unit.MEGA_WATT,
+            exceeds_maximum_load=list(load > self._maximum_load),
+        )

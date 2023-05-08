@@ -1,0 +1,105 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json",
+  "title": "MODELS",
+  "description": "Experimental feature: Variable speed compressor train.\n\n$ECALC_DOCS_KEYWORDS_URL/_MODELS_",
+  "type": "object",
+  "definitions": {
+    "VARIABLE_SPEED_COMPRESSOR_TRAIN": {
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the model.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the type of model.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN"
+        },
+        "FLUID_MODEL": {
+          "oneOf": [
+            {
+              "$ref": "$SERVER_NAME/api/v1/schema-validation/models-fluid.json#definitions/FLUID_MODEL"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "PRESSURE_CONTROL": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/models-single-speed-compressor-train.json#/definitions/PRESSURE_CONTROL"
+        },
+        "COMPRESSOR_TRAIN": {
+          "title": "COMPRESSOR_TRAIN",
+          "description": "Specification of variable speed compressor train model with stages.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "object",
+          "properties": {
+            "STAGES": {
+              "title": "STAGES",
+              "description": "Defines the stages of the compressor train, a compressor chart and an inlet temperature per stage. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "COMPRESSOR_CHART": {
+                    "$ref": "#/definitions/COMPRESSOR_CHART"
+                  },
+                  "INLET_TEMPERATURE": {
+                    "$ref": "#/definitions/INLET_TEMPERATURE"
+                  },
+                  "CONTROL_MARGIN": {
+                    "$ref": "#/definitions/CONTROL_MARGIN"
+                  },
+                  "CONTROL_MARGIN_UNIT": {
+                    "$ref": "#/definitions/CONTROL_MARGIN_UNIT"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["COMPRESSOR_CHART", "INLET_TEMPERATURE"]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "POWER_ADJUSTMENT_CONSTANT": {
+          "title": "POWER_ADJUSTMENT_CONSTANT",
+          "description": "Constant to adjust power usage in MW",
+          "type": "number"
+        },
+        "CALCULATE_MAX_RATE": {
+          "title": "CALCULATE_MAX_RATE",
+          "description": "Will return compressor train max standard rate [Sm3/day] in result if set to true.",
+          "type": "boolean"
+        },
+        "MAXIMUM_POWER": {
+          "title": "MAXIMUM_POWER",
+          "description": "Maximum power delivered by electrical motor",
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["NAME", "TYPE", "FLUID_MODEL", "COMPRESSOR_TRAIN"]
+    },
+    "INLET_TEMPERATURE": {
+      "type": "number",
+      "title": "INLET_TEMPERATURE",
+      "description": "Inlet temperature for each compressor in the train, should be a number larger than 0. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS"
+    },
+    "COMPRESSOR_CHART": {
+      "title": "COMPRESSOR_CHART",
+      "type": "string",
+      "description": "Reference to a compressor chart defined in MODELS. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS"
+    },
+    "CONTROL_MARGIN": {
+      "title": "CONTROL_MARGIN",
+      "type": "number",
+      "description": "A fraction or percentage to change the minimum flow rate by for each speed curve. Defaults to 0."
+    },
+    "CONTROL_MARGIN_UNIT": {
+      "title": "CONTROL_MARGIN_UNIT",
+      "type": "string",
+      "description": "The unit of the CONTROL_MARGIN. Must be either PERCENTAGE or FRACTION. Defaults to PERCENTAGE."
+    }
+  }
+}

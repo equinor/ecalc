@@ -1,0 +1,115 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/category.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "Category",
+  "properties": {
+    "CATEGORY": {
+      "title": "CATEGORY",
+      "description": "Output category/tag.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+      "type": "string",
+      "anyOf": [
+        {
+          "const": "MISCELLANEOUS",
+          "title": "MISCELLANEOUS",
+          "description": "Anything that doesn't belong in the other categories.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "BASE-LOAD",
+          "title": "BASE-LOAD",
+          "description": "Consumers that do not vary with production.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "FIXED-PRODUCTION-LOAD",
+          "title": "FIXED-PRODUCTION-LOAD",
+          "description": "Consumer that is fixed/constant when production stream is on.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "FLARE",
+          "title": "FLARE",
+          "description": "Flaring related energy usage/emissions.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "COLD-VENTING-FUGITIVE",
+          "title": "COLD-VENTING-FUGITIVE",
+          "description": "Direct emissions through cold venting and fugitive emissions.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "COMPRESSOR",
+          "title": "COMPRESSOR",
+          "description": "Gas injection compressors, export compressors, etc..\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "PUMP",
+          "title": "PUMP",
+          "description": "Single speed pumps, variable speed pumps.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "FIXED",
+          "title": "FIXED",
+          "description": "Fixed installation. Reserved for use with INSTALLATION, normally with LTP.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "MOBILE",
+          "title": "MOBILE",
+          "description": "Mobile installation. Reserved for use with installation, normally with LTP.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "FUEL-GAS",
+          "title": "FUEL-GAS",
+          "description": "Fuel Gas. Reserved for use with fuel types, normally with LTP.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "DIESEL",
+          "title": "DIESEL",
+          "description": "Diesel. Reserved for use with fuel types, normally with LTP.\n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY"
+        },
+        {
+          "const": "GAS-DRIVEN-COMPRESSOR",
+          "description": "Used for LTP, to indicate that a compressor is gas (turbine) driven. Valid for compressors only. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "GAS-DRIVEN-COMPRESSOR"
+        },
+        {
+          "const": "TURBINE-GENERATOR",
+          "description": "Used for LTP, to indicate power to el-driven equipment from a gas turbine generator only. Valid for gensets only. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "TURBINE-GENERATOR"
+        },
+        {
+          "const": "POWER-FROM-SHORE",
+          "description": "Used for LTP, to indicate that the genset is a dummy (with 0 fuel) for power import from shore. Valid for gensets only. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "POWER-FROM-SHORE"
+        },
+        {
+          "const": "OFFSHORE-WIND",
+          "description": "Used for LTP, to indicate that the power is offshore wind. Should have negative load  (in order to deduct from total). Valid for direct consumer only. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "OFFSHORE-WIND"
+        },
+        {
+          "const": "LOADING",
+          "description": "Used for LTP, to indicate oil volume to be loaded. Oil volume per timestep equals fuel. Valid for direct consumer only. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "LOADING"
+        },
+        {
+          "const": "STORAGE",
+          "description": "Used for LTP, to indicate oil volume to be stored. Oil volume per timestep equals fuel. Valid for direct consumer only. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "STORAGE"
+        },
+        {
+          "const": "STEAM-TURBINE-GENERATOR",
+          "description": "Used for LTP, to indicate energy provided through steam turbine generator. Should have negative load  (in order to deduct from total). Valid for direct consumer only. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY.html",
+          "title": "STEAM-TURBINE-GENERATOR"
+        },
+        {
+          "const": "BOILER",
+          "description": "Used for LTP, to indicate steam generated. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "BOILER"
+        },
+        {
+          "const": "HEATER",
+          "description": "Used for LTP, to indicate hot medium generated. \n\n$ECALC_DOCS_KEYWORDS_URL/CATEGORY",
+          "title": "HEATER"
+        }
+      ]
+    }
+  }
+}

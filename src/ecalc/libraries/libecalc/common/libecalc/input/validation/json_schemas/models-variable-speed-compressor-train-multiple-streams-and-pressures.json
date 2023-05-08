@@ -1,0 +1,128 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train-multiple-streams-and-pressures.json",
+  "title": "MODELS",
+  "description": "Experimental feature: Variable speed compressor train with multiple streams and pressures.\n\n$ECALC_DOCS_KEYWORDS_URL/_MODELS_",
+  "type": "object",
+  "definitions": {
+    "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": {
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the model.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+          "type": "string"
+        },
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the type of model.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
+        },
+        "STREAMS": {
+          "$ref": "#/definitions/STREAMS"
+        },
+        "PRESSURE_CONTROL": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/models-single-speed-compressor-train.json#/definitions/PRESSURE_CONTROL"
+        },
+        "CALCULATE_MAX_RATE": {
+          "title": "CALCULATE_MAX_RATE",
+          "description": "Will return compressor train max standard rate [Sm3/day] in result if set to true.",
+          "type": "boolean"
+        },
+        "MAXIMUM_POWER": {
+          "title": "MAXIMUM_POWER",
+          "description": "Maximum power delivered by electrical motor",
+          "type": "number"
+        },
+        "STAGES": {
+          "title": "STAGES",
+          "description": "Defines the stages of the compressor train, a compressor chart and an inlet temperature per stage. \n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "COMPRESSOR_CHART": {
+                "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/COMPRESSOR_CHART"
+              },
+              "INLET_TEMPERATURE": {
+                "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/INLET_TEMPERATURE"
+              },
+              "CONTROL_MARGIN": {
+                "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN"
+              },
+              "CONTROL_MARGIN_UNIT": {
+                "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN_UNIT"
+              },
+              "STREAM": {
+                "$ref": "#/definitions/STREAM"
+              },
+              "INTERSTAGE_CONTROL_PRESSURE": {
+                "$ref": "#/definitions/INTERSTAGE_CONTROL_PRESSURE"
+              },
+              "PRESSURE_DROP_AHEAD_OF_STAGE": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "required": ["COMPRESSOR_CHART", "INLET_TEMPERATURE"]
+          }
+        }
+      },
+      "required": ["NAME", "TYPE", "STREAMS", "STAGES"]
+    },
+    "STREAMS": {
+      "title": "STREAMS",
+      "description": "Defines the streams of the compressor train, whether the stream is INGOING or OUTGOING, and if it is INGOING also the name of the FLUID_MODEL",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "NAME": {
+            "title": "NAME",
+            "description": "Name of the stream.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
+            "type": "string"
+          },
+          "TYPE": {
+            "title": "TYPE",
+            "description": "Defines the type of stream.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+            "type": "string"
+          },
+          "FLUID_MODEL": {
+            "title": "FLUID_MODEL",
+            "description": "Name of the fluid model connected to the stream.",
+            "type": "string"
+          },
+          "additionalProperties": false,
+          "required": ["NAME", "TYPE"]
+        }
+      }
+    },
+    "STREAM": {
+      "title": "STREAM",
+      "type": "array",
+      "description": "List of names of the stream(s) connected to this compressor stage. The stream(s) must have been defined under STREAMS.",
+      "items": {
+        "type": "string",
+        "description": "Name of fluid stream"
+      }
+    },
+    "INTERSTAGE_CONTROL_PRESSURE": {
+      "title": "INTERSTAGE_PRESSURE_CONTROL",
+      "description": "Defines what measure will be used to control the pressure of the compressor train.",
+      "type": "object",
+      "properties": {
+        "UPSTREAM_PRESSURE_CONTROL": {
+          "title": "UPSTREAM_PRESSURE_CONTROL",
+          "description": "Defines the measure to use to control the pressure of the compressor train prior to the stage with interstage pressure, if the compressor train after the interstage pressure is controlled by speed.",
+          "type": "string"
+        },
+        "DOWNSTREAM_PRESSURE_CONTROL": {
+          "title": "DOWNSTREAM_PRESSURE_CONTROL",
+          "description": "Defines the measure to use to control the pressure of the compressor train after the stage with interstage pressure, if the compressor train before the interstage pressure is controlled by speed.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["UPSTREAM_PRESSURE_CONTROL", "DOWNSTREAM_PRESSURE_CONTROL"]
+    }
+  }
+}

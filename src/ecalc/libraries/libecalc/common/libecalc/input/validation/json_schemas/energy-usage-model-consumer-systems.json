@@ -1,0 +1,419 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/energy_usage_model_consumer_systems.json",
+  "title": "ENERGY_USAGE_MODEL",
+  "description": "Specifies the data used when calculating the energy usage of a consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
+  "type": "object",
+  "definitions": {
+    "ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM": {
+      "title": "ENERGY_USAGE_MODEL COMPRESSOR_SYSTEM",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#compressor-system",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "COMPRESSOR_SYSTEM"
+        }
+      },
+      "oneOf": [
+        {
+          "$ref": "#/definitions/ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE"
+        },
+        {
+          "$ref": "#/definitions/ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITH_TOTAL_SYSTEM_RATE"
+        }
+      ]
+    },
+    "ENERGY_USAGE_MODEL_PUMP_SYSTEM": {
+      "title": "ENERGY_USAGE_MODEL PUMP_SYSTEM",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#pump-system",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "PUMP_SYSTEM"
+        }
+      },
+      "oneOf": [
+        {
+          "$ref": "#/definitions/ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE"
+        },
+        {
+          "$ref": "#/definitions/ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITH_TOTAL_SYSTEM_RATE"
+        }
+      ]
+    },
+    "ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITH_TOTAL_SYSTEM_RATE": {
+      "title": "ENERGY_USAGE_MODEL COMPRESSOR_SYSTEM",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#compressor-system",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "COMPRESSOR_SYSTEM"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "COMPRESSORS": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/COMPRESSORS"
+          }
+        },
+        "TOTAL_SYSTEM_RATE": {
+          "$ref": "#/definitions/TOTAL_SYSTEM_RATE"
+        },
+        "OPERATIONAL_SETTINGS": {
+          "title": "OPERATIONAL_SETTINGS",
+          "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_AND_RATE_FRACTIONS"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "TYPE",
+        "COMPRESSORS",
+        "OPERATIONAL_SETTINGS",
+        "TOTAL_SYSTEM_RATE"
+      ]
+    },
+    "ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITH_TOTAL_SYSTEM_RATE": {
+      "title": "ENERGY_USAGE_MODEL PUMP_SYSTEM",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#pump-system",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "PUMP_SYSTEM"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "PUMPS": {
+          "description": "The pumps in a pump system. \n\n$ECALC_DOCS_KEYWORDS_URL/PUMPS#pumps",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PUMPS"
+          }
+        },
+        "FLUID_DENSITY": {
+          "$ref": "#/definitions/FLUID_DENSITY"
+        },
+        "TOTAL_SYSTEM_RATE": {
+          "$ref": "#/definitions/TOTAL_SYSTEM_RATE"
+        },
+        "OPERATIONAL_SETTINGS": {
+          "title": "OPERATIONAL_SETTINGS",
+          "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_AND_RATE_FRACTIONS"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "TYPE",
+        "PUMPS",
+        "FLUID_DENSITY",
+        "OPERATIONAL_SETTINGS",
+        "TOTAL_SYSTEM_RATE"
+      ]
+    },
+    "ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE": {
+      "title": "ENERGY_USAGE_MODEL COMPRESSOR_SYSTEM",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#compressor-system",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "COMPRESSOR_SYSTEM"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "COMPRESSORS": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/COMPRESSORS"
+          }
+        },
+        "OPERATIONAL_SETTINGS": {
+          "title": "OPERATIONAL_SETTINGS",
+          "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_ONLY"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["TYPE", "COMPRESSORS", "OPERATIONAL_SETTINGS"]
+    },
+    "ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE": {
+      "title": "ENERGY_USAGE_MODEL PUMP_SYSTEM",
+      "description": "Definition of the energy usage model for the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL#pump-system",
+      "type": "object",
+      "properties": {
+        "TYPE": {
+          "title": "TYPE",
+          "description": "Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
+          "type": "string",
+          "const": "PUMP_SYSTEM"
+        },
+        "CONDITION": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
+        },
+        "CONDITIONS": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
+        },
+        "POWERLOSSFACTOR": {
+          "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
+        },
+        "PUMPS": {
+          "description": "The pumps in a pump system. \n\n$ECALC_DOCS_KEYWORDS_URL/PUMPS#pumps",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PUMPS"
+          }
+        },
+        "FLUID_DENSITY": {
+          "$ref": "#/definitions/FLUID_DENSITY"
+        },
+        "OPERATIONAL_SETTINGS": {
+          "title": "OPERATIONAL_SETTINGS",
+          "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_ONLY"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["TYPE", "PUMPS", "FLUID_DENSITY", "OPERATIONAL_SETTINGS"]
+    },
+    "COMPRESSORS": {
+      "type": "object",
+      "title": "COMPRESSORS",
+      "description": "The compressors in a compressor system. \n\n$ECALC_DOCS_KEYWORDS_URL/COMPRESSORS#compressors",
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the compressor",
+          "type": "string"
+        },
+        "COMPRESSOR_MODEL": {
+          "title": "COMPRESSOR_MODEL",
+          "description": "Reference to a compressor type facility model defined in FACILITY_INPUTS",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["NAME", "COMPRESSOR_MODEL"]
+    },
+    "PUMPS": {
+      "type": "object",
+      "title": "PUMPS",
+      "description": "The pumps in a pump system. \n\n$ECALC_DOCS_KEYWORDS_URL/PUMPS#pumps",
+      "properties": {
+        "NAME": {
+          "title": "NAME",
+          "description": "Name of the pump",
+          "type": "string"
+        },
+        "CHART": {
+          "title": "CHART",
+          "description": "Reference to a pump type facility model defined in FACILITY_INPUTS",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["NAME", "CHART"]
+    },
+    "FLUID_DENSITY": {
+      "title": "FLUID_DENSITY",
+      "description": "Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+    },
+    "OPERATIONAL_SETTING_RATES_AND_RATE_FRACTIONS": {
+      "title": "OPERATIONAL_SETTING",
+      "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+      "type": "object",
+      "properties": {
+        "RATE_FRACTIONS": {
+          "$ref": "#/definitions/OPERATIONAL_SETTING_RATE_FRACTIONS"
+        },
+        "RATES": { "$ref": "#/definitions/OPERATIONAL_SETTING_RATES" },
+        "SUCTION_PRESSURES": {
+          "$ref": "#/definitions/OPERATIONAL_SETTING_SUCTION_PRESSURES"
+        },
+        "DISCHARGE_PRESSURES": {
+          "$ref": "#/definitions/OPERATIONAL_SETTING_DISCHARGE_PRESSURES"
+        },
+        "SUCTION_PRESSURE": { "$ref": "#/definitions/SUCTION_PRESSURE" },
+        "DISCHARGE_PRESSURE": { "$ref": "#/definitions/DISCHARGE_PRESSURE" },
+        "CROSSOVER": { "$ref": "#/definitions/OPERATIONAL_SETTING_CROSSOVER" },
+        "FLUID_DENSITIES": {
+          "$ref": "#/definitions/OPERATIONAL_SETTING_FLUID_DENSITIES"
+        }
+      },
+      "additional_properties": false,
+      "oneOf": [
+        {
+          "required": [
+            "RATE_FRACTIONS",
+            "SUCTION_PRESSURES",
+            "DISCHARGE_PRESSURES"
+          ]
+        },
+        { "required": ["RATES", "SUCTION_PRESSURES", "DISCHARGE_PRESSURES"] },
+        {
+          "required": [
+            "RATE_FRACTIONS",
+            "SUCTION_PRESSURE",
+            "DISCHARGE_PRESSURES"
+          ]
+        },
+        { "required": ["RATES", "SUCTION_PRESSURE", "DISCHARGE_PRESSURES"] },
+        {
+          "required": [
+            "RATE_FRACTIONS",
+            "SUCTION_PRESSURES",
+            "DISCHARGE_PRESSURE"
+          ]
+        },
+        { "required": ["RATES", "SUCTION_PRESSURES", "DISCHARGE_PRESSURE"] },
+        {
+          "required": [
+            "RATE_FRACTIONS",
+            "SUCTION_PRESSURE",
+            "DISCHARGE_PRESSURE"
+          ]
+        },
+        { "required": ["RATES", "SUCTION_PRESSURE", "DISCHARGE_PRESSURE"] }
+      ]
+    },
+    "OPERATIONAL_SETTING_RATES_ONLY": {
+      "title": "OPERATIONAL_SETTING",
+      "description": "Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
+      "type": "object",
+      "properties": {
+        "RATES": { "$ref": "#/definitions/OPERATIONAL_SETTING_RATES" },
+        "SUCTION_PRESSURES": {
+          "$ref": "#/definitions/OPERATIONAL_SETTING_SUCTION_PRESSURES"
+        },
+        "DISCHARGE_PRESSURES": {
+          "$ref": "#/definitions/OPERATIONAL_SETTING_DISCHARGE_PRESSURES"
+        },
+        "SUCTION_PRESSURE": { "$ref": "#/definitions/SUCTION_PRESSURE" },
+        "DISCHARGE_PRESSURE": { "$ref": "#/definitions/DISCHARGE_PRESSURE" },
+        "CROSSOVER": { "$ref": "#/definitions/OPERATIONAL_SETTING_CROSSOVER" },
+        "FLUID_DENSITIES": {
+          "$ref": "#/definitions/OPERATIONAL_SETTING_FLUID_DENSITIES"
+        }
+      },
+      "additional_properties": false,
+      "oneOf": [
+        { "required": ["RATES", "SUCTION_PRESSURES", "DISCHARGE_PRESSURES"] },
+        { "required": ["RATES", "SUCTION_PRESSURE", "DISCHARGE_PRESSURES"] },
+        { "required": ["RATES", "SUCTION_PRESSURES", "DISCHARGE_PRESSURE"] },
+        { "required": ["RATES", "SUCTION_PRESSURE", "DISCHARGE_PRESSURE"] }
+      ]
+    },
+    "OPERATIONAL_SETTING_CROSSOVER": {
+      "title": "CROSSOVER",
+      "description": "Set cross over rules in system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#crossover",
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "OPERATIONAL_SETTING_RATES": {
+      "title": "OPERATIONAL_SETTING RATES",
+      "description": "Set rate per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rates",
+      "type": "array",
+      "items": {
+        "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+      }
+    },
+    "OPERATIONAL_SETTING_RATE_FRACTIONS": {
+      "title": "OPERATIONAL_SETTING RATE_FRACTIONS",
+      "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rate-fractions",
+      "type": "array",
+      "items": {
+        "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+      }
+    },
+    "OPERATIONAL_SETTING_SUCTION_PRESSURES": {
+      "title": "OPERATIONAL_SETTING SUCTION PRESSURES",
+      "description": "Set suction pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#suction-pressures",
+      "type": "array",
+      "items": {
+        "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+      }
+    },
+    "OPERATIONAL_SETTING_DISCHARGE_PRESSURES": {
+      "title": "OPERATIONAL_SETTING DISCHARGE PRESSURES",
+      "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#discharge-pressures",
+      "type": "array",
+      "items": {
+        "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+      }
+    },
+    "SUCTION_PRESSURE": {
+      "title": "SUCTION PRESSURE",
+      "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+    },
+    "DISCHARGE_PRESSURE": {
+      "title": "DISCHARGE PRESSURE",
+      "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+    },
+    "OPERATIONAL_SETTING_FLUID_DENSITIES": {
+      "title": "OPERATIONAL_SETTING FLUID_DENSITIES",
+      "description": "Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#fluid-densities",
+      "type": "array",
+      "items": {
+        "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+      }
+    },
+    "TOTAL_SYSTEM_RATE": {
+      "title": "TOTAL_SYSTEM_RATE",
+      "description": "Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+    }
+  }
+}

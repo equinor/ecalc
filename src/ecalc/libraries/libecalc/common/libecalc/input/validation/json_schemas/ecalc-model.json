@@ -1,0 +1,40 @@
+{
+  "id": "$SERVER_NAME/api/v1/schema-validation/ecalc-model.json",
+  "type": "object",
+  "title": "ecalc yaml setup",
+  "description": "An ecalc yaml file",
+  "properties": {
+    "TIME_SERIES": {
+      "title": "TIME_SERIES",
+      "description": "Defines the inputs for time dependent variables, or “reservoir variables”.\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/time-series.json#properties/TIME_SERIES"
+    },
+    "FACILITY_INPUTS": {
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS"
+    },
+    "MODELS": {
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/models.json#properties/MODELS"
+    },
+    "FUEL_TYPES": {
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES"
+    },
+    "VARIABLES": {
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/definitions.json#definitions/VARIABLES"
+    },
+    "INSTALLATIONS": {
+      "$ref": "$SERVER_NAME/api/v1/schema-validation/installations.json#properties/INSTALLATIONS"
+    },
+    "START": {
+      "title": "START",
+      "description": "Global start date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/START",
+      "type": "string"
+    },
+    "END": {
+      "title": "END",
+      "description": "Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["INSTALLATIONS", "TIME_SERIES", "FACILITY_INPUTS", "FUEL_TYPES"]
+}
