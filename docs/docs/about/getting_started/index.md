@@ -20,7 +20,7 @@ There are three options to run eCalc models:
 ### eCalc CLI
 Choose the [eCalc CLI](cli/index.md) option if you:
 
-- want to integrate your model(s) in an [FMU](https://wiki.equinor.com/wiki/index.php/FMU_portal_home) setup, dependent on ERT, WebViz etc.
+- want to integrate your model(s) in another setup, dependent on ERT, WebViz etc.
 - prefer working in your own text editor in a Unix environment
 - want full control over your eCalc environment [this will change]
 - want to have access to old versions of eCalc

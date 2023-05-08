@@ -71,7 +71,7 @@ def show_results(
     date_format_option: DateFormat = typer.Option(
         DateFormat.ISO_8601.value,
         "--date-format-option",
-        help='Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601, FMU compatible), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)',
+        help='Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)',
     ),
     output_frequency: Frequency = typer.Option(
         libecalc.common.time_utils.Frequency.NONE.name,

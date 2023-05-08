@@ -48,7 +48,7 @@ $ ecalc run [OPTIONS] MODEL_FILE
 * `--stp-export`: In addition to standard output, a specific Short Term Prognosis (STP) file will be provided for simple export of STP relevant data (Tabular Separated Values).
 * `--flow-diagram`: Output the input model formatted to be displayed in a custom flow diagram format in JSON
 * `--detailed-output, --detailedoutput`: Output detailed output. When False you will get basic results such as energy usage, power, time vector.
-* `--date-format-option [0|1|2]`: Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601, FMU compatible), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)  [default: 0]
+* `--date-format-option [0|1|2]`: Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)  [default: 0]
 * `--help`: Show this message and exit.
 
 ## `ecalc selftest`
@@ -101,7 +101,7 @@ $ ecalc show results [OPTIONS]
 * `--file PATH`: Write the data to a file with the specified name.
 * `--output-folder PATH`: Output folder. Defaults to current working directory
 * `--detailed-output`: Output detailed output. When False you will get basic energy usage and emissions results
-* `--date-format-option [0|1|2]`: Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601, FMU compatible), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)  [default: 0]
+* `--date-format-option [0|1|2]`: Date format option. 0: "YYYY-MM-DD HH:MM:SS" (Accepted variant of ISO8601), 1: "YYYYMMDD HH:MM:SS" (ISO8601), 2: "DD.MM.YYYY HH:MM:SS". Default 0 (ISO 8601)  [default: 0]
 * `-f, --output-frequency [NONE|YEAR|MONTH|DAY]`: Frequency of output. Options are DAY, MONTH, YEAR. If not specified, it will give time steps equal to the union of all input given with INFLUENCE_TIME_VECTOR set to True. Down-sampling the result may lead to loss of data, and rates such as MW may not add up to cumulative values  [default: NONE]
 * `--help`: Show this message and exit.
 
