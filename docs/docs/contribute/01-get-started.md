@@ -8,11 +8,11 @@ This document outlines the process to help get your contribution accepted.
 
 There are many ways to contribute:
 
-* Suggest [features](https://github.com/equinor/ecalc-engine/issues/new?assignees=&labels=&template=feature_request.md&title=)
-* Suggest [changes](https://github.com/equinor/ecalc-engine/issues/new?assignees=&labels=bug&template=code-maintainer.md&title=)
-* Report [bugs](https://github.com/equinor/ecalc-engine/issues/new?assignees=&labels=bug&template=bug_report.md&title=)
+* Suggest [features](https://github.com/equinor/ecalc/issues/new?assignees=&labels=&template=feature_request.md&title=)
+* Suggest [changes](https://github.com/equinor/ecalc/issues/new?assignees=&labels=bug&template=code-maintainer.md&title=)
+* Report [bugs](https://github.com/equinor/ecalc/issues/new?assignees=&labels=bug&template=bug_report.md&title=)
 
-You can start by looking through the [GitHub Issues](https://github.com/equinor/ecalc-engine/issues) filtered by labels.
+You can start by looking through the [GitHub Issues](https://github.com/equinor/ecalc/issues) filtered by labels.
 
 :::info
 We follow some contributor guidelines that you will find in our [contributor guidelines](#guidelines).
@@ -22,7 +22,6 @@ The threshold for contributing is low, and we appreciate any contribution great 
 :::
 
 ## Prerequisites
-* See [Development Guide Setup](development-guide/01-setup.md) for how to set up a Python development environment.
 * See [Documentation guide](documentation-guide/01-documentation.md) for how to get started with contributions to this 
   documentation.
 

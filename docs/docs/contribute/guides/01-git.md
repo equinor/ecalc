@@ -34,7 +34,7 @@ Below we will describe the most commonly used commands and scenarios when workin
 :::info
 In the following sections we use the syntax &ltsome text> where you should fill in your own values, such as:
 * **&ltchange type>**: [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) change types such as feat, fix, docs, test, chore, refactor, etc.
-* **&ltissue number>**: the GitHub [Issue Number](https://github.com/equinor/ecalc-engine) that you are solving. This may be omitted if you are fixing something tiny.
+* **&ltissue number>**: the GitHub [Issue Number](https://github.com/equinor/ecalc) that you are solving. This may be omitted if you are fixing something tiny.
 * **&ltdescription>**: a short summary of the code changes, e.g., fix: array parsing issue when multiple spaces were contained in string.
 :::
 
@@ -42,11 +42,11 @@ In the following sections we use the syntax &ltsome text> where you should fill 
 Navigate to the location where you want to store the code, and clone the repository:
 
 ```shell
-git clone git@github.com:equinor/ecalc-engine.git
+git clone git@github.com:equinor/ecalc.git
 ```
 
 This will create a local copy of a project that already exists remotely. The copy will be stored in a sub-folder, with the
-same name as the repository, ecalc-engine/.
+same name as the repository, ecalc/.
 
 ### Tell Git who you are
 ```shell
@@ -119,13 +119,13 @@ git commit -m "<change type>: <description"
 ## Workflow examples
 
 ### Pull Requests
-For Equinor internal developers you are welcome to open a Pull Request directly in the [ecalc-engine](https://github.com/equinor/ecalc-engine/) repository.
+For Equinor internal developers you are welcome to open a Pull Request directly in the [ecalc](https://github.com/equinor/ecalc/) repository.
 
 Here's a quick guide:
 
 1. Clone the project to your machine:
     ```shell
-    git clone git@github.com:equinor/ecalc-engine.git
+    git clone git@github.com:equinor/ecalc.git
     ```
 2. Create a branch locally with a succinct but descriptive name and prefixed with change type. 
     ```shell
@@ -159,7 +159,7 @@ Here's a quick guide:
 1. Create your own fork of the repository
 2. Clone the project to your machine
     ```shell
-    git clone git@github.com:equinor/ecalc-engine.git
+    git clone git@github.com:equinor/ecalc.git
     ```
 3. To keep track of the original repository add another remote named upstream
     ```shell
