@@ -12,7 +12,7 @@ async function createConfig() {
     title: 'eCalc™ Docs',
     tagline: 'Documentation for eCalc™',
     url: 'https://equinor.github.io',
-    baseUrl: '/',
+    baseUrl: '/ecalc/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.svg',
