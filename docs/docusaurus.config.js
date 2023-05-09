@@ -11,8 +11,8 @@ async function createConfig() {
   return {
     title: 'eCalc™ Docs',
     tagline: 'Documentation for eCalc™',
-    url: 'https://equinor.github.io/ecalc',
-    baseUrl: '/',
+    url: 'https://equinor.github.io',
+    baseUrl: '/ecalc',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.svg',
