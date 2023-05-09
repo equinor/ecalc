@@ -7,7 +7,7 @@ description: Getting started with eCalc
 # API Reference
 
 :::info
-Currently the *only* officially supported method is the [eCalc CLI](cli/index.md).
+Currently the *only* officially supported method is the [eCalc CLI](cli/index.md) using eCalc YAML models.
 :::
 
 There are three options to run eCalc models:
@@ -20,14 +20,9 @@ There are three options to run eCalc models:
 ### eCalc CLI
 Choose the [eCalc CLI](cli/index.md) option if you:
 
-- want to integrate your model(s) in another setup, dependent on ERT, WebViz etc.
-- prefer working in your own text editor in a Unix environment
-- want full control over your eCalc environment [this will change]
-- want to have access to old versions of eCalc
-
-:::note
-The eCalc CLI option is available from your local machine, or an RGS node. See [CLI](cli/index.md) for getting started.
-:::
+- Don't know much about programming
+- Have simple requirements
+- Can define the eCalc models statically
 
 ### Python Library
 Choose the [Python Library](library/index.md) option if you:
@@ -37,5 +32,5 @@ Choose the [Python Library](library/index.md) option if you:
 - Need access to "inner core functionality" of eCalc
 
 :::note
-Python Library is not yet available
+Python Library is not yet officially available and not recommended to use due to upcoming breaking changes very soon
 :::
