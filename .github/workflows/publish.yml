@@ -42,10 +42,9 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry install --no-interaction
 
-# TODO: Uncomment when open-sourced
-#      - name: Publish to PyPI
-#        env:
-#          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-#        run: |
-#          poetry config pypi-token.pypi $PYPI_TOKEN
-#          poetry publish --build
+      - name: Publish to PyPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build
