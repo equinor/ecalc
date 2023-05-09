@@ -7,7 +7,7 @@ This site was generated from the contents of your `documentation` folder using [
 You will find the full documentation of Docusaurus here: [Docusaurus Docs](https://docusaurus.io/docs/next).
 
 ## Prerequisites
-You can contribute as long as you have access to the [ecalc-engine - GitHub Repository](https://github.com/equinor/ecalc-engine).
+You can contribute as long as you have access to the [ecalc - GitHub Repository](https://github.com/equinor/ecalc).
 It is entirely possible to make changes by using your web browser alone. However, if you want to get live feedback on your
 changes, we recommend that you run the documentation locally with the following prerequisites:
 
@@ -43,12 +43,3 @@ Docusuaurs has some special features that we are using actively. Please find the
 * [Admonitions](https://docusaurus.io/docs/next/markdown-features/admonitions)
 * [Diagrams using Mermaid](https://docusaurus.io/docs/next/markdown-features/diagrams)
 * [Head metadata](https://docusaurus.io/docs/next/markdown-features/head-metadata) to set titles, menu order, etc.
-
-## Publishing
-
-As soon as changes are merged into the main branch, the documentation is built and tested before it is deployed
-directly into our test environment. Whenever a new version of eCalc is deployed to production, it also gets deployed
-to our production environment:
-
-* Latest version deployed continuously from GitHub: [Ecalc Test Documentation](https://test.ecalc.equinor.com/docs/)
-* Production version deployed together with eCalc: [Ecalc Prod Documentation](https://ecalc.equinor.com/docs/)

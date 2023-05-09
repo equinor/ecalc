@@ -11,8 +11,8 @@ async function createConfig() {
   return {
     title: 'eCalc™ Docs',
     tagline: 'Documentation for eCalc™',
-    url: 'https://ecalc.equinor.com/',
-    baseUrl: '/',
+    url: 'https://equinor.github.io',
+    baseUrl: '/ecalc',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.svg',
@@ -20,7 +20,7 @@ async function createConfig() {
     // GitHub pages deployment config.
     // If you aren't using GitHub pages, you don't need these.
     organizationName: 'equinor', // Usually your GitHub org/user name.
-    projectName: 'ecalc-engine', // Usually your repo name.
+    projectName: 'ecalc', // Usually your repo name.
     deploymentBranch: 'gh-pages',
 
     // Even if you don't use internalization, you can use this field to set useful
@@ -39,7 +39,7 @@ async function createConfig() {
           docs: {
             sidebarPath: require.resolve('./sidebars.js'),
             editUrl:
-              'https://github.com/equinor/ecalc-engine/tree/main/documentation/',
+              'https://github.com/equinor/ecalc/tree/main/documentation/',
             remarkPlugins: [mdxMermaid.default, math],
             rehypePlugins: [katex],
           },
@@ -81,7 +81,7 @@ async function createConfig() {
               label: 'Changelog',
             },
             {
-              href: 'https://github.com/equinor/ecalc-engine',
+              href: 'https://github.com/equinor/ecalc',
               label: 'GitHub',
               position: 'right',
             },
@@ -95,7 +95,7 @@ async function createConfig() {
               items: [
                 {
                   label: 'GitHub',
-                  href: 'https://github.com/equinor/ecalc-engine',
+                  href: 'https://github.com/equinor/ecalc',
                 },
               ],
             },
