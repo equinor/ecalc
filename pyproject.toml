@@ -3,7 +3,7 @@ name = "libecalc"
 # DO_NOT_EDIT: Version number automatically changed in CICD
 version = "8.2.1"  # x-release-please-version
 # END_DO_NOT_EDIT
-description = "eCalc™ - energy and emission Calculator - is a calculator for energy usage and emissions related to reservoir drainage."
+description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
 keywords = ["energy", "emission", "scientific", "engineering"]
 authors = ["eCalc Team <fg_ecalc@equinor.com>"]
 
@@ -12,7 +12,7 @@ readme = "README.md"
 homepage = "https://github.com/equinor/ecalc"
 repository = "https://github.com/equinor/ecalc"
 classifiers=[
-    "Development Status :: 5 - Production/Stable", # TODO? or 4 - Beta?
+    "Development Status :: 5 - Production/Stable",
     "Topic :: Scientific/Engineering",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
@@ -27,7 +27,7 @@ classifiers=[
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Natural Language :: English",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)", # TODO: or later?
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
 packages = [
     { include = "cli", from = "src/ecalc/cli" },
