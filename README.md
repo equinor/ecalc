@@ -1,4 +1,4 @@
-![eCalc Icon](docs/static/img/logo.svg)
+![eCalc Logo](https://raw.githubusercontent.com/equinor/ecalc/main/docs/static/img/logo.svg)
 
 [![CI Build](https://github.com/equinor/ecalc/actions/workflows/on-push-main-branch.yml/badge.svg)](https://github.com/equinor/ecalc/actions/workflows/on-push-main-branch.yml)
 ![Coverage](https://img.shields.io/badge/dynamic/json?color=green&label=coverage&query=%24.totals.percent_covered_display&suffix=%25&url=https%3A%2F%2Fgithub.com%2Fequinor%2Fecalc%2Fblob%2Fcoverage-report%2Fcoverage.json)
@@ -24,7 +24,7 @@ eCalc™ is a software tool for calculation of energy demand and greenhouse gas 
 
 ---
 
-![eCalc Icon](docs/docs/about/ecalc_illustration.svg)
+![eCalc Illustration](https://raw.githubusercontent.com/equinor/ecalc/main/docs/docs/about/ecalc_illustration.svg)
 
 
 ---
