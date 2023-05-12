@@ -1,14 +1,13 @@
 ![eCalc Logo](https://raw.githubusercontent.com/equinor/ecalc/main/docs/static/img/logo.svg)
 
 [![CI Build](https://github.com/equinor/ecalc/actions/workflows/on-push-main-branch.yml/badge.svg)](https://github.com/equinor/ecalc/actions/workflows/on-push-main-branch.yml)
-![Coverage](https://img.shields.io/badge/dynamic/json?color=green&label=coverage&query=%24.totals.percent_covered_display&suffix=%25&url=https%3A%2F%2Fgithub.com%2Fequinor%2Fecalc%2Fblob%2Fcoverage-report%2Fcoverage.json)
+![Coverage](https://img.shields.io/badge/dynamic/json?color=green&label=coverage&query=%24.totals.percent_covered_display&suffix=%25&url=https://github.com/equinor/ecalc/blob/coverage-report/coverage.json)
 ![License](https://img.shields.io/github/license/equinor/ecalc)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/libecalc)
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/libecalc)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/libecalc)
-![Pre-commit - Enabled](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)
-![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/equinor/ecalc)
+![Pre-commit - Enabled](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)   
 
 # eCalc™
 eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing.
