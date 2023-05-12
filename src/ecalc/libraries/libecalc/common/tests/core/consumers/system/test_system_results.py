@@ -48,7 +48,6 @@ class TestConsumerSystemConsumerFunctionResult:
         assert len(appended_consumer_system_result.time_vector) == 6
         assert np.all(appended_consumer_system_result.is_valid)
         assert appended_consumer_system_result.energy_usage.tolist() == [1, 2, 3, 1, 2, 3]
-        assert appended_consumer_system_result.energy_usage_before_conditioning.tolist() == [1, 2, 3, 1, 2, 3]
         assert appended_consumer_system_result.energy_usage_before_power_loss_factor.tolist() == [1, 2, 3, 1, 2, 3]
         assert appended_consumer_system_result.condition.tolist() == [1, 2, 3, 1, 2, 3]
         assert appended_consumer_system_result.power_loss_factor.tolist() == [1, 2, 3, 1, 2, 3]

@@ -7,7 +7,10 @@ from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
-    calculate_energy_usage_with_conditions_and_power_loss,
+    apply_condition,
+    apply_power_loss_factor,
+    get_condition_from_expression,
+    get_power_loss_factor_from_expression,
 )
 from libecalc.core.models.tabulated import (
     ConsumerTabularEnergyFunction,
@@ -65,23 +68,44 @@ class TabulatedConsumerFunction(ConsumerFunction):
             variables=list(variables_for_calculation.values()),
         )
 
-        conditions_and_power_loss_results = calculate_energy_usage_with_conditions_and_power_loss(
-            variables_map=variables_map,
-            energy_usage=np.asarray(energy_function_result.energy_usage),
+        condition = get_condition_from_expression(
             condition_expression=self._condition_expression,
+            variables_map=variables_map,
+        )
+        # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
+        # invalid points to valid where the condition sets energy_usage to zero
+        energy_function_result.energy_usage = list(
+            apply_condition(
+                input_array=np.asarray(energy_function_result.energy_usage),
+                condition=condition,
+            )
+        )
+        energy_function_result.power = (
+            list(
+                apply_condition(
+                    input_array=np.asarray(energy_function_result.power),
+                    condition=condition,
+                )
+            )
+            if energy_function_result.power is not None
+            else None
+        )
+
+        power_loss_factor = get_power_loss_factor_from_expression(
+            variables_map=variables_map,
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
-        tabulated_consumer_function_result = ConsumerFunctionResult(
+        return ConsumerFunctionResult(
             time_vector=np.array(variables_map.time_vector),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            energy_usage_before_conditioning=np.asarray(energy_function_result.energy_usage),
-            condition=conditions_and_power_loss_results.condition,
-            energy_usage_before_power_loss_factor=conditions_and_power_loss_results.energy_usage_after_condition_before_power_loss_factor,
+            condition=condition,
+            energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
             # noqa
-            power_loss_factor=conditions_and_power_loss_results.power_loss_factor,
-            energy_usage=conditions_and_power_loss_results.resulting_energy_usage,
+            power_loss_factor=power_loss_factor,
+            energy_usage=apply_power_loss_factor(
+                energy_usage=np.asarray(energy_function_result.energy_usage),
+                power_loss_factor=power_loss_factor,
+            ),
         )
-
-        return tabulated_consumer_function_result
