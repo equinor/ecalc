@@ -1,7 +1,6 @@
 ![eCalc Logo](https://raw.githubusercontent.com/equinor/ecalc/main/docs/static/img/logo.svg)
 
 [![CI Build](https://github.com/equinor/ecalc/actions/workflows/on-push-main-branch.yml/badge.svg)](https://github.com/equinor/ecalc/actions/workflows/on-push-main-branch.yml)
-![Coverage](https://img.shields.io/badge/dynamic/json?color=green&label=coverage&query=%24.totals.percent_covered_display&suffix=%25&url=https://github.com/equinor/ecalc/blob/coverage-report/coverage.json)
 ![License](https://img.shields.io/github/license/equinor/ecalc)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/libecalc)
