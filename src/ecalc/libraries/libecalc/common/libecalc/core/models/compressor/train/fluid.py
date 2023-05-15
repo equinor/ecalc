@@ -179,7 +179,7 @@ class FluidStream:
         new_fluid_stream = self.copy()
         new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.set_new_pressure_and_enthalpy(
             new_pressure=new_pressure,
-            new_enthalpy_J_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
+            new_enthalpy_joule_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
             + enthalpy_change_J_per_kg,
             remove_liquid=remove_liquid,
         )

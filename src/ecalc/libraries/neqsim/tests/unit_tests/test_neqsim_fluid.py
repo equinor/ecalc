@@ -5,10 +5,10 @@ from neqsim_ecalc_wrapper.thermo import NeqsimFluid
 
 def test_gerg_properties(medium_fluid: NeqsimFluid, medium_fluid_with_gerg: NeqsimFluid) -> None:
     medium_fluid_np_ne = medium_fluid.set_new_pressure_and_enthalpy(
-        new_pressure=20.0, new_enthalpy_J_per_kg=medium_fluid.enthalpy_joule_per_kg + 10000
+        new_pressure=20.0, new_enthalpy_joule_per_kg=medium_fluid.enthalpy_joule_per_kg + 10000
     )
     medium_fluid_with_gerg_np_ne = medium_fluid_with_gerg.set_new_pressure_and_enthalpy(
-        new_pressure=20.0, new_enthalpy_J_per_kg=medium_fluid_with_gerg.enthalpy_joule_per_kg + 10000
+        new_pressure=20.0, new_enthalpy_joule_per_kg=medium_fluid_with_gerg.enthalpy_joule_per_kg + 10000
     )
     assert (
         medium_fluid_with_gerg_np_ne.enthalpy_joule_per_kg - medium_fluid_with_gerg.enthalpy_joule_per_kg
@@ -92,19 +92,19 @@ def test_fluid_set_new_pressure_and_enthalpy(heavy_fluid: NeqsimFluid) -> None:
     fluid = heavy_fluid
 
     increase_enthalpy = fluid.set_new_pressure_and_enthalpy(
-        new_pressure=fluid.pressure_bara, new_enthalpy_J_per_kg=fluid.enthalpy_joule_per_kg * 2
+        new_pressure=fluid.pressure_bara, new_enthalpy_joule_per_kg=fluid.enthalpy_joule_per_kg * 2
     )
 
     decrease_enthalpy = fluid.set_new_pressure_and_enthalpy(
-        new_pressure=fluid.pressure_bara, new_enthalpy_J_per_kg=fluid.enthalpy_joule_per_kg / 2
+        new_pressure=fluid.pressure_bara, new_enthalpy_joule_per_kg=fluid.enthalpy_joule_per_kg / 2
     )
 
     increase_pressure = fluid.set_new_pressure_and_enthalpy(
-        new_pressure=fluid.pressure_bara * 2, new_enthalpy_J_per_kg=fluid.enthalpy_joule_per_kg
+        new_pressure=fluid.pressure_bara * 2, new_enthalpy_joule_per_kg=fluid.enthalpy_joule_per_kg
     )
 
     decrease_pressure = fluid.set_new_pressure_and_enthalpy(
-        new_pressure=fluid.pressure_bara / 2, new_enthalpy_J_per_kg=fluid.enthalpy_joule_per_kg
+        new_pressure=fluid.pressure_bara / 2, new_enthalpy_joule_per_kg=fluid.enthalpy_joule_per_kg
     )
 
     assert (

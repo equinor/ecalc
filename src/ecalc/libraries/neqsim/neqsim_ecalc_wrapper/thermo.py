@@ -52,7 +52,7 @@ class NeqsimFluid:
         eos_model: NeqsimEoSModelType = NeqsimEoSModelType.SRK,
         mixing_rule: int = NEQSIM_MIXING_RULE,
     ) -> NeqsimFluid:
-        """Initates a NeqsimFluid that wrapps both a Neqsim thermodynamic system and operations.
+        """Initiates a NeqsimFluid that wraps both a Neqsim thermodynamic system and operations.
 
         TPflash: computes composition in each phase and densities
         init(3): computes all higher order thermodynamic properties, e.g. Cp/Cv,
@@ -63,7 +63,7 @@ class NeqsimFluid:
         :param composition: A dict with the composition of the thermodynamic_system components name: molar fraction.
         :param temperature_kelvin: The initial system temperature in Kelvin
         :param pressure_bara: The initial system pressure in absolute bar
-        :param eos_model: The name of the underlaying EOS model
+        :param eos_model: The name of the underlying EOS model
         :param mixing_rule: The Neqsim mixing rule.
         :return:
         """
@@ -92,20 +92,12 @@ class NeqsimFluid:
     def _init_thermo_system(
         components: List[str],
         molar_fraction: List[float],
-        eos_model,
-        temperature_kelvin,
-        pressure_bara,
-        mixing_rule,
+        eos_model: NeqsimEoSModelType,
+        temperature_kelvin: float,
+        pressure_bara: float,
+        mixing_rule: int,
     ) -> ThermodynamicSystem:
-        """LRU cache maxsize based on running all e2e test cases. 256, 512, 1024, 2048 and 4096 as of 2021-12-07.
-            4096: 1:33
-            2048: 1:22
-            1024: 1:23
-            512: 1:21
-            256: 1:21.
-
-        For the web service we would like to consider a larger maxsize such as 2048, but this we need to consider later.
-        """
+        """Initialize thermodynamic system"""
         use_gerg = "gerg" in eos_model.name.lower()
 
         thermodynamic_system = eos_model.value(float(temperature_kelvin), float(pressure_bara))
@@ -269,14 +261,14 @@ class NeqsimFluid:
         return NeqsimFluid(thermodynamic_system=self._thermodynamic_system.clone(), use_gerg=self._use_gerg)
 
     def set_new_pressure_and_enthalpy(
-        self, new_pressure: float, new_enthalpy_J_per_kg: float, remove_liquid: bool = True
+        self, new_pressure: float, new_enthalpy_joule_per_kg: float, remove_liquid: bool = True
     ) -> NeqsimFluid:
         new_thermodynamic_system = self._thermodynamic_system.clone()
         new_thermodynamic_system.setPressure(float(new_pressure), "bara")
 
         new_thermodynamic_system = NeqsimFluid._ph_flash(
             thermodynamic_system=new_thermodynamic_system,
-            enthalpy=new_enthalpy_J_per_kg,
+            enthalpy=new_enthalpy_joule_per_kg,
             use_gerg=self._use_gerg,
         )
 
