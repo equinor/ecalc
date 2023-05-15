@@ -67,7 +67,7 @@ class FluidStream:
 
         self._neqsim_fluid_stream = NeqsimFluid.create_thermo_system(
             composition=self._map_fluid_composition_to_neqsim(fluid_composition=self.fluid_model.composition),
-            temperature_Kelvin=temperature_kelvin,
+            temperature_kelvin=temperature_kelvin,
             pressure_bara=pressure_bara,
             eos_model=_map_eos_model_to_neqsim[self.fluid_model.eos_model],
         )
@@ -81,7 +81,7 @@ class FluidStream:
         else:
             _neqsim_fluid_at_standard_conditions = NeqsimFluid.create_thermo_system(
                 composition=self._map_fluid_composition_to_neqsim(fluid_composition=self.fluid_model.composition),
-                temperature_Kelvin=UnitConstants.STANDARD_TEMPERATURE_KELVIN,
+                temperature_kelvin=UnitConstants.STANDARD_TEMPERATURE_KELVIN,
                 pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
                 eos_model=_map_eos_model_to_neqsim[self.fluid_model.eos_model],
             )
@@ -179,7 +179,8 @@ class FluidStream:
         new_fluid_stream = self.copy()
         new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.set_new_pressure_and_enthalpy(
             new_pressure=new_pressure,
-            new_enthalpy_J_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_J_per_kg + enthalpy_change_J_per_kg,
+            new_enthalpy_J_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
+            + enthalpy_change_J_per_kg,
             remove_liquid=remove_liquid,
         )
         return new_fluid_stream

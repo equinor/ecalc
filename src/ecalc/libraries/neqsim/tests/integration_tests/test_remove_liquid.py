@@ -72,7 +72,7 @@ def inlet_fluid() -> NeqsimFluid:
     See outlet fluid below.
     """
     return NeqsimFluid.create_thermo_system(
-        composition=INLET_FLUID_COMPOSITION, temperature_Kelvin=36.0 + 273.15, pressure_bara=1700 / 100
+        composition=INLET_FLUID_COMPOSITION, temperature_kelvin=36.0 + 273.15, pressure_bara=1700 / 100
     )
 
 
@@ -80,7 +80,7 @@ def inlet_fluid() -> NeqsimFluid:
 def outlet_fluid() -> NeqsimFluid:
     """Inlet liquid to test liquids takeoff compared to UniSim. see inlet conditions above."""
     return NeqsimFluid.create_thermo_system(
-        composition=OUTLET_FLUID_COMPOSITION, temperature_Kelvin=38 + 273.15, pressure_bara=4327.67395 / 100
+        composition=OUTLET_FLUID_COMPOSITION, temperature_kelvin=38 + 273.15, pressure_bara=4327.67395 / 100
     )
 
 
@@ -129,4 +129,6 @@ def test_liquid_takeoff(inlet_fluid, outlet_fluid) -> None:
     assert math.isclose(outlet_fluid.density, fluid_after_liquid_takeoff.density, rel_tol=0.01)
     assert math.isclose(outlet_fluid.pressure_bara, fluid_after_liquid_takeoff.pressure_bara, rel_tol=0.01)
     assert math.isclose(outlet_fluid.molar_mass, fluid_after_liquid_takeoff.molar_mass, rel_tol=0.01)
-    assert math.isclose(outlet_fluid.enthalpy_J_per_kg, fluid_after_liquid_takeoff.enthalpy_J_per_kg, rel_tol=0.5)
+    assert math.isclose(
+        outlet_fluid.enthalpy_joule_per_kg, fluid_after_liquid_takeoff.enthalpy_joule_per_kg, rel_tol=0.5
+    )

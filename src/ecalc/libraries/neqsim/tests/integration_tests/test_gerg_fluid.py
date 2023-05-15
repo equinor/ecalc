@@ -31,12 +31,12 @@ def test_gerg_model_against_unisim(medium_fluid_with_gerg: NeqsimFluid) -> None:
     assert math.isclose(very_high_pressure.z, 1.65, rel_tol=0.01)
 
     assert math.isclose(
-        low_pressure.enthalpy_J_per_kg - medium_pressure.enthalpy_J_per_kg, 17634 - -93366, rel_tol=0.01
+        low_pressure.enthalpy_joule_per_kg - medium_pressure.enthalpy_joule_per_kg, 17634 - -93366, rel_tol=0.01
     )
     assert math.isclose(
-        medium_pressure.enthalpy_J_per_kg - high_pressure.enthalpy_J_per_kg, -93366 - -219900, rel_tol=0.02
+        medium_pressure.enthalpy_joule_per_kg - high_pressure.enthalpy_joule_per_kg, -93366 - -219900, rel_tol=0.02
     )
 
     assert math.isclose(
-        high_pressure.enthalpy_J_per_kg - very_high_pressure.enthalpy_J_per_kg, -219900 - -194900, rel_tol=0.02
+        high_pressure.enthalpy_joule_per_kg - very_high_pressure.enthalpy_joule_per_kg, -219900 - -194900, rel_tol=0.02
     )
