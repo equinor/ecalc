@@ -235,9 +235,7 @@ class FluidStream:
             eos_model=_map_eos_model_to_neqsim[new_fluid_stream.fluid_model.eos_model],
         )
 
-        new_composition_dict = {}
-        for key, value in composition_dict.items():
-            new_composition_dict[_map_fluid_component_from_neqsim[key]] = value
+        new_composition_dict = {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict}
 
         new_fluid_stream.fluid_model.composition = dto.FluidComposition.parse_obj(new_composition_dict)
 

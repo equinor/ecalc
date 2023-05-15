@@ -50,7 +50,7 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
     streams_with_new_pressure_and_enthalpy = [
         [
             s.set_new_pressure_and_enthalpy_change(
-                enthalpy_change_J_per_kg=enthalpy_change_joule_per_kg,
+                enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg,
                 new_pressure=new_pressure,
             )
             for s, new_pressure in zip(streams, new_pressures)
