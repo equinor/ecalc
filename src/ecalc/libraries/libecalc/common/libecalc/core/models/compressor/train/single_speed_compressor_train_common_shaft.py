@@ -947,7 +947,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         # If solution not found along max speed curve, run at max_mass_rate, but using the defined pressure control.
         elif self.data_transfer_object.pressure_control is not None:
             if self._evaluate_rate_ps_pd(
-                rate=inlet_stream.mass_rate_to_standard(mass_rates=max_mass_rate),
+                rate=inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate),
                 suction_pressure=np.asarray([inlet_stream.pressure_bara]),
                 discharge_pressure=np.asarray([target_discharge_pressure]),
             )[0].is_valid:
