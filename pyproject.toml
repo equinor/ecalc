@@ -89,6 +89,13 @@ warn_return_any = false
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+strict_equality = true
+strict_concatenate = true
+check_untyped_defs = true
+
+no_implicit_reexport = true
+
+
 warn_no_return = false
 disable_error_code = ["call-overload", "union-attr", "valid-type", "return-value", "attr-defined", "assignment"]
 namespace_packages = true

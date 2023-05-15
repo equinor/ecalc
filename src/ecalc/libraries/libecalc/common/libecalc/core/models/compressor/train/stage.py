@@ -162,7 +162,7 @@ class CompressorTrainStage(BaseModel):
             outlet_stream,
         ) = calculate_outlet_pressure_and_stream(
             polytropic_efficiency=polytropic_efficiency,
-            polytropic_head_J_per_kg=polytropic_head_J_per_kg,
+            polytropic_head_joule_per_kg=polytropic_head_J_per_kg,
             inlet_stream=inlet_stream_compressor,
         )
 

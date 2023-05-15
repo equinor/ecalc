@@ -87,7 +87,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
 
     @root_validator
     def check_list_length(cls, values):
-        def _log_error(field: str, field_values: List[np.ndarray], n_rates) -> None:
+        def _log_error(field: str, field_values: List[np.ndarray], n_rates: int) -> None:
             error_message = (
                 f"All attributes in a consumer system operational setting must have the same number of elements"
                 f"(corresponding to the number of consumers). The number of elements in {field} "

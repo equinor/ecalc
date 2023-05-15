@@ -20,7 +20,7 @@ class Period:
     start: datetime = datetime.min
     end: datetime = datetime.max
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.start}:{self.end}"
 
     def __contains__(self, time: datetime) -> bool:
@@ -116,7 +116,7 @@ class Frequency(str, enum.Enum):
     MONTH = "MS"
     DAY = "D"
 
-    def formatstring(self):
+    def formatstring(self) -> str:
         """The format to write a string describing a certain period of time."""
         if self.value == "YS":
             return "%Y"

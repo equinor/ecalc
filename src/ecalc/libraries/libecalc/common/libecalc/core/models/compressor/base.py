@@ -237,7 +237,7 @@ class CompressorWithTurbineModel(CompressorModel):
 
     def _calculate_remaining_capacity_in_train_given_standard_rate(
         self, standard_rate: float, suction_pressure: float, discharge_pressure: float, max_power: float
-    ):
+    ) -> float:
         """Expression used in optimization to find the rate that utilizes the compressor trains capacity."""
         return self.compressor_model.evaluate_rate_ps_pd(
             rate=np.asarray([standard_rate]),

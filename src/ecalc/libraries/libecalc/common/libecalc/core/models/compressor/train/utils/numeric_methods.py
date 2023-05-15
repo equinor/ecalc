@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union
 
 import numpy as np
 from libecalc.common.logger import logger
@@ -91,7 +91,7 @@ def secant_method(
     minimum_x_value = min(x0, x1)
     maximum_x_value = max(x0, x1)
 
-    def limit_to_bounds(x, x_min, x_max):
+    def limit_to_bounds(x: Union[int, float], x_min: Union[int, float], x_max: Union[int, float]) -> Union[int, float]:
         return max(min(x, x_max), x_min) if bounded_to_input_x_interval else x
 
     x2 = np.nan  # Dummy value before iteration

@@ -26,7 +26,7 @@ MAIN_PROVEN_FILE = ["INSTALLATION", "TIME_SERIES", "FACILITY_INPUTS", "FUEL_TYPE
 IGNORED_ZIP_CONTENTS_KEYWORDS = [".DS_Store", "__MACOSX"]
 
 
-def is_main_yaml_file(file: IO):
+def is_main_yaml_file(file: IO) -> bool:
     """Deprecated. To be removed when zip is verified.
     :param file:
     :return:

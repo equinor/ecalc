@@ -12,7 +12,7 @@ python list and add static methods to it..?
 """
 
 
-def transpose(a: List[List[Union[str, int, float]]]):
+def transpose(a: List[List[Union[str, int, float]]]) -> List[List[Union[str, int, float]]]:
     """Easily transpose from row based to column based data, and other
     way around, in order to use the format that best fits a certain
     purpose to work with such a list/dataframe.
@@ -104,7 +104,7 @@ def elementwise_multiplication(
     return result
 
 
-def array_to_list(result_array: Union[np.ndarray, List[np.ndarray], None]):
+def array_to_list(result_array: Union[np.ndarray, List[np.ndarray], None]) -> Optional[List]:
     """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recurrsivly on lists so needs to handle None aswell.
 
     Args:

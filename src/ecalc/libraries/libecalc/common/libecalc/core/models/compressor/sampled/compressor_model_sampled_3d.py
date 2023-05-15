@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -453,9 +453,9 @@ def _get_minimum_rates(
     lower_rate_qh_lower_pd_function: interp1d,
     lower_rate_qh_upper_ps_function: interp1d,
     minimum_rate_function: LinearInterpolatorSimplicesDefined,
-    suction_pressure,
-    discharge_pressure,
-):
+    suction_pressure: Union[np.ndarray, List[float]],
+    discharge_pressure: Union[np.ndarray, List[float]],
+) -> Tuple[np.ndarray, np.ndarray, LinearInterpolatorSimplicesDefined]:
     pd_projected = np.fmax(discharge_pressure, lower_rate_qh_lower_pd_function(suction_pressure))
     ps_projected = np.fmin(suction_pressure, lower_rate_qh_upper_ps_function(pd_projected))
     minimum_rates = minimum_rate_function(ps_projected, pd_projected)
@@ -632,7 +632,7 @@ def _setup_minimum_pd_projection_functions(
     rate_axis: int = 0,
     ps_axis: int = 1,
     pd_axis: int = 2,
-):
+) -> Tuple[interp1d, interp1d, LinearInterpolatorSimplicesDefined]:
     """Function wich returns functions to be used for computations of the minimum
     discharge pressure for a given (rate, suction pressure) point.
     These are to be used to set the actual discharge pressure to minimum discharge

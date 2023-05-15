@@ -60,7 +60,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                 raise IncompatibleDataError(message=message)
 
     @property
-    def number_of_consumers(self):
+    def number_of_consumers(self) -> int:
         return len(self.consumers)
 
     @abstractmethod

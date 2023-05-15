@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 from libecalc import dto
 from libecalc.common.units import Unit
@@ -28,7 +30,7 @@ class TurbineModel(BaseModel):
         )
 
     @property
-    def max_power(self):
+    def max_power(self) -> Optional[float]:
         return (
             self._maximum_load * self.data_transfer_object.energy_usage_adjustment_factor
             - self.data_transfer_object.energy_usage_adjustment_constant

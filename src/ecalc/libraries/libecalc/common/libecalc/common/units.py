@@ -83,11 +83,11 @@ class Unit(str, Enum):
     NORWEGIAN_KRONER_PER_DAY = "NOK/d"
     NORWEGIAN_KRONER = "NOK"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def validator(cls, unit: str):
+    def validator(cls, unit: Union[str, Unit]) -> Unit:
         if isinstance(unit, str):
             return Unit(unit)
         return unit
