@@ -192,7 +192,7 @@ class FluidStream:
         new_fluid_stream = self.copy()
         new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.set_new_pressure_and_enthalpy(
             new_pressure=new_pressure,
-            new_enthalpy_J_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
+            new_enthalpy_joule_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
             + enthalpy_change_joule_per_kg,
             remove_liquid=remove_liquid,
         )
@@ -235,7 +235,9 @@ class FluidStream:
             eos_model=_map_eos_model_to_neqsim[new_fluid_stream.fluid_model.eos_model],
         )
 
-        new_composition_dict = {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict}
+        new_composition_dict = {
+            _map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()
+        }
 
         new_fluid_stream.fluid_model.composition = dto.FluidComposition.parse_obj(new_composition_dict)
 
