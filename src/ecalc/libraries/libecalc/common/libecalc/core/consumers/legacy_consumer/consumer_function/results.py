@@ -46,7 +46,7 @@ class ConsumerFunctionResultBase(BaseModel):
         arbitrary_types_allowed = True
 
     @abstractmethod
-    def extend(self, other) -> ConsumerFunctionResultBase:
+    def extend(self, other: object) -> ConsumerFunctionResultBase:
         ...
 
 

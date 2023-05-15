@@ -24,7 +24,7 @@ class ConsumerSystemComponentResult(BaseModel):
     consumer_model_result: Union[PumpModelResult, CompressorTrainResult]
 
     @property
-    def energy_usage(self):
+    def energy_usage(self) -> List[Optional[float]]:
         return self.consumer_model_result.energy_usage
 
     @property
@@ -35,7 +35,7 @@ class ConsumerSystemComponentResult(BaseModel):
             return np.zeros_like(self.consumer_model_result.energy_usage)
 
     @property
-    def rate(self):
+    def rate(self) -> List[Optional[float]]:
         return self.consumer_model_result.rate
 
 

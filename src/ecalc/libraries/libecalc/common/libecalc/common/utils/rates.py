@@ -35,7 +35,7 @@ class Rates:
             The corresponding stream day rates
         """
         regularity = np.asarray(regularity, dtype=np.float64)  # type: ignore[assignment]
-        return np.divide(calendar_day_rates, regularity, out=np.zeros_like(calendar_day_rates), where=regularity != 0.0)
+        return np.divide(calendar_day_rates, regularity, out=np.zeros_like(calendar_day_rates), where=regularity != 0.0)  # type: ignore[comparison-overlap]
 
     @staticmethod
     def to_calendar_day(stream_day_rates: np.ndarray, regularity: List[float]) -> np.ndarray:
@@ -130,12 +130,12 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         use_enum_values = True
 
     @validator("values", each_item=True, pre=True)
-    def convert_none_to_nan(cls, v, field: ModelField):
+    def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
         if field.outer_type_ is float and v is None:
             return math.nan
         return v
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.values)
 
     @abstractmethod
@@ -214,7 +214,9 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
                     f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
                 )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TimeSeries):
+            return NotImplemented
         return bool(
             # Check that all values are either both NaN or equal
             all([np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values)])
@@ -281,7 +283,7 @@ class TimeSeriesBoolean(TimeSeries[bool]):
             unit=self.unit,
         )
 
-    def __mul__(self, other) -> Self:
+    def __mul__(self, other: object) -> Self:
         if not isinstance(other, TimeSeriesBoolean):
             raise TypeError(
                 f"TimeSeriesBoolean can only be multiplied by another TimeSeriesBoolean. Received type '{str(other.__class__)}'."
@@ -365,7 +367,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def __truediv__(self, other) -> TimeSeriesRate:
+    def __truediv__(self, other: object) -> TimeSeriesRate:
         if not isinstance(other, TimeSeriesVolumesCumulative):
             raise TypeError(f"Dividing TimeSeriesVolumesCumulative by '{str(other.__class__)}' is not supported.")
 
@@ -494,7 +496,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
 
 
 class TimeSeriesIntensity(TimeSeries[float]):
-    def resample(self, freq: Frequency):
+    def resample(self, freq: Frequency) -> TimeSeriesIntensity:
         """
         Resample emission intensity according to given frequency.
         Slinear is used in order to only interpolate, not extrapolate.
@@ -539,7 +541,7 @@ class TimeSeriesRate(TimeSeries[float]):
     regularity: Optional[List[float]]
 
     @validator("regularity", pre=True, always=True)
-    def set_regularity(cls, regularity, values):
+    def set_regularity(cls, regularity: List[float], values: List[float]) -> List[float]:
         return regularity or [1] * len(values.get("values"))
 
     def __add__(self, other: TimeSeriesRate) -> Self:
@@ -754,7 +756,9 @@ class TimeSeriesRate(TimeSeries[float]):
             f"Unsupported indexing operation. Got '{type(indices)}', expected indices as a slice, single index or a list of indices"
         )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TimeSeriesRate):
+            raise NotImplementedError
         return bool(
             # Check that all values are either both NaN or equal
             all([np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values)])
