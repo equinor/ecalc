@@ -15,13 +15,15 @@ def find_root(
     relative_convergence_tolerance: float = CONVERGENCE_TOLERANCE,
     maximum_number_of_iterations: int = MAXIMUM_NUMBER_OF_ITERATIONS,
 ) -> float:
-    """Root finding using scipy and the Brent's method.
+    """Root finding using scipy´s implementation of the brenth method.
+
+    TODO: Investigate why we don't use brentq method reccomended by scipy
 
     This will try to solve for the root: f(x) = 0. Another way to say this is "what x makes the function return 0"...
 
     The result is bound on the interval [x0, x1].
 
-    Ref. Brent' method: https://en.wikipedia.org/wiki/Brent%27s_method
+    brenth is a version of Brent´s method (https://en.wikipedia.org/wiki/Brent%27s_method) with hyperbolic extrapolation
 
     :param lower_bound: Lower bound of solution. Used as initial guess
     :param upper_bound: Upper bound of solution. Used as second guess
@@ -83,7 +85,7 @@ def secant_method(
     :param func: The function to be used in the secant root-finding method that we will solve f(x) = 0
     :param convergence_tolerance: The tolerance of convergence that will be used to exist the iteration
     :param maximum_number_of_iterations: The maximum number of iterations that will be used to find the root.
-    :param bounded_to_input_x_interval: Whether or not to search outside of the input interval [x0, x1] for roots.
+    :param bounded_to_input_x_interval: Whether to search outside the input interval [x0, x1] for roots.
     """
     f = func
     minimum_x_value = min(x0, x1)
