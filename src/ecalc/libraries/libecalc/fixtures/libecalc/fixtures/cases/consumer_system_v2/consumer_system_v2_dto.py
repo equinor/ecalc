@@ -2,7 +2,21 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
-from libecalc.dto.base import ComponentType
+from libecalc.dto import (
+    CompressorSystemCompressor,
+    CompressorSystemConsumerFunction,
+    CompressorSystemOperationalSetting,
+    PumpSystemConsumerFunction,
+    PumpSystemOperationalSetting,
+    PumpSystemPump,
+)
+from libecalc.dto.base import (
+    ComponentType,
+    ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
+    InstallationUserDefinedCategoryType,
+)
+from libecalc.dto.types import ConsumptionType, EnergyUsageType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 
@@ -16,7 +30,7 @@ def consumer_system_v2_dto() -> DTOCase:
         datetime(2022, 1, 1, 0, 0): dto.FuelType(
             name="fuel_gas",
             price=Expression.setup_from_expression(1.5),
-            user_defined_category="FUEL-GAS",
+            user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
             emissions=[
                 dto.Emission(
                     factor=Expression.setup_from_expression(2.2),
@@ -27,15 +41,24 @@ def consumer_system_v2_dto() -> DTOCase:
             ],
         )
     }
+
+    genset = dto.GeneratorSetSampled(
+        headers=["POWER", "FUEL"],
+        data=[
+            [0.0, 0.1, 1000000.0],
+            [0.0, 0.1, 1000000.0],
+        ],
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+    )
     compressor_1d = dto.CompressorSampled(
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
-        energy_usage_type=dto.types.EnergyUsageType.FUEL,
-        energy_usage_values=[0.0, 10000.0, 11000.0, 12000.0, 13000.0],
+        energy_usage_type=dto.types.EnergyUsageType.POWER,
+        energy_usage_values=[0.0, 1.0, 2.0, 3.0, 4.0],
         rate_values=[0.0, 1000000.0, 2000000.0, 3000000.0, 4000000.0],
         suction_pressure_values=None,
         discharge_pressure_values=None,
-        power_interpolation_values=[0.0, 1.0, 2.0, 3.0, 4.0],
     )
 
     pump_model_single_speed = dto.PumpModel(
@@ -49,6 +72,194 @@ def consumer_system_v2_dto() -> DTOCase:
         ),
         head_margin=0,
     )
+
+    compressor1 = dto.components.CompressorComponent(
+        name="compressor1",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
+    )
+    compressor2 = dto.components.CompressorComponent(
+        name="compressor2",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
+    )
+    compressor3 = dto.components.CompressorComponent(
+        name="compressor3",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
+    )
+
+    pump1 = dto.components.PumpComponent(
+        name="pump1",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
+    )
+    pump2 = dto.components.PumpComponent(
+        name="pump2",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
+    )
+    pump3 = dto.components.PumpComponent(
+        name="pump3",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
+    )
+
+    compressor_system = dto.ElectricityConsumer(
+        component_type=ComponentType.COMPRESSOR_SYSTEM,
+        name="compressor_system",
+        energy_usage_model={
+            datetime(2022, 1, 1, 0, 0): CompressorSystemConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
+                power_loss_factor=None,
+                compressors=[
+                    CompressorSystemCompressor(
+                        name="compressor1",
+                        compressor_train=compressor_1d,
+                    ),
+                    CompressorSystemCompressor(
+                        name="compressor2",
+                        compressor_train=compressor_1d,
+                    ),
+                    CompressorSystemCompressor(
+                        name="compressor3",
+                        compressor_train=compressor_1d,
+                    ),
+                ],
+                total_system_rate=None,
+                operational_settings=[
+                    CompressorSystemOperationalSetting(
+                        rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 6000000]],
+                        suction_pressures=[Expression.setup_from_expression("50")] * 3,
+                        discharge_pressures=[Expression.setup_from_expression("250")] * 3,
+                        crossover=[0, 1, 1],
+                    ),
+                    CompressorSystemOperationalSetting(
+                        rates=[Expression.setup_from_expression(x) for x in [500000, 2500000, 3000000]],
+                        suction_pressures=[Expression.setup_from_expression("50")] * 3,
+                        discharge_pressures=[Expression.setup_from_expression("125")] * 3,
+                        crossover=[0, 1, 1],
+                    ),
+                ],
+            )
+        },
+        regularity=regularity,
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+    )
+
+    compressor_system_v2 = dto.components.CompressorSystem(
+        name="compressor_system_v2",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        regularity=regularity,
+        consumes=ConsumptionType.ELECTRICITY,
+        operational_settings={
+            datetime(2022, 1, 1, 0, 0): [
+                dto.components.CompressorSystemOperationalSetting(
+                    rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 6000000]],
+                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+                    outlet_pressures=[Expression.setup_from_expression("250")] * 3,
+                    crossover=[0, 1, 1],
+                ),
+                dto.components.CompressorSystemOperationalSetting(
+                    rates=[Expression.setup_from_expression(x) for x in [500000, 2500000, 3000000]],
+                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+                    outlet_pressures=[Expression.setup_from_expression("125")] * 3,
+                    crossover=[0, 1, 1],
+                ),
+            ]
+        },
+        compressors=[
+            compressor1,
+            compressor2,
+            compressor3,
+        ],
+    )
+
+    pump_system = dto.ElectricityConsumer(
+        component_type=ComponentType.PUMP_SYSTEM,
+        name="pump_system",
+        energy_usage_model={
+            datetime(2022, 1, 1, 0, 0): PumpSystemConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
+                condition=Expression.setup_from_expression("1"),
+                power_loss_factor=Expression.setup_from_expression("0"),
+                pumps=[
+                    PumpSystemPump(
+                        name="pump1",
+                        pump_model=pump_model_single_speed,
+                    ),
+                    PumpSystemPump(
+                        name="pump2",
+                        pump_model=pump_model_single_speed,
+                    ),
+                    PumpSystemPump(
+                        name="pump3",
+                        pump_model=pump_model_single_speed,
+                    ),
+                ],
+                total_system_rate=Expression.setup_from_expression("1"),
+                operational_settings=[
+                    PumpSystemOperationalSetting(
+                        rates=[Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]],
+                        suction_pressures=[Expression.setup_from_expression("50")] * 3,
+                        discharge_pressures=[Expression.setup_from_expression("250")] * 3,
+                        crossover=[0, 1, 1],
+                    ),
+                    PumpSystemOperationalSetting(
+                        rates=[Expression.setup_from_expression(x) for x in [2000000, 2500000, 3000000]],
+                        suction_pressures=[Expression.setup_from_expression("50")] * 3,
+                        discharge_pressures=[Expression.setup_from_expression("125")] * 3,
+                        crossover=[0, 1, 1],
+                    ),
+                ],
+                fluid_density=Expression.setup_from_expression("2"),
+            )
+        },
+        regularity=regularity,
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+    )
+
+    pump_system_v2 = dto.components.PumpSystem(
+        name="pump_system_v2",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        operational_settings={
+            datetime(2022, 1, 1, 0, 0): [
+                dto.components.PumpSystemOperationalSetting(
+                    rates=[Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]],
+                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+                    outlet_pressures=[Expression.setup_from_expression("250")] * 3,
+                    crossover=[0, 1, 1],
+                    fluid_density=[Expression.setup_from_expression("2")] * 3,
+                ),
+                dto.components.PumpSystemOperationalSetting(
+                    rates=[Expression.setup_from_expression(x) for x in [2000000, 2500000, 3000000]],
+                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+                    outlet_pressures=[Expression.setup_from_expression("125")] * 3,
+                    crossover=[0, 1, 1],
+                    fluid_density=[Expression.setup_from_expression("2")] * 3,
+                ),
+            ]
+        },
+        pumps=[pump1, pump2, pump3],
+    )
+
+    assert pump1
+    assert pump2
+    assert pump3
     return DTOCase(
         dto.Asset(
             component_type=ComponentType.ASSET,
@@ -56,188 +267,23 @@ def consumer_system_v2_dto() -> DTOCase:
             installations=[
                 dto.Installation(
                     name="installation",
+                    user_defined_category=InstallationUserDefinedCategoryType.FIXED,
+                    component_type=ComponentType.INSTALLATION,
                     regularity=regularity,
                     hydrocarbon_export={datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(17)},
                     fuel_consumers=[
-                        dto.components.CompressorSystem(
-                            name="compressor_system_v2",
-                            user_defined_category={datetime(2022, 1, 1): "COMPRESSOR"},
+                        dto.GeneratorSet(
+                            name="GeneratorSet",
+                            user_defined_category={
+                                datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+                            },
+                            generator_set_model={
+                                datetime(2022, 1, 1): genset,
+                            },
                             regularity=regularity,
-                            consumes=dto.types.ConsumptionType.FUEL,
-                            operational_settings={
-                                datetime(2022, 1, 1, 0, 0): [
-                                    dto.components.CompressorSystemOperationalSetting(
-                                        rates=[
-                                            Expression.setup_from_expression(x) for x in [1000000, 5000000, 6000000]
-                                        ],
-                                        inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                                        outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                                        crossover=[0, 1, 1],
-                                    )
-                                ]
-                            },
-                            compressors=[
-                                dto.components.CompressorComponent(
-                                    name="compressor1",
-                                    user_defined_category={datetime(2022, 1, 1): "COMPRESSOR"},
-                                    regularity=regularity,
-                                    consumes=dto.types.ConsumptionType.FUEL,
-                                    energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
-                                    fuel=fuel,
-                                ),
-                                dto.components.CompressorComponent(
-                                    name="compressor2",
-                                    user_defined_category={datetime(2022, 1, 1): "COMPRESSOR"},
-                                    regularity=regularity,
-                                    consumes=dto.types.ConsumptionType.FUEL,
-                                    energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
-                                    fuel=fuel,
-                                ),
-                                dto.components.CompressorComponent(
-                                    name="compressor3",
-                                    user_defined_category={datetime(2022, 1, 1): "COMPRESSOR"},
-                                    regularity=regularity,
-                                    consumes=dto.types.ConsumptionType.FUEL,
-                                    energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
-                                    fuel=fuel,
-                                ),
-                            ],
-                        ),
-                        dto.components.PumpSystem(
-                            name="pump_system_v2",
-                            user_defined_category={datetime(2022, 1, 1): "PUMP"},
-                            regularity=regularity,
-                            consumes=dto.types.ConsumptionType.FUEL,
-                            operational_settings={
-                                datetime(2022, 1, 1, 0, 0): [
-                                    dto.components.PumpSystemOperationalSetting(
-                                        rates=[
-                                            Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]
-                                        ],
-                                        inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                                        outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                                        crossover=[0, 1, 1],
-                                        fluid_density=[Expression.setup_from_expression("2")] * 3,
-                                    )
-                                ]
-                            },
-                            pumps=[
-                                dto.components.PumpComponent(
-                                    name="pump1",
-                                    user_defined_category={datetime(2022, 1, 1): "PUMP"},
-                                    regularity=regularity,
-                                    consumes=dto.types.ConsumptionType.FUEL,
-                                    energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
-                                    fuel=fuel,
-                                ),
-                                dto.components.PumpComponent(
-                                    name="pump2",
-                                    user_defined_category={datetime(2022, 1, 1): "PUMP"},
-                                    regularity=regularity,
-                                    consumes=dto.types.ConsumptionType.FUEL,
-                                    energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
-                                    fuel=fuel,
-                                ),
-                                dto.components.PumpComponent(
-                                    name="pump3",
-                                    user_defined_category={datetime(2022, 1, 1): "PUMP"},
-                                    regularity=regularity,
-                                    consumes=dto.types.ConsumptionType.FUEL,
-                                    energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
-                                    fuel=fuel,
-                                ),
-                            ],
-                        ),
-                        dto.FuelConsumer(
-                            **{
-                                "component_type": ComponentType.COMPRESSOR_SYSTEM,
-                                "consumes": dto.types.ConsumptionType.FUEL,
-                                "energy_usage_model": {
-                                    datetime(2022, 1, 1, 0, 0): {
-                                        "compressors": [
-                                            {
-                                                "compressor_train": {
-                                                    "discharge_pressure_values": None,
-                                                    "energy_usage_adjustment_constant": 0.0,
-                                                    "energy_usage_adjustment_factor": 1.0,
-                                                    "energy_usage_type": "FUEL",
-                                                    "energy_usage_values": [0.0, 10000.0, 11000.0, 12000.0, 13000.0],
-                                                    "power_interpolation_values": [0.0, 1.0, 2.0, 3.0, 4.0],
-                                                    "rate_values": [0.0, 1000000.0, 2000000.0, 3000000.0, 4000000.0],
-                                                    "suction_pressure_values": None,
-                                                    "typ": "COMPRESSOR_SAMPLED",
-                                                },
-                                                "name": "compressor1",
-                                            },
-                                            {
-                                                "compressor_train": {
-                                                    "discharge_pressure_values": None,
-                                                    "energy_usage_adjustment_constant": 0.0,
-                                                    "energy_usage_adjustment_factor": 1.0,
-                                                    "energy_usage_type": "FUEL",
-                                                    "energy_usage_values": [0.0, 10000.0, 11000.0, 12000.0, 13000.0],
-                                                    "power_interpolation_values": [0.0, 1.0, 2.0, 3.0, 4.0],
-                                                    "rate_values": [0.0, 1000000.0, 2000000.0, 3000000.0, 4000000.0],
-                                                    "suction_pressure_values": None,
-                                                    "typ": "COMPRESSOR_SAMPLED",
-                                                },
-                                                "name": "compressor2",
-                                            },
-                                            {
-                                                "compressor_train": {
-                                                    "discharge_pressure_values": None,
-                                                    "energy_usage_adjustment_constant": 0.0,
-                                                    "energy_usage_adjustment_factor": 1.0,
-                                                    "energy_usage_type": "FUEL",
-                                                    "energy_usage_values": [0.0, 10000.0, 11000.0, 12000.0, 13000.0],
-                                                    "power_interpolation_values": [0.0, 1.0, 2.0, 3.0, 4.0],
-                                                    "rate_values": [0.0, 1000000.0, 2000000.0, 3000000.0, 4000000.0],
-                                                    "suction_pressure_values": None,
-                                                    "typ": "COMPRESSOR_SAMPLED",
-                                                },
-                                                "name": "compressor3",
-                                            },
-                                        ],
-                                        "condition": None,
-                                        "energy_usage_type": "FUEL",
-                                        "operational_settings": [
-                                            {
-                                                "crossover": [0, 1, 1],
-                                                "discharge_pressure": Expression.setup_from_expression(250.0),
-                                                "discharge_pressures": None,
-                                                "rate_fractions": None,
-                                                "rates": [
-                                                    Expression.setup_from_expression(x)
-                                                    for x in [1000000, 5000000, 6000000]
-                                                ],
-                                                "suction_pressure": Expression.setup_from_expression(50.0),
-                                                "suction_pressures": None,
-                                            }
-                                        ],
-                                        "power_loss_factor": None,
-                                        "total_system_rate": None,
-                                    }
-                                },
-                                "fuel": {
-                                    datetime(2022, 1, 1, 0, 0): {
-                                        "emissions": [
-                                            {
-                                                "factor": Expression.setup_from_expression(2.2),
-                                                "name": "co2",
-                                                "quota": None,
-                                                "tax": Expression.setup_from_expression(1.51),
-                                            }
-                                        ],
-                                        "name": "fuel_gas",
-                                        "price": Expression.setup_from_expression(1.5),
-                                        "user_defined_category": "FUEL-GAS",
-                                    }
-                                },
-                                "name": "compressor_system",
-                                "regularity": {datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(1.0)},
-                                "user_defined_category": {datetime(2022, 1, 1): "COMPRESSOR"},
-                            },
-                        ),
+                            fuel=fuel,
+                            consumers=[compressor_system, compressor_system_v2, pump_system, pump_system_v2],
+                        )
                     ],
                     direct_emitters=[],
                 )

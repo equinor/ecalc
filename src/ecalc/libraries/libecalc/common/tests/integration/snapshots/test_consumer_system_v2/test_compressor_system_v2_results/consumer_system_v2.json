@@ -1,6 +1,6 @@
 {
     "consumer_results": {
-        "656e1bc8df0c83c2dda044b7bd654631": {
+        "09c1b79cf6cf1ef0773a194679246a4a": {
             "component_result": {
                 "energy_usage": {
                     "regularity": [
@@ -13,6 +13,76 @@
                     ],
                     "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
+                    "values": [
+                        0.0,
+                        0.0
+                    ]
+                },
+                "id": "09c1b79cf6cf1ef0773a194679246a4a",
+                "is_valid": {
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "unit": "N/A",
+                    "values": [
+                        false,
+                        false
+                    ]
+                },
+                "power": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "MW",
+                    "values": [
+                        NaN,
+                        NaN
+                    ]
+                },
+                "power_capacity_margin": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "MW",
+                    "values": [
+                        NaN,
+                        NaN
+                    ]
+                },
+                "timesteps": [
+                    "2022-01-01 00:00:00",
+                    "2026-01-01 00:00:00"
+                ]
+            },
+            "models": [],
+            "sub_components": []
+        },
+        "656e1bc8df0c83c2dda044b7bd654631": {
+            "component_result": {
+                "energy_usage": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "MW",
                     "values": [
                         0.0,
                         0.0
@@ -66,6 +136,636 @@
             "models": [],
             "sub_components": []
         },
+        "9ecb7728acb755a3356d53ef62eac57c": {
+            "component_result": {
+                "energy_usage": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "MW",
+                    "values": [
+                        0.0,
+                        0.0
+                    ]
+                },
+                "id": "9ecb7728acb755a3356d53ef62eac57c",
+                "is_valid": {
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "unit": "N/A",
+                    "values": [
+                        false,
+                        false
+                    ]
+                },
+                "operational_settings_results": {
+                    "1": [
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "inlet_liquid_rate_m3_per_d": [
+                                14995200.0,
+                                14995200.0
+                            ],
+                            "inlet_pressure_bar": [
+                                50.0,
+                                50.0
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    false,
+                                    false
+                                ]
+                            },
+                            "name": "pump1",
+                            "outlet_pressure_bar": [
+                                250.0,
+                                250.0
+                            ],
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ]
+                        },
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "inlet_liquid_rate_m3_per_d": [
+                                2400.0,
+                                2400.0
+                            ],
+                            "inlet_pressure_bar": [
+                                50.0,
+                                50.0
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    false,
+                                    false
+                                ]
+                            },
+                            "name": "pump2",
+                            "outlet_pressure_bar": [
+                                250.0,
+                                250.0
+                            ],
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ]
+                        },
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "inlet_liquid_rate_m3_per_d": [
+                                2400.0,
+                                2400.0
+                            ],
+                            "inlet_pressure_bar": [
+                                50.0,
+                                50.0
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    false,
+                                    false
+                                ]
+                            },
+                            "name": "pump3",
+                            "outlet_pressure_bar": [
+                                250.0,
+                                250.0
+                            ],
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ]
+                        }
+                    ],
+                    "2": [
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "inlet_liquid_rate_m3_per_d": [
+                                7495200.0,
+                                7495200.0
+                            ],
+                            "inlet_pressure_bar": [
+                                50.0,
+                                50.0
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    false,
+                                    false
+                                ]
+                            },
+                            "name": "pump1",
+                            "outlet_pressure_bar": [
+                                125.0,
+                                125.0
+                            ],
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ]
+                        },
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "inlet_liquid_rate_m3_per_d": [
+                                2400.0,
+                                2400.0
+                            ],
+                            "inlet_pressure_bar": [
+                                50.0,
+                                50.0
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    false,
+                                    false
+                                ]
+                            },
+                            "name": "pump2",
+                            "outlet_pressure_bar": [
+                                125.0,
+                                125.0
+                            ],
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ]
+                        },
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "inlet_liquid_rate_m3_per_d": [
+                                2400.0,
+                                2400.0
+                            ],
+                            "inlet_pressure_bar": [
+                                50.0,
+                                50.0
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    false,
+                                    false
+                                ]
+                            },
+                            "name": "pump3",
+                            "outlet_pressure_bar": [
+                                125.0,
+                                125.0
+                            ],
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    NaN,
+                                    NaN
+                                ]
+                            },
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ]
+                        }
+                    ]
+                },
+                "operational_settings_used": {
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "unit": "N/A",
+                    "values": [
+                        "2",
+                        "2"
+                    ]
+                },
+                "power": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "MW",
+                    "values": [
+                        0.0,
+                        0.0
+                    ]
+                },
+                "timesteps": [
+                    "2022-01-01 00:00:00",
+                    "2026-01-01 00:00:00"
+                ]
+            },
+            "models": [
+                {
+                    "energy_usage": {
+                        "regularity": [
+                            1.0,
+                            1.0
+                        ],
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "typ": "STREAM_DAY",
+                        "unit": "MW",
+                        "values": [
+                            NaN,
+                            NaN
+                        ]
+                    },
+                    "inlet_liquid_rate_m3_per_d": [
+                        7495200.0,
+                        7495200.0
+                    ],
+                    "inlet_pressure_bar": [
+                        50.0,
+                        50.0
+                    ],
+                    "is_valid": {
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "unit": "N/A",
+                        "values": [
+                            false,
+                            false
+                        ]
+                    },
+                    "name": "pump1",
+                    "outlet_pressure_bar": [
+                        125.0,
+                        125.0
+                    ],
+                    "power": {
+                        "regularity": [
+                            1.0,
+                            1.0
+                        ],
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "typ": "STREAM_DAY",
+                        "unit": "MW",
+                        "values": [
+                            NaN,
+                            NaN
+                        ]
+                    },
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ]
+                },
+                {
+                    "energy_usage": {
+                        "regularity": [
+                            1.0,
+                            1.0
+                        ],
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "typ": "STREAM_DAY",
+                        "unit": "MW",
+                        "values": [
+                            NaN,
+                            NaN
+                        ]
+                    },
+                    "inlet_liquid_rate_m3_per_d": [
+                        2400.0,
+                        2400.0
+                    ],
+                    "inlet_pressure_bar": [
+                        50.0,
+                        50.0
+                    ],
+                    "is_valid": {
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "unit": "N/A",
+                        "values": [
+                            false,
+                            false
+                        ]
+                    },
+                    "name": "pump2",
+                    "outlet_pressure_bar": [
+                        125.0,
+                        125.0
+                    ],
+                    "power": {
+                        "regularity": [
+                            1.0,
+                            1.0
+                        ],
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "typ": "STREAM_DAY",
+                        "unit": "MW",
+                        "values": [
+                            NaN,
+                            NaN
+                        ]
+                    },
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ]
+                },
+                {
+                    "energy_usage": {
+                        "regularity": [
+                            1.0,
+                            1.0
+                        ],
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "typ": "STREAM_DAY",
+                        "unit": "MW",
+                        "values": [
+                            NaN,
+                            NaN
+                        ]
+                    },
+                    "inlet_liquid_rate_m3_per_d": [
+                        2400.0,
+                        2400.0
+                    ],
+                    "inlet_pressure_bar": [
+                        50.0,
+                        50.0
+                    ],
+                    "is_valid": {
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "unit": "N/A",
+                        "values": [
+                            false,
+                            false
+                        ]
+                    },
+                    "name": "pump3",
+                    "outlet_pressure_bar": [
+                        125.0,
+                        125.0
+                    ],
+                    "power": {
+                        "regularity": [
+                            1.0,
+                            1.0
+                        ],
+                        "timesteps": [
+                            "2022-01-01 00:00:00",
+                            "2026-01-01 00:00:00"
+                        ],
+                        "typ": "STREAM_DAY",
+                        "unit": "MW",
+                        "values": [
+                            NaN,
+                            NaN
+                        ]
+                    },
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ]
+                }
+            ],
+            "sub_components": []
+        },
         "b16b9265fc6f9743594a2441fcc0d7c8": {
             "component_result": {
                 "energy_usage": {
@@ -77,11 +777,11 @@
                         "2022-01-01 00:00:00",
                         "2026-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
-                    "unit": "Sm3/d",
+                    "typ": "STREAM_DAY",
+                    "unit": "MW",
                     "values": [
-                        39000.0,
-                        39000.0
+                        12.0,
+                        12.0
                     ]
                 },
                 "id": "b16b9265fc6f9743594a2441fcc0d7c8",
@@ -109,13 +809,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "Sm3/d",
+                                "unit": "MW",
                                 "values": [
-                                    13000.0,
-                                    13000.0
+                                    4.0,
+                                    4.0
                                 ]
                             },
-                            "energy_usage_unit": "Sm3/d",
+                            "energy_usage_unit": "MW",
                             "failure_status": [
                                 null,
                                 null
@@ -166,10 +866,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        13000.0,
-                                        13000.0
+                                        4.0,
+                                        4.0
                                     ],
-                                    "energy_usage_unit": "Sm3/d",
+                                    "energy_usage_unit": "MW",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -251,13 +951,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "Sm3/d",
+                                "unit": "MW",
                                 "values": [
-                                    13000.0,
-                                    13000.0
+                                    4.0,
+                                    4.0
                                 ]
                             },
-                            "energy_usage_unit": "Sm3/d",
+                            "energy_usage_unit": "MW",
                             "failure_status": [
                                 null,
                                 null
@@ -308,10 +1008,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        13000.0,
-                                        13000.0
+                                        4.0,
+                                        4.0
                                     ],
-                                    "energy_usage_unit": "Sm3/d",
+                                    "energy_usage_unit": "MW",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -393,13 +1093,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "Sm3/d",
+                                "unit": "MW",
                                 "values": [
-                                    13000.0,
-                                    13000.0
+                                    4.0,
+                                    4.0
                                 ]
                             },
-                            "energy_usage_unit": "Sm3/d",
+                            "energy_usage_unit": "MW",
                             "failure_status": [
                                 null,
                                 null
@@ -450,10 +1150,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        13000.0,
-                                        13000.0
+                                        4.0,
+                                        4.0
                                     ],
-                                    "energy_usage_unit": "Sm3/d",
+                                    "energy_usage_unit": "MW",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -501,6 +1201,434 @@
                                     "power": [
                                         4.0,
                                         4.0
+                                    ],
+                                    "power_unit": "MW",
+                                    "pressure_is_choked": [
+                                        false,
+                                        false
+                                    ],
+                                    "rate_exceeds_maximum": [
+                                        false,
+                                        false
+                                    ],
+                                    "rate_has_recirculation": [
+                                        false,
+                                        false
+                                    ],
+                                    "speed": null
+                                }
+                            ],
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ],
+                            "turbine_result": null
+                        }
+                    ],
+                    "2": [
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    0.5,
+                                    0.5
+                                ]
+                            },
+                            "energy_usage_unit": "MW",
+                            "failure_status": [
+                                null,
+                                null
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    true,
+                                    true
+                                ]
+                            },
+                            "max_standard_rate": null,
+                            "name": "compressor1",
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    0.5,
+                                    0.5
+                                ]
+                            },
+                            "power_unit": "MW",
+                            "rate_sm3_day": [
+                                500000.0,
+                                500000.0
+                            ],
+                            "stage_results": [
+                                {
+                                    "asv_recirculation_loss_mw": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "chart": null,
+                                    "chart_area_flags": [
+                                        "NOT_CALCULATED",
+                                        "NOT_CALCULATED"
+                                    ],
+                                    "energy_usage": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "energy_usage_unit": "MW",
+                                    "fluid_composition": {},
+                                    "head_exceeds_maximum": [
+                                        false,
+                                        false
+                                    ],
+                                    "inlet_stream_condition": {
+                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_m3_per_hr": [
+                                            500000.0,
+                                            500000.0
+                                        ],
+                                        "density_kg_per_m3": null,
+                                        "kappa": null,
+                                        "pressure": [
+                                            50.0,
+                                            50.0
+                                        ],
+                                        "pressure_before_choking": null,
+                                        "temperature_kelvin": null,
+                                        "z": null
+                                    },
+                                    "is_valid": [
+                                        true,
+                                        true
+                                    ],
+                                    "mass_rate_before_asv_kg_per_hr": null,
+                                    "mass_rate_kg_per_hr": null,
+                                    "outlet_stream_condition": {
+                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_m3_per_hr": null,
+                                        "density_kg_per_m3": null,
+                                        "kappa": null,
+                                        "pressure": [
+                                            125.0,
+                                            125.0
+                                        ],
+                                        "pressure_before_choking": null,
+                                        "temperature_kelvin": null,
+                                        "z": null
+                                    },
+                                    "polytropic_efficiency": null,
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
+                                    "polytropic_enthalpy_change_kJ_per_kg": null,
+                                    "polytropic_head_kJ_per_kg": null,
+                                    "power": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "power_unit": "MW",
+                                    "pressure_is_choked": [
+                                        false,
+                                        false
+                                    ],
+                                    "rate_exceeds_maximum": [
+                                        false,
+                                        false
+                                    ],
+                                    "rate_has_recirculation": [
+                                        false,
+                                        false
+                                    ],
+                                    "speed": null
+                                }
+                            ],
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ],
+                            "turbine_result": null
+                        },
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    2.5,
+                                    2.5
+                                ]
+                            },
+                            "energy_usage_unit": "MW",
+                            "failure_status": [
+                                null,
+                                null
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    true,
+                                    true
+                                ]
+                            },
+                            "max_standard_rate": null,
+                            "name": "compressor2",
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    2.5,
+                                    2.5
+                                ]
+                            },
+                            "power_unit": "MW",
+                            "rate_sm3_day": [
+                                2500000.0,
+                                2500000.0
+                            ],
+                            "stage_results": [
+                                {
+                                    "asv_recirculation_loss_mw": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "chart": null,
+                                    "chart_area_flags": [
+                                        "NOT_CALCULATED",
+                                        "NOT_CALCULATED"
+                                    ],
+                                    "energy_usage": [
+                                        2.5,
+                                        2.5
+                                    ],
+                                    "energy_usage_unit": "MW",
+                                    "fluid_composition": {},
+                                    "head_exceeds_maximum": [
+                                        false,
+                                        false
+                                    ],
+                                    "inlet_stream_condition": {
+                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_m3_per_hr": [
+                                            2500000.0,
+                                            2500000.0
+                                        ],
+                                        "density_kg_per_m3": null,
+                                        "kappa": null,
+                                        "pressure": [
+                                            50.0,
+                                            50.0
+                                        ],
+                                        "pressure_before_choking": null,
+                                        "temperature_kelvin": null,
+                                        "z": null
+                                    },
+                                    "is_valid": [
+                                        true,
+                                        true
+                                    ],
+                                    "mass_rate_before_asv_kg_per_hr": null,
+                                    "mass_rate_kg_per_hr": null,
+                                    "outlet_stream_condition": {
+                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_m3_per_hr": null,
+                                        "density_kg_per_m3": null,
+                                        "kappa": null,
+                                        "pressure": [
+                                            125.0,
+                                            125.0
+                                        ],
+                                        "pressure_before_choking": null,
+                                        "temperature_kelvin": null,
+                                        "z": null
+                                    },
+                                    "polytropic_efficiency": null,
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
+                                    "polytropic_enthalpy_change_kJ_per_kg": null,
+                                    "polytropic_head_kJ_per_kg": null,
+                                    "power": [
+                                        2.5,
+                                        2.5
+                                    ],
+                                    "power_unit": "MW",
+                                    "pressure_is_choked": [
+                                        false,
+                                        false
+                                    ],
+                                    "rate_exceeds_maximum": [
+                                        false,
+                                        false
+                                    ],
+                                    "rate_has_recirculation": [
+                                        false,
+                                        false
+                                    ],
+                                    "speed": null
+                                }
+                            ],
+                            "timesteps": [
+                                "2022-01-01 00:00:00",
+                                "2026-01-01 00:00:00"
+                            ],
+                            "turbine_result": null
+                        },
+                        {
+                            "energy_usage": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    3.0,
+                                    3.0
+                                ]
+                            },
+                            "energy_usage_unit": "MW",
+                            "failure_status": [
+                                null,
+                                null
+                            ],
+                            "is_valid": {
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "unit": "N/A",
+                                "values": [
+                                    true,
+                                    true
+                                ]
+                            },
+                            "max_standard_rate": null,
+                            "name": "compressor3",
+                            "power": {
+                                "regularity": [
+                                    1.0,
+                                    1.0
+                                ],
+                                "timesteps": [
+                                    "2022-01-01 00:00:00",
+                                    "2026-01-01 00:00:00"
+                                ],
+                                "typ": "STREAM_DAY",
+                                "unit": "MW",
+                                "values": [
+                                    3.0,
+                                    3.0
+                                ]
+                            },
+                            "power_unit": "MW",
+                            "rate_sm3_day": [
+                                3000000.0,
+                                3000000.0
+                            ],
+                            "stage_results": [
+                                {
+                                    "asv_recirculation_loss_mw": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "chart": null,
+                                    "chart_area_flags": [
+                                        "NOT_CALCULATED",
+                                        "NOT_CALCULATED"
+                                    ],
+                                    "energy_usage": [
+                                        3.0,
+                                        3.0
+                                    ],
+                                    "energy_usage_unit": "MW",
+                                    "fluid_composition": {},
+                                    "head_exceeds_maximum": [
+                                        false,
+                                        false
+                                    ],
+                                    "inlet_stream_condition": {
+                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_m3_per_hr": [
+                                            3000000.0,
+                                            3000000.0
+                                        ],
+                                        "density_kg_per_m3": null,
+                                        "kappa": null,
+                                        "pressure": [
+                                            50.0,
+                                            50.0
+                                        ],
+                                        "pressure_before_choking": null,
+                                        "temperature_kelvin": null,
+                                        "z": null
+                                    },
+                                    "is_valid": [
+                                        true,
+                                        true
+                                    ],
+                                    "mass_rate_before_asv_kg_per_hr": null,
+                                    "mass_rate_kg_per_hr": null,
+                                    "outlet_stream_condition": {
+                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_m3_per_hr": null,
+                                        "density_kg_per_m3": null,
+                                        "kappa": null,
+                                        "pressure": [
+                                            125.0,
+                                            125.0
+                                        ],
+                                        "pressure_before_choking": null,
+                                        "temperature_kelvin": null,
+                                        "z": null
+                                    },
+                                    "polytropic_efficiency": null,
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
+                                    "polytropic_enthalpy_change_kJ_per_kg": null,
+                                    "polytropic_head_kJ_per_kg": null,
+                                    "power": [
+                                        3.0,
+                                        3.0
                                     ],
                                     "power_unit": "MW",
                                     "pressure_is_choked": [
@@ -570,13 +1698,13 @@
                             "2026-01-01 00:00:00"
                         ],
                         "typ": "STREAM_DAY",
-                        "unit": "Sm3/d",
+                        "unit": "MW",
                         "values": [
-                            13000.0,
-                            13000.0
+                            4.0,
+                            4.0
                         ]
                     },
-                    "energy_usage_unit": "Sm3/d",
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null
@@ -627,10 +1755,10 @@
                                 "NOT_CALCULATED"
                             ],
                             "energy_usage": [
-                                13000.0,
-                                13000.0
+                                4.0,
+                                4.0
                             ],
-                            "energy_usage_unit": "Sm3/d",
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -712,13 +1840,13 @@
                             "2026-01-01 00:00:00"
                         ],
                         "typ": "STREAM_DAY",
-                        "unit": "Sm3/d",
+                        "unit": "MW",
                         "values": [
-                            13000.0,
-                            13000.0
+                            4.0,
+                            4.0
                         ]
                     },
-                    "energy_usage_unit": "Sm3/d",
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null
@@ -769,10 +1897,10 @@
                                 "NOT_CALCULATED"
                             ],
                             "energy_usage": [
-                                13000.0,
-                                13000.0
+                                4.0,
+                                4.0
                             ],
-                            "energy_usage_unit": "Sm3/d",
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -854,13 +1982,13 @@
                             "2026-01-01 00:00:00"
                         ],
                         "typ": "STREAM_DAY",
-                        "unit": "Sm3/d",
+                        "unit": "MW",
                         "values": [
-                            13000.0,
-                            13000.0
+                            4.0,
+                            4.0
                         ]
                     },
-                    "energy_usage_unit": "Sm3/d",
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null
@@ -911,10 +2039,10 @@
                                 "NOT_CALCULATED"
                             ],
                             "energy_usage": [
-                                13000.0,
-                                13000.0
+                                4.0,
+                                4.0
                             ],
-                            "energy_usage_unit": "Sm3/d",
+                            "energy_usage_unit": "MW",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -999,11 +2127,11 @@
                         "2022-01-01 00:00:00",
                         "2026-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
-                    "unit": "Sm3/d",
+                    "typ": "STREAM_DAY",
+                    "unit": "MW",
                     "values": [
-                        39000.0,
-                        39000.0
+                        12.0,
+                        12.0
                     ]
                 },
                 "id": "cbc0427cf665c504a8081b89cf167ee3",
@@ -1056,7 +2184,7 @@
         }
     },
     "emission_results": {
-        "b16b9265fc6f9743594a2441fcc0d7c8": [
+        "09c1b79cf6cf1ef0773a194679246a4a": [
             {
                 "name": "co2",
                 "quota": {
@@ -1087,8 +2215,8 @@
                     "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
-                        85.8,
-                        85.8
+                        0.0,
+                        0.0
                     ]
                 },
                 "tax": {
@@ -1103,8 +2231,8 @@
                     "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
-                        58890.0,
-                        58890.0
+                        0.0,
+                        0.0
                     ]
                 },
                 "timesteps": [

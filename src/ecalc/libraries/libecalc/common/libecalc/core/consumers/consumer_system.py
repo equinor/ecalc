@@ -109,13 +109,20 @@ class ConsumerSystem(BaseConsumer):
         variables_map: VariablesMap,
         temporal_operational_settings: TemporalModel[List[SystemOperationalSettings]],
     ) -> EcalcModelResult:
+        """
+        Evaluating a consumer system that may be composed of both consumers and other consumer systems. It will default
+        to the last operational setting if all settings fails.
+
+        Todo: Regularity is only correct by chance, since it is given at the installation level only. We need to do
+            something about this: 'regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity'
+        """
         is_valid = TimeSeriesBoolean(
             timesteps=variables_map.time_vector, values=[False] * len(variables_map.time_vector), unit=Unit.NONE
         )
         energy_usage = TimeSeriesRate(
             timesteps=variables_map.time_vector,
             values=[0] * len(variables_map.time_vector),  # TODO: Initialize energy usage to NaN not zero 4084
-            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            unit=Unit.NONE,
             regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity,
         )
         power = TimeSeriesRate(
@@ -151,6 +158,7 @@ class ConsumerSystem(BaseConsumer):
                     operator.mul, [consumer_result.component_result.is_valid for consumer_result in consumer_results]
                 )
 
+                energy_usage.unit = consumer_results[0].component_result.energy_usage.unit
                 valid_indices_for_period = np.nonzero(is_operational_setting_valid.values)[0]
                 if len(valid_indices_for_period) == 0:
                     # FIXME: Seems like valid indices is broken, always empty
@@ -192,7 +200,7 @@ class ConsumerSystem(BaseConsumer):
             id=self.id,
             is_valid=is_valid,
             timesteps=variables_map.time_vector,
-            energy_usage=energy_usage.to_calendar_day(),
+            energy_usage=energy_usage.to_stream_day(),  # Fixme: this does not match with the old consumer system
             power=power,
             operational_settings_used=operational_settings_used,
         )

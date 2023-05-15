@@ -21,5 +21,5 @@ def consumer_system_v2_yaml() -> YamlCase:
     return YamlCaseLoader.load(
         case_path=Path(__file__).parent / "data",
         main_file="consumer_system_v2.yaml",
-        resource_names=["compressor_sampled_1d.csv", "pumpchart.csv"],
+        resource_names=["compressor_sampled_1d.csv", "pumpchart.csv", "genset.csv"],
     )
