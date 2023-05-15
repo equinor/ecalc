@@ -42,13 +42,6 @@ RUN python3 -m venv $VIRTUAL_ENV && poetry install
 
 WORKDIR /project/libecalc/src/ecalc/
 
-FROM build AS coverage
-
-RUN poetry run coverage run -m pytest -n auto
-RUN poetry run coverage report --fail-under=90
-RUN mkdir /coverage
-RUN poetry run coverage xml
-
 
 FROM dev as dist
 

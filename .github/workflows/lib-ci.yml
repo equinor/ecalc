@@ -10,12 +10,6 @@ env:
 
 # TODO: BuildX and publish to use as in order for web to always be able to fetch image to matching branch?
 jobs:
-  run-tests-in-docker:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run library tests
-        run: docker build -t ecalc-lib-test --target coverage -f Dockerfile ./
 
   run-tests-with-coverage:
     runs-on: ubuntu-latest
@@ -44,7 +38,9 @@ jobs:
       - name: Get Test Coverage score
         id: total
         run: |
+          poetry run python -m coverage --fail-under 50
           poetry run python -m coverage html -d build/
+          poetry run python -m coverage --fail-under 90
           poetry run python -m coverage json -o build/coverage.json
           echo '# Code Coverage Report\n See the index.html for a more detailed report.\n' >> build/README.md
           echo "$(poetry run python -m coverage report --format=markdown)" >> build/README.md
