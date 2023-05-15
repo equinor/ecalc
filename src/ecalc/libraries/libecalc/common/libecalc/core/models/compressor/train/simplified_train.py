@@ -255,7 +255,9 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 )
 
         outlet_streams = [
-            stream.set_new_pressure_and_enthalpy_change(new_pressure=pressure, enthalpy_change_J_per_kg=enthalpy_change)
+            stream.set_new_pressure_and_enthalpy_change(
+                new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
+            )
             for stream, pressure, enthalpy_change in zip(
                 inlet_streams,
                 outlet_pressure,
@@ -532,7 +534,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             enthalpy_change_joule_per_kg = polytropic_head / polytropic_efficiency
 
             outlet_stream = inlet_stream.set_new_pressure_and_enthalpy_change(
-                new_pressure=outlet_pressure, enthalpy_change_J_per_kg=enthalpy_change_joule_per_kg
+                new_pressure=outlet_pressure, enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg
             )
 
             # Set convergence criterion on actual volume rate

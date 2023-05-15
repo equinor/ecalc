@@ -75,7 +75,9 @@ def calculate_enthalpy_change_head_iteration(
         enthalpy_change_joule_per_kg = polytropic_heads / polytropic_efficiency
 
         outlet_streams = [
-            stream.set_new_pressure_and_enthalpy_change(new_pressure=pressure, enthalpy_change_J_per_kg=enthalpy_change)
+            stream.set_new_pressure_and_enthalpy_change(
+                new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
+            )
             for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
         ]
 

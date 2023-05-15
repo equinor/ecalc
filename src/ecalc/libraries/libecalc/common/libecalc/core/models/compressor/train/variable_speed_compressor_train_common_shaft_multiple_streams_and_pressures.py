@@ -391,7 +391,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     .fluid.get_fluid_stream(
                         pressure_bara=train_first_part_result.discharge_pressure
                         - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
-                        temperature_Kelvin=self.stages[
+                        temperature_kelvin=self.stages[
                             stream_to_maximize_connected_to_stage_no
                         ].inlet_temperature_kelvin,
                     )
@@ -405,7 +405,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     self.streams[0]
                     .fluid.get_fluid_stream(
                         pressure_bara=suction_pressure,
-                        temperature_Kelvin=self.stages[0].inlet_temperature_kelvin,
+                        temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                     )
                     .density
                 )
@@ -486,7 +486,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 .fluid.get_fluid_stream(
                     pressure_bara=train_first_part_result_at_min_speed.discharge_pressure
                     - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
-                    temperature_Kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
+                    temperature_kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
                 )
                 .density
             )
@@ -502,7 +502,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 .fluid.get_fluid_stream(
                     pressure_bara=train_first_part_result_at_max_speed.discharge_pressure
                     - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
-                    temperature_Kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
+                    temperature_kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
                 )
                 .density
             )
@@ -515,7 +515,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 self.streams[0]
                 .fluid.get_fluid_stream(
                     pressure_bara=suction_pressure,
-                    temperature_Kelvin=self.stages[0].inlet_temperature_kelvin,
+                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                 )
                 .density
             )
@@ -821,7 +821,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         stage_results = []
         inlet_stream = self.streams[0].fluid.get_fluid_stream(
             pressure_bara=inlet_pressure_bara,
-            temperature_Kelvin=self.stages[0].inlet_temperature_kelvin,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
         mass_rate_this_stage_kg_per_hour = inlet_stream.standard_to_mass_rate(std_rates_std_m3_per_day_per_stream[0])
         mass_rate_previous_stage_kg_per_hour = 0
@@ -844,7 +844,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     # Currently using outlet temperature
                     additional_inlet_stream = self.streams[stream_number].fluid.get_fluid_stream(
                         pressure_bara=inlet_stream.pressure_bara,
-                        temperature_Kelvin=inlet_stream.temperature_kelvin,
+                        temperature_kelvin=inlet_stream.temperature_kelvin,
                     )
                     mass_rate_additional_inlet_stream_kg_per_hour = additional_inlet_stream.standard_to_mass_rate(
                         float(std_rates_std_m3_per_day_per_stream[stream_number])
@@ -854,7 +854,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         other_fluid_stream=inlet_stream,
                         self_mass_rate=mass_rate_additional_inlet_stream_kg_per_hour,
                         other_mass_rate=mass_rate_this_stage_kg_per_hour,
-                        temperature_Kelvin=additional_inlet_stream.temperature_kelvin,
+                        temperature_kelvin=additional_inlet_stream.temperature_kelvin,
                         pressure_bara=additional_inlet_stream.pressure_bara,
                     )
                     mass_rate_this_stage_kg_per_hour += mass_rate_additional_inlet_stream_kg_per_hour
@@ -1098,7 +1098,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         # first make inlet stream from stream[0]
         inlet_stream = self.streams[0].fluid.get_fluid_stream(
             pressure_bara=inlet_pressure,
-            temperature_Kelvin=self.stages[0].inlet_temperature_kelvin,
+            temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
         inlet_std_rate = float(std_rates_std_m3_per_day_per_stream[0])
         inlet_mass_rate = inlet_stream.standard_to_mass_rate(inlet_std_rate)
@@ -1113,7 +1113,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 # mix stream from previous subtrain with incoming stream at first stage
                 additional_inlet_stream = self.streams[stream_number].fluid.get_fluid_stream(
                     pressure_bara=inlet_pressure,
-                    temperature_Kelvin=self.stages[0].inlet_temperature_kelvin,
+                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                 )
                 mass_rate_additional_inlet_stream = additional_inlet_stream.standard_to_mass_rate(
                     float(std_rates_std_m3_per_day_per_stream[stream_number])
@@ -1123,7 +1123,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     other_fluid_stream=inlet_stream,
                     self_mass_rate=mass_rate_additional_inlet_stream,
                     other_mass_rate=inlet_mass_rate,
-                    temperature_Kelvin=self.stages[0].inlet_temperature_kelvin,
+                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                     pressure_bara=additional_inlet_stream.pressure_bara,
                 )
                 inlet_std_rate += std_rates_std_m3_per_day_per_stream[stream_number]
