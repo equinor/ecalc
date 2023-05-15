@@ -129,34 +129,47 @@ class FluidStream:
         mass_rate_kg_per_hour = standard_rates * self.standard_conditions_density / UnitConstants.HOURS_PER_DAY
         return mass_rate_kg_per_hour
 
-    def mass_rate_to_standard_rate(self, mass_rate_kg_per_hour: np.ndarray) -> np.ndarray:
-        """kg/h to Sm3/day."""
+    def mass_rate_to_standard_rate(self, mass_rate_kg_per_hour: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+        """Convert mass rate from kg/h to Sm3/day.
+
+        Args:
+            mass_rate_kg_per_hour: One or more mass rates to convert [kg/h]
+
+        Returns:
+            Mass rates in Sm3/day
+
+        """
         fluid_density_standard_conditions = self.standard_conditions_density
+        return mass_rate_kg_per_hour * UnitConstants.HOURS_PER_DAY / fluid_density_standard_conditions
 
-        standard_rates_m3_per_day = mass_rate_kg_per_hour / (
-            fluid_density_standard_conditions / UnitConstants.HOURS_PER_DAY
-        )
-        return standard_rates_m3_per_day
+    def get_fluid_stream(self, pressure_bara: float, temperature_kelvin: float) -> FluidStream:
+        """Return a fluid stream for given pressure and temperature
 
-    def mass_rate_to_standard(self, mass_rates: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
-        """kg/h to Sm3/day."""
-        fluid_density_standard_conditions = self.standard_conditions_density
-        return mass_rates * UnitConstants.HOURS_PER_DAY / fluid_density_standard_conditions
+        Args:
+            pressure_bara: Pressure setpoint for fluid stream [bara]
+            temperature_kelvin: Temperature setpoint for fluid stream [kelvin]
 
-    def get_fluid_stream(self, pressure_bara: float, temperature_Kelvin: float) -> FluidStream:
+        Returns:
+            Fluid stream at set temperature and pressure
+
+        """
         return FluidStream(
-            fluid_model=self.fluid_model, pressure_bara=pressure_bara, temperature_kelvin=temperature_Kelvin
+            fluid_model=self.fluid_model, pressure_bara=pressure_bara, temperature_kelvin=temperature_kelvin
         )
 
     def get_fluid_streams(self, pressure_bara: np.ndarray, temperature_kelvin: np.ndarray) -> List[FluidStream]:
-        """:param pressure_bara:
-        :param temperature_kelvin:
-        :return:
+        """Get multiple fluid streams from multiple temperatures and pressures
+
+        Args:
+            pressure_bara: array of pressures [bara]
+            temperature_kelvin: array of temperatures [kelvin]
+
+        Returns:
+            List of fluid streams at set temperatures and pressures
+
         """
         streams = [
-            FluidStream(
-                fluid_model=self.fluid_model, pressure_bara=pressure_value, temperature_kelvin=temperature_value
-            )
+            self.get_fluid_stream(pressure_bara=pressure_value, temperature_kelvin=temperature_value)
             for pressure_value, temperature_value in zip(pressure_bara, temperature_kelvin)
         ]
 
@@ -174,13 +187,13 @@ class FluidStream:
         return new_fluid_stream
 
     def set_new_pressure_and_enthalpy_change(
-        self, new_pressure: float, enthalpy_change_J_per_kg: float, remove_liquid: bool = True
+        self, new_pressure: float, enthalpy_change_joule_per_kg: float, remove_liquid: bool = True
     ) -> FluidStream:
         new_fluid_stream = self.copy()
         new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.set_new_pressure_and_enthalpy(
             new_pressure=new_pressure,
-            new_enthalpy_joule_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
-            + enthalpy_change_J_per_kg,
+            new_enthalpy_J_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
+            + enthalpy_change_joule_per_kg,
             remove_liquid=remove_liquid,
         )
         return new_fluid_stream
@@ -196,8 +209,21 @@ class FluidStream:
         self_mass_rate: float,
         other_mass_rate: float,
         pressure_bara: float,
-        temperature_Kelvin: float,
+        temperature_kelvin: float,
     ) -> FluidStream:
+        """Mix in a new fluid stream and get combined fluid stream
+
+        Args:
+            other_fluid_stream: Fluid stream to be mixed in
+            self_mass_rate: Mass rate of the current fluid stream
+            other_mass_rate: Mass rate of the "mix-in" fluid stream
+            pressure_bara: Pressure of the fluid streams (Must be equal for both streams)
+            temperature_kelvin: Temperature of the fluid streams ( Must be equal for both streams)
+
+        Returns:
+            New fluid stream with mixed in fluid
+
+        """
         new_fluid_stream = self.copy()
         composition_dict, new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.mix_streams(
             stream_1=new_fluid_stream._neqsim_fluid_stream,
@@ -205,7 +231,7 @@ class FluidStream:
             mass_rate_stream_1=self_mass_rate,
             mass_rate_stream_2=other_mass_rate,
             pressure=pressure_bara,
-            temperature=temperature_Kelvin,
+            temperature=temperature_kelvin,
             eos_model=_map_eos_model_to_neqsim[new_fluid_stream.fluid_model.eos_model],
         )
 

@@ -432,11 +432,11 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 * stream_density
             )
             _max_valid_std_rate_for_stream_at_given_speed = maximize_x_given_boolean_condition_function(
-                x_min=self.streams[stream_to_maximize].fluid.mass_rate_to_standard(
-                    mass_rates=x_min_mass_rate_kg_per_hr
+                x_min=self.streams[stream_to_maximize].fluid.mass_rate_to_standard_rate(
+                    mass_rate_kg_per_hour=x_min_mass_rate_kg_per_hr
                 ),
-                x_max=self.streams[stream_to_maximize].fluid.mass_rate_to_standard(
-                    mass_rates=x_max_mass_rate_kg_per_hr
+                x_max=self.streams[stream_to_maximize].fluid.mass_rate_to_standard_rate(
+                    mass_rate_kg_per_hour=x_max_mass_rate_kg_per_hr
                 ),
                 bool_func=lambda x: _calculate_train_result(std_rate_for_stream=x, speed=speed).is_valid,
             )
@@ -544,15 +544,15 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         max_mass_rate_kg_per_hr_at_max_speed = max_actual_rate_m3_per_hr_at_max_speed * stream_density_at_max_speed
         max_mass_rate_kg_per_hr_at_min_speed = max_actual_rate_m3_per_hr_at_min_speed * stream_density_at_min_speed
 
-        min_std_rate_for_stream_m3_per_day_at_max_speed = self.streams[stream_to_maximize].fluid.mass_rate_to_standard(
-            mass_rates=min_mass_rate_kg_per_hr_at_max_speed
-        )
-        max_std_rate_for_stream_m3_per_day_at_max_speed = self.streams[stream_to_maximize].fluid.mass_rate_to_standard(
-            mass_rates=max_mass_rate_kg_per_hr_at_max_speed
-        )
-        max_std_rate_for_stream_m3_per_day_at_min_speed = self.streams[stream_to_maximize].fluid.mass_rate_to_standard(
-            mass_rates=max_mass_rate_kg_per_hr_at_min_speed
-        )
+        min_std_rate_for_stream_m3_per_day_at_max_speed = self.streams[
+            stream_to_maximize
+        ].fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=min_mass_rate_kg_per_hr_at_max_speed)
+        max_std_rate_for_stream_m3_per_day_at_max_speed = self.streams[
+            stream_to_maximize
+        ].fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate_kg_per_hr_at_max_speed)
+        max_std_rate_for_stream_m3_per_day_at_min_speed = self.streams[
+            stream_to_maximize
+        ].fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate_kg_per_hr_at_min_speed)
 
         result_min_std_rate_for_stream_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
             std_rate_for_stream=min_std_rate_for_stream_m3_per_day_at_max_speed
