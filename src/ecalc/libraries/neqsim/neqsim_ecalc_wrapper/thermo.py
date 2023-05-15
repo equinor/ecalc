@@ -47,7 +47,7 @@ class NeqsimFluid:
     def create_thermo_system(
         cls,
         composition: Dict[str, float],
-        temperature_Kelvin: float = STANDARD_TEMPERATURE_KELVIN,
+        temperature_kelvin: float = STANDARD_TEMPERATURE_KELVIN,
         pressure_bara: float = STANDARD_PRESSURE_BARA,
         eos_model: NeqsimEoSModelType = NeqsimEoSModelType.SRK,
         mixing_rule: int = NEQSIM_MIXING_RULE,
@@ -61,7 +61,7 @@ class NeqsimFluid:
         Not necessary here because compressor.run-method does flash on inlet and outlet.
 
         :param composition: A dict with the composition of the thermodynamic_system components name: molar fraction.
-        :param temperature_Kelvin: The initial system temperature in Kelvin
+        :param temperature_kelvin: The initial system temperature in Kelvin
         :param pressure_bara: The initial system pressure in absolute bar
         :param eos_model: The name of the underlaying EOS model
         :param mixing_rule: The Neqsim mixing rule.
@@ -80,7 +80,7 @@ class NeqsimFluid:
             components=components,
             molar_fraction=molar_fractions,
             eos_model=eos_model,
-            temperature_Kelvin=temperature_Kelvin,
+            temperature_kelvin=temperature_kelvin,
             pressure_bara=pressure_bara,
             mixing_rule=mixing_rule,
         )
@@ -93,7 +93,7 @@ class NeqsimFluid:
         components: List[str],
         molar_fraction: List[float],
         eos_model,
-        temperature_Kelvin,
+        temperature_kelvin,
         pressure_bara,
         mixing_rule,
     ) -> ThermodynamicSystem:
@@ -108,7 +108,7 @@ class NeqsimFluid:
         """
         use_gerg = "gerg" in eos_model.name.lower()
 
-        thermodynamic_system = eos_model.value(float(temperature_Kelvin), float(pressure_bara))
+        thermodynamic_system = eos_model.value(float(temperature_kelvin), float(pressure_bara))
 
         [
             thermodynamic_system.addComponent(component, float(value))
@@ -150,7 +150,7 @@ class NeqsimFluid:
             return self._thermodynamic_system.getZ()
 
     @property
-    def enthalpy_J_per_kg(self) -> float:
+    def enthalpy_joule_per_kg(self) -> float:
         if self._use_gerg:
             return self._gerg_properties.enthalpy_joule_per_kg
         else:
@@ -194,7 +194,7 @@ class NeqsimFluid:
         """
         thermodynamic_operations = ThermodynamicOperations(thermodynamic_system)
         if use_gerg:
-            enthalpy_joule = _get_enthalpy_joule_for_GERG2008_Joule_per_kg(
+            enthalpy_joule = _get_enthalpy_joule_for_GERG2008_joule_per_kg(
                 enthalpy=enthalpy, thermodynamic_system=thermodynamic_system
             )
             thermodynamic_operations.PHflashGERG2008(float(enthalpy_joule))
@@ -248,7 +248,7 @@ class NeqsimFluid:
             composition_dict,
             NeqsimFluid.create_thermo_system(
                 composition=composition_dict,
-                temperature_Kelvin=temperature,
+                temperature_kelvin=temperature,
                 pressure_bara=pressure,
                 eos_model=eos_model,
             ),
@@ -346,5 +346,5 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
     )
 
 
-def _get_enthalpy_joule_for_GERG2008_Joule_per_kg(enthalpy: float, thermodynamic_system: ThermodynamicSystem) -> float:
+def _get_enthalpy_joule_for_GERG2008_joule_per_kg(enthalpy: float, thermodynamic_system: ThermodynamicSystem) -> float:
     return enthalpy * thermodynamic_system.getTotalNumberOfMoles() * thermodynamic_system.getMolarMass()
