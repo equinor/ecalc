@@ -215,19 +215,25 @@ class NeqsimFluid:
         pressure: float,
         temperature: float,
         eos_model: NeqsimEoSModelType = NeqsimEoSModelType.SRK,
-    ) -> Tuple[dict, NeqsimFluid]:
+    ) -> Tuple[Dict, NeqsimFluid]:
         """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
         if stream_1 is None:
-            return stream_2.set_new_pressure_and_temperature(
-                new_pressure_bara=pressure, new_temperature_kelvin=temperature
+            return (
+                {},  # Fixme: Need to return composition dict
+                stream_2.set_new_pressure_and_temperature(
+                    new_pressure_bara=pressure, new_temperature_kelvin=temperature
+                ),
             )
         if stream_2 is None:
-            return stream_1.set_new_pressure_and_temperature(
-                new_pressure_bara=pressure,
-                new_temperature_kelvin=temperature,
+            return (
+                {},  # Fixme: Need to return composition dict
+                stream_1.set_new_pressure_and_temperature(
+                    new_pressure_bara=pressure,
+                    new_temperature_kelvin=temperature,
+                ),
             )
 
-        composition_dict = {}
+        composition_dict: Dict[str, float] = {}
 
         mol_per_hour_1 = mass_rate_stream_1 / stream_1.molar_mass
         mol_per_hour_2 = mass_rate_stream_2 / stream_2.molar_mass
