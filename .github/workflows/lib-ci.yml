@@ -10,7 +10,7 @@ env:
 
 # TODO: BuildX and publish to use as in order for web to always be able to fetch image to matching branch?
 jobs:
-  run-tests:
+  run-tests-in-docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
