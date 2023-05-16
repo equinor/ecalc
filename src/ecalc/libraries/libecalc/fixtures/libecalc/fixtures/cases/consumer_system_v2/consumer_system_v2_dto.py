@@ -54,11 +54,12 @@ def consumer_system_v2_dto() -> DTOCase:
     compressor_1d = dto.CompressorSampled(
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
-        energy_usage_type=dto.types.EnergyUsageType.POWER,
-        energy_usage_values=[0.0, 1.0, 2.0, 3.0, 4.0],
+        energy_usage_type=dto.types.EnergyUsageType.FUEL,
+        energy_usage_values=[0.0, 10000.0, 11000.0, 12000.0, 13000.0],
         rate_values=[0.0, 1000000.0, 2000000.0, 3000000.0, 4000000.0],
         suction_pressure_values=None,
         discharge_pressure_values=None,
+        power_interpolation_values=[0.0, 1.0, 2.0, 3.0, 4.0],
     )
 
     pump_model_single_speed = dto.PumpModel(
@@ -76,22 +77,25 @@ def consumer_system_v2_dto() -> DTOCase:
     compressor1 = dto.components.CompressorComponent(
         name="compressor1",
         user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        fuel=fuel,
         regularity=regularity,
-        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        consumes=dto.types.ConsumptionType.FUEL,
         energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
     )
     compressor2 = dto.components.CompressorComponent(
         name="compressor2",
         user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        fuel=fuel,
         regularity=regularity,
-        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        consumes=dto.types.ConsumptionType.FUEL,
         energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
     )
     compressor3 = dto.components.CompressorComponent(
         name="compressor3",
         user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        fuel=fuel,
         regularity=regularity,
-        consumes=dto.types.ConsumptionType.ELECTRICITY,
+        consumes=dto.types.ConsumptionType.FUEL,
         energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
     )
 
@@ -117,12 +121,13 @@ def consumer_system_v2_dto() -> DTOCase:
         energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
     )
 
-    compressor_system = dto.ElectricityConsumer(
+    compressor_system = dto.FuelConsumer(
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         name="compressor_system",
+        fuel=fuel,
         energy_usage_model={
             datetime(2022, 1, 1, 0, 0): CompressorSystemConsumerFunction(
-                energy_usage_type=EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=None,
                 compressors=[
                     CompressorSystemCompressor(
@@ -163,7 +168,7 @@ def consumer_system_v2_dto() -> DTOCase:
         name="compressor_system_v2",
         user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
-        consumes=ConsumptionType.ELECTRICITY,
+        consumes=ConsumptionType.FUEL,
         operational_settings={
             datetime(2022, 1, 1, 0, 0): [
                 dto.components.CompressorSystemOperationalSetting(
@@ -282,8 +287,10 @@ def consumer_system_v2_dto() -> DTOCase:
                             },
                             regularity=regularity,
                             fuel=fuel,
-                            consumers=[compressor_system, compressor_system_v2, pump_system, pump_system_v2],
-                        )
+                            consumers=[pump_system, pump_system_v2],
+                        ),
+                        compressor_system,
+                        compressor_system_v2,
                     ],
                     direct_emitters=[],
                 )

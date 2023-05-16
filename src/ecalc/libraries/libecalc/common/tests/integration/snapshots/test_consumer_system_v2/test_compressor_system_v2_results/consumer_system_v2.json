@@ -26,8 +26,8 @@
                     ],
                     "unit": "N/A",
                     "values": [
-                        false,
-                        false
+                        true,
+                        true
                     ]
                 },
                 "power": {
@@ -42,8 +42,8 @@
                     "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
-                        NaN,
-                        NaN
+                        0.0,
+                        0.0
                     ]
                 },
                 "power_capacity_margin": {
@@ -58,8 +58,8 @@
                     "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
-                        NaN,
-                        NaN
+                        1000000.0,
+                        1000000.0
                     ]
                 },
                 "timesteps": [
@@ -108,8 +108,8 @@
                     ],
                     "unit": "N/A",
                     "values": [
-                        0,
-                        0
+                        2,
+                        2
                     ]
                 },
                 "power": {
@@ -124,8 +124,8 @@
                     "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
-                        NaN,
-                        NaN
+                        0.0,
+                        0.0
                     ]
                 },
                 "timesteps": [
@@ -777,11 +777,11 @@
                         "2022-01-01 00:00:00",
                         "2026-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
-                    "unit": "MW",
+                    "typ": "CALENDAR_DAY",
+                    "unit": "Sm3/d",
                     "values": [
-                        12.0,
-                        12.0
+                        39000.0,
+                        39000.0
                     ]
                 },
                 "id": "b16b9265fc6f9743594a2441fcc0d7c8",
@@ -809,13 +809,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "MW",
+                                "unit": "Sm3/d",
                                 "values": [
-                                    4.0,
-                                    4.0
+                                    13000.0,
+                                    13000.0
                                 ]
                             },
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -866,10 +866,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        4.0,
-                                        4.0
+                                        13000.0,
+                                        13000.0
                                     ],
-                                    "energy_usage_unit": "MW",
+                                    "energy_usage_unit": "Sm3/d",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -951,13 +951,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "MW",
+                                "unit": "Sm3/d",
                                 "values": [
-                                    4.0,
-                                    4.0
+                                    13000.0,
+                                    13000.0
                                 ]
                             },
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -1008,10 +1008,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        4.0,
-                                        4.0
+                                        13000.0,
+                                        13000.0
                                     ],
-                                    "energy_usage_unit": "MW",
+                                    "energy_usage_unit": "Sm3/d",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -1093,13 +1093,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "MW",
+                                "unit": "Sm3/d",
                                 "values": [
-                                    4.0,
-                                    4.0
+                                    13000.0,
+                                    13000.0
                                 ]
                             },
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -1150,10 +1150,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        4.0,
-                                        4.0
+                                        13000.0,
+                                        13000.0
                                     ],
-                                    "energy_usage_unit": "MW",
+                                    "energy_usage_unit": "Sm3/d",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -1237,13 +1237,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "MW",
+                                "unit": "Sm3/d",
                                 "values": [
-                                    0.5,
-                                    0.5
+                                    5000.0,
+                                    5000.0
                                 ]
                             },
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -1294,10 +1294,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        0.5,
-                                        0.5
+                                        5000.0,
+                                        5000.0
                                     ],
-                                    "energy_usage_unit": "MW",
+                                    "energy_usage_unit": "Sm3/d",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -1379,13 +1379,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "MW",
+                                "unit": "Sm3/d",
                                 "values": [
-                                    2.5,
-                                    2.5
+                                    11500.0,
+                                    11500.0
                                 ]
                             },
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -1436,10 +1436,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        2.5,
-                                        2.5
+                                        11500.0,
+                                        11500.0
                                     ],
-                                    "energy_usage_unit": "MW",
+                                    "energy_usage_unit": "Sm3/d",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -1521,13 +1521,13 @@
                                     "2026-01-01 00:00:00"
                                 ],
                                 "typ": "STREAM_DAY",
-                                "unit": "MW",
+                                "unit": "Sm3/d",
                                 "values": [
-                                    3.0,
-                                    3.0
+                                    12000.0,
+                                    12000.0
                                 ]
                             },
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -1578,10 +1578,10 @@
                                         "NOT_CALCULATED"
                                     ],
                                     "energy_usage": [
-                                        3.0,
-                                        3.0
+                                        12000.0,
+                                        12000.0
                                     ],
-                                    "energy_usage_unit": "MW",
+                                    "energy_usage_unit": "Sm3/d",
                                     "fluid_composition": {},
                                     "head_exceeds_maximum": [
                                         false,
@@ -1698,13 +1698,13 @@
                             "2026-01-01 00:00:00"
                         ],
                         "typ": "STREAM_DAY",
-                        "unit": "MW",
+                        "unit": "Sm3/d",
                         "values": [
-                            4.0,
-                            4.0
+                            13000.0,
+                            13000.0
                         ]
                     },
-                    "energy_usage_unit": "MW",
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null
@@ -1755,10 +1755,10 @@
                                 "NOT_CALCULATED"
                             ],
                             "energy_usage": [
-                                4.0,
-                                4.0
+                                13000.0,
+                                13000.0
                             ],
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -1840,13 +1840,13 @@
                             "2026-01-01 00:00:00"
                         ],
                         "typ": "STREAM_DAY",
-                        "unit": "MW",
+                        "unit": "Sm3/d",
                         "values": [
-                            4.0,
-                            4.0
+                            13000.0,
+                            13000.0
                         ]
                     },
-                    "energy_usage_unit": "MW",
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null
@@ -1897,10 +1897,10 @@
                                 "NOT_CALCULATED"
                             ],
                             "energy_usage": [
-                                4.0,
-                                4.0
+                                13000.0,
+                                13000.0
                             ],
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -1982,13 +1982,13 @@
                             "2026-01-01 00:00:00"
                         ],
                         "typ": "STREAM_DAY",
-                        "unit": "MW",
+                        "unit": "Sm3/d",
                         "values": [
-                            4.0,
-                            4.0
+                            13000.0,
+                            13000.0
                         ]
                     },
-                    "energy_usage_unit": "MW",
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null
@@ -2039,10 +2039,10 @@
                                 "NOT_CALCULATED"
                             ],
                             "energy_usage": [
-                                4.0,
-                                4.0
+                                13000.0,
+                                13000.0
                             ],
-                            "energy_usage_unit": "MW",
+                            "energy_usage_unit": "Sm3/d",
                             "fluid_composition": {},
                             "head_exceeds_maximum": [
                                 false,
@@ -2127,11 +2127,11 @@
                         "2022-01-01 00:00:00",
                         "2026-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
-                    "unit": "MW",
+                    "typ": "CALENDAR_DAY",
+                    "unit": "Sm3/d",
                     "values": [
-                        12.0,
-                        12.0
+                        39000.0,
+                        39000.0
                     ]
                 },
                 "id": "cbc0427cf665c504a8081b89cf167ee3",
@@ -2233,6 +2233,63 @@
                     "values": [
                         0.0,
                         0.0
+                    ]
+                },
+                "timesteps": [
+                    "2022-01-01 00:00:00",
+                    "2026-01-01 00:00:00"
+                ]
+            }
+        ],
+        "b16b9265fc6f9743594a2441fcc0d7c8": [
+            {
+                "name": "co2",
+                "quota": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "NOK/d",
+                    "values": [
+                        0.0,
+                        0.0
+                    ]
+                },
+                "rate": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "t/d",
+                    "values": [
+                        85.8,
+                        85.8
+                    ]
+                },
+                "tax": {
+                    "regularity": [
+                        1.0,
+                        1.0
+                    ],
+                    "timesteps": [
+                        "2022-01-01 00:00:00",
+                        "2026-01-01 00:00:00"
+                    ],
+                    "typ": "STREAM_DAY",
+                    "unit": "NOK/d",
+                    "values": [
+                        58890.0,
+                        58890.0
                     ]
                 },
                 "timesteps": [

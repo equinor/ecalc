@@ -51,15 +51,29 @@ def test_compressor_system_v2_results(
     of the code. Right now we duplicate code.
     """
     asset_graph = consumer_system_v2_dto.ecalc_model.get_graph()
+    pump_system_id = asset_graph.get_component_id_by_name("pump_system")
+    pump_system_v2_id = asset_graph.get_component_id_by_name("pump_system_v2")
     compressor_system_id = asset_graph.get_component_id_by_name("compressor_system")
     compressor_system_v2_id = asset_graph.get_component_id_by_name("compressor_system_v2")
 
-    compressor_system_result = result.consumer_results[compressor_system_id].component_result
-    compressor_system_v2_result = result.consumer_results[compressor_system_v2_id].component_result
-
+    pump_system_result = result.consumer_results[pump_system_id].component_result.copy(
+        update={"operational_settings_results": None, "id": "pump system"}
+    )
+    pump_system_v2_result = result.consumer_results[pump_system_v2_id].component_result.copy(
+        update={"id": "pump system"}
+    )
+    compressor_system_result = result.consumer_results[compressor_system_id].component_result.copy(
+        update={"operational_settings_results": None, "id": "compressor system"}
+    )
+    compressor_system_v2_result = result.consumer_results[compressor_system_v2_id].component_result.copy(
+        update={"id": "compressor system"}
+    )
     assert compressor_system_result.power.unit == compressor_system_v2_result.power.unit
 
     assert isinstance(compressor_system_result.power, type(compressor_system_v2_result.power))
+
+    assert pump_system_v2_result.dict() == pump_system_result.dict()
+    assert compressor_system_v2_result.dict() == compressor_system_result.dict()
     assert compressor_system_result.power == compressor_system_v2_result.power
     assert compressor_system_result.energy_usage == compressor_system_v2_result.energy_usage
 
