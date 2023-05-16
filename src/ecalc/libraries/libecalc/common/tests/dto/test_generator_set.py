@@ -2,7 +2,8 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
-from libecalc.dto.types import EnergyModelType
+from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
+from libecalc.dto.types import ConsumptionType, EnergyModelType, EnergyUsageType
 from libecalc.expression import Expression
 from pydantic.error_wrappers import ValidationError
 
@@ -61,3 +62,33 @@ class TestGeneratorSet:
                 energy_usage_adjustment_factor=1.0,
             )
         }
+
+    def test_genset_should_fail_with_fuel_consumer(self):
+        fuel = dto.types.FuelType(
+            name="fuel",
+            price=Expression.setup_from_expression(value="0"),
+            emissions=[],
+        )
+        fuel_consumer = dto.FuelConsumer(
+            name="test",
+            fuel={datetime(2000, 1, 1): fuel},
+            consumes=ConsumptionType.FUEL,
+            component_type=ComponentType.GENERIC,
+            energy_usage_model={
+                datetime(2000, 1, 1): dto.DirectConsumerFunction(
+                    fuel_rate=Expression.setup_from_expression(1),
+                    energy_usage_type=EnergyUsageType.FUEL,
+                )
+            },
+            regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
+            user_defined_category={datetime(2000, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+        )
+        with pytest.raises(ValidationError):
+            dto.GeneratorSet(
+                name="Test",
+                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+                generator_set_model={},
+                regularity={},
+                consumers=[fuel_consumer],  # noqa: expected to fail.
+                fuel={},
+            )
