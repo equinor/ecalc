@@ -47,6 +47,12 @@ class CompressorResult(GenericComponentResult):
     outlet_pressure_before_choking: TimeSeriesFloat
 
 
+class PumpResult(GenericComponentResult):
+    inlet_liquid_rate_m3_per_d: TimeSeriesRate
+    inlet_pressure_bar: TimeSeriesFloat
+    outlet_pressure_bar: TimeSeriesFloat
+
+
 class ConsumerModelResultBase(ABC, CommonResultBase):
     """The Consumer base result component."""
 
@@ -91,6 +97,7 @@ ComponentResult = Union[
     GeneratorSetResult,
     ConsumerSystemResult,
     CompressorResult,
+    PumpResult,
     GenericComponentResult,
 ]  # Order is important as pydantic will parse results, so any result will be converted to the first fit in this list.
 

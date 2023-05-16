@@ -1,6 +1,8 @@
+import itertools
 import operator
 from abc import abstractmethod
 from collections import defaultdict
+from copy import deepcopy
 from datetime import datetime
 from functools import reduce
 from typing import Dict, List, Protocol, Tuple, TypeVar, Union
@@ -10,6 +12,7 @@ import numpy as np
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    TimeSeries,
     TimeSeriesBoolean,
     TimeSeriesInt,
     TimeSeriesRate,
@@ -141,7 +144,7 @@ class ConsumerSystem(BaseConsumer):
             timesteps=variables_map.time_vector, values=[0] * len(variables_map.time_vector), unit=Unit.NONE
         )
 
-        all_consumer_results: Dict[str, Dict[int, List[EcalcModelResult]]] = defaultdict(dict)
+        all_consumer_results: Dict[int, List[EcalcModelResult]] = defaultdict(list)
 
         for period, operational_settings in temporal_operational_settings.items():
             variables_map_for_period = variables_map.get_subset_from_period(period)
@@ -194,10 +197,12 @@ class ConsumerSystem(BaseConsumer):
 
                 energy_usage[valid_indices] = energy_usage_for_period[valid_indices_for_period].values
                 power[valid_indices] = power_for_period[valid_indices_for_period].values
-                operational_settings_used[valid_indices] = [operational_setting_index + 1 for _ in valid_indices]
+                operational_settings_used[valid_indices] = [operational_setting_index for _ in valid_indices]
 
                 # Storing all consumer results for all calculated operational settings.
-                all_consumer_results[str(period)][operational_setting_index] = consumer_results
+                all_consumer_results[operational_setting_index + 1].extend(
+                    list(itertools.chain(*[consumer_result.models for consumer_result in consumer_results]))
+                )
 
                 # Fixme: Unit data should come from the consumer itself, not the results.
                 energy_usage.unit = consumer_results[0].component_result.energy_usage.unit
@@ -211,9 +216,40 @@ class ConsumerSystem(BaseConsumer):
                     invalid_indices = [i for i, x in enumerate(is_valid.values) if not x]
                     energy_usage[invalid_indices] = list(np.nan_to_num(energy_usage_for_period[invalid_indices].values))
                     power[invalid_indices] = list(np.nan_to_num(power_for_period[invalid_indices].values))
-                    operational_settings_used[invalid_indices] = [
-                        operational_setting_index + 1 for _ in invalid_indices
-                    ]
+                    operational_settings_used[invalid_indices] = [operational_setting_index for _ in invalid_indices]
+
+        sub_component_results = []
+        for period, operational_settings in temporal_operational_settings.items():
+            variables_map_for_period = variables_map.get_subset_from_period(period)
+            composite_operational_settings = deepcopy(operational_settings[0])
+            for time_index, setting_number in enumerate(operational_settings_used.values):
+                for key, value in operational_settings[setting_number].__dict__.items():
+                    if isinstance(value, list) and len(value) > 0:
+                        if isinstance(value[0], TimeSeries):
+                            for consumer in range(len(value)):
+                                composite_operational_settings.__getattribute__(key)[consumer][time_index] = value[
+                                    consumer
+                                ][time_index].values[0]
+
+            (
+                adjusted_operational_settings,
+                sorted_consumers,
+            ) = ConsumerSystem._get_operational_settings_adjusted_for_crossover(
+                operational_setting=composite_operational_settings,
+                consumers=self._consumers,
+                variables_map=variables_map_for_period,
+            )
+
+            sub_component_results.extend(
+                [
+                    consumer.evaluate(adjusted_operational_setting)
+                    for consumer, adjusted_operational_setting in zip(sorted_consumers, adjusted_operational_settings)
+                ]
+            )
+
+        # Change to 1-index operational_settings_used
+        for index, value in enumerate(operational_settings_used.values):
+            operational_settings_used[index] = value + 1
 
         consumer_result = ConsumerSystemResult(
             id=self.id,
@@ -223,13 +259,14 @@ class ConsumerSystem(BaseConsumer):
             if energy_usage.unit == Unit.MEGA_WATT
             else energy_usage.to_calendar_day(),
             power=power,
+            operational_settings_results=all_consumer_results,
             operational_settings_used=operational_settings_used,
         )
 
         return EcalcModelResult(
             component_result=consumer_result,
-            sub_components=[],
-            models=[],
+            sub_components=[],  # Keeping this backward compatible with V1 for now.
+            models=[sub_component_result.models[0] for sub_component_result in sub_component_results],
         )
 
     @staticmethod

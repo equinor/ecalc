@@ -56,30 +56,32 @@ def test_compressor_system_v2_results(
     compressor_system_id = asset_graph.get_component_id_by_name("compressor_system")
     compressor_system_v2_id = asset_graph.get_component_id_by_name("compressor_system_v2")
 
-    pump_system_result = result.consumer_results[pump_system_id].component_result.copy(
+    pump_system_result = result.consumer_results[pump_system_id]
+    pump_system_component_result = pump_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "pump system"}
     )
-    pump_system_v2_result = result.consumer_results[pump_system_v2_id].component_result.copy(
-        update={"id": "pump system"}
+    pump_system_v2_result = result.consumer_results[pump_system_v2_id]
+    pump_system_v2_component_result = pump_system_v2_result.component_result.copy(
+        update={"operational_settings_results": None, "id": "pump system"}
     )
-    compressor_system_result = result.consumer_results[compressor_system_id].component_result.copy(
+    compressor_system_result = result.consumer_results[compressor_system_id]
+    compressor_system_component_result = compressor_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
-    compressor_system_v2_result = result.consumer_results[compressor_system_v2_id].component_result.copy(
-        update={"id": "compressor system"}
+    compressor_system_v2_result = result.consumer_results[compressor_system_v2_id]
+    compressor_system_v2_component_result = compressor_system_v2_result.component_result.copy(
+        update={"operational_settings_results": None, "id": "compressor system"}
     )
-    assert compressor_system_result.power.unit == compressor_system_v2_result.power.unit
+    assert compressor_system_component_result.power.unit == compressor_system_v2_component_result.power.unit
+    assert isinstance(compressor_system_component_result.power, type(compressor_system_v2_component_result.power))
 
-    assert isinstance(compressor_system_result.power, type(compressor_system_v2_result.power))
+    assert pump_system_component_result.dict() == pump_system_v2_component_result.dict()
+    assert compressor_system_component_result.dict() == compressor_system_v2_component_result.dict()
 
-    assert pump_system_v2_result.dict() == pump_system_result.dict()
-    assert compressor_system_v2_result.dict() == compressor_system_result.dict()
-    assert compressor_system_result.power == compressor_system_v2_result.power
-    assert compressor_system_result.energy_usage == compressor_system_v2_result.energy_usage
-
-    assert compressor_system_result.is_valid == compressor_system_v2_result.is_valid
-
-    # emission result
+    # Now everything is equal between V1 and V2 except for the fact that the sort the consumers depending on
+    #   crossover flows, and the fact that we don't have names on our components.
+    # assert pump_system_result.dict() == pump_system_v2_result.dict()
+    # assert compressor_system_result.dict() == compressor_system_v2_result.dict()
 
     snapshot_name = "consumer_system_v2.json"
     rounded_snapshot(data=result.dict(), snapshot_name=snapshot_name)

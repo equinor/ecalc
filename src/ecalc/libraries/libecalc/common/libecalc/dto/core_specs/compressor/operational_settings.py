@@ -6,6 +6,7 @@ from typing import List
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
 from libecalc.dto.core_specs.base.operational_settings import OperationalSettings
+from typing_extensions import Self
 
 
 class CompressorOperationalSettings(OperationalSettings):
@@ -16,7 +17,7 @@ class CompressorOperationalSettings(OperationalSettings):
     outlet_pressure: TimeSeriesFloat
     timesteps: List[datetime]
 
-    def get_subset_from_period(self, period: Period) -> CompressorOperationalSettings:
+    def get_subset_from_period(self, period: Period) -> Self:
         start_index, end_index = period.get_timestep_indices(self.timesteps)
 
         return CompressorOperationalSettings(
@@ -25,3 +26,7 @@ class CompressorOperationalSettings(OperationalSettings):
             outlet_pressure=self.outlet_pressure[start_index:end_index],
             timesteps=self.timesteps[start_index:end_index],
         )
+
+    @property
+    def regularity(self) -> List[float]:
+        return self.stream_day_rates[0].regularity
