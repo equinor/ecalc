@@ -28,7 +28,7 @@ eCalc™ is a software tool for calculation of energy demand and greenhouse gas 
 ---
 ## Reference Links
 
-* [**Documentation**](https://equinor.github.io/ecalc/docs/)
+* [**Documentation**](https://equinor.github.io/ecalc/docs/about/)
 * [**Contribution**](CONTRIBUTING.md)
 * [**Security**](SECURITY.md)
 * [**Code of Conduct**](CODE_OF_CONDUCT.md)
