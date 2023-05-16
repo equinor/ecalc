@@ -126,43 +126,6 @@ class FuelConsumer(BaseConsumer):
 Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]
 
 
-class GeneratorSet(BaseEquipment):
-    component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
-    fuel: Dict[datetime, FuelType]
-    generator_set_model: Dict[datetime, GeneratorSetSampled]
-    consumers: List[ElectricityConsumer] = Field(default_factory=list)
-
-    _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
-        validate_temporal_model
-    )
-
-    @validator("user_defined_category", pre=True, always=True)
-    def check_mandatory_category_for_generator_set(cls, user_defined_category):
-        """This could be handled automatically with Pydantic, but I want to inform the users in a better way, in
-        particular since we introduced a breaking change for this to be mandatory for GeneratorSets in v7.2.
-        """
-        if user_defined_category is None or user_defined_category == "":
-            raise ValueError(f"CATEGORY is mandatory and must be set for {cls.__name__}")
-
-        return user_defined_category
-
-    def get_graph(self) -> Graph:
-        component_dtos = {}
-        graph = nx.DiGraph()
-        graph.add_node(self.id)
-        component_dtos[self.id] = self
-
-        for electricity_consumer in self.consumers:
-            component_dtos[electricity_consumer.id] = electricity_consumer
-            graph.add_node(electricity_consumer.id)
-            graph.add_edge(self.id, electricity_consumer.id)
-
-        return Graph(
-            graph=graph,
-            components=component_dtos,
-        )
-
-
 class EmitterModel(EcalcBaseModel):
     name: ComponentNameStr = ""  # This is not mandatory yet.
     user_defined_category: str = ""  # This is not mandatory yet.
@@ -362,6 +325,42 @@ class PumpSystem(BaseConsumer):
             evaluated_temporal_operational_settings[period.start] = evaluated_operational_settings
 
         return TemporalModel(evaluated_temporal_operational_settings)
+
+
+class GeneratorSet(BaseEquipment):
+    component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
+    fuel: Dict[datetime, FuelType]
+    generator_set_model: Dict[datetime, GeneratorSetSampled]
+    consumers: List[Union[ElectricityConsumer, CompressorSystem, PumpSystem]] = Field(default_factory=list)
+    _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
+        validate_temporal_model
+    )
+
+    @validator("user_defined_category", pre=True, always=True)
+    def check_mandatory_category_for_generator_set(cls, user_defined_category):
+        """This could be handled automatically with Pydantic, but I want to inform the users in a better way, in
+        particular since we introduced a breaking change for this to be mandatory for GeneratorSets in v7.2.
+        """
+        if user_defined_category is None or user_defined_category == "":
+            raise ValueError(f"CATEGORY is mandatory and must be set for {cls.__name__}")
+
+        return user_defined_category
+
+    def get_graph(self) -> Graph:
+        component_dtos = {}
+        graph = nx.DiGraph()
+        graph.add_node(self.id)
+        component_dtos[self.id] = self
+
+        for electricity_consumer in self.consumers:
+            component_dtos[electricity_consumer.id] = electricity_consumer
+            graph.add_node(electricity_consumer.id)
+            graph.add_edge(self.id, electricity_consumer.id)
+
+        return Graph(
+            graph=graph,
+            components=component_dtos,
+        )
 
 
 class Installation(BaseComponent):
