@@ -133,7 +133,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             sub_components=[],
             models=[
                 core_results.CompressorModelResult(
-                    name="N/A",
+                    name="N/A",  # No context available to populate model name
                     timesteps=evaluated_timesteps,
                     is_valid=TimeSeriesBoolean(
                         timesteps=evaluated_timesteps,

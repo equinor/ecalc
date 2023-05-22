@@ -82,7 +82,10 @@ class Pump(BaseConsumerWithoutOperationalSettings):
         component_result = core_results.PumpResult(
             timesteps=evaluated_timesteps,
             power=TimeSeriesRate(
-                values=aggregated_result.power, timesteps=evaluated_timesteps, unit=aggregated_result.power_unit
+                values=aggregated_result.power,
+                timesteps=evaluated_timesteps,
+                unit=aggregated_result.power_unit,
+                regularity=regularity,
             ),
             energy_usage=TimeSeriesRate(
                 values=aggregated_result.energy_usage,
@@ -117,7 +120,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             sub_components=[],
             models=[
                 core_results.PumpModelResult(
-                    name="N/A",
+                    name="N/A",  # No context available to populate model name
                     timesteps=evaluated_timesteps,
                     is_valid=TimeSeriesBoolean(
                         timesteps=evaluated_timesteps,
