@@ -57,7 +57,7 @@ class ConsumerSystem(BaseConsumer):
         operational_setting: SystemOperationalSettings,
         consumers: List[Consumer],
         variables_map: VariablesMap,
-    ) -> Tuple[List[ConsumerOperationalSettings], List[Consumer]]:
+    ) -> List[ConsumerOperationalSettings]:
         """Calculate operational settings for the current consumer, accounting for potential crossover from previous
         consumers.
 
@@ -105,7 +105,15 @@ class ConsumerSystem(BaseConsumer):
                 for rate in [*rates, *crossover_rates_map[consumer_index]]
             ]
             adjusted_operational_settings.append(consumer_operational_settings)
-        return adjusted_operational_settings, sorted_consumers
+
+        adjusted_operational_settings_original_order = [
+            setting
+            for setting, _ in sorted(
+                zip(adjusted_operational_settings, sorted_consumers), key=lambda x: original_consumer_order_map[x[1].id]
+            )
+        ]
+
+        return adjusted_operational_settings_original_order
 
     def evaluate(
         self,
@@ -150,10 +158,9 @@ class ConsumerSystem(BaseConsumer):
             variables_map_for_period = variables_map.get_subset_from_period(period)
             start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
             for operational_setting_index, operational_setting in enumerate(operational_settings):
-                (
-                    adjusted_operational_settings,  # type: ignore[var-annotated]
-                    sorted_consumers,
-                ) = ConsumerSystem._get_operational_settings_adjusted_for_crossover(
+                adjusted_operational_settings: List[
+                    ConsumerOperationalSettings
+                ] = ConsumerSystem._get_operational_settings_adjusted_for_crossover(
                     operational_setting=operational_setting,
                     consumers=self._consumers,
                     variables_map=variables_map_for_period,
@@ -161,7 +168,7 @@ class ConsumerSystem(BaseConsumer):
 
                 consumer_results = [
                     consumer.evaluate(adjusted_operational_setting)
-                    for consumer, adjusted_operational_setting in zip(sorted_consumers, adjusted_operational_settings)
+                    for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings)
                 ]
 
                 is_operational_setting_valid = reduce(
@@ -231,10 +238,7 @@ class ConsumerSystem(BaseConsumer):
                                     consumer
                                 ][time_index].values[0]
 
-            (
-                adjusted_operational_settings,
-                sorted_consumers,
-            ) = ConsumerSystem._get_operational_settings_adjusted_for_crossover(
+            adjusted_operational_settings = ConsumerSystem._get_operational_settings_adjusted_for_crossover(
                 operational_setting=composite_operational_settings,
                 consumers=self._consumers,
                 variables_map=variables_map_for_period,
@@ -243,7 +247,7 @@ class ConsumerSystem(BaseConsumer):
             sub_component_results.extend(
                 [
                     consumer.evaluate(adjusted_operational_setting)
-                    for consumer, adjusted_operational_setting in zip(sorted_consumers, adjusted_operational_settings)
+                    for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings)
                 ]
             )
 
@@ -266,7 +270,9 @@ class ConsumerSystem(BaseConsumer):
         return EcalcModelResult(
             component_result=consumer_result,
             sub_components=[],  # Keeping this backward compatible with V1 for now.
-            models=[sub_component_result.models[0] for sub_component_result in sub_component_results],
+            models=list(
+                itertools.chain(*[sub_component_result.models for sub_component_result in sub_component_results])
+            ),
         )
 
     @staticmethod
