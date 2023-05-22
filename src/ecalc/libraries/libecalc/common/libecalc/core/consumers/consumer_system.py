@@ -1,6 +1,6 @@
-import math
 import operator
 from abc import abstractmethod
+from collections import defaultdict
 from datetime import datetime
 from functools import reduce
 from typing import Dict, List, Protocol, Tuple, TypeVar, Union
@@ -109,18 +109,31 @@ class ConsumerSystem(BaseConsumer):
         variables_map: VariablesMap,
         temporal_operational_settings: TemporalModel[List[SystemOperationalSettings]],
     ) -> EcalcModelResult:
+        """
+        Evaluating a consumer system that may be composed of both consumers and other consumer systems. It will default
+        to the last operational setting if all settings fails.
+
+        Notes:
+            - We use 1-indexed operational settings output. Should consider to change this to something else.
+
+        Fixme: Regularity and units are correct by chance. We need to carry this information explicitly.
+        Todo: Need to validate energy usage units (stream day vs. calendar day).
+        Todo: We are missing model results for each operational setting tested....
+            Since we will abandon model results, we could just output all single operational settings results
+            into a big ball og mud in the models result?
+        """
         is_valid = TimeSeriesBoolean(
             timesteps=variables_map.time_vector, values=[False] * len(variables_map.time_vector), unit=Unit.NONE
         )
         energy_usage = TimeSeriesRate(
             timesteps=variables_map.time_vector,
             values=[0] * len(variables_map.time_vector),  # TODO: Initialize energy usage to NaN not zero 4084
-            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            unit=Unit.NONE,
             regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity,
         )
         power = TimeSeriesRate(
             timesteps=variables_map.time_vector,
-            values=[math.nan] * len(variables_map.time_vector),
+            values=[0] * len(variables_map.time_vector),
             unit=Unit.MEGA_WATT,
             regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity,
         )
@@ -128,10 +141,11 @@ class ConsumerSystem(BaseConsumer):
             timesteps=variables_map.time_vector, values=[0] * len(variables_map.time_vector), unit=Unit.NONE
         )
 
+        all_consumer_results: Dict[str, Dict[int, List[EcalcModelResult]]] = defaultdict(dict)
+
         for period, operational_settings in temporal_operational_settings.items():
             variables_map_for_period = variables_map.get_subset_from_period(period)
             start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
-
             for operational_setting_index, operational_setting in enumerate(operational_settings):
                 (
                     adjusted_operational_settings,  # type: ignore[var-annotated]
@@ -152,9 +166,7 @@ class ConsumerSystem(BaseConsumer):
                 )
 
                 valid_indices_for_period = np.nonzero(is_operational_setting_valid.values)[0]
-                if len(valid_indices_for_period) == 0:
-                    # FIXME: Seems like valid indices is broken, always empty
-                    continue
+
                 valid_indices = [axis_indices + start_index for axis_indices in valid_indices_for_period]
                 is_valid[valid_indices] = True
 
@@ -162,7 +174,6 @@ class ConsumerSystem(BaseConsumer):
                     operator.add,
                     [consumer_result.component_result.energy_usage for consumer_result in consumer_results],
                 )
-                energy_usage[valid_indices] = energy_usage_for_period[valid_indices_for_period].values
 
                 power_for_period = reduce(
                     operator.add,
@@ -180,29 +191,44 @@ class ConsumerSystem(BaseConsumer):
                         regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity,
                     ),
                 )
-                power[valid_indices] = power_for_period[valid_indices_for_period].values
 
-                operational_settings_used[valid_indices] = operational_setting_index + 1  # 1-based index
+                energy_usage[valid_indices] = energy_usage_for_period[valid_indices_for_period].values
+                power[valid_indices] = power_for_period[valid_indices_for_period].values
+                operational_settings_used[valid_indices] = [operational_setting_index + 1 for _ in valid_indices]
+
+                # Storing all consumer results for all calculated operational settings.
+                all_consumer_results[str(period)][operational_setting_index] = consumer_results
+
+                # Fixme: Unit data should come from the consumer itself, not the results.
+                energy_usage.unit = consumer_results[0].component_result.energy_usage.unit
+                power.unit = consumer_results[0].component_result.power.unit
 
                 if reduce(operator.mul, is_valid.values):
                     # quit as soon as all time-steps are valid. This means that we do not need to test all settings.
                     break
+                elif operational_setting_index + 1 == len(operational_settings):
+                    # If we are at the last operational_setting and not all indices are valid
+                    invalid_indices = [i for i, x in enumerate(is_valid.values) if not x]
+                    energy_usage[invalid_indices] = list(np.nan_to_num(energy_usage_for_period[invalid_indices].values))
+                    power[invalid_indices] = list(np.nan_to_num(power_for_period[invalid_indices].values))
+                    operational_settings_used[invalid_indices] = [
+                        operational_setting_index + 1 for _ in invalid_indices
+                    ]
 
         consumer_result = ConsumerSystemResult(
             id=self.id,
             is_valid=is_valid,
             timesteps=variables_map.time_vector,
-            energy_usage=energy_usage.to_calendar_day(),
+            energy_usage=energy_usage.to_stream_day()
+            if energy_usage.unit == Unit.MEGA_WATT
+            else energy_usage.to_calendar_day(),
             power=power,
             operational_settings_used=operational_settings_used,
         )
 
-        # Fixme: We are missing model results for each operational setting tested....
-        #    Since we will abandon model results, we could just output all single operational settings results
-        #    into a big ball og mud in the models result?
         return EcalcModelResult(
             component_result=consumer_result,
-            sub_components=[],  # Fixme: Add single consumer results and their model results in here.
+            sub_components=[],
             models=[],
         )
 

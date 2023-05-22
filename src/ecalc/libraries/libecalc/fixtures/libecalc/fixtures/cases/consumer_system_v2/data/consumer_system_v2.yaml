@@ -11,6 +11,9 @@ FUEL_TYPES:
         TAX: 1.51 # NOK/Sm3
 
 FACILITY_INPUTS:
+  - NAME: genset
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
   - NAME: compressor_sampled_1d
     FILE: compressor_sampled_1d.csv
     TYPE: COMPRESSOR_TABULAR
@@ -26,7 +29,86 @@ INSTALLATIONS:
   - NAME: installation
     HCEXPORT: 17
     FUEL: fuel_gas
+    CATEGORY: FIXED
+    GENERATORSETS:
+      - NAME: GeneratorSet
+        CATEGORY: TURBINE-GENERATOR
+        FUEL: fuel_gas
+        ELECTRICITY2FUEL:
+          1900-01-01: genset
+        CONSUMERS:
+          - NAME: pump_system
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP_SYSTEM
+              CONDITION: true
+              PUMPS:
+                - NAME: pump1
+                  CHART: pump_single_speed
+                - NAME: pump2
+                  CHART: pump_single_speed
+                - NAME: pump3
+                  CHART: pump_single_speed
+              FLUID_DENSITY: 2
+              TOTAL_SYSTEM_RATE: 1
+              POWERLOSSFACTOR: 0.0
+              OPERATIONAL_SETTINGS:
+                - RATES: [4000000, 5000000, 6000000]
+                  SUCTION_PRESSURES: [50, 50, 50]
+                  DISCHARGE_PRESSURES: [250, 250, 250]
+                  CROSSOVER: [0, 1, 1]
+                - RATES: [ 2000000, 2500000, 3000000 ]
+                  SUCTION_PRESSURES: [50, 50, 50]
+                  DISCHARGE_PRESSURES: [125, 125, 125]
+                  CROSSOVER: [ 0, 1, 1 ]
+          - NAME: pump_system_v2
+            CATEGORY: PUMP
+            TYPE: PUMP_SYSTEM@v2
+            CONSUMERS:
+              - NAME: pump1
+                ENERGY_USAGE_MODEL: pump_single_speed
+              - NAME: pump2
+                ENERGY_USAGE_MODEL: pump_single_speed
+              - NAME: pump3
+                ENERGY_USAGE_MODEL: pump_single_speed
+            OPERATIONAL_SETTINGS:
+              - CONDITION: true
+                POWERLOSSFACTOR: 0.0
+                TOTAL_SYSTEM_RATE: 1
+                RATES: [4000000, 5000000, 6000000]
+                INLET_PRESSURE: 50
+                OUTLET_PRESSURE: 250
+                FLUID_DENSITY: 2
+                CROSSOVER: [0, 1, 1]
+              - CONDITION: true
+                POWERLOSSFACTOR: 0.0
+                TOTAL_SYSTEM_RATE: 1
+                RATES: [2000000, 2500000, 3000000]
+                INLET_PRESSURE: 50
+                OUTLET_PRESSURE: 125
+                FLUID_DENSITY: 2
+                CROSSOVER: [0, 1, 1]
     FUELCONSUMERS:
+      - NAME: compressor_system
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR_SYSTEM
+          COMPRESSORS:
+            - NAME: compressor1
+              COMPRESSOR_MODEL: compressor_sampled_1d
+            - NAME: compressor2
+              COMPRESSOR_MODEL: compressor_sampled_1d
+            - NAME: compressor3
+              COMPRESSOR_MODEL: compressor_sampled_1d
+          OPERATIONAL_SETTINGS:
+            - RATES: [ 1000000, 5000000, 6000000 ]
+              SUCTION_PRESSURES: [ 50, 50, 50 ]
+              DISCHARGE_PRESSURES: [ 250, 250, 250 ]
+              CROSSOVER: [ 0, 1, 1 ]
+            - RATES: [ 500000, 2500000, 3000000 ]
+              SUCTION_PRESSURES: [ 50, 50, 50 ]
+              DISCHARGE_PRESSURES: [ 125, 125, 125 ]
+              CROSSOVER: [ 0, 1, 1 ]
       - NAME: compressor_system_v2
         CATEGORY: COMPRESSOR
         TYPE: COMPRESSOR_SYSTEM@v2
@@ -41,42 +123,14 @@ INSTALLATIONS:
           - CONDITION: true
             POWERLOSSFACTOR: 0.0
             TOTAL_SYSTEM_RATE: 1
-            RATES: [1000000, 5000000, 6000000]
+            RATES: [ 1000000, 5000000, 6000000 ]
             INLET_PRESSURE: 50
             OUTLET_PRESSURE: 250
-            CROSSOVER: [0, 1, 1]
-      - NAME: pump_system_v2
-        CATEGORY: PUMP
-        TYPE: PUMP_SYSTEM@v2
-        CONSUMERS:
-          - NAME: pump1
-            ENERGY_USAGE_MODEL: pump_single_speed
-          - NAME: pump2
-            ENERGY_USAGE_MODEL: pump_single_speed
-          - NAME: pump3
-            ENERGY_USAGE_MODEL: pump_single_speed
-        OPERATIONAL_SETTINGS:
+            CROSSOVER: [ 0, 1, 1 ]
           - CONDITION: true
             POWERLOSSFACTOR: 0.0
             TOTAL_SYSTEM_RATE: 1
-            RATES: [4000000, 5000000, 6000000]
+            RATES: [ 500000, 2500000, 3000000 ]
             INLET_PRESSURE: 50
-            OUTLET_PRESSURE: 250
-            FLUID_DENSITY: 2
-            CROSSOVER: [0, 1, 1]
-      - NAME: compressor_system
-        CATEGORY: COMPRESSOR
-        ENERGY_USAGE_MODEL:
-          TYPE: COMPRESSOR_SYSTEM
-          COMPRESSORS:
-            - NAME: compressor1
-              COMPRESSOR_MODEL: compressor_sampled_1d
-            - NAME: compressor2
-              COMPRESSOR_MODEL: compressor_sampled_1d
-            - NAME: compressor3
-              COMPRESSOR_MODEL: compressor_sampled_1d
-          OPERATIONAL_SETTINGS:
-            - RATES: [1000000, 5000000, 6000000]
-              SUCTION_PRESSURE: 50
-              DISCHARGE_PRESSURE: 250
-              CROSSOVER: [0, 1, 1]
+            OUTLET_PRESSURE: 125
+            CROSSOVER: [ 0, 1, 1 ]
