@@ -8,10 +8,13 @@ from libecalc.dto.result import ComponentResult, EcalcModelResult
 
 
 class OutputFormat(enum.Enum):
+    """Supported output file formats from eCalc"""
+
     CSV = "csv"
     JSON = "json"
 
     def __str__(self):
+        """Dump enum to string"""
         return self.value
 
 
@@ -22,6 +25,20 @@ def dataframe_to_csv(
     float_formatter: Optional[Union[Callable, str]] = "%20.5f",
     date_format: Optional[str] = None,
 ) -> str:
+    """Dump pandas dataframe to csv file
+
+    Wraps pandas to_csv functionality, for more options see pandas docs
+
+    Args:
+        df: Dataframe to dump
+        separator: value separator in out, defaults to ',' for csv
+        show_index: if true, will include index in dump
+        float_formatter:
+        date_format:
+
+    Returns:
+
+    """
     return df.to_csv(
         float_format=float_formatter,
         index=show_index,
@@ -33,6 +50,17 @@ def dataframe_to_csv(
 
 
 def to_json(result: Union[ComponentResult, EcalcModelResult], simple_output: bool, date_format_option: int) -> str:
+    """Dump result classes to json file
+
+    Args:
+        result: eCalc result data class
+        simple_output: If true, will provide a simplified output format
+        date_format_option:
+
+    Returns:
+        String dump of json output
+
+    """
     date_format = DateTimeFormats.get_format(date_format_option)
     return (
         result.simple_result().json(
@@ -55,6 +83,19 @@ def get_result_output(
     simple_output: bool,
     date_format_option: int,
 ) -> str:
+    """Result output controller
+
+    Output eCalc results in desired format and
+
+    Args:
+        results:
+        output_format:
+        simple_output: If true, will provide a simplified output format. Only supported for json format
+        date_format_option:
+
+    Returns:
+
+    """
     if output_format == OutputFormat.JSON:
         return to_json(results, simple_output=simple_output, date_format_option=date_format_option)
     elif output_format == OutputFormat.CSV:
@@ -81,6 +122,18 @@ def get_component_output(
     simple_output: bool,
     date_format_option: int,
 ) -> str:
+    """Get eCalc output for a single component by name
+
+    Args:
+        results: Complete from eCalc model
+        component_name: Name of component to output results from
+        output_format: Format of output file, CSV and JSON is currently supported
+        simple_output: If true, will provide a simplified output format. Only supported for json format
+        date_format_option:
+
+    Returns:
+
+    """
     components = [component for component in results.components if component.name == component_name]
 
     if len(components) == 0:
