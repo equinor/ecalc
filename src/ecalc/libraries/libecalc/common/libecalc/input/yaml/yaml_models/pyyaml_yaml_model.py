@@ -130,7 +130,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
             except KeyError as e:
                 raise EcalcError(
                     title="Bad Yaml file", message=f"Error occurred while loading yaml file, key {e} not found"
-                )
+                ) from e
 
         def dump_and_load(self, yaml_file: ResourceStream):
             return yaml.dump(self.load(yaml_file), Dumper=PyYamlYamlModel.IndentationDumper, sort_keys=False)
@@ -203,13 +203,13 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         for resource in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
             try:
                 timeseries_type = YamlTimeseriesType[resource.get(EcalcYamlKeywords.type)]
-            except KeyError:
+            except KeyError as ke:
                 raise DataValidationError(
                     data=resource,
                     message=f"Invalid timeseries, type should be one of {', '.join(YamlTimeseriesType)}. Got type '{resource.get(EcalcYamlKeywords.type)}'.",
                     dump_flow_style=DumpFlowStyle.BLOCK,
                     error_key=EcalcYamlKeywords.type,
-                )
+                ) from ke
             timeseries_resources.append(
                 YamlTimeseriesResource(
                     name=resource.get(EcalcYamlKeywords.file),
@@ -230,7 +230,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         try:
             return pydantic.parse_obj_as(Variables, variables)
         except pydantic.ValidationError as e:
-            raise DtoValidationError(data=variables, validation_error=e)
+            raise DtoValidationError(data=variables, validation_error=e) from e
 
     @property
     def facility_inputs(self):

@@ -382,8 +382,8 @@ def unpack_zip(file: IO) -> Tuple[List[ValidEcalcFile], List[InvalidEcalcFile]]:
 
         return valid_files, invalid_files
 
-    except zipfile.BadZipFile:
-        raise EcalcError(title="Bad zip file", message="An error occurred while unpacking the zip file")
+    except zipfile.BadZipFile as e:
+        raise EcalcError(title="Bad zip file", message="An error occurred while unpacking the zip file") from e
 
 
 def _validate_headers(headers: List[str]):

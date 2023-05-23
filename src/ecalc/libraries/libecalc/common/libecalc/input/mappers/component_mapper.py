@@ -161,7 +161,7 @@ class ConsumerMapper:
         try:
             energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(energy_usage_model)
         except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e)
+            raise DtoValidationError(data=data, validation_error=e) from e
 
         if consumes == ConsumptionType.FUEL:
             try:

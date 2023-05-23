@@ -100,4 +100,4 @@ class TimeSeriesCollectionMapper:
         try:
             return pydantic.parse_obj_as(TimeSeriesUnionType, time_series)  # type: ignore[arg-type]
         except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e, dump_flow_style=DumpFlowStyle.BLOCK)
+            raise DtoValidationError(data=data, validation_error=e, dump_flow_style=DumpFlowStyle.BLOCK) from e

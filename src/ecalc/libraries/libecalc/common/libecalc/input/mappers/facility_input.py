@@ -192,12 +192,12 @@ class FacilityInputMapper:
                 typ=typ,
                 facility_data=data,
             )
-        except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e)
-        except ValidationValueError as e:
+        except ValidationError as ve:
+            raise DtoValidationError(data=data, validation_error=ve) from ve
+        except ValidationValueError as vve:
             raise DataValidationError(
                 data=data,
-                message=str(e),
-                error_key=e.key,
+                message=str(vve),
+                error_key=vve.key,
                 dump_flow_style=DumpFlowStyle.BLOCK,
-            )
+            ) from vve
