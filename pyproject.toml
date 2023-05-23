@@ -122,7 +122,6 @@ ignore = [
     "C901",  # too complex
     "B012", # TODO: Concider mitigation: `return` inside `finally` blocks cause exceptions to be silenced
     "B023", # FIXME: Potentially bugs in compressor code! Function definition does not bind loop variable. tracked by issue 3975
-    "B904", # FIXME: Within an except clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
     "B905",  # strict= parameter in zip() was added in python 3.10
     "UP006", # Avoid switching type annotations to 3.10
     "UP007", # Avoid switching type annotations to 3.10
