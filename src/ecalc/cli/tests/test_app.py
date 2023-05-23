@@ -237,7 +237,6 @@ class TestLtpExport:
                 name_prefix=run_name_prefix,
                 csv=False,
                 output_frequency="YEAR",
-                json=True,
             ),
             catch_exceptions=False,
         )
