@@ -1,7 +1,7 @@
 {
     "componentType": "GENERIC",
     "component_level": "CONSUMER",
-    "emissions": [],
+    "emissions": {},
     "energy_usage": {
         "regularity": [
             1.0,

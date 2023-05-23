@@ -145,8 +145,8 @@
         ]
       }
     ],
-    "emissions": [
-      {
+    "emissions": {
+      "co2": {
         "cumulative": {
           "timesteps": [
             "2020-01-01 00:00:00",
@@ -394,7 +394,7 @@
           "2031-01-01 00:00:00"
         ]
       }
-    ],
+    },
     "energy_usage": {
       "regularity": [
         1.0,
@@ -2256,8 +2256,8 @@
           ]
         }
       ],
-      "emissions": [
-        {
+      "emissions": {
+        "co2": {
           "cumulative": {
             "timesteps": [
               "2020-01-01 00:00:00",
@@ -2505,7 +2505,7 @@
             "2031-01-01 00:00:00"
           ]
         }
-      ],
+      },
       "energy_usage": {
         "regularity": [
           1.0,
@@ -2758,8 +2758,8 @@
     {
       "componentType": "GENERATOR_SET",
       "component_level": "GENERATOR_SET",
-      "emissions": [
-        {
+      "emissions": {
+        "co2": {
           "cumulative": {
             "timesteps": [
               "2020-01-01 00:00:00",
@@ -3007,7 +3007,7 @@
             "2031-01-01 00:00:00"
           ]
         }
-      ],
+      },
       "energy_usage": {
         "regularity": [
           1.0,
@@ -3260,8 +3260,8 @@
     {
       "componentType": "COMPRESSOR",
       "component_level": "CONSUMER",
-      "emissions": [
-        {
+      "emissions": {
+        "co2": {
           "cumulative": {
             "timesteps": [
               "2020-01-01 00:00:00",
@@ -3509,7 +3509,7 @@
             "2031-01-01 00:00:00"
           ]
         }
-      ],
+      },
       "energy_usage": {
         "regularity": [
           1.0,
@@ -3747,7 +3747,7 @@
     {
       "componentType": "COMPRESSOR",
       "component_level": "CONSUMER",
-      "emissions": [],
+      "emissions": {},
       "energy_usage": {
         "regularity": [
           1.0,
@@ -4062,7 +4062,7 @@
     {
       "componentType": "PUMP",
       "component_level": "CONSUMER",
-      "emissions": [],
+      "emissions": {},
       "energy_usage": {
         "regularity": [
           1.0,
@@ -4269,7 +4269,7 @@
     {
       "componentType": "GENERIC",
       "component_level": "CONSUMER",
-      "emissions": [],
+      "emissions": {},
       "energy_usage": {
         "regularity": [
           1.0,
@@ -4476,8 +4476,8 @@
     {
       "componentType": "GENERIC",
       "component_level": "CONSUMER",
-      "emissions": [
-        {
+      "emissions": {
+        "co2": {
           "cumulative": {
             "timesteps": [
               "2020-01-01 00:00:00",
@@ -4725,7 +4725,7 @@
             "2031-01-01 00:00:00"
           ]
         }
-      ],
+      },
       "energy_usage": {
         "regularity": [
           1.0,
@@ -4855,7 +4855,7 @@
     {
       "componentType": "GENERIC",
       "component_level": "CONSUMER",
-      "emissions": [],
+      "emissions": {},
       "energy_usage": {
         "regularity": [
           1.0,

@@ -23490,8 +23490,8 @@
         }
     },
     "emission_results": {
-        "09c1b79cf6cf1ef0773a194679246a4a": [
-            {
+        "09c1b79cf6cf1ef0773a194679246a4a": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -23566,9 +23566,9 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ],
-        "0dd5488b915db39da83975816044443e": [
-            {
+        },
+        "0dd5488b915db39da83975816044443e": {
+            "ch4": {
                 "name": "ch4",
                 "quota": {
                     "regularity": [
@@ -23643,9 +23643,9 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ],
-        "6661da8a3a8ab9009bcf9d80af31ac66": [
-            {
+        },
+        "6661da8a3a8ab9009bcf9d80af31ac66": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -23720,9 +23720,9 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ],
-        "95b05fbb1aa74c04ca2e937d43a05f6f": [
-            {
+        },
+        "95b05fbb1aa74c04ca2e937d43a05f6f": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -23797,9 +23797,9 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ],
-        "97c4f13fc5be30c816dba44919774c8f": [
-            {
+        },
+        "97c4f13fc5be30c816dba44919774c8f": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -23874,9 +23874,9 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ],
-        "c516c0cfec912e94f1dc2a840d1828ef": [
-            {
+        },
+        "c516c0cfec912e94f1dc2a840d1828ef": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -23951,9 +23951,9 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ],
-        "ca0daca5e5588cdb5d4c28679d12fc43": [
-            {
+        },
+        "ca0daca5e5588cdb5d4c28679d12fc43": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -24028,9 +24028,9 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ],
-        "cb52faa26d48a2b1eb53a125f5fad3c3": [
-            {
+        },
+        "cb52faa26d48a2b1eb53a125f5fad3c3": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -24105,7 +24105,7 @@
                     "2020-01-01 00:00:00"
                 ]
             }
-        ]
+        }
     },
     "variables_map": {
         "time_vector": [
