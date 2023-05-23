@@ -35,10 +35,10 @@ def _invalid_energy_usage_type(energy_usage_model: Any):
         msg = f"Unsupported consumer function type: {energy_usage_model.typ}."
         logger.error(msg)
         raise TypeError(msg)
-    except AttributeError:
+    except AttributeError as e:
         msg = "Unsupported consumer function type."
         logger.exception(msg)
-        raise TypeError(msg)
+        raise TypeError(msg) from e
 
 
 class EnergyModelMapper:

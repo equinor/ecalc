@@ -123,10 +123,10 @@ class RuamelYamlModel(YamlModel):
         except KeyError as ke:
             raise EcalcError(
                 title="Bad Yaml file", message=f"Error occurred while loading yaml file, key {ke} not found"
-            )
+            ) from ke
         except Exception as e:
             raise EcalcError(
                 error_type=EcalcErrorType.CLIENT_ERROR,
                 title="Error loading yaml",
                 message="We are not able to load the yaml due to an error: " + str(e),
-            )
+            ) from e

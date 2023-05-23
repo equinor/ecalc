@@ -30,4 +30,4 @@ class FuelMapper:
                 ],
             )
         except ValidationError as e:
-            raise DtoValidationError(data=fuel, validation_error=e)
+            raise DtoValidationError(data=fuel, validation_error=e) from e

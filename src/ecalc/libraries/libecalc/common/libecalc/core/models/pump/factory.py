@@ -48,10 +48,10 @@ def _invalid_pump_model_type(pump_model_dto: Any):
         msg = f"Unsupported energy model type: {pump_model_dto.typ}."
         logger.error(msg)
         raise TypeError(msg)
-    except AttributeError:
+    except AttributeError as e:
         msg = "Unsupported energy model type."
         logger.exception(msg)
-        raise TypeError(msg)
+        raise TypeError(msg) from e
 
 
 pump_model_map = {
