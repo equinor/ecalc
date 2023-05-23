@@ -7,6 +7,8 @@ from pydantic import BaseModel
 
 
 class NodeType:
+    """Supported Node types in FDE diagram"""
+
     GENERATOR = "generator"
     INSTALLATION = "installation"
     CABLE = "cable"
@@ -26,17 +28,33 @@ class NodeType:
 
 
 class FlowType:
+    """Supported flow types in FDE diagram"""
+
     FUEL = "fuel-flow"
     EMISSION = "emission-flow"
     ELECTRICITY = "electricity-flow"
 
 
 def to_camel_case(string: str) -> str:
+    """Convert string from snake_case to camelCase
+
+    Args:
+        string: String in snake_case format
+
+    Returns:
+        String in camelCase format
+
+    """
     string_split = string.split("_")
     return string_split[0] + "".join(word.capitalize() for word in string_split[1:])
 
 
 class FlowDiagramBaseModel(BaseModel):
+    """Pydantic basemodel for FDE pydantic models
+
+    Needed for specifying datetime format in json dumps
+    """
+
     class Config:
         json_encoders = {
             datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -44,6 +62,8 @@ class FlowDiagramBaseModel(BaseModel):
 
 
 class FlowDiagram(FlowDiagramBaseModel):
+    """Pydantic class for flowdiagram of eCalc model"""
+
     id: str
     title: str
     nodes: List[Node]
@@ -58,6 +78,8 @@ class FlowDiagram(FlowDiagramBaseModel):
 
 
 class Flow(FlowDiagramBaseModel):
+    """Pydantic class for connection between nodes in FDE diagram"""
+
     id: str
     label: str
     type: str
@@ -78,6 +100,8 @@ class Edge(FlowDiagramBaseModel):
 
 
 class Node(FlowDiagramBaseModel):
+    """Component in flowdiagram model, ex. a turbine or compressor"""
+
     id: str
     title: Optional[str] = None
     type: Optional[str] = None
