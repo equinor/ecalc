@@ -407,7 +407,7 @@ def _validate_not_nan(columns: List[List]):
 
 
 def _dataframe_to_resource(df: pd.DataFrame) -> Resource:
-    headers = df.columns.values
+    headers = df.columns.tolist()
     headers = [header.strip() for header in headers]
     _validate_headers(headers)
     df.columns = df.columns.str.strip()

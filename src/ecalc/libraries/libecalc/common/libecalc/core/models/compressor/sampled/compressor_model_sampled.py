@@ -267,29 +267,34 @@ class CompressorModelSampled(CompressorModel):
         Type[CompressorModelSampled3D],
     ]:
         if geometric_dimension == 3:
-            qhull_compressor_model = CompressorModelSampled3D
+            return CompressorModelSampled3D
         elif geometric_dimension == 1:
-            qhull_compressor_model = CompressorModelSampled1D
+            return CompressorModelSampled1D
         elif geometric_dimension == 2:
             if RATE_NAME not in non_degenerated_variables:
-                qhull_compressor_model = CompressorModelSampled2DPsPd
+                return CompressorModelSampled2DPsPd
             elif PS_NAME not in non_degenerated_variables:
-                qhull_compressor_model = CompressorModelSampled2DRatePd
+                return CompressorModelSampled2DRatePd
             elif PD_NAME not in non_degenerated_variables:
-                qhull_compressor_model = CompressorModelSampled2DRatePs
+                return CompressorModelSampled2DRatePs
             else:
                 raise NotImplementedError
         else:
             raise NotImplementedError
 
-        return qhull_compressor_model
-
     @staticmethod
     def _non_degenerated_variables(sampled_data: pd.DataFrame) -> List[str]:
-        uniques = sampled_data.apply(lambda x: x.nunique())
-        non_degenerated = list(uniques[uniques != 1].index.values)
+        """
 
-        return non_degenerated
+        Args:
+            sampled_data:
+
+        Returns:
+            List of non degenerated values
+
+        """
+        uniques = sampled_data.apply(lambda x: x.nunique())
+        return list(uniques[uniques != 1].index.values)
 
     @dataclass
     class Turbine:
@@ -301,7 +306,7 @@ class CompressorModelSampled(CompressorModel):
         fuel_values: Optional[np.ndarray]
         power_values: Optional[np.ndarray]
 
-        def __post_init__(self):
+        def __post_init__(self) -> None:
             if (
                 self.fuel_values is not None
                 and self.power_values is not None

@@ -116,7 +116,7 @@ facility_model_map = {
 }
 
 
-def _invalid_compressor_model_type(compressor_model_dto: Any):
+def _invalid_compressor_model_type(compressor_model_dto: Any) -> None:
     try:
         msg = f"Unsupported energy model type: {compressor_model_dto.typ}."
         logger.error(msg)

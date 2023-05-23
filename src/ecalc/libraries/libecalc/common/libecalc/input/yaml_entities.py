@@ -42,7 +42,7 @@ class ResourceStream:
 
 
 def _create_node_class(cls):
-    class node_class(cls):
+    class node_class(cls):  # type: ignore
         def __init__(self, *args, **kwargs):
             cls.__init__(self, *args)
             self.start_mark = kwargs.get("start_mark")

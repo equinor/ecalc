@@ -30,6 +30,8 @@ def _get_interpolation_kind(rate_interpolation_type: InterpolationType) -> str:
         return "previous"
     elif rate_interpolation_type == InterpolationType.LEFT:
         return "next"
+    else:
+        raise ValueError(f"Invalid interpolation typem, got {rate_interpolation_type}.")
 
 
 def _interpolate(

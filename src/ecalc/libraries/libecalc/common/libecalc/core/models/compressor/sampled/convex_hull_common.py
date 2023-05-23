@@ -7,8 +7,18 @@ from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import ConvexHull
 
 
-def sort_ndarray(arr, col):
-    return arr[arr[:, col].argsort()]
+def sort_ndarray_by_column(arr: np.ndarray, column_index: np.ndarray) -> np.ndarray:
+    """Sort array by column index
+
+    Args:
+        arr: Array to be sorted
+        column_index: column index to sort by
+
+    Returns:
+        array sorted by column
+
+    """
+    return arr[arr[:, column_index].argsort()]
 
 
 @dataclass

@@ -13,7 +13,7 @@ class TabulatedData(EnergyModelSampled):
     typ: Literal[EnergyModelType.TABULATED] = EnergyModelType.TABULATED
 
     @validator("headers")
-    def validate_headers(cls, headers):
+    def validate_headers(cls, headers: List[str]) -> List[str]:
         is_valid_headers = len(headers) > 0 and "FUEL" in headers or "POWER" in headers
         if not is_valid_headers:
             raise ValueError("TABULAR facility input type data must have a 'FUEL' or 'POWER' header")

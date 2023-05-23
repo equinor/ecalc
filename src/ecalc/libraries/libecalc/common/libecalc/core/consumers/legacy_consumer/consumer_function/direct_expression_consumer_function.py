@@ -58,6 +58,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
     def power_unit(self) -> Optional[Unit]:
         if self.is_electrical_consumer:
             return Unit.MEGA_WATT
+        return None
 
     def evaluate(
         self,

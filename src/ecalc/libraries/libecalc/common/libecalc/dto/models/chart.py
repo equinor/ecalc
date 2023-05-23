@@ -1,21 +1,21 @@
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import numpy as np
 from libecalc.common.logger import logger
 from libecalc.common.numbers import Numbers
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import ChartType
-from pydantic import confloat, root_validator, validator
+from pydantic import Field, confloat, root_validator, validator
 
 
 class ChartCurve(EcalcBaseModel):
-    speed_rpm: confloat(ge=0)
-    rate_actual_m3_hour: List[confloat(ge=0)]
-    polytropic_head_joule_per_kg: List[confloat(ge=0)]
-    efficiency_fraction: List[confloat(ge=0, le=1)]
+    speed_rpm: float = Field(..., ge=0)
+    rate_actual_m3_hour: List[confloat(ge=0)]  # type: ignore
+    polytropic_head_joule_per_kg: List[confloat(ge=0)]  # type: ignore
+    efficiency_fraction: List[confloat(ge=0, le=1)]  # type: ignore
 
     @validator("*", pre=True, each_item=True)
-    def control_maximum_decimals(cls, v):
+    def control_maximum_decimals(cls, v: float) -> float:
         """Control maximum number of decimals and convert null-floats to NaN."""
         if isinstance(v, float):
             if v.is_integer():
@@ -26,10 +26,10 @@ class ChartCurve(EcalcBaseModel):
         return v
 
     @root_validator(skip_on_failure=True)
-    def validate_equal_lengths_and_sort(cls, v):
-        rate = v.get("rate_actual_m3_hour")
-        head = v.get("polytropic_head_joule_per_kg")
-        efficiency = v.get("efficiency_fraction")
+    def validate_equal_lengths_and_sort(cls, v: Dict[str, Any]) -> Any:
+        rate = v["rate_actual_m3_hour"]
+        head = v["polytropic_head_joule_per_kg"]
+        efficiency = v["efficiency_fraction"]
 
         if not len(rate) == len(head) == len(efficiency):
             raise ValueError("All chart curve data must have equal number of points")
@@ -86,11 +86,11 @@ class VariableSpeedChart(EcalcBaseModel):
     typ: Literal[ChartType.VARIABLE_SPEED] = ChartType.VARIABLE_SPEED
     curves: List[ChartCurve]
     control_margin: Optional[float]  # Todo: Raise warning if this is used in an un-supported model.
-    design_rate: Optional[confloat(ge=0)] = None
-    design_head: Optional[confloat(ge=0)] = None
+    design_rate: Optional[float] = Field(None, ge=0)
+    design_head: Optional[float] = Field(None, ge=0)
 
     @validator("*", pre=True, each_item=True)
-    def control_maximum_decimals(cls, v):
+    def control_maximum_decimals(cls, v: float) -> float:
         """Control maximum number of decimals and convert null-floats to NaN."""
         if isinstance(v, float):
             if v.is_integer():
@@ -106,21 +106,21 @@ class VariableSpeedChart(EcalcBaseModel):
         return sorted(curves, key=lambda x: x.speed)
 
     @property
-    def min_speed(self):
+    def min_speed(self) -> float:
         return min([curve.speed for curve in self.curves])
 
     @property
-    def max_speed(self):
+    def max_speed(self) -> float:
         return max([curve.speed for curve in self.curves])
 
 
 class GenericChartFromDesignPoint(EcalcBaseModel):
-    typ: Literal[ChartType.GENERIC_FROM_DESIGN_POINT] = ChartType.GENERIC_FROM_DESIGN_POINT
-    polytropic_efficiency_fraction: confloat(ge=0, le=1)
-    design_rate_actual_m3_per_hour: confloat(ge=0)
-    design_polytropic_head_J_per_kg: confloat(ge=0)
+    typ: Literal[ChartType.GENERIC_FROM_DESIGN_POINT.value] = ChartType.GENERIC_FROM_DESIGN_POINT
+    polytropic_efficiency_fraction: float = Field(..., ge=0, le=1)
+    design_rate_actual_m3_per_hour: float = Field(..., ge=0)
+    design_polytropic_head_J_per_kg: float = Field(..., ge=0)
 
 
 class GenericChartFromInput(EcalcBaseModel):
     typ: Literal[ChartType.GENERIC_FROM_INPUT] = ChartType.GENERIC_FROM_INPUT
-    polytropic_efficiency_fraction: confloat(ge=0, le=1)
+    polytropic_efficiency_fraction: float = Field(..., ge=0, le=1)

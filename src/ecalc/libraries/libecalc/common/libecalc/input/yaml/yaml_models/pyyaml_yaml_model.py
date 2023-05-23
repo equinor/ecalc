@@ -81,17 +81,17 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
 
         def __init__(self, base_dir: Optional[Path] = None, resources: Optional[Dict[str, TextIO]] = None):
             self._base_dir = base_dir
-            self._resources = resources if resources else []
+            self._resources = resources if resources else {}
 
-        def __call__(self, loader: yaml.SafeLoader, node: yaml.Node):
-            resource_name = loader.construct_scalar(node=node)
+        def __call__(self, loader: yaml.SafeLoader, node: yaml.ScalarNode):
+            resource_name = str(loader.construct_scalar(node=node))
             if self._resources:
                 yaml_resource = ResourceStream(stream=self._resources[resource_name], name=resource_name)
                 yaml_data = PyYamlYamlModel._read_yaml_helper(
                     yaml_file=yaml_resource, resources=self._resources, loader=loader.__class__, enable_include=True
                 )
             elif self._base_dir:
-                resource_path = self._base_dir / resource_name
+                resource_path = self._base_dir / str(resource_name)
                 with open(resource_path) as resource_file:
                     yaml_resource = ResourceStream(name=resource_path.name, stream=resource_file)
                     yaml_data = PyYamlYamlModel._read_yaml_helper(
@@ -297,7 +297,7 @@ def find_date_keys_in_yaml(yaml_object: Union[List, Dict]) -> List[datetime.date
             index_to_datetime = convert_date_to_datetime(index)
             if index_to_datetime not in output:
                 output.append(index_to_datetime)
-        if isinstance(yaml_object[index], dict) or isinstance(yaml_object[index], list):
-            output.extend(find_date_keys_in_yaml(yaml_object[index]))
+        if isinstance(yaml_object[index], dict) or isinstance(yaml_object[index], list):  # type: ignore
+            output.extend(find_date_keys_in_yaml(yaml_object[index]))  # type: ignore
 
     return output

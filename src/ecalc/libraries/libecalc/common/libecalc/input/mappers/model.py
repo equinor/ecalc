@@ -483,7 +483,7 @@ def _simplified_variable_speed_compressor_train_mapper(
     if fluid_model is None:
         raise ValueError(f"Fluid model reference {fluid_model_reference} not found.")
 
-    train_spec: str = model_config.get(EcalcYamlKeywords.models_type_compressor_train)
+    train_spec: dict = model_config.get(EcalcYamlKeywords.models_type_compressor_train)
 
     if EcalcYamlKeywords.models_type_compressor_train_stages in train_spec:
         # The stages are pre defined, known
@@ -512,7 +512,7 @@ def _simplified_variable_speed_compressor_train_mapper(
         )
     else:
         # The stages are unknown, not defined
-        compressor_chart_reference = train_spec.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
+        compressor_chart_reference = train_spec[EcalcYamlKeywords.models_type_compressor_train_compressor_chart]
         return dto.CompressorTrainSimplifiedWithUnknownStages(
             fluid_model=fluid_model,
             stage=dto.CompressorStage(

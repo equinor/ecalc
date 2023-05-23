@@ -89,7 +89,9 @@ class CompressorSystemConsumerFunction(ConsumerFunction):
     )(convert_expression)
 
     @validator("compressors", pre=False)
-    def check_for_generic_from_input_compressor_chart_in_simplified_train_compressor_system(cls, v):
+    def check_for_generic_from_input_compressor_chart_in_simplified_train_compressor_system(
+        cls, v: List[CompressorSystemCompressor]
+    ) -> List[CompressorSystemCompressor]:
         for compressor_system_compressor in v:
             compressor_train = compressor_system_compressor.compressor_train
             if isinstance(compressor_train, CompressorTrainSimplifiedWithKnownStages):

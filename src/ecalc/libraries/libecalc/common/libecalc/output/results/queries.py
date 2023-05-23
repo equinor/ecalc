@@ -176,6 +176,7 @@ class EmissionQuery(Query):
                 }
 
             return aggregated_result_volume if aggregated_result_volume else None
+        return None
 
 
 class ElectricityGeneratedQuery(Query):
