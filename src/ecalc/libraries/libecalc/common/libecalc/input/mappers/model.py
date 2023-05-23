@@ -606,10 +606,10 @@ class ModelMapper:
                 model=model_config, input_models=input_models, resources=self.__resources
             )
             return model_data
-        except ValidationError as e:
-            raise DtoValidationError(data=model_config, validation_error=e)
-        except ValidationValueError as e:
+        except ValidationError as ve:
+            raise DtoValidationError(data=model_config, validation_error=ve) from ve
+        except ValidationValueError as vve:
             raise DataValidationError(
                 data=model_config,
-                message=str(e),
-            ) from e
+                message=str(vve),
+            ) from vve

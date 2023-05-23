@@ -94,7 +94,9 @@ def eval_parenteses(
                             errorstr += "array(len=" + str(len(token)) + ") "
                         else:
                             errorstr += str(token) + " "
-                raise ValueError("expression evaluator" + ": I have trouble calculating the expression: " + errorstr)
+                raise ValueError(
+                    "expression evaluator" + ": I have trouble calculating the expression: " + errorstr
+                ) from e
 
             tokens = tokens[:substart] + [tokens_evaluated] + tokens[subend + 1 :]
 

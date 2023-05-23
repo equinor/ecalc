@@ -167,7 +167,7 @@ def chart_curves_as_resource_to_dto_format(resource: Resource, resource_name: st
     except ValueError as e:
         msg = f"Resource {resource_name} contains non-numeric value: {e}"
         logger.error(msg)
-        raise ValueError(msg)
+        raise ValueError(msg) from e
     grouped_by_speed = df.groupby(EcalcYamlKeywords.consumer_chart_speed, sort=False)
     curves = [
         {
@@ -307,7 +307,7 @@ def _get_float_column(resource: Resource, header: str, resource_name: str) -> Li
     except ValueError as e:
         msg = f"Resource {resource_name} contains non-numeric value: {e}"
         logger.error(msg)
-        raise ResourceValidationError(resource=resource, resource_name=resource_name, message=msg)
+        raise ResourceValidationError(resource=resource, resource_name=resource_name, message=msg) from e
     return column
 
 

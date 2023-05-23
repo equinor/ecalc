@@ -165,13 +165,13 @@ class Unit(str, Enum):
                 converter = _type_handler(unit_registry[self][unit])
                 if converter is not None:
                     return converter
-            except KeyError:
+            except KeyError as ke:
                 msg = (
                     f"The conversion between {self.value} to {unit.value}"
                     f" has not been added to unit conversion registry."
                 )
                 logger.exception(msg)
-                raise NotImplementedError(msg)
+                raise NotImplementedError(msg) from ke
                 # NOTE: Not sure about this one, add conversion manually both ways for now
                 # Maybe add all conversions as of base of 10?
                 # return lambda inv: inv / unit_registry[unit][self](1)
@@ -181,7 +181,7 @@ class Unit(str, Enum):
                 f" has not been added to unit conversion registry.: {e}"
             )
             logger.exception(msg)
-            raise NotImplementedError(msg)
+            raise NotImplementedError(msg) from e
 
     def volume_to_rate(self) -> Unit:
         """

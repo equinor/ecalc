@@ -74,7 +74,7 @@ def _model_parsing_order(model) -> int:
     except KeyError as e:
         msg = f"Unknown model type {model_type}"
         logger.exception(msg + f": {e}")
-        raise ValueError(msg)
+        raise ValueError(msg) from e
 
 
 def _sort_models(models):

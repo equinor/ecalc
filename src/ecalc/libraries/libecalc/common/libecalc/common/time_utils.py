@@ -39,11 +39,11 @@ class Period:
                 end_index = timesteps.index(self.end)
 
             return start_index, end_index
-        except (IndexError, ValueError):
+        except (IndexError, ValueError) as e:
             raise ProgrammingError(
                 "Trying to access a timestep index that does not exist. Please contact eCalc support.\n\t"
                 f"Period: {self.start}:{self.end} - timesteps: {timesteps}"
-            )
+            ) from e
 
 
 @dataclass

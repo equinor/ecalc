@@ -145,12 +145,12 @@ class TSVPrognosis(EcalcResultBaseModel):
                 raise DifferentLengthsError(
                     f"Time series {time_series_name} in Reference (A) and Changed (B) model have different time steps, and Delta LTP/STP can therefore not be calculated. Details: "
                     + str(dle)
-                )
+                ) from dle
             except MissingKeyError as mke:
                 raise MissingKeyError(
                     f"Time series {time_series_name} in Reference (A) and Changed (B) model have different keys, and Delta LTP/STP can therefore not be calculated. Details: "
                     + str(mke)
-                )
+                ) from mke
 
         return TSVPrognosis(time_steps=self.time_steps, time_series_collection=delta_time_series_collection)
 

@@ -314,9 +314,9 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
     """
     try:  # Using getPhase(0) instead of getPhase("gas") to handle dense fluids correctly
         gas_phase = thermodynamic_system.getPhase(0)
-    except Py4JJavaError:
+    except Py4JJavaError as e:
         msg = "Could not get gas phase. Make sure the fluid is specified correctly."
-        raise NeqsimPhaseError(msg)
+        raise NeqsimPhaseError(msg) from e
     gerg_properties = gas_phase.getProperties_GERG2008()
     gerg_density = gas_phase.getDensity_GERG2008()
 
