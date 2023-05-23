@@ -438,9 +438,9 @@ def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> Resou
     #  have nan. This method would include that row. Although it is unlikely.
     # Drop rows if all values are na (sometimes lines with ,,, are exported from Excel).
 
-    resource_df.dropna(axis=0, how="all", inplace=True)
+    resource_df = resource_df.dropna(axis=0, how="all")
     # Drop columns if all values are na
-    resource_df.dropna(axis=1, how="all", inplace=True)
+    resource_df = resource_df.dropna(axis=1, how="all")
 
     return _dataframe_to_resource(resource_df)
 
