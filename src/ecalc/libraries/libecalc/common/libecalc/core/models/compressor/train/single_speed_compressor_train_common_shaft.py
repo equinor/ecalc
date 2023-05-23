@@ -956,10 +956,10 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
         elif result_max_mass_rate.discharge_pressure > target_discharge_pressure:
             return 0.0
-        else:
-            msg = "You should not end up here. Please contact eCalc support."
-            logger.exception(msg)
-            raise IllegalStateException(msg)
+
+        msg = "You should not end up here. Please contact eCalc support."
+        logger.exception(msg)
+        raise IllegalStateException(msg)
 
 
 def calculate_single_speed_compressor_stage_given_target_discharge_pressure(

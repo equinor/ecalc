@@ -3,8 +3,20 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Generic, Iterable, Iterator, List, Optional, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
+import numpy
 import numpy as np
 import pandas as pd
 from libecalc.common.exceptions import ProgrammingError
@@ -61,7 +73,7 @@ class Rates:
         Returns:
             The production rates where all NaN values are replaced with the last value that was not NaN
         """
-        return pd.Series(rates).ffill().values
+        return np.array(pd.Series(rates).ffill())
 
     @staticmethod
     def to_volumes(
@@ -82,10 +94,12 @@ class Rates:
             The production volume between the dates in time_steps
         """
         delta_days = calculate_delta_days(time_steps)
-        return np.array(rates[:-1]) * delta_days
+        return np.array(np.array(rates[:-1]) * delta_days)
 
     @staticmethod
-    def compute_cumulative(volumes: Union[List[float], np.ndarray]) -> np.ndarray:
+    def compute_cumulative(
+        volumes: Union[List[float], np.ndarray[float, numpy.dtype[numpy.float64]]]
+    ) -> np.ndarray[float, numpy.dtype[numpy.float64]]:
         """
         Compute cumulative volumes from a list of periodic volumes
 
@@ -103,7 +117,7 @@ class Rates:
     @staticmethod
     def compute_cumulative_volumes_from_daily_rates(
         rates: Union[List[float], List[TimeSeriesValue], np.ndarray], time_steps: Iterable[datetime]
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray:
         """
         Compute cumulative production volumes based on production rates and the corresponding dates.
         The production rates are assumed to be constant between the different dates.
@@ -116,7 +130,7 @@ class Rates:
             The cumulative production volumes
         """
         if rates is None or len(rates) == 0:
-            return None
+            raise ValueError("Failed to compute cumulative volumes from daily rates. Valid rates not provided")
         volumes = Rates.to_volumes(rates=rates, time_steps=time_steps)
         return Rates.compute_cumulative(volumes)
 
@@ -190,7 +204,9 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             f"Unsupported indexing operation. Got '{type(indices)}', expected indices as a slice, single index or a list of indices"
         )
 
-    def __setitem__(self, indices: Union[slice, int, List[int]], values: Union[TimeSeriesValue, List[TimeSeriesValue]]):
+    def __setitem__(
+        self, indices: Union[slice, int, List[int]], values: Union[TimeSeriesValue, List[TimeSeriesValue]]
+    ) -> None:
         if isinstance(values, list):
             if isinstance(indices, slice):
                 self.values[indices] = values
@@ -329,7 +345,7 @@ class TimeSeriesFloat(TimeSeries[float]):
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
-    def resample(self, freq: Frequency) -> Self:
+    def resample(self, freq: Frequency) -> TimeSeriesVolumesCumulative:
         """
         Resample cumulative production volumes according to given frequency. Since the production rates between
         dates are assumed to be constant, the cumulative production volumes will increase linearly between dates.
@@ -362,7 +378,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         ds_resampled = ds_interpolated.reindex(new_index)
 
         return TimeSeriesVolumesCumulative(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            timesteps=ds_resampled.index.to_pydatetime().tolist(),  # Are we sure this is always an DatetimeIndex? type: ignore
             values=ds_resampled.values.tolist(),
             unit=self.unit,
         )
@@ -436,7 +452,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
         re_indexed_volumes = re_indexed_cumulative_values.diff().shift(-1)[:-1]
 
         return self.__class__(
-            timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),
+            timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),  # type: ignore
             values=re_indexed_volumes.tolist(),
             unit=self.unit,
         )
@@ -459,7 +475,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def to_rate(self, regularity: List[float] = None) -> TimeSeriesRate:
+    def to_rate(self, regularity: Optional[List[float]] = None) -> TimeSeriesRate:
         """
         Conversion from periodic volumes to average rate for each period.
 
@@ -518,8 +534,8 @@ class TimeSeriesIntensity(TimeSeries[float]):
         ds_resampled = ds_interpolated.reindex(new_index)
 
         return TimeSeriesIntensity(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),
-            values=ds_resampled.values.tolist(),
+            timesteps=ds_resampled.index.to_pydatetime().tolist(),  # type: ignore
+            values=ds_resampled.to_numpy().tolist(),
             unit=self.unit,
         )
 
@@ -541,10 +557,15 @@ class TimeSeriesRate(TimeSeries[float]):
     regularity: Optional[List[float]]
 
     @validator("regularity", pre=True, always=True)
-    def set_regularity(cls, regularity: List[float], values: List[float]) -> List[float]:
-        return regularity or [1] * len(values.get("values"))
+    def set_regularity(cls, regularity: Optional[List[float]], values: Dict[str, Any]) -> List[float]:
+        if regularity is not None:
+            return regularity
+        try:
+            return [1] * len(values["values"])
+        except KeyError as e:
+            raise KeyError("Failed to set default values for regularity. 'Values' of timeseries is not defined") from e
 
-    def __add__(self, other: TimeSeriesRate) -> Self:
+    def __add__(self, other: TimeSeriesRate) -> TimeSeriesRate:
         # Check for same unit
         if not self.unit == other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")

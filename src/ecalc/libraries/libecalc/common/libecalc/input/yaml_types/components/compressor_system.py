@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -163,7 +163,7 @@ class CompressorSystem(ConsumerBase):
     ) -> dto.components.CompressorSystem:
         number_of_compressors = len(self.consumers)
 
-        parsed_operational_settings = {}
+        parsed_operational_settings: Dict[datetime, Any] = {}
         temporal_operational_settings = define_time_model_for_period(
             self.operational_settings, target_period=target_period
         )

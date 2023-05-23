@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 from libecalc.dto.models.base import ConsumerFunction
 from libecalc.dto.types import ConsumerType, RateType
@@ -19,7 +19,7 @@ class DirectConsumerFunction(ConsumerFunction):
     )
 
     @root_validator
-    def validate_either_load_or_fuel_rate(cls, values):
+    def validate_either_load_or_fuel_rate(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if values.get("fuel_rate") is None and values.get("load") is None:
             raise ValueError(f"Either 'fuel_rate' or 'load' should be specified for '{ConsumerType.DIRECT}' models.")
         return values

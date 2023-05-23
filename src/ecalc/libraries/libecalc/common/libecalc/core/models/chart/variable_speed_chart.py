@@ -71,7 +71,7 @@ class VariableSpeedChart:
         return [x.speed for x in self.curves]
 
     @property
-    def minimum_speed_curve(self):
+    def minimum_speed_curve(self) -> ChartCurve:
         return self.curves[0]
 
     @property
@@ -389,7 +389,7 @@ class VariableSpeedChart:
         return efficiencies
 
     @staticmethod
-    def _get_alpha_from_distances(distance_above: float, distance_below: float):
+    def _get_alpha_from_distances(distance_above: float, distance_below: float) -> float:
         """Given a speed we interpolate a head and rate, and also between speed curves. This function calculates the shortest
         distance to the speed curve above and below. Alpha is the constant used in weighting the interpolation result.
 

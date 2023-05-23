@@ -42,8 +42,8 @@ def _get_variable_column_name(sampled_data: pd.DataFrame, allowed_x_names: List[
     :param allowed_x_names: the possible values for the column representing x in the interpolation function (y = f(x))
     :return: (the name of x column, the name of y column) where y = f(x) is the interpolation function.
     """
-    first_column_name: str = sampled_data.columns[0]
-    second_column_name: str = sampled_data.columns[1]
+    first_column_name: str = str(sampled_data.columns[0])  # Columns could be non-string type
+    second_column_name: str = str(sampled_data.columns[1])
     if first_column_name in allowed_x_names:
         return first_column_name
     elif second_column_name in allowed_x_names:
@@ -114,10 +114,15 @@ class CompressorModelSampled1D:
         )
 
     @property
-    def support_max_rate(self):
-        return self._x_column_name == RATE_NAME
+    def support_max_rate(self) -> bool:
+        return bool(self._x_column_name == RATE_NAME)
 
-    def evaluate(self, rate=None, suction_pressure=None, discharge_pressure=None) -> np.ndarray:
+    def evaluate(
+        self,
+        rate: Optional[np.ndarray] = None,
+        suction_pressure: Optional[np.ndarray] = None,
+        discharge_pressure: Optional[np.ndarray] = None,
+    ) -> np.ndarray:
         if self._x_column_name == RATE_NAME:
             return self._energy_function(rate)
         if self._x_column_name == PS_NAME:
