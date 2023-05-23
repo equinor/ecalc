@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ def compute_emission_intensity_yearly(
     """
     df = pd.DataFrame(
         index=time_vector,
-        data=zip(emission_cumulative, hydrocarbon_export_cumulative),
+        data=list(zip(emission_cumulative, hydrocarbon_export_cumulative)),
         columns=["emission_cumulative", "hydrocarbon_cumulative"],
     )
 
@@ -38,7 +38,12 @@ def compute_emission_intensity_yearly(
     )
 
     # Linearly interpolating by time using the built-in functionality in Pandas.
-    cumulative_interpolated = df.reindex(sorted(set(time_vector).union(time_vector_interpolated))).interpolate("time")
+    cumulative_interpolated: Optional[pd.DataFrame] = df.reindex(
+        sorted(set(time_vector).union(time_vector_interpolated))
+    ).interpolate("time")
+
+    if cumulative_interpolated is None:
+        raise ValueError("Time interpolation of cumulative yearly emission intensity failed")
 
     cumulative_yearly = cumulative_interpolated.bfill().loc[time_vector_interpolated]
 

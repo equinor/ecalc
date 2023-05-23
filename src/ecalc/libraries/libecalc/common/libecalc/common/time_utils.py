@@ -3,15 +3,16 @@ from __future__ import annotations
 import enum
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.units import UnitConstants
+from numpy.typing import ArrayLike
 
 
-def calculate_delta_days(time_vector: Iterable[datetime]) -> np.ndarray:
+def calculate_delta_days(time_vector: ArrayLike) -> np.ndarray:
     return np.array([x.total_seconds() / UnitConstants.SECONDS_IN_A_DAY for x in np.diff(time_vector)])
 
 
@@ -152,8 +153,7 @@ def resample_time_steps(
 
 def create_time_steps(frequency: Frequency, start: datetime, end: datetime) -> List[datetime]:
     time_steps = pd.date_range(start=start, end=end, freq=frequency.value)
-    time_steps = sorted({clear_time(start), *[clear_time(time_step) for time_step in time_steps], clear_time(end)})
-    return list(time_steps)
+    return sorted({clear_time(start), *[clear_time(time_step) for time_step in time_steps], clear_time(end)})
 
 
 def clear_time(d: datetime) -> datetime:

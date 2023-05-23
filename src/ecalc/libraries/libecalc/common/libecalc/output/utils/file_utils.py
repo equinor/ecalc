@@ -72,6 +72,10 @@ def get_result_output(
                 )
                 df = pd.concat([df, component_df], axis=1)
         return dataframe_to_csv(df.fillna("nan"), date_format=DateTimeFormats.get_format(date_format_option))
+    else:
+        raise ValueError(
+            f"Invalid output format. Expected {OutputFormat.CSV} or {OutputFormat.JSON}, got '{output_format}'"
+        )
 
 
 def get_component_output(
@@ -107,3 +111,7 @@ def get_component_output(
     elif output_format == OutputFormat.CSV:
         df = component.to_dataframe()
         return dataframe_to_csv(df, date_format=DateTimeFormats.get_format(date_format_option))
+    else:
+        raise ValueError(
+            f"Invalid output format. Expected {OutputFormat.CSV} or {OutputFormat.JSON}, got '{output_format}'"
+        )

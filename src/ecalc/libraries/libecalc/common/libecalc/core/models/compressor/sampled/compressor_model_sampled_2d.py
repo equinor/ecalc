@@ -9,7 +9,7 @@ from libecalc.core.models.compressor.sampled.constants import (
 )
 from libecalc.core.models.compressor.sampled.convex_hull_common import (
     get_lower_upper_qhull,
-    sort_ndarray,
+    sort_ndarray_by_column,
 )
 from scipy.interpolate import LinearNDInterpolator, interp1d
 from scipy.spatial import ConvexHull
@@ -74,7 +74,7 @@ class CompressorModelSampled2DRatePd:
         lower_pd_points_qh, _, _ = get_lower_upper_qhull(convex_hull, axis=self.pd_axis)
         lower_pd_points = lower_pd_points_qh.points
 
-        lower_rate_points_sorted = sort_ndarray(lower_rate_points, self.pd_axis)
+        lower_rate_points_sorted = sort_ndarray_by_column(lower_rate_points, self.pd_axis)
 
         self._minimum_rate_function = interp1d(
             x=lower_rate_points_sorted[:, self.pd_axis],
@@ -86,7 +86,7 @@ class CompressorModelSampled2DRatePd:
             bounds_error=False,
         )
 
-        lower_pd_points_sorted = sort_ndarray(lower_pd_points, self.rate_axis)
+        lower_pd_points_sorted = sort_ndarray_by_column(lower_pd_points, self.rate_axis)
 
         self._minimum_pd_function = interp1d(
             x=lower_pd_points_sorted[:, self.rate_axis],
@@ -100,7 +100,7 @@ class CompressorModelSampled2DRatePd:
 
         # For maximum rate
         # Why upper monotonic? and why decreasing monotonic? because we can always increase Pd, not decrease
-        upper_monotonic_points_sorted = sort_ndarray(upper_rate_monotonic_correct_points, self.pd_axis)
+        upper_monotonic_points_sorted = sort_ndarray_by_column(upper_rate_monotonic_correct_points, self.pd_axis)
 
         # create a maximum rate function for the upper monotonic points (monotonically increasing Pd, monotonically
         # decreasing rate)
@@ -114,7 +114,9 @@ class CompressorModelSampled2DRatePd:
             bounds_error=False,
         )
 
-        upper_monotonic_points_sorted_on_rate = sort_ndarray(upper_rate_monotonic_correct_points, self.rate_axis)
+        upper_monotonic_points_sorted_on_rate = sort_ndarray_by_column(
+            upper_rate_monotonic_correct_points, self.rate_axis
+        )
         self._maximum_pd_function = interp1d(
             x=upper_monotonic_points_sorted_on_rate[:, self.rate_axis],
             y=upper_monotonic_points_sorted_on_rate[:, self.pd_axis],
@@ -231,8 +233,8 @@ class CompressorModelSampled2DRatePs:
         _, upper_ps_points_qh, _ = get_lower_upper_qhull(convex_hull, axis=self.ps_axis, case_2d="rate_ps")
         upper_ps_points = upper_ps_points_qh.points
 
-        lower_rate_points_sorted = sort_ndarray(lower_rate_points, self.ps_axis)
-        upper_ps_points_sorted = sort_ndarray(upper_ps_points, self.rate_axis)
+        lower_rate_points_sorted = sort_ndarray_by_column(lower_rate_points, self.ps_axis)
+        upper_ps_points_sorted = sort_ndarray_by_column(upper_ps_points, self.rate_axis)
         self._max_ps = lower_rate_points_sorted[-1, self.ps_axis]
         self._minimum_rate_function = interp1d(
             x=lower_rate_points_sorted[:, self.ps_axis],
@@ -253,7 +255,7 @@ class CompressorModelSampled2DRatePs:
             bounds_error=False,
         )
 
-        upper_monotonic_points_sorted = sort_ndarray(upper_rate_monotonic_correct_points, self.ps_axis)
+        upper_monotonic_points_sorted = sort_ndarray_by_column(upper_rate_monotonic_correct_points, self.ps_axis)
         self._maximum_rate_function = interp1d(
             x=upper_monotonic_points_sorted[:, self.ps_axis],
             y=upper_monotonic_points_sorted[:, self.rate_axis],
@@ -301,8 +303,8 @@ class CompressorModelSampled2DPsPd:
         _, upper_ps_points_qh, _ = get_lower_upper_qhull(convex_hull, axis=self.ps_axis, case_2d="ps_pd")
         upper_ps_points = upper_ps_points_qh.points
 
-        lower_pd_points_sorted = sort_ndarray(lower_pd_points, self.ps_axis)
-        upper_ps_points_sorted = sort_ndarray(upper_ps_points, self.pd_axis)
+        lower_pd_points_sorted = sort_ndarray_by_column(lower_pd_points, self.ps_axis)
+        upper_ps_points_sorted = sort_ndarray_by_column(upper_ps_points, self.pd_axis)
 
         self._minimum_pd_function = interp1d(
             x=lower_pd_points_sorted[:, self.ps_axis],

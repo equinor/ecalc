@@ -129,6 +129,8 @@ def convert_temperature_to_kelvin(temperature_values: List[float], input_unit: U
         return temperature_values
     elif input_unit == Unit.CELSIUS:
         return [Unit.CELSIUS.to(Unit.KELVIN)(temperature) for temperature in temperature_values]
+    else:
+        raise ValueError(f"Invalid input unit. Expected {Unit.KELVIN} or {Unit.CELSIUS}, got '{input_unit}'")
 
 
 def convert_efficiency_to_fraction(efficiency_values: List[float], input_unit: Unit) -> List[float]:

@@ -19,17 +19,18 @@ repos:
         args: ['--line-length=120', '--include=\.pyi?$']
         exclude: gen/
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.2.0
+    rev: v1.3.0
     hooks:
       - id: mypy
         files: ^(src/ecalc/libraries/)
-        exclude: tests|src/ecalc/libraries/libecalc/common/libecalc/input/yaml
+        exclude: tests|conftest.py
         args: ['--config-file=./pyproject.toml']
         additional_dependencies:
           - types-PyYAML
           - pydantic
           - numpy
           - types-requests
+          - pandas-stubs
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.5.0
     hooks:

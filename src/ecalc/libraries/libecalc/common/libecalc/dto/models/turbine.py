@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Any, Dict, List, Literal
 
 from libecalc.dto.types import EnergyModelType
 from pydantic import confloat, root_validator
@@ -13,10 +13,10 @@ class Turbine(EnergyModel):
     turbine_efficiency_fractions: List[float]
 
     @root_validator
-    def validate_loads_and_efficiency_factors(cls, values):
+    def validate_loads_and_efficiency_factors(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         turbine_loads, turbine_efficiencies = (
-            values.get("turbine_loads"),
-            values.get("turbine_efficiency_fractions"),
+            values["turbine_loads"],
+            values["turbine_efficiency_fractions"],
         )
         if len(turbine_loads) != len(turbine_efficiencies):
             raise ValueError("Need equal number of load and efficiency values for turbine model")

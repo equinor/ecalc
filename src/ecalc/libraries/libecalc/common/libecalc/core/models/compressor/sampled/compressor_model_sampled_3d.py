@@ -13,7 +13,7 @@ from libecalc.core.models.compressor.sampled.convex_hull_common import (
     HalfConvexHull,
     LinearInterpolatorSimplicesDefined,
     get_lower_upper_qhull,
-    sort_ndarray,
+    sort_ndarray_by_column,
 )
 from scipy.interpolate import LinearNDInterpolator, interp1d
 from scipy.spatial import ConvexHull, Delaunay
@@ -429,10 +429,20 @@ class CompressorModelSampled3D:
         return energy_consumption
 
 
-def _convert_variables_for_interpolator(rate: np.ndarray, suction_pressure: np.ndarray, discharge_pressure: np.ndarray):
-    x_ndarray = np.stack((rate, suction_pressure, discharge_pressure), axis=-1)
+def _convert_variables_for_interpolator(
+    rate: np.ndarray, suction_pressure: np.ndarray, discharge_pressure: np.ndarray
+) -> np.ndarray:
+    """Join a sequence of arrays along the last axis.
 
-    return x_ndarray
+    Args:
+        rate:
+        suction_pressure:
+        discharge_pressure:
+
+    Returns:
+        Array with one interpolation point per row
+    """
+    return np.stack((rate, suction_pressure, discharge_pressure), axis=-1)
 
 
 def _get_maximum_rates(
@@ -583,8 +593,12 @@ def _setup_minimum_rate_projection_functions(
     _, lower_rate_qh_upper_ps_qh, _ = get_lower_upper_qhull(lower_rate_qh, axis=ps_axis_2d)
     lower_rate_qh_upper_ps_points = lower_rate_qh_upper_ps_qh.points
 
-    lower_rate_qh_lower_pd_points_sorted = sort_ndarray(arr=lower_rate_qh_lower_pd_points, col=ps_axis_2d)
-    lower_rate_qh_upper_ps_points_sorted = sort_ndarray(arr=lower_rate_qh_upper_ps_points, col=pd_axis_2d)
+    lower_rate_qh_lower_pd_points_sorted = sort_ndarray_by_column(
+        arr=lower_rate_qh_lower_pd_points, column_index=ps_axis_2d
+    )
+    lower_rate_qh_upper_ps_points_sorted = sort_ndarray_by_column(
+        arr=lower_rate_qh_upper_ps_points, column_index=pd_axis_2d
+    )
 
     lower_rate_qh_lower_pd_function = interp1d(
         x=lower_rate_qh_lower_pd_points_sorted[:, ps_axis_2d],
@@ -656,8 +670,12 @@ def _setup_minimum_pd_projection_functions(
     _, lower_pd_qh_upper_ps_qh, _ = get_lower_upper_qhull(lower_pd_qh, axis=ps_axis_2d)
     lower_pd_qh_upper_ps_points = lower_pd_qh_upper_ps_qh.points
 
-    lower_pd_qh_lower_rate_points_sorted = sort_ndarray(arr=lower_pd_qh_lower_rate_points, col=ps_axis_2d)
-    lower_pd_qh_upper_ps_points_sorted = sort_ndarray(arr=lower_pd_qh_upper_ps_points, col=rate_axis_2d)
+    lower_pd_qh_lower_rate_points_sorted = sort_ndarray_by_column(
+        arr=lower_pd_qh_lower_rate_points, column_index=ps_axis_2d
+    )
+    lower_pd_qh_upper_ps_points_sorted = sort_ndarray_by_column(
+        arr=lower_pd_qh_upper_ps_points, column_index=rate_axis_2d
+    )
     lower_pd_qh_lower_rate_function = interp1d(
         x=lower_pd_qh_lower_rate_points_sorted[:, ps_axis_2d],
         y=lower_pd_qh_lower_rate_points_sorted[:, rate_axis_2d],
@@ -728,8 +746,12 @@ def _setup_maximum_ps_projection_functions(
     upper_ps_qh_lower_pd_qh, _, _ = get_lower_upper_qhull(upper_ps_qh, axis=pd_axis_2d)
     upper_ps_qh_lower_pd_points = upper_ps_qh_lower_pd_qh.points
 
-    upper_ps_qh_lower_rate_points_sorted = sort_ndarray(arr=upper_ps_qh_lower_rate_points, col=pd_axis_2d)
-    upper_ps_qh_lower_pd_points_sorted = sort_ndarray(arr=upper_ps_qh_lower_pd_points, col=rate_axis_2d)
+    upper_ps_qh_lower_rate_points_sorted = sort_ndarray_by_column(
+        arr=upper_ps_qh_lower_rate_points, column_index=pd_axis_2d
+    )
+    upper_ps_qh_lower_pd_points_sorted = sort_ndarray_by_column(
+        arr=upper_ps_qh_lower_pd_points, column_index=rate_axis_2d
+    )
 
     upper_ps_qh_lower_rate_function = interp1d(
         x=upper_ps_qh_lower_rate_points_sorted[:, pd_axis_2d],
@@ -795,8 +817,12 @@ def _setup_maximum_rate_projection_functions(
     upper_rate_qh_upper_ps_points = upper_rate_qh_upper_ps_qh.points
 
     # Sort to ensure correct fill values
-    upper_rate_qh_lower_pd_points_sorted = sort_ndarray(arr=upper_rate_qh_lower_pd_points, col=pd_axis_2d)
-    upper_rate_qh_upper_ps_points_sorted = sort_ndarray(arr=upper_rate_qh_upper_ps_points, col=ps_axis_2d)
+    upper_rate_qh_lower_pd_points_sorted = sort_ndarray_by_column(
+        arr=upper_rate_qh_lower_pd_points, column_index=pd_axis_2d
+    )
+    upper_rate_qh_upper_ps_points_sorted = sort_ndarray_by_column(
+        arr=upper_rate_qh_upper_ps_points, column_index=ps_axis_2d
+    )
     # Projection functions
     upper_rate_qh_lower_pd_function = interp1d(
         x=upper_rate_qh_lower_pd_points_sorted[:, ps_axis_2d],
