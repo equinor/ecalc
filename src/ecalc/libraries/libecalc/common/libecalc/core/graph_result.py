@@ -24,7 +24,7 @@ from pydantic import BaseModel, parse_obj_as
 
 class EnergyCalculatorResult(BaseModel):
     consumer_results: Dict[str, EcalcModelResult]
-    emission_results: Dict[str, List[EmissionResult]]
+    emission_results: Dict[str, Dict[str, EmissionResult]]
     variables_map: dto.VariablesMap
 
 
@@ -33,7 +33,7 @@ class GraphResult:
         self,
         graph: Graph,
         consumer_results: Dict[str, EcalcModelResult],
-        emission_results: Dict[str, List[EmissionResult]],
+        emission_results: Dict[str, Dict[str, EmissionResult]],
         variables_map: dto.VariablesMap,
     ):
         self.graph = graph
@@ -44,12 +44,12 @@ class GraphResult:
     @staticmethod
     def _compute_intensity(
         hydrocarbon_export_rate: TimeSeriesRate,
-        emissions: List[EmissionResult],
+        emissions: Dict[str, EmissionResult],
     ):
         hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
         emission_intensities = []
-        for emission in emissions:
-            cumulative_rate_kg = emission.rate.to_volumes().to_unit(Unit.KILO).cumulative()
+        for key in emissions.keys():
+            cumulative_rate_kg = emissions[key].rate.to_volumes().to_unit(Unit.KILO).cumulative()
             intensity_sm3 = cumulative_rate_kg / hydrocarbon_export_cumulative
             intensity_yearly_sm3 = compute_emission_intensity_by_yearly_buckets(
                 emission_cumulative=cumulative_rate_kg,
@@ -57,8 +57,8 @@ class GraphResult:
             )
             emission_intensities.append(
                 EmissionIntensityResult(
-                    name=emission.name,
-                    timesteps=emission.timesteps,
+                    name=emissions[key].name,
+                    timesteps=emissions[key].timesteps,
                     intensity_sm3=intensity_sm3,
                     intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
                     intensity_yearly_sm3=intensity_yearly_sm3,
@@ -119,12 +119,7 @@ class GraphResult:
                 ],
             )
 
-            aggregated_emissions = aggregate_emissions(
-                [
-                    self.emission_results[fuel_consumer_id]
-                    for fuel_consumer_id in self.graph.get_successors(installation.id)
-                ]
-            )
+            aggregated_emissions = aggregate_emissions(self.emission_results.values())
 
             installation_results.append(
                 libecalc.dto.result.InstallationResult(
@@ -179,20 +174,20 @@ class GraphResult:
         return self.variables_map.time_vector
 
     @staticmethod
-    def _parse_emissions(emissions: List[EmissionResult]) -> List[libecalc.dto.result.EmissionResult]:
-        return [
-            libecalc.dto.result.EmissionResult(
-                name=emission.name,
-                timesteps=emission.timesteps,
-                rate=emission.rate,
-                quota=emission.quota,
-                tax=emission.tax,
-                cumulative=emission.rate.to_volumes().cumulative(),
-                quota_cumulative=emission.quota.to_volumes().cumulative(),
-                tax_cumulative=emission.tax.to_volumes().cumulative(),
+    def _parse_emissions(emissions: Dict[str, EmissionResult]) -> Dict[str, libecalc.dto.result.EmissionResult]:
+        return {
+            key: libecalc.dto.result.EmissionResult(
+                name=key,
+                timesteps=emissions[key].timesteps,
+                rate=emissions[key].rate,
+                quota=emissions[key].quota,
+                tax=emissions[key].tax,
+                cumulative=emissions[key].rate.to_volumes().cumulative(),
+                quota_cumulative=emissions[key].quota.to_volumes().cumulative(),
+                tax_cumulative=emissions[key].tax.to_volumes().cumulative(),
             )
-            for emission in emissions
-        ]
+            for key in emissions.keys()
+        }
 
     def get_asset_result(self) -> libecalc.dto.result.EcalcModelResult:
         asset_id = self.graph.root
@@ -288,7 +283,7 @@ class GraphResult:
             [installation.hydrocarbon_export_rate for installation in installation_results],
         )
 
-        asset_aggregated_emissions = aggregate_emissions(list(self.emission_results.values()))
+        asset_aggregated_emissions = aggregate_emissions(self.emission_results.values())
 
         asset_power_core = reduce(
             operator.add,
@@ -334,7 +329,7 @@ class GraphResult:
             models=models,
         )
 
-    def get_emissions(self, component_id: str) -> List[EmissionResult]:
+    def get_emissions(self, component_id: str) -> Dict[str, EmissionResult]:
         return self.emission_results[component_id]
 
     def get_results(self) -> EnergyCalculatorResult:

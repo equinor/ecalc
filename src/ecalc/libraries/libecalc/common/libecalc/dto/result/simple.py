@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import List, NamedTuple, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
@@ -126,7 +126,7 @@ class SimpleComponentResult(SimpleBase):
     name: str
     timesteps: List[datetime]
     is_valid: List[int]
-    emissions: List[SimpleEmissionResult]
+    emissions: Dict[str, SimpleEmissionResult]
 
     energy_usage: List[opt_float]
     energy_usage_unit: Unit
@@ -178,9 +178,10 @@ class SimpleComponentResult(SimpleBase):
             power = []
             energy_usage = []
             is_valid = []
-            emissions: List[SimpleEmissionResult] = [
-                SimpleEmissionResult(name=emission.name, rate=[]) for emission in component.emissions
-            ]
+            emissions: Dict[str, SimpleEmissionResult] = {
+                emission.name: SimpleEmissionResult(name=emission.name, rate=[])
+                for emission in component.emissions.values()
+            }
             for timestep in timesteps:
                 if timestep in component.timesteps:
                     timestep_index = component.timesteps.index(timestep)
@@ -191,10 +192,9 @@ class SimpleComponentResult(SimpleBase):
                     energy_usage.append(component.energy_usage[timestep_index])
 
                     is_valid.append(component.is_valid[timestep_index])
-                    for emission in emissions:
-                        idx = [x.name for x in component.emissions].index(emission.name)
+                    for emission in emissions.values():
                         # Assume index exist if emission exist
-                        emission.rate.append(component.emissions[idx].rate[timestep_index])
+                        emission.rate.append(component.emissions[emission.name].rate[timestep_index])
                 else:
                     # This is a developer error, we should provide the correct timesteps.
                     raise ValueError(
@@ -202,8 +202,8 @@ class SimpleComponentResult(SimpleBase):
                         f"Extraneous timestep: {timestep}. This should not happen, contact support."
                     )
         elif method == InterpolationMethod.LINEAR:
-            emissions = [
-                SimpleEmissionResult(
+            emissions = {
+                emission.name: SimpleEmissionResult(
                     name=emission.name,
                     rate=_interpolate_list(
                         x=component.timesteps,
@@ -212,8 +212,8 @@ class SimpleComponentResult(SimpleBase):
                         method=method,
                     ),
                 )
-                for emission in component.emissions
-            ]
+                for emission in component.emissions.values()
+            }
 
             is_valid = []
             for timestep in timesteps:
@@ -285,13 +285,13 @@ class SimpleComponentResult(SimpleBase):
             energy_usage=_subtract_list(self.energy_usage, reference_component.energy_usage),
             energy_usage_unit=self.energy_usage_unit,
             power=_subtract_list(self.power, reference_component.power),  # type: ignore[arg-type]
-            emissions=[
-                self_e - reference_e
+            emissions={
+                self_e.name: self_e - reference_e
                 for self_e, reference_e in zip(
-                    sorted(self.emissions, key=lambda emission: emission.name),
-                    sorted(reference_component.emissions, key=lambda emission: emission.name),
+                    sorted(self.emissions.values(), key=lambda emission: emission.name),
+                    sorted(reference_component.emissions.values(), key=lambda emission: emission.name),
                 )
-            ],
+            },
         )
 
 
@@ -305,13 +305,13 @@ def _create_empty_component(component: SimpleComponentResult) -> SimpleComponent
         energy_usage=[0] * len(component.timesteps),
         energy_usage_unit=component.energy_usage_unit,
         power=[0] * len(component.timesteps),
-        emissions=[
-            SimpleEmissionResult(
+        emissions={
+            emission.name: SimpleEmissionResult(
                 name=emission.name,
                 rate=[0] * len(component.timesteps),
             )
-            for emission in component.emissions
-        ],
+            for emission in component.emissions.values()
+        },
         is_valid=[True] * len(component.timesteps),
     )
 
@@ -365,19 +365,17 @@ class SimpleResultData(SimpleBase):
 
     @classmethod
     def _normalize_emissions(cls, other_component, reference_component):
-        emission_names = {x.name for x in other_component.emissions}.union(
-            x.name for x in reference_component.emissions
-        )
+        emission_names = set(other_component.emissions.keys()).union(x for x in reference_component.emissions)
+
         for emission_name in emission_names:
             for component in [other_component, reference_component]:
-                if emission_name not in [emission.name for emission in component.emissions]:
+                if emission_name not in list(component.emissions):
                     vector_length = len(component.timesteps)
-                    component.emissions.append(
-                        SimpleEmissionResult(
-                            name=emission_name,
-                            rate=[0] * vector_length,
-                        )
+                    component.emissions[emission_name] = SimpleEmissionResult(
+                        name=emission_name,
+                        rate=[0] * vector_length,
                     )
+
         return other_component, reference_component
 
     @classmethod

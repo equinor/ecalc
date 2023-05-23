@@ -33,21 +33,22 @@ def get_emission_with_only_rate(rates: List[float], name: str):
 class TestAggregateEmissions:
     def test_aggregate_emissions(self):
         """Test that emissions are aggregated correctly and that order is preserved."""
-        emissions1 = [
-            get_emission_with_only_rate([1, 2, 3], name="CO2"),
-            get_emission_with_only_rate([2, 3, 4], name="CH4"),
-        ]
-        emissions2 = [
-            get_emission_with_only_rate([3, 6, 9], name="CO2"),
-            get_emission_with_only_rate([4, 8, 12], name="CH4"),
-        ]
+        emissions1 = {
+            "CO2": get_emission_with_only_rate([1, 2, 3], name="CO2"),
+            "CH4": get_emission_with_only_rate([2, 3, 4], name="CH4"),
+        }
+        emissions2 = {
+            "CO2:": get_emission_with_only_rate([3, 6, 9], name="CO2"),
+            "CH4": get_emission_with_only_rate([4, 8, 12], name="CH4"),
+        }
         aggregated = aggregate_emissions(
             emissions_lists=[emissions1, emissions2],
         )
 
-        aggregated_emission_names = [emission.name for emission in aggregated]
-        assert aggregated[aggregated_emission_names.index("CO2")].rate.values == [4.0, 8.0, 12.0]
-        assert aggregated[aggregated_emission_names.index("CH4")].rate.values == [6.0, 11.0, 16.0]
+        assert aggregated["CO2"].rate.values == [4.0, 8.0, 12.0]
+        assert aggregated["CH4"].rate.values == [6.0, 11.0, 16.0]
+
+        aggregated_emission_names = list(aggregated)
 
         assert aggregated_emission_names[0] == "CO2"
         assert aggregated_emission_names[1] == "CH4"

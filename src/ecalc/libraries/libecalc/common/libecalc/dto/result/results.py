@@ -48,7 +48,7 @@ class CommonResultBase(TabularTimeSeries):
 
 class ComponentResultBase(CommonResultBase, NodeInfo):
     id: str
-    emissions: List[EmissionResult]
+    emissions: Dict[str, EmissionResult]
 
     def simple_result(self):
         return SimpleComponentResult(**self.dict())

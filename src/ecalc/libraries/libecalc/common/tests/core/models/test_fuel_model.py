@@ -32,8 +32,7 @@ def test_fuel_model():
         fuel_rate=np.asarray([1, 2, 3]),
     )
 
-    emission_names = [emission.name for emission in emissions]
-    emission_result = emissions[emission_names.index("co2")]
+    emission_result = emissions["co2"]
 
     assert emission_result.name == "co2"
     assert emission_result.rate == TimeSeriesRate(
@@ -93,5 +92,5 @@ def test_temporal_fuel_model():
     assert len(emissions) == 2
 
     # And they should cover the whole time index of 3 steps.
-    for emission in emissions:
+    for emission in emissions.values():
         assert len(emission.rate) == 3
