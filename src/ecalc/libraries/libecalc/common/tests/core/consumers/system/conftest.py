@@ -245,7 +245,6 @@ def consumer_system_result() -> ConsumerSystemConsumerFunctionResult:
         time_vector=np.array([Mock(datetime)] * 3),
         is_valid=np.array([True, True, True]),
         energy_usage=a,
-        energy_usage_before_conditioning=a,
         energy_usage_before_power_loss_factor=a,
         condition=a,
         power_loss_factor=a,

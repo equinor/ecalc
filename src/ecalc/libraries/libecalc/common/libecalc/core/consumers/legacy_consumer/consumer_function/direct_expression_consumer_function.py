@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import List, Optional
 
 import numpy as np
@@ -10,7 +9,10 @@ from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
-    calculate_energy_usage_with_conditions_and_power_loss,
+    apply_condition,
+    apply_power_loss_factor,
+    get_condition_from_expression,
+    get_power_loss_factor_from_expression,
 )
 from libecalc.core.models.results import EnergyFunctionGenericResult
 from libecalc.dto.types import RateType
@@ -69,13 +71,20 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             variables=variables_map.variables, fill_length=len(variables_map.time_vector)
         )
 
-        energy_usage = (
-            Rates.to_stream_day(
+        # Do conditioning first - set rates to zero if conditions are not met
+        condition = get_condition_from_expression(
+            variables_map=variables_map,
+            condition_expression=self._condition_expression,
+        )
+
+        energy_usage = apply_condition(
+            input_array=Rates.to_stream_day(
                 calendar_day_rates=energy_usage_expression_evaluated,
                 regularity=regularity,
             )
             if self._convert_to_stream_day
-            else energy_usage_expression_evaluated
+            else energy_usage_expression_evaluated,
+            condition=condition,
         )
 
         energy_function_result = EnergyFunctionGenericResult(
@@ -85,10 +94,8 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             power_unit=self.power_unit if self.is_electrical_consumer else None,
         )
 
-        conditions_and_power_loss_results = calculate_energy_usage_with_conditions_and_power_loss(
+        power_loss_factor = get_power_loss_factor_from_expression(
             variables_map=variables_map,
-            energy_usage=deepcopy(energy_usage),
-            condition_expression=self._condition_expression,
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
@@ -96,11 +103,13 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
             time_vector=np.array(variables_map.time_vector),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
-            energy_usage_before_conditioning=deepcopy(energy_usage),
-            condition=conditions_and_power_loss_results.condition,
-            energy_usage_before_power_loss_factor=conditions_and_power_loss_results.energy_usage_after_condition_before_power_loss_factor,
-            power_loss_factor=conditions_and_power_loss_results.power_loss_factor,
-            energy_usage=conditions_and_power_loss_results.resulting_energy_usage,
+            condition=condition,
+            energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
+            power_loss_factor=power_loss_factor,
+            energy_usage=apply_power_loss_factor(
+                energy_usage=np.asarray(energy_function_result.energy_usage),
+                power_loss_factor=power_loss_factor,
+            ),
         )
 
         return consumer_function_result

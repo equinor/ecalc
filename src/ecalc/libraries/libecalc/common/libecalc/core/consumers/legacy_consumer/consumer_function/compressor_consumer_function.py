@@ -7,7 +7,10 @@ from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
-    calculate_energy_usage_with_conditions_and_power_loss,
+    apply_condition,
+    apply_power_loss_factor,
+    get_condition_from_expression,
+    get_power_loss_factor_from_expression,
 )
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
@@ -107,42 +110,55 @@ class CompressorConsumerFunction(ConsumerFunction):
             if self._discharge_pressure_expression is not None
             else None
         )
+
+        # Do conditioning first - set rates to zero if conditions are not met
+        condition = get_condition_from_expression(
+            variables_map=variables_map,
+            condition_expression=self._condition_expression,
+        )
+        stream_day_rate_after_condition = apply_condition(
+            input_array=stream_day_rate,
+            condition=condition,
+        )
+
         compressor_train_result: CompressorTrainResult
         # Do not input regularity to compressor function. Handled outside
         # intermediate_pressure will only be different from None when we have a MultipleStreamsAndPressures train
         if intermediate_pressure is not None:
             compressor_train_result = self._compressor_function.evaluate_rate_ps_pint_pd(
-                rate=stream_day_rate,
+                rate=stream_day_rate_after_condition,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
                 intermediate_pressure=intermediate_pressure,
             )
         else:
             compressor_train_result = self._compressor_function.evaluate_rate_ps_pd(
-                rate=stream_day_rate,
+                rate=stream_day_rate_after_condition,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
             )
 
-        conditions_and_power_loss_results = calculate_energy_usage_with_conditions_and_power_loss(
+        power_loss_factor = get_power_loss_factor_from_expression(
             variables_map=variables_map,
-            energy_usage=np.asarray(compressor_train_result.energy_usage),
-            condition_expression=self._condition_expression,
             power_loss_factor_expression=self._power_loss_factor_expression,
-            power_usage=np.asarray(compressor_train_result.power)
-            if compressor_train_result.power is not None
-            else None,
         )
 
         consumer_function_result = ConsumerFunctionResult(
             time_vector=np.array(variables_map.time_vector),
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
-            energy_usage_before_conditioning=np.asarray(compressor_train_result.energy_usage),
-            condition=conditions_and_power_loss_results.condition,
-            energy_usage_before_power_loss_factor=conditions_and_power_loss_results.energy_usage_after_condition_before_power_loss_factor,
-            power_loss_factor=conditions_and_power_loss_results.power_loss_factor,
-            energy_usage=conditions_and_power_loss_results.resulting_energy_usage,
-            power=conditions_and_power_loss_results.resulting_power_usage,
+            condition=condition,
+            energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
+            power_loss_factor=power_loss_factor,
+            energy_usage=apply_power_loss_factor(
+                energy_usage=np.asarray(compressor_train_result.energy_usage),
+                power_loss_factor=power_loss_factor,
+            ),
+            power=apply_power_loss_factor(
+                energy_usage=np.asarray(compressor_train_result.power),
+                power_loss_factor=power_loss_factor,
+            )
+            if compressor_train_result.power is not None
+            else None,
         )
         return consumer_function_result

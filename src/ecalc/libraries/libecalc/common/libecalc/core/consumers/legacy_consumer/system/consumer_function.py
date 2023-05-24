@@ -7,7 +7,10 @@ from libecalc.common.exceptions import IncompatibleDataError
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
-    calculate_energy_usage_with_conditions_and_power_loss,
+    apply_condition,
+    apply_power_loss_factor,
+    get_condition_from_expression,
+    get_power_loss_factor_from_expression,
 )
 from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSetting,
@@ -86,15 +89,17 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         """Steps in evaluating a consumer system:
 
         1. Convert operational settings from expressions to values
-        2  Adjust operational settings for cross-overs (pre-processing)
-        3. Evaluate the consumer systems with the different operational settings
-        4. Assemble the settings number used for each time step
-        5. Assemble the operational setting based on 4.
-        6. Evaluate of cross-over has been used.
-        6. Run the consumers with the resulting Operational settings in 5.
-        7. Compute the sum of energy and power used by the consumers
-        8. Evaluate conditions and power loss expressions
-        9. Return a complete ConsumerSystemConsumerFunctionResult with data from the above steps.
+        2. Adjust operational settings for cross-overs (pre-processing)
+        3. Evaluate condition from expressions to values
+        4. Apply condition to operational settings
+        5. Evaluate the consumer systems with the different operational settings
+        6. Assemble the settings number used for each time step
+        7. Assemble the operational setting based on 4.
+        8. Evaluate of cross-over has been used.
+        9. Run the consumers with the resulting Operational settings in 5.
+        10. Compute the sum of energy and power used by the consumers
+        11. Evaluate and apply power loss expressions
+        12. Return a complete ConsumerSystemConsumerFunctionResult with data from the above steps.
         """
         operational_settings = self.get_operational_settings_from_expressions(
             variables_map=variables_map,
@@ -104,6 +109,20 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         operational_settings_adjusted_for_cross_over = self.get_operational_settings_adjusted_for_cross_over(
             operational_settings=operational_settings
         )
+
+        condition = get_condition_from_expression(
+            variables_map=variables_map,
+            condition_expression=self.condition_expression,
+        )
+
+        for operational_setting in operational_settings_adjusted_for_cross_over:
+            operational_setting.__dict__["rates"] = [
+                apply_condition(
+                    input_array=rate,
+                    condition=condition,
+                )
+                for rate in operational_setting.rates
+            ]
 
         consumer_system_operational_settings_results = self.evaluate_system_operational_settings(
             operational_settings=operational_settings_adjusted_for_cross_over
@@ -129,13 +148,12 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         consumer_results = self.evaluate_consumers(operational_setting=operational_setting_used)
         energy_usage = np.sum([np.asarray(result.energy_usage) for result in consumer_results], axis=0)
         power_usage = np.sum([np.asarray(result.power) for result in consumer_results], axis=0)
-        conditions_and_power_loss_results = calculate_energy_usage_with_conditions_and_power_loss(
+
+        power_loss_factor = get_power_loss_factor_from_expression(
             variables_map=variables_map,
-            energy_usage=energy_usage,
-            power_usage=power_usage,
-            condition_expression=self.condition_expression,
             power_loss_factor_expression=self.power_loss_factor_expression,
         )
+
         return ConsumerSystemConsumerFunctionResult(
             time_vector=np.array(variables_map.time_vector),
             is_valid=np.multiply.reduce([x.consumer_model_result.is_valid for x in consumer_results]).astype(bool),
@@ -144,12 +162,17 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             operational_settings_results=[consumer_system_operational_settings_results],
             consumer_results=[consumer_results],
             cross_over_used=cross_over_used,
-            energy_usage_before_conditioning=energy_usage,
-            condition=conditions_and_power_loss_results.condition,
-            energy_usage_before_power_loss_factor=conditions_and_power_loss_results.energy_usage_after_condition_before_power_loss_factor,
-            power_loss_factor=conditions_and_power_loss_results.power_loss_factor,
-            energy_usage=conditions_and_power_loss_results.resulting_energy_usage,
-            power=conditions_and_power_loss_results.resulting_power_usage,
+            energy_usage_before_power_loss_factor=energy_usage,
+            condition=condition,
+            power_loss_factor=power_loss_factor,
+            energy_usage=apply_power_loss_factor(
+                energy_usage=energy_usage,
+                power_loss_factor=power_loss_factor,
+            ),
+            power=apply_power_loss_factor(
+                energy_usage=power_usage,
+                power_loss_factor=power_loss_factor,
+            ),
         )
 
     def get_operational_settings_from_expressions(

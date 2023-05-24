@@ -16,7 +16,7 @@ def calculate_energy_usage_with_conditions_and_power_loss(
     power_loss_factor_expression: Expression,
     power_usage: Optional[np.ndarray] = None,
 ) -> ConditionsAndPowerLossResult:
-    condition = compute_condition(
+    condition = get_condition_from_expression(
         variables_map=variables_map,
         condition_expression=condition_expression,
     )
@@ -61,15 +61,18 @@ def calculate_energy_usage_with_conditions_and_power_loss(
     )
 
 
-def compute_condition(
+def get_condition_from_expression(
     variables_map: VariablesMap,
     condition_expression: Expression,
 ) -> Optional[np.ndarray]:
     """Evaluate condition expression and compute resulting condition vector.
 
-    :param variables_map: A map of all numeric arrays used in expressions
-    :param condition_expression: The condition expression
-    :return: assembled condition vector
+    Args:
+        variables_map: A map of all numeric arrays used in expressions
+        condition_expression: The condition expression
+
+    Returns:
+        Assembled condition vector
     """
     if condition_expression is not None:
         condition = condition_expression.evaluate(
@@ -82,12 +85,61 @@ def compute_condition(
     return condition
 
 
+def apply_condition(input_array: np.ndarray, condition: Optional[np.ndarray]) -> np.ndarray:
+    """Apply condition to input array in the following way:
+        - Input values kept as is if condition is 1
+        - Input values set to 0 if condition is 0
+
+    Args:
+        input_array: Array with input values
+        condition: Array of 1 or 0 describing wether or not conditions are met
+
+    Returns:
+        Returns the input_array where conditions are applied (values set to 0 where condition is 0)
+    """
+    if condition is None:
+        return deepcopy(input_array)
+    else:
+        return (
+            np.where(np.any(condition, axis=0), input_array, 0)
+            if np.ndim(input_array) == 2
+            else np.where(condition, input_array, 0)
+        )
+
+
+def get_power_loss_factor_from_expression(
+    variables_map: VariablesMap,
+    power_loss_factor_expression: Expression,
+) -> Optional[np.ndarray]:
+    """Evaluate power loss factor expression and compute resulting power loss factor vector.
+
+    Args:
+        variables_map: A map of all numeric arrays used in expressions
+        power_loss_factor_expression: The condition expression
+
+    Returns:
+        Assembled power loss factor vector
+    """
+    power_loss_factor = (
+        power_loss_factor_expression.evaluate(
+            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+        )
+        if power_loss_factor_expression is not None
+        else None
+    )
+
+    return power_loss_factor
+
+
 def apply_power_loss_factor(energy_usage: np.ndarray, power_loss_factor: Optional[np.ndarray]) -> np.ndarray:
     """Apply resulting required power taking a (cable/motor...) power loss factor into account.
 
-    :param energy_usage: initial required energy usage [MW]
-    :param power_loss_factor: Optional factor of the power (cable) loss.
-    :return: energy usage where power loss is accounted for, i.e. energy_usage/(1-power_loss_factor)
+    Args:
+        energy_usage: initial required energy usage [MW]
+        power_loss_factor: Optional factor of the power (cable) loss.
+
+    Returns:
+        energy usage where power loss is accounted for, i.e. energy_usage/(1-power_loss_factor)
     """
     if power_loss_factor is None:
         return deepcopy(energy_usage)
