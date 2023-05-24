@@ -1,18 +1,20 @@
 from __future__ import annotations
 
-import logging
+import os
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
-from typing import Dict, List, Tuple
+from pathlib import Path
+from typing import Dict, List, Tuple, Union
 
+from libecalc.common.capturer import Capturer
+from libecalc.common.logger import logger
 from py4j.protocol import Py4JJavaError
+from pydantic import BaseModel
 
 from neqsim_ecalc_wrapper import neqsim
 from neqsim_ecalc_wrapper.components import COMPONENTS
 from neqsim_ecalc_wrapper.exceptions import NeqsimPhaseError
-
-logger = logging.getLogger(__name__)
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325
@@ -30,6 +32,38 @@ class NeqsimEoSModelType(Enum):
     GERG_PR = neqsim.thermo.system.SystemPrEos
 
 
+class NeqsimFluidComponent(BaseModel):
+    """
+    A representation of a NeqSim Fluid Component. As a part of a composition. A
+    gas or fluid, its amount and unit.
+    """
+
+    name: str
+    total_fraction: float
+    gas_fraction: float
+    unit: str
+
+
+class NeqsimFluidProperty(BaseModel):
+    """
+    A representation of a NeqSim Fluid Property. This is normally reused for the same composition
+    for many different properties. It may contain numbers and strings.
+    """
+
+    name: str
+    value: Union[float, str]
+    unit: str
+
+
+class NeqsimFluidState(BaseModel):
+    """
+    A representation of a NeqSim Fluid State for a given composition and properties
+    """
+
+    fluid_composition: List[NeqsimFluidComponent]
+    fluid_properties: List[NeqsimFluidProperty]
+
+
 class NeqsimFluid:
     def __init__(
         self,
@@ -42,6 +76,46 @@ class NeqsimFluid:
         self._gerg_properties = (
             get_GERG2008_properties(thermodynamic_system=thermodynamic_system) if self._use_gerg else None
         )
+
+    def json(self) -> str:
+        """
+        An attempt to jsonify a dump of the internal NeqSim state for a given composition and properties. If it fails, an empty
+        string is returned.
+
+        :return: the JSON representation of the Neqsim state, as an unformatted string
+        """
+        fluid_composition: List[NeqsimFluidComponent] = []
+        fluid_properties: List[NeqsimFluidProperty] = []
+
+        try:
+            for string_vector in self._thermodynamic_system.createTable("ECALC_DUMP"):
+                if "".join(string_vector).strip() == "" or string_vector[1] == "total":
+                    # Ignored content, not useful. Headers and padding.
+                    continue
+
+                if str(string_vector[0]).strip() in COMPONENTS:
+                    fluid_composition.append(
+                        NeqsimFluidComponent(
+                            name=string_vector[0],
+                            total_fraction=string_vector[1],
+                            gas_fraction=string_vector[2],
+                            unit=string_vector[6],
+                        )
+                    )
+                else:
+                    fluid_properties.append(
+                        NeqsimFluidProperty(name=string_vector[0], value=string_vector[2], unit=string_vector[6])
+                    )
+
+            neqsim_fluid_state = NeqsimFluidState(
+                fluid_composition=fluid_composition, fluid_properties=fluid_properties
+            )
+            return neqsim_fluid_state.json()
+
+        except Exception as e:
+            logger.warning(f"Failed to parse NeqSimState dump for JSON Serialization. Not critical: {e}")
+
+        return ""
 
     @classmethod
     def create_thermo_system(
@@ -260,6 +334,9 @@ class NeqsimFluid:
     def copy(self) -> NeqsimFluid:
         return NeqsimFluid(thermodynamic_system=self._thermodynamic_system.clone(), use_gerg=self._use_gerg)
 
+    @Capturer.capture_return_values(
+        do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-ph"
+    )
     def set_new_pressure_and_enthalpy(
         self, new_pressure: float, new_enthalpy_joule_per_kg: float, remove_liquid: bool = True
     ) -> NeqsimFluid:
@@ -277,6 +354,9 @@ class NeqsimFluid:
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 
+    @Capturer.capture_return_values(
+        do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-tp"
+    )
     def set_new_pressure_and_temperature(
         self, new_pressure_bara: float, new_temperature_kelvin: float, remove_liquid: bool = True
     ) -> NeqsimFluid:
