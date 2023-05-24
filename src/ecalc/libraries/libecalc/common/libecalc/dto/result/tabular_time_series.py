@@ -57,9 +57,14 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
         for attribute, values in self.__dict__.items():
             if isinstance(values, TimeSeries):
                 resampled.__setattr__(attribute, values.resample(freq=freq))
+
             elif isinstance(values, list):
                 if len(values) > 0 and all(isinstance(item, TabularTimeSeries) for item in values):
                     resampled.__setattr__(attribute, [item.resample(freq) for item in values])
+
+            elif isinstance(values, dict):
+                if len(values) > 0 and all(isinstance(item, TabularTimeSeries) for item in values.values()):
+                    resampled.__setattr__(attribute, [item.resample(freq) for item in values.values()])
 
         resampled.timesteps = (
             pd.date_range(start=self.timesteps[0], end=self.timesteps[-1], freq=freq.value).to_pydatetime().tolist()
