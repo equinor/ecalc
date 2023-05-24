@@ -21,7 +21,7 @@ class HasEmissions(Protocol):
 
 
 def aggregate_emissions(
-    emissions_lists: Dict[str, EmissionResult:ValuesView],
+    emissions_lists: ValuesView,
 ) -> Dict[str, EmissionResult]:
     all_emissions = [emission for emissions in emissions_lists for emission in emissions.values()]
 
