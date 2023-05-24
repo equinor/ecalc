@@ -33,7 +33,6 @@ class ConsumerFunctionResultBase(BaseModel):
     time_vector: np.ndarray
     is_valid: np.ndarray
     energy_usage: np.ndarray
-    energy_usage_before_conditioning: Optional[np.ndarray]
     energy_usage_before_power_loss_factor: Optional[np.ndarray]
     condition: Optional[np.ndarray]
     power_loss_factor: Optional[np.ndarray]
@@ -54,6 +53,7 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
     typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE  # type: ignore[valid-type]
 
     def extend(self, other) -> ConsumerFunctionResult:
+        """This is used when merging different time slots when the energy function of a consumer changes over time."""
         if not isinstance(self, type(other)):
             msg = f"{self.__repr_name__()} Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
             logger.warning(msg)
@@ -88,4 +88,5 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
 
     @classmethod
     def create_empty(cls) -> ConsumerFunctionResult:
+        """Create empty consumer function result"""
         return cls(time_vector=np.array([]), is_valid=np.array([]), energy_usage=np.array([]))

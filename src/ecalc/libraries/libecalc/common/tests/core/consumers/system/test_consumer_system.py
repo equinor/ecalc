@@ -505,6 +505,26 @@ class TestCompressorSystemConsumerFunction:
             result_with_power_loss.energy_usage,
             result.energy_usage / (1 - np.array(gas_prod_values) / 10.0),
         )
+
+        consumer_system_function_with_condition = CompressorSystemConsumerFunction(
+            consumer_components=compressor_system_sampled_2.consumers,
+            operational_settings_expressions=[
+                operational_setting1_expressions,
+                operational_setting2_expressions,
+                operational_setting3_expressions,
+            ],
+            condition_expression=Expression.setup_from_expression("SIM1;GAS_PROD > 2"),
+            power_loss_factor_expression=None,
+        )
+
+        result_with_condition = consumer_system_function_with_condition.evaluate(
+            variables_map=variables_map,
+            regularity=[1.0] * len(variables_map.time_vector),
+        )
+
+        assert np.all(result_with_condition.condition == [0, 0, 1, 1, 1, 1, 1, 1, 1, 1])
+        assert np.all(result_with_condition.energy_usage[0:2] == 0)
+
         # GAS_PROD=0.005: one compressor, midway between 1 and second entry - in the "jump" when the first compressor is turned on, operational setting should be 0
         # GAS_PROD=1.5 - midway between 11 and 12, should be 11.5 and operational setting should be 0
         # GAS_PROD=4 - to compressors on max capacity, using 12 each, thus 24 in total. Operational setting should be 1 (when two compressors are used)

@@ -17,7 +17,6 @@ def test_consumer_function_result_append():
         time_vector=np.array([datetime(2018, 1, 1, 0, 0)]),
         is_valid=~np.isnan(np.array([1.0])),
         energy_usage=np.array([1.0]),
-        energy_usage_before_conditioning=np.array([1.0]),
         energy_usage_before_power_loss_factor=np.array([1.0]),
         condition=None,
         power_loss_factor=None,
@@ -34,7 +33,6 @@ def test_consumer_function_result_append():
         time_vector=np.array([datetime(2019, 1, 1, 0, 0)]),
         is_valid=~np.isnan(np.array([2.0])),
         energy_usage=np.array([2.0]),
-        energy_usage_before_conditioning=np.array([2.0]),
         energy_usage_before_power_loss_factor=np.array([2.0]),
         condition=None,
         power_loss_factor=None,
@@ -53,7 +51,6 @@ def test_consumer_function_result_append():
         updated_result.time_vector, np.array([datetime(2018, 1, 1, 0, 0), datetime(2019, 1, 1, 0, 0)])
     )
     np.testing.assert_equal(updated_result.energy_usage, np.array([1.0, 2.0]))
-    np.testing.assert_equal(updated_result.energy_usage_before_conditioning, np.array([1.0, 2.0]))
     np.testing.assert_equal(updated_result.energy_usage_before_power_loss_factor, np.array([1.0, 2.0]))
     assert updated_result.condition is None
     assert updated_result.power_loss_factor is None
