@@ -119,7 +119,12 @@ class GraphResult:
                 ],
             )
 
-            aggregated_emissions = aggregate_emissions(self.emission_results.values())
+            aggregated_emissions = aggregate_emissions(
+                [
+                    self.emission_results[fuel_consumer_id]
+                    for fuel_consumer_id in self.graph.get_successors(installation.id)
+                ]
+            )
 
             installation_results.append(
                 libecalc.dto.result.InstallationResult(
