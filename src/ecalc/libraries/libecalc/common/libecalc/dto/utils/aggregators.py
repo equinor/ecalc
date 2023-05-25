@@ -23,6 +23,14 @@ class HasEmissions(Protocol):
 def aggregate_emissions(
     emissions_lists: Union[List[Dict[str, EmissionResult]], ValuesView],
 ) -> Dict[str, EmissionResult]:
+    """Aggregates emissions e.g. for a total asset across installations
+    Args:
+        emissions_lists (List[Dict[str, EmissionResult]] or dict.values): Includes emissions to aggregate
+
+    Returns:
+        dto.types.FuelType
+    """
+
     all_emissions = [emission for emissions in emissions_lists for emission in emissions.values()]
 
     # Keep order of emissions

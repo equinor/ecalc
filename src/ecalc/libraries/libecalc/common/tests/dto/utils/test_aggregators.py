@@ -26,6 +26,7 @@ def get_installation(
     Returns:
         dto.Installation
     """
+
     inst = dto.Installation(
         name=name_inst,
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
@@ -46,6 +47,7 @@ def fuel(name: str, co2_factor: float) -> dto.types.FuelType:
     Returns:
         dto.types.FuelType
     """
+
     return dto.types.FuelType(
         name=name,
         price=Expression.setup_from_expression(value=10),
@@ -135,7 +137,8 @@ class TestAggregateEmissions:
 
     def test_aggregate_emissions_installations(self):
         """Test that emissions are aggregated correctly with multiple installations. Check that all installations
-        are not summed for each installation"""
+        are not summed for each installation
+        """
 
         time_vector = pd.date_range(datetime(2024, 1, 1), datetime(2025, 1, 1), freq="M").to_pydatetime().tolist()
         variables = dto.VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1]})
@@ -171,8 +174,6 @@ class TestAggregateEmissions:
 
         # Extract eCalc results for total asset and for individual installations
         ecalc_asset_emissions = ecalc_result.component_result.emissions["co2"].rate.values
-        ecalc_inst_a_emissions = ecalc_result.components[1].emissions["co2"].rate.values
-        ecalc_inst_b_emissions = ecalc_result.components[2].emissions["co2"].rate.values
 
         # Manual aggregation - test two methods, one is correct and one is wrong
         installation_results_correct = []
@@ -190,13 +191,16 @@ class TestAggregateEmissions:
             # It was not captured in any test previously.
             aggregated_emissions_wrong = aggregate_emissions(list(graph_result.emission_results.values()))
 
-            installation_results_correct.append(aggregated_emissions_correct)
-            installation_results_wrong.append(aggregated_emissions_wrong)
+            installation_results_correct.append(aggregated_emissions_correct["co2"].rate.values)
+            installation_results_wrong.append(aggregated_emissions_wrong["co2"].rate.values)
 
-        # Show that the wrong method aggregate the whole asset for each installation:
-        assert ecalc_asset_emissions == installation_results_wrong[0]["co2"].rate.values
-        assert ecalc_asset_emissions == installation_results_wrong[1]["co2"].rate.values
+        asset_emissions_wrong = [sum(emission) for emission in zip(*installation_results_wrong)]
 
-        # Show that the correct method (used by eCalc) only aggregates the relevant installation:
-        assert ecalc_inst_a_emissions == installation_results_correct[0]["co2"].rate.values
-        assert ecalc_inst_b_emissions == installation_results_correct[1]["co2"].rate.values
+        asset_emissions_correct = [sum(emission) for emission in zip(*installation_results_correct)]
+
+        # Show that the wrong method aggregate the whole asset for each installation,
+        # i.e. the total asset aggregation is doubled with two installations:
+        assert ecalc_asset_emissions == [i / 2 for i in asset_emissions_wrong]
+
+        # Show that the correct method (used by eCalc) only aggregates correct:
+        assert ecalc_asset_emissions == asset_emissions_correct

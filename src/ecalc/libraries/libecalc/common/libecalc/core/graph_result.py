@@ -288,8 +288,6 @@ class GraphResult:
             [installation.hydrocarbon_export_rate for installation in installation_results],
         )
 
-        # asset_aggregated_emissions = aggregate_emissions(self.emission_results.values())
-        # asset_aggregated_emissions = aggregate_emissions(dict(self.emission_results.keys(),self.emission_results.values()))
         asset_aggregated_emissions = aggregate_emissions(self.emission_results.values())
 
         asset_power_core = reduce(
