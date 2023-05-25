@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from typing import Dict, List, Protocol
+from typing import Dict, List, Protocol, Union, ValuesView
 
 from libecalc.common.list_utils import transpose
 from libecalc.common.utils.rates import TimeSeriesBoolean
@@ -21,7 +21,7 @@ class HasEmissions(Protocol):
 
 
 def aggregate_emissions(
-    emissions_lists: List[EmissionResult],
+    emissions_lists: Union[List[Dict[str, EmissionResult]], ValuesView],
 ) -> Dict[str, EmissionResult]:
     all_emissions = [emission for emissions in emissions_lists for emission in emissions.values()]
 

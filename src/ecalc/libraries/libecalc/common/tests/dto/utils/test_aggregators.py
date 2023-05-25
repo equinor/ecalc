@@ -1,10 +1,90 @@
+from datetime import datetime
 from typing import List
 
 import pandas as pd
+from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesRate
+from libecalc.core.ecalc import EnergyCalculator
+from libecalc.core.graph_result import GraphResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.utils.aggregators import aggregate_emissions
+from libecalc.expression import Expression
+
+
+def get_installation(
+    name_inst: str, name_consumer: str, name_fuel: str, co2_factor: float, fuel_rate: float
+) -> dto.Installation:
+    """Creates a simple installation object for use in asset setup
+    Args:
+        name_inst (str): Name of installation
+        name_consumer (str): Name of direct fuel consumer
+        name_fuel (str): Name of fuel
+        co2_factor (float): CO2 factor for emission calculations
+        fuel_rate (float): Rate of fuel (Sm3/d)
+
+    Returns:
+        dto.Installation
+    """
+    inst = dto.Installation(
+        name=name_inst,
+        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        fuel_consumers=[
+            direct_fuel_consumer(name=name_consumer, name_fuel=name_fuel, co2_factor=co2_factor, fuel_rate=fuel_rate)
+        ],
+    )
+    return inst
+
+
+def fuel(name: str, co2_factor: float) -> dto.types.FuelType:
+    """Creates a simple fuel type object for use in fuel consumer setup
+    Args:
+        name (str): Name of fuel
+        co2_factor (str): CO2 factor used for emission calculations
+
+    Returns:
+        dto.types.FuelType
+    """
+    return dto.types.FuelType(
+        name=name,
+        price=Expression.setup_from_expression(value=10),
+        emissions=[
+            dto.Emission(
+                name="co2",
+                factor=Expression.setup_from_expression(value=co2_factor),
+                tax=Expression.setup_from_expression(value=1),
+            )
+        ],
+        user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
+    )
+
+
+def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate: float) -> dto.FuelConsumer:
+    """Creates a simple direct fuel consumer object for use in installation setup
+    Args:
+        name (str): Name of direct fuel consumer
+        name_fuel (str): Name of fuel
+        co2_factor (float): CO2 factor for emission calculations
+        fuel_rate (float): Rate of fuel (Sm3/d)
+
+    Returns:
+        dto.FuelConsumer
+    """
+
+    return dto.FuelConsumer(
+        name=name,
+        component_type=dto.components.ComponentType.DIRECT_EMITTER,
+        fuel={datetime(2024, 1, 1): fuel(name=name_fuel, co2_factor=co2_factor)},
+        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        user_defined_category={datetime(2024, 1, 1): dto.components.ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+        energy_usage_model={
+            datetime(2024, 1, 1): dto.DirectConsumerFunction(
+                fuel_rate=fuel_rate,
+                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            )
+        },
+    )
 
 
 def get_emission_with_only_rate(rates: List[float], name: str):
@@ -52,3 +132,71 @@ class TestAggregateEmissions:
 
         assert aggregated_emission_names[0] == "CO2"
         assert aggregated_emission_names[1] == "CH4"
+
+    def test_aggregate_emissions_installations(self):
+        """Test that emissions are aggregated correctly with multiple installations. Check that all installations
+        are not summed for each installation"""
+
+        time_vector = pd.date_range(datetime(2024, 1, 1), datetime(2025, 1, 1), freq="M").to_pydatetime().tolist()
+        variables = dto.VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+
+        inst_a = get_installation(
+            name_inst="INSTA", name_consumer="cons1", name_fuel="fuel1", co2_factor=1, fuel_rate=100
+        )
+
+        inst_b = get_installation(
+            name_inst="INSTB", name_consumer="cons2", name_fuel="fuel2", co2_factor=10, fuel_rate=100
+        )
+
+        asset = dto.Asset(
+            name="Main asset",
+            installations=[inst_a, inst_b],
+        )
+
+        # generate eCalc results
+        graph = asset.get_graph()
+        energy_calculator = EnergyCalculator(graph=graph)
+
+        consumer_results = energy_calculator.evaluate_energy_usage(variables)
+        emission_results = energy_calculator.evaluate_emissions(variables, consumer_results)
+
+        graph_result = GraphResult(
+            graph=graph,
+            variables_map=variables,
+            consumer_results=consumer_results,
+            emission_results=emission_results,
+        )
+
+        ecalc_result = graph_result.get_asset_result()
+
+        # Extract eCalc results for total asset and for individual installations
+        ecalc_asset_emissions = ecalc_result.component_result.emissions["co2"].rate.values
+        ecalc_inst_a_emissions = ecalc_result.components[1].emissions["co2"].rate.values
+        ecalc_inst_b_emissions = ecalc_result.components[2].emissions["co2"].rate.values
+
+        # Manual aggregation - test two methods, one is correct and one is wrong
+        installation_results_correct = []
+        installation_results_wrong = []
+
+        for installation in asset.installations:
+            aggregated_emissions_correct = aggregate_emissions(
+                [
+                    graph_result.emission_results[fuel_consumer_id]
+                    for fuel_consumer_id in graph_result.graph.get_successors(installation.id)
+                ]
+            )
+
+            # The method below aggregates all installations for each installation, which is wrong.
+            # It was not captured in any test previously.
+            aggregated_emissions_wrong = aggregate_emissions(list(graph_result.emission_results.values()))
+
+            installation_results_correct.append(aggregated_emissions_correct)
+            installation_results_wrong.append(aggregated_emissions_wrong)
+
+        # Show that the wrong method aggregate the whole asset for each installation:
+        assert ecalc_asset_emissions == installation_results_wrong[0]["co2"].rate.values
+        assert ecalc_asset_emissions == installation_results_wrong[1]["co2"].rate.values
+
+        # Show that the correct method (used by eCalc) only aggregates the relevant installation:
+        assert ecalc_inst_a_emissions == installation_results_correct[0]["co2"].rate.values
+        assert ecalc_inst_b_emissions == installation_results_correct[1]["co2"].rate.values
