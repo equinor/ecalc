@@ -16832,8 +16832,8 @@
         }
     },
     "emission_results": {
-        "75e450e0716f5035d2ba5af0acdb0a66": [
-            {
+        "75e450e0716f5035d2ba5af0acdb0a66": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -17068,9 +17068,9 @@
                     "2029-01-01 00:00:00"
                 ]
             }
-        ],
-        "a8d3e56e32a9aaf28130d776d0a4f0e6": [
-            {
+        },
+        "a8d3e56e32a9aaf28130d776d0a4f0e6": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -17305,9 +17305,9 @@
                     "2029-01-01 00:00:00"
                 ]
             }
-        ],
-        "dce9ee3d6802b4096b59c91642b5d6e0": [
-            {
+        },
+        "dce9ee3d6802b4096b59c91642b5d6e0": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -17542,7 +17542,7 @@
                     "2029-01-01 00:00:00"
                 ]
             }
-        ]
+        }
     },
     "variables_map": {
         "time_vector": [

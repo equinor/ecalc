@@ -3604,8 +3604,8 @@
         }
     },
     "emission_results": {
-        "09c1b79cf6cf1ef0773a194679246a4a": [
-            {
+        "09c1b79cf6cf1ef0773a194679246a4a": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -3660,9 +3660,9 @@
                     "2026-01-01 00:00:00"
                 ]
             }
-        ],
-        "b16b9265fc6f9743594a2441fcc0d7c8": [
-            {
+        },
+        "b16b9265fc6f9743594a2441fcc0d7c8": {
+            "co2": {
                 "name": "co2",
                 "quota": {
                     "regularity": [
@@ -3717,7 +3717,7 @@
                     "2026-01-01 00:00:00"
                 ]
             }
-        ]
+        }
     },
     "variables_map": {
         "time_vector": [

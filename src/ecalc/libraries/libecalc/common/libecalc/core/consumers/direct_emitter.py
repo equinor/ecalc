@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 from libecalc import dto
@@ -58,7 +58,7 @@ class DirectEmitter:
     def evaluate(
         self,
         variables_map: VariablesMap,
-    ) -> List[EmissionResult]:
+    ) -> Dict[str, EmissionResult]:
         logger.debug(f"Evaluating DirectEmitter: {self.direct_emitter_dto.name}")
         fuel_rate = self.evaluate_fuel_rate(variables_map=variables_map)
         return self.temporal_fuel_model.evaluate_emissions(

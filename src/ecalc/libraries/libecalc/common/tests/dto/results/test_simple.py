@@ -25,12 +25,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[3, 4, 5],
                         )
-                    ],
+                    },
                     energy_usage=[2, 3, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[7, 8, 9],
@@ -48,12 +48,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[6, 8, 10],
                         )
-                    ],
+                    },
                     energy_usage=[4, 6, 8],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[14, 16, 18],
@@ -82,12 +82,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[3, 4, 5],
                         )
-                    ],
+                    },
                     energy_usage=[2, 3, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[7, 8, 9],
@@ -102,12 +102,12 @@ class TestDeltaProfile:
             componentType=ComponentType.COMPRESSOR,
             component_level=ComponentLevel.CONSUMER,
             timesteps=timesteps,
-            emissions=[
-                SimpleEmissionResult(
+            emissions={
+                "co2": SimpleEmissionResult(
                     name="co2",
                     rate=[6, 8, 10],
                 )
-            ],
+            },
             energy_usage=[4, 6, 8],
             energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             power=[14, 16, 18],
@@ -128,12 +128,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[-3, -4, -5],
                         )
-                    ],
+                    },
                     energy_usage=[-2, -3, -4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[-7, -8, -9],
@@ -155,12 +155,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=reference_timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[3, 5],
                         )
-                    ],
+                    },
                     energy_usage=[2, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[7, 9],
@@ -180,12 +180,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=changed_timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[6, 8, 10],
                         )
-                    ],
+                    },
                     energy_usage=[4, 6, 8],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[14, 16, 18],
@@ -209,12 +209,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[3, 5],
                         )
-                    ],
+                    },
                     energy_usage=[2, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[7, 9],
@@ -234,12 +234,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=reference_timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[3, 5],
                         )
-                    ],
+                    },
                     energy_usage=[0, 0],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[0, 0],
@@ -249,11 +249,9 @@ class TestDeltaProfile:
         )
 
         other_model = deepcopy(reference_model)
-        other_model.components[0].emissions.append(
-            SimpleEmissionResult(
-                name="methane",
-                rate=[3, 5],
-            )
+        other_model.components[0].emissions["methane"] = SimpleEmissionResult(
+            name="methane",
+            rate=[3, 5],
         )
 
         other_model, reference_model, delta_profile, errors = SimpleResultData.delta_profile(
@@ -269,16 +267,16 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=reference_timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[0, 0],
                         ),
-                        SimpleEmissionResult(
+                        "methane": SimpleEmissionResult(
                             name="methane",
                             rate=[3, 5],
                         ),
-                    ],
+                    },
                     energy_usage=[0, 0],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[0, 0],
@@ -298,12 +296,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[None, 4, 5],
                         )
-                    ],
+                    },
                     energy_usage=[None, 3, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[7, None, 9],
@@ -321,12 +319,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[6, None, 10],
                         )
-                    ],
+                    },
                     energy_usage=[4, None, 8],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[None, 16, 18],
@@ -348,12 +346,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[6, -4, 5],
                         )
-                    ],
+                    },
                     energy_usage=[4, -3, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[-7, 16, 9],
@@ -373,12 +371,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[3, 4, 5],
                         )
-                    ],
+                    },
                     energy_usage=[2, 3, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[7, 8, 9],
@@ -401,12 +399,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[0, 0, 0],
                         )
-                    ],
+                    },
                     energy_usage=[0, 0, 0],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[0, 0, 0],
@@ -430,12 +428,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=reference_timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[3, 5],
                         )
-                    ],
+                    },
                     energy_usage=[2, 4],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[7, 9],
@@ -455,12 +453,12 @@ class TestDeltaProfile:
                     componentType=ComponentType.COMPRESSOR,
                     component_level=ComponentLevel.CONSUMER,
                     timesteps=changed_timesteps,
-                    emissions=[
-                        SimpleEmissionResult(
+                    emissions={
+                        "co2": SimpleEmissionResult(
                             name="co2",
                             rate=[6, 8, 10],
                         )
-                    ],
+                    },
                     energy_usage=[4, 6, 8],
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                     power=[14, 16, 18],
@@ -485,4 +483,4 @@ class TestDeltaProfile:
         assert component.energy_usage[interpolated_index] == pytest.approx(3, rel=0.1)
         assert component.power[interpolated_index] == pytest.approx(8, rel=0.1)
         assert not component.is_valid[interpolated_index]
-        assert component.emissions[0].rate[interpolated_index] == pytest.approx(4, rel=0.1)
+        assert component.emissions["co2"].rate[interpolated_index] == pytest.approx(4, rel=0.1)

@@ -44,8 +44,7 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
     emission_results = energy_calculator.evaluate_emissions(variables_map=variables, consumer_results=consumer_results)
 
     genset_emissions = emission_results[genset_2mw_dto.id]
-    emission_names = [emission.name for emission in genset_emissions]
-    assert genset_emissions[emission_names.index("co2")].rate.values == [0.001, 0.002, 0.002, 0, 0, 0]
+    assert genset_emissions["co2"].rate.values == [0.001, 0.002, 0.002, 0, 0, 0]
     assert generator_set_result.timesteps == time_vector
 
 
