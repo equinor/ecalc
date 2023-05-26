@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 import libecalc.dto.components
 import numpy as np
@@ -71,8 +71,8 @@ class EnergyCalculator:
 
     def evaluate_emissions(
         self, variables_map: dto.VariablesMap, consumer_results: Dict[str, EcalcModelResult]
-    ) -> Dict[str, List[EmissionResult]]:
-        emission_results: Dict[str, List[EmissionResult]] = {}
+    ) -> Dict[str, Dict[str, EmissionResult]]:
+        emission_results: Dict[str, Dict[str, EmissionResult]] = {}
         for consumer_dto in self._graph.components.values():
             if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)):
                 fuel_model = FuelModel(consumer_dto.fuel)

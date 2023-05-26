@@ -22,8 +22,7 @@ def test_direct_emitter(variables_map, temporal_emitter_model):
 
     emissions = direct_emitter.evaluate(variables_map=variables_map)
 
-    emission_names = [emission.name for emission in emissions]
-    emissions_ch4 = emissions[emission_names.index("ch4")]
+    emissions_ch4 = emissions["ch4"]
     np.testing.assert_allclose(emissions_ch4.tax.values, 0)
 
     # Two first time steps using emitter_emission_function

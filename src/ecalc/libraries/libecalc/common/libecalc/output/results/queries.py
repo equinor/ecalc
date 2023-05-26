@@ -148,7 +148,7 @@ class EmissionQuery(Query):
 
                         emissions = installation_graph.get_emissions(fuel_consumer.id)
 
-                        for emission in emissions:
+                        for emission in emissions.values():
                             emission_volumes = emission.rate.for_period(period).to_volumes()
                             unit_in = emission_volumes.unit
                             for timestep, emission_volume in emission_volumes.datapoints():
