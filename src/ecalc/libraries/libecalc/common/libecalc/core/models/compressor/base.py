@@ -18,6 +18,7 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.core.models.turbine import TurbineModel
+from numpy.typing import NDArray
 
 
 class CompressorModel(BaseModel):
@@ -26,9 +27,9 @@ class CompressorModel(BaseModel):
     @abstractmethod
     def get_max_standard_rate(
         self,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-    ) -> np.ndarray:
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """Get the maximum standard flow rate [Sm3/day] for the compressor train. This method is valid for compressor
         trains where there are a single input stream and no streams are added or removed in the train.
 
@@ -41,9 +42,9 @@ class CompressorModel(BaseModel):
     @abstractmethod
     def evaluate_rate_ps_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> CompressorTrainResult:
         """Evaluate the compressor model and get rate, suction pressure and discharge pressure.
 
@@ -55,11 +56,17 @@ class CompressorModel(BaseModel):
 
     @staticmethod
     def _validate_operational_conditions(
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
-        intermediate_pressure: Optional[np.ndarray] = None,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[CompressorTrainCommonShaftFailureStatus]]:
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        intermediate_pressure: Optional[NDArray[np.float64]] = None,
+    ) -> Tuple[
+        NDArray[np.float64],
+        NDArray[np.float64],
+        NDArray[np.float64],
+        NDArray[np.float64],
+        List[CompressorTrainCommonShaftFailureStatus],
+    ]:
         """
         Checks for negative or zero values in the input values to the compressor train.
 
@@ -183,9 +190,9 @@ class CompressorWithTurbineModel(CompressorModel):
 
     def evaluate_rate_ps_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> CompressorTrainResult:
         return self.evaluate_turbine_based_on_compressor_model_result(
             compressor_energy_function_result=self.compressor_model.evaluate_rate_ps_pd(
@@ -197,10 +204,10 @@ class CompressorWithTurbineModel(CompressorModel):
 
     def evaluate_rate_ps_pint_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        intermediate_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        intermediate_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> CompressorTrainResult:
         return self.evaluate_turbine_based_on_compressor_model_result(
             compressor_energy_function_result=self.compressor_model.evaluate_rate_ps_pint_pd(
@@ -245,7 +252,9 @@ class CompressorWithTurbineModel(CompressorModel):
             discharge_pressure=np.asarray([discharge_pressure]),
         ).power[0] - (max_power - POWER_CALCULATION_TOLERANCE)
 
-    def get_max_standard_rate(self, suction_pressures: np.ndarray, discharge_pressures: np.ndarray) -> np.ndarray:
+    def get_max_standard_rate(
+        self, suction_pressures: NDArray[np.float64], discharge_pressures: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         """Validate that the compressor has enough power to handle the set maximum standard rate.
         If there is insufficient power find new maximum rate.
         """

@@ -7,9 +7,10 @@ from typing import Callable, Dict, TypeVar, Union
 
 import numpy as np
 from libecalc.common.logger import logger
+from numpy.typing import NDArray
 from pydantic.validators import enum_validator
 
-TInput = TypeVar("TInput", bound=Union[int, float, np.ndarray, list])
+TInput = TypeVar("TInput", bound=Union[int, float, NDArray[np.float64], list])
 
 
 def _type_handler(unit_func: Callable[[TInput], TInput]) -> Callable[[TInput], TInput]:

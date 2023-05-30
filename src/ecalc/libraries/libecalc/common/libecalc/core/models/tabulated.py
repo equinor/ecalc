@@ -11,6 +11,7 @@ from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
+from numpy.typing import NDArray
 from pydantic import BaseModel as PydanticBaseModel
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
@@ -18,7 +19,7 @@ from scipy.interpolate import LinearNDInterpolator, interp1d
 class ConsumerTabularEnergyFunction(BaseModel):
     def __init__(
         self,
-        function_values: np.ndarray,
+        function_values: NDArray[np.float64],
         variables: List[Variable],
         energy_usage_adjustment_constant: float = 0.0,
         energy_usage_adjustment_factor: float = 1.0,
@@ -94,7 +95,7 @@ class VariableExpression(PydanticBaseModel):
 
 class Variable(PydanticBaseModel):
     name: str
-    values: np.ndarray
+    values: NDArray[np.float64]
 
     class Config:
         arbitrary_types_allowed = True

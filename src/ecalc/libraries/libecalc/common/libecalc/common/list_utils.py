@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union, cast
 
 import numpy as np
 from numpy import float64
+from numpy.typing import NDArray
 
 """
 NOTE! A "list util" class is not the best, but maybe we should try to
@@ -56,7 +57,9 @@ def group_data_by_value_at_index(index: int, row_based_data: List[List[Any]]) ->
     return chart_grouped_by_index
 
 
-def elementwise_sum(*vectors: Sequence[Optional[float]], timesteps: Optional[List[datetime]] = None) -> np.ndarray:
+def elementwise_sum(
+    *vectors: Sequence[Optional[float]], timesteps: Optional[List[datetime]] = None
+) -> NDArray[np.float64]:
     """Sum up multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1+2+1,20+10+30] = [4,60]
@@ -81,7 +84,7 @@ def elementwise_sum(*vectors: Sequence[Optional[float]], timesteps: Optional[Lis
 
 def elementwise_multiplication(
     *vectors: Sequence[Optional[float]], timesteps: Optional[List[datetime]] = None
-) -> np.ndarray:
+) -> NDArray[np.float64]:
     """Multiply multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1*2*1,20*10*30] = [2,6000]
@@ -104,7 +107,7 @@ def elementwise_multiplication(
     return result
 
 
-def array_to_list(result_array: Union[np.ndarray, List[np.ndarray], None]) -> Optional[List]:
+def array_to_list(result_array: Union[NDArray[np.float64], List[NDArray[np.float64]], None]) -> Optional[List]:
     """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recurrsivly on lists so needs to handle None aswell.
 
     Args:

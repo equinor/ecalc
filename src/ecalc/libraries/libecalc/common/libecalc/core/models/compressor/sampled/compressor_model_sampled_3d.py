@@ -15,6 +15,7 @@ from libecalc.core.models.compressor.sampled.convex_hull_common import (
     get_lower_upper_qhull,
     sort_ndarray_by_column,
 )
+from numpy.typing import NDArray
 from scipy.interpolate import LinearNDInterpolator, interp1d
 from scipy.spatial import ConvexHull, Delaunay
 
@@ -244,7 +245,7 @@ class CompressorModelSampled3D:
             pd_axis=self.pd_axis,
         )
 
-    def get_max_rate(self, ps: Union[np.ndarray, float], pd: Union[np.ndarray, float]):
+    def get_max_rate(self, ps: Union[NDArray[np.float64], float], pd: Union[NDArray[np.float64], float]):
         if self._maximum_rate_function is None:
             self._setup_projection_functions_for_max_rate()  # Todo: Define this function?
 
@@ -263,9 +264,9 @@ class CompressorModelSampled3D:
 
     def evaluate(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ):
         rate_scaled = rate / self._scale_factor_rate if self._do_rescale else rate
 
@@ -297,7 +298,7 @@ class CompressorModelSampled3D:
         return energy_consumption
 
     def _project_variables_for_evaluation(
-        self, rate: np.ndarray, suction_pressure: np.ndarray, discharge_pressure: np.ndarray
+        self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
     ):
         """Project rate, suction pressure (ps) and discharge pressure (pd) given in x
         to the 3D convex hull of the points in lower_rate_points for ps larger than
@@ -336,7 +337,7 @@ class CompressorModelSampled3D:
         return rate, suction_pressure, discharge_pressure
 
     def _project_and_calculate_outsiders_rate(
-        self, rate: np.ndarray, suction_pressure: np.ndarray, discharge_pressure: np.ndarray
+        self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
     ):
         # Find indices where rates are below minimum rates
         # and use minimum_rate_energy_function to evaluate
@@ -379,7 +380,7 @@ class CompressorModelSampled3D:
         return energy_consumption
 
     def _project_and_calculate_outsiders_pd(
-        self, rate: np.ndarray, suction_pressure: np.ndarray, discharge_pressure: np.ndarray
+        self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
     ):
         # Find indices where discharge pressures are below minimum
         # and use minimum_pd_energy_function to evaluate
@@ -404,7 +405,7 @@ class CompressorModelSampled3D:
         return energy_consumption
 
     def _project_and_calculate_outsiders_ps(
-        self, rate: np.ndarray, suction_pressure: np.ndarray, discharge_pressure: np.ndarray
+        self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
     ):
         # Find indices where suction pressyres are above maximum
         # and use maximum_ps_energy_function to evaluate
@@ -430,8 +431,8 @@ class CompressorModelSampled3D:
 
 
 def _convert_variables_for_interpolator(
-    rate: np.ndarray, suction_pressure: np.ndarray, discharge_pressure: np.ndarray
-) -> np.ndarray:
+    rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
+) -> NDArray[np.float64]:
     """Join a sequence of arrays along the last axis.
 
     Args:
@@ -449,8 +450,8 @@ def _get_maximum_rates(
     upper_rate_qh_lower_pd_function: interp1d,
     upper_rate_qh_upper_ps_function: interp1d,
     maximum_rate_function: LinearInterpolatorSimplicesDefined,
-    suction_pressure: np.ndarray,
-    discharge_pressure: np.ndarray,
+    suction_pressure: NDArray[np.float64],
+    discharge_pressure: NDArray[np.float64],
 ):
     pd_projected = np.fmax(discharge_pressure, upper_rate_qh_lower_pd_function(suction_pressure))
     ps_projected = np.fmin(suction_pressure, upper_rate_qh_upper_ps_function(pd_projected))
@@ -463,9 +464,9 @@ def _get_minimum_rates(
     lower_rate_qh_lower_pd_function: interp1d,
     lower_rate_qh_upper_ps_function: interp1d,
     minimum_rate_function: LinearInterpolatorSimplicesDefined,
-    suction_pressure: Union[np.ndarray, List[float]],
-    discharge_pressure: Union[np.ndarray, List[float]],
-) -> Tuple[np.ndarray, np.ndarray, LinearInterpolatorSimplicesDefined]:
+    suction_pressure: Union[NDArray[np.float64], List[float]],
+    discharge_pressure: Union[NDArray[np.float64], List[float]],
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], LinearInterpolatorSimplicesDefined]:
     pd_projected = np.fmax(discharge_pressure, lower_rate_qh_lower_pd_function(suction_pressure))
     ps_projected = np.fmin(suction_pressure, lower_rate_qh_upper_ps_function(pd_projected))
     minimum_rates = minimum_rate_function(ps_projected, pd_projected)
@@ -477,8 +478,8 @@ def _get_maximum_ps(
     upper_ps_qh_lower_rate_function: interp1d,
     upper_ps_qh_lower_pd_function: interp1d,
     maximum_ps_function: LinearInterpolatorSimplicesDefined,
-    rate: np.ndarray,
-    discharge_pressure: np.ndarray,
+    rate: NDArray[np.float64],
+    discharge_pressure: NDArray[np.float64],
 ):
     rate_projected = np.fmax(rate, upper_ps_qh_lower_rate_function(discharge_pressure))
     pd_projected = np.fmax(discharge_pressure, upper_ps_qh_lower_pd_function(rate_projected))
@@ -491,8 +492,8 @@ def _get_minimum_pd(
     lower_pd_qh_lower_rate_function: interp1d,
     lower_pd_qh_upper_ps_function: interp1d,
     minimum_pd_function: LinearInterpolatorSimplicesDefined,
-    rate: np.ndarray,
-    suction_pressure: np.ndarray,
+    rate: NDArray[np.float64],
+    suction_pressure: NDArray[np.float64],
 ):
     """Function which projects an input point (rate, ps, pd) according to ASV and choking
     mechanisms. The main projection is wrt discharge pressure.
@@ -508,9 +509,9 @@ def _project_on_rate(
     lower_rate_qh_lower_pd_function: interp1d,
     lower_rate_qh_upper_ps_function: interp1d,
     minimum_rate_function: LinearInterpolatorSimplicesDefined,
-    rate: np.ndarray,
-    suction_pressure: np.ndarray,
-    discharge_pressure: np.ndarray,
+    rate: NDArray[np.float64],
+    suction_pressure: NDArray[np.float64],
+    discharge_pressure: NDArray[np.float64],
 ):
     """Function which projects an input point (rate, ps, pd) according to ASV and choking
     mechanisms. The main projection is wrt rate.
@@ -530,9 +531,9 @@ def _project_on_pd(
     lower_pd_qh_lower_rate_function: interp1d,
     lower_pd_qh_upper_ps_function: interp1d,
     minimum_pd_function: LinearInterpolatorSimplicesDefined,
-    rate: np.ndarray,
-    suction_pressure: np.ndarray,
-    discharge_pressure: np.ndarray,
+    rate: NDArray[np.float64],
+    suction_pressure: NDArray[np.float64],
+    discharge_pressure: NDArray[np.float64],
 ):
     """Function which projects an input point (rate, ps, pd) according to ASV and choking
     mechanisms. The main projection is wrt discharge pressure.
@@ -548,9 +549,9 @@ def _project_on_ps(
     upper_ps_qh_lower_rate_function: interp1d,
     upper_ps_qh_lower_pd_function: interp1d,
     maximum_ps_function: LinearInterpolatorSimplicesDefined,
-    rate: np.ndarray,
-    suction_pressure: np.ndarray,
-    discharge_pressure: np.ndarray,
+    rate: NDArray[np.float64],
+    suction_pressure: NDArray[np.float64],
+    discharge_pressure: NDArray[np.float64],
 ):
     """Function which projects an input point (rate, ps, pd) according to ASV and choking
     mechanisms. The main projection is wrt suction pressure.

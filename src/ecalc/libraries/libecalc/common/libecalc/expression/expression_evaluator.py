@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from libecalc.common.logger import logger
+from numpy.typing import NDArray
 from pydantic import BaseModel
 
 """
@@ -40,7 +41,7 @@ Example: SIM2;OIL_PROD:SC-102 {*} 2.0 {-} SIM1;OIL_PROD {+} SIM3:OIL_PROD_TOTAL:
 """
 
 
-def eval_tokens(tokens: List[Token], array_length: int) -> np.ndarray:
+def eval_tokens(tokens: List[Token], array_length: int) -> NDArray[np.float64]:
     token_values = [token.value for token in tokens]
     check_tokens(token_values)
 
@@ -55,9 +56,9 @@ def eval_tokens(tokens: List[Token], array_length: int) -> np.ndarray:
 
 
 def eval_parenteses(
-    tokens: List[Union[float, int, bool, np.ndarray, str]],
+    tokens: List[Union[float, int, bool, NDArray[np.float64], str]],
     original_expression: Optional[str] = None,
-) -> Union[np.ndarray, Number]:
+) -> Union[NDArray[np.float64], Number]:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         while tokens.count("(") or tokens.count(")"):
@@ -221,7 +222,7 @@ def eval_value(tokens):
     numpattern = r"[0-9.]+"
     regexnumber = re.compile(numpattern)
 
-    if type(tokens) is np.ndarray:
+    if type(tokens) is NDArray[np.float64]:
         var = tokens[0]
     elif len(tokens) < 1:
         raise ValueError(f"expression_evaluator: I can not evaluate {tokens}")
@@ -386,7 +387,7 @@ class Operators(Enum):
 
 class Token(BaseModel):
     tag: TokenTag
-    value: Union[float, int, bool, np.ndarray, str]
+    value: Union[float, int, bool, NDArray[np.float64], str]
 
     def __str__(self):
         return str(self.value)

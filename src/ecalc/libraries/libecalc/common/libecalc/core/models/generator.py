@@ -1,5 +1,6 @@
 import numpy as np
 from libecalc import dto
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 
@@ -15,11 +16,11 @@ class GeneratorModelSampled:
             bounds_error=False,
         )
 
-    def evaluate(self, x: np.ndarray) -> np.ndarray:
+    def evaluate(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         """Ensure zero power consumption return zero fuel consumption. I.e. equipment is turned off."""
         return np.where(x > 0, self._func(x), 0.0)
 
-    def evaluate_power_capacity_margin(self, x: np.ndarray) -> np.ndarray:
+    def evaluate_power_capacity_margin(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         """Calculate the capacity margin on the el2fuel function if using sampled data.
         If using el2fuel factor, there is no margin.
 
@@ -27,4 +28,4 @@ class GeneratorModelSampled:
             max sampled power is 50, and you require 40 -> 50 - 40 = 10.
             max sampled power is 50, and you require 60 -> 50 - 60 = -10
         """
-        return self._func.x.max() - x
+        return np.full_like(x, fill_value=self._func.x.max(), dtype=np.float64) - x

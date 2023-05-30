@@ -9,6 +9,7 @@ from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.dto.types import EoSModel
 from neqsim_ecalc_wrapper import NeqsimEoSModelType, NeqsimFluid
+from numpy.typing import NDArray
 
 _map_eos_model_to_neqsim = {
     EoSModel.SRK: NeqsimEoSModelType.SRK,
@@ -124,12 +125,19 @@ class FluidStream:
 
         return component_dict
 
-    def standard_to_mass_rate(self, standard_rates: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+    def standard_to_mass_rate(
+        self, standard_rates: Union[NDArray[np.float64], float]
+    ) -> Union[NDArray[np.float64], float]:
         """Sm3/day to kg/h. Standard conditions are 15C at 1atm = 1.01325 bara."""
         mass_rate_kg_per_hour = standard_rates * self.standard_conditions_density / UnitConstants.HOURS_PER_DAY
-        return mass_rate_kg_per_hour
+        if isinstance(mass_rate_kg_per_hour, np.ndarray):
+            return np.array(mass_rate_kg_per_hour)
+        else:
+            return float(mass_rate_kg_per_hour)
 
-    def mass_rate_to_standard_rate(self, mass_rate_kg_per_hour: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+    def mass_rate_to_standard_rate(
+        self, mass_rate_kg_per_hour: Union[NDArray[np.float64], float]
+    ) -> Union[NDArray[np.float64], float]:
         """Convert mass rate from kg/h to Sm3/day.
 
         Args:
@@ -139,8 +147,13 @@ class FluidStream:
             Mass rates in Sm3/day
 
         """
-        fluid_density_standard_conditions = self.standard_conditions_density
-        return mass_rate_kg_per_hour * UnitConstants.HOURS_PER_DAY / fluid_density_standard_conditions
+        standard_rate_kg_per_hour = (
+            mass_rate_kg_per_hour / self.standard_conditions_density * UnitConstants.HOURS_PER_DAY
+        )
+        if isinstance(standard_rate_kg_per_hour, np.ndarray):
+            return np.array(standard_rate_kg_per_hour)
+        else:
+            return float(standard_rate_kg_per_hour)
 
     def get_fluid_stream(self, pressure_bara: float, temperature_kelvin: float) -> FluidStream:
         """Return a fluid stream for given pressure and temperature
@@ -157,7 +170,9 @@ class FluidStream:
             fluid_model=self.fluid_model, pressure_bara=pressure_bara, temperature_kelvin=temperature_kelvin
         )
 
-    def get_fluid_streams(self, pressure_bara: np.ndarray, temperature_kelvin: np.ndarray) -> List[FluidStream]:
+    def get_fluid_streams(
+        self, pressure_bara: NDArray[np.float64], temperature_kelvin: NDArray[np.float64]
+    ) -> List[FluidStream]:
         """Get multiple fluid streams from multiple temperatures and pressures
 
         Args:
