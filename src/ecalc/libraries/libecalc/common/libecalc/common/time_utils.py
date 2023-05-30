@@ -9,10 +9,10 @@ import numpy as np
 import pandas as pd
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.units import UnitConstants
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 
-def calculate_delta_days(time_vector: ArrayLike) -> np.ndarray:
+def calculate_delta_days(time_vector: ArrayLike) -> NDArray[np.float64]:
     return np.array([x.total_seconds() / UnitConstants.SECONDS_IN_A_DAY for x in np.diff(time_vector)])
 
 

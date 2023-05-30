@@ -14,17 +14,18 @@ import numpy as np
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
+from numpy.typing import NDArray
 
 
 def calculate_enthalpy_change_head_iteration(
-    inlet_pressure: np.ndarray,
-    outlet_pressure: np.ndarray,
-    inlet_temperature_kelvin: np.ndarray,
+    inlet_pressure: NDArray[np.float64],
+    outlet_pressure: NDArray[np.float64],
+    inlet_temperature_kelvin: NDArray[np.float64],
     polytropic_efficiency_vs_rate_and_head_function: Callable,
     molar_mass: float,
     inlet_streams: List[FluidStream],
-    inlet_actual_rate_m3_per_hour: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+    inlet_actual_rate_m3_per_hour: NDArray[np.float64],
+) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
     """:param inlet_pressure: Inlet pressure array [bara]
     :param outlet_pressure: Outlet pressure array [bara]
     :param inlet_temperature_kelvin: Inlet temperature array [K]
@@ -119,13 +120,13 @@ def calculate_enthalpy_change_head_iteration(
 
 
 def calculate_polytropic_head_campbell(
-    polytropic_efficiency: Union[float, np.ndarray],
-    kappa: Union[float, np.ndarray],
-    z: Union[float, np.ndarray],
-    molar_mass: Union[float, np.ndarray],
-    pressure_ratios: Union[np.ndarray, float],
-    temperatures_kelvin: Union[float, np.ndarray],
-) -> Union[np.ndarray, float]:
+    polytropic_efficiency: Union[float, NDArray[np.float64]],
+    kappa: Union[float, NDArray[np.float64]],
+    z: Union[float, NDArray[np.float64]],
+    molar_mass: Union[float, NDArray[np.float64]],
+    pressure_ratios: Union[NDArray[np.float64], float],
+    temperatures_kelvin: Union[float, NDArray[np.float64]],
+) -> Union[NDArray[np.float64], float]:
     """Calculate head from pressure ratio based on "generic gas composition/temperature"
     Output unit in Joule per kg.
 
@@ -152,12 +153,12 @@ def calculate_polytropic_head_campbell(
 
 
 def _calculate_head(
-    exponent_expression: Union[float, np.ndarray],
-    temperature_kelvin: Union[float, np.ndarray],
-    pressure_ratio: Union[float, np.ndarray],
-    z: Union[float, np.ndarray],
-    molar_mass: Union[float, np.ndarray],
-) -> np.ndarray:
+    exponent_expression: Union[float, NDArray[np.float64]],
+    temperature_kelvin: Union[float, NDArray[np.float64]],
+    pressure_ratio: Union[float, NDArray[np.float64]],
+    z: Union[float, NDArray[np.float64]],
+    molar_mass: Union[float, NDArray[np.float64]],
+) -> NDArray[np.float64]:
     """Calculate head [J/kg].
 
     :param exponent_expression:
@@ -165,7 +166,7 @@ def _calculate_head(
     :param pressure_ratio: Pressure ratios between stages
     :param z: Compressability
     """
-    return (
+    return np.array(
         1
         / exponent_expression
         * (z * UnitConstants.GAS_CONSTANT * temperature_kelvin)
@@ -175,9 +176,9 @@ def _calculate_head(
 
 
 def _calculate_polytropic_exponent_expression_n_minus_1_over_n(
-    kappa: Union[float, np.ndarray],
-    polytropic_efficiency: Union[float, np.ndarray],
-) -> Union[float, np.ndarray]:
+    kappa: Union[float, NDArray[np.float64]],
+    polytropic_efficiency: Union[float, NDArray[np.float64]],
+) -> Union[float, NDArray[np.float64]]:
     """https://www.jmcampbell.com/tip-of-the-month/2011/11/compressor-calculations-rigorous-using-equation-of-state-vs-shortcut-method/ Eqn 6  # noqa
     Calculate (n-1)/n where n is the polytropic exponent.
     Use float64 to avoid ZeroDivisonError and rather get Inf.
@@ -191,14 +192,14 @@ def _calculate_polytropic_exponent_expression_n_minus_1_over_n(
 
 
 def calculate_outlet_pressure_campbell(
-    kappa: Union[float, np.ndarray],
-    polytropic_efficiency: Union[float, np.ndarray],
-    polytropic_head_fluid_Joule_per_kg: Union[float, np.ndarray],
-    molar_mass: Union[float, np.ndarray],
-    z_inlet: Union[float, np.ndarray],
-    inlet_temperature_K: Union[float, np.ndarray],
-    inlet_pressure_bara: Union[float, np.ndarray],
-) -> Union[float, np.ndarray]:
+    kappa: Union[float, NDArray[np.float64]],
+    polytropic_efficiency: Union[float, NDArray[np.float64]],
+    polytropic_head_fluid_Joule_per_kg: Union[float, NDArray[np.float64]],
+    molar_mass: Union[float, NDArray[np.float64]],
+    z_inlet: Union[float, NDArray[np.float64]],
+    inlet_temperature_K: Union[float, NDArray[np.float64]],
+    inlet_pressure_bara: Union[float, NDArray[np.float64]],
+) -> Union[float, NDArray[np.float64]]:
     """Calculate outlet pressure of polytropic compressor based on
     https://www.jmcampbell.com/tip-of-the-month/2011/11/compressor-calculations-rigorous-using-equation-of-state-vs-shortcut-method/ Eqn 3B  # noqa.
 
@@ -226,4 +227,7 @@ def calculate_outlet_pressure_campbell(
     ) ** (n_over_n_minus_1)
     outlet_pressure_bara = inlet_pressure_bara * p2_p1_fraction
 
-    return outlet_pressure_bara
+    if isinstance(outlet_pressure_bara, np.ndarray):
+        return np.array(outlet_pressure_bara)
+    else:
+        return float(outlet_pressure_bara)

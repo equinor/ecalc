@@ -27,6 +27,7 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto.types import FixedSpeedPressureControl
+from numpy.typing import NDArray
 
 EPSILON = 1e-5
 # Assume pressure needs to be above 1 bara. We can't choke to lower pressure than the environment.
@@ -67,9 +68,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_rate_ps_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         mass_rate_kg_per_hour = self.fluid.standard_to_mass_rate(standard_rates=rate)
 
@@ -210,9 +211,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-    ) -> np.ndarray:
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at."""
         valid_idx = np.where(suction_pressures > 0, 1, 0)
         suction_pressures = np.where(valid_idx, suction_pressures, 1)
@@ -238,8 +239,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
             max_mass_rates.append(max_mass_rate)
 
-        return self.fluid.mass_rate_to_standard_rate(
-            mass_rate_kg_per_hour=np.where(valid_idx, np.array(max_mass_rates), np.nan)
+        return np.array(
+            self.fluid.mass_rate_to_standard_rate(
+                mass_rate_kg_per_hour=np.where(valid_idx, np.array(max_mass_rates), np.nan)
+            )
         )
 
     def _get_max_mass_rate_single_timestep(

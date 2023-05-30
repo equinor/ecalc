@@ -10,15 +10,16 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
 from libecalc.core.models.results.base import EnergyFunctionResult
+from numpy.typing import NDArray
 from pydantic import BaseModel
 
 
 class ConditionsAndPowerLossResult(NamedTuple):
-    condition: np.ndarray
-    power_loss_factor: np.ndarray
-    energy_usage_after_condition_before_power_loss_factor: np.ndarray
-    resulting_energy_usage: np.ndarray
-    resulting_power_usage: Optional[np.ndarray]
+    condition: NDArray[np.float64]
+    power_loss_factor: NDArray[np.float64]
+    energy_usage_after_condition_before_power_loss_factor: NDArray[np.float64]
+    resulting_energy_usage: NDArray[np.float64]
+    resulting_power_usage: Optional[NDArray[np.float64]]
 
 
 class ConsumerFunctionResultBase(BaseModel):
@@ -30,16 +31,16 @@ class ConsumerFunctionResultBase(BaseModel):
 
     typ: ConsumerFunctionType
 
-    time_vector: np.ndarray
-    is_valid: np.ndarray
-    energy_usage: np.ndarray
-    energy_usage_before_power_loss_factor: Optional[np.ndarray]
-    condition: Optional[np.ndarray]
-    power_loss_factor: Optional[np.ndarray]
+    time_vector: NDArray[np.float64]
+    is_valid: NDArray[np.float64]
+    energy_usage: NDArray[np.float64]
+    energy_usage_before_power_loss_factor: Optional[NDArray[np.float64]]
+    condition: Optional[NDArray[np.float64]]
+    power_loss_factor: Optional[NDArray[np.float64]]
     energy_function_result: Optional[Union[EnergyFunctionResult, List[EnergyFunctionResult]]]
 
     # New! to support fuel to power rate...for e.g. compressors emulating turbine
-    power: Optional[np.ndarray]
+    power: Optional[NDArray[np.float64]]
 
     class Config:
         arbitrary_types_allowed = True

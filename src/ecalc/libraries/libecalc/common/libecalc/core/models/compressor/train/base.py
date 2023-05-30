@@ -18,6 +18,7 @@ from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTr
 from libecalc.dto.models.compressor.train import (
     SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
 )
+from numpy.typing import NDArray
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 
@@ -57,9 +58,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def evaluate_rate_ps_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> CompressorTrainResult:
         """Evaluate compressor train total power given rate, suction pressure and discharge pressure.
 
@@ -141,7 +142,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         feature_description="Maximum power constraint is an experimental feature where the syntax may change at any time."
     )
     def adjust_train_results_for_maximum_power(
-        self, train_results: List[CompressorTrainResultSingleTimeStep], power: np.ndarray
+        self, train_results: List[CompressorTrainResultSingleTimeStep], power: NDArray[np.float64]
     ) -> List[CompressorTrainResultSingleTimeStep]:
         if self.data_transfer_object.maximum_power is not None:
             for power_adjusted, train_result in zip(power, train_results):
@@ -152,9 +153,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
     @abstractmethod
     def _evaluate_rate_ps_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """:param rate: Rate in [Sm3/day]
         :param suction_pressure: Suction pressure in [bara]
@@ -164,9 +165,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def calculate_pressure_ratios_per_stage(
         self,
-        suction_pressure: Union[np.ndarray, float],
-        discharge_pressure: Union[np.ndarray, float],
-    ) -> Union[np.ndarray, float]:
+        suction_pressure: Union[NDArray[np.float64], float],
+        discharge_pressure: Union[NDArray[np.float64], float],
+    ) -> Union[NDArray[np.float64], float]:
         """Given the number of compressors, and based on the assumption that all compressors have the same pressure ratio,
         compute all pressure ratios.
         """
