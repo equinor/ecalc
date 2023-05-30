@@ -22,12 +22,14 @@ from libecalc.core.consumers.compressor import Compressor
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.result import ConsumerSystemResult, EcalcModelResult
+from libecalc.core.result.results import GenericComponentResult
 from libecalc.dto import VariablesMap
 from libecalc.dto.components import ConsumerComponent
 from libecalc.dto.core_specs.compressor.operational_settings import (
     CompressorOperationalSettings,
 )
 from libecalc.dto.core_specs.pump.operational_settings import PumpOperationalSettings
+from libecalc.dto.result import ConsumerModelResult
 
 Consumer = TypeVar("Consumer", bound=Union[Compressor, Pump])
 ConsumerOperationalSettings = TypeVar(
@@ -48,37 +50,43 @@ class SystemOperationalSettings(Protocol):
 
 
 class ConsumerSystem(BaseConsumer):
+    """
+    A system of possibly interdependent consumers and or other consumer systems.
+
+    The motivation behind this construct is to enable simple heuristic optimization of operations by for example
+    switching equipment on or off depending on operational characteristics such as rate of liquid entering a system
+    of compressors. E.g. we have 2 compressors and the rate drops to a level that can be handled by a single compressor
+    for a period of time -> Turn of compressor #2, and vice versa.
+    """
+
     def __init__(self, id: str, consumers: List[ConsumerComponent]):
         self.id = id
         self._consumers = [create_consumer(consumer) for consumer in consumers]
 
-    @staticmethod
     def _get_operational_settings_adjusted_for_crossover(
+        self,
         operational_setting: SystemOperationalSettings,
-        consumers: List[Consumer],
         variables_map: VariablesMap,
     ) -> List[ConsumerOperationalSettings]:
-        """Calculate operational settings for the current consumer, accounting for potential crossover from previous
-        consumers.
-
-        Todo: add unit test of this section. May consider to split this method since it is pretty big.
         """
-        original_consumer_order_map = {consumer.id: consumer_index for consumer_index, consumer in enumerate(consumers)}
+        Calculate operational settings for the current consumer, accounting for potential crossover from previous
+        consumers.
+        """
         sorted_consumers = ConsumerSystem._topologically_sort_consumers_by_crossover(
             crossover=operational_setting.crossover,
-            consumers=consumers,
+            consumers=self._consumers,
         )
         adjusted_operational_settings = []
 
         crossover_rates_map: Dict[int, List[List[float]]] = {
-            consumer_index: [] for consumer_index in range(len(consumers))
+            consumer_index: [] for consumer_index in range(len(self._consumers))
         }
 
         # Converting from index 1 to index 0.
         crossover = [crossover_flow_to_index - 1 for crossover_flow_to_index in operational_setting.crossover]
 
         for consumer in sorted_consumers:
-            consumer_index = original_consumer_order_map[consumer.id]
+            consumer_index = self._consumers.index(consumer)
             consumer_operational_settings: ConsumerOperationalSettings = (
                 operational_setting.get_consumer_operational_settings(
                     consumer_index, timesteps=variables_map.time_vector
@@ -89,7 +97,7 @@ class ConsumerSystem(BaseConsumer):
             crossover_to = crossover[consumer_index]
             has_crossover_out = crossover_to >= 0
             if has_crossover_out:
-                consumer = consumers[consumer_index]
+                consumer = self._consumers[consumer_index]
                 max_rate = consumer.get_max_rate(consumer_operational_settings)
 
                 crossover_rate, rates = ConsumerSystem._get_crossover_rates(max_rate, rates)
@@ -106,14 +114,9 @@ class ConsumerSystem(BaseConsumer):
             ]
             adjusted_operational_settings.append(consumer_operational_settings)
 
-        adjusted_operational_settings_original_order = [
-            setting
-            for setting, _ in sorted(
-                zip(adjusted_operational_settings, sorted_consumers), key=lambda x: original_consumer_order_map[x[1].id]
-            )
-        ]
-
-        return adjusted_operational_settings_original_order
+        # This is a hack to return operational settings in the original order of the consumers. This way we can
+        # compare the results of Consumer System V1 and V2.
+        return [adjusted_operational_settings[sorted_consumers.index(consumer)] for consumer in self._consumers]
 
     def evaluate(
         self,
@@ -125,137 +128,129 @@ class ConsumerSystem(BaseConsumer):
         to the last operational setting if all settings fails.
 
         Notes:
-            - We use 1-indexed operational settings output. Should consider to change this to something else.
-
-        Fixme: Regularity and units are correct by chance. We need to carry this information explicitly.
-        Todo: Need to validate energy usage units (stream day vs. calendar day).
-        Todo: We are missing model results for each operational setting tested....
-            Since we will abandon model results, we could just output all single operational settings results
-            into a big ball og mud in the models result?
+            - We use 1-indexed operational settings output. We should consider changing this to default 0-index, and
+                only convert when presenting results to the end-user.
         """
         is_valid = TimeSeriesBoolean(
             timesteps=variables_map.time_vector, values=[False] * len(variables_map.time_vector), unit=Unit.NONE
         )
-        energy_usage = TimeSeriesRate(
-            timesteps=variables_map.time_vector,
-            values=[0] * len(variables_map.time_vector),  # TODO: Initialize energy usage to NaN not zero 4084
-            unit=Unit.NONE,
-            regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity,
-        )
-        power = TimeSeriesRate(
-            timesteps=variables_map.time_vector,
-            values=[0] * len(variables_map.time_vector),
-            unit=Unit.MEGA_WATT,
-            regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity,
-        )
         operational_settings_used = TimeSeriesInt(
             timesteps=variables_map.time_vector, values=[0] * len(variables_map.time_vector), unit=Unit.NONE
         )
-
-        all_consumer_results: Dict[int, List[EcalcModelResult]] = defaultdict(list)
+        operational_settings_results: Dict[int, List[ConsumerModelResult]] = defaultdict(list)
 
         for period, operational_settings in temporal_operational_settings.items():
             variables_map_for_period = variables_map.get_subset_from_period(period)
             start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
             for operational_setting_index, operational_setting in enumerate(operational_settings):
-                adjusted_operational_settings: List[
-                    ConsumerOperationalSettings
-                ] = ConsumerSystem._get_operational_settings_adjusted_for_crossover(
-                    operational_setting=operational_setting,
-                    consumers=self._consumers,
-                    variables_map=variables_map_for_period,
+                operational_setting_result = self._evaluate_operational_setting(
+                    operational_setting=operational_setting, variables_map=variables_map_for_period
                 )
+                # Storing all consumer results for all calculated operational settings.
+                operational_settings_results[operational_setting_index + 1].extend(operational_setting_result.models)
 
-                consumer_results = [
-                    consumer.evaluate(adjusted_operational_setting)
-                    for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings)
-                ]
-
-                is_operational_setting_valid = reduce(
-                    operator.mul, [consumer_result.component_result.is_valid for consumer_result in consumer_results]
-                )
-
-                valid_indices_for_period = np.nonzero(is_operational_setting_valid.values)[0]
+                valid_indices_for_period = np.nonzero(operational_setting_result.component_result.is_valid.values)[0]
 
                 valid_indices = [axis_indices + start_index for axis_indices in valid_indices_for_period]
                 is_valid[valid_indices] = True
 
-                energy_usage_for_period = reduce(
-                    operator.add,
-                    [consumer_result.component_result.energy_usage for consumer_result in consumer_results],
-                )
-
-                power_for_period = reduce(
-                    operator.add,
-                    [
-                        (
-                            consumer_result.component_result.power
-                            or np.full_like(variables_map_for_period.time_vector, fill_value=0)
-                        )
-                        for consumer_result in consumer_results
-                    ],
-                    TimeSeriesRate(
-                        timesteps=variables_map_for_period.time_vector,
-                        values=[0] * variables_map_for_period.length,
-                        unit=Unit.MEGA_WATT,
-                        regularity=temporal_operational_settings.models[0].model[0].rates[0].regularity,
-                    ),
-                )
-
-                energy_usage[valid_indices] = energy_usage_for_period[valid_indices_for_period].values
-                power[valid_indices] = power_for_period[valid_indices_for_period].values
-                operational_settings_used[valid_indices] = [operational_setting_index for _ in valid_indices]
-
-                # Storing all consumer results for all calculated operational settings.
-                all_consumer_results[operational_setting_index + 1].extend(
-                    list(itertools.chain(*[consumer_result.models for consumer_result in consumer_results]))
-                )
-
-                # Fixme: Unit data should come from the consumer itself, not the results.
-                energy_usage.unit = consumer_results[0].component_result.energy_usage.unit
-                power.unit = consumer_results[0].component_result.power.unit
-
-                if reduce(operator.mul, is_valid.values):
+                if reduce(operator.mul, is_valid.values) > 0:
                     # quit as soon as all time-steps are valid. This means that we do not need to test all settings.
                     break
                 elif operational_setting_index + 1 == len(operational_settings):
                     # If we are at the last operational_setting and not all indices are valid
                     invalid_indices = [i for i, x in enumerate(is_valid.values) if not x]
-                    energy_usage[invalid_indices] = list(np.nan_to_num(energy_usage_for_period[invalid_indices].values))
-                    power[invalid_indices] = list(np.nan_to_num(power_for_period[invalid_indices].values))
                     operational_settings_used[invalid_indices] = [operational_setting_index for _ in invalid_indices]
 
-        sub_component_results = []
+        consumer_system_result = []
+        composite_operational_settings: Dict[datetime, SystemOperationalSettings] = {}
         for period, operational_settings in temporal_operational_settings.items():
             variables_map_for_period = variables_map.get_subset_from_period(period)
-            composite_operational_settings = deepcopy(operational_settings[0])
+            composite_operational_setting = deepcopy(operational_settings[0])
             for time_index, setting_number in enumerate(operational_settings_used.values):
                 for key, value in operational_settings[setting_number].__dict__.items():
                     if isinstance(value, list) and len(value) > 0:
                         if isinstance(value[0], TimeSeries):
                             for consumer in range(len(value)):
-                                composite_operational_settings.__getattribute__(key)[consumer][time_index] = value[
+                                composite_operational_setting.__getattribute__(key)[consumer][time_index] = value[
                                     consumer
                                 ][time_index].values[0]
-
-            adjusted_operational_settings = ConsumerSystem._get_operational_settings_adjusted_for_crossover(
-                operational_setting=composite_operational_settings,
-                consumers=self._consumers,
-                variables_map=variables_map_for_period,
-            )
-
-            sub_component_results.extend(
-                [
-                    consumer.evaluate(adjusted_operational_setting)
-                    for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings)
-                ]
+            composite_operational_settings[period.start] = composite_operational_setting
+            consumer_system_result.append(
+                self._evaluate_operational_setting(
+                    operational_setting=composite_operational_setting, variables_map=variables_map_for_period
+                )
             )
 
         # Change to 1-index operational_settings_used
         for index, value in enumerate(operational_settings_used.values):
             operational_settings_used[index] = value + 1
 
+        is_valid = reduce(lambda x, y: x.extend(y), [x.component_result.is_valid for x in consumer_system_result])
+        time_steps = reduce(lambda x, y: x.extend(y), [x.component_result.timesteps for x in consumer_system_result])
+        energy_usage = reduce(
+            lambda x, y: x.extend(y), [x.component_result.energy_usage for x in consumer_system_result]
+        )
+        power = reduce(
+            lambda x, y: x.extend(y),
+            [x.component_result.power for x in consumer_system_result if x],
+        )
+
         consumer_result = ConsumerSystemResult(
+            id=self.id,
+            is_valid=is_valid,
+            timesteps=time_steps,
+            energy_usage=energy_usage.fill_nan(0.0),
+            power=power.fill_nan(0.0),
+            operational_settings_results=operational_settings_results,
+            operational_settings_used=operational_settings_used,
+        )
+
+        # sub_components = list(
+        #     itertools.chain(*[consumer_result.sub_components for consumer_result in consumer_system_result])
+        # )
+
+        models = list(itertools.chain(*[consumer_result.models for consumer_result in consumer_system_result]))
+
+        return EcalcModelResult(
+            component_result=consumer_result,
+            sub_components=[],  # Keeping this backward compatible with V1 for now.
+            models=models,
+        )
+
+    def _evaluate_operational_setting(
+        self, operational_setting: SystemOperationalSettings, variables_map: VariablesMap
+    ) -> EcalcModelResult:
+        adjusted_operational_settings: List[
+            ConsumerOperationalSettings
+        ] = self._get_operational_settings_adjusted_for_crossover(
+            operational_setting=operational_setting,
+            variables_map=variables_map,
+        )
+
+        consumer_results = [
+            consumer.evaluate(adjusted_operational_setting)
+            for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings)
+        ]
+
+        is_valid = reduce(
+            operator.mul, [consumer_result.component_result.is_valid for consumer_result in consumer_results]
+        )
+
+        energy_usage = reduce(
+            operator.add,
+            [consumer_result.component_result.energy_usage for consumer_result in consumer_results],
+        )
+
+        power = reduce(
+            operator.add,
+            [
+                consumer_result.component_result.power or np.zeros_like(variables_map.time_vector)
+                for consumer_result in consumer_results
+            ],
+        )
+
+        component_result = GenericComponentResult(
             id=self.id,
             is_valid=is_valid,
             timesteps=variables_map.time_vector,
@@ -263,16 +258,12 @@ class ConsumerSystem(BaseConsumer):
             if energy_usage.unit == Unit.MEGA_WATT
             else energy_usage.to_calendar_day(),
             power=power,
-            operational_settings_results=all_consumer_results,
-            operational_settings_used=operational_settings_used,
         )
 
         return EcalcModelResult(
-            component_result=consumer_result,
-            sub_components=[],  # Keeping this backward compatible with V1 for now.
-            models=list(
-                itertools.chain(*[sub_component_result.models for sub_component_result in sub_component_results])
-            ),
+            component_result=component_result,
+            sub_components=list(itertools.chain(*[result.sub_components for result in consumer_results])),
+            models=list(itertools.chain(*[result.models for result in consumer_results])),
         )
 
     @staticmethod
@@ -285,7 +276,6 @@ class ConsumerSystem(BaseConsumer):
         crossover: list of indexes in consumers for crossover. 0 means no cross-over, 1 refers to first consumer etc.
         consumers
 
-        Returns:
         -------
         List of topological sorted consumers
         """
