@@ -218,7 +218,7 @@ class Consumer(BaseConsumer):
                 inlet_liquid_rate_m3_per_d=inlet_rate_time_series,
                 inlet_pressure_bar=inlet_pressure_time_series,
                 outlet_pressure_bar=outlet_pressure_time_series,
-                head_operational=list(consumer_function_result.energy_function_result.head_operational),
+                operational_head=list(consumer_function_result.energy_function_result.operational_head),
             )
             models = get_single_consumer_models(
                 result=consumer_function_result,
