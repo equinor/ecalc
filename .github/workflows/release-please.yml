@@ -5,7 +5,20 @@ on:
   workflow_dispatch:
   # Workflow call is used for called from another workflow
   workflow_call:
+    inputs:
+      versioning_strategy:
+        required: true
+        type: choice
+        description: Which version strategy to use. See release-please documentation for options.
+        default: "default"
+        options:
+          - default
+          - always-bump-patch
+          - always-bump-minor
+          - always-bump-major
 
+env:
+  VERSIONING_STRATEGY: ${{ inputs.versioning_strategy }}
 
 jobs:
   release-please:
@@ -16,12 +29,19 @@ jobs:
         id: release
         with:
           release-type: simple
+          versioning-strategy: ${{ env.VERSIONING_STRATEGY }}
           package-name: libecalc
           changelog-path: docs/docs/changelog/changelog.md
           changelog-types: '[{ "type": "feat", "section": "Features", "hidden": false },{ "type": "feature", "section": "Features", "hidden": false },{ "type": "fix", "section": "Bug Fixes", "hidden": false },{ "type": "perf", "section": "Performance Improvements", "hidden": false },{ "type": "revert", "section": "Reverts", "hidden": false },{ "type": "docs", "section": "Documentation", "hidden": false },{ "type": "style", "section": "Styles", "hidden": false },{ "type": "chore", "section": "Miscellaneous Chores", "hidden": false },{ "type": "refactor", "section": "Code Refactoring", "hidden": false },{ "type": "test", "section": "Tests", "hidden": false },{ "type": "build", "section": "Build System", "hidden": false },{ "type": "ci", "section": "Continuous Integration", "hidden": false }]'
           extra-files: |
             pyproject.toml
             src/ecalc/libraries/libecalc/common/libecalc/version.py
+      - uses: actions/checkout@v2
+      - name: Create vX.Y release branch (for simpler patching) - if normal release (not patching)
+        if: ${{ steps.release.outputs.release_created && env.VERSIONING_STRATEGY != 'always-bump-patch' }}
+        run: |
+            git checkout -b release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }} ${{ steps.release.outputs.sha }}
+            git push -u origin release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
