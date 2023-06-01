@@ -251,10 +251,6 @@ class GraphResult:
                         .dict()
                         if consumer_result.component_result.power is not None
                         else None,
-                        "operational_head": consumer_result.component_result.operational_head
-                        if consumer_node_info.component_type == ComponentType.PUMP
-                        and consumer_result.component_result.operational_head is not None
-                        else None,
                     },
                 )
             )
