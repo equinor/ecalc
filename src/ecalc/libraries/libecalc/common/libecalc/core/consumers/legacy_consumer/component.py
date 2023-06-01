@@ -209,6 +209,13 @@ class Consumer(BaseConsumer):
                 regularity=regularity,
             )
 
+            operational_head_time_series = TimeSeriesRate(
+                timesteps=variables_map.time_vector,
+                values=list(consumer_function_result.energy_function_result.operational_head),
+                unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
+                regularity=regularity,
+            )
+
             consumer_result = PumpResult(
                 id=self._consumer_dto.id,
                 timesteps=variables_map.time_vector,
@@ -218,7 +225,7 @@ class Consumer(BaseConsumer):
                 inlet_liquid_rate_m3_per_d=inlet_rate_time_series,
                 inlet_pressure_bar=inlet_pressure_time_series,
                 outlet_pressure_bar=outlet_pressure_time_series,
-                operational_head=list(consumer_function_result.energy_function_result.operational_head),
+                operational_head=operational_head_time_series,
             )
             models = get_single_consumer_models(
                 result=consumer_function_result,

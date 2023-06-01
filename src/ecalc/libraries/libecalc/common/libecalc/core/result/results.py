@@ -51,7 +51,7 @@ class PumpResult(GenericComponentResult):
     inlet_liquid_rate_m3_per_d: TimeSeriesRate
     inlet_pressure_bar: TimeSeriesFloat
     outlet_pressure_bar: TimeSeriesFloat
-    operational_head: Optional[List[float]]
+    operational_head: TimeSeriesFloat
 
 
 class ConsumerModelResultBase(ABC, CommonResultBase):
