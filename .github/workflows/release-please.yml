@@ -3,8 +3,6 @@ name: release-please
 on:
   # Workflow dispatch is used for manual triggers
   workflow_dispatch:
-  # Workflow call is used for called from another workflow
-  workflow_call:
     inputs:
       versioning_strategy:
         required: true
@@ -16,6 +14,13 @@ on:
           - always-bump-patch
           - always-bump-minor
           - always-bump-major
+
+  # Workflow call is used for called from another workflow
+  workflow_call:
+    inputs:
+      versioning_strategy:
+        required: true
+        type: string
 
 env:
   VERSIONING_STRATEGY: ${{ inputs.versioning_strategy }}
