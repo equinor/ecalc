@@ -40,7 +40,6 @@ class ConsumerFunctionResultBase(BaseModel):
 
     # New! to support fuel to power rate...for e.g. compressors emulating turbine
     power: Optional[np.ndarray]
-    head_operational: Optional[List[float]]
 
     class Config:
         arbitrary_types_allowed = True

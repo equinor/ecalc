@@ -33,7 +33,11 @@ from libecalc.core.consumers.legacy_consumer.system import (
 )
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.result import ConsumerSystemResult, EcalcModelResult
-from libecalc.core.result.results import CompressorResult, GenericComponentResult
+from libecalc.core.result.results import (
+    CompressorResult,
+    GenericComponentResult,
+    PumpResult,
+)
 from libecalc.dto import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
@@ -183,13 +187,38 @@ class Consumer(BaseConsumer):
 
         elif self._consumer_dto.component_type == ComponentType.PUMP:
             # Using generic consumer result as pump has no specific results currently
-            consumer_result = GenericComponentResult(
+
+            inlet_rate_time_series = TimeSeriesRate(
+                timesteps=variables_map.time_vector,
+                values=list(consumer_function_result.energy_function_result.rate),
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                regularity=regularity,
+            )
+
+            inlet_pressure_time_series = TimeSeriesRate(
+                timesteps=variables_map.time_vector,
+                values=list(consumer_function_result.energy_function_result.suction_pressure),
+                unit=Unit.BARA,
+                regularity=regularity,
+            )
+
+            outlet_pressure_time_series = TimeSeriesRate(
+                timesteps=variables_map.time_vector,
+                values=list(consumer_function_result.energy_function_result.discharge_pressure),
+                unit=Unit.BARA,
+                regularity=regularity,
+            )
+
+            consumer_result = PumpResult(
                 id=self._consumer_dto.id,
                 timesteps=variables_map.time_vector,
                 is_valid=is_valid,
                 energy_usage=energy_usage_time_series,
                 power=power_time_series,
-                head_operational=list(consumer_function_result.head_operational),
+                inlet_liquid_rate_m3_per_d=inlet_rate_time_series,
+                inlet_pressure_bar=inlet_pressure_time_series,
+                outlet_pressure_bar=outlet_pressure_time_series,
+                head_operational=list(consumer_function_result.energy_function_result.head_operational),
             )
             models = get_single_consumer_models(
                 result=consumer_function_result,

@@ -115,6 +115,5 @@ class PumpConsumerFunction(ConsumerFunction):
                 energy_usage=np.asarray(energy_function_result.energy_usage),
                 power_loss_factor=power_loss_factor,
             ),
-            head_operational=list(energy_function_result.head_operational),
         )
         return pump_consumer_function_result

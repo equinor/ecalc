@@ -252,7 +252,8 @@ class GraphResult:
                         if consumer_result.component_result.power is not None
                         else None,
                         "head_operational": consumer_result.component_result.head_operational
-                        if consumer_result.component_result.head_operational is not None
+                        if consumer_node_info.component_type == ComponentType.PUMP
+                        and consumer_result.component_result.head_operational is not None
                         else None,
                     },
                 )
