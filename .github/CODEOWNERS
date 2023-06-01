@@ -1,5 +1,8 @@
 # Each line is a file pattern followed by one or more owners.
 
+# Default/fallback ownership
+* @equinor/ecalc-core-library-team
+
 # eCalc Lib
 /src/ecalc/ @equinor/ecalc-core-library-team
 
