@@ -131,15 +131,15 @@ class PumpVariableSpeed(PumpModel):
         rates_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
 
         # Head [J/kg] calculation (for pump  with density).
-        heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
+        heads_operational = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
 
         # Adjust rates according to minimum flow line (recirc left of this line)
-        minimum_flow_at_head = self.pump_chart.minimum_rate_as_function_of_head(heads)
+        minimum_flow_at_head = self.pump_chart.minimum_rate_as_function_of_head(heads_operational)
         rates_m3_per_hour = np.fmax(rates_m3_per_hour, minimum_flow_at_head + EPSILON)
 
         # Adjust head according to minimum head line (choking below this line)
         minimum_head_at_rate = self.pump_chart.minimum_head_as_function_of_rate(rates_m3_per_hour)
-        heads = np.fmax(heads, minimum_head_at_rate + EPSILON)
+        heads = np.fmax(heads_operational, minimum_head_at_rate + EPSILON)
 
         maximum_head_at_rate = self.pump_chart.maximum_head_as_function_of_rate(rates_m3_per_hour)
 
@@ -203,6 +203,7 @@ class PumpVariableSpeed(PumpModel):
             suction_pressure=list(suction_pressures),
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_density),
+            head_operational=list(heads_operational),
         )
 
         return pump_result
@@ -270,7 +271,7 @@ class PumpSingleSpeed(PumpModel):
         rates_m3_per_hour = np.fmax(rates_m3_per_hour, self.pump_chart.minimum_rate)
 
         # Head [J/kg]
-        heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
+        heads_operational = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
 
         # Single speed: calculate actual pump head [[J/kg]]
         actual_heads = self.pump_chart.head_as_function_of_rate(rates_m3_per_hour)
@@ -278,7 +279,8 @@ class PumpSingleSpeed(PumpModel):
         # Allowed calculation points is where required head is less than or equal to actual pump head
         # and rates are less than or equal to maximum pump rate
         allowed_points = np.argwhere(
-            (rates_m3_per_hour <= self.pump_chart.maximum_rate) & (heads <= actual_heads + self._head_margin)
+            (rates_m3_per_hour <= self.pump_chart.maximum_rate)
+            & (heads_operational <= actual_heads + self._head_margin)
         )[:, 0]
 
         efficiency = self.pump_chart.efficiency_as_function_of_rate(rates_m3_per_hour[allowed_points])
@@ -309,6 +311,7 @@ class PumpSingleSpeed(PumpModel):
             suction_pressure=list(suction_pressures),
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_density),
+            head_operational=list(heads_operational),
         )
 
         return pump_result

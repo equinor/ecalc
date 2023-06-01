@@ -10,3 +10,4 @@ class PumpModelResult(EnergyFunctionResult):
     suction_pressure: List[Optional[float]]
     discharge_pressure: List[Optional[float]]
     fluid_density: List[Optional[float]]
+    head_operational: Optional[List[float]]

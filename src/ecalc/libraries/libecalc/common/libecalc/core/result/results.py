@@ -28,6 +28,7 @@ class CommonResultBase(EcalcResultBaseModel):
 
 class GenericComponentResult(CommonResultBase):
     id: str
+    head_operational: Optional[List[float]]
 
 
 class GeneratorSetResult(GenericComponentResult):

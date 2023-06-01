@@ -189,6 +189,7 @@ class Consumer(BaseConsumer):
                 is_valid=is_valid,
                 energy_usage=energy_usage_time_series,
                 power=power_time_series,
+                head_operational=list(consumer_function_result.head_operational),
             )
             models = get_single_consumer_models(
                 result=consumer_function_result,
