@@ -114,17 +114,17 @@ GENERATORSETS:
 ### Description
 :::note
 Heaters and boilers should be modeled in eCalc™ as 
-[GENERATORSETS](../../../references/keywords/GENERATORSETS) or [FUELCONSUMERS](../../../references/keywords/FUELCONSUMERS), applying the [HEATER](../../../references/keywords/CATEGORY) and [BOILER](../../../references/keywords/CATEGORY) categories. This is an intermediate solution and may be dealt with differently in the future.
+[GENERATORSETS](../../../references/keywords/GENERATORSETS), applying the [HEATER](../../../references/keywords/CATEGORY) and [BOILER](../../../references/keywords/CATEGORY) categories. This is an intermediate solution and may be dealt with differently in the future.
 :::
 
 ### Example: Boiler as generator set
-Specify the correlation between electric power delivered and fuel consumed under 
+Specify the correlation between energy delivered and fuel consumed under 
 [FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS):
 ~~~~~~~~yaml
 FACILITY_INPUTS:
- - NAME: boiler_power_fuel
+ - NAME: boiler_energy_fuel
    TYPE: ELECTRICITY2FUEL
-   FILE: boiler_power_fuel.csv
+   FILE: boiler_energy_fuel.csv
 ~~~~~~~~
 
 Use the `BOILER` category and the [ELECTRICITY2FUEL](../../../references/keywords/ELECTRICITY2FUEL) 
@@ -134,20 +134,8 @@ specified under [FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS):
 GENERATORSETS:
   - NAME: boiler_as_generator
     CATEGORY: BOILER
-    ELECTRICITY2FUEL: boiler_power_fuel
+    ELECTRICITY2FUEL: boiler_energy_fuel
     CONSUMERS:
       ...
 ~~~~~~~~
 
-### Example: Heater as fuel consumer
-Specify the heater as a fuel consumer with category `HEATER`:
-
-~~~~~~~~yaml
-FUELCONSUMERS:
-  - NAME: heater
-    CATEGORY: HEATER
-    ENERGY_USAGE_MODEL:
-      TYPE: DIRECT
-      FUELRATE: 100000
-        ...
-~~~~~~~~
