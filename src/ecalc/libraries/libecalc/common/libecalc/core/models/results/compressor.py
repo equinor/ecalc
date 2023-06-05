@@ -44,7 +44,7 @@ class CompressorStreamCondition(EnergyModelBaseResult):
 
     @classmethod
     def create_empty(cls, number_of_timesteps: int) -> CompressorStreamCondition:
-        """Create empty CompressorStreamCondition onbject
+        """Create empty CompressorStreamCondition object
 
         Args:
             number_of_timesteps: The number of timesteps to generate empty object for
@@ -99,7 +99,15 @@ class CompressorStageResult(EnergyModelBaseResult):
 
     @classmethod
     def create_empty(cls, number_of_timesteps: int) -> CompressorStageResult:
-        """Create empty CompressorStageResult"""
+        """Create empty CompressorStageResult object
+
+        Args:
+            number_of_timesteps: The number of timesteps to generate empty object for
+
+        Returns:
+            Empty CompressorStageResult object
+
+        """
         nans = [np.nan] * number_of_timesteps
         return cls(
             energy_usage=nans,
