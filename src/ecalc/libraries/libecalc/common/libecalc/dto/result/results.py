@@ -210,5 +210,5 @@ class EcalcModelResult(EcalcResultBaseModel):
         return self.__class__(
             component_result=self.component_result.resample(freq),
             sub_components=[sub_component.resample(freq) for sub_component in self.sub_components],
-            models=[model.resample(freq) for model in self.models],
+            models=self.models,
         )
