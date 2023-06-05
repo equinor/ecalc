@@ -43,7 +43,16 @@ class CompressorStreamCondition(EnergyModelBaseResult):
     temperature_kelvin: Optional[List[Optional[float]]]
 
     @classmethod
-    def create_empty(cls, number_of_timesteps) -> CompressorStreamCondition:
+    def create_empty(cls, number_of_timesteps: int) -> CompressorStreamCondition:
+        """Create empty CompressorStreamCondition onbject
+
+        Args:
+            number_of_timesteps: The number of timesteps to generate empty object for
+
+        Returns:
+            CompressorStreamCondition object where all values are set to np.nan
+
+        """
         nans = [np.nan] * number_of_timesteps
         return cls(
             pressure=nans,
