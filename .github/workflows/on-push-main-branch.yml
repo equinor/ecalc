@@ -11,13 +11,9 @@ jobs:
   lib-ci:
     uses: ./.github/workflows/lib-ci.yml
 
-  docs-ci:
-    uses: ./.github/workflows/docs-ci.yml
-
   docs-publish:
     uses: ./.github/workflows/docs-publish.yml
     secrets: inherit
-    needs: [docs-ci]
 
 # We want/need to reserve patch bump in case we need to
 # patch a release that is deployed and active. Therefore
