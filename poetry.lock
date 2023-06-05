@@ -2873,23 +2873,6 @@ doc = ["cairosvg (>=2.5.2,<3.0.0)", "mdx-include (>=1.4.1,<2.0.0)", "mkdocs (>=1
 test = ["black (>=22.3.0,<23.0.0)", "coverage (>=6.2,<7.0)", "isort (>=5.0.6,<6.0.0)", "mypy (==0.910)", "pytest (>=4.4.0,<8.0.0)", "pytest-cov (>=2.10.0,<5.0.0)", "pytest-sugar (>=0.9.4,<0.10.0)", "pytest-xdist (>=1.32.0,<4.0.0)", "rich (>=10.11.0,<13.0.0)", "shellingham (>=1.3.0,<2.0.0)"]
 
 [[package]]
-name = "typer-cli"
-version = "0.0.13"
-description = "Run Typer scripts with completion, without having to create a package, using Typer CLI."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "typer_cli-0.0.13-py3-none-any.whl", hash = "sha256:5ae0f99dce8f8f9669137a2c98eb42485cd4412e0ec225c8eb29ce8ac3378731"},
-    {file = "typer_cli-0.0.13.tar.gz", hash = "sha256:f5b85764e56fb3fe835ed008ad5bc7db4961f7bcce1f1c1698ac46b6c5d9b86f"},
-]
-
-[package.dependencies]
-colorama = ">=0.4.3,<=0.5.0"
-shellingham = ">=1.3.2,<=1.4.0"
-typer = ">=0.4.0,<=0.7.0"
-
-[[package]]
 name = "typing-extensions"
 version = "4.6.1"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -3034,4 +3017,4 @@ notebooks = ["jupyter", "matplotlib"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "17d0c3be14d49251c296f876f9e7b5efd507311eefd485a25535cd1aa63b048c"
+content-hash = "a095936feb80e2ef1bdf14eacde0e91cf81a9e9ed32f501a60903e0067792715"

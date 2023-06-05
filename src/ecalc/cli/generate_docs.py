@@ -2,7 +2,7 @@ from pathlib import Path
 
 import typer
 import typer.core
-import typer_cli.main as typer_cli
+import typer_cli_stub as typer_cli
 
 app = typer.Typer()
 
