@@ -109,6 +109,11 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 timesteps=evaluated_timesteps,
                 unit=Unit.BARA,
             ),
+            operational_head=TimeSeriesFloat(
+                values=aggregated_result.operational_head,
+                timesteps=evaluated_timesteps,
+                unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
+            ),
             is_valid=TimeSeriesBoolean(
                 values=aggregated_result.is_valid, timesteps=evaluated_timesteps, unit=Unit.NONE
             ),

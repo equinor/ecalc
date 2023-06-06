@@ -155,6 +155,7 @@ def pump_model_result() -> PumpModelResult:
         suction_pressure=[1.0, 2.0, 3.0],
         discharge_pressure=[1.0, 2.0, 3.0],
         fluid_density=[1.0, 2.0, 3.0],
+        operational_head=[1000, 1000, 1000],
     )
 
 

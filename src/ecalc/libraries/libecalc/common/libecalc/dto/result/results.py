@@ -96,6 +96,10 @@ class GenericConsumerResult(EquipmentResultBase):
 
 class PumpResult(EquipmentResultBase):
     componentType: Literal[ComponentType.PUMP]
+    inlet_liquid_rate_m3_per_d: TimeSeriesRate
+    inlet_pressure_bar: TimeSeriesFloat
+    outlet_pressure_bar: TimeSeriesFloat
+    operational_head: TimeSeriesFloat
 
 
 class CompressorResult(EquipmentResultBase):
