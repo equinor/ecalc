@@ -93,7 +93,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 unit=aggregated_result.energy_usage_unit,
                 regularity=regularity,
             ),
-            inlet_liquid_rate_m3_per_d=TimeSeriesRate(
+            inlet_liquid_rate_m3_per_day=TimeSeriesRate(
                 values=aggregated_result.rate,
                 timesteps=evaluated_timesteps,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -146,9 +146,10 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                         unit=aggregated_result.energy_usage_unit,
                         regularity=regularity,
                     ),
-                    inlet_liquid_rate_m3_per_d=aggregated_result.rate,
+                    inlet_liquid_rate_m3_per_day=aggregated_result.rate,
                     inlet_pressure_bar=aggregated_result.suction_pressure,
                     outlet_pressure_bar=aggregated_result.discharge_pressure,
+                    operational_head=aggregated_result.operational_head,
                 )
             ],
         )
