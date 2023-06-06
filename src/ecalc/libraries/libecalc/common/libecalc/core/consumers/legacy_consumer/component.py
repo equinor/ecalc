@@ -189,32 +189,32 @@ class Consumer(BaseConsumer):
             # Using generic consumer result as pump has no specific results currently
 
             inlet_rate_time_series = TimeSeriesRate(
-                timesteps=variables_map.time_vector,
+                timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.rate),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 regularity=regularity,
-            )
+            ).reindex(new_time_vector=variables_map.time_vector)
 
-            inlet_pressure_time_series = TimeSeriesRate(
-                timesteps=variables_map.time_vector,
+            inlet_pressure_time_series = TimeSeriesFloat(
+                timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.suction_pressure),
                 unit=Unit.BARA,
                 regularity=regularity,
-            )
+            ).reindex(new_time_vector=variables_map.time_vector)
 
-            outlet_pressure_time_series = TimeSeriesRate(
-                timesteps=variables_map.time_vector,
+            outlet_pressure_time_series = TimeSeriesFloat(
+                timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.discharge_pressure),
                 unit=Unit.BARA,
                 regularity=regularity,
-            )
+            ).reindex(new_time_vector=variables_map.time_vector)
 
-            operational_head_time_series = TimeSeriesRate(
-                timesteps=variables_map.time_vector,
+            operational_head_time_series = TimeSeriesFloat(
+                timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.operational_head),
                 unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
                 regularity=regularity,
-            )
+            ).reindex(new_time_vector=variables_map.time_vector)
 
             consumer_result = PumpResult(
                 id=self._consumer_dto.id,
@@ -222,7 +222,7 @@ class Consumer(BaseConsumer):
                 is_valid=is_valid,
                 energy_usage=energy_usage_time_series,
                 power=power_time_series,
-                inlet_liquid_rate_m3_per_d=inlet_rate_time_series,
+                inlet_liquid_rate_m3_per_day=inlet_rate_time_series,
                 inlet_pressure_bar=inlet_pressure_time_series,
                 outlet_pressure_bar=outlet_pressure_time_series,
                 operational_head=operational_head_time_series,

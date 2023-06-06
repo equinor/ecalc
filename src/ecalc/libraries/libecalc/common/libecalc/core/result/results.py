@@ -48,7 +48,7 @@ class CompressorResult(GenericComponentResult):
 
 
 class PumpResult(GenericComponentResult):
-    inlet_liquid_rate_m3_per_d: TimeSeriesRate
+    inlet_liquid_rate_m3_per_day: TimeSeriesRate
     inlet_pressure_bar: TimeSeriesFloat
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
@@ -68,9 +68,10 @@ class ConsumerModelResultBase(ABC, CommonResultBase):
 class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
-    inlet_liquid_rate_m3_per_d: List[Optional[float]]
+    inlet_liquid_rate_m3_per_day: List[Optional[float]]
     inlet_pressure_bar: List[Optional[float]]
     outlet_pressure_bar: List[Optional[float]]
+    operational_head: List[Optional[float]]
 
     @property
     def component_type(self):

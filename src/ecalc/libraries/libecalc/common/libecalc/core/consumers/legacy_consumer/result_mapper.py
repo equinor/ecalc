@@ -186,9 +186,10 @@ def map_energy_function_results(
                     values=result.energy_usage,
                     unit=result.energy_usage_unit,
                 ),
-                inlet_liquid_rate_m3_per_d=result.rate,
+                inlet_liquid_rate_m3_per_day=result.rate,
                 inlet_pressure_bar=result.suction_pressure,
                 outlet_pressure_bar=result.discharge_pressure,
+                operational_head=result.operational_head,
             )
         )
     else:

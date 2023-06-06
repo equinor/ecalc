@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from datetime import datetime
 from typing import (
     Any,
+    DefaultDict,
     Dict,
     Generic,
     Iterable,
@@ -230,6 +232,27 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
                     f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
                 )
 
+    def __reindex_time_vector__(
+        self,
+        new_time_vector: Iterable[datetime],
+        fillna: Union[float, str] = 0.0,
+    ) -> np.ndarray:
+        """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
+        the consumer time vector, we calculate the actual consumer (consumption) rate.
+        """
+        new_values: DefaultDict[datetime, Union[float, str]] = defaultdict(float)
+        new_values.update({t: fillna for t in new_time_vector})
+        for t, v in zip(self.timesteps, self.values):
+            if t in new_values:
+                new_values[t] = v
+            else:
+                logger.warning(
+                    "Reindexing consumer time vector and losing data. This should not happen."
+                    " Please contact eCalc support."
+                )
+
+        return np.array([rate_sum for time, rate_sum in sorted(new_values.items())])
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, TimeSeries):
             return NotImplemented
@@ -342,6 +365,10 @@ class TimeSeriesFloat(TimeSeries[float]):
             values=[float(x) for x in ds_resampled.values.tolist()],
             unit=self.unit,
         )
+
+    def reindex(self, new_time_vector):
+        reindex_values = self.__reindex_time_vector__(new_time_vector)
+        return TimeSeriesFloat(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
@@ -788,3 +815,7 @@ class TimeSeriesRate(TimeSeries[float]):
             and self.regularity == other.regularity
             and self.typ == other.typ
         )
+
+    def reindex(self, new_time_vector):
+        reindex_values = self.__reindex_time_vector__(new_time_vector)
+        return TimeSeriesRate(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
