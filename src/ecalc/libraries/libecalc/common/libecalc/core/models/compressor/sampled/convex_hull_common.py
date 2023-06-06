@@ -3,11 +3,12 @@ from typing import List, Optional
 
 import numpy as np
 from libecalc.common.logger import logger
+from numpy.typing import NDArray
 from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import ConvexHull
 
 
-def sort_ndarray_by_column(arr: np.ndarray, column_index: np.ndarray) -> np.ndarray:
+def sort_ndarray_by_column(arr: NDArray[np.float64], column_index: NDArray[np.float64]) -> NDArray[np.float64]:
     """Sort array by column index
 
     Args:
@@ -18,7 +19,7 @@ def sort_ndarray_by_column(arr: np.ndarray, column_index: np.ndarray) -> np.ndar
         array sorted by column
 
     """
-    return arr[arr[:, column_index].argsort()]
+    return np.array(arr[arr[:, column_index].argsort()])
 
 
 @dataclass
@@ -32,12 +33,12 @@ class Node:
 
 @dataclass
 class HalfConvexHull:
-    points: np.ndarray
-    simplices: np.ndarray
+    points: NDArray[np.float64]
+    simplices: NDArray[np.float64]
     axis: int
-    equations: np.ndarray
-    original_qhull_indices: Optional[np.ndarray] = None
-    neighbors: Optional[np.ndarray] = None
+    equations: NDArray[np.float64]
+    original_qhull_indices: Optional[NDArray[np.float64]] = None
+    neighbors: Optional[NDArray[np.float64]] = None
 
     @property
     def nsimplex(self) -> int:
@@ -68,8 +69,8 @@ class HalfConvexHull:
 
 
 def _compute_simplices_in_new_pointset(
-    original_simplices: np.ndarray,
-    new_pointset: np.ndarray,
+    original_simplices: NDArray[np.float64],
+    new_pointset: NDArray[np.float64],
     default: float = -999,
 ):
     """Simplices for a ConvexHull object refers to indices of the points with coordinates defined in the "points"
@@ -253,7 +254,7 @@ class Simplex:
     def __init__(
         self,
         nodes: List[Node],
-        equation_coefficients: np.ndarray,
+        equation_coefficients: NDArray[np.float64],
         rescale: bool = True,
     ):
         self.nodes = nodes
@@ -270,7 +271,7 @@ class Simplex:
             self._equation = equation_coefficients
 
     @staticmethod
-    def _calculate_plane_equation(nodes: List[Node]) -> np.ndarray:
+    def _calculate_plane_equation(nodes: List[Node]) -> NDArray[np.float64]:
         """Calculate equation of plane going through three points in 3D
         https://mathworld.wolfram.com/Plane.html
         Returns array with 4 coefficients, [a, b, c, d]
@@ -286,7 +287,7 @@ class Simplex:
         equation = np.append(n, -d)
         return equation
 
-    def evaluate_surface(self, function_axis: int, variables_to_evaluate: np.ndarray):
+    def evaluate_surface(self, function_axis: int, variables_to_evaluate: NDArray[np.float64]):
         """Evaluate surface (plane) equation to find value in "function_axis" direction
         for "variables_to_evaluate" in the other directions.
         See https://mathworld.wolfram.com/Hyperplane.html for equations.
@@ -382,9 +383,9 @@ class LinearInterpolatorSimplicesDefined:
 
     @staticmethod
     def _setup_simplices_from_qhulltable(
-        simplex_table: np.ndarray,
-        equations_table: np.ndarray,
-        points_table: np.ndarray,
+        simplex_table: NDArray[np.float64],
+        equations_table: NDArray[np.float64],
+        points_table: NDArray[np.float64],
         rescale: bool = True,
     ) -> List[Simplex]:
         simplices = []
@@ -401,11 +402,11 @@ class LinearInterpolatorSimplicesDefined:
 
     @staticmethod
     def _points_inside_simplex(
-        points: np.ndarray,
-        simplex_point1: np.ndarray,
-        simplex_point2: np.ndarray,
-        simplex_point3: np.ndarray,
-    ) -> np.ndarray:
+        points: NDArray[np.float64],
+        simplex_point1: NDArray[np.float64],
+        simplex_point2: NDArray[np.float64],
+        simplex_point3: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """Method to find indices of points inside a simplex.
 
         Input:
@@ -415,7 +416,7 @@ class LinearInterpolatorSimplicesDefined:
         Returns:
         Indices of points which are inside simplex. ndarray with int64.
         """
-        input_points_is_inside_simplex: np.ndarray = LinearInterpolatorSimplicesDefined._is_inside(
+        input_points_is_inside_simplex: NDArray[np.float64] = LinearInterpolatorSimplicesDefined._is_inside(
             p=points, a=simplex_point1, b=simplex_point2, c=simplex_point3
         )
 
@@ -423,7 +424,9 @@ class LinearInterpolatorSimplicesDefined:
         return input_points_inside_simplex_indices
 
     @staticmethod
-    def _is_inside(p: np.ndarray, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
+    def _is_inside(
+        p: NDArray[np.float64], a: NDArray[np.float64], b: NDArray[np.float64], c: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         """Method to evaluate if points are inside a given simplex.
 
         checks which of the points in p is inside the triangle defined by points a, b, c
@@ -454,7 +457,7 @@ class LinearInterpolatorSimplicesDefined:
 
         return inside
 
-    def evaluate(self, variable_array: np.ndarray) -> np.ndarray:
+    def evaluate(self, variable_array: NDArray[np.float64]) -> NDArray[np.float64]:
         if variable_array.shape[1] != self._ndim:
             msg = "variable_array.shape[1] does not match self._ndim"
             logger.error(msg)

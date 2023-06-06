@@ -37,6 +37,7 @@ from libecalc.core.result.results import CompressorResult, GenericComponentResul
 from libecalc.dto import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
+from numpy.typing import NDArray
 
 
 def get_operational_settings_used_from_consumer_result(
@@ -314,7 +315,7 @@ class Consumer(BaseConsumer):
         time_vector: Iterable[datetime],
         new_time_vector: Iterable[datetime],
         fillna: Union[float, str] = 0.0,
-    ) -> np.ndarray:
+    ) -> NDArray[np.float64]:
         """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
         the consumer time vector, we calculate the actual consumer (consumption) rate.
         """

@@ -27,6 +27,7 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.dto.types import ChartAreaFlag
+from numpy.typing import NDArray
 
 
 class CompressorTrainSimplified(CompressorTrainModel):
@@ -84,18 +85,18 @@ class CompressorTrainSimplified(CompressorTrainModel):
     @abstractmethod
     def get_stages(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainStage]:
         """Implemented in subclasses."""
         raise NotImplementedError
 
     def _evaluate_rate_ps_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Calculate pressure ratios, find maximum pressure ratio, number of compressors in
         train and pressure ratio per stage Calculate fluid mass rate per hour
@@ -154,10 +155,10 @@ class CompressorTrainSimplified(CompressorTrainModel):
 
     def calculate_compressor_stage_work_given_outlet_pressure(
         self,
-        inlet_pressure: np.ndarray,
-        mass_rate_kg_per_hour: np.ndarray,
-        pressure_ratio: np.ndarray,
-        inlet_temperature_kelvin: np.ndarray,
+        inlet_pressure: NDArray[np.float64],
+        mass_rate_kg_per_hour: NDArray[np.float64],
+        pressure_ratio: NDArray[np.float64],
+        inlet_temperature_kelvin: NDArray[np.float64],
         stage: Union[CompressorTrainStage, UndefinedCompressorStage],
         adjust_for_chart: bool = True,
     ) -> List[CompressorTrainResultSingleTimeStep]:
@@ -349,17 +350,17 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
 
     def get_stages(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainStage]:
         return self.stages
 
     def get_max_standard_rate(
         self,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-    ) -> np.ndarray:
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """For each stage
           Setup streams for inlet and outlet
           Calculate z and kappa for inlet and outlet
@@ -429,10 +430,10 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
 
     @staticmethod
     def _calulate_inlet_pressure_stages(
-        inlet_pressure: np.ndarray,
-        pressure_ratios_per_stage: np.ndarray,
+        inlet_pressure: NDArray[np.float64],
+        pressure_ratios_per_stage: NDArray[np.float64],
         number_of_stages: int,
-    ) -> List[np.ndarray]:
+    ) -> List[NDArray[np.float64]]:
         """Calculate inlet pressure at each stage given inlet pressure at first stage, pressure ratio per stage and the
         number of stages.
         """
@@ -445,9 +446,9 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
 
     @staticmethod
     def calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
-        inlet_pressure: np.ndarray,
-        pressure_ratio: np.ndarray,
-        inlet_temperature_kelvin: np.ndarray,
+        inlet_pressure: NDArray[np.float64],
+        pressure_ratio: NDArray[np.float64],
+        inlet_temperature_kelvin: NDArray[np.float64],
         fluid: FluidStream,
         compressor_chart: VariableSpeedCompressorChart,
     ):
@@ -591,9 +592,9 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
 
     def get_stages(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainStage]:
         if len(rate) == 0:
             # Unable to figure out stages and pressure ratios if there are no rates as input
@@ -621,8 +622,8 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-    ) -> np.ndarray:
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """Max rate does not have a meaning when using unknown compressor stages."""
         return np.full_like(suction_pressures, fill_value=np.nan, dtype=float)

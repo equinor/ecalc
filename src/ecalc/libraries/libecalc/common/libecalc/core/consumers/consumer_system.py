@@ -30,6 +30,7 @@ from libecalc.dto.core_specs.compressor.operational_settings import (
 )
 from libecalc.dto.core_specs.pump.operational_settings import PumpOperationalSettings
 from libecalc.dto.result import ConsumerModelResult
+from numpy.typing import NDArray
 
 Consumer = TypeVar("Consumer", bound=Union[Compressor, Pump])
 ConsumerOperationalSettings = TypeVar(
@@ -292,7 +293,9 @@ class ConsumerSystem(BaseConsumer):
         return [consumers[consumer_index] for consumer_index in nx.topological_sort(graph)]
 
     @staticmethod
-    def _get_crossover_rates(max_rate: List[float], rates: List[List[float]]) -> Tuple[np.ndarray, List[List[float]]]:
+    def _get_crossover_rates(
+        max_rate: List[float], rates: List[List[float]]
+    ) -> Tuple[NDArray[np.float64], List[List[float]]]:
         total_rate = np.sum(rates, axis=0)
         crossover_rate = np.where(total_rate > max_rate, total_rate - max_rate, 0)
         rates_within_capacity = []

@@ -25,6 +25,7 @@ from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
+from numpy.typing import NDArray
 from pydantic import validator
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
@@ -35,7 +36,7 @@ TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
 
 class Rates:
     @staticmethod
-    def to_stream_day(calendar_day_rates: np.ndarray, regularity: List[float]) -> np.ndarray:
+    def to_stream_day(calendar_day_rates: NDArray[np.float64], regularity: List[float]) -> NDArray[np.float64]:
         """
         Convert (production) rate from calendar day to stream day
 
@@ -50,7 +51,7 @@ class Rates:
         return np.divide(calendar_day_rates, regularity, out=np.zeros_like(calendar_day_rates), where=regularity != 0.0)  # type: ignore[comparison-overlap]
 
     @staticmethod
-    def to_calendar_day(stream_day_rates: np.ndarray, regularity: List[float]) -> np.ndarray:
+    def to_calendar_day(stream_day_rates: NDArray[np.float64], regularity: List[float]) -> NDArray[np.float64]:
         """Convert (production) rate from stream day to calendar day.
 
         Args:
@@ -63,7 +64,7 @@ class Rates:
         return stream_day_rates * np.asarray(regularity, dtype=np.float64)
 
     @staticmethod
-    def forward_fill_nan_values(rates: np.ndarray) -> np.ndarray:
+    def forward_fill_nan_values(rates: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Forward fill Nan-values
 
@@ -77,8 +78,8 @@ class Rates:
 
     @staticmethod
     def to_volumes(
-        rates: Union[List[float], List[TimeSeriesValue], np.ndarray], time_steps: Iterable[datetime]
-    ) -> np.ndarray:
+        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], time_steps: Iterable[datetime]
+    ) -> NDArray[np.float64]:
         """
         Computes the volume between two dates from the corresponding rates, according to the given frequency.
         Note that the code does not perform any interpolation or extrapolation,
@@ -98,8 +99,8 @@ class Rates:
 
     @staticmethod
     def compute_cumulative(
-        volumes: Union[List[float], np.ndarray[float, numpy.dtype[numpy.float64]]]
-    ) -> np.ndarray[float, numpy.dtype[numpy.float64]]:
+        volumes: Union[List[float], NDArray[np.float64][float, numpy.dtype[numpy.float64]]]
+    ) -> NDArray[np.float64][float, numpy.dtype[numpy.float64]]:
         """
         Compute cumulative volumes from a list of periodic volumes
 
@@ -116,8 +117,8 @@ class Rates:
 
     @staticmethod
     def compute_cumulative_volumes_from_daily_rates(
-        rates: Union[List[float], List[TimeSeriesValue], np.ndarray], time_steps: Iterable[datetime]
-    ) -> np.ndarray:
+        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], time_steps: Iterable[datetime]
+    ) -> NDArray[np.float64]:
         """
         Compute cumulative production volumes based on production rates and the corresponding dates.
         The production rates are assumed to be constant between the different dates.
@@ -444,7 +445,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
             if self.timesteps[0] <= time_step <= self.timesteps[-1] and time_step not in self.timesteps:
                 raise ValueError(f"Could not reindex volumes. Missing time step `{time_step}`.")
 
-        cumulative_volumes = Rates.compute_cumulative(self.values)  # type: ignore[arg-type]
+        cumulative_volumes = Rates.compute_cumulative(self.values)
 
         re_indexed_cumulative_values = pd.Series(index=self.timesteps, data=cumulative_volumes).reindex(time_steps)
 
@@ -452,7 +453,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
         re_indexed_volumes = re_indexed_cumulative_values.diff().shift(-1)[:-1]
 
         return self.__class__(
-            timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),  # type: ignore
+            timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),
             values=re_indexed_volumes.tolist(),
             unit=self.unit,
         )
@@ -471,7 +472,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
         """
         return TimeSeriesVolumesCumulative(
             timesteps=self.timesteps,
-            values=list(Rates.compute_cumulative(self.values)),  # type: ignore[arg-type]
+            values=list(Rates.compute_cumulative(self.values)),
             unit=self.unit,
         )
 
@@ -747,7 +748,7 @@ class TimeSeriesRate(TimeSeries[float]):
         else:
             return new_time_series.to_stream_day()
 
-    def __getitem__(self, indices: Union[slice, int, List[int], np.ndarray]) -> TimeSeriesRate:
+    def __getitem__(self, indices: Union[slice, int, List[int], NDArray[np.float64]]) -> TimeSeriesRate:
         if isinstance(indices, slice):
             return self.__class__(
                 timesteps=self.timesteps[indices],

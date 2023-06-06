@@ -16,6 +16,7 @@ from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
 )
 from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
 from libecalc.core.result.results import ConsumerModelResult
+from numpy.typing import NDArray
 from pydantic import BaseModel
 
 
@@ -28,7 +29,7 @@ class ConsumerSystemComponentResult(BaseModel):
         return self.consumer_model_result.energy_usage
 
     @property
-    def power(self) -> np.ndarray:
+    def power(self) -> NDArray[np.float64]:
         if self.consumer_model_result.power is not None:
             return np.asarray(self.consumer_model_result.power)
         else:
@@ -59,23 +60,23 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
         arbitrary_types_allowed = True
 
     @property
-    def total_energy_usage(self) -> np.ndarray:
+    def total_energy_usage(self) -> NDArray[np.float64]:
         total_energy_usage = np.sum(
             [np.asarray(result.energy_usage) for result in self.consumer_results],
             axis=0,
         )
-        return total_energy_usage
+        return np.array(total_energy_usage)
 
     @property
-    def total_power(self) -> np.ndarray:
+    def total_power(self) -> NDArray[np.float64]:
         total_power = np.sum(
             [np.asarray(result.power) for result in self.consumer_results],
             axis=0,
         )
-        return total_power
+        return np.array(total_power)
 
     @property
-    def indices_outside_capacity(self) -> np.ndarray:
+    def indices_outside_capacity(self) -> NDArray[np.float64]:
         invalid_indices = np.full_like(self.total_energy_usage, fill_value=0)
 
         for result in self.consumer_results:
@@ -93,7 +94,7 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
         return np.argwhere(np.where(np.logical_or(invalid_indices > 0, np.isnan(self.total_energy_usage)), 1, 0))[:, 0]
 
     @property
-    def indices_within_capacity(self) -> np.ndarray:
+    def indices_within_capacity(self) -> NDArray[np.float64]:
         return np.setdiff1d(np.arange(self.total_energy_usage.shape[0]), self.indices_outside_capacity)
 
 
@@ -111,11 +112,13 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
 
     typ: Literal[ConsumerFunctionType.SYSTEM] = ConsumerFunctionType.SYSTEM  # type: ignore[valid-type]
 
-    operational_setting_used: np.ndarray  # integers in the range of number of operational settings
+    operational_setting_used: NDArray[np.float64]  # integers in the range of number of operational settings
     operational_settings: List[List[ConsumerSystemOperationalSetting]]
     operational_settings_results: List[List[ConsumerSystemOperationalSettingResult]]
     consumer_results: List[List[ConsumerSystemComponentResult]]
-    cross_over_used: Optional[np.ndarray]  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
+    cross_over_used: Optional[
+        NDArray[np.float64]
+    ]  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
 
     def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
         if not isinstance(self, type(other)):

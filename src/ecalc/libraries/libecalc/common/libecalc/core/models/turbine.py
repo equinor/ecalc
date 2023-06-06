@@ -7,6 +7,7 @@ from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results import TurbineResult
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 SECONDS_PER_DAY = 86400
@@ -36,7 +37,7 @@ class TurbineModel(BaseModel):
             - self.data_transfer_object.energy_usage_adjustment_constant
         )
 
-    def evaluate(self, load: np.ndarray, fuel_lower_heating_value: float = 0) -> TurbineResult:
+    def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
         load_adjusted = np.where(
             load > 0,
             (load + self.data_transfer_object.energy_usage_adjustment_constant)
