@@ -83,7 +83,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         """
         logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
 
-        rate, suction_pressure, discharge_pressure, _, input_failure_status = self._validate_operational_conditions(
+        rate, suction_pressure, discharge_pressure, _, input_failure_status = self.validate_operational_conditions(
             rate=rate,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,

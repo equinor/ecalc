@@ -13,9 +13,6 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
 from libecalc.dto import InterstagePressureControl
 from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
 
@@ -539,10 +536,10 @@ def test_zero_rate_zero_pressure_multiple_streams(variable_speed_compressor_trai
         discharge_pressure=np.array([0, 5, 5, 5]),
     )
 
-    # Ensuring that first stage returns zero energy usage and no failure.
-    assert result.is_valid == [False, True, True, True]
+    # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
+    assert result.is_valid == [True, True, True, True]
     assert result.failure_status == [
-        CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        None,
         None,
         None,
         None,

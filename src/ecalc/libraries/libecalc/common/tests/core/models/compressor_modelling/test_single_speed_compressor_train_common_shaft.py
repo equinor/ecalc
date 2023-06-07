@@ -361,7 +361,7 @@ def test_calculate_single_speed_train_zero_mass_rate(medium_fluid, single_speed_
     )
 
     # Ensuring that first stage returns zero energy usage and no failure.
-    assert result.is_valid == [False, True, True]
+    assert result.is_valid == [True, True, True]
     assert result.energy_usage == pytest.approx([0.0, 0.14898322782599177, 0.14898322782599177])
 
     assert result.mass_rate_kg_per_hr[0] == 0
@@ -384,10 +384,10 @@ def test_calculate_single_speed_train_zero_pressure_non_zero_rate(medium_fluid, 
         rate=np.array([0, 0, 1, 1]), suction_pressure=np.array([0, 1, 1, 0]), discharge_pressure=np.array([0, 1, 0, 1])
     )
 
-    # All should be valid
-    assert result.is_valid == [False, True, False, False]
+    # Results with zero rate should be valid
+    assert result.is_valid == [True, True, False, False]
     assert result.failure_status == [
-        CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        None,
         None,
         CompressorTrainCommonShaftFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
         CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
