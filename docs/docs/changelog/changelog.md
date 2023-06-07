@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.2.3](https://github.com/equinor/ecalc/compare/v8.2.2...v8.2.3) (2023-06-07)
+
+
+### Continuous Integration
+
+* create release-please pr against correct branch ([b296fe2](https://github.com/equinor/ecalc/commit/b296fe2a52dfbe1a4060228f551f0ecf99427932))
+* fix syntax for gh action workflow ([c6d570a](https://github.com/equinor/ecalc/commit/c6d570a217b91b3e1d5daa2243311f0f8c507b30))
+* support hotfix releases ([3b1b4c9](https://github.com/equinor/ecalc/commit/3b1b4c9574a70fecb85ac6b806b342edeba3a22a))
+
+
+### Miscellaneous Chores
+
+* remove limiting dependency typer-cli ([98d5acc](https://github.com/equinor/ecalc/commit/98d5acc4e11dca965cfbeb290b91decebda66e57))
+
 ## [8.2.2](https://github.com/equinor/ecalc/compare/v8.2.1...v8.2.2) (2023-05-28)
 
 
