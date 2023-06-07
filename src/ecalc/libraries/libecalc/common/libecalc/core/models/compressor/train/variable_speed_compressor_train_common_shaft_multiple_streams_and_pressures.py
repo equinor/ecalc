@@ -723,7 +723,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             discharge_pressure,
             intermediate_pressure,
             input_failure_status,
-        ) = self._validate_operational_conditions(
+        ) = self.validate_operational_conditions(
             rate=rate,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
