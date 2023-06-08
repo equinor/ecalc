@@ -74,7 +74,7 @@ INSTALLATIONS:
           - NAME: Produced water reinjection pump
             CATEGORY: PUMP
             ENERGY_USAGE_MODEL:
-              2024-01-01:
+              2000-01-01:
                 TYPE: PUMP
                 CONDITION: $var.produced_water_reinjection_condition
                 ENERGYFUNCTION: pump_chart
