@@ -74,7 +74,7 @@ INSTALLATIONS:
           - NAME: Produced water reinjection pump
             CATEGORY: PUMP
             ENERGY_USAGE_MODEL:
-              2000-01-01:
+              2024-01-01:
                 TYPE: PUMP
                 CONDITION: $var.produced_water_reinjection_condition
                 ENERGYFUNCTION: pump_chart
@@ -82,7 +82,7 @@ INSTALLATIONS:
                 FLUID_DENSITY: 1010
                 SUCTION_PRESSURE: 10  # bara
                 DISCHARGE_PRESSURE: 200  # bara
-              2000-07-01:
+              2024-07-01:
                 TYPE: PUMP
                 CONDITION: SIM;WATER_PROD > 1500
                 ENERGYFUNCTION: pump_chart
@@ -90,7 +90,7 @@ INSTALLATIONS:
                 FLUID_DENSITY: 1010
                 SUCTION_PRESSURE: 10  # bara
                 DISCHARGE_PRESSURE: 200  # bara
-              2000-12-31:
+              2024-12-31:
                 TYPE: PUMP
                 CONDITION: $var.produced_water_reinjection_condition
                 ENERGYFUNCTION: pump_chart

@@ -232,7 +232,7 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
                     f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
                 )
 
-    def __reindex_time_vector__(
+    def reindex_time_vector(
         self,
         new_time_vector: Iterable[datetime],
         fillna: Union[float, str] = 0.0,
@@ -366,8 +366,11 @@ class TimeSeriesFloat(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def reindex(self, new_time_vector):
-        reindex_values = self.__reindex_time_vector__(new_time_vector)
+    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesFloat:
+        """
+        Ensure to map correct value to correct timestep in the final resulting time vector.
+        """
+        reindex_values = self.reindex_time_vector(new_time_vector)
         return TimeSeriesFloat(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
 
 
@@ -816,6 +819,9 @@ class TimeSeriesRate(TimeSeries[float]):
             and self.typ == other.typ
         )
 
-    def reindex(self, new_time_vector):
-        reindex_values = self.__reindex_time_vector__(new_time_vector)
+    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesRate:
+        """
+        Ensure to map correct value to correct timestep in the final resulting time vector.
+        """
+        reindex_values = self.reindex_time_vector(new_time_vector)
         return TimeSeriesRate(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)

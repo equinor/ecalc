@@ -197,6 +197,7 @@ class TestCsvOutput:
         # Rename column names to make headings identical, before comparing
         df_temporal.columns = df_temporal.columns.str.replace("model_temporal", "model")
 
+        df_temporal.compare(df_basic)
         assert df_temporal.equals(df_basic)
 
     def test_operational_settings_used_available(self, advanced_yaml_path, tmp_path):
