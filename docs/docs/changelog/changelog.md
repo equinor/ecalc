@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.2.4](https://github.com/equinor/ecalc/compare/v8.2.3...v8.2.4) (2023-06-08)
+
+
+### Miscellaneous Chores
+
+* simplify dependencies for use with komodo ([e498cd7](https://github.com/equinor/ecalc/commit/e498cd73fe34dc749da236f3afdaec83d0712aba))
+
 ## [8.2.3](https://github.com/equinor/ecalc/compare/v8.2.2...v8.2.3) (2023-06-07)
 
 
