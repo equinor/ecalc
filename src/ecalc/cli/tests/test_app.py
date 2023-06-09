@@ -526,6 +526,25 @@ class TestShowResultsCommand:
         output_text = result.stdout
         snapshot.assert_match(output_text, snapshot_name="results_resampled.csv")
 
+    @pytest.mark.snapshot
+    def test_json_resampled(self, simple_run, monkeypatch, snapshot):
+        result = runner.invoke(
+            show.app,
+            [
+                "results",
+                "--output-format",
+                "json",
+                "--output-folder",
+                str(simple_run.output_folder),
+                "--output-frequency",
+                "YEAR",
+            ],
+            catch_exceptions=False,
+        )
+
+        output_text = result.stdout
+        snapshot.assert_match(output_text, snapshot_name="results_resampled.json")
+
     def test_json_custom_date_format(self, simple_run, monkeypatch, snapshot):
         result = runner.invoke(
             show.app,
