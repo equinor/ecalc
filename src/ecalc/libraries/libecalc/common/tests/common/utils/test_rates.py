@@ -7,6 +7,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
     TimeSeriesBoolean,
+    TimeSeriesFloat,
     TimeSeriesRate,
     TimeSeriesVolumes,
     TimeSeriesVolumesCumulative,
@@ -387,3 +388,34 @@ class TestTimeseriesRateToVolumes:
         cumulative_yearly = np.cumsum(rates_yearly.to_volumes().values)
         assert cumulative[-1] > cumulative_monthly[-1] > cumulative_yearly[-1]
         assert np.allclose(cumulative_monthly[11], cumulative_yearly[0])
+
+
+class TestTimeSeriesFloat:
+    def test_resample_down_sampling(self):
+        rates = TimeSeriesFloat(
+            timesteps=[
+                datetime(2023, 1, 1),
+                datetime(2023, 7, 1),
+                datetime(2023, 9, 1),
+                datetime(2023, 11, 1),
+                datetime(2024, 1, 1),
+                datetime(2025, 1, 1),
+            ],
+            values=[10, 20, 0, 2, 30, 40],
+            unit=Unit.BARA,
+        )
+
+        rates_yearly = rates.resample(freq=Frequency.YEAR)
+        assert np.allclose(rates_yearly.values, [10, 30, 40])
+
+
+def test_resample_up_sampling():
+    rates = TimeSeriesFloat(
+        timesteps=[datetime(2023, 1, 1), datetime(2024, 1, 1), datetime(2025, 1, 1)],
+        values=[10, 20, 30],
+        unit=Unit.BARA,
+    )
+
+    rates_monthly = rates.resample(freq=Frequency.MONTH)
+    assert len(rates_monthly) == 2 * 12 + 1  # Including January 2025.
+    assert rates_monthly.values[::12] == [10, 20, 30]
