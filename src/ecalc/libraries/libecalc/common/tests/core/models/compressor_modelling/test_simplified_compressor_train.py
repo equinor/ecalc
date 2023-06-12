@@ -205,7 +205,7 @@ def test_calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
                 compressor_chart=stage.compressor_chart,
             )
         )
-        np.testing.assert_almost_equal(calculated_max_rate, approx_expected_max_rate, decimal=0)
+        np.testing.assert_allclose(calculated_max_rate, approx_expected_max_rate, rtol=1e-4)
 
     caplog.set_level("CRITICAL")
     with pytest.raises(EcalcError):
@@ -301,6 +301,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
             24.237008311716338,
             24.23700831171633,
         ],
+        rtol=1e-4,
     )
 
     maximum_rates = simple_compressor_train_model.get_max_standard_rate(
@@ -424,6 +425,7 @@ def test_compressor_train_simplified_unknown_stages(
             24.237008311716338,
             24.23700831171633,
         ],
+        rtol=1e-4,
     )
 
 
@@ -963,8 +965,8 @@ def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(dry_fluid):
         for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
     ]
 
-    np.testing.assert_allclose(expected_inlet_z, [s.z for s in inlet_streams])
-    np.testing.assert_allclose(expected_outlet_z, [s.z for s in outlet_streams])
-    np.testing.assert_allclose(expected_inlet_kappa, [s.kappa for s in inlet_streams])
-    np.testing.assert_allclose(expected_outlet_kappa, [s.kappa for s in outlet_streams])
-    np.testing.assert_allclose(expected_enthalpy_change, enthalpy_change_joule_per_kg)
+    np.testing.assert_allclose(expected_inlet_z, [s.z for s in inlet_streams], rtol=1e-5)
+    np.testing.assert_allclose(expected_outlet_z, [s.z for s in outlet_streams], rtol=1e-4)
+    np.testing.assert_allclose(expected_inlet_kappa, [s.kappa for s in inlet_streams], rtol=1e-3)
+    np.testing.assert_allclose(expected_outlet_kappa, [s.kappa for s in outlet_streams], rtol=1e-3)
+    np.testing.assert_allclose(expected_enthalpy_change, enthalpy_change_joule_per_kg, rtol=1e-3)

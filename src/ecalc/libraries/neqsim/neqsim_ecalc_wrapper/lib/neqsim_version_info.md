@@ -1,4 +1,4 @@
-Current neqsim.jar from latest release of NeqSim (v2.3.0 - https://github.com/equinor/neqsim/releases/tag/v2.3.0)
+Current neqsim.jar from latest release of NeqSim (v2.5.1 - https://github.com/equinor/neqsim/releases/tag/v2.3.0)
 
 If you need to manually compile a version, do the following:
 

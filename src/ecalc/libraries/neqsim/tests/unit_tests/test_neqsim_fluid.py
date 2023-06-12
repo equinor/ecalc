@@ -57,13 +57,13 @@ def test_fluid_z(heavy_fluid: NeqsimFluid) -> None:
 def test_fluid_enthalpy_J_per_kg(heavy_fluid: NeqsimFluid) -> None:
     enthalpy_J_per_kg = heavy_fluid.enthalpy_joule_per_kg
     assert isinstance(enthalpy_J_per_kg, float)
-    assert np.isclose(enthalpy_J_per_kg, 27365.875930712697)  # Ensure stability in estimate
+    assert np.isclose(enthalpy_J_per_kg, 27371.14615258956)  # Ensure stability in estimate
 
 
 def test_fluid_kappa(heavy_fluid: NeqsimFluid) -> None:
     kappa = heavy_fluid.kappa
     assert isinstance(kappa, float)
-    assert np.isclose(kappa, 1.2503541588393)  # Ensure stability in estimate
+    assert np.isclose(kappa, 1.2502874504879609)  # Ensure stability in estimate
 
 
 def test_fluid_temperature_kelvin(heavy_fluid: NeqsimFluid) -> None:

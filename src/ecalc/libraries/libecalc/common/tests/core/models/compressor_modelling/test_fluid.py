@@ -109,7 +109,7 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
             431.0868717573131,
         ],
     ]
-    np.testing.assert_allclose(new_temperatures_all_fluids, expected_new_temperatures)
+    np.testing.assert_allclose(new_temperatures_all_fluids, expected_new_temperatures, rtol=1e-4)
 
     # Check that setting temperature, gives the same enthalpy change
 

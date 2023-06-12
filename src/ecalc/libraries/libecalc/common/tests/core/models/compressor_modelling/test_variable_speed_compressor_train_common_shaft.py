@@ -85,7 +85,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
             discharge_pressure=np.asarray([100.0]),
         )
         assert result.mass_rate_kg_per_hr[0] == pytest.approx(240.61266437085808)
-        assert result.power[0] == pytest.approx(6.890646273486091)
+        assert result.power[0] == pytest.approx(6.889951698413056)
         assert result.outlet_stream.pressure[0] == pytest.approx(100.00000000000007)
         assert result.inlet_stream.density_kg_per_m3[0] == pytest.approx(24.888039288426715)
 
