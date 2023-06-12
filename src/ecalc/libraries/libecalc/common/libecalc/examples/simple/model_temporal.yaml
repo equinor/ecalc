@@ -1,0 +1,120 @@
+TIME_SERIES:
+  - NAME: SIM
+    FILE: production_data.csv
+    TYPE: DEFAULT
+FACILITY_INPUTS:
+  - NAME: genset
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
+  - NAME: compressor_sampled
+    FILE: compressor_sampled.csv
+    TYPE: COMPRESSOR_TABULAR
+  - NAME: compressor_with_turbine_sampled
+    FILE: compressor_sampled_with_turbine.csv
+    TYPE: COMPRESSOR_TABULAR
+  - NAME: pump_sampled
+    FILE: pump_sampled.csv #!include, commented !include is now supported
+    TYPE: TABULAR
+  - NAME: pump_chart
+    FILE: pump_chart.csv
+    TYPE: PUMP_CHART_SINGLE_SPEED
+    UNITS:
+      HEAD: M
+      RATE: AM3_PER_HOUR
+      EFFICIENCY: PERCENTAGE
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    PRICE: 1.5  # NOK/Sm3
+    EMISSIONS:
+      - NAME: CO2
+        FACTOR: 2.19  # CO2/Sm3 fuel gas burned
+        TAX: 1.5  # NOK/Sm3 fuel gas burned
+        QUOTA: 260  # NOK/ton
+
+VARIABLES:
+  hydrocarbon_export_sm3_per_day:
+    VALUE: SIM;OIL_PROD {+} SIM;GAS_SALES {/} 1000  # divide the gas rate by 1000 to get oil equivalent
+  salt_water_injection_rate_m3_per_day:
+    VALUE: SIM;WATER_INJ {-} SIM;WATER_PROD {+} SIM;WATER_PROD {*} (SIM;WATER_PROD < 1500) {+} (SIM;WATER_PROD {-} 17000) {*} (SIM;WATER_PROD > 17000) {*} (SIM;WATER_PROD < 18500)
+  gas_export_rate_sm3_per_day:
+    VALUE: SIM;GAS_SALES
+  gas_injection_rate_sm3_per_day:
+    VALUE: SIM;GAS_INJ {+} SIM;GAS_LIFT
+  produced_water_reinjection_condition:
+    VALUE: SIM;WATER_PROD > 1500
+  produced_water_reinjection_total_system_rate_m3_per_day:
+    VALUE: SIM;WATER_PROD
+  flare_fuel_rate_sm3_day:
+    1995-10-01:
+      VALUE: 10000
+    2005-01-01:
+      VALUE: 7000
+
+INSTALLATIONS:
+  - NAME: Installation A
+    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
+    FUEL: fuel_gas
+    GENERATORSETS:
+      - NAME: Generator set A
+        ELECTRICITY2FUEL: genset
+        CATEGORY: TURBINE-GENERATOR
+        CONSUMERS:
+          - NAME: Base production load
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 11.8 # MW
+          - NAME: Gas injection compressor
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: compressor_sampled
+              RATE: $var.gas_injection_rate_sm3_per_day
+          - NAME: Produced water reinjection pump
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              2000-01-01:
+                TYPE: PUMP
+                CONDITION: $var.produced_water_reinjection_condition
+                ENERGYFUNCTION: pump_chart
+                RATE: $var.produced_water_reinjection_total_system_rate_m3_per_day
+                FLUID_DENSITY: 1010
+                SUCTION_PRESSURE: 10  # bara
+                DISCHARGE_PRESSURE: 200  # bara
+              2024-07-01:
+                TYPE: PUMP
+                CONDITION: SIM;WATER_PROD > 1500
+                ENERGYFUNCTION: pump_chart
+                RATE: SIM;WATER_PROD
+                FLUID_DENSITY: 1010
+                SUCTION_PRESSURE: 10  # bara
+                DISCHARGE_PRESSURE: 200  # bara
+              2024-12-31:
+                TYPE: PUMP
+                CONDITION: $var.produced_water_reinjection_condition
+                ENERGYFUNCTION: pump_chart
+                RATE: $var.produced_water_reinjection_total_system_rate_m3_per_day
+                FLUID_DENSITY: 1010
+                SUCTION_PRESSURE: 10  # bara
+                DISCHARGE_PRESSURE: 200  # bara
+          - NAME: Sea water injection pump
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: TABULATED
+              ENERGYFUNCTION: pump_sampled
+              VARIABLES:
+                - NAME: RATE
+                  EXPRESSION: $var.salt_water_injection_rate_m3_per_day
+    FUELCONSUMERS:
+      - NAME: Flare
+        CATEGORY: FLARE
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: $var.flare_fuel_rate_sm3_day
+      - NAME: Gas export compressor
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR
+          ENERGYFUNCTION: compressor_with_turbine_sampled
+          RATE: $var.gas_export_rate_sm3_per_day

@@ -25,6 +25,11 @@ def simple_yaml_path():
 
 
 @pytest.fixture(scope="session")
+def simple_temporal_yaml_path():
+    return (Path(simple.__file__).parent / "model_temporal.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
 def advanced_yaml_path():
     return (Path(advanced.__file__).parent / "model.yaml").absolute()
 
@@ -137,6 +142,62 @@ class TestCsvOutput:
         with open(run_csv_output_file) as csv_file:
             csv_data = csv_file.read()
             snapshot.assert_match(csv_data, snapshot_name=run_csv_output_file.name)
+
+    @pytest.mark.snapshot
+    def test_csv_temporal_default(self, simple_temporal_yaml_path, simple_yaml_path, tmp_path, snapshot):
+        """
+        Check that reindex works and results are correct when using temporal models.
+        The temporal model is simple, and should not change the results compared to
+        the basic model.
+        """
+
+        run_name_prefix = "test"
+        run_name_prefix_temporal = "test_temporal"
+
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=simple_yaml_path,
+                csv=True,
+                output_folder=tmp_path,
+                name_prefix=run_name_prefix,
+                output_frequency="YEAR",
+            ),
+            catch_exceptions=False,
+        )
+
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=simple_temporal_yaml_path,
+                csv=True,
+                output_folder=tmp_path,
+                name_prefix=run_name_prefix_temporal,
+                output_frequency="YEAR",
+            ),
+            catch_exceptions=False,
+        )
+        run_csv_output_file = tmp_path / f"{run_name_prefix}.csv"
+        run_csv_temporal_output_file = tmp_path / f"{run_name_prefix_temporal}.csv"
+
+        assert run_csv_output_file.is_file()
+        assert run_csv_temporal_output_file.is_file()
+        csv_file = open(run_csv_output_file).read()
+        csv_temporal_file = open(run_csv_temporal_output_file).read()
+
+        # First check that snapshots are ok
+        snapshot.assert_match(csv_file, snapshot_name=run_csv_output_file.name)
+        snapshot.assert_match(csv_temporal_file, snapshot_name=run_csv_temporal_output_file.name)
+
+        # Then compare with- and without temporal model, result should be the same;
+        # only column name is different due to different yaml-files.
+        df_basic = pd.read_csv(run_csv_output_file)
+        df_temporal = pd.read_csv(run_csv_temporal_output_file)
+
+        # Rename column names to make headings identical, before comparing
+        df_temporal.columns = df_temporal.columns.str.replace("model_temporal", "model")
+
+        assert df_temporal.equals(df_basic)
 
     def test_operational_settings_used_available(self, advanced_yaml_path, tmp_path):
         """Check that we are providing operational settings used for systems."""
