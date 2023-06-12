@@ -57,8 +57,11 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
         Resample the given time series to the new Frequency given. Only data
         that is defined as a timeseries will be resampled.
 
-        :param freq:
-        :return: return a copy of itself with all data resampled to given frequency
+        Args:
+            freq: which frequency to resample to
+
+        Returns: return a copy of itself with all data resampled to given frequency
+
         """
         if freq == freq.NONE:
             return self.copy()

@@ -528,6 +528,25 @@ class TestShowResultsCommand:
 
     @pytest.mark.snapshot
     def test_json_resampled(self, simple_run, monkeypatch, snapshot):
+        """
+        TEST REASON and SCOPE: That resampled json follows json schema
+
+        Testing the resample json from a representative model in order to make
+        sure that the resampled json is correctly changing the json according to
+        our schema. Not testing this may easily lead to json that violates the schema
+        when e.g. new data types are introduced. This test should make sure we have
+        control of that. This was added after a bug in resampling was found, where
+        resampling was creating different json than without resampling, and that
+        the json was invalid.
+
+        Args:
+            simple_run:
+            monkeypatch:
+            snapshot:
+
+        Returns:
+
+        """
         result = runner.invoke(
             show.app,
             [
