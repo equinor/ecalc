@@ -143,10 +143,10 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
             discharge_pressure=np.array([0, 2, 2]),
         )
 
-        # Ensuring that first stage returns zero energy usage and no failure.
-        assert result.is_valid == [False, True, True]
+        # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
+        assert result.is_valid == [True, True, True]
         assert result.failure_status == [
-            CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+            None,
             None,
             None,
         ]

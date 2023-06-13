@@ -54,6 +54,74 @@ class CompressorModel(BaseModel):
         """
         raise NotImplementedError
 
+    def validate_operational_conditions(
+        self,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        intermediate_pressure: Optional[NDArray[np.float64]] = None,
+    ) -> Tuple[
+        NDArray[np.float64],
+        NDArray[np.float64],
+        NDArray[np.float64],
+        NDArray[np.float64],
+        List[CompressorTrainCommonShaftFailureStatus],
+    ]:
+        indices_to_validate = self._find_indices_to_validate(rate=rate)
+        validated_failure_status = [None] * len(suction_pressure)
+        validated_rate = rate.copy()
+        validated_suction_pressure = suction_pressure.copy()
+        validated_discharge_pressure = discharge_pressure.copy()
+        if intermediate_pressure is not None:
+            validated_intermediate_pressure = intermediate_pressure
+        if len(indices_to_validate) >= 1:
+            (
+                tmp_rate,
+                tmp_suction_pressure,
+                tmp_discharge_pressure,
+                tmp_intermediate_pressure,
+                tmp_failure_status,
+            ) = self._validate_operational_conditions(
+                rate=rate[:, indices_to_validate] if np.ndim(rate) == 2 else rate[indices_to_validate],
+                suction_pressure=suction_pressure[indices_to_validate],
+                discharge_pressure=discharge_pressure[indices_to_validate],
+                intermediate_pressure=intermediate_pressure[indices_to_validate]
+                if intermediate_pressure is not None
+                else None,
+            )
+
+            if np.ndim(rate) == 2:
+                validated_rate[:, indices_to_validate] = tmp_rate
+            else:
+                validated_rate[indices_to_validate] = tmp_rate
+            validated_suction_pressure[indices_to_validate] = tmp_suction_pressure
+            validated_discharge_pressure[indices_to_validate] = tmp_discharge_pressure
+            if intermediate_pressure is not None:
+                validated_intermediate_pressure[indices_to_validate] = tmp_intermediate_pressure
+            for i, failure in enumerate(tmp_failure_status):
+                validated_failure_status[indices_to_validate[i]] = failure
+
+        # any remaining zero or negative suction/discharge pressures (for unvalidated time steps, others are already changed)
+        # must be set to 1 (for neqsim to initiate fluid streams)
+        validated_suction_pressure = np.where(validated_suction_pressure <= 0, 1, validated_suction_pressure)
+        validated_discharge_pressure = np.where(validated_discharge_pressure <= 0, 1, validated_discharge_pressure)
+
+        return (
+            validated_rate,
+            validated_suction_pressure,
+            validated_discharge_pressure,
+            validated_intermediate_pressure if intermediate_pressure is not None else None,
+            validated_failure_status,
+        )
+
+    @staticmethod
+    def _find_indices_to_validate(rate: NDArray[np.float64]) -> List[int]:
+        """Find indices of array where rate(s) are positive.
+        For a 1D array, this means returning the indices where rate is positive.
+        For a 2D array, this means returning the indices where at least one rate is positive (along 0-axis).
+        """
+        return np.where(np.any(rate > 0, axis=0) if np.ndim(rate) == 2 else rate > 0)[0].tolist()
+
     @staticmethod
     def _validate_operational_conditions(
         rate: NDArray[np.float64],
@@ -71,7 +139,9 @@ class CompressorModel(BaseModel):
         Checks for negative or zero values in the input values to the compressor train.
 
         The following is done:
-            - Any pressures that are negative or zero are set to one, and all rates for that time step is set to zero
+            - Time steps where rate is zero are not checked for validity
+              (but zero or negative pressures will still be changed to 1)
+            - Any pressures that are negative or zero are set to one, and all rates for that time step are set to zero
             - Any negative rates are set to zero
             - A failure_status describing the first failure encountered is returned
 
@@ -100,14 +170,13 @@ class CompressorModel(BaseModel):
 
         input_rate = rate.copy()
         input_suction_pressure = suction_pressure.copy()
-        if intermediate_pressure is not None:
-            input_intermediate_pressure = intermediate_pressure.copy()
+        input_intermediate_pressure = intermediate_pressure.copy() if intermediate_pressure is not None else None
         input_discharge_pressure = discharge_pressure.copy()
 
         if not np.all(rate >= 0):
             logger.warning(
-                f"The rate(s) in the compressor train must have non negative values. Given values [Sm3/sd]: {rate.tolist()}."
-                f" The affected time steps will not be calculated, and rate is set to zero."
+                f"The rate(s) in the compressor train must have non negative values. Given values [Sm3/sd]: "
+                f"{rate.tolist()}. The affected time steps will not be calculated, and rate is set to zero."
             )
             rate = (
                 np.where(np.any(rate < 0, axis=0), 0, rate) if np.ndim(rate) == 2 else np.where(rate < 0, 0, rate)
