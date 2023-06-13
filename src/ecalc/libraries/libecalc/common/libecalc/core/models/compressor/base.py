@@ -101,9 +101,10 @@ class CompressorModel(BaseModel):
             for i, failure in enumerate(tmp_failure_status):
                 validated_failure_status[indices_to_validate[i]] = failure
 
-        # any remaining zero or negative suction pressures (for unvalidated time steps, others are already changed)
+        # any remaining zero or negative suction/discharge pressures (for unvalidated time steps, others are already changed)
         # must be set to 1 (for neqsim to initiate fluid streams)
         validated_suction_pressure = np.where(validated_suction_pressure <= 0, 1, validated_suction_pressure)
+        validated_discharge_pressure = np.where(validated_discharge_pressure <= 0, 1, validated_discharge_pressure)
 
         return (
             validated_rate,
