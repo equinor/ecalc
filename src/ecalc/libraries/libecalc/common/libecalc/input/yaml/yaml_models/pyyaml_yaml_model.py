@@ -6,6 +6,7 @@ import pydantic
 import yaml
 from libecalc.common.exceptions import EcalcError, ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
+from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.input.validation_errors import (
     DataValidationError,
     DtoValidationError,
@@ -125,6 +126,12 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                 )
 
         def load(self, yaml_file: ResourceStream):
+            if ComponentNameStr.regex.search(yaml_file.name) is None:
+                raise EcalcError(
+                    title="Bad Yaml file name",
+                    message="The Yaml file name contains illegal special characters. "
+                    "These can be e.g. ´.´, ´$´, ´&´ etc. ",
+                )
             try:
                 return yaml.load(yaml_file, Loader=self.__loader)  # noqa: S506 - loader should be SafeLoader
             except KeyError as e:

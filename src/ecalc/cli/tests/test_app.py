@@ -10,6 +10,7 @@ import pandas as pd
 import pytest
 from cli import main
 from cli.commands import show
+from libecalc.common.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
 from libecalc.examples import advanced, simple
 from libecalc.fixtures.cases import ltp_export
@@ -27,6 +28,11 @@ def simple_yaml_path():
 @pytest.fixture(scope="session")
 def simple_temporal_yaml_path():
     return (Path(simple.__file__).parent / "model_temporal.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
+def simple_wrong_name_yaml_path():
+    return (Path(simple.__file__).parent / "model.wrong.name.yaml").absolute()
 
 
 @pytest.fixture(scope="session")
@@ -640,3 +646,33 @@ class TestShowResultsCommand:
 
         output_text = result.stdout
         snapshot.assert_match(output_text, snapshot_name="results.json")
+
+
+class TestYamlFile:
+    def test_yaml_file_error(self, simple_wrong_name_yaml_path, tmp_path):
+        """
+        TEST REASON and SCOPE: Check error message when Yaml file name is wrong.
+
+        A file name with ´.´ in the file stem should not be accepted. The error message
+        should be understandable for the user.
+
+        Args:
+            simple model file with bad name:
+
+        Returns:
+
+        """
+        run_name_prefix = "test"
+        with pytest.raises(EcalcError) as ee:
+            runner.invoke(
+                main.app,
+                _get_args(
+                    model_file=simple_wrong_name_yaml_path,
+                    csv=True,
+                    output_folder=tmp_path,
+                    name_prefix=run_name_prefix,
+                ),
+                catch_exceptions=False,
+            )
+
+        assert "Bad Yaml file name: The Yaml file name contains illegal special characters" in str(ee.value)
