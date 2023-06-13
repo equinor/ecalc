@@ -359,7 +359,7 @@ class TimeSeriesFloat(TimeSeries[float]):
         ds_tmp = pandas_data_series.reindex(pandas_data_series.index.union(target_index)).ffill()
 
         # New resampled pd.Series
-        ds_resampled = ds_tmp.groupby(pd.Grouper(freq=freq.value)).all()
+        ds_resampled = ds_tmp.groupby(pd.Grouper(freq=freq.value)).first()
 
         return TimeSeriesFloat(
             timesteps=ds_resampled.index.to_pydatetime().tolist(),
