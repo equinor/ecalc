@@ -126,10 +126,10 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                 )
 
         def load(self, yaml_file: ResourceStream):
-            if ComponentNameStr.regex.search(yaml_file.stem) is None:
+            if ComponentNameStr.regex.search(Path(yaml_file.name).stem) is None:
                 raise EcalcError(
                     title="Bad Yaml file name",
-                    message="The Yaml file name contains illegal special characters. "
+                    message=f"The model file, {yaml_file.name}, contains illegal special characters. "
                     "These can be e.g. ´.´, ´$´, ´&´ etc. ",
                 )
             try:

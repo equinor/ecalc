@@ -675,4 +675,7 @@ class TestYamlFile:
                 catch_exceptions=False,
             )
 
-        assert "Bad Yaml file name: The Yaml file name contains illegal special characters" in str(ee.value)
+        assert (
+            f"Bad Yaml file name: The model file, {simple_wrong_name_yaml_path.name}, "
+            f"contains illegal special characters" in str(ee.value)
+        )
