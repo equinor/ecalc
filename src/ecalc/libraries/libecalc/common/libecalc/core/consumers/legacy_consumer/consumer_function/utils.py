@@ -93,7 +93,7 @@ def apply_condition(input_array: NDArray[np.float64], condition: Optional[NDArra
 
     Args:
         input_array: Array with input values
-        condition: Array of 1 or 0 describing wether or not conditions are met
+        condition: Array of 1 or 0 describing whether conditions are met
 
     Returns:
         Returns the input_array where conditions are applied (values set to 0 where condition is 0)
@@ -101,11 +101,7 @@ def apply_condition(input_array: NDArray[np.float64], condition: Optional[NDArra
     if condition is None:
         return deepcopy(input_array)
     else:
-        return (
-            np.where(np.any(condition, axis=0), input_array, 0)
-            if np.ndim(input_array) == 2
-            else np.where(condition, input_array, 0)
-        )
+        return np.where(condition, input_array, 0)
 
 
 def get_power_loss_factor_from_expression(
