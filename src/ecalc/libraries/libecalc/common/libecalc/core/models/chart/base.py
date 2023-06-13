@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 from libecalc import dto
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
@@ -43,15 +44,15 @@ class ChartCurve:
         return self.speed_rpm
 
     @property
-    def rate_values(self) -> np.ndarray:
+    def rate_values(self) -> NDArray[np.float64]:
         return np.asarray(self.rate)
 
     @property
-    def head_values(self) -> np.ndarray:
+    def head_values(self) -> NDArray[np.float64]:
         return np.asarray(self.head)
 
     @property
-    def efficiency_values(self) -> Optional[np.ndarray]:
+    def efficiency_values(self) -> Optional[NDArray[np.float64]]:
         return np.asarray(self.efficiency)
 
     @property

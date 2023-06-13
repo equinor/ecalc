@@ -3,6 +3,7 @@ from typing import List, Optional
 import numpy as np
 from libecalc import dto
 from libecalc.core.models.chart.base import ChartCurve
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 
@@ -307,9 +308,9 @@ class VariableSpeedChart:
 
     def efficiency_as_function_of_rate_and_head(
         self,
-        rates: np.ndarray,
-        heads: np.ndarray,
-    ) -> np.ndarray:
+        rates: NDArray[np.float64],
+        heads: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """Calculate efficiency for rate, head points within chart capacity. For points outside capacity, one should use
         evaluate_capacity_and_extrapolate_below_minimum first to extrapolate points below asv/minimum speed first
         Outside the chart, the efficiency values will be some combination of the closes points efficiency values.

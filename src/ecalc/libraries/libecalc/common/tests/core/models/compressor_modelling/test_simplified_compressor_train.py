@@ -16,6 +16,7 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
+from numpy.typing import NDArray
 
 
 @pytest.fixture
@@ -442,7 +443,7 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
 
 
 # Unit tests individual methods
-def _span_variables(input_variables: List[np.ndarray]) -> Tuple:
+def _span_variables(input_variables: List[NDArray[np.float64]]) -> Tuple:
     number_of_variables = len(input_variables)
     combo = np.asarray(np.meshgrid(*input_variables)).T.reshape(-1, number_of_variables)
 

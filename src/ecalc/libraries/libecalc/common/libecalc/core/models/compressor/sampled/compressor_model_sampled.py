@@ -35,6 +35,7 @@ from libecalc.core.models.results import (
 )
 from libecalc.dto.models.compressor import CompressorSampled
 from libecalc.dto.types import ChartAreaFlag
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 
@@ -63,14 +64,14 @@ class CompressorModelSampled(CompressorModel):
         self.function_values_are_power = self.data_transfer_object.energy_usage_type == dto.types.EnergyUsageType.POWER
         self.power_interpolation_values = data_transfer_object.power_interpolation_values
 
-        function_values_adjusted: np.ndarray = transform_linear(
+        function_values_adjusted: NDArray[np.float64] = transform_linear(
             values=np.reshape(np.array(data_transfer_object.energy_usage_values).astype(float), -1),
             constant=data_transfer_object.energy_usage_adjustment_constant,
             factor=data_transfer_object.energy_usage_adjustment_factor,
         )
 
-        self.fuel_values_adjusted: Optional[np.ndarray] = None
-        self.power_interpolation_values_adjusted: Optional[np.ndarray] = None
+        self.fuel_values_adjusted: Optional[NDArray[np.float64]] = None
+        self.power_interpolation_values_adjusted: Optional[NDArray[np.float64]] = None
         if not self.function_values_are_power and self.power_interpolation_values:
             self.fuel_values_adjusted = function_values_adjusted
             self.power_interpolation_values_adjusted = transform_linear(
@@ -127,9 +128,9 @@ class CompressorModelSampled(CompressorModel):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: Optional[np.ndarray] = None,
-        discharge_pressures: Optional[np.ndarray] = None,
-    ) -> Optional[np.ndarray]:
+        suction_pressures: Optional[NDArray[np.float64]] = None,
+        discharge_pressures: Optional[NDArray[np.float64]] = None,
+    ) -> Optional[NDArray[np.float64]]:
         """Get max rate given suction pressure and a discharge pressure.
 
         :param suction_pressures: Suction pressure [bar]
@@ -149,9 +150,9 @@ class CompressorModelSampled(CompressorModel):
 
     def evaluate_rate_ps_pd(
         self,
-        rate: Optional[np.ndarray],
-        suction_pressure: Optional[np.ndarray],
-        discharge_pressure: Optional[np.ndarray],
+        rate: Optional[NDArray[np.float64]],
+        suction_pressure: Optional[NDArray[np.float64]],
+        discharge_pressure: Optional[NDArray[np.float64]],
     ) -> CompressorTrainResult:
         """:param rate: Rate in standard m3/hour [Sm3/h]
         :param suction_pressure: Suction pressure [bar]
@@ -303,8 +304,8 @@ class CompressorModelSampled(CompressorModel):
         Hence, this class is currently only relevant in this compressor model sampled context.
         """
 
-        fuel_values: Optional[np.ndarray]
-        power_values: Optional[np.ndarray]
+        fuel_values: Optional[NDArray[np.float64]]
+        power_values: Optional[NDArray[np.float64]]
 
         def __post_init__(self) -> None:
             if (
@@ -324,7 +325,7 @@ class CompressorModelSampled(CompressorModel):
         @Feature.experimental(
             feature_description="Calculate (turbine) power usage in fuel-driven compressor sampled model"
         )
-        def calculate_turbine_power_usage(self, fuel_usage_values: np.ndarray) -> Optional[TurbineResult]:
+        def calculate_turbine_power_usage(self, fuel_usage_values: NDArray[np.float64]) -> Optional[TurbineResult]:
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
                 return TurbineResult(

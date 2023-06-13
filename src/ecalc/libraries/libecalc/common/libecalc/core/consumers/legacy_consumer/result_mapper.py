@@ -15,6 +15,7 @@ from libecalc.core.consumers.legacy_consumer.system.results import (
 )
 from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
 from libecalc.core.models.results.base import EnergyFunctionResult
+from numpy.typing import NDArray
 
 
 def get_single_consumer_models(
@@ -122,7 +123,7 @@ def get_operational_settings_results_from_consumer_result(
 
 def map_energy_function_results(
     result: EnergyFunctionResult,
-    time_vector: np.ndarray,
+    time_vector: NDArray[np.float64],
     name: str,
 ) -> List[core_results.ConsumerModelResult]:
     """Returns a list of results that are specific to each consumer. This can be details for compressor trains with

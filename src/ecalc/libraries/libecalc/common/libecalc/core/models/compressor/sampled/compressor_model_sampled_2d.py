@@ -11,6 +11,7 @@ from libecalc.core.models.compressor.sampled.convex_hull_common import (
     get_lower_upper_qhull,
     sort_ndarray_by_column,
 )
+from numpy.typing import NDArray
 from scipy.interpolate import LinearNDInterpolator, interp1d
 from scipy.spatial import ConvexHull
 
@@ -130,9 +131,9 @@ class CompressorModelSampled2DRatePd:
     @classmethod
     def setup_from_arrays(
         cls,
-        rates: np.ndarray,
-        discharge_pressures: np.ndarray,
-        function_values: np.ndarray,
+        rates: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+        function_values: NDArray[np.float64],
     ):
         function_value_header = "function_value"
         dataframe = pd.DataFrame(
@@ -140,7 +141,9 @@ class CompressorModelSampled2DRatePd:
         )
         return cls(sampled_data=dataframe, function_header=function_value_header)
 
-    def evaluate(self, rate: np.ndarray, discharge_pressure: np.ndarray, **kwargs) -> np.ndarray:  # noqa
+    def evaluate(
+        self, rate: NDArray[np.float64], discharge_pressure: NDArray[np.float64], **kwargs
+    ) -> NDArray[np.float64]:  # noqa
         """AKA: run/emulate ; returns energy consumption and possibly emission.
 
         For a given set of rate and pressure discharge, find the energy usage
@@ -158,9 +161,9 @@ class CompressorModelSampled2DRatePd:
             rate=rate, discharge_pressure=discharge_pressure
         )
         x_for_interpolator = np.stack((rate_projected, pd_projected), axis=-1)
-        return self._interpolator(x_for_interpolator)
+        return np.array(self._interpolator(x_for_interpolator))
 
-    def get_max_rate(self, discharge_pressure: np.ndarray) -> float:
+    def get_max_rate(self, discharge_pressure: NDArray[np.float64]) -> float:
         """AKA: find_maximum_compatible_rate.
 
         For this compressor (train), find the maximum rate it can handle. If current rate > max rate for a given Pd,
@@ -176,12 +179,12 @@ class CompressorModelSampled2DRatePd:
         """
         return self._maximum_rate_function(discharge_pressure)
 
-    def get_max_discharge_pressure(self, rate: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+    def get_max_discharge_pressure(self, rate: Union[NDArray[np.float64], float]) -> Union[NDArray[np.float64], float]:
         if isinstance(rate, (int, float)):
-            return self._maximum_pd_function(np.asarray([rate]))[0]
-        return self._maximum_pd_function(rate)
+            return float(self._maximum_pd_function(np.asarray([rate]))[0])
+        return np.array(self._maximum_pd_function(rate))
 
-    def _project_variables_for_evaluation(self, rate: np.ndarray, discharge_pressure: np.ndarray):
+    def _project_variables_for_evaluation(self, rate: NDArray[np.float64], discharge_pressure: NDArray[np.float64]):
         """AKA: make_parameters_compatible_to_compressor_working_area
         Attempt to project rate and Pd to within the convex hull working area for the compressor. If we succeed a number
         is returned within (or on the border of the convex hull), otherwise NaN.
@@ -263,17 +266,17 @@ class CompressorModelSampled2DRatePs:
             bounds_error=False,
         )
 
-    def evaluate(self, rate: np.ndarray, suction_pressure: np.ndarray, **kwargs):  # noqa
+    def evaluate(self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], **kwargs):  # noqa
         rate_projected, ps_projected = self._project_variables_for_evaluation(rate=rate, ps=suction_pressure)
         x_for_interpolator = np.stack((rate_projected, ps_projected), axis=-1)
         energy_consumption = self._interpolator(x_for_interpolator)
 
         return energy_consumption
 
-    def get_max_rate(self, ps: np.ndarray):
+    def get_max_rate(self, ps: NDArray[np.float64]):
         return self._maximum_rate_function(ps)
 
-    def _project_variables_for_evaluation(self, rate: np.ndarray, ps: np.ndarray):
+    def _project_variables_for_evaluation(self, rate: NDArray[np.float64], ps: NDArray[np.float64]):
         rate_projected = np.fmax(rate, self._minimum_rate_function(ps))
         ps_projected = np.fmin(ps, self._maximum_ps_function(rate_projected))
 
@@ -326,17 +329,21 @@ class CompressorModelSampled2DPsPd:
             bounds_error=False,
         )
 
-    def evaluate(self, suction_pressure: np.ndarray, discharge_pressure: np.ndarray, **kwargs):  # noqa
+    def evaluate(
+        self, suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64], **kwargs
+    ):  # noqa
         ps_projected, pd_projected = self._project_variables_for_evaluation(ps=suction_pressure, pd=discharge_pressure)
         x_for_interpolator = np.stack((ps_projected, pd_projected), axis=-1)
         energy_consumption = self._interpolator(x_for_interpolator)
 
         return energy_consumption
 
-    def get_max_rate(self, ps: Optional[np.ndarray] = None, pd: Optional[np.ndarray] = None) -> np.ndarray:
+    def get_max_rate(
+        self, ps: Optional[NDArray[np.float64]] = None, pd: Optional[NDArray[np.float64]] = None
+    ) -> NDArray[np.float64]:
         raise NotImplementedError  # Not relevant
 
-    def _project_variables_for_evaluation(self, ps: np.ndarray, pd: np.ndarray):
+    def _project_variables_for_evaluation(self, ps: NDArray[np.float64], pd: NDArray[np.float64]):
         pd_projected = np.fmax(pd, self._minimum_pd_function(ps))
         ps_projected = np.fmin(ps, self._maximum_ps_function(pd_projected))
 
