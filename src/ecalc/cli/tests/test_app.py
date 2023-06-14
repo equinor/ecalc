@@ -8,12 +8,16 @@ from typing import Literal, NamedTuple
 
 import pandas as pd
 import pytest
+import yaml
 from cli import main
 from cli.commands import show
 from libecalc.common.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
+from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.examples import advanced, simple
 from libecalc.fixtures.cases import ltp_export
+from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.input.yaml_entities import ResourceStream
 from pydantic import Protocol
 from typer.testing import CliRunner
 
@@ -28,11 +32,6 @@ def simple_yaml_path():
 @pytest.fixture(scope="session")
 def simple_temporal_yaml_path():
     return (Path(simple.__file__).parent / "model_temporal.yaml").absolute()
-
-
-@pytest.fixture(scope="session")
-def simple_wrong_name_yaml_path():
-    return (Path(simple.__file__).parent / "model.wrong.name.yaml").absolute()
 
 
 @pytest.fixture(scope="session")
@@ -649,9 +648,9 @@ class TestShowResultsCommand:
 
 
 class TestYamlFile:
-    def test_yaml_file_error(self, simple_wrong_name_yaml_path, tmp_path):
+    def test_yaml_file_error(self):
         """
-        TEST REASON and SCOPE: Check error message when Yaml file name is wrong.
+        TEST SCOPE: Check error message when Yaml file name is wrong.
 
         A file name with ´.´ in the file stem should not be accepted. The error message
         should be understandable for the user.
@@ -662,20 +661,16 @@ class TestYamlFile:
         Returns:
 
         """
-        run_name_prefix = "test"
+
+        yaml_wrong_name = (Path("test.name.yaml")).absolute()
+        yaml_reader = PyYamlYamlModel.YamlReader(loader=yaml.SafeLoader)
+        stream = StringIO("")
+        yaml_stream = ResourceStream(name=yaml_wrong_name.name, stream=stream)
+
         with pytest.raises(EcalcError) as ee:
-            runner.invoke(
-                main.app,
-                _get_args(
-                    model_file=simple_wrong_name_yaml_path,
-                    csv=True,
-                    output_folder=tmp_path,
-                    name_prefix=run_name_prefix,
-                ),
-                catch_exceptions=False,
-            )
+            yaml_reader.load(yaml_file=yaml_stream)
 
         assert (
-            f"Bad Yaml file name: The model file, {simple_wrong_name_yaml_path.name}, "
-            f"contains illegal special characters" in str(ee.value)
+            f"The model file, {yaml_wrong_name.name}, contains illegal special characters. "
+            f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}" in str(ee.value)
         )

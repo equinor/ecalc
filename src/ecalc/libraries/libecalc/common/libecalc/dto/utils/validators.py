@@ -6,7 +6,8 @@ from libecalc.expression import Expression
 from pydantic import constr
 
 EmissionNameStr = constr(regex=r"^\w*$")
-ComponentNameStr = constr(regex=r"^[A-ZÆØÅa-zæøå\d_/\- ]*$")  # synced with valid regexp in BE4FE
+COMPONENT_NAME_ALLOWED_CHARS = "A-ZÆØÅa-zæøå\\d_/\\- "
+ComponentNameStr = constr(regex=r"^[" + COMPONENT_NAME_ALLOWED_CHARS + "]*$")  # synced with valid regexp in BE4FE
 
 ExpressionType = Union[str, int, float, Expression]
 
