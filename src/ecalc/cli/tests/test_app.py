@@ -8,11 +8,16 @@ from typing import Literal, NamedTuple
 
 import pandas as pd
 import pytest
+import yaml
 from cli import main
 from cli.commands import show
+from libecalc.common.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
+from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.examples import advanced, simple
 from libecalc.fixtures.cases import ltp_export
+from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.input.yaml_entities import ResourceStream
 from pydantic import Protocol
 from typer.testing import CliRunner
 
@@ -640,3 +645,32 @@ class TestShowResultsCommand:
 
         output_text = result.stdout
         snapshot.assert_match(output_text, snapshot_name="results.json")
+
+
+class TestYamlFile:
+    def test_yaml_file_error(self):
+        """
+        TEST SCOPE: Check error message when Yaml file name is wrong.
+
+        A file name with ´.´ in the file stem should not be accepted. The error message
+        should be understandable for the user.
+
+        Args:
+            simple model file with bad name:
+
+        Returns:
+
+        """
+
+        yaml_wrong_name = (Path("test.name.yaml")).absolute()
+        yaml_reader = PyYamlYamlModel.YamlReader(loader=yaml.SafeLoader)
+        stream = StringIO("")
+        yaml_stream = ResourceStream(name=yaml_wrong_name.name, stream=stream)
+
+        with pytest.raises(EcalcError) as ee:
+            yaml_reader.load(yaml_file=yaml_stream)
+
+        assert (
+            f"The model file, {yaml_wrong_name.name}, contains illegal special characters. "
+            f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}" in str(ee.value)
+        )
