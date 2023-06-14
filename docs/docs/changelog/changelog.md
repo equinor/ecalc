@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.2.6](https://github.com/equinor/ecalc/compare/v8.2.5...v8.2.6) (2023-06-14)
+
+
+### Bug Fixes
+
+* validate time steps where rate is different from zero, not only when larger than zero ([07f3ea3](https://github.com/equinor/ecalc/commit/07f3ea30df30c8a87e35647750813bc6e4d302a7))
+
 ## [8.2.5](https://github.com/equinor/ecalc/compare/v8.2.4...v8.2.5) (2023-06-14)
 
 
