@@ -1,5 +1,20 @@
 # Changelog
 
+## [8.2.5](https://github.com/equinor/ecalc/compare/v8.2.4...v8.2.5) (2023-06-14)
+
+
+### Bug Fixes
+
+* bug fix to joining results from different temporal models with compressor train models having multiple inlet or outlet streams ([#63](https://github.com/equinor/ecalc/issues/63)) ([af36390](https://github.com/equinor/ecalc/commit/af363906bb7f595d9790cd5f4fea61022734de20))
+* make apply_condition work for 2D numpy arrays also ([#79](https://github.com/equinor/ecalc/issues/79)) ([fa40e21](https://github.com/equinor/ecalc/commit/fa40e217add2ef75b82fb8d23fe7dc805b7b9a9a))
+* resample emissions correctly to create valid json ([d242732](https://github.com/equinor/ecalc/commit/d2427327afaa1e15120474d9adf4776c2032d3f1))
+* validate operational conditions when rate is zero ([#74](https://github.com/equinor/ecalc/issues/74)) ([d8a5fae](https://github.com/equinor/ecalc/commit/d8a5faeec1fcaafe5a370e7780415f0026b95429))
+
+
+### Miscellaneous Chores
+
+* numpy ndarray typing ([74f0561](https://github.com/equinor/ecalc/commit/74f056195ac4624f9e845adf534bb343636544b6))
+
 ## [8.2.4](https://github.com/equinor/ecalc/compare/v8.2.3...v8.2.4) (2023-06-08)
 
 
