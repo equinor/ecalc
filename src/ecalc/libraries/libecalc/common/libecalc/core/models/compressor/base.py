@@ -120,7 +120,7 @@ class CompressorModel(BaseModel):
         For a 1D array, this means returning the indices where rate is positive.
         For a 2D array, this means returning the indices where at least one rate is positive (along 0-axis).
         """
-        return np.where(np.any(rate > 0, axis=0) if np.ndim(rate) == 2 else rate > 0)[0].tolist()
+        return np.where(np.any(rate != 0, axis=0) if np.ndim(rate) == 2 else rate != 0)[0].tolist()
 
     @staticmethod
     def _validate_operational_conditions(
