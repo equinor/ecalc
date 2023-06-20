@@ -456,6 +456,7 @@ class Asset(Component):
     def validate_unique_names(cls, values):
         """Ensure unique component names within installation."""
         names = [values["name"]]
+        fuel_types = []
         for installation in values["installations"]:
             names.append(installation.name)
             fuel_consumers = installation.fuel_consumers
@@ -467,12 +468,18 @@ class Asset(Component):
                 if isinstance(fuel_consumer, GeneratorSet):
                     for electricity_consumer in fuel_consumer.consumers:
                         names.append(electricity_consumer.name)
+                if fuel_consumer.fuel is not None:
+                    for fuel_type in fuel_consumer.fuel.values():
+                        # Need to verify that it is a different fuel
+                        if fuel_type is not None and fuel_type not in fuel_types:
+                            fuel_types.append(fuel_type)
+                            names.append(fuel_type.name)
 
         duplicated_names = get_duplicates(names)
         if len(duplicated_names) > 0:
             raise ValueError(
-                "Component names must be unique. Components include asset/ecalc-model, installations,"
-                " generator sets, electricity consumers, fuel consumers and direct emitters."
+                "Component- and fuel type names must be unique. Components include asset/ecalc-model, installations,"
+                " generator sets, electricity consumers, fuel consumers, direct emitters and fuel types."
                 f" Duplicated names are: {', '.join(duplicated_names)}"
             )
         return values
