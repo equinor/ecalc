@@ -21,7 +21,7 @@ def get_fuel(fuel_name: str, price: float, emission_name: str) -> Dict[datetime,
         emission_name: name of emission, e.g. co2
 
     Returns:
-        dict[datetime, dto.types.FuelType]
+        Dict[datetime, dto.types.FuelType]
     """
     return {
         datetime(2000, 1, 1): dto.types.FuelType(
@@ -61,8 +61,8 @@ def get_installation(installation_name: str, fuel_consumer: dto.FuelConsumer) ->
 
 def get_fuel_consumer(
     consumer_name: str,
-    fuel_type: dict[datetime, dto.types.FuelType],
-    category: dict[datetime, dto.base.ConsumerUserDefinedCategoryType],
+    fuel_type: Dict[datetime, dto.types.FuelType],
+    category: Dict[datetime, dto.base.ConsumerUserDefinedCategoryType],
 ) -> dto.FuelConsumer:
     """
     Generates a fuel consumer dto for use in testing
