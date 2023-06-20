@@ -37,13 +37,14 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                         tabular_df = item.to_dataframe(prefix=item.name)
                         df = df.join(tabular_df)
 
-            elif isinstance(attribute_value, dict):
-                if len(attribute_value) > 0 and all(
-                    isinstance(item, TabularTimeSeries) for item in attribute_value.values()
-                ):
-                    for item in attribute_value.values():
-                        tabular_df = item.to_dataframe(prefix=item.name)
-                        df = df.join(tabular_df)
+            elif (
+                isinstance(attribute_value, dict)
+                and len(attribute_value) > 0
+                and all(isinstance(item, TabularTimeSeries) for item in attribute_value.values())
+            ):
+                for item in attribute_value.values():
+                    tabular_df = item.to_dataframe(prefix=item.name)
+                    df = df.join(tabular_df)
 
         if prefix is not None:
             df = df.add_prefix(prefix=f"{prefix}.")
