@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Dict
 
 import pytest
 from libecalc import dto
@@ -10,7 +11,7 @@ from pydantic import ValidationError
 regularity = {datetime(2000, 1, 1): Expression.setup_from_expression(1)}
 
 
-def get_fuel(fuel_name: str, price: float, emission_name: str) -> dict[datetime, dto.types.FuelType]:
+def get_fuel(fuel_name: str, price: float, emission_name: str) -> Dict[datetime, dto.types.FuelType]:
     """
     Generates a fuel type dto for use in testing
 
