@@ -347,6 +347,7 @@ class LTPConfig(ResultConfig):
                     title="NMVOC From Flare",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["FLARE"],
                         emission_type="nmvoc",
                     ),
