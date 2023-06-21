@@ -35,6 +35,11 @@ def simple_temporal_yaml_path():
 
 
 @pytest.fixture(scope="session")
+def simple_duplicate_names_yaml_path():
+    return (Path(simple.__file__).parent / "model_duplicate_names.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
 def advanced_yaml_path():
     return (Path(advanced.__file__).parent / "model.yaml").absolute()
 
@@ -673,4 +678,30 @@ class TestYamlFile:
         assert (
             f"The model file, {yaml_wrong_name.name}, contains illegal special characters. "
             f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}" in str(ee.value)
+        )
+
+    def test_yaml_duplicate_fuel(self, simple_duplicate_names_yaml_path, tmp_path):
+        """
+        TEST SCOPE: Check error message when Yaml file name is wrong.
+
+        A file name with ´.´ in the file stem should not be accepted. The error message
+        should be understandable for the user.
+
+        Args:
+            simple model file with bad name:
+
+        Returns:
+
+        """
+
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=simple_duplicate_names_yaml_path,
+                csv=True,
+                output_folder=tmp_path,
+                name_prefix="test",
+                output_frequency="YEAR",
+            ),
+            catch_exceptions=False,
         )
