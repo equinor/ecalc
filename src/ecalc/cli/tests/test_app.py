@@ -682,26 +682,28 @@ class TestYamlFile:
 
     def test_yaml_duplicate_fuel(self, simple_duplicate_names_yaml_path, tmp_path):
         """
-        TEST SCOPE: Check error message when Yaml file name is wrong.
+        TEST SCOPE: Check that duplicate fuel type names are not allowed in Yaml file.
 
         A file name with ´.´ in the file stem should not be accepted. The error message
         should be understandable for the user.
 
         Args:
-            simple model file with bad name:
+            simple model file with duplicate fuel names:
 
         Returns:
 
         """
+        with pytest.raises(ValueError) as exc_info:
+            runner.invoke(
+                main.app,
+                _get_args(
+                    model_file=simple_duplicate_names_yaml_path,
+                    csv=True,
+                    output_folder=tmp_path,
+                    name_prefix="test",
+                    output_frequency="YEAR",
+                ),
+                catch_exceptions=False,
+            )
 
-        runner.invoke(
-            main.app,
-            _get_args(
-                model_file=simple_duplicate_names_yaml_path,
-                csv=True,
-                output_folder=tmp_path,
-                name_prefix="test",
-                output_frequency="YEAR",
-            ),
-            catch_exceptions=False,
-        )
+        assert "Duplicated names are: fuel_gas" in str(exc_info.value)
