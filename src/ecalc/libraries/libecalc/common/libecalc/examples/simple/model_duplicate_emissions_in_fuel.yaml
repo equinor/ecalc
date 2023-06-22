@@ -8,21 +8,29 @@ FACILITY_INPUTS:
     TYPE: ELECTRICITY2FUEL
 
 FUEL_TYPES:
-  - NAME: fuel_gas
+  - NAME: fuel_gas1
     PRICE: 1.5  # NOK/Sm3
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.19  # CO2/Sm3 fuel gas burned
         TAX: 1.5  # NOK/Sm3 fuel gas burned
         QUOTA: 260  # NOK/ton
-  - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
-    EMISSIONS:
       - NAME: CO2
-        FACTOR: 5.19  # CO2/Sm3 fuel gas burned
+        FACTOR: 2.19  # CO2/Sm3 fuel gas burned
         TAX: 1.5  # NOK/Sm3 fuel gas burned
         QUOTA: 260  # NOK/ton
 
+  - NAME: fuel_gas2
+    PRICE: 1.5  # NOK/Sm3
+    EMISSIONS:
+      - NAME: CH4
+        FACTOR: 5.19  # CO2/Sm3 fuel gas burned
+        TAX: 1.5  # NOK/Sm3 fuel gas burned
+        QUOTA: 260  # NOK/ton
+      - NAME: CH4
+        FACTOR: 5.19  # CO2/Sm3 fuel gas burned
+        TAX: 1.5  # NOK/Sm3 fuel gas burned
+        QUOTA: 260  # NOK/ton
 
 VARIABLES:
   hydrocarbon_export_sm3_per_day:
@@ -42,3 +50,4 @@ INSTALLATIONS:
             ENERGY_USAGE_MODEL:
               TYPE: DIRECT
               LOAD: 11.8 # MW
+

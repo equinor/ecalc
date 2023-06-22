@@ -38,6 +38,20 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
             f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
         )
 
+    fuel_types_emissions = [list(fuel_data[EcalcYamlKeywords.emissions]) for fuel_data in configuration.fuel_types]
+
+    # Check each fuel for duplicated emissions
+    duplicated_emissions = []
+    for emissions in fuel_types_emissions:
+        duplicated_emissions.append(get_duplicates([emission.get(EcalcYamlKeywords.name) for emission in emissions]))
+
+    duplicated_emissions_names = ",".join(name for string in duplicated_emissions for name in string if len(string) > 0)
+
+    if len(duplicated_emissions_names) > 0:
+        raise ValueError(
+            "Emission names must be unique for each fuel type." f" Duplicated names are: {duplicated_emissions_names}"
+        )
+
     fuel_types = {
         fuel_data.get(EcalcYamlKeywords.name): FuelMapper.from_yaml_to_dto(fuel_data)
         for fuel_data in configuration.fuel_types
