@@ -325,6 +325,7 @@ def lexer(expression: Union[str, int, float]) -> List[Token]:
         (r"while", TokenTag.operator),
         (r"do", TokenTag.operator),
         (r"end", TokenTag.operator),
+        (r"[0-9](\.[0-9]+)?e[-+]?[0-9]+", TokenTag.numeric),  # Scientific notation, e.g. 1.23e-05, 3.4e7, 1e+1
         (r"[0-9.]+", TokenTag.numeric),
         (r"[A-Za-z][A-Za-z0-9._;:+*/-]*", TokenTag.reference),
         (r"\$var\.[A-Za-z][A-Za-z0-9_]*", TokenTag.reference),
@@ -356,7 +357,7 @@ def check_tokens(tokens):
     if str(first_token) in list(OPERATORS.keys()):
         raise ValueError(f"Expression ({var}) can not start with an operator")
     if str(last_token) in list(OPERATORS.keys()):
-        raise ValueError(f"Expression ({var}) can not start with an operator")
+        raise ValueError(f"Expression ({var}) can not end with an operator")
     for idx, token in enumerate(tokens):
         prev_token = tokens[idx - 1]
         if str(prev_token) in list(OPERATORS.keys()) and str(token) in list(OPERATORS.keys()):
