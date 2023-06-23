@@ -54,7 +54,7 @@ def test_fuel_consumer(tabulated_fuel_consumer):
         values=[2, 2, 2, 2, 0, 0],
         regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        typ=RateType.CALENDAR_DAY,
+        rate_type=RateType.CALENDAR_DAY,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(
         timesteps=time_vector,
