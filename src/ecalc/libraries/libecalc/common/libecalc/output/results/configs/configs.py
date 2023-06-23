@@ -441,6 +441,7 @@ class LTPConfig(ResultConfig):
                     title="NMVOC From Storage",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["STORAGE"],
                         emission_type="nmvoc",
                     ),
@@ -450,6 +451,7 @@ class LTPConfig(ResultConfig):
                     title="NMVOC From Loading",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["LOADING"],
                         emission_type="nmvoc",
                     ),
@@ -563,6 +565,7 @@ class LTPConfig(ResultConfig):
                     title="CH4 From Storage",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["STORAGE"],
                         emission_type="ch4",
                     ),
@@ -572,6 +575,7 @@ class LTPConfig(ResultConfig):
                     title="CH4 From Loading",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["LOADING"],
                         emission_type="ch4",
                     ),
@@ -581,6 +585,7 @@ class LTPConfig(ResultConfig):
                     title="Total Oil Loaded/Stored",
                     unit=Unit.STANDARD_CUBIC_METER,
                     query=FuelQuery(
+                        installation_category="FIXED",
                         consumer_categories=["STORAGE"],
                     ),
                 ),
