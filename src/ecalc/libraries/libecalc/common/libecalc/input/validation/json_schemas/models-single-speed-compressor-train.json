@@ -30,6 +30,9 @@
         "PRESSURE_CONTROL": {
           "$ref": "#/definitions/PRESSURE_CONTROL"
         },
+        "MAXIMUM_DISCHARGE_PRESSURE": {
+          "type": "number"
+        },
         "COMPRESSOR_TRAIN": {
           "title": "COMPRESSOR_TRAIN",
           "description": "Specification of variable speed compressor train model with stages.\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
@@ -77,6 +80,21 @@
           "description": "Maximum power delivered by electrical motor",
           "type": "number"
         }
+      },
+      "if": {
+         "properties": {
+          "PRESSURE_CONTROL": {
+            "const": "DOWNSTREAM_CHOKE"
+          }
+        }
+      },
+      "then": {
+        "unevaluatedProperties": {"MAXIMUM_DISCHARGE_PRESSURE": {
+          "type": "number"
+        }}
+      },
+      "else": {
+        "not": {"required": ["MAXIMUM_DISCHARGE_PRESSURE"]}
       },
       "additionalProperties": false,
       "required": [
