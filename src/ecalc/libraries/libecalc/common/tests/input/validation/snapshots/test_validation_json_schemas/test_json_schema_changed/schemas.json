@@ -2697,6 +2697,20 @@
                 },
                 "SINGLE_SPEED_COMPRESSOR_TRAIN": {
                     "additionalProperties": false,
+                    "else": {
+                        "not": {
+                            "required": [
+                                "MAXIMUM_DISCHARGE_PRESSURE"
+                            ]
+                        }
+                    },
+                    "if": {
+                        "properties": {
+                            "PRESSURE_CONTROL": {
+                                "const": "DOWNSTREAM_CHOKE"
+                            }
+                        }
+                    },
                     "properties": {
                         "CALCULATE_MAX_RATE": {
                             "description": "Will return compressor train max standard rate [Sm3/day] in result if set to true.",
@@ -2748,6 +2762,9 @@
                                 }
                             ]
                         },
+                        "MAXIMUM_DISCHARGE_PRESSURE": {
+                            "type": "number"
+                        },
                         "MAXIMUM_POWER": {
                             "description": "Maximum power delivered by electrical motor",
                             "title": "MAXIMUM_POWER",
@@ -2779,7 +2796,14 @@
                         "FLUID_MODEL",
                         "COMPRESSOR_TRAIN",
                         "PRESSURE_CONTROL"
-                    ]
+                    ],
+                    "then": {
+                        "unevaluatedProperties": {
+                            "MAXIMUM_DISCHARGE_PRESSURE": {
+                                "type": "number"
+                            }
+                        }
+                    }
                 }
             },
             "description": "Experimental feature: Single speed compressor train.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/_MODELS_",
