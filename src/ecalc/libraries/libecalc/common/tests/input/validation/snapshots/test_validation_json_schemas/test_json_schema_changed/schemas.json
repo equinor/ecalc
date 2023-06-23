@@ -2337,6 +2337,12 @@
                                     "COMPRESSOR_CHART": {
                                         "$ref": "#/definitions/COMPRESSOR_CHART"
                                     },
+                                    "CONTROL_MARGIN": {
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN"
+                                    },
+                                    "CONTROL_MARGIN_UNIT": {
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN_UNIT"
+                                    },
                                     "INLET_TEMPERATURE": {
                                         "$ref": "#/definitions/INLET_TEMPERATURE"
                                     }
