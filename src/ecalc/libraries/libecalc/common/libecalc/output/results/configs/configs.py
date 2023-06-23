@@ -609,7 +609,7 @@ class LTPConfig(ResultConfig):
                     title="Total Power Consumed By Gas-Turbine Driven Compressors",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=FuelConsumerPowerConsumptionQuery(
-                        # installation_category="FIXED",
+                        installation_category="FIXED",
                         consumer_categories=["GAS-DRIVEN-COMPRESSOR"],
                     ),
                 ),
