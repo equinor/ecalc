@@ -331,8 +331,6 @@ class TestLtpExport:
         for run_file in run_files:
             with open(run_file) as tsv_file:
                 tsv_data = tsv_file.read()
-                tsv_file.seek(0)
-                pd.read_csv(tsv_file, sep="\t")
                 snapshot.assert_match(tsv_data, snapshot_name=run_file.name)
 
                 tsv_file.seek(0)
