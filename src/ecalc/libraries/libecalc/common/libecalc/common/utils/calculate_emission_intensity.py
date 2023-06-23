@@ -77,5 +77,5 @@ def compute_emission_intensity_by_yearly_buckets(
         timesteps=timesteps,
         values=[yearly_intensity[yearly_buckets.index(t.year)] for t in timesteps],
         unit=Unit.KG_SM3,
-        typ=RateType.CALENDAR_DAY,
+        rate_type=RateType.CALENDAR_DAY,
     )

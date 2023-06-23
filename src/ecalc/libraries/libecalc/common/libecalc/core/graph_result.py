@@ -95,7 +95,7 @@ class GraphResult:
                 values=hydrocarbon_export_rate,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 regularity=regularity,
-                typ=RateType.CALENDAR_DAY,
+                rate_type=RateType.CALENDAR_DAY,
             )
 
             sub_components = [

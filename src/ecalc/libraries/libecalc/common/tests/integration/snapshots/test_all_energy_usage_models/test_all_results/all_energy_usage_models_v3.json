@@ -3,6 +3,7 @@
         "0483da6ec3712906c43a86dc07ba7750": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -15,7 +16,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         20.2942165,
@@ -56,6 +56,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -68,7 +69,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         20.2942165,
@@ -93,6 +93,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -105,7 +106,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         6.3637907,
@@ -124,6 +124,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -136,7 +137,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             20.2942165,
@@ -175,6 +175,7 @@
                     ],
                     "name": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -187,7 +188,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             20.2942165,
@@ -969,6 +969,7 @@
         "09c1b79cf6cf1ef0773a194679246a4a": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "CALENDAR_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -981,7 +982,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         1000000.0,
@@ -1007,6 +1007,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1019,7 +1020,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         356.423484,
@@ -1029,6 +1029,7 @@
                     ]
                 },
                 "power_capacity_margin": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1041,7 +1042,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         643.576516,
@@ -1063,6 +1063,7 @@
         "16cc71fd6280071169c79bac6b315727": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1075,7 +1076,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         15.3646265,
@@ -1116,6 +1116,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1128,7 +1129,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         15.3646265,
@@ -1153,6 +1153,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1165,7 +1166,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         1.60702221,
@@ -1184,6 +1184,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -1196,7 +1197,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             15.3646265,
@@ -1235,6 +1235,7 @@
                     ],
                     "name": "single_speed_compressor_train_asv_pressure_control",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -1247,7 +1248,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             15.3646265,
@@ -1757,6 +1757,7 @@
         "1a38d89e991650e59d64af81ba93203a": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1769,7 +1770,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         19.7079286,
@@ -1810,6 +1810,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1822,7 +1823,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         19.7079286,
@@ -1847,6 +1847,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -1859,7 +1860,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         6.48988989,
@@ -1878,6 +1878,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -1890,7 +1891,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             19.7079286,
@@ -1929,6 +1929,7 @@
                     ],
                     "name": "simplified_variable_speed_compressor_train_known_stages_consumer",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -1941,7 +1942,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             19.7079286,
@@ -2723,6 +2723,7 @@
         "2525d41304f16da944f36a122c9b907e": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -2735,7 +2736,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         21.0083096,
@@ -2776,6 +2776,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -2788,7 +2789,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         21.0083096,
@@ -2813,6 +2813,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -2825,7 +2826,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         6.8059809,
@@ -2844,6 +2844,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -2856,7 +2857,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.0083096,
@@ -2895,6 +2895,7 @@
                     ],
                     "name": "variable_speed_compressor_train_predefined_charts",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -2907,7 +2908,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.0083096,
@@ -3689,6 +3689,7 @@
         "3a6cd9ab6a28c10ad38e93b46963ed3a": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -3701,7 +3702,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         107.877791,
@@ -3730,6 +3730,7 @@
                     "1": [
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -3742,7 +3743,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     51.2419508,
@@ -3781,6 +3781,7 @@
                             ],
                             "name": "simplified_train1",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -3793,7 +3794,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     51.2419508,
@@ -4571,6 +4571,7 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -4583,7 +4584,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     51.2419508,
@@ -4622,6 +4622,7 @@
                             ],
                             "name": "simplified_train2",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -4634,7 +4635,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     51.2419508,
@@ -5428,6 +5428,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -5440,7 +5441,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         107.877791,
@@ -5459,6 +5459,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -5471,7 +5472,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             51.2419508,
@@ -5510,6 +5510,7 @@
                     ],
                     "name": "simplified_train1",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -5522,7 +5523,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             51.2419508,
@@ -6300,6 +6300,7 @@
                 },
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -6312,7 +6313,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             51.2419508,
@@ -6351,6 +6351,7 @@
                     ],
                     "name": "simplified_train2",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -6363,7 +6364,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             51.2419508,
@@ -7145,6 +7145,7 @@
         "411f7ef502a8522a87e596f57650e3b6": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -7157,7 +7158,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         22.1282001,
@@ -7198,6 +7198,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -7210,7 +7211,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         22.1282001,
@@ -7235,6 +7235,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -7247,7 +7248,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         8.13399927,
@@ -7266,6 +7266,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -7278,7 +7279,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.0217901,
@@ -7317,6 +7317,7 @@
                     ],
                     "name": "generic_from_design_point_compressor_train_consumer",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -7329,7 +7330,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.0217901,
@@ -7901,6 +7901,7 @@
         "660efc4b0fee948b3c8ae93e48b9e3bd": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -7913,7 +7914,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -7924,6 +7924,7 @@
                 },
                 "id": "660efc4b0fee948b3c8ae93e48b9e3bd",
                 "inlet_liquid_rate_m3_per_day": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -7936,7 +7937,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         31977.0,
@@ -8006,6 +8006,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8018,7 +8019,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -8037,6 +8037,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8049,7 +8050,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             NaN,
@@ -8099,6 +8099,7 @@
                         20.0
                     ],
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8111,7 +8112,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             NaN,
@@ -8133,6 +8133,7 @@
         "6661da8a3a8ab9009bcf9d80af31ac66": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "CALENDAR_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8145,7 +8146,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         12035.2425,
@@ -8186,6 +8186,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8198,7 +8199,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         3.0352425,
@@ -8223,6 +8223,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8235,7 +8236,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -8254,6 +8254,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8266,7 +8267,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             12035.2425,
@@ -8300,6 +8300,7 @@
                     "max_standard_rate": null,
                     "name": "single_1d_compressor_sampled",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8312,7 +8313,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             3.0352425,
@@ -8446,6 +8446,7 @@
         "6b902f3d8a99f9b2b6a772de06365413": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8458,7 +8459,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -8484,6 +8484,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8496,7 +8497,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -8515,6 +8515,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8525,7 +8526,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             4.5,
@@ -8548,6 +8548,7 @@
                     },
                     "name": "late_start_consumer_evolving_type",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8558,7 +8559,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             4.5,
@@ -8578,6 +8578,7 @@
         "75e47fc1f0b50c9faa627e944c2e6c29": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8590,7 +8591,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         4.51474,
@@ -8616,6 +8616,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8628,7 +8629,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         4.51474,
@@ -8647,6 +8647,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8659,7 +8660,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             4.51474,
@@ -8685,6 +8685,7 @@
                     },
                     "name": "salt_water_injection_tabular",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8697,7 +8698,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             4.51474,
@@ -8719,6 +8719,7 @@
         "85018f936c624deebda36140d657320e": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8731,7 +8732,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -8742,6 +8742,7 @@
                 },
                 "id": "85018f936c624deebda36140d657320e",
                 "inlet_liquid_rate_m3_per_day": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8754,7 +8755,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         31977.0,
@@ -8824,6 +8824,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8836,7 +8837,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -8855,6 +8855,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8867,7 +8868,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             NaN,
@@ -8917,6 +8917,7 @@
                         200.0
                     ],
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -8929,7 +8930,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             NaN,
@@ -8951,6 +8951,7 @@
         "9373ec3ca83df3daafd79ef08aad83bf": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -8963,7 +8964,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         15.5450576,
@@ -9004,6 +9004,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -9016,7 +9017,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         15.5450576,
@@ -9041,6 +9041,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -9053,7 +9054,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         1.6746971,
@@ -9072,6 +9072,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -9084,7 +9085,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             15.5450576,
@@ -9123,6 +9123,7 @@
                     ],
                     "name": "single_speed_compressor_train_downstream_choke_pressure_control",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -9135,7 +9136,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             15.5450576,
@@ -9645,6 +9645,7 @@
         "95b05fbb1aa74c04ca2e937d43a05f6f": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "CALENDAR_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -9657,7 +9658,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         10000.0,
@@ -9693,6 +9693,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -9705,7 +9706,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             10000.0,
@@ -9744,6 +9744,7 @@
         "97c4f13fc5be30c816dba44919774c8f": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "CALENDAR_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -9756,7 +9757,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         0.0,
@@ -9785,13 +9785,13 @@
                     "1": [
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0
                                 ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "Sm3/d",
                                 "values": [
                                     137753.491
@@ -9815,13 +9815,13 @@
                             ],
                             "name": "train1",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0
                                 ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     21.8850859
@@ -10425,13 +10425,13 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0
                                 ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "Sm3/d",
                                 "values": [
                                     137753.491
@@ -10455,13 +10455,13 @@
                             ],
                             "name": "train2",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0
                                 ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     21.8850859
@@ -11065,13 +11065,13 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0
                                 ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "Sm3/d",
                                 "values": [
                                     137753.491
@@ -11095,13 +11095,13 @@
                             ],
                             "name": "train3",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0
                                 ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     21.8850859
@@ -11705,6 +11705,7 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0
@@ -11713,7 +11714,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "Sm3/d",
                                 "values": [
                                     137753.491,
@@ -11742,6 +11742,7 @@
                             ],
                             "name": "train1_upgraded",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0
@@ -11750,7 +11751,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     21.8850859,
@@ -12425,6 +12425,7 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0
@@ -12433,7 +12434,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "Sm3/d",
                                 "values": [
                                     137753.491,
@@ -12462,6 +12462,7 @@
                             ],
                             "name": "train2_upgraded",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0
@@ -12470,7 +12471,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     21.8850859,
@@ -13161,6 +13161,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -13173,7 +13174,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -13192,13 +13192,13 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0
                         ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             137753.491
@@ -13222,13 +13222,13 @@
                     ],
                     "name": "train1",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0
                         ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.8850859
@@ -13832,13 +13832,13 @@
                 },
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0
                         ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             137753.491
@@ -13862,13 +13862,13 @@
                     ],
                     "name": "train2",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0
                         ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.8850859
@@ -14472,13 +14472,13 @@
                 },
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0
                         ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             137753.491
@@ -14502,13 +14502,13 @@
                     ],
                     "name": "train3",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0
                         ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.8850859
@@ -15112,6 +15112,7 @@
                 },
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0
@@ -15120,7 +15121,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             137753.491,
@@ -15149,6 +15149,7 @@
                     ],
                     "name": "train1_upgraded",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0
@@ -15157,7 +15158,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.8850859,
@@ -15832,6 +15832,7 @@
                 },
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0
@@ -15840,7 +15841,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             137753.491,
@@ -15869,6 +15869,7 @@
                     ],
                     "name": "train2_upgraded",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0
@@ -15877,7 +15878,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.8850859,
@@ -16556,6 +16556,7 @@
         "a6047a2739f3f210157a465655cb5f47": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -16568,7 +16569,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         16.1858243,
@@ -16609,6 +16609,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -16621,7 +16622,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         16.1858243,
@@ -16646,6 +16646,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -16658,7 +16659,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         12.6129669,
@@ -16677,6 +16677,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -16689,7 +16690,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             16.1858243,
@@ -16728,6 +16728,7 @@
                     ],
                     "name": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -16740,7 +16741,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             16.1858243,
@@ -17250,6 +17250,7 @@
         "a9f3690992156d894330001b08856c80": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -17262,7 +17263,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         70.4105369,
@@ -17303,6 +17303,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -17315,7 +17316,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         70.4105369,
@@ -17340,6 +17340,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -17352,7 +17353,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         58.7734794,
@@ -17371,6 +17371,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -17383,7 +17384,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             66.8900101,
@@ -17417,6 +17417,7 @@
                     "max_standard_rate": null,
                     "name": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -17429,7 +17430,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             66.8900101,
@@ -19356,6 +19356,7 @@
         "c516c0cfec912e94f1dc2a840d1828ef": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "CALENDAR_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -19368,7 +19369,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         25337.3526,
@@ -19397,6 +19397,7 @@
                     "1": [
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -19409,7 +19410,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "Sm3/d",
                                 "values": [
                                     12035.2425,
@@ -19443,6 +19443,7 @@
                             "max_standard_rate": null,
                             "name": "sampled_train1",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -19455,7 +19456,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     3.0352425,
@@ -19585,6 +19585,7 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -19597,7 +19598,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "Sm3/d",
                                 "values": [
                                     12035.2425,
@@ -19631,6 +19631,7 @@
                             "max_standard_rate": null,
                             "name": "sampled_train2",
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -19643,7 +19644,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     3.0352425,
@@ -19789,6 +19789,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -19801,7 +19802,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         6.38998421,
@@ -19820,6 +19820,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -19832,7 +19833,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             12035.2425,
@@ -19866,6 +19866,7 @@
                     "max_standard_rate": null,
                     "name": "sampled_train1",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -19878,7 +19879,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             3.0352425,
@@ -20008,6 +20008,7 @@
                 },
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -20020,7 +20021,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             12035.2425,
@@ -20054,6 +20054,7 @@
                     "max_standard_rate": null,
                     "name": "sampled_train2",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -20066,7 +20067,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             3.0352425,
@@ -20200,6 +20200,7 @@
         "ca0daca5e5588cdb5d4c28679d12fc43": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "CALENDAR_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -20212,7 +20213,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         136417.167,
@@ -20253,6 +20253,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -20265,7 +20266,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         21.6609385,
@@ -20290,6 +20290,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -20302,7 +20303,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         3.53116559,
@@ -20321,6 +20321,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -20333,7 +20334,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             136417.167,
@@ -20372,6 +20372,7 @@
                     ],
                     "name": "turbine_driven_compressor_train",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -20384,7 +20385,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             21.6609385,
@@ -21205,6 +21205,7 @@
         "cb52faa26d48a2b1eb53a125f5fad3c3": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "CALENDAR_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -21217,7 +21218,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "CALENDAR_DAY",
                     "unit": "Sm3/d",
                     "values": [
                         3035.2425,
@@ -21253,6 +21253,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -21265,7 +21266,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "Sm3/d",
                         "values": [
                             3035.2425,
@@ -21304,6 +21304,7 @@
         "d464e63df76695dda685e43c7acf2dbb": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -21316,7 +21317,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         12.8877908,
@@ -21357,6 +21357,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -21369,7 +21370,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         12.8877908,
@@ -21394,6 +21394,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -21406,7 +21407,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -21425,6 +21425,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -21437,7 +21438,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             12.8877908,
@@ -21476,6 +21476,7 @@
                     ],
                     "name": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -21488,7 +21489,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             12.8877908,
@@ -22060,6 +22060,7 @@
         "d750abf749618fbe4373515716ded093": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -22072,7 +22073,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         4.31578947,
@@ -22098,6 +22098,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -22110,7 +22111,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         4.31578947,
@@ -22129,6 +22129,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22141,7 +22142,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             4.1,
@@ -22167,6 +22167,7 @@
                     },
                     "name": "deh",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22179,7 +22180,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             4.1,
@@ -22201,6 +22201,7 @@
         "dbd79a28f238ca6caaeb4e7b08aeeb80": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -22213,7 +22214,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -22239,6 +22239,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -22251,7 +22252,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         0.0,
@@ -22270,6 +22270,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22280,7 +22281,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             1.0,
@@ -22303,6 +22303,7 @@
                     },
                     "name": "late_start_consumer",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22313,7 +22314,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             1.0,
@@ -22333,6 +22333,7 @@
         "e9493e3d0f8696ed78b96bef050376c3": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -22345,7 +22346,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         10.8615204,
@@ -22374,6 +22374,7 @@
                     "1": [
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22386,7 +22387,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     10.3184444,
@@ -22436,6 +22436,7 @@
                                 200.0
                             ],
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22448,7 +22449,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     10.3184444,
@@ -22466,6 +22466,7 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22478,7 +22479,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     0.0,
@@ -22528,6 +22528,7 @@
                                 200.0
                             ],
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22540,7 +22541,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     0.0,
@@ -22560,6 +22560,7 @@
                     "2": [
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22572,7 +22573,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     8.6162244,
@@ -22622,6 +22622,7 @@
                                 200.0
                             ],
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22634,7 +22635,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     8.6162244,
@@ -22652,6 +22652,7 @@
                         },
                         {
                             "energy_usage": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22664,7 +22665,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     8.6162244,
@@ -22714,6 +22714,7 @@
                                 200.0
                             ],
                             "power": {
+                                "rate_type": "STREAM_DAY",
                                 "regularity": [
                                     1.0,
                                     1.0,
@@ -22726,7 +22727,6 @@
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
                                 ],
-                                "typ": "STREAM_DAY",
                                 "unit": "MW",
                                 "values": [
                                     8.6162244,
@@ -22760,6 +22760,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -22772,7 +22773,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         10.8615204,
@@ -22791,6 +22791,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22803,7 +22804,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             10.3184444,
@@ -22853,6 +22853,7 @@
                         200.0
                     ],
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22865,7 +22866,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             10.3184444,
@@ -22883,6 +22883,7 @@
                 },
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22895,7 +22896,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             0.0,
@@ -22945,6 +22945,7 @@
                         200.0
                     ],
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -22957,7 +22958,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             0.0,
@@ -22979,6 +22979,7 @@
         "ec9874c7d040fe21bdac26d41ee1a9b5": {
             "component_result": {
                 "energy_usage": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -22991,7 +22992,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         15.3211519,
@@ -23032,6 +23032,7 @@
                     ]
                 },
                 "power": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23044,7 +23045,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         15.3211519,
@@ -23069,6 +23069,7 @@
                     ]
                 },
                 "recirculation_loss": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23081,7 +23082,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "MW",
                     "values": [
                         1.5079505,
@@ -23100,6 +23100,7 @@
             "models": [
                 {
                     "energy_usage": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -23112,7 +23113,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             15.3211519,
@@ -23151,6 +23151,7 @@
                     ],
                     "name": "single_speed_compressor_train_upstream_choke_pressure_control",
                     "power": {
+                        "rate_type": "STREAM_DAY",
                         "regularity": [
                             1.0,
                             1.0,
@@ -23163,7 +23164,6 @@
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
                         ],
-                        "typ": "STREAM_DAY",
                         "unit": "MW",
                         "values": [
                             15.3211519,
@@ -23676,6 +23676,7 @@
             "co2": {
                 "name": "co2",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23688,7 +23689,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -23698,6 +23698,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23710,7 +23711,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         2200.0,
@@ -23720,6 +23720,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23732,7 +23733,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         1510000.0,
@@ -23753,6 +23753,7 @@
             "ch4": {
                 "name": "ch4",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23765,7 +23766,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         3.0,
@@ -23775,6 +23775,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23787,7 +23788,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         0.003,
@@ -23797,6 +23797,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23809,7 +23810,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -23830,6 +23830,7 @@
             "co2": {
                 "name": "co2",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23842,7 +23843,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -23852,6 +23852,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23864,7 +23865,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         26.4775335,
@@ -23874,6 +23874,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23886,7 +23887,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         18173.2162,
@@ -23907,6 +23907,7 @@
             "co2": {
                 "name": "co2",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23919,7 +23920,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -23929,6 +23929,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23941,7 +23942,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         22.0,
@@ -23951,6 +23951,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23963,7 +23964,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         15100.0,
@@ -23984,6 +23984,7 @@
             "co2": {
                 "name": "co2",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -23996,7 +23997,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -24006,6 +24006,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24018,7 +24019,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         0.0,
@@ -24028,6 +24028,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24040,7 +24041,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -24061,6 +24061,7 @@
             "co2": {
                 "name": "co2",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24073,7 +24074,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -24083,6 +24083,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24095,7 +24096,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         55.7421758,
@@ -24105,6 +24105,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24117,7 +24118,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         38259.4025,
@@ -24138,6 +24138,7 @@
             "co2": {
                 "name": "co2",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24150,7 +24151,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -24160,6 +24160,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24172,7 +24173,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         300.117767,
@@ -24182,6 +24182,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24194,7 +24195,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         205989.922,
@@ -24215,6 +24215,7 @@
             "co2": {
                 "name": "co2",
                 "quota": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24227,7 +24228,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         0.0,
@@ -24237,6 +24237,7 @@
                     ]
                 },
                 "rate": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24249,7 +24250,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "t/d",
                     "values": [
                         6.6775335,
@@ -24259,6 +24259,7 @@
                     ]
                 },
                 "tax": {
+                    "rate_type": "STREAM_DAY",
                     "regularity": [
                         1.0,
                         1.0,
@@ -24271,7 +24272,6 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ],
-                    "typ": "STREAM_DAY",
                     "unit": "NOK/d",
                     "values": [
                         4583.21617,
