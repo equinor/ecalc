@@ -456,8 +456,8 @@ class Asset(Component):
     def validate_unique_names(cls, values):
         """Ensure unique component names within installation."""
         names = [values["name"]]
-        fuel_types = []
-        fuel_names = []
+        fuel_types = [dto.FuelType]
+        fuel_names = [str]
         for installation in values["installations"]:
             names.append(installation.name)
             fuel_consumers = installation.fuel_consumers
