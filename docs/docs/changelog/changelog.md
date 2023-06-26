@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.2.7](https://github.com/equinor/ecalc/compare/v8.2.6...v8.2.7) (2023-06-26)
+
+
+### Bug Fixes
+
+* parse scientific notation numbers in expression ([#85](https://github.com/equinor/ecalc/issues/85)) ([c785143](https://github.com/equinor/ecalc/commit/c785143172ac1d11f87dd444a2aebd375660874c))
+
 ## [8.2.6](https://github.com/equinor/ecalc/compare/v8.2.5...v8.2.6) (2023-06-14)
 
 
