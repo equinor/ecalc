@@ -1,6 +1,7 @@
 from typing import Dict
 
 from libecalc.common.logger import logger
+from libecalc.dto.utils.string_utils import get_duplicates
 from libecalc.input.mappers.facility_input import FacilityInputMapper
 from libecalc.input.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.input.mappers.model import ModelMapper
@@ -26,6 +27,31 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
         facility_inputs=facility_inputs_from_files,
         resources=resources,
     )
+
+    duplicated_fuel_names = get_duplicates(
+        [fuel_data.get(EcalcYamlKeywords.name) for fuel_data in configuration.fuel_types]
+    )
+
+    if len(duplicated_fuel_names) > 0:
+        raise ValueError(
+            "Fuel type names must be unique across installations."
+            f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
+        )
+
+    fuel_types_emissions = [list(fuel_data[EcalcYamlKeywords.emissions]) for fuel_data in configuration.fuel_types]
+
+    # Check each fuel for duplicated emissions
+    duplicated_emissions = []
+    for emissions in fuel_types_emissions:
+        duplicated_emissions.append(get_duplicates([emission.get(EcalcYamlKeywords.name) for emission in emissions]))
+
+    duplicated_emissions_names = ",".join(name for string in duplicated_emissions for name in string if len(string) > 0)
+
+    if len(duplicated_emissions_names) > 0:
+        raise ValueError(
+            "Emission names must be unique for each fuel type." f" Duplicated names are: {duplicated_emissions_names}"
+        )
+
     fuel_types = {
         fuel_data.get(EcalcYamlKeywords.name): FuelMapper.from_yaml_to_dto(fuel_data)
         for fuel_data in configuration.fuel_types
