@@ -46,7 +46,7 @@ def eval_tokens(tokens: List[Token], array_length: int) -> NDArray[np.float64]:
     check_tokens(token_values)
 
     evaluated_values = np.nan_to_num(
-        x=eval_parenteses(
+        x=eval_parentheses(
             tokens=token_values,
         )  # type: ignore[arg-type]
     )
@@ -55,17 +55,16 @@ def eval_tokens(tokens: List[Token], array_length: int) -> NDArray[np.float64]:
     return evaluated_values
 
 
-def eval_parenteses(
+def eval_parentheses(
     tokens: List[Union[float, int, bool, NDArray[np.float64], str]],
     original_expression: Optional[str] = None,
 ) -> Union[NDArray[np.float64], Number]:
+    """Evaluate expressions within parentheses"""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        while tokens.count("(") or tokens.count(")"):
-            # Fixme: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
-            if tokens.count("(") != tokens.count(
-                ")"
-            ):  # Fixme: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+        number_of_left_parentheses, number_of_right_parentheses = count_parentheses(tokens=tokens)
+        while number_of_left_parentheses or number_of_right_parentheses:
+            if number_of_left_parentheses != number_of_right_parentheses:
                 error_message = "Number of left and right parentheses do not match"
                 if original_expression is not None:
                     error_message += f" for expression \n{original_expression}"
@@ -82,7 +81,7 @@ def eval_parenteses(
             tokens_to_evaluate = tokens[substart + 1 : subend]
 
             try:
-                tokens_evaluated = eval_parenteses(
+                tokens_evaluated = eval_parentheses(
                     tokens_to_evaluate,
                     original_expression=original_expression,
                 )
@@ -100,11 +99,21 @@ def eval_parenteses(
                 ) from e
 
             tokens = tokens[:substart] + [tokens_evaluated] + tokens[subend + 1 :]
+            number_of_left_parentheses, number_of_right_parentheses = count_parentheses(tokens=tokens)
 
     return eval_logicals(tokens)
 
 
+def count_parentheses(tokens: List[Union[float, int, bool, NDArray[np.float64], str]]) -> Tuple[int, int]:
+    """Count the number of left "(" and right ")" parentheses in a list of tokens"""
+    strings_in_tokens = [element for element in tokens if isinstance(element, str)]
+    return strings_in_tokens.count(Operators.left_parenthesis.value), strings_in_tokens.count(
+        Operators.right_parenthesis.value
+    )
+
+
 def eval_logicals(tokens):
+    """Evaluate logical operators in expression"""
     logical_ops = [">", "<", ">=", "<=", "==", "!="]
     ind = 0
     while ind < len(tokens):
@@ -128,6 +137,7 @@ def eval_logicals(tokens):
 
 
 def eval_additions(tokens):
+    """Evaluate additions and subtractions in expression"""
     add_ops = ["{+}", "{-}"]
     values = []
     with warnings.catch_warnings():
@@ -155,6 +165,7 @@ def eval_additions(tokens):
 
 
 def eval_mults(tokens):
+    """Evaluate multiplications in expression"""
     mult_ops = ["{*}", "{/}"]
     values = []
 
@@ -202,6 +213,7 @@ def eval_mults(tokens):
 
 
 def eval_powers(tokens):
+    """Evaluate exponential calculations in expression"""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         if tokens.count(
