@@ -1,10 +1,12 @@
+import numpy as np
 import pytest
 from libecalc.expression.expression_evaluator import (
     TokenTag,
+    count_parentheses,
     eval_additions,
     eval_logicals,
     eval_mults,
-    eval_parenteses,
+    eval_parentheses,
     eval_powers,
     lex,
     lexer,
@@ -177,28 +179,41 @@ def test_logicals():
     assert eval_logicals(["10", "{/}", "4"]) == 2.5
 
 
-def test_Parenteses():
-    assert eval_parenteses(["(", "5", ")"]) == 5
-    assert eval_parenteses(["(", "5", "{+}", "4", ")", "{*}", "2"]) == 18
+def test_eval_parentheses():
+    assert eval_parentheses(["(", "5", ")"]) == 5
+    assert eval_parentheses(["(", "5", "{+}", "4", ")", "{*}", "2"]) == 18
     assert (
-        eval_parenteses(
+        eval_parentheses(
             ["(", "5", ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
         )
         == 2
     )
-    assert eval_parenteses(["(", "5", "{+}", "4", ")", "==", "9"]) == 1
+    assert eval_parentheses(["(", "5", "{+}", "4", ")", "==", "9"]) == 1
     assert (
-        eval_parenteses(
+        eval_parentheses(
             ["(", "(", "5", "{+}", "4", ")", "{*}", "2", "{-}", "3", ")", "{+}", "1"],
         )
         == 16
     )
-    assert eval_parenteses(["12", ">=", "7"]) == 1
-    assert eval_parenteses(["12", "<", "7"]) == 0
-    assert eval_parenteses(["12", "<", "7", "{+}", "6"]) == 1
-    assert eval_parenteses(["12", "{-}", "7", "==", "5"]) == 1
+    assert eval_parentheses(["12", ">=", "7"]) == 1
+    assert eval_parentheses(["12", "<", "7"]) == 0
+    assert eval_parentheses(["12", "<", "7", "{+}", "6"]) == 1
+    assert eval_parentheses(["12", "{-}", "7", "==", "5"]) == 1
 
-    assert eval_parenteses(["12", "{+}", "7"]) == 19
-    assert eval_parenteses(["12", "{-}", "7"]) == 5
-    assert eval_parenteses(["12", "{*}", "7"]) == 84
-    assert eval_parenteses(["10", "{/}", "4"]) == 2.5
+    assert eval_parentheses(["12", "{+}", "7"]) == 19
+    assert eval_parentheses(["12", "{-}", "7"]) == 5
+    assert eval_parentheses(["12", "{*}", "7"]) == 84
+    assert eval_parentheses(["10", "{/}", "4"]) == 2.5
+
+
+def test_count_parentheses():
+    assert count_parentheses(
+        ["(", "5", ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
+    ) == (2, 2)
+    assert count_parentheses(
+        ["(", np.asarray([1, 2, 3]), ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
+    ) == (2, 2)
+    assert count_parentheses(
+        [["("], np.asarray([1, 2, 3]), ">", "4", ")", "{+}", "(", "3", ">=", "3", ")"],
+    ) == (1, 2)
+    assert count_parentheses([1, 2, 3]) == (0, 0)
