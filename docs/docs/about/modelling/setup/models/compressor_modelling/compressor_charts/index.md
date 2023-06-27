@@ -5,7 +5,7 @@ description: Introduction into compressor charts
 ---
 
 # Compressor chart
-The compressor chart is used to setup a model of each compressor. eCalc™ currently support four ways to setup a
+The compressor chart is used to set up a model of each compressor. eCalc™ currently support four ways to set up a
 compressor chart
 
 - Predefined single speed chart
@@ -15,7 +15,7 @@ compressor chart
 
 ## User defined single speed compressor chart
 
-The single speed chart type allows a single compressor curve for one speed.
+The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](../../../../../references/keywords/CURVE.md)
 
 ### Format
 ~~~~~~~~yaml
@@ -69,7 +69,7 @@ CURVE:
 ~~~~~~~~
 :::
 ## User defined variable speed compressor chart
-The variable speed chart type allows a fully defined compressor chart with data for two or more speeds. The upper and
+The variable speed chart type allows a fully defined compressor chart with data for two or more speeds, using the keyword [CURVES](../../../../../references/keywords/CURVES.md). The upper and
 lower speed curves will be interpreted as the speed capacity limits for the chart. 
 Whilst the lowest rate points on each of the upper and lower speed curves will define the minimum flow line for the compressor. 
 
