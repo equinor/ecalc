@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.2.9](https://github.com/equinor/ecalc/compare/v8.2.8...v8.2.9) (2023-06-27)
+
+
+### Miscellaneous Chores
+
+* update dependencies to be aligned with external requirements ([c84f0b9](https://github.com/equinor/ecalc/commit/c84f0b96b4f8e1bc92ef1f4e6d24183d98bd1f00))
+
 ## [8.2.8](https://github.com/equinor/ecalc/compare/v8.2.7...v8.2.8) (2023-06-27)
 
 
