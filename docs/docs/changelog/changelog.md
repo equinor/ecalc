@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.2.8](https://github.com/equinor/ecalc/compare/v8.2.7...v8.2.8) (2023-06-27)
+
+
+### Miscellaneous Chores
+
+* pin numpy to compatible numpy version ([b298554](https://github.com/equinor/ecalc/commit/b298554247d2b5d4682e9578e6f596b764ea4df3))
+
 ## [8.2.7](https://github.com/equinor/ecalc/compare/v8.2.6...v8.2.7) (2023-06-26)
 
 
