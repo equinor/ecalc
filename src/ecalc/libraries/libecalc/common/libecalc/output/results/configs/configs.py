@@ -84,6 +84,7 @@ class LTPConfig(ResultConfig):
                     title="Fuel Consumption",
                     unit=Unit.STANDARD_CUBIC_METER,
                     query=FuelQuery(
+                        installation_category="FIXED",
                         fuel_type_category="FUEL-GAS",
                         consumer_categories=["TURBINE-GENERATOR", "GAS-DRIVEN-COMPRESSOR"],
                     ),
@@ -160,6 +161,7 @@ class LTPConfig(ResultConfig):
                     title="CO2 From Fuel Gas",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         fuel_type_category="FUEL-GAS",
                         consumer_categories=["TURBINE-GENERATOR", "GAS-DRIVEN-COMPRESSOR"],
                         emission_type="co2",
@@ -244,6 +246,7 @@ class LTPConfig(ResultConfig):
                     title="CO2 From Cold Venting Fugitives",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["COLD-VENTING-FUGITIVE"],
                         emission_type="co2",
                     ),
@@ -253,6 +256,7 @@ class LTPConfig(ResultConfig):
                     title="NOX From Fuel Gas",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         fuel_type_category="FUEL-GAS",
                         consumer_categories=["TURBINE-GENERATOR", "GAS-DRIVEN-COMPRESSOR"],
                         emission_type="nox",
@@ -337,6 +341,7 @@ class LTPConfig(ResultConfig):
                     title="NMVOC From Fuel Gas",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         fuel_type_category="FUEL-GAS",
                         consumer_categories=["TURBINE-GENERATOR", "GAS-DRIVEN-COMPRESSOR"],
                         emission_type="nmvoc",
@@ -441,6 +446,7 @@ class LTPConfig(ResultConfig):
                     title="NMVOC From Storage",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["STORAGE"],
                         emission_type="nmvoc",
                     ),
@@ -450,6 +456,7 @@ class LTPConfig(ResultConfig):
                     title="NMVOC From Loading",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["LOADING"],
                         emission_type="nmvoc",
                     ),
@@ -459,6 +466,7 @@ class LTPConfig(ResultConfig):
                     title="CH4 From Fuel Gas",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         fuel_type_category="FUEL-GAS",
                         consumer_categories=["TURBINE-GENERATOR", "GAS-DRIVEN-COMPRESSOR"],
                         emission_type="ch4",
@@ -563,6 +571,7 @@ class LTPConfig(ResultConfig):
                     title="CH4 From Storage",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["STORAGE"],
                         emission_type="ch4",
                     ),
@@ -572,6 +581,7 @@ class LTPConfig(ResultConfig):
                     title="CH4 From Loading",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["LOADING"],
                         emission_type="ch4",
                     ),
@@ -581,6 +591,7 @@ class LTPConfig(ResultConfig):
                     title="Total Oil Loaded/Stored",
                     unit=Unit.STANDARD_CUBIC_METER,
                     query=FuelQuery(
+                        installation_category="FIXED",
                         consumer_categories=["STORAGE"],
                     ),
                 ),
@@ -589,6 +600,7 @@ class LTPConfig(ResultConfig):
                     title="Total Electricity Generated",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=ElectricityGeneratedQuery(
+                        installation_category="FIXED",
                         producer_categories=["TURBINE-GENERATOR"],
                     ),
                 ),
@@ -597,6 +609,7 @@ class LTPConfig(ResultConfig):
                     title="Total Power Consumed By Gas-Turbine Driven Compressors",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=FuelConsumerPowerConsumptionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["GAS-DRIVEN-COMPRESSOR"],
                     ),
                 ),
@@ -605,6 +618,7 @@ class LTPConfig(ResultConfig):
                     title="Total Electricity Consumed From Offshore Wind",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=ElConsumerPowerConsumptionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["OFFSHORE-WIND"],
                     ),
                     modifier=FormatValuesToPrecisionModifier(InvertValuesModifier()),
@@ -622,6 +636,7 @@ class LTPConfig(ResultConfig):
                     title="Total Electricity Consumed From Steam Turbine Generators",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=ElConsumerPowerConsumptionQuery(
+                        installation_category="FIXED",
                         consumer_categories=["STEAM-TURBINE-GENERATOR"],
                     ),
                     modifier=FormatValuesToPrecisionModifier(InvertValuesModifier()),
