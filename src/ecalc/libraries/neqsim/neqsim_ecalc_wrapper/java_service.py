@@ -23,5 +23,6 @@ def start_server():
     classpath = create_classpath(jars)
     import logging
 
+    # This logger (named "py4j") is needed to enable logging from java https://www.py4j.org/faq.html#how-to-turn-logging-on-off
     logging.getLogger("py4j").setLevel(logging.ERROR)
     return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=True)
