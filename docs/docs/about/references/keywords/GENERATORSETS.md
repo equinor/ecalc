@@ -13,4 +13,4 @@ This keyword is optional. However, the only requirement is that each
 installation must have at least one of [GENERATORSETS](GENERATORSETS.md)
 and [FUELCONSUMERS](FUELCONSUMERS.md).
 
-See [GENERATOR SETS](docs/about/modelling/setup/installations/generator_sets_in_calculations) for more details about usage.
+See [GENERATOR SETS](../../../about/modelling/setup/installations/generator_sets_in_calculations) for more details about usage.
