@@ -188,28 +188,29 @@ class CompressorModel(BaseModel):
                     f" The affected time steps will not be calculated, and rate is set to zero."
                 )
                 rate = np.where(intermediate_pressure <= 0, 0, rate)
-            intermediate_pressure = np.where(
-                np.logical_and(np.min(rate, axis=0) <= 0, intermediate_pressure <= 0), 1, intermediate_pressure
-            )
+                intermediate_pressure = np.where(intermediate_pressure <= 0, 1, intermediate_pressure)
         if not np.all(suction_pressure > 0):
             logger.warning(
                 f"Inlet pressure needs to be a positive value. Given values: {suction_pressure.tolist()}."
                 f" The affected time steps will not be calculated, and rate is set to zero."
             )
             rate = np.where(suction_pressure <= 0, 0, rate)
-        suction_pressure = np.where(
-            np.logical_and(np.min(rate, axis=0) <= 0, suction_pressure <= 0), 1, suction_pressure
-        )
+            suction_pressure = np.where(suction_pressure <= 0, 1, suction_pressure)
         if not np.all(discharge_pressure > 0):
             logger.warning(
                 f"Outlet pressure needs to be a positive value. Given values: {discharge_pressure.tolist()}"
                 f" The affected time steps will not be calculated, and rate is set to zero."
             )
             rate = np.where(discharge_pressure <= 0, 0, rate)
-        discharge_pressure = np.where(
-            np.logical_and(np.min(rate, axis=0) <= 0, discharge_pressure <= 0), 1, discharge_pressure
-        )
-
+            discharge_pressure = np.where(discharge_pressure <= 0, 1, discharge_pressure)
+        if not np.all(discharge_pressure >= suction_pressure):
+            logger.warning(
+                f"Inlet pressure needs to be a less than or equal to outlet pressure. Given values for inlet"
+                f" pressure: {suction_pressure.tolist()}. Given values for outlet pressure:"
+                f" {discharge_pressure.tolist()}. The affected time steps will not be calculated,"
+                f" and rate is set to zero."
+            )
+            rate = np.where(discharge_pressure < suction_pressure, 0, rate)
         # for multiple stream train, rate is 2D
         if np.ndim(rate) == 2:
             # check if any of the streams have changed value during validation, streams along axis 0, time along axis 1
@@ -217,7 +218,10 @@ class CompressorModel(BaseModel):
         else:
             invalid_rate_input = np.where(rate != input_rate, True, False)
 
-        invalid_suction_pressure_input = np.where(suction_pressure != input_suction_pressure, True, False)
+        invalid_suction_pressure_input = np.logical_or(
+            np.where(suction_pressure != input_suction_pressure, True, False),
+            np.where(suction_pressure > discharge_pressure, True, False),
+        )
         invalid_discharge_pressure_input = np.where(discharge_pressure != input_discharge_pressure, True, False)
         invalid_intermediate_pressure_input = (
             np.where(intermediate_pressure != input_intermediate_pressure, True, False)
