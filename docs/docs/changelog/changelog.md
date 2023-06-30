@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.2.10](https://github.com/equinor/ecalc/compare/v8.2.9...v8.2.10) (2023-06-30)
+
+
+### Miscellaneous Chores
+
+* added changelog entry about interstage pressure fix ([#96](https://github.com/equinor/ecalc/issues/96)) ([7cae236](https://github.com/equinor/ecalc/commit/7cae236705edd85b03c01a4d2c21c497af27efbf))
+
 ## [8.2.9](https://github.com/equinor/ecalc/compare/v8.2.8...v8.2.9) (2023-06-27)
 
 
