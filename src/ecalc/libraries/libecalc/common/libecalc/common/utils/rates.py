@@ -526,9 +526,8 @@ class TimeSeriesVolumes(TimeSeries[float]):
             delta_days = calculate_delta_days(self.timesteps).tolist()
             average_rates = [volume / days for volume, days in zip(self.values, delta_days)]
 
-            if regularity:
-                if len(regularity) == len(self.timesteps) - 1:
-                    regularity.append(0.0)
+            if regularity and len(regularity) == len(self.timesteps) - 1:
+                regularity.append(0.0)
             average_rates.append(0.0)
         else:
             average_rates = self.values
