@@ -99,7 +99,7 @@ def assemble_operational_setting_from_model_result_list(
     discharge_pressures = np.asarray([x.discharge_pressures for x in operational_settings])
     fluid_densities = (
         np.asarray([x.fluid_densities for x in operational_settings])
-        if any([x.fluid_densities for x in operational_settings])
+        if any(x.fluid_densities for x in operational_settings)
         else None
     )
 

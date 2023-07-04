@@ -4,7 +4,7 @@ default_language_version:
   node: 16.15.1
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.261'
+    rev: 'v0.0.276'
     hooks:
       - id: ruff
         files: ^src/.*\.py$
@@ -19,7 +19,7 @@ repos:
         args: ['--line-length=120', '--include=\.pyi?$']
         exclude: gen/
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.3.0
+    rev: v1.4.1
     hooks:
       - id: mypy
         files: ^(src/ecalc/libraries/)
@@ -27,7 +27,7 @@ repos:
         args: ['--config-file=./pyproject.toml']
         additional_dependencies:
           - types-PyYAML
-          - pydantic
+          - pydantic==1.10.9
           - numpy
           - types-requests
           - pandas-stubs

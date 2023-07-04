@@ -90,9 +90,7 @@ class TSVPrognosis(EcalcResultBaseModel):
             for time_series_name, time_series in time_series_collection.items()
         }
 
-        same_time_steps = all(
-            [nr_of_timesteps == length_timeseries for length_timeseries in lengths_timeseries.values()]
-        )
+        same_time_steps = all(nr_of_timesteps == length_timeseries for length_timeseries in lengths_timeseries.values())
 
         if not same_time_steps:
             raise IncompatibleDataError(

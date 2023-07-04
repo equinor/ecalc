@@ -147,7 +147,7 @@ def test_lexer_scientific(expression, expected, expected_token_tags):
 
 def test_Powers(caplog):
     caplog.set_level("CRITICAL")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         tokens = ["2", "{^}", "2", "{^}", "2"]
         eval_powers(tokens)
     assert eval_powers(["3", "{^}", "3"]) == 27.0

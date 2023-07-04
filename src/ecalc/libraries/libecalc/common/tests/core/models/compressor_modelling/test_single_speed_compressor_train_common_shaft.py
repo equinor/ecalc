@@ -392,7 +392,7 @@ def test_calculate_single_speed_train_zero_pressure_non_zero_rate(medium_fluid, 
         CompressorTrainCommonShaftFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
         CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
     ]
-    assert all([flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags])
+    assert all(flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags)
     np.testing.assert_allclose(result.energy_usage, np.array([0, 0, 0, 0]))
 
     np.testing.assert_allclose(result.mass_rate_kg_per_hr, 0)
