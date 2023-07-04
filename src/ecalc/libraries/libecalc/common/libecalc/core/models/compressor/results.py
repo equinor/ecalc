@@ -280,7 +280,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     @validator("failure_status", always=True)
     def set_failure_status(cls, v, values):
         stage_results = values.get("stage_results")
-        if not all([r.is_valid for r in stage_results]):
+        if not all(r.is_valid for r in stage_results):
             for stage in stage_results:
                 if not stage.is_valid:
                     if stage.chart_area_flag in (
@@ -457,12 +457,12 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def rate_has_recirculation(self) -> bool:
-        return self.asv_recirculation_loss_mw > 0 or any([stage.rate_has_recirculation for stage in self.stage_results])
+        return self.asv_recirculation_loss_mw > 0 or any(stage.rate_has_recirculation for stage in self.stage_results)
 
     @property
     def rate_exceeds_maximum(self) -> bool:
         if len(self.stage_results) > 0:
-            return any([stage.rate_exceeds_maximum for stage in self.stage_results]) or self.chart_area_status in (
+            return any(stage.rate_exceeds_maximum for stage in self.stage_results) or self.chart_area_status in (
                 ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
                 ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
             )
@@ -473,12 +473,12 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     def pressure_is_choked(self) -> bool:
         # Small margin when checking for choke in order to avoid false positives.
         return self.discharge_pressure < (self.discharge_pressure_before_choking - 1e-5) or any(
-            [stage.pressure_is_choked for stage in self.stage_results]
+            stage.pressure_is_choked for stage in self.stage_results
         )
 
     @property
     def head_exceeds_maximum(self) -> bool:
-        return any([stage.head_exceeds_maximum for stage in self.stage_results])
+        return any(stage.head_exceeds_maximum for stage in self.stage_results)
 
     @property
     def mass_rate_asv_corrected_is_constant_for_stages(self) -> bool:

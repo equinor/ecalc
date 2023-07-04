@@ -168,7 +168,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
 
         # Result object generated but result marked as invalid when rates or pressures are altered by validation
         assert not all(result.is_valid)
-        assert all([flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags])
+        assert all(flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags)
         np.testing.assert_allclose(result.energy_usage, np.array([0, 0, 0]))
 
         np.testing.assert_allclose(result.mass_rate_kg_per_hr, 0)

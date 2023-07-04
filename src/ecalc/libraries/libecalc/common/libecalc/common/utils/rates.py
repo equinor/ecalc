@@ -259,7 +259,7 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             return NotImplemented
         return bool(
             # Check that all values are either both NaN or equal
-            all([np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values)])
+            all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
             and self.timesteps == other.timesteps
             and self.unit == other.unit
         )
@@ -812,7 +812,7 @@ class TimeSeriesRate(TimeSeries[float]):
             raise NotImplementedError
         return bool(
             # Check that all values are either both NaN or equal
-            all([np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values)])
+            all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
             and self.timesteps == other.timesteps
             and self.unit == other.unit
             and self.regularity == other.regularity
