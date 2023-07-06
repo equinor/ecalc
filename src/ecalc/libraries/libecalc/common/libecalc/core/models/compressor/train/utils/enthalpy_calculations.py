@@ -11,6 +11,8 @@ from copy import deepcopy
 from typing import Callable, List, Tuple, Union
 
 import numpy as np
+import pandas as pd
+import xgboost as xgb
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -38,6 +40,7 @@ def calculate_enthalpy_change_head_iteration(
     pressure_ratios = outlet_pressure / inlet_pressure
     inlet_kappa = np.asarray([stream.kappa for stream in inlet_streams])
     inlet_z = np.asarray([stream.z for stream in inlet_streams])
+    inlet_enthalpy = np.asarray([stream._neqsim_fluid_stream.enthalpy_joule_per_kg for stream in inlet_streams])
 
     # Set start values for iteration
     rel_diff = 1.0
@@ -45,9 +48,22 @@ def calculate_enthalpy_change_head_iteration(
     z = deepcopy(inlet_z)
     kappa = deepcopy(inlet_kappa)
     enthalpy_change_joule_per_kg = 0
+    outlet_enthalpy = enthalpy_change_joule_per_kg + inlet_enthalpy
 
     polytropic_efficiency = polytropic_efficiency_vs_rate_and_head_function(
         inlet_actual_rate_m3_per_hour, polytropic_heads
+    )
+
+    comp_dict = dict(inlet_streams[0].fluid_model.composition)
+    composition_df = pd.DataFrame([comp_dict] * len(inlet_streams))
+
+    df = pd.DataFrame({"pressure_2": outlet_pressure, "enthalpy_2": outlet_enthalpy})
+
+    X_test = pd.concat([df, composition_df], axis=1)
+
+    rgs = xgb.XGBRegressor()
+    rgs.load_model(
+        "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/xgb_configs/XGBoost.json"
     )
 
     converged = False
@@ -73,20 +89,33 @@ def calculate_enthalpy_change_head_iteration(
             pressure_ratios=pressure_ratios,
             temperatures_kelvin=inlet_temperature_kelvin,
         )
-        enthalpy_change_joule_per_kg = polytropic_heads / polytropic_efficiency
 
-        outlet_streams = [
-            stream.set_new_pressure_and_enthalpy_change(
-                new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
-            )
-            for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
-        ]
+        enthalpy_change_joule_per_kg = polytropic_heads / polytropic_efficiency
+        outlet_enthalpy = inlet_enthalpy + enthalpy_change_joule_per_kg
+
+        # Update outlet enthalpy
+        X_test["enthalpy_2"] = outlet_enthalpy
+
+        # Predict kappa and z
+        pred = rgs.predict(X_test)
+
+        outlet_kappa = np.asarray(pred[:, 2])
+        outlet_z = np.asarray(pred[:, 1])
+
+        # outlet_streams = [
+        #     stream.set_new_pressure_and_enthalpy_change(
+        #         new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
+        #     )
+        #     for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
+        # ]
 
         # Get z (compressibility) and kappa (heat capacity ratio) of the estimated outlet streams
-        outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])
-        outlet_z = np.asarray([stream.z for stream in outlet_streams])
+
+        # outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])
+        # outlet_z = np.asarray([stream.z for stream in outlet_streams])
 
         # Update z and kappa estimates based on new outlet estimates
+
         z = (inlet_z + outlet_z) / 2
         kappa = (inlet_kappa + outlet_kappa) / 2
 
