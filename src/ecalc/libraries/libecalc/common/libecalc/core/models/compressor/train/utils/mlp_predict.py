@@ -1,3 +1,4 @@
+import copy
 from pathlib import Path
 
 import mlp
@@ -42,9 +43,9 @@ class NeuralNet:
 
 class FeatureData(Dataset):
     def __init__(self, df: pd.DataFrame):
-        df["pressure_2"] = df["pressure_2"].apply(lambda x: x * (1 / 400))
-        df["enthalpy_2"] = df["enthalpy_2"].apply(lambda x: x * (1 / 100000))
-        self.df = df
+        self.df = copy.deepcopy(df)
+        self.df["pressure_2"] = self.df["pressure_2"].apply(lambda x: x * (1 / 400))
+        self.df["enthalpy_2"] = self.df["enthalpy_2"].apply(lambda x: x * (1 / 100000))
 
         # Input data
         self.data = torch.stack(

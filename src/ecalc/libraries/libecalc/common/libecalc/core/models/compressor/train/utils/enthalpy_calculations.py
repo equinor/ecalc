@@ -68,6 +68,7 @@ def calculate_enthalpy_change_head_iteration(
 
     comp_dict = dict(inlet_streams[0].fluid_model.composition)
     composition_df = pd.DataFrame([comp_dict] * len(inlet_streams))
+    composition_df /= 100
 
     df = pd.DataFrame({"pressure_2": outlet_pressure, "enthalpy_2": outlet_enthalpy})
 
@@ -125,7 +126,13 @@ def calculate_enthalpy_change_head_iteration(
             nn_model = NeuralNet(
                 "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
             )
+            # gases = ['water', 'nitrogen', 'CO2', 'methane', 'ethane', 'propane', 'i_butane', 'n_butane', 'i_pentane', 'n_pentane', 'n_hexane']
+            # X_test[gases] /= 100
             outlet_kappa, outlet_z = nn_model.predict(X_test)
+
+            pd.set_option("display.max_columns", None)  # Show all columns
+            pd.set_option("display.width", None)  # Auto-adjust width
+            print(X_test.to_string())
 
         # Run with PHflash
         else:
