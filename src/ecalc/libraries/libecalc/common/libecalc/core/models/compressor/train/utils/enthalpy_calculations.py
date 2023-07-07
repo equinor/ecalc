@@ -7,6 +7,7 @@ To find outlet z and kappa, an iteration of polytropic head is performed and out
 kappa are updated until polytropic head converges
 """
 
+import sys
 from copy import deepcopy
 from typing import Callable, List, Tuple, Union
 
@@ -16,7 +17,18 @@ import xgboost as xgb
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
+from mlp_predict import NeuralNet
 from numpy.typing import NDArray
+
+sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils")
+
+
+# import torch
+# from torch import Tensor, nn
+
+# from mlp import execute
+
+ML_model = "nn"
 
 
 def calculate_enthalpy_change_head_iteration(
@@ -63,7 +75,7 @@ def calculate_enthalpy_change_head_iteration(
 
     rgs = xgb.XGBRegressor()
     rgs.load_model(
-        "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/xgb_configs/XGBoost.json"
+        "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/ml_configs/XGBoost.json"
     )
 
     converged = False
@@ -96,23 +108,40 @@ def calculate_enthalpy_change_head_iteration(
         # Update outlet enthalpy
         X_test["enthalpy_2"] = outlet_enthalpy
 
-        # Predict kappa and z
-        pred = rgs.predict(X_test)
+        def XGBoost_predict(X_test):
+            # Predict kappa and z
+            pred = rgs.predict(X_test)
+            outlet_kappa = np.asarray(pred[:, 2])
+            outlet_z = np.asarray(pred[:, 1])
 
-        outlet_kappa = np.asarray(pred[:, 2])
-        outlet_z = np.asarray(pred[:, 1])
+            return outlet_kappa, outlet_z
 
-        # outlet_streams = [
-        #     stream.set_new_pressure_and_enthalpy_change(
-        #         new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
-        #     )
-        #     for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
-        # ]
+        # Run with XGBoost
+        if ML_model == "xgb":
+            outlet_kappa, outlet_z = XGBoost_predict(X_test)
 
-        # Get z (compressibility) and kappa (heat capacity ratio) of the estimated outlet streams
+        # Run with neural networks
+        elif ML_model == "nn":
+            nn_model = NeuralNet(
+                "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
+            )
+            outlet_kappa, outlet_z = nn_model.predict(X_test)
 
-        # outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])
-        # outlet_z = np.asarray([stream.z for stream in outlet_streams])
+        # Run with PHflash
+        else:
+            outlet_streams = [
+                stream.set_new_pressure_and_enthalpy_change(
+                    new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change
+                )
+                for stream, pressure, enthalpy_change in zip(
+                    inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg
+                )
+            ]
+
+            # Get z (compressibility) and kappa (heat capacity ratio) of the estimated outlet streams
+
+            outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])
+            outlet_z = np.asarray([stream.z for stream in outlet_streams])
 
         # Update z and kappa estimates based on new outlet estimates
 
