@@ -419,10 +419,22 @@ def _dataframe_to_resource(df: pd.DataFrame) -> Resource:
 
 
 def read_csv(csv_data: Union[str, TextIO, BytesIO]) -> pandas.DataFrame:
+    """Wrapper of pandas read csv function
+
+    Settings used:
+        float_precision="round_trip" to avoid reading inaccurate floats, i.e. 0.724 becomes 0.7240000000000001
+        skipinitialspace=True converts "  10" to 10,
+        thousands=" " removes spaces used as thousand separators (normal in excel)
+
+    Args:
+        csv_data:
+
+    Returns:
+
+    """
     stream = StringIO(csv_data) if isinstance(csv_data, str) else csv_data
 
-    # float_precision="round_trip" to avoid reading inaccurate floats, i.e. 0.724 becomes 0.7240000000000001
-    return pd.read_csv(stream, comment="#", float_precision="round_trip")
+    return pd.read_csv(stream, comment="#", float_precision="round_trip", skipinitialspace=True, thousands=" ")
 
 
 def read_resource_from_string(resource_string: str) -> Resource:
