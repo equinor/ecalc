@@ -45,20 +45,18 @@ class TestEcalcModelMapper:
 
         The change in nodes happens 2019-01-01 when we use a mock instead of an empty list.
         """
-        duplicate_flow_diagrams: List[FlowDiagram] = []
-
-        for year in range(2010, 2020):
-            duplicate_flow_diagrams.append(
-                FlowDiagram(
-                    id="1",
-                    title="dummy",
-                    nodes=[] if year < 2019 else [Mock(Node)],
-                    edges=[],
-                    flows=[],
-                    start_date=datetime(year, 1, 1),
-                    end_date=datetime(year + 1, 1, 1),
-                )
+        duplicate_flow_diagrams: List[FlowDiagram] = [
+            FlowDiagram(
+                id="1",
+                title="dummy",
+                nodes=[] if year < 2019 else [Mock(Node)],
+                edges=[],
+                flows=[],
+                start_date=datetime(year, 1, 1),
+                end_date=datetime(year + 1, 1, 1),
             )
+            for year in range(2010, 2020)
+        ]
 
         filtered_diagrams = _filter_duplicate_flow_diagrams(duplicate_flow_diagrams)
 

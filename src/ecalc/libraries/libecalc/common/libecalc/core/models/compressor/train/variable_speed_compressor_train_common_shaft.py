@@ -683,16 +683,15 @@ def get_single_speed_equivalent_train(
         A single speed compressor train at given shaft speed
 
     """
-    single_speed_compressor_stages = []
-    for stage in compressor_train.stages:
-        single_speed_compressor_stages.append(
-            CompressorTrainStage(
-                compressor_chart=get_single_speed_equivalent(compressor_chart=stage.compressor_chart, speed=speed),
-                inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
-                remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
-                pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
-            )
+    single_speed_compressor_stages = [
+        CompressorTrainStage(
+            compressor_chart=get_single_speed_equivalent(compressor_chart=stage.compressor_chart, speed=speed),
+            inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
+            remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
+            pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
         )
+        for stage in compressor_train.stages
+    ]
 
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=dto.SingleSpeedCompressorTrain(
