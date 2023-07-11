@@ -153,7 +153,7 @@ class CompressorTrainStage(BaseModel):
             density_kg_per_m3=inlet_density_kg_per_m3,
         )
         power_megawatt = calculate_power_in_megawatt(
-            enthalpy_change_J_per_kg=enthalpy_change_J_per_kg,
+            enthalpy_change_joule_per_kg=enthalpy_change_J_per_kg,
             mass_rate_kg_per_hour=mass_rate_asv_corrected_kg_per_hour,
         )
 
