@@ -115,8 +115,7 @@ def get_operational_settings_results_from_consumer_result(
                             f"Unexpected type: {type(consumer_model_result.consumer_model_result)},"
                             f" can not map result for {parent_id}"
                         )
-            else:
-                time_slot_time_vector_index += n_steps
+            time_slot_time_vector_index += n_steps
 
     return operational_settings_results
 

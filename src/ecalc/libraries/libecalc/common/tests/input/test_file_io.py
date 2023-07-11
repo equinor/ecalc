@@ -4,9 +4,8 @@ from io import StringIO
 from pathlib import Path
 from typing import IO
 
-import libecalc.input.file_io as file_io
 import pytest
-from libecalc.input import yaml_entities
+from libecalc.input import file_io, yaml_entities
 from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.input.yaml_entities import YamlTimeseriesType
 
