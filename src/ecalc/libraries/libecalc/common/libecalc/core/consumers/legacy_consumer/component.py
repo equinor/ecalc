@@ -49,7 +49,7 @@ def get_operational_settings_used_from_consumer_result(
 ) -> TimeSeriesInt:
     return TimeSeriesInt(
         timesteps=list(result.time_vector),
-        values=result.operational_setting_used.tolist(),  # noqa: static test bug.
+        values=result.operational_setting_used.tolist(),
         unit=Unit.NONE,
     )
 

@@ -320,7 +320,7 @@ _consumer_function_mapper = {
     EcalcYamlKeywords.energy_usage_model_type_tabulated: _tabulated_mapper,
     EcalcYamlKeywords.energy_usage_model_type_pump: _pump_mapper,
     EcalcYamlKeywords.energy_usage_model_type_compressor: _compressor_mapper,
-    EcalcYamlKeywords.energy_usage_model_type_variable_speed_compressor_train_multiple_streams_and_pressures: _variable_speed_compressor_train_multiple_streams_and_pressures_mapper,  # noqa
+    EcalcYamlKeywords.energy_usage_model_type_variable_speed_compressor_train_multiple_streams_and_pressures: _variable_speed_compressor_train_multiple_streams_and_pressures_mapper,
 }
 
 

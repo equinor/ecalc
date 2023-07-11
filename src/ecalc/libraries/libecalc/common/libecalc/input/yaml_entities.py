@@ -48,7 +48,7 @@ def _create_node_class(cls):
             self.start_mark = kwargs.get("start_mark")
             self.end_mark = kwargs.get("end_mark")
 
-        def __new__(self, *args, **kwargs):  # noqa
+        def __new__(self, *args, **kwargs):
             return cls.__new__(self, *args)
 
     node_class.__name__ = "%s_node" % cls.__name__

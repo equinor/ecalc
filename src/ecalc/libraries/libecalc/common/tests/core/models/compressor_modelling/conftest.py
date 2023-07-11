@@ -196,7 +196,7 @@ speed	rate	head	efficiency
 10767	6439.4876	11973	0.7014
 """
     )
-    df = pd.read_csv(data, sep="\t")  # noqa
+    df = pd.read_csv(data, sep="\t")
 
     # Head given in meter liquid column. We need the data to be in Polytropic head J/kg.
     df.loc[:, "head"] = Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(
@@ -209,7 +209,7 @@ speed	rate	head	efficiency
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=data["head"].tolist(),
             efficiency_fraction=data["efficiency"].tolist(),
-            speed_rpm=speed,  # noqa
+            speed_rpm=speed,
         )
         chart_curves.append(chart_curve)
 

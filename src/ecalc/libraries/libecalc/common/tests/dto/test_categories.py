@@ -29,7 +29,7 @@ class TestCategories:
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
                 emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): "DIRECT-EMISSIONS"},  # noqa test string is not allowed
+                user_defined_category={datetime(2000, 1, 1): "DIRECT-EMISSIONS"},
             )
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
@@ -44,7 +44,7 @@ class TestCategories:
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
                 emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): "fuel-gas"},  # noqa test string is not allowed
+                user_defined_category={datetime(2000, 1, 1): "fuel-gas"},
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
@@ -60,7 +60,7 @@ class TestCategories:
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
                 emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): ""},  # noqa test string is not allowed
+                user_defined_category={datetime(2000, 1, 1): ""},
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
@@ -76,7 +76,7 @@ class TestCategories:
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
                 emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): "FUEL_GAS"},  # noqa test string is not allowed
+                user_defined_category={datetime(2000, 1, 1): "FUEL_GAS"},
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
@@ -100,7 +100,7 @@ class TestCategories:
     def test_fuel_type_categories(self):
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="GASOLINE")  # noqa test string is not allowed
+            dto.types.FuelType(name="test", user_defined_category="GASOLINE")
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
@@ -110,7 +110,7 @@ class TestCategories:
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="diesel")  # noqa test string is not allowed
+            dto.types.FuelType(name="test", user_defined_category="diesel")
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
@@ -120,8 +120,7 @@ class TestCategories:
 
         # Check that empty raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="")  # noqa test string is not allowed
-
+            dto.types.FuelType(name="test", user_defined_category="")
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
@@ -130,7 +129,7 @@ class TestCategories:
 
         # Check that underscore raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="FUEL_GAS")  # noqa test string is not allowed
+            dto.types.FuelType(name="test", user_defined_category="FUEL_GAS")
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
@@ -162,7 +161,7 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.components.Installation(
                 name="test",
-                user_defined_category="PLATFORM",  # noqa test string is not allowed
+                user_defined_category="PLATFORM",
                 hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
@@ -177,7 +176,7 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.components.Installation(
                 name="test",
-                user_defined_category="fixed",  # noqa test string is not allowed
+                user_defined_category="fixed",
                 hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
@@ -192,7 +191,7 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.components.Installation(
                 name="test",
-                user_defined_category="",  # noqa test string is not allowed
+                user_defined_category="",
                 hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
@@ -241,9 +240,7 @@ class TestCategories:
             dto.ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
-                user_defined_category={
-                    datetime(1900, 1, 1): "HUGE-SINGLE-SPEED-PUMP"
-                },  # noqa test string is not allowed
+                user_defined_category={datetime(1900, 1, 1): "HUGE-SINGLE-SPEED-PUMP"},
                 energy_usage_model={
                     datetime(1900, 1, 1): dto.DirectConsumerFunction(
                         load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
@@ -279,7 +276,7 @@ class TestCategories:
             dto.ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
-                user_defined_category={datetime(1900, 1, 1): ""},  # noqa test string is not allowed
+                user_defined_category={datetime(1900, 1, 1): ""},
                 energy_usage_model={
                     datetime(1900, 1, 1): dto.DirectConsumerFunction(
                         load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
@@ -305,7 +302,7 @@ class TestCategories:
                     )
                 },
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-            )  # noqa check missing input argument
+            )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert exception.errors()[0]["msg"] == "field required"
@@ -360,7 +357,7 @@ class TestCategories:
                 component_type=ComponentType.GENERIC,
                 user_defined_category={
                     datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP,
-                    datetime(1920, 1, 1): "FIRST-COMPRESSOR",  # noqa test string is not allowed
+                    datetime(1920, 1, 1): "FIRST-COMPRESSOR",
                     datetime(1940, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS,
                 },
                 energy_usage_model={
@@ -382,7 +379,7 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): "GENERATOR-SET"},  # noqa test string is not allowed
+                user_defined_category={datetime(1900, 1, 1): "GENERATOR-SET"},
                 generator_set_model={
                     datetime(1900, 1, 1): dto.GeneratorSetSampled(
                         headers=["FUEL", "POWER"],
@@ -412,7 +409,7 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): "turbine-generator"},  # noqa test string is not allowed
+                user_defined_category={datetime(1900, 1, 1): "turbine-generator"},
                 generator_set_model={
                     datetime(1900, 1, 1): dto.GeneratorSetSampled(
                         headers=["FUEL", "POWER"],
