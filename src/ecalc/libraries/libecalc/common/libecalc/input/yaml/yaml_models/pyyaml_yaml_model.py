@@ -304,7 +304,7 @@ def find_date_keys_in_yaml(yaml_object: Union[List, Dict]) -> List[datetime.date
             index_to_datetime = convert_date_to_datetime(index)
             if index_to_datetime not in output:
                 output.append(index_to_datetime)
-        if isinstance(yaml_object[index], dict) or isinstance(yaml_object[index], list):  # type: ignore
+        if isinstance(yaml_object[index], (dict, list)):  # type: ignore
             output.extend(find_date_keys_in_yaml(yaml_object[index]))  # type: ignore
 
     return output

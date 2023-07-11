@@ -220,18 +220,17 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
                 raise ValueError(
                     f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
                 )
+        elif isinstance(indices, slice):
+            self.values[indices] = [values]
+        elif isinstance(indices, list):
+            for index in indices:
+                self.values[index] = values
+        elif isinstance(indices, int):
+            self.values[indices] = values
         else:
-            if isinstance(indices, slice):
-                self.values[indices] = [values]
-            elif isinstance(indices, list):
-                for index in indices:
-                    self.values[index] = values
-            elif isinstance(indices, int):
-                self.values[indices] = values
-            else:
-                raise ValueError(
-                    f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
-                )
+            raise ValueError(
+                f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
+            )
 
     def reindex_time_vector(
         self,
