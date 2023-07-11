@@ -37,7 +37,7 @@ def argument_callback(
         help="Set the loglevel.",
     ),
     log_folder: Path = typer.Option(None, "--log-folder", help="Store log files in a folder"),
-    version: bool = typer.Option(  # noqa: version option
+    version: bool = typer.Option(
         None,
         "--version",
         help="Show current eCalc\u2122 version.",

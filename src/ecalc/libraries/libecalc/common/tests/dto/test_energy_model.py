@@ -63,7 +63,7 @@ class TestVariableSpeedCompressorChart:
                 curves=[
                     dto.ChartCurve(
                         speed_rpm=1,
-                        rate_actual_m3_hour="invalid data",  # noqa: intended
+                        rate_actual_m3_hour="invalid data",
                         polytropic_head_joule_per_kg=[7, 8, 9],
                         efficiency_fraction=[0.7, 0.82, 0.9],
                     )
@@ -76,7 +76,7 @@ class TestVariableSpeedCompressorChart:
                 curves=[
                     dto.ChartCurve(
                         speed_rpm=1,
-                        rate_actual_m3_hour=[1, 2, "invalid"],  # noqa: intended
+                        rate_actual_m3_hour=[1, 2, "invalid"],
                         polytropic_head_joule_per_kg=[7, 8, 9],
                         efficiency_fraction=[0.7, 0.82, 0.9],
                     )
@@ -106,7 +106,7 @@ class TestGenericFromDesignPointCompressorChart:
         with pytest.raises(ValidationError) as e:
             dto.GenericChartFromDesignPoint(
                 polytropic_efficiency_fraction=0.8,
-                design_rate_actual_m3_per_hour="invalid_design_rate",  # noqa: intended invalid
+                design_rate_actual_m3_per_hour="invalid_design_rate",
                 design_polytropic_head_J_per_kg=55000,
             )
         assert e.value.errors()[0]["msg"] == "value is not a valid float"
@@ -118,7 +118,7 @@ class TestGenericFromInputCompressorChart:
 
     def test_invalid(self):
         with pytest.raises(ValidationError) as e:
-            dto.GenericChartFromInput(polytropic_efficiency_fraction="str")  # noqa intended invalid.
+            dto.GenericChartFromInput(polytropic_efficiency_fraction="str")
         assert e.value.errors()[0]["msg"] == "value is not a valid float"
 
 

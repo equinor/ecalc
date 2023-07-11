@@ -386,16 +386,16 @@ def test_1d_compressor_pd():
 
 
 def test_turbine_with_no_data():
-    turbine = CompressorModelSampled.Turbine(None, None)  # noqa
+    turbine = CompressorModelSampled.Turbine(None, None)
     assert turbine.fuel_to_power_function is None
-    assert turbine.calculate_turbine_power_usage(None) is None  # noqa
+    assert turbine.calculate_turbine_power_usage(None) is None
     assert turbine.calculate_turbine_power_usage(np.array([1])) is None
 
 
 def test_turbine_with_different_lengths():
     turbine = CompressorModelSampled.Turbine(np.array([1, 2]), np.array([1]))
     assert turbine.fuel_to_power_function is None
-    assert turbine.calculate_turbine_power_usage(None) is None  # noqa
+    assert turbine.calculate_turbine_power_usage(None) is None
     assert turbine.calculate_turbine_power_usage(np.array([1])) is None
 
 
