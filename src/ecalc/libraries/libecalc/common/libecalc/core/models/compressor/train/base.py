@@ -101,7 +101,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         if self.data_transfer_object.calculate_max_rate:
             if isinstance(self.data_transfer_object, dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures):
-                max_standard_rate = self.get_max_standard_rate_per_stream(  # noqa
+                max_standard_rate = self.get_max_standard_rate_per_stream(
                     suction_pressures=suction_pressure,
                     discharge_pressures=discharge_pressure,
                     rates_per_stream=rate,

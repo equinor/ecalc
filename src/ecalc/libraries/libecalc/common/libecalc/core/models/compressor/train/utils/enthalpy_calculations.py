@@ -137,7 +137,7 @@ def calculate_polytropic_head_campbell(
     :param pressure_ratios: Pressure ratios between stages
     :param temperatures_kelvin: Temperature value or array [K]
     """
-    # http://www.jmcampbell.com/tip-of-the-month/2011/11/compressor-calculations-rigorous-using-equation-of-state-vs-shortcut-method/ Eqn 3B  # noqa
+    # http://www.jmcampbell.com/tip-of-the-month/2011/11/compressor-calculations-rigorous-using-equation-of-state-vs-shortcut-method/ Eqn 3B
     n_minus_1_over_n = _calculate_polytropic_exponent_expression_n_minus_1_over_n(
         kappa=kappa, polytropic_efficiency=polytropic_efficiency
     )

@@ -211,7 +211,7 @@ def vsd_pump_test_variable_speed_chart_curves() -> VariableSpeedChart:
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=[x * 9.81 for x in data["head"].tolist()],  # meter liquid column to joule / kg
             efficiency_fraction=data["efficiency"].tolist(),
-            speed_rpm=float(speed),  # noqa
+            speed_rpm=float(speed),
         )
         chart_curves.append(chart_curve)
 
