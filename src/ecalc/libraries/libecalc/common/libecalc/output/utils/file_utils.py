@@ -1,4 +1,5 @@
 import enum
+import sys
 from typing import Callable, Optional, Union
 
 import pandas as pd
@@ -155,7 +156,7 @@ def get_component_output(
         print()
         selected_component_index = input("Enter the index of the component you want to select (q to quit): ")
         if selected_component_index == "q":
-            exit(0)
+            sys.exit(0)
 
         component = components[int(selected_component_index)]
 
