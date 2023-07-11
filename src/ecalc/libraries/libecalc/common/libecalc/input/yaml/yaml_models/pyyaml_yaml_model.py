@@ -107,8 +107,8 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
     class IndentationDumper(yaml.Dumper):
         """In order to increase indentation of nested elements."""
 
-        def increase_indent(self, flow=False, indentless=False):
-            return super(PyYamlYamlModel.IndentationDumper, self).increase_indent(flow, False)
+        def increase_indent(self, flow: bool = False, indentless: bool = False):
+            return super(PyYamlYamlModel.IndentationDumper, self).increase_indent(flow=flow, indentless=indentless)
 
     class YamlReader:
         def __init__(
