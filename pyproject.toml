@@ -151,3 +151,7 @@ ignore-nested-functions = true
 ignore-nested-classes = true
 ignore-setters = false
 quiet = false
+
+[tool.codespell]
+skip = '*.ts,*.lock,*package-lock.json'
+ignore-words-list = "installationa, mke" # 'InstallationA' and 'Missing key error'
