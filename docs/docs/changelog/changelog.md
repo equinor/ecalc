@@ -1,5 +1,74 @@
 # Changelog
 
+## [8.3.0](https://github.com/equinor/ecalc/compare/v8.2.2...v8.3.0) (2023-07-12)
+
+
+### Features
+
+* output pump head to json-file ([#49](https://github.com/equinor/ecalc/issues/49)) ([60720f4](https://github.com/equinor/ecalc/commit/60720f429cb5da82cd839740eca8d3039c9d5969))
+
+
+### Bug Fixes
+
+* avoid zero discharge pressure after validation of operational conditions ([830c75e](https://github.com/equinor/ecalc/commit/830c75e27a29549157658c606e618da381c24e81))
+* bug fix to joining results from different temporal models with compressor train models having multiple inlet or outlet streams ([#63](https://github.com/equinor/ecalc/issues/63)) ([da3144a](https://github.com/equinor/ecalc/commit/da3144a0cbb3e6121809c8eeee86e62a2a3ed5e1))
+* json schema accepts MAXIMUM_DISCHARGE_PRESSURE for single speed train ([#86](https://github.com/equinor/ecalc/issues/86)) ([a18de1e](https://github.com/equinor/ecalc/commit/a18de1eae60085211b640b67a4f372346382fdc8))
+* json schema allow stages to have control_margin and control_margin_unit ([#90](https://github.com/equinor/ecalc/issues/90)) ([2415534](https://github.com/equinor/ecalc/commit/2415534053df4e50496fd2ae4504cff76ab14346))
+* make apply_condition work for 2D numpy arrays also ([#78](https://github.com/equinor/ecalc/issues/78)) ([bce91cb](https://github.com/equinor/ecalc/commit/bce91cb0b6b821e1b1a579c40f19311e847577b3))
+* make sure that suction pressure is less than or equal to discharge pressure for compressor train ([#104](https://github.com/equinor/ecalc/issues/104)) ([d218273](https://github.com/equinor/ecalc/commit/d2182730c2fdcd98e54fef8625cd289dc206b2bf))
+* parse scientific notation numbers in expression ([#85](https://github.com/equinor/ecalc/issues/85)) ([fdf322b](https://github.com/equinor/ecalc/commit/fdf322bafa9a3379b6481e57ca1e761475f42b25))
+* pump results wrong when resampled ([#71](https://github.com/equinor/ecalc/issues/71)) ([daffdb3](https://github.com/equinor/ecalc/commit/daffdb3d969add106bbbfd782cfae418cfd8650d))
+* resample emissions correctly to create valid json ([3c9b52e](https://github.com/equinor/ecalc/commit/3c9b52e40c1c88a11db3d088c0fbb320a4920daa))
+* result of validation of operational conditions when rate is zero should always be valid ([9de403c](https://github.com/equinor/ecalc/commit/9de403c8b92895fafabea875d970fc1901a4ba89))
+* validate time steps where rate is different from zero, not only when larger than zero ([6ce07c4](https://github.com/equinor/ecalc/commit/6ce07c41e82b397d9512566a42fd8fd2017c14d1))
+
+
+### Code Refactoring
+
+* consumer system v2 ([248dabb](https://github.com/equinor/ecalc/commit/248dabb595a12ed6ca9a0f8ef519f5439a3b0964))
+
+
+### Miscellaneous Chores
+
+* add installation filter to flare nmvoc ([#87](https://github.com/equinor/ecalc/issues/87)) ([f37b76d](https://github.com/equinor/ecalc/commit/f37b76d0b3c2f6941585299998205c3a907b41a8))
+* add installation filter to remaining ltp-columns ([#91](https://github.com/equinor/ecalc/issues/91)) ([39df792](https://github.com/equinor/ecalc/commit/39df7923d79a393981285986016311e9f1b0848f))
+* add test of count_parentheses ([0d1ce6f](https://github.com/equinor/ecalc/commit/0d1ce6feff7a6aaeecab57fd9a661122b691d3b5))
+* add test of validation of operational conditions when suction pressure exceeds discharge pressure ([d218273](https://github.com/equinor/ecalc/commit/d2182730c2fdcd98e54fef8625cd289dc206b2bf))
+* added changelog entry about interstage pressure fix ([#95](https://github.com/equinor/ecalc/issues/95)) ([2a1e8b0](https://github.com/equinor/ecalc/commit/2a1e8b085ed87dcbb8da874b64f737721f0ceaae))
+* count parantheses in list of tokens only among the elements that are strings ([#94](https://github.com/equinor/ecalc/issues/94)) ([0d1ce6f](https://github.com/equinor/ecalc/commit/0d1ce6feff7a6aaeecab57fd9a661122b691d3b5))
+* enforce unique fuel type names, and unique emission names within one fuel type ([#84](https://github.com/equinor/ecalc/issues/84)) ([4ea9c63](https://github.com/equinor/ecalc/commit/4ea9c630510015e2030f0840b933ea399cc0734b))
+* fix broken link in documentation of GENERATORSETS keyword ([#103](https://github.com/equinor/ecalc/issues/103)) ([329c8e9](https://github.com/equinor/ecalc/commit/329c8e993c217e7685c082b7671a12c4115bba87))
+* improve documentation on defining compressor charts using CURVE and CURVES ([#97](https://github.com/equinor/ecalc/issues/97)) ([1bde68a](https://github.com/equinor/ecalc/commit/1bde68a38e75255c8f2d6cd88fb5b6ba1ddb97c9))
+* improve error message when bad yaml file name ([#77](https://github.com/equinor/ecalc/issues/77)) ([d2eb733](https://github.com/equinor/ecalc/commit/d2eb733264b2d5b2114a785096c9d6abbffea21b))
+* numpy ndarray typing ([#46](https://github.com/equinor/ecalc/issues/46)) ([9b7b308](https://github.com/equinor/ecalc/commit/9b7b308ea6ce5c0aee5acdf8226cd94b90b448aa))
+* pin numpy to compatible numpy version ([35a3640](https://github.com/equinor/ecalc/commit/35a3640a96c376f4d37e74fd62aec0f0a0bf458b))
+* remove limiting dependency typer-cli ([8208444](https://github.com/equinor/ecalc/commit/820844475c29460f29a44bb7917ed5bd37d4ad45))
+* simplify dependencies for use with komodo ([39c5c36](https://github.com/equinor/ecalc/commit/39c5c365aea85ba333a5a509fe5cfbee1be5d9d0))
+* update dependencies to be aligned with external requirements ([fbfbfeb](https://github.com/equinor/ecalc/commit/fbfbfeb4292011c04d9107218a5b4188e052f7ff))
+
+
+### Continuous Integration
+
+* create release-please pr against correct branch ([be9426a](https://github.com/equinor/ecalc/commit/be9426a774b8704b2f22e9a83544e07bd92a8808))
+* fix issue with api refernce docs generation ([#44](https://github.com/equinor/ecalc/issues/44)) ([42c1402](https://github.com/equinor/ecalc/commit/42c140269a9e8a6d5f09e9354d14ae51d02f3e81))
+* fix syntax for gh action workflow ([d8700dd](https://github.com/equinor/ecalc/commit/d8700dd9bccd40cb4b3bdb75119e0bd47baf3985))
+* Lock pydantic version in CI and update hooks ([#106](https://github.com/equinor/ecalc/issues/106)) ([2ea517e](https://github.com/equinor/ecalc/commit/2ea517e79a34195e561a4897798bd24ef9cae6ae))
+* remove duplicate build of docs ([#62](https://github.com/equinor/ecalc/issues/62)) ([e5b896b](https://github.com/equinor/ecalc/commit/e5b896b9f46a7e13c6d806237c4d4bef44833b77))
+* set default ownership for source ([16d54f1](https://github.com/equinor/ecalc/commit/16d54f1a30368d92ead377baceef98820754c25f))
+* support hotfix releases ([0346929](https://github.com/equinor/ecalc/commit/03469295d20526e391938a5830d1513088a8803f))
+
+
+### Documentation
+
+* fix links ([#116](https://github.com/equinor/ecalc/issues/116)) ([62cadfc](https://github.com/equinor/ecalc/commit/62cadfcf581b101d7bb33b3772ffb65eefbf670b))
+* how to migrate from 8.1 to 8.2 ([4d3be58](https://github.com/equinor/ecalc/commit/4d3be58f5af44cbdee4158017b163361371dc23c))
+* remove unnecessary information from migration guide ([4730538](https://github.com/equinor/ecalc/commit/47305386db82d826245c67e6c10a8597a36bfc09))
+* specify only gensets for boiler/heater ([#53](https://github.com/equinor/ecalc/issues/53)) ([2df3bdf](https://github.com/equinor/ecalc/commit/2df3bdf299bcb6cf47289259e4fedd21c2de141c))
+* update changelog 8.2 with changes for ltp- and stp ([#43](https://github.com/equinor/ecalc/issues/43)) ([6fe4b77](https://github.com/equinor/ecalc/commit/6fe4b773a156d01eec67e8e70b764d4e18d374ce))
+* update changelog for 8.2 ([3ccea74](https://github.com/equinor/ecalc/commit/3ccea743332f0d1950ff61ca6747bb507ea37bd4))
+* update documentaion for heaters and boilers ([#52](https://github.com/equinor/ecalc/issues/52)) ([2bef707](https://github.com/equinor/ecalc/commit/2bef70731be94ace7d0a2269f2ebf07bd01e82b2))
+* update migration guide with ltp- and stp changes ([#42](https://github.com/equinor/ecalc/issues/42)) ([4b0b230](https://github.com/equinor/ecalc/commit/4b0b23011a9d2161741dd52031070307fc6c1b68))
+
 ## [8.2.2](https://github.com/equinor/ecalc/compare/v8.2.1...v8.2.2) (2023-05-28)
 
 
