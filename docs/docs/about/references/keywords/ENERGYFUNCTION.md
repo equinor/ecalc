@@ -12,7 +12,7 @@
 ## Description
 
 This refers to an energy function model defined in either [FACILITY INPUTS](FACILITY_INPUTS.md) or in [MODELS](MODELS.md) used for [ENERGY USAGE MODEL](ENERGY_USAGE_MODEL.md).
-The following atrributes can be utilised:
+The following attributes can be utilised:
 
 * [COMPRESSOR MODEL](../../modelling/setup/installations/compressor_models_in_calculations/index.md)
 * [PUMP ENERGY USAGE MODEL](../../modelling/setup/installations/pump_models_in_calculations)

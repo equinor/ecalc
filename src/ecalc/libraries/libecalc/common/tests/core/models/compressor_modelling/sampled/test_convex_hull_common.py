@@ -53,7 +53,7 @@ def test_get_lower_upper_qhull():
     np.testing.assert_allclose(lower_p.points, df_data[[0, 2, 4, 5, 7]])
     np.testing.assert_allclose(upper_p.points, df_data[[1, 3, 4, 6, 8]])
 
-    # Common bounary points in axis 0
+    # Common boundary points in axis 0
     df_data = np.asarray(
         [
             [2, 2, 2],

@@ -152,7 +152,7 @@ Here's a quick guide:
 
 ### Fork the repository
 
-For external developers, you will [contribute to the project trough forking](https://docs.github.com/en/get-started/quickstart/contributing-to-projects). 
+For external developers, you will [contribute to the project through forking](https://docs.github.com/en/get-started/quickstart/contributing-to-projects). 
 
 Here's a quick guide:
 

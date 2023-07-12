@@ -41,14 +41,14 @@ Note that the default input rate is `STREAM_DAY` rate - the opposite of the othe
 
 For further details on stream day rate vs. calendar day rate, see [CONSUMPTION_RATE_TYPE](CONSUMPTION_RATE_TYPE).
 
-|ENERGY_USAGE_MODEL Type|Can use CONSUMPTION_RATE_TYPE?|Evaluated rate type|
-|:---:|:---:|:---:|
-DIRECT|&#9745; | Stream/calender day|
-COMPRESSOR|&#9744;| Stream day|
-|PUMP|&#9744;| Stream day|
-|COMPRESSOR_SYSTEM|&#9744;| Stream day|
-|PUMP_SYSTEM|&#9744;| Stream day|
-|TABULATED|&#9744;| Stream day|
+|ENERGY_USAGE_MODEL Type|Can use CONSUMPTION_RATE_TYPE?| Evaluated rate type |
+|:---:|:---:|:-------------------:|
+DIRECT|&#9745; | Stream/calendar day |
+COMPRESSOR|&#9744;|     Stream day      |
+|PUMP|&#9744;|     Stream day      |
+|COMPRESSOR_SYSTEM|&#9744;|     Stream day      |
+|PUMP_SYSTEM|&#9744;|     Stream day      |
+|TABULATED|&#9744;|     Stream day      |
 
 ### Reporting
 

@@ -108,7 +108,7 @@ def elementwise_multiplication(
 
 
 def array_to_list(result_array: Union[NDArray[np.float64], List[NDArray[np.float64]], None]) -> Optional[List]:
-    """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recurrsivly on lists so needs to handle None aswell.
+    """Method to convert numpy arrays and list of numpy arrays into lists (or list of lists). Method is used recursively on lists so needs to handle None as well.
 
     Args:
         result_array: A numpy array, a list of numpy arrays or None

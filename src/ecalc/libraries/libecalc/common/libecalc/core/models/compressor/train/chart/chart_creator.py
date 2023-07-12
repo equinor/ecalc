@@ -32,12 +32,12 @@ class CompressorChartCreator:
            in input data.
         2. Find the points not covered and find the point furthest above the initial chart.
             - Find the (unified) distance in rate and head directions from the point furthest above and the closest point
-              on the inital chart
+              on the initial chart
             - Adjust the design point such that the point furthest above will be covered by adding the distance found
         3. If no points are found above the initial chart, find the point closest to the maximum speed curve
            inside the chart
            - Find the (unified) distance in rate and head directions from the input point closest to the
-              maximum speed curve and the closest point on the maximum speed curve on the inital chart
+              maximum speed curve and the closest point on the maximum speed curve on the initial chart
            - Adjust the design point such that the in put point closest to the maximum speed curve is just covered
               by subtracting the distance found
 

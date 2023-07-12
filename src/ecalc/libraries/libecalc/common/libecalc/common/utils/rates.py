@@ -87,7 +87,7 @@ class Rates:
         Note that the code does not perform any interpolation or extrapolation,
         it assumes that all requested dates are present, and that the rates are constant between dates.
 
-        Note that when the number of periodic volumes will be one less than the numer of rates
+        Note that when the number of periodic volumes will be one less than the number of rates
 
         Args:
             rates: Production rates, assumed to be constant between dates
@@ -106,7 +106,7 @@ class Rates:
         """
         Compute cumulative volumes from a list of periodic volumes
 
-        The number of cumulative volumes will always be one more than the numer of periodic volumes. The first
+        The number of cumulative volumes will always be one more than the number of periodic volumes. The first
         cumulative volume will always be set zero.
 
         Args:

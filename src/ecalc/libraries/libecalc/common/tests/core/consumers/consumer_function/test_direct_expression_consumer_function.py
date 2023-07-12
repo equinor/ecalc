@@ -186,7 +186,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     calendar_day_consumption = f"{stream_day_consumption} {{*}} {regularity}"
 
     # The stream day function passes through the evaluated expression directly
-    # with no modification from regularity - as this is already of "strem day" type
+    # with no modification from regularity - as this is already of "stream day" type
     stream_day_function = DirectExpressionConsumerFunction(
         dto.DirectConsumerFunction(
             load=Expression.setup_from_expression(stream_day_consumption),
@@ -216,7 +216,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     )
 
     # When regularity is used, all returned consumption values should be of stream day type
-    # (as they are multiplied with regularity post calcuations in the energy function)
+    # (as they are multiplied with regularity post calculations in the energy function)
     np.testing.assert_allclose(
         actual=calendar_day_function_result.energy_usage,
         desired=stream_day_function_result.energy_usage,

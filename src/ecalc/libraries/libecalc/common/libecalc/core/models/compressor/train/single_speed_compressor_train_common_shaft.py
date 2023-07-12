@@ -855,7 +855,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             We return 0.
         :param target_discharge_pressure: Discharge pressure per time step [bara]
         :param inlet_stream: The stream at the inlet of the single speed compressor train
-        :param allow_asv: Limits the solution search space. If allow_asv is True, the algorith will also search for
+        :param allow_asv: Limits the solution search space. If allow_asv is True, the algorithm will also search for
             a solution below the minimum mass rate for the first compressor stage, if that minimum mass rate is not
             a valid rate for the entire compressor train.
         :return: Standard volume rate [Sm3/day]

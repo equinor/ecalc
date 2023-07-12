@@ -11,7 +11,7 @@ class CompressorStage(EcalcBaseModel):
     inlet_temperature_kelvin: confloat(ge=0)
     pressure_drop_before_stage: confloat(ge=0)
     remove_liquid_after_cooling: bool
-    control_margin: confloat(ge=0, le=1) = 0.0  # Todo: this probably belong to the chart, noe the stage.
+    control_margin: confloat(ge=0, le=1) = 0.0  # Todo: this probably belong to the chart, not the stage.
 
 
 class InterstagePressureControl(EcalcBaseModel):

@@ -17,7 +17,7 @@ def find_root(
 ) -> float:
     """Root finding using scipy´s implementation of the brenth method.
 
-    TODO: Investigate why we don't use brentq method reccomended by scipy
+    TODO: Investigate why we don't use brentq method recommended by scipy
 
     This will try to solve for the root: f(x) = 0. Another way to say this is "what x makes the function return 0"...
 
