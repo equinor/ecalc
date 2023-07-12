@@ -1,13 +1,13 @@
 # TYPE
 
 [...] / 
-[TYPE](TYPE) /
+[TYPE](TYPE.md) /
 
 ## Description
-The [TYPE](TYPE) is always a string. The allowed strings, and the resulting change in behavior,
-will depend on where [TYPE](TYPE) is used:
+The [TYPE](TYPE.md) is always a string. The allowed strings, and the resulting change in behavior,
+will depend on where [TYPE](TYPE.md) is used:
 
-### Use in [FACILITY_INPUTS](FACILITY_INPUTS)
+### Use in [FACILITY_INPUTS](FACILITY_INPUTS.md)
 - `ELECTRICITY2FUEL`
 - `TABULAR`
 - `COMPRESSOR_TABULAR`
@@ -18,7 +18,7 @@ will depend on where [TYPE](TYPE) is used:
 - `MISCELLANEOUS`
 - `DEFAULT`
 
-### Use in [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)
+### Use in [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL.md)
  - `DIRECT`
  - `COMPRESSOR`
  - `PUMP`
@@ -27,7 +27,7 @@ will depend on where [TYPE](TYPE) is used:
  - `TABULATED`
  - `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
 
-### Use in [MODELS](MODELS)
+### Use in [MODELS](MODELS.md)
 - `FLUID`
 - `VARIABLE_SPEED_COMPRESSOR_TRAIN`
 - `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
