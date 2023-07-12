@@ -14,13 +14,12 @@ async function createConfig() {
     url: 'https://equinor.github.io',
     baseUrl: '/ecalc/',
     onBrokenLinks: 'throw',
-    onBrokenMarkdownLinks: 'warn',
+    onBrokenMarkdownLinks: 'throw',
     favicon: 'img/favicon.svg',
 
     // GitHub pages deployment config.
-    // If you aren't using GitHub pages, you don't need these.
-    organizationName: 'equinor', // Usually your GitHub org/user name.
-    projectName: 'ecalc', // Usually your repo name.
+    organizationName: 'equinor',
+    projectName: 'ecalc',
     deploymentBranch: 'gh-pages',
 
     // Even if you don't use internalization, you can use this field to set useful
