@@ -410,7 +410,7 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
     # Calculate kappa
     Cp = gerg_properties[10]
     R = 8.3144621
-    # This will be relative (volume independent) as the number of moles in Cp wil be divided by the number of moles
+    # This will be relative (volume independent) as the number of moles in Cp will be divided by the number of moles
     # multiplied by R. Cp and Cv have default units Joule/(mol Kelvin)
     # NB: In neqsim, this is calculated as Cp / (Cp - R * number_of_moles), but when GERG is not used, the unit for Cp
     # is J/K, while with GERG neqsim has unit J/(K mol).

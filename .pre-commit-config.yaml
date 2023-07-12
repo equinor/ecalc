@@ -18,6 +18,12 @@ repos:
         language_version: python3
         args: ['--line-length=120', '--include=\.pyi?$']
         exclude: gen/
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.4
+    hooks:
+      - id: codespell
+        name: Check for typos in code
+        additional_dependencies: [tomli]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.4.1
     hooks:

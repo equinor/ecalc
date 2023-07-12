@@ -833,7 +833,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_stream = previous_outlet_stream
                 mass_rate_this_stage_kg_per_hour = mass_rate_previous_stage_kg_per_hour
             # take mass out before potential mixing with additional ingoing stream
-            # assume that volume/mass is always taken out before addtional volume/mass is potentially added, no matter
+            # assume that volume/mass is always taken out before additional volume/mass is potentially added, no matter
             # what order the streams are defined in in the yaml file
             for stream_number in self.outlet_stream_connected_to_stage.get(stage_number):
                 mass_rate_this_stage_kg_per_hour -= inlet_stream.standard_to_mass_rate(

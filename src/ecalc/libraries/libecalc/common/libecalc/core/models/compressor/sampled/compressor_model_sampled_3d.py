@@ -303,8 +303,8 @@ class CompressorModelSampled3D:
         """Project rate, suction pressure (ps) and discharge pressure (pd) given in x
         to the 3D convex hull of the points in lower_rate_points for ps larger than
         the given points and for rates and pd smaller than the given points. This mimics
-        what happends when a compressor/pump are requested to handle input (rate,ps,pd)
-        points which are outside the operational area, but which are handeled by
+        what happens when a compressor/pump are requested to handle input (rate,ps,pd)
+        points which are outside the operational area, but which are handled by
         ASV/recirculation and pressure choking.
         """
         rate, suction_pressure, discharge_pressure = _project_on_rate(
@@ -519,7 +519,7 @@ def _project_on_rate(
     # Project pd and ps to convex hull of minimum_rate function (if allowed)
     # Add/subtract EPSILON to avoid numerical machine precision errors to
     # allow points to be "just outside" convex hull of interpolation function
-    # and thus return undefied value.
+    # and thus return undefined value.
     pd_projected = np.fmax(discharge_pressure, lower_rate_qh_lower_pd_function(suction_pressure))
     ps_projected = np.fmin(suction_pressure, lower_rate_qh_upper_ps_function(pd_projected))
     rate_projected = np.fmax(rate, minimum_rate_function(ps_projected, pd_projected) + EPSILON)
@@ -569,7 +569,7 @@ def _setup_minimum_rate_projection_functions(
     ps_axis: int = 1,
     pd_axis: int = 2,
 ):
-    """Function wich returns functions to be used for computations of the minimum rate
+    """Function which returns functions to be used for computations of the minimum rate
     for a given (suction pressure, discharge pressure) point.
     These are to be used to set the actual rate to minimum flow rate if the rate is
     below this value to mimic anti-surve/recirculation.
@@ -648,7 +648,7 @@ def _setup_minimum_pd_projection_functions(
     ps_axis: int = 1,
     pd_axis: int = 2,
 ) -> Tuple[interp1d, interp1d, LinearInterpolatorSimplicesDefined]:
-    """Function wich returns functions to be used for computations of the minimum
+    """Function which returns functions to be used for computations of the minimum
     discharge pressure for a given (rate, suction pressure) point.
     These are to be used to set the actual discharge pressure to minimum discharge
     pressure if this is below this value to mimic choking of discharge when the
@@ -723,7 +723,7 @@ def _setup_maximum_ps_projection_functions(
     ps_axis: int = 1,
     pd_axis: int = 2,
 ):
-    """Function wich returns functions to be used for computations of the maximum
+    """Function which returns functions to be used for computations of the maximum
     suction pressure for a given (rate, discharge pressure) point.
     These are to be used to set the actual suction pressure to maximum suction
     pressure if this is above this value to mimic choking of suction pressure when
@@ -791,7 +791,7 @@ def _setup_maximum_rate_projection_functions(
     ps_axis: int = 1,
     pd_axis: int = 2,
 ):
-    """Function wich returns functions to be used for computations of the maximum rate
+    """Function which returns functions to be used for computations of the maximum rate
     for a given (suction pressure, discharge pressure) point.
     These are to be used to compute the maximum rate needed when the consumer system
     cross over functionality is used as one then needs to know the consumers maximum rate

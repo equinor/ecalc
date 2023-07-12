@@ -107,7 +107,7 @@ def _get_end_boundary(frequency: libecalc.common.time_utils.Frequency, time_vect
     else:
         return max(
             time_vector
-        )  # Frequency.NONE . We are clueless and user doesnt help us, just fallback to last time given
+        )  # Frequency.NONE . We are clueless and user does not help us, just fallback to last time given
 
 
 def get_global_time_vector(

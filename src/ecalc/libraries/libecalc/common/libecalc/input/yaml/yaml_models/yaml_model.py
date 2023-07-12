@@ -95,7 +95,7 @@ class YamlDumper(abc.ABC):
     @abc.abstractmethod
     def dump(self) -> str:
         """For the given yaml dumper/representer, returns the yaml model as a string
-        the way the specifiec yaml model has been defined to format the data. This
+        the way the specific yaml model has been defined to format the data. This
         depends on the type of the yaml model implementation used (e.g. Ruamel, PyYaml) and can currently not be changed.
 
         :return:    yaml model as a string
@@ -142,7 +142,7 @@ class YamlModel(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
             :return:
             """
             if yaml_model_type == YamlModelType.RUAMEL:
-                # Imported here to avoid circular dependency. The __init__/central module trick didnt work
+                # Imported here to avoid circular dependency. The __init__/central module trick didn't work
                 from libecalc.input.yaml.yaml_models.ruamel_yaml_model import (
                     RuamelYamlModel,
                 )

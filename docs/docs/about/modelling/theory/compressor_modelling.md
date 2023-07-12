@@ -57,7 +57,7 @@ However, for compressor trains, the intermediate pressures are not known ahead, 
 compressors run with the same speed as they are mounted on the same shaft.
 
 To calculate the energy usage for the compressor train using the common speed, eCalc uses a forward model to
-calculate the outlet stream given the inlet stream and a given speed. Then, this model is iterated until the discharge pressure is equal to the requsted discharge pressure for evaluation. To use this model, see 
+calculate the outlet stream given the inlet stream and a given speed. Then, this model is iterated until the discharge pressure is equal to the requested discharge pressure for evaluation. To use this model, see 
 `Variable speed compressor train model` An alternative is to neglect the common speed property of the train, an instead assume (incorrectly but maybe good
 enough for some purposes) that the pressure fraction is equal for all stages. With this assumption, the intermediate pressures can be calculated and each stage may be calculated independently without the speed iteration. To use this model, see 
 `Simplified variable speed compressor train model`.

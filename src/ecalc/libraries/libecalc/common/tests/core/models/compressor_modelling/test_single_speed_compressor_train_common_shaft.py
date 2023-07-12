@@ -135,7 +135,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         self, single_speed_compressor_train_common_shaft_downstream_choking_with_maximum_discharge_pressure
     ):
         # In the previous test, we see that the third point (index=2) have a floating discharge pressure 367.5
-        # Now, the maximum discharge pressure is set to 350.0, thus for this point, the discharge pressure shold be ~350
+        # Now, the maximum discharge pressure is set to 350.0, thus for this point, the discharge pressure should be ~350
         # And the suction pressure and other relevant attributes in the result should have been changed accordingly
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 300.0])
         suction_pressures = 4 * [80.0]

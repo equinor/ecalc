@@ -180,7 +180,7 @@ Under this category, all consumers that utilise electricity are defined. In this
 
 The previously defined variable speed pump (in `FACILITY_INPUTS`) is put into further defined with suction and discharge pressures, rates and operational settings.
 
-Here, a system of pumps is used. This means that instead of a singe pump being used to deliver the respective injection rate, a system of pumps is defined. In this case, a system of two pumps will be used. If the first pump is unable to deliver the requested head or rate, a second pump will be additionally used and the rate will be split across the pump system.
+Here, a system of pumps is used. This means that instead of a single pump being used to deliver the respective injection rate, a system of pumps is defined. In this case, a system of two pumps will be used. If the first pump is unable to deliver the requested head or rate, a second pump will be additionally used and the rate will be split across the pump system.
 As only one pump has been defined, the same pump model will be used for each train. As each pump is identical, the rate will be equally split across the train when needed (this is to ensure the highest pump efficiency - see [PUMP MODELLING](../setup/installations/pump_models_in_calculations) for more details.)
 
 A fluid density of 1025 kg/m<sup>3</sup> is used, with a suction and discharge pressure of 12 and 200 bar respectively.
