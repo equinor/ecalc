@@ -18,7 +18,7 @@ class NeuralNet:
     def predict(self, dataframe):
         # self.mlp.eval()
         data = FeatureData(dataframe)
-        loader = DataLoader(data, batch_size=64, shuffle=False)
+        loader = DataLoader(data, batch_size=1, shuffle=False)
 
         all_preds = []
         with torch.inference_mode():
@@ -34,9 +34,12 @@ class NeuralNet:
             outlet_z = array[0] / 250
             outlet_kappa = array[1] / 75
         else:
-            array = np.array(all_preds)
-            outlet_z = array[:, 0] / 250
-            outlet_kappa = array[:, 1] / 75
+            outlet_z = []
+            outlet_kappa = []
+            for eachTensor in all_preds:
+                eachPred = eachTensor.tolist()
+                outlet_z.append(eachPred[0])
+                outlet_kappa.append(eachPred[1])
 
         return outlet_z, outlet_kappa
 
