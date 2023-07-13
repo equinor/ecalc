@@ -360,19 +360,17 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         """
         consumer_rates = operational_setting.rates
 
-        consumer_results = []
-        for i, consumer in enumerate(self.consumers):
-            consumer_results.append(
-                CompressorResult(
-                    name=consumer.name,
-                    consumer_model_result=consumer.facility_model.evaluate_rate_ps_pd(
-                        rate=consumer_rates[i],
-                        suction_pressure=operational_setting.suction_pressures[i],
-                        discharge_pressure=operational_setting.discharge_pressures[i],
-                    ),
-                )
+        return [
+            CompressorResult(
+                name=consumer.name,
+                consumer_model_result=consumer.facility_model.evaluate_rate_ps_pd(
+                    rate=consumer_rates[i],
+                    suction_pressure=operational_setting.suction_pressures[i],
+                    discharge_pressure=operational_setting.discharge_pressures[i],
+                ),
             )
-        return consumer_results
+            for i, consumer in enumerate(self.consumers)
+        ]
 
 
 class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
