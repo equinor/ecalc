@@ -1,27 +1,20 @@
 {
-  "name": "Node.js",
-  "build": {
-    "dockerfile": "Dockerfile"
+  "name": "Python 3",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "onCreateCommand": "/bin/bash -c \"git pull -f && python3 -m pip install pre-commit && pre-commit install && python3 -m venv .venv && source .venv/bin/activate && pip install poetry && poetry install  && pip install torch && echo 'source .venv/bin/activate' >> ~/.bashrc\"",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/java:1": {},
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/sshd:1": {}
   },
-  "hostRequirements": {
-    "cpus": 4,
-    "memory": "8gb",
-    "storage": "8gb"
-  },
-
   "customizations": {
     "vscode": {
-      "extensions": ["dbaeumer.vscode-eslint"]
-    }
-  },
-  "onCreateCommand": "cd docs && npm install && conda install -y pre-commit && pre-commit install",
-  "postStartCommand": "cd docs && npm run start",
-
-  "remoteUser": "node",
-  "features": {
-    "git": "latest",
-    "ghcr.io/devcontainers/features/conda:1": {
-      "version": "latest"
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter"
+      ]
     }
   }
 }
+

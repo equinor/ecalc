@@ -1,5 +1,7 @@
 from typing import Tuple
 
+import pandas as pd
+import xgboost as xgb
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -37,6 +39,31 @@ def calculate_power_in_megawatt(
     )
 
 
+ml_model = "neqsim"
+
+rgs = xgb.XGBRegressor()
+rgs.load_model(
+    "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/ml_configs/XGBoost.json"
+)
+
+
+# Method that changes
+def ml_ph_flash(streams: FluidStream, pressure_2: float, dataframe):
+    # Change P_2 value
+    dataframe.at[0, "pressure_2"] = pressure_2
+
+    pred = rgs.predict(dataframe)
+
+    print(pred)
+
+    kappa = pred[:, 2]
+    z = pred[:, 1]
+
+    return kappa, z
+
+
+# To more easily facilitate the ml changes, we only calculate the Kappa and Z values and use these values directly,
+# instead of updating the stream with these values each iteration
 def calculate_outlet_pressure_and_stream(
     polytropic_efficiency: float,
     polytropic_head_joule_per_kg: float,
@@ -52,6 +79,9 @@ def calculate_outlet_pressure_and_stream(
     Returns:
 
     """
+    comp_dict = dict(inlet_stream.fluid_model.composition)
+    composition_df = pd.DataFrame([comp_dict])
+    composition_df /= 100
 
     outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = calculate_outlet_pressure_campbell(
         kappa=inlet_stream.kappa,
@@ -63,18 +93,32 @@ def calculate_outlet_pressure_and_stream(
         inlet_pressure_bara=inlet_stream.pressure_bara,
     )
 
-    outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
+    df = pd.DataFrame(
+        {
+            "pressure_2": [outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa],
+            "enthalpy_2": [polytropic_head_joule_per_kg / polytropic_efficiency],
+        }
+    )
+    X_test = pd.concat([df, composition_df], axis=1)
+
+    outlet_kappa, outlet_z = ml_ph_flash(
+        inlet_stream, outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa, X_test
+    )
+
+    """
+    inlet_stream.set_new_pressure_and_enthalpy_change(
         new_pressure=outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
         enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
     )
+    """
 
     outlet_pressure_this_stage_bara = outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa * 0.95
     converged = False
     i = 0
     max_iterations = 20
     while not converged and i < max_iterations:
-        z_average = (inlet_stream.z + outlet_stream_compressor_current_iteration.z) / 2.0
-        kappa_average = (inlet_stream.kappa + outlet_stream_compressor_current_iteration.kappa) / 2.0
+        z_average = (inlet_stream.z + outlet_z) / 2.0
+        kappa_average = (inlet_stream.kappa + outlet_kappa) / 2.0
         outlet_pressure_previous = outlet_pressure_this_stage_bara
         outlet_pressure_this_stage_bara = calculate_outlet_pressure_campbell(
             kappa=kappa_average,
@@ -86,10 +130,13 @@ def calculate_outlet_pressure_and_stream(
             inlet_pressure_bara=inlet_stream.pressure_bara,
         )
 
-        outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
+        outlet_kappa, outlet_z = ml_ph_flash(inlet_stream, outlet_pressure_this_stage_bara, X_test)
+        """
+        inlet_stream.set_new_pressure_and_enthalpy_change(
             new_pressure=outlet_pressure_this_stage_bara,
             enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
         )
+        """
 
         diff = abs(outlet_pressure_previous - outlet_pressure_this_stage_bara) / outlet_pressure_this_stage_bara
 
@@ -112,6 +159,11 @@ def calculate_outlet_pressure_and_stream(
                 f" NOTE! We will use as the closest result we got for target for further calculations."
                 " This should normally not happen. Please contact eCalc support."
             )
+    # Use neqsim PH-flash at the end to activate all fluid properties
+    outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
+        new_pressure=outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
+        enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
+    )
 
     return (
         outlet_pressure_this_stage_bara,
