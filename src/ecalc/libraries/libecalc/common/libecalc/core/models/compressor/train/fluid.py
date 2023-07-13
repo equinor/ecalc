@@ -240,11 +240,6 @@ class FluidStream:
         )
         return FluidStream(existing_fluid=fluid_stream, fluid_model=self.fluid_model)
 
-    def copy(self) -> FluidStream:
-        return FluidStream(
-            fluid_model=self.fluid_model, pressure_bara=self.pressure_bara, temperature_kelvin=self.temperature_kelvin
-        )
-
     def mix_in_stream(
         self,
         other_fluid_stream: FluidStream,

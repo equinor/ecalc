@@ -204,7 +204,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         stage_results: List[CompressorTrainStageResultSingleTimeStep] = []
         outlet_stream = train_inlet_stream
         for stage in self.stages:
-            inlet_stream = outlet_stream.copy()
+            inlet_stream = outlet_stream
 
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
