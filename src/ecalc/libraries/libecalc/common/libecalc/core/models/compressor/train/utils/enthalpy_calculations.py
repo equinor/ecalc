@@ -38,7 +38,7 @@ def XGBoost_predict(X_test):
     return outlet_kappa, outlet_z
 
 
-ML_model = "nn"
+ML_model = "neqsim"
 
 rgs = xgb.XGBRegressor()
 rgs.load_model(
