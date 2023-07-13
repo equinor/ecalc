@@ -33,9 +33,7 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
     enthalpy_change_joule_per_kg = 100000.0
     pressure_increase_factor = 3.0
 
-    inlet_enthalpies_all_fluids = [
-        np.asarray([s._neqsim_fluid_stream.enthalpy_joule_per_kg for s in stream]) for stream in fluid_streams
-    ]
+    inlet_enthalpies_all_fluids = [np.asarray([s.enthalpy_joule_per_kg for s in stream]) for stream in fluid_streams]
 
     new_enthalpies_all_fluids = [
         enthalpy_array + enthalpy_change_joule_per_kg for enthalpy_array in inlet_enthalpies_all_fluids
@@ -128,8 +126,7 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
         )
     ]
     new_enthalpies_all_fluids_after_setting_new_temperature = [
-        np.asarray([s._neqsim_fluid_stream.enthalpy_joule_per_kg for s in streams])
-        for streams in streams_with_new_pressure_and_temperature
+        np.asarray([s.enthalpy_joule_per_kg for s in streams]) for streams in streams_with_new_pressure_and_temperature
     ]
     np.testing.assert_allclose(
         new_enthalpies_all_fluids_after_setting_new_temperature,
