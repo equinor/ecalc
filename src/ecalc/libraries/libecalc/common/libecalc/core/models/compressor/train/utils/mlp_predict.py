@@ -16,7 +16,7 @@ class NeuralNet:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def predict(self, dataframe):
-        self.mlp.eval()
+        # self.mlp.eval()
         data = FeatureData(dataframe)
         loader = DataLoader(data, batch_size=64, shuffle=False)
 

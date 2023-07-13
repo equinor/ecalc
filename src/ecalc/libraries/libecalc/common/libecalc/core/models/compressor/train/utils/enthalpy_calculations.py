@@ -21,14 +21,32 @@ from mlp_predict import NeuralNet
 from numpy.typing import NDArray
 
 sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils")
-
-
 # import torch
 # from torch import Tensor, nn
 
 # from mlp import execute
 
+
+def XGBoost_predict(X_test):
+    # Predict kappa and z
+    pred = rgs.predict(X_test)
+    outlet_kappa = np.asarray(pred[:, 2])
+    outlet_z = np.asarray(pred[:, 1])
+
+    return outlet_kappa, outlet_z
+
+
 ML_model = "nn"
+
+rgs = xgb.XGBRegressor()
+rgs.load_model(
+    "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/ml_configs/XGBoost.json"
+)
+
+nn_model = NeuralNet(
+    "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
+)
+nn_model.mlp.eval()
 
 
 def calculate_enthalpy_change_head_iteration(
@@ -74,11 +92,6 @@ def calculate_enthalpy_change_head_iteration(
 
     X_test = pd.concat([df, composition_df], axis=1)
 
-    rgs = xgb.XGBRegressor()
-    rgs.load_model(
-        "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/ml_configs/XGBoost.json"
-    )
-
     converged = False
     i = 0
     max_iterations = 20
@@ -109,30 +122,19 @@ def calculate_enthalpy_change_head_iteration(
         # Update outlet enthalpy
         X_test["enthalpy_2"] = outlet_enthalpy
 
-        def XGBoost_predict(X_test):
-            # Predict kappa and z
-            pred = rgs.predict(X_test)
-            outlet_kappa = np.asarray(pred[:, 2])
-            outlet_z = np.asarray(pred[:, 1])
-
-            return outlet_kappa, outlet_z
-
         # Run with XGBoost
         if ML_model == "xgb":
             outlet_kappa, outlet_z = XGBoost_predict(X_test)
 
         # Run with neural networks
         elif ML_model == "nn":
-            nn_model = NeuralNet(
-                "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
-            )
             # gases = ['water', 'nitrogen', 'CO2', 'methane', 'ethane', 'propane', 'i_butane', 'n_butane', 'i_pentane', 'n_pentane', 'n_hexane']
             # X_test[gases] /= 100
             outlet_kappa, outlet_z = nn_model.predict(X_test)
 
-            pd.set_option("display.max_columns", None)  # Show all columns
-            pd.set_option("display.width", None)  # Auto-adjust width
-            print(X_test.to_string())
+            # pd.set_option("display.max_columns", None)  # Show all columns
+            # pd.set_option("display.width", None)  # Auto-adjust width
+            # print(X_test.to_string())
 
         # Run with PHflash
         else:
@@ -151,6 +153,8 @@ def calculate_enthalpy_change_head_iteration(
             outlet_z = np.asarray([stream.z for stream in outlet_streams])
 
         # Update z and kappa estimates based on new outlet estimates
+
+        print(inlet_z)
 
         z = (inlet_z + outlet_z) / 2
         kappa = (inlet_kappa + outlet_kappa) / 2
