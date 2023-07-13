@@ -11,6 +11,7 @@ import sys
 from copy import deepcopy
 from typing import Callable, List, Tuple, Union
 
+# sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils")
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -21,7 +22,6 @@ from mlp_predict import NeuralNet
 from numpy.typing import NDArray
 
 sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils")
-
 
 # import torch
 # from torch import Tensor, nn
@@ -78,6 +78,9 @@ def calculate_enthalpy_change_head_iteration(
     rgs.load_model(
         "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/ml_configs/XGBoost.json"
     )
+    nn_model = NeuralNet(
+        "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
+    )
 
     converged = False
     i = 0
@@ -119,20 +122,17 @@ def calculate_enthalpy_change_head_iteration(
 
         # Run with XGBoost
         if ML_model == "xgb":
-            outlet_kappa, outlet_z = XGBoost_predict(X_test)
+            outlet_z, outlet_kappa = XGBoost_predict(X_test)
 
         # Run with neural networks
         elif ML_model == "nn":
-            nn_model = NeuralNet(
-                "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
-            )
             # gases = ['water', 'nitrogen', 'CO2', 'methane', 'ethane', 'propane', 'i_butane', 'n_butane', 'i_pentane', 'n_pentane', 'n_hexane']
             # X_test[gases] /= 100
+
             outlet_kappa, outlet_z = nn_model.predict(X_test)
 
             pd.set_option("display.max_columns", None)  # Show all columns
             pd.set_option("display.width", None)  # Auto-adjust width
-            print(X_test.to_string())
 
         # Run with PHflash
         else:
