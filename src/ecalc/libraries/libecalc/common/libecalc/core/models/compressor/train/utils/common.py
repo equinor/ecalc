@@ -10,6 +10,9 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_outlet_pressure_campbell,
 )
 
+# sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils")
+from mlp_predict import NeuralNet
+
 OUTLET_PRESSURE_CONVERGENCE_TOLERANCE = 1e-2
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
@@ -40,22 +43,29 @@ def calculate_power_in_megawatt(
     )
 
 
-ml_model = "neqsim"
+# Choose what model to run with
+ml_model = "xgb"
 
 rgs = xgb.XGBRegressor()
 rgs.load_model(
     "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/ml_configs/XGBoost.json"
 )
 
+nn_model = NeuralNet(
+    "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
+)
+nn_model.mlp.eval()
 
+
+# Dataclass to more easily retrieve kappa and Z values
 @dataclass
-class outlet_values:
+class Outlet_values:
     kappa: float
     z: float
 
 
 # Method that changes
-def ml_ph_flash(pressure_2: float, streams: FluidStream, dataframe):
+def ml_ph_flash_xgb(pressure_2: float, dataframe):
     # Change P_2 value
     dataframe.at[0, "pressure_2"] = pressure_2
 
@@ -66,7 +76,15 @@ def ml_ph_flash(pressure_2: float, streams: FluidStream, dataframe):
     kappa = pred[:, 2]
     z = pred[:, 1]
 
-    return kappa, z
+    return Outlet_values(kappa, z)
+
+
+def ml_ph_flash_nn(pressure_2: float, dataframe):
+    # Change P_2 value
+    dataframe.at[0, "pressure_2"] = pressure_2
+    outlet_kappa, outlet_z = nn_model.predict(dataframe)
+
+    return Outlet_values(outlet_kappa, outlet_z)
 
 
 # To more easily facilitate the ml changes, we only calculate the Kappa and Z values and use these values directly,
@@ -87,8 +105,12 @@ def calculate_outlet_pressure_and_stream(
 
     """
     if ml_model == "xgb":
-        iterative_function = ml_ph_flash
+        iterative_function = ml_ph_flash_xgb
+
         # iterative_output: outlet_values
+
+    elif ml_model == "nn":
+        iterative_function = ml_ph_flash_nn
 
     else:
         iterative_function = inlet_stream.set_new_pressure_and_enthalpy_change
@@ -116,8 +138,8 @@ def calculate_outlet_pressure_and_stream(
     )
     X_test = pd.concat([df, composition_df], axis=1)
 
-    if ml_model == "xgb":
-        args = [outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa, inlet_stream, X_test]
+    if ml_model == "xgb" or ml_model == "nn":
+        args = [outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa, X_test]
     else:
         args = [
             outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
@@ -126,7 +148,8 @@ def calculate_outlet_pressure_and_stream(
 
     iterative_output = iterative_function(*args)
 
-    # outlet_kappa, outlet_z = ml_ph_flash(
+    # outlet_kappa, outlet_z = ml_ph_flash_xgb
+    # (
     # inlet_stream, outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa, X_test
     # )
 
@@ -158,7 +181,8 @@ def calculate_outlet_pressure_and_stream(
         args[0] = outlet_pressure_this_stage_bara
         iterative_output = iterative_function(*args)
 
-        # outlet_kappa, outlet_z = ml_ph_flash(inlet_stream, outlet_pressure_this_stage_bara, X_test)
+        # outlet_kappa, outlet_z = ml_ph_flash_xgb
+        # (inlet_stream, outlet_pressure_this_stage_bara, X_test)
         """
         outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
             new_pressure=outlet_pressure_this_stage_bara,
