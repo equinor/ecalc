@@ -7,14 +7,22 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
+from libecalc import dto
 from libecalc.common.capturer import Capturer
 from libecalc.common.logger import logger
+from libecalc.dto.types import EoSModel
 from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
 from neqsim_ecalc_wrapper import neqsim
 from neqsim_ecalc_wrapper.components import COMPONENTS
 from neqsim_ecalc_wrapper.exceptions import NeqsimPhaseError
+from neqsim_ecalc_wrapper.mappings import (
+    NeqsimEoSModelType,
+    _map_fluid_component_from_neqsim,
+    map_eos_model_to_neqsim,
+    map_fluid_composition_to_neqsim,
+)
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325
@@ -120,10 +128,10 @@ class NeqsimFluid:
     @classmethod
     def create_thermo_system(
         cls,
-        composition: Dict[str, float],
+        composition: dto.FluidComposition,
         temperature_kelvin: float = STANDARD_TEMPERATURE_KELVIN,
         pressure_bara: float = STANDARD_PRESSURE_BARA,
-        eos_model: NeqsimEoSModelType = NeqsimEoSModelType.SRK,
+        eos_model: EoSModel = EoSModel.SRK,
         mixing_rule: int = NEQSIM_MIXING_RULE,
     ) -> NeqsimFluid:
         """Initiates a NeqsimFluid that wraps both a Neqsim thermodynamic system and operations.
@@ -142,6 +150,9 @@ class NeqsimFluid:
         :return:
         """
         use_gerg = "gerg" in eos_model.name.lower()
+
+        composition = map_fluid_composition_to_neqsim(fluid_composition=composition)
+        eos_model = map_eos_model_to_neqsim(eos_model)
         non_existing_components = [
             component for component, value in composition.items() if (component not in COMPONENTS) and (value > 0.0)
         ]
