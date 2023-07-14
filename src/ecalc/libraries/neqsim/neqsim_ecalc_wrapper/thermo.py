@@ -283,21 +283,6 @@ class NeqsimFluid:
         eos_model: NeqsimEoSModelType = NeqsimEoSModelType.SRK,
     ) -> Tuple[Dict, NeqsimFluid]:
         """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
-        if stream_1 is None:
-            return (
-                {},  # Fixme: Need to return composition dict
-                stream_2.set_new_pressure_and_temperature(
-                    new_pressure_bara=pressure, new_temperature_kelvin=temperature
-                ),
-            )
-        if stream_2 is None:
-            return (
-                {},  # Fixme: Need to return composition dict
-                stream_1.set_new_pressure_and_temperature(
-                    new_pressure_bara=pressure,
-                    new_temperature_kelvin=temperature,
-                ),
-            )
 
         composition_dict: Dict[str, float] = {}
 
