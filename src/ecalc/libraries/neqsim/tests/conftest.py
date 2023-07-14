@@ -27,7 +27,7 @@ MEDIUM_MW_19P4_COMPOSITION = {
     "n-hexane": 0.368786,
 }
 
-LIGHT_FLUID_COMPOSITION = {"methane": 10.0, "ethane": 1.0, "propane": 0.1, "n-heptane": 10.1}
+LIGHT_FLUID_COMPOSITION = {"methane": 10.0, "ethane": 1.0, "propane": 0.1, "n-hexane": 10.1}
 
 
 @pytest.fixture
