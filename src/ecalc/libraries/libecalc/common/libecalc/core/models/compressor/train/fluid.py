@@ -218,12 +218,12 @@ class FluidStream:
 
         other_fluid = NeqsimFluid.create_thermo_system(
             composition=other_fluid_stream.fluid_model.composition,
-            temperature_kelvin=other_fluid_stream.temperature_kelvin,
-            pressure_bara=other_fluid_stream.pressure_bara,
+            temperature_kelvin=temperature_kelvin,
+            pressure_bara=pressure_bara,
             eos_model=other_fluid_stream.fluid_model.eos_model,
         )
 
-        new_fluid_composition, _neqsim_fluid_stream = new_fluid.mix_streams(
+        mixed_fluid_composition, mixed_neqsim_fluid_stream = new_fluid.mix_streams(
             stream_1=new_fluid,
             stream_2=other_fluid,
             mass_rate_stream_1=self_mass_rate,
@@ -233,11 +233,9 @@ class FluidStream:
             eos_model=self.fluid_model.eos_model,
         )
 
-        mixed_fluid = FluidStream(
-            existing_fluid=_neqsim_fluid_stream,
-            fluid_model=self.fluid_model,
+        return FluidStream(
+            existing_fluid=mixed_neqsim_fluid_stream,
+            temperature_kelvin=temperature_kelvin,
+            pressure_bara=pressure_bara,
+            fluid_model=dto.FluidModel(composition=mixed_fluid_composition, eos_model=self.fluid_model.eos_model),
         )
-
-        mixed_fluid.fluid_model.composition = new_fluid_composition
-
-        return mixed_fluid
