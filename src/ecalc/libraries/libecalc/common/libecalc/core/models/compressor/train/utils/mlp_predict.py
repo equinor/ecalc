@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 
 class NeuralNet:
     def __init__(self, init_path: Path):
-        self.hidden_dims = [256, 256, 3]
+        self.hidden_dims = [256, 256, 256, 256, 2]
         self.mlp = mlp.Mlp(input_dim=13, hidden_dims=self.hidden_dims)
         mlp.load_model(self.mlp, init_path)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -31,24 +31,24 @@ class NeuralNet:
 
         if len(all_preds) <= 1:
             array = np.array(all_preds[0])
-            outlet_z = array[0] / 250
-            outlet_kappa = array[1] / 75
+            outlet_z = array[0]
+            outlet_kappa = array[1]
         else:
             outlet_z = []
             outlet_kappa = []
             for eachTensor in all_preds:
-                eachPred = eachTensor.tolist()
-                outlet_z.append(eachPred[0])
-                outlet_kappa.append(eachPred[1])
+                # eachPred = eachTensor.tolist()
+                outlet_z.append(eachTensor[0])
+                outlet_kappa.append(eachTensor[1])
 
-        return outlet_z, outlet_kappa
+        return np.array(outlet_z), np.array(outlet_kappa)
 
 
 class FeatureData(Dataset):
     def __init__(self, df: pd.DataFrame):
         self.df = copy.deepcopy(df)
         self.df["pressure_2"] = self.df["pressure_2"].apply(lambda x: x * (1 / 400))
-        self.df["enthalpy_2"] = self.df["enthalpy_2"].apply(lambda x: x * (1 / 100000))
+        self.df["enthalpy_2"] = self.df["enthalpy_2"].apply(lambda x: x * (1 / 300000))
 
         # Input data
         self.data = torch.stack(

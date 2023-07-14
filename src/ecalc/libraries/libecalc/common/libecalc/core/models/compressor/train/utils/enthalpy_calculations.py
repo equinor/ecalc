@@ -38,7 +38,7 @@ def XGBoost_predict(X_test):
     return outlet_kappa, outlet_z
 
 
-ML_model = "neqsim"
+ML_model = "nn"
 
 rgs = xgb.XGBRegressor()
 rgs.load_model(
@@ -48,6 +48,7 @@ rgs.load_model(
 nn_model = NeuralNet(
     "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils/final_model/model.pt"
 )
+
 nn_model.mlp.eval()
 
 
@@ -140,6 +141,7 @@ def calculate_enthalpy_change_head_iteration(
             # print(X_test.to_string())
 
         # Run with PHflash
+
         else:
             outlet_streams = [
                 stream.set_new_pressure_and_enthalpy_change(
@@ -155,9 +157,19 @@ def calculate_enthalpy_change_head_iteration(
             outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])
             outlet_z = np.asarray([stream.z for stream in outlet_streams])
 
+        print("inlet_enthalpy:\n")
+        print(inlet_enthalpy)
+        print("enthalpy change:\n")
+        print(enthalpy_change_joule_per_kg)
+        print("Kappa:\n")
+        print(outlet_kappa)
+        print("Z:\n")
+        print(outlet_z)
+        print()
+
         # Update z and kappa estimates based on new outlet estimates
 
-        print(inlet_z)
+        # print(inlet_z)
 
         z = (inlet_z + outlet_z) / 2
         kappa = (inlet_kappa + outlet_kappa) / 2

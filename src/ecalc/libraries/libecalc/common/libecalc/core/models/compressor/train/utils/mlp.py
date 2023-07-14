@@ -54,10 +54,8 @@ class MyDataset(Dataset):
         # Scales the correspoding column in the data to normalize it
         # Remember to change the output plot as well when changing the scaling here
         # TODO Create better normalization algorithms for the data
-        df["z_2"] = df["z_2"].apply(lambda x: x * 250)
-        df["k_2"] = df["k_2"].apply(lambda x: x * 75)
         df["pressure_2"] = df["pressure_2"].apply(lambda x: x * (1 / 400))
-        df["enthalpy_2"] = df["enthalpy_2"].apply(lambda x: x * (1 / 100))
+        df["enthalpy_2"] = df["enthalpy_2"].apply(lambda x: x * (1 / 300000))
 
         # Handle eos
         # print(df['eos'])
@@ -135,7 +133,7 @@ class MyDataset(Dataset):
             [
                 torch.tensor(self.data_frame["z_2"], dtype=torch.float32),
                 torch.tensor(self.data_frame["k_2"], dtype=torch.float32),
-                torch.tensor(self.data_frame["density_2"], dtype=torch.float32),
+                # torch.tensor(self.data_frame["density_2"], dtype=torch.float32),
             ],
             dim=1,
         )
@@ -177,7 +175,7 @@ class Mlp(nn.Module):
 
     def forward(self, x: Tensor):
         """
-        Returns an output after passing the input throught the model.
+        Returns an output after passing the input through the model.
         """
 
         # x: (b, input_dim)
@@ -371,7 +369,7 @@ def initiate_model(input_dim: int, device: str):
     # hidden_dims = [256, 256, 256, 256, 3]
     # hidden_dims = [1024, 1024, 128, 3]
     # hidden_dims = [512, 512, 3]
-    hidden_dims = [256, 256, 3]
+    hidden_dims = [256, 256, 256, 256, 3]
     # hidden_dims = [128, 128, 3]
     # hidden_dims = [64, 64, 3]
 

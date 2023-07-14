@@ -44,7 +44,7 @@ def calculate_power_in_megawatt(
 
 
 # Choose what model to run with
-ml_model = "xgb"
+ml_model = "neqsim"
 
 rgs = xgb.XGBRegressor()
 rgs.load_model(
@@ -82,7 +82,7 @@ def ml_ph_flash_xgb(pressure_2: float, dataframe):
 def ml_ph_flash_nn(pressure_2: float, dataframe):
     # Change P_2 value
     dataframe.at[0, "pressure_2"] = pressure_2
-    outlet_kappa, outlet_z = nn_model.predict(dataframe)
+    outlet_z, outlet_kappa = nn_model.predict(dataframe)
 
     return Outlet_values(outlet_kappa, outlet_z)
 
@@ -104,6 +104,11 @@ def calculate_outlet_pressure_and_stream(
     Returns:
 
     """
+
+    # Find EOS of fluid
+    # eos = inlet_stream.fluid_model.eos_model
+    # print(str(eos))
+
     if ml_model == "xgb":
         iterative_function = ml_ph_flash_xgb
 
@@ -129,11 +134,13 @@ def calculate_outlet_pressure_and_stream(
         inlet_temperature_K=inlet_stream.temperature_kelvin,
         inlet_pressure_bara=inlet_stream.pressure_bara,
     )
+    inlet_enthalpy = inlet_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
+    # print(inlet_enthalpy)
 
     df = pd.DataFrame(
         {
             "pressure_2": [outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa],
-            "enthalpy_2": [polytropic_head_joule_per_kg / polytropic_efficiency],
+            "enthalpy_2": [(polytropic_head_joule_per_kg / polytropic_efficiency) + inlet_enthalpy],
         }
     )
     X_test = pd.concat([df, composition_df], axis=1)
@@ -189,6 +196,9 @@ def calculate_outlet_pressure_and_stream(
             enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
         )
         """
+
+        # print("Average kappa = " + str(kappa_average))
+        # print("Average Z= " + str(z_average))
 
         diff = abs(outlet_pressure_previous - outlet_pressure_this_stage_bara) / outlet_pressure_this_stage_bara
 
