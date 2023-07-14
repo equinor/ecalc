@@ -62,7 +62,6 @@ class FluidStream:
             )
 
             self.standard_conditions_density = _neqsim_fluid_at_standard_conditions.density
-            self.molar_mass_kg_per_mol = _neqsim_fluid_at_standard_conditions.molar_mass
 
     @property
     def pressure_bara(self) -> float:
