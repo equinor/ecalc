@@ -824,7 +824,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             pressure_bara=inlet_pressure_bara,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
-        mass_rate_this_stage_kg_per_hour = inlet_stream.standard_to_mass_rate(std_rates_std_m3_per_day_per_stream[0])
+        mass_rate_this_stage_kg_per_hour = inlet_stream.standard_rate_to_mass_rate(
+            std_rates_std_m3_per_day_per_stream[0]
+        )
         mass_rate_previous_stage_kg_per_hour = 0
         previous_outlet_stream = None
 
@@ -836,7 +838,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             # assume that volume/mass is always taken out before additional volume/mass is potentially added, no matter
             # what order the streams are defined in in the yaml file
             for stream_number in self.outlet_stream_connected_to_stage.get(stage_number):
-                mass_rate_this_stage_kg_per_hour -= inlet_stream.standard_to_mass_rate(
+                mass_rate_this_stage_kg_per_hour -= inlet_stream.standard_rate_to_mass_rate(
                     std_rates_std_m3_per_day_per_stream[stream_number]
                 )
             for stream_number in self.inlet_stream_connected_to_stage.get(stage_number):
@@ -847,7 +849,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         pressure_bara=inlet_stream.pressure_bara,
                         temperature_kelvin=inlet_stream.temperature_kelvin,
                     )
-                    mass_rate_additional_inlet_stream_kg_per_hour = additional_inlet_stream.standard_to_mass_rate(
+                    mass_rate_additional_inlet_stream_kg_per_hour = additional_inlet_stream.standard_rate_to_mass_rate(
                         float(std_rates_std_m3_per_day_per_stream[stream_number])
                     )
 
@@ -1098,7 +1100,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
         )
         inlet_std_rate = float(std_rates_std_m3_per_day_per_stream[0])
-        inlet_mass_rate = inlet_stream.standard_to_mass_rate(inlet_std_rate)
+        inlet_mass_rate = inlet_stream.standard_rate_to_mass_rate(inlet_std_rate)
 
         # take mass out before potential mixing with additional ingoing stream
         # assume that volume/mass is always taken out before additional volume/mass is potentially added, no matter
@@ -1112,7 +1114,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     pressure_bara=inlet_pressure,
                     temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
                 )
-                mass_rate_additional_inlet_stream = additional_inlet_stream.standard_to_mass_rate(
+                mass_rate_additional_inlet_stream = additional_inlet_stream.standard_rate_to_mass_rate(
                     float(std_rates_std_m3_per_day_per_stream[stream_number])
                 )
                 # mix streams to get inlet stream for first compressor stage
@@ -1124,7 +1126,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     pressure_bara=additional_inlet_stream.pressure_bara,
                 )
                 inlet_std_rate += std_rates_std_m3_per_day_per_stream[stream_number]
-                inlet_mass_rate = inlet_stream.standard_to_mass_rate(inlet_std_rate)
+                inlet_mass_rate = inlet_stream.standard_rate_to_mass_rate(inlet_std_rate)
 
         # update inlet fluid for the subtrain with new composition
         updated_inlet_fluid = FluidStream(fluid_model=inlet_stream.fluid_model)

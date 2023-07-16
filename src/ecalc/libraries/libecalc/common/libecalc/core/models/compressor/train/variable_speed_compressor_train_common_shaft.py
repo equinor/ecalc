@@ -79,7 +79,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
-        mass_rate_kg_per_hour = self.fluid.standard_to_mass_rate(standard_rates=rate)
+        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
 
         # Iterate over input points, calculate one by one
         train_results: List[CompressorTrainResultSingleTimeStep] = []
