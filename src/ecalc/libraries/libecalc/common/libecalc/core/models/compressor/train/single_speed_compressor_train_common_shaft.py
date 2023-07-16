@@ -136,7 +136,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     f"larger than maximum allowed discharge pressure in single speed compressor model"
                     f" ({self.maximum_discharge_pressure})"
                 )
-        mass_rates_kg_per_hour = self.fluid.standard_to_mass_rate(standard_rates=rate)
+        mass_rates_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             train_results = self._evaluate_train_results_and_failure_status_downstream_choking(
                 mass_rates_kg_per_hour=mass_rates_kg_per_hour,

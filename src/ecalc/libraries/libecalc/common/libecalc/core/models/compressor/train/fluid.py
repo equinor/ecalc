@@ -10,9 +10,12 @@ from numpy.typing import NDArray
 
 
 class FluidStream:
-    """Currently just a dataclass with a set composition.
+    """Fluid interface used in eCalc compressor train simulation
 
-    Keep as separate layer until having different initialization options to set composition
+    TODO:
+        - [x] Remove NeqSimFluid as class member
+        - [ ] Remove connections to NeqSimFluid
+        - [ ] Separate init methods based on config. To enable eCalc to be agnostick EoS package backend (NeqSim, ML, thermo(?))
     """
 
     def __init__(
@@ -22,6 +25,14 @@ class FluidStream:
         temperature_kelvin: float = UnitConstants.STANDARD_TEMPERATURE_KELVIN,
         existing_fluid: Optional[NeqsimFluid] = None,
     ):
+        """
+
+        Args:
+            fluid_model: Describes fluid composition and EoS model
+            pressure_bara: Pressure of fluid [bara]
+            temperature_kelvin: Temperature of fluid [K]
+            existing_fluid: Initialize FluidStream from an existing (NeqSim) fluid. Warning: Be mindful of keeping fluid_model and existing fluid consistent. If not the fluid properties may be incorrect.
+        """
         self.fluid_model = fluid_model
         self.initial_temperature_kelvin = temperature_kelvin
         self.initial_pressure_bare = pressure_bara
@@ -87,10 +98,19 @@ class FluidStream:
     def enthalpy_joule_per_kg(self) -> float:
         return self._enthalpy_joule_per_kg
 
-    def standard_to_mass_rate(
+    def standard_rate_to_mass_rate(
         self, standard_rates: Union[NDArray[np.float64], float]
     ) -> Union[NDArray[np.float64], float]:
-        """Sm3/day to kg/h. Standard conditions are 15C at 1atm = 1.01325 bara."""
+        """Convert standard rate [Sm3/day] to mass rate [kg/h].
+
+        Use standard conditions are 15C at 1atm = 1.01325 bara for fluid density.
+
+        Args:
+            standard_rates: List or single rate(s) to convert [Sm3/day]
+
+        Returns:
+            List or single standard rate(s) [kg/h]
+        """
         mass_rate_kg_per_hour = standard_rates * self.standard_conditions_density / UnitConstants.HOURS_PER_DAY
         if isinstance(mass_rate_kg_per_hour, np.ndarray):
             return np.array(mass_rate_kg_per_hour)
@@ -139,7 +159,7 @@ class FluidStream:
 
         Args:
             pressure_bara: array of pressures [bara]
-            temperature_kelvin: array of temperatures [kelvin]
+            temperature_kelvin: array of temperatures [K]
 
         Returns:
             List of fluid streams at set temperatures and pressures
@@ -155,6 +175,19 @@ class FluidStream:
     def set_new_pressure_and_temperature(
         self, new_pressure_bara: float, new_temperature_kelvin: float, remove_liquid: bool = True
     ) -> FluidStream:
+        """Get a new fluid with changed pressure and temperature.
+
+        This is a wrapper of a TP-flash
+
+        Args:
+            new_pressure_bara: Pressure setpoint of new fluid [bara]
+            new_temperature_kelvin: Temperature setpoint of new fluid [K]
+            remove_liquid: If true the new fluid will be forced to be single phase (Gas), defaults to true
+
+        Returns:
+            New fluid stream flashed to a new temperature and pressure setpoint
+
+        """
         fluid_stream = NeqsimFluid.create_thermo_system(
             composition=self.fluid_model.composition,
             temperature_kelvin=self.temperature_kelvin,
@@ -172,6 +205,19 @@ class FluidStream:
     def set_new_pressure_and_enthalpy_change(
         self, new_pressure: float, enthalpy_change_joule_per_kg: float, remove_liquid: bool = True
     ) -> FluidStream:
+        """Get a new fluid with changed pressure and changed enthalpy.
+
+        This is a wrapper of a PH-flash
+
+        Args:
+            new_pressure: Pressure setpoint of new fluid [bara]
+            enthalpy_change_joule_per_kg: Change in enthalpy perfomed on new fluid [J/kg]
+            remove_liquid: If true the new fluid will be forced to be single phase (Gas), defaults to true
+
+        Returns:
+            Mew fluid stream flashed to a new pressure and changed enthalpy
+
+        """
         fluid_stream = NeqsimFluid.create_thermo_system(
             composition=self.fluid_model.composition,
             temperature_kelvin=self.temperature_kelvin,
