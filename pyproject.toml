@@ -106,6 +106,8 @@ omit=["^./__init__.py", "^api/.*"]
 
 [tool.ruff]
 
+include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
+
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -139,13 +141,13 @@ ignore = [
 
 
 [tool.interrogate]  # Monitor doc-string coverage
-fail-under = 30 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%
+fail-under = 37 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%
 ignore-init-method = true
 ignore-init-module = false
 ignore-magic = false
 ignore-semiprivate = false
 ignore-private = true
-ignore-property-decorators = false
+ignore-property-decorators = true
 ignore-module = true
 ignore-nested-functions = true
 ignore-nested-classes = true
