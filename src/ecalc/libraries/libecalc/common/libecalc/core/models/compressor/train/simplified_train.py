@@ -123,7 +123,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             suction_pressure=suction_pressure, discharge_pressure=discharge_pressure
         )
 
-        mass_rate_kg_per_hour = self.fluid.standard_to_mass_rate(standard_rates=rate)
+        mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         compressor_stages_result_per_time_step = []
         inlet_pressure = suction_pressure.copy()
         for stage in self.stages:
