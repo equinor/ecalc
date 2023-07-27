@@ -11,12 +11,12 @@ from torch.utils.data import DataLoader, Dataset
 class NeuralNet:
     def __init__(self, init_path: Path):
         self.hidden_dims = [256, 256, 256, 256, 2]
-        self.mlp = mlp.Mlp(input_dim=13, hidden_dims=self.hidden_dims)
+        self.mlp = mlp.Mlp(input_dim=17, hidden_dims=self.hidden_dims)
         mlp.load_model(self.mlp, init_path)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def predict(self, dataframe):
-        # self.mlp.eval()
+        self.mlp.eval()
         data = FeatureData(dataframe)
         loader = DataLoader(data, batch_size=1, shuffle=False)
 
@@ -47,14 +47,23 @@ class NeuralNet:
 class FeatureData(Dataset):
     def __init__(self, df: pd.DataFrame):
         self.df = copy.deepcopy(df)
-        self.df["pressure_2"] = self.df["pressure_2"].apply(lambda x: x * (1 / 400))
-        self.df["enthalpy_2"] = self.df["enthalpy_2"].apply(lambda x: x * (1 / 300000))
-
+        self.df["pressure_1"] = self.df["pressure_1"].apply(lambda x: x * (1 / 70))
+        # self.df["pressure_2"] = self.df["pressure_2"].apply(lambda x: x * (1 / 400))
+        self.df["temperature_1"] = self.df["temperature_1"].apply(lambda x: x * (1 / 400))
+        # self.df["enthalpy_2"] = self.df["enthalpy_2"].apply(lambda x: x * (1 / 300000))
+        self.df["enthalpy_change"] = self.df["enthalpy_change"].apply(lambda x: x * (1 / 300000))
         # Input data
         self.data = torch.stack(
             [
-                torch.tensor(self.df["pressure_2"], dtype=torch.float32),
-                torch.tensor(self.df["enthalpy_2"], dtype=torch.float32),
+                torch.tensor(self.df["pressure_1"], dtype=torch.float32),
+                # torch.tensor(self.df["pressure_2"], dtype=torch.float32),
+                torch.tensor(self.df["pressure_ratio"], dtype=torch.float32),
+                torch.tensor(self.df["temperature_1"], dtype=torch.float32),
+                # torch.tensor(self.df["enthalpy_1"], dtype=torch.float32),
+                # torch.tensor(self.df["enthalpy_2"], dtype=torch.float32),
+                torch.tensor(self.df["enthalpy_change"], dtype=torch.float32),
+                torch.tensor(self.df["z_1"], dtype=torch.float32),
+                torch.tensor(self.df["k_1"], dtype=torch.float32),
                 torch.tensor(self.df["water"], dtype=torch.float32),
                 torch.tensor(self.df["nitrogen"], dtype=torch.float32),
                 torch.tensor(self.df["CO2"], dtype=torch.float32),

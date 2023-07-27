@@ -71,7 +71,7 @@ def ml_ph_flash_xgb(pressure_2: float, dataframe):
 
     pred = rgs.predict(dataframe)
 
-    print(pred)
+    # print(pred)
 
     kappa = pred[:, 2]
     z = pred[:, 1]
@@ -82,6 +82,8 @@ def ml_ph_flash_xgb(pressure_2: float, dataframe):
 def ml_ph_flash_nn(pressure_2: float, dataframe):
     # Change P_2 value
     dataframe.at[0, "pressure_2"] = pressure_2
+    # Change pressure_ratio value
+    dataframe.at[0, "pressure_ratio"] = dataframe["pressure_2"].iloc[0] / dataframe["pressure_1"].iloc[0]
     outlet_z, outlet_kappa = nn_model.predict(dataframe)
 
     return Outlet_values(outlet_kappa, outlet_z)
@@ -139,8 +141,14 @@ def calculate_outlet_pressure_and_stream(
 
     df = pd.DataFrame(
         {
+            "pressure_1": [inlet_stream.pressure_bara],
             "pressure_2": [outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa],
+            "pressure_ratio": [outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa / inlet_stream.pressure_bara],
+            "temperature_1": [inlet_stream.temperature_kelvin],
             "enthalpy_2": [(polytropic_head_joule_per_kg / polytropic_efficiency) + inlet_enthalpy],
+            "enthalpy_change": [(polytropic_head_joule_per_kg / polytropic_efficiency)],
+            "z_1": [inlet_stream.z],
+            "k_1": [inlet_stream.kappa],
         }
     )
     X_test = pd.concat([df, composition_df], axis=1)
@@ -224,7 +232,7 @@ def calculate_outlet_pressure_and_stream(
     # Use neqsim PH-flash at the end to activate all fluid properties
     outlet_stream_compressor_current_iteration = inlet_stream.set_new_pressure_and_enthalpy_change(
         new_pressure=outlet_pressure_this_stage_bara,
-        enthalpy_change_joule_per_kg=polytropic_head_joule_per_kg / polytropic_efficiency,
+        enthalpy_change_joule_per_kg=(polytropic_head_joule_per_kg / polytropic_efficiency),
     )
 
     return (

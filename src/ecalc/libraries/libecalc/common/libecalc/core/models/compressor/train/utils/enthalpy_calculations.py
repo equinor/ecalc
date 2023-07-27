@@ -7,7 +7,6 @@ To find outlet z and kappa, an iteration of polytropic head is performed and out
 kappa are updated until polytropic head converges
 """
 
-import sys
 from copy import deepcopy
 from typing import Callable, List, Tuple, Union
 
@@ -21,7 +20,7 @@ from libecalc.core.models.compressor.train.fluid import FluidStream
 from mlp_predict import NeuralNet
 from numpy.typing import NDArray
 
-sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils")
+# sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/compressor/train/utils")
 
 # import torch
 # from torch import Tensor, nn
@@ -32,8 +31,8 @@ sys.path.insert(1, "src/ecalc/libraries/libecalc/common/libecalc/core/models/com
 def XGBoost_predict(X_test):
     # Predict kappa and z
     pred = rgs.predict(X_test)
-    outlet_kappa = np.asarray(pred[:, 2])
-    outlet_z = np.asarray(pred[:, 1])
+    outlet_kappa = np.asarray(pred[:, 1])
+    outlet_z = np.asarray(pred[:, 0])
 
     return outlet_kappa, outlet_z
 
@@ -80,7 +79,7 @@ def calculate_enthalpy_change_head_iteration(
     polytropic_heads = np.full_like(inlet_actual_rate_m3_per_hour, 0.0)
     z = deepcopy(inlet_z)
     kappa = deepcopy(inlet_kappa)
-    enthalpy_change_joule_per_kg = 0
+    enthalpy_change_joule_per_kg = np.zeros(len(inlet_kappa))
     outlet_enthalpy = enthalpy_change_joule_per_kg + inlet_enthalpy
 
     polytropic_efficiency = polytropic_efficiency_vs_rate_and_head_function(
@@ -88,10 +87,23 @@ def calculate_enthalpy_change_head_iteration(
     )
 
     comp_dict = dict(inlet_streams[0].fluid_model.composition)
+    # print(comp_dict)
+
     composition_df = pd.DataFrame([comp_dict] * len(inlet_streams))
     composition_df /= 100
 
-    df = pd.DataFrame({"pressure_2": outlet_pressure, "enthalpy_2": outlet_enthalpy})
+    df = pd.DataFrame(
+        {
+            "pressure_1": inlet_pressure,
+            "pressure_2": outlet_pressure,
+            "pressure_ratio": pressure_ratios,
+            "temperature_1": inlet_temperature_kelvin,
+            "enthalpy_2": outlet_enthalpy,
+            "enthalpy_change": enthalpy_change_joule_per_kg,
+            "z_1": inlet_z,
+            "k_1": inlet_kappa,
+        }
+    )
 
     X_test = pd.concat([df, composition_df], axis=1)
 
@@ -119,11 +131,14 @@ def calculate_enthalpy_change_head_iteration(
             temperatures_kelvin=inlet_temperature_kelvin,
         )
 
-        enthalpy_change_joule_per_kg = polytropic_heads / polytropic_efficiency
+        enthalpy_change_joule_per_kg = deepcopy(polytropic_heads / polytropic_efficiency)
         outlet_enthalpy = inlet_enthalpy + enthalpy_change_joule_per_kg
 
         # Update outlet enthalpy
         X_test["enthalpy_2"] = outlet_enthalpy
+
+        # Update enthalpy change
+        X_test["enthalpy_change"] = enthalpy_change_joule_per_kg
 
         # Run with XGBoost
         if ML_model == "xgb":
@@ -134,7 +149,7 @@ def calculate_enthalpy_change_head_iteration(
             # gases = ['water', 'nitrogen', 'CO2', 'methane', 'ethane', 'propane', 'i_butane', 'n_butane', 'i_pentane', 'n_pentane', 'n_hexane']
             # X_test[gases] /= 100
 
-            outlet_kappa, outlet_z = nn_model.predict(X_test)
+            outlet_z, outlet_kappa = nn_model.predict(X_test)
 
             # pd.set_option("display.max_columns", None)  # Show all columns
             # pd.set_option("display.width", None)  # Auto-adjust width
@@ -156,7 +171,7 @@ def calculate_enthalpy_change_head_iteration(
 
             outlet_kappa = np.asarray([stream.kappa for stream in outlet_streams])
             outlet_z = np.asarray([stream.z for stream in outlet_streams])
-
+        """
         print("inlet_enthalpy:\n")
         print(inlet_enthalpy)
         print("enthalpy change:\n")
@@ -166,6 +181,7 @@ def calculate_enthalpy_change_head_iteration(
         print("Z:\n")
         print(outlet_z)
         print()
+        """
 
         # Update z and kappa estimates based on new outlet estimates
 
@@ -199,6 +215,12 @@ def calculate_enthalpy_change_head_iteration(
                 f" NOTE! We will use as the closest result we got for target for further calculations."
                 " This should normally not happen. Please contact eCalc support."
             )
+            exit()
+
+    outlet_streams = [
+        stream.set_new_pressure_and_enthalpy_change(new_pressure=pressure, enthalpy_change_joule_per_kg=enthalpy_change)
+        for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg)
+    ]
 
     return enthalpy_change_joule_per_kg, polytropic_efficiency
 

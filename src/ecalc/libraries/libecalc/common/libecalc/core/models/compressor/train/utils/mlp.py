@@ -167,10 +167,12 @@ class Mlp(nn.Module):
         cur_dim = input_dim
         for i in range(len(hidden_dims) - 1):
             layers.append(nn.Linear(cur_dim, hidden_dims[i]))
-            layers.append(nn.GELU())
+            layers.append(nn.ReLU())
+            # layers.append(nn.Dropout(p=0.25))
             cur_dim = hidden_dims[i]
         # No activation after last layer
         layers.append(nn.Linear(cur_dim, hidden_dims[-1]))
+        # layers.append(nn.Dropout(p=0.25))
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x: Tensor):
