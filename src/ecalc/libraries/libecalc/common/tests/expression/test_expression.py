@@ -38,7 +38,7 @@ class TestExpression:
         assert len(expression_setup_with_string_input.tokens) == 1
         assert len(expression_setup_with_string_directly.tokens) == 1
 
-        # In case of the rare event that a varaible or reference is named "nan" or "inf"
+        # In case of the rare event that a variable or reference is named "nan" or "inf"
         expression_with_nan_as_variable_input = "timeseriesref;nan"
         expression_with_nan_as_variable = Expression.setup_from_expression(value=expression_with_nan_as_variable_input)
         assert expression_with_nan_as_variable.tokens[0].value == expression_with_nan_as_variable_input
@@ -118,7 +118,7 @@ class TestExpression:
             expression = "SIM1;GAS_INJ_TOTAL:FOOBAR {*} 2"
             Expression.setup_from_expression(expression).evaluate(variables=variables, fill_length=len(time_vector))
 
-        # Check that nan is handeled correctly when division by zero occur, but
+        # Check that nan is handled correctly when division by zero occur, but
         # values are later disregarded by conditions
         assert (
             Expression.setup_from_expression("0{/}0").evaluate(variables=variables, fill_length=len(time_vector)) == 0

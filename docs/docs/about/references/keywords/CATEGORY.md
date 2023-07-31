@@ -41,10 +41,10 @@ Allowed categories for [CONSUMERS](CONSUMERS) and [FUELCONSUMERS](FUELCONSUMERS)
 
 Allowed categories for [INSTALLATIONS](INSTALLATIONS):
 
-| Category                   | Description/Examples                                         |
-|----------------------------|--------------------------------------------------------------|
-| ``FIXED``                  | Fixed installation                                           |
-| ``MOBILE``                 | Mobile/satelite installation.                                |
+| Category                   | Description/Examples           |
+|----------------------------|--------------------------------|
+| ``FIXED``                  | Fixed installation             |
+| ``MOBILE``                 | Mobile/satellite installation. |
 
 Allowed categories for [FUEL_TYPES](FUEL_TYPES):
 

@@ -79,7 +79,7 @@ def main():
     except DataValidationError as de:
         logger.error(de.extended_message)
     except Exception as e:
-        logger.exception("An unexpected error occured when running eCalc")  # in order to write to log
+        logger.exception("An unexpected error occurred when running eCalc")  # in order to write to log
         raise e  # in order for Typer to catch it and prettyprint it
 
 

@@ -90,7 +90,7 @@ Except for the pre-commits hooks mentioned above, we also strive to follow the f
 * Try to split methods/modules/classes into smaller bits of code
 * Remove, do not comment out, unused code
 * Use types and type hinting
-* We commend the code when it is not self-explanatory
+* We comment the code when it is not self-explanatory
 * Be consistent with existing code style - try to make it look like the code is written by **one** developer
 * For Python, we follow [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/) and [PEP 20 - The Zen of Python](https://peps.python.org/pep-0020/):
 

@@ -31,7 +31,7 @@ def create_tabulated_consumer_function(model_dto: dto.TabulatedConsumerFunction)
     variable_values_as_array = [numpy.array(variable_value) for variable_value in variable_values]
     variables = [Variable(name=name, values=values) for name, values in zip(variable_headers, variable_values_as_array)]
 
-    # required to set either "FUEL" or "POWER" (accoring to doc) and now also verified in validation
+    # required to set either "FUEL" or "POWER" (according to doc) and now also verified in validation
     energy_usage_type: EnergyUsageType = EnergyUsageType.FUEL if "FUEL" in headers else EnergyUsageType.POWER
 
     tabulated_energy_function = ConsumerTabularEnergyFunction(
