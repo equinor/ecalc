@@ -582,30 +582,29 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
                 )
 
-            else:
-                if self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
-                    train_results = self.calculate_compressor_train_given_rate_pd_speed(
-                        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-                        outlet_pressure=outlet_pressure,
-                        speed=speed,
-                        upper_bound_for_inlet_pressure=inlet_pressure,
-                    )
-                    # Set pressure before upstream choking to the given inlet pressure
-                    train_results.stage_results[0].inlet_pressure_before_choking = inlet_pressure
-                elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
-                    choked_stage_results = deepcopy(train_results.stage_results[-1])
-                    if (
-                        train_results.failure_status
-                        == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                        and outlet_pressure >= LOWEST_POSSIBLE_CHOKE_PRESSURE_BARA
-                    ):
-                        train_results.failure_status = None
+            elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
+                train_results = self.calculate_compressor_train_given_rate_pd_speed(
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                    outlet_pressure=outlet_pressure,
+                    speed=speed,
+                    upper_bound_for_inlet_pressure=inlet_pressure,
+                )
+                # Set pressure before upstream choking to the given inlet pressure
+                train_results.stage_results[0].inlet_pressure_before_choking = inlet_pressure
+            elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
+                choked_stage_results = deepcopy(train_results.stage_results[-1])
+                if (
+                    train_results.failure_status
+                    == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
+                    and outlet_pressure >= LOWEST_POSSIBLE_CHOKE_PRESSURE_BARA
+                ):
+                    train_results.failure_status = None
 
-                    # The order is important here to keep the old pressure before choking.
-                    choked_stage_results.pressure_is_choked = True
-                    choked_stage_results.outlet_pressure_before_choking = float(choked_stage_results.discharge_pressure)
-                    choked_stage_results.outlet_stream.pressure_bara = outlet_pressure
-                    train_results.stage_results[-1] = choked_stage_results
+                # The order is important here to keep the old pressure before choking.
+                choked_stage_results.pressure_is_choked = True
+                choked_stage_results.outlet_pressure_before_choking = float(choked_stage_results.discharge_pressure)
+                choked_stage_results.outlet_stream.pressure_bara = outlet_pressure
+                train_results.stage_results[-1] = choked_stage_results
 
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
             # first check if full recirculation gives low enough discharge pressure

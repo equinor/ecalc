@@ -43,11 +43,10 @@ class Numbers:
 
         if significant_digits < 0:
             new_precision = precision
+        elif significant_digits < precision:
+            new_precision = precision - significant_digits  # we dont want unnecessary decimals on high numbers
         else:
-            if significant_digits < precision:
-                new_precision = precision - significant_digits  # we dont want unnecessary decimals on high numbers
-            else:
-                new_precision = 0
+            new_precision = 0
 
         return str(
             np.format_float_positional(
