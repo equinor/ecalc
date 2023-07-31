@@ -31,7 +31,7 @@ MEDIUM_MW_19P4_COMPOSITION = dto.FluidComposition(
 
 LIGHT_FLUID_COMPOSITION = dto.FluidComposition(
     methane=10.0, ethane=1.0, propane=0.1, n_hexane=10.1
-)  # Heptane not used in eCalc, on ly care about C1-C6
+)  # Heptane not used in eCalc, only care about C1-C6
 
 
 @pytest.fixture
