@@ -328,7 +328,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
-                inlet_stream_stage = inlet_stream_train.copy()
+                inlet_stream_stage = inlet_stream_train
                 stage_results = []
                 for stage in self.stages:
                     outlet_pressure_for_stage = inlet_stream_stage.pressure_bara * pressure_ratio_per_stage
@@ -345,7 +345,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         new_pressure_bara=stage_result.outlet_stream.pressure_bara,
                         new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
                     )
-                    inlet_stream_stage = outlet_stream_stage.copy()
+                    inlet_stream_stage = outlet_stream_stage
                     stage_results.append(stage_result)
                     # only keep the first failure_status if many
                     if failure_status is not None and failure_status_this_time_step is None:
@@ -774,7 +774,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         outlet_stream = train_inlet_stream
 
         for stage, mass_rate_kg_per_hour in zip(self.stages, mass_rate_kg_per_hour_per_stage):
-            inlet_stream = outlet_stream.copy()
+            inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
