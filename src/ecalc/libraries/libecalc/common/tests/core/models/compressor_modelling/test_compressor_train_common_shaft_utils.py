@@ -121,7 +121,7 @@ def test_calculate_power_in_megawatt():
     enthalpy_change_joule_per_kg = 10.0
     power_megawatt = calculate_power_in_megawatt(
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
-        enthalpy_change_J_per_kg=enthalpy_change_joule_per_kg,
+        enthalpy_change_joule_per_kg=enthalpy_change_joule_per_kg,
     )
     assert power_megawatt == (
         enthalpy_change_joule_per_kg
