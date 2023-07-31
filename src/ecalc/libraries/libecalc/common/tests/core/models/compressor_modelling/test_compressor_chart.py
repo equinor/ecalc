@@ -10,16 +10,16 @@ from pytest import approx
 @pytest.fixture
 def variable_speed_compressor_chart(variable_speed_compressor_chart_dto) -> VariableSpeedCompressorChart:
     """Convert DTO to domain object."""
-    curves = []
-    for curve in variable_speed_compressor_chart_dto.curves:
-        curves.append(
-            dto.ChartCurve(
-                rate_actual_m3_hour=curve.rate_actual_m3_hour,
-                polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
-                efficiency_fraction=curve.efficiency_fraction,
-                speed_rpm=curve.speed_rpm,
-            )
+    curves = [
+        dto.ChartCurve(
+            rate_actual_m3_hour=curve.rate_actual_m3_hour,
+            polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
+            efficiency_fraction=curve.efficiency_fraction,
+            speed_rpm=curve.speed_rpm,
         )
+        for curve in variable_speed_compressor_chart_dto.curves
+    ]
+
     return VariableSpeedCompressorChart(dto.VariableSpeedChart(curves=curves))
 
 
@@ -57,16 +57,16 @@ def predefined_variable_speed_compressor_chart_2() -> VariableSpeedCompressorCha
             "efficiency": [0.700, 0.715, 0.738, 0.761, 0.772, 0.776, 0.773, 0.769, 0.752, 0.730, 0.721],
         },
     }
-    chart_curves = []
-    for speed, values in chart_data.items():
-        chart_curves.append(
-            dto.ChartCurve(
-                rate_actual_m3_hour=values["rate"],
-                polytropic_head_joule_per_kg=values["head"],
-                efficiency_fraction=values["efficiency"],
-                speed_rpm=speed,
-            )
+    chart_curves = [
+        dto.ChartCurve(
+            rate_actual_m3_hour=values["rate"],
+            polytropic_head_joule_per_kg=values["head"],
+            efficiency_fraction=values["efficiency"],
+            speed_rpm=speed,
         )
+        for speed, values in chart_data.items()
+    ]
+
     return VariableSpeedCompressorChart(dto.VariableSpeedChart(curves=chart_curves))
 
 

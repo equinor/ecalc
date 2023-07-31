@@ -158,30 +158,28 @@ def _create_compressor_train_diagram(
     :param energy_usage_model:
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
-    flow_diagrams = []
     time_intervals = _get_time_intervals(set(energy_usage_model.keys()), global_end_date)
     compressor_train_step = list(energy_usage_model.values())[0].model
-    for time_interval in time_intervals:
-        if hasattr(compressor_train_step, "stages"):
-            flow_diagrams.append(
-                FlowDiagram(
-                    id=node_id,
-                    title=title,
-                    start_date=time_interval.start_date,
-                    end_date=time_interval.end_date,
-                    nodes=[
-                        Node(
-                            id=f"{title} stage {index}",
-                            title=f"{title} stage {index}",
-                            type=NodeType.COMPRESSOR,
-                        )
-                        for index, chart in enumerate(compressor_train_step.stages)
-                    ],
-                    edges=[],
-                    flows=[],
+    return [
+        FlowDiagram(
+            id=node_id,
+            title=title,
+            start_date=time_interval.start_date,
+            end_date=time_interval.end_date,
+            nodes=[
+                Node(
+                    id=f"{title} stage {index}",
+                    title=f"{title} stage {index}",
+                    type=NodeType.COMPRESSOR,
                 )
-            )
-    return flow_diagrams
+                for index, chart in enumerate(compressor_train_step.stages)
+            ],
+            edges=[],
+            flows=[],
+        )
+        for time_interval in time_intervals
+        if hasattr(compressor_train_step, "stages")
+    ]
 
 
 def _create_compressor_with_turbine_stages_diagram(
@@ -366,16 +364,15 @@ def _create_installation_flow_diagram(
         if not isinstance(fuel_consumer, dto.GeneratorSet)
     ]
 
-    fuel_consumer_except_generator_set_nodes = []
-    for fuel_consumer_dto in fuel_consumers_except_generator_sets:
-        if _consumer_is_active(fuel_consumer_dto, time_interval):
-            fuel_consumer_except_generator_set_nodes.append(
-                _create_consumer_node(
-                    fuel_consumer_dto,
-                    installation,
-                    global_end_date,
-                )
-            )
+    fuel_consumer_except_generator_set_nodes = [
+        _create_consumer_node(
+            fuel_consumer_dto,
+            installation,
+            global_end_date,
+        )
+        for fuel_consumer_dto in fuel_consumers_except_generator_sets
+        if _consumer_is_active(fuel_consumer_dto, time_interval)
+    ]
 
     fuel_consumer_nodes = [
         *generator_set_nodes,

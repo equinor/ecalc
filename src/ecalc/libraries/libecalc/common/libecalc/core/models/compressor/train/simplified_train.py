@@ -112,7 +112,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         :param rate: Rate values [Sm3/day]
         :param suction_pressure: suction pressure [bara]
         :param discharge_pressure: discharge pressure [bara]
-        :return:
+        :return: train result
         """
         if isinstance(self, CompressorTrainSimplifiedUnknownStages):
             self.stages = self.get_stages(
@@ -140,18 +140,13 @@ class CompressorTrainSimplified(CompressorTrainModel):
             inlet_pressure = inlet_pressure * pressure_ratios_per_stage
 
         # Converting from individual stage results to a train results and adding max rate per time step.
-        train_result = []
-        for time_step in range(len(compressor_stages_result_per_time_step[0])):
-            # Merging
-            train_result.append(
-                CompressorTrainResultSingleTimeStep(
-                    speed=np.nan,
-                    stage_results=[
-                        result[time_step].stage_results[0] for result in compressor_stages_result_per_time_step
-                    ],
-                )
+        return [
+            CompressorTrainResultSingleTimeStep(
+                speed=np.nan,
+                stage_results=[result[time_step].stage_results[0] for result in compressor_stages_result_per_time_step],
             )
-        return train_result
+            for time_step in range(len(compressor_stages_result_per_time_step[0]))
+        ]
 
     def calculate_compressor_stage_work_given_outlet_pressure(
         self,

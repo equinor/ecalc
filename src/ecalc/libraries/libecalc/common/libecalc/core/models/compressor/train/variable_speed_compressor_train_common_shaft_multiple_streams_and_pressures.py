@@ -1035,18 +1035,15 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     "when there are multiple streams entering the subtrain in question"
                 )
 
-            single_speed_compressor_stages = []
-            for stage in self.stages:
-                single_speed_compressor_stages.append(
-                    CompressorTrainStage(
-                        compressor_chart=get_single_speed_equivalent(
-                            compressor_chart=stage.compressor_chart, speed=speed
-                        ),
-                        inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
-                        remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
-                        pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
-                    )
+            single_speed_compressor_stages = [
+                CompressorTrainStage(
+                    compressor_chart=get_single_speed_equivalent(compressor_chart=stage.compressor_chart, speed=speed),
+                    inlet_temperature_kelvin=stage.inlet_temperature_kelvin,
+                    remove_liquid_after_cooling=stage.remove_liquid_after_cooling,
+                    pressure_drop_ahead_of_stage=stage.pressure_drop_ahead_of_stage,
                 )
+                for stage in self.stages
+            ]
 
             single_speed_train = SingleSpeedCompressorTrainCommonShaft(
                 data_transfer_object=dto.SingleSpeedCompressorTrain(
@@ -1193,17 +1190,16 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             )
         )
 
-        max_standard_rate_per_stream = []
         if self.data_transfer_object.calculate_max_rate:
-            for stream_index, _ in enumerate(compressor_train_first_part.streams):
-                max_standard_rate_per_stream.append(
-                    compressor_train_first_part._get_max_rate_for_single_stream_single_timestep(
-                        suction_pressure=inlet_pressure_first_part,
-                        target_discharge_pressure=outlet_pressure_first_part,
-                        rate_per_stream=std_rates_first_part,
-                        stream_to_maximize=stream_index,
-                    )
+            max_standard_rate_per_stream = [
+                compressor_train_first_part._get_max_rate_for_single_stream_single_timestep(
+                    suction_pressure=inlet_pressure_first_part,
+                    target_discharge_pressure=outlet_pressure_first_part,
+                    rate_per_stream=std_rates_first_part,
+                    stream_to_maximize=stream_index,
                 )
+                for stream_index, _ in enumerate(compressor_train_first_part.streams)
+            ]
         else:
             max_standard_rate_per_stream = [np.nan] * len(std_rates_first_part)
 
