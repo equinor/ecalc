@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from libecalc.common.logger import logger
 from libecalc.dto.utils.string_utils import get_duplicates
@@ -79,15 +79,16 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
     )
 
 
-def check_multiple_energy_models(consumers_installations: list):
+def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
     """
     Check for different energy model types within one consumer.
+    Raises value error if different energy model types found within one consumer.
 
     Args:
-        consumers_installations (list): List of consumers per installation
+        consumers_installations (List[List[Dict]]): List of consumers per installation
 
     Returns:
-        Value error if different energy model types found within one consumer
+        None
     """
     for consumers in consumers_installations:
         for consumer in consumers:
