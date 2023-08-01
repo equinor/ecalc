@@ -40,6 +40,11 @@ def simple_duplicate_names_yaml_path():
 
 
 @pytest.fixture(scope="session")
+def simple_multiple_energy_models_yaml_path():
+    return (Path(simple.__file__).parent / "model_multiple_energy_models_one_consumer.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
 def simple_duplicate_emissions_yaml_path():
     return (Path(simple.__file__).parent / "model_duplicate_emissions_in_fuel.yaml").absolute()
 
@@ -735,4 +740,32 @@ class TestYamlFile:
 
         assert "Emission names must be unique for each fuel type. " "Duplicated names are: CO2,CH4" in str(
             exc_info.value
+        )
+
+    def test_yaml_multiple_energy_models_one_consumer(self, simple_multiple_energy_models_yaml_path, tmp_path):
+        """
+        TEST SCOPE: Check that multiple energy models for one consumer are not allowed in Yaml file.
+
+        Args:
+            simple model file with energy models for one consumer:
+
+        Returns:
+
+        """
+        with pytest.raises(ValueError) as exc_info:
+            runner.invoke(
+                main.app,
+                _get_args(
+                    model_file=simple_multiple_energy_models_yaml_path,
+                    csv=True,
+                    output_folder=tmp_path,
+                    name_prefix="test",
+                    output_frequency="YEAR",
+                ),
+                catch_exceptions=False,
+            )
+
+        assert (
+            "Energy model type cannot change over time within a single consumer. "
+            "The model type is changed for gasinj: ['DIRECT', 'COMPRESSOR']" in str(exc_info.value)
         )
