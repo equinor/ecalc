@@ -89,6 +89,6 @@ class TestGeneratorSet:
                 user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
                 generator_set_model={},
                 regularity={},
-                consumers=[fuel_consumer],  # noqa: expected to fail.
+                consumers=[fuel_consumer],
                 fuel={},
             )

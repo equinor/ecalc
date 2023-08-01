@@ -238,35 +238,33 @@ def eval_value(tokens):
         var = tokens[0]
     elif len(tokens) < 1:
         raise ValueError(f"expression_evaluator: I can not evaluate {tokens}")
+    elif len(tokens) > 2:
+        outtext = "Wrong format of variable "
+        for ind in range(len(tokens)):
+            outtext += " " + str(tokens[ind])
+        raise Exception(outtext)
+    elif len(tokens) == 2:
+        raise ValueError("Should not enter here - no time series in expression evaluator")
+    elif isinstance(tokens[0], (int, int, float)):
+        return float(tokens[0])
     else:
-        if len(tokens) > 2:
-            outtext = "Wrong format of variable "
-            for ind in range(len(tokens)):
-                outtext += " " + str(tokens[ind])
-            raise Exception(outtext)
-        elif len(tokens) == 2:
+        pos = 0
+        match = regexnumber.match(str(tokens[0]), pos)
+        if match:  # This is a number
+            return float(match.group(0))
+        elif type(tokens[0]) is not np.ndarray:
+            tmp = tokens[0].split(";")
+            if len(tmp) != 2:
+                raise KeyError(
+                    'Not correct format of reservoir variable "'
+                    + tokens[0]
+                    + '", did you forget to specify reservoir case (e.g. "SIM1;'
+                    + tokens[0]
+                    + '")?'
+                )
             raise ValueError("Should not enter here - no time series in expression evaluator")
         else:
-            if isinstance(tokens[0], (int, int, float)):
-                return float(tokens[0])
-            pos = 0
-            match = regexnumber.match(str(tokens[0]), pos)
-            if match:  # This is a number
-                return float(match.group(0))
-            else:  # This is a variable
-                if type(tokens[0]) is not np.ndarray:
-                    tmp = tokens[0].split(";")
-                    if len(tmp) != 2:
-                        raise KeyError(
-                            'Not correct format of reservoir variable "'
-                            + tokens[0]
-                            + '", did you forget to specify reservoir case (e.g. "SIM1;'
-                            + tokens[0]
-                            + '")?'
-                        )
-                    raise ValueError("Should not enter here - no time series in expression evaluator")
-                else:
-                    var = tokens[0]
+            var = tokens[0]
     var = np.nan_to_num(var)
     return var
 

@@ -143,7 +143,7 @@ class CompressorModelSampled2DRatePd:
 
     def evaluate(
         self, rate: NDArray[np.float64], discharge_pressure: NDArray[np.float64], **kwargs
-    ) -> NDArray[np.float64]:  # noqa
+    ) -> NDArray[np.float64]:
         """AKA: run/emulate ; returns energy consumption and possibly emission.
 
         For a given set of rate and pressure discharge, find the energy usage
@@ -266,7 +266,7 @@ class CompressorModelSampled2DRatePs:
             bounds_error=False,
         )
 
-    def evaluate(self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], **kwargs):  # noqa
+    def evaluate(self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], **kwargs):
         rate_projected, ps_projected = self._project_variables_for_evaluation(rate=rate, ps=suction_pressure)
         x_for_interpolator = np.stack((rate_projected, ps_projected), axis=-1)
         energy_consumption = self._interpolator(x_for_interpolator)
@@ -329,9 +329,7 @@ class CompressorModelSampled2DPsPd:
             bounds_error=False,
         )
 
-    def evaluate(
-        self, suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64], **kwargs
-    ):  # noqa
+    def evaluate(self, suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64], **kwargs):
         ps_projected, pd_projected = self._project_variables_for_evaluation(ps=suction_pressure, pd=discharge_pressure)
         x_for_interpolator = np.stack((ps_projected, pd_projected), axis=-1)
         energy_consumption = self._interpolator(x_for_interpolator)

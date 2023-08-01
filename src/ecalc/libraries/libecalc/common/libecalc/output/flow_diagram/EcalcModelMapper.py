@@ -283,8 +283,7 @@ def _is_compressor_train(
             ),
         ):
             return True
-    else:
-        return False
+    return False
 
 
 def _get_timesteps(consumers: List[Union[dto.FuelConsumer, dto.GeneratorSet]]) -> Set[datetime]:
