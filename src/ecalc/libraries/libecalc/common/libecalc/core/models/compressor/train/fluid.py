@@ -208,6 +208,16 @@ class FluidStream:
 
         """
 
+        if self.fluid_model.eos_model != other_fluid_stream.fluid_model.eos_model:
+            raise ValueError(
+                f"Mixing of fluids with different EoS Models is not supported. Got '{self.fluid_model.eos_model}' and '{other_fluid_stream.fluid_model.eos_model}"
+            )
+
+        if (self.pressure_bara != pressure_bara) or (other_fluid_stream.pressure_bara != pressure_bara):
+            raise ValueError(
+                f"Can not mix fluids at different pressures. The fluids are at {self.pressure_bara} bara and '{other_fluid_stream.pressure_bara}' bara and were attempted to be mixed at {pressure_bara} bara"
+            )
+
         new_fluid = NeqsimFluid.create_thermo_system(
             composition=self.fluid_model.composition,
             temperature_kelvin=temperature_kelvin,

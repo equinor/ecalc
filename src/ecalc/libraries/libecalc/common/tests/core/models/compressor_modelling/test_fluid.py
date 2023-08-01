@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 import pytest
+from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
 
 
@@ -144,14 +145,14 @@ def test_fluid_mixing(dry_fluid, rich_fluid):
         other_fluid_stream=rich_fluid_stream,
         self_mass_rate=1,
         other_mass_rate=1,
-        pressure_bara=1,
+        pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
         temperature_kelvin=270,
     )
     mix_dry_into_rich = rich_fluid_stream.mix_in_stream(
         other_fluid_stream=dry_fluid_stream,
         self_mass_rate=1,
         other_mass_rate=1,
-        pressure_bara=1,
+        pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
         temperature_kelvin=270,
     )
 
@@ -161,5 +162,5 @@ def test_fluid_mixing(dry_fluid, rich_fluid):
     assert (
         mix_rich_into_dry.standard_conditions_density != mix_rich_into_dry.density
     )  # Check that the mixing conditions are set correctly, since we are not at standard conditions it should not be equal
-    np.testing.assert_allclose(actual=mix_rich_into_dry.density, desired=0.877077, rtol=1e-5)
+    np.testing.assert_allclose(actual=mix_rich_into_dry.density, desired=0.888741, rtol=1e-5)
     np.testing.assert_allclose(actual=mix_dry_into_rich.standard_conditions_density, desired=0.832155, rtol=1e-5)
