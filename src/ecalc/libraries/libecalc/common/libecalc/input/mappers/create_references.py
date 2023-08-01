@@ -56,10 +56,56 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
         fuel_data.get(EcalcYamlKeywords.name): FuelMapper.from_yaml_to_dto(fuel_data)
         for fuel_data in configuration.fuel_types
     }
+
+    consumers_installations = []
+    for installation in configuration.installations:
+        if installation.get(EcalcYamlKeywords.generator_sets) is not None:
+            consumers_installations.append(
+                [
+                    consumer
+                    for consumers in installation[EcalcYamlKeywords.generator_sets]
+                    for consumer in consumers[EcalcYamlKeywords.consumers]
+                ]
+            )
+
+        if installation.get(EcalcYamlKeywords.fuel_consumers) is not None:
+            consumers_installations.append(list(installation[EcalcYamlKeywords.fuel_consumers]))
+
+    check_multiple_energy_models(consumers_installations)
+
     return References(
         models=models,
         fuel_types=fuel_types,
     )
+
+
+def check_multiple_energy_models(consumers_installations: list):
+    """
+    Check for different energy model types within one consumer.
+
+    Args:
+        consumers_installations (list): List of consumers per installation
+
+    Returns:
+        Value error if different energy model types found within one consumer
+    """
+    for consumers in consumers_installations:
+        for consumer in consumers:
+            energy_models = []
+
+            # Check if key exists: ENERGY_USAGE_MODEL.
+            # Consumer system v2 has different structure/naming: test fails when looking for key ENERGY_USAGE_MODEL
+            if EcalcYamlKeywords.energy_usage_model in consumer:
+                for model in consumer[EcalcYamlKeywords.energy_usage_model].values():
+                    if isinstance(model, dict):
+                        for key, value in model.items():
+                            if key == EcalcYamlKeywords.type and value not in energy_models:
+                                energy_models.append(value)
+            if len(energy_models) > 1:
+                raise ValueError(
+                    "Energy model type cannot change over time within a single consumer."
+                    f" The model type is changed for {consumer[EcalcYamlKeywords.name]}: {energy_models}"
+                )
 
 
 def create_model_references(models_yaml_config, facility_inputs: Dict, resources: Resources):
