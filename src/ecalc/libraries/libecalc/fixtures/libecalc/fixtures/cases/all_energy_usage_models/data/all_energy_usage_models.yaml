@@ -400,9 +400,6 @@ INSTALLATIONS:
           - NAME: late_start_consumer_evolving_type
             CATEGORY: PUMP
             ENERGY_USAGE_MODEL:
-              2018-01-01:
-                TYPE: DIRECT
-                LOAD: 1 # MW
               2019-01-01:
                 TYPE: TABULATED
                 ENERGYFUNCTION: swinj

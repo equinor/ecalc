@@ -435,10 +435,6 @@ def late_start_consumer_evolving_type(regularity) -> dto.ElectricityConsumer:
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): dto.DirectConsumerFunction(
-                load=Expression.setup_from_expression(value=1),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
-            ),
             datetime(2019, 1, 1): dto.TabulatedConsumerFunction(
                 model=dto.TabulatedData(
                     headers=["RATE", "POWER"],
