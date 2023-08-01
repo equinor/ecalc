@@ -6,6 +6,7 @@ import numpy as np
 from libecalc import dto
 from libecalc.common.units import UnitConstants
 from neqsim_ecalc_wrapper import NeqsimFluid
+from neqsim_ecalc_wrapper.thermo import mix_neqsim_streams
 from numpy.typing import NDArray
 
 
@@ -264,23 +265,9 @@ class FluidStream:
                 f"Can not mix fluids at different pressures. The fluids are at {self.pressure_bara} bara and '{other_fluid_stream.pressure_bara}' bara and were attempted to be mixed at {pressure_bara} bara"
             )
 
-        new_fluid = NeqsimFluid.create_thermo_system(
-            composition=self.fluid_model.composition,
-            temperature_kelvin=temperature_kelvin,
-            pressure_bara=pressure_bara,
-            eos_model=self.fluid_model.eos_model,
-        )
-
-        other_fluid = NeqsimFluid.create_thermo_system(
-            composition=other_fluid_stream.fluid_model.composition,
-            temperature_kelvin=temperature_kelvin,
-            pressure_bara=pressure_bara,
-            eos_model=other_fluid_stream.fluid_model.eos_model,
-        )
-
-        mixed_fluid_composition, mixed_neqsim_fluid_stream = new_fluid.mix_streams(
-            stream_1=new_fluid,
-            stream_2=other_fluid,
+        mixed_fluid_composition, mixed_neqsim_fluid_stream = mix_neqsim_streams(
+            stream_composition_1=self.fluid_model.composition,
+            stream_composition_2=other_fluid_stream.fluid_model.composition,
             mass_rate_stream_1=self_mass_rate,
             mass_rate_stream_2=other_mass_rate,
             pressure=pressure_bara,
