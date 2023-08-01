@@ -211,7 +211,7 @@ class FluidStream:
 
         Args:
             new_pressure: Pressure setpoint of new fluid [bara]
-            enthalpy_change_joule_per_kg: Change in enthalpy perfomed on new fluid [J/kg]
+            enthalpy_change_joule_per_kg: Change in enthalpy performed on new fluid [J/kg]
             remove_liquid: If true the new fluid will be forced to be single phase (Gas), defaults to true
 
         Returns:
