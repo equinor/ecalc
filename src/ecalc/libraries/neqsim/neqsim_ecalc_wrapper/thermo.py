@@ -126,6 +126,7 @@ class NeqsimFluid:
         pressure_bara: float = STANDARD_PRESSURE_BARA,
         eos_model: EoSModel = EoSModel.SRK,
         mixing_rule: int = NEQSIM_MIXING_RULE,
+        remove_liquid: bool = False,
     ) -> NeqsimFluid:
         """Initiates a NeqsimFluid that wraps both a Neqsim thermodynamic system and operations.
 
@@ -141,6 +142,9 @@ class NeqsimFluid:
         :param eos_model: The name of the underlying EOS model
         :param mixing_rule: The Neqsim mixing rule.
         :return:
+
+        Args:
+            remove_liquid:
         """
         use_gerg = "gerg" in eos_model.name.lower()
 
@@ -162,6 +166,9 @@ class NeqsimFluid:
             pressure_bara=pressure_bara,
             mixing_rule=mixing_rule,
         )
+
+        if remove_liquid:
+            thermodynamic_system = NeqsimFluid._remove_liquid(thermodynamic_system=thermodynamic_system)
 
         return NeqsimFluid(thermodynamic_system=thermodynamic_system, use_gerg=use_gerg)
 

@@ -191,16 +191,12 @@ class FluidStream:
         """
         fluid_stream = NeqsimFluid.create_thermo_system(
             composition=self.fluid_model.composition,
-            temperature_kelvin=self.temperature_kelvin,
-            pressure_bara=self.pressure_bara,
+            temperature_kelvin=new_temperature_kelvin,
+            pressure_bara=new_pressure_bara,
             eos_model=self.fluid_model.eos_model,
-        )
-
-        fluid_stream = fluid_stream.set_new_pressure_and_temperature(
-            new_pressure_bara=new_pressure_bara,
-            new_temperature_kelvin=new_temperature_kelvin,
             remove_liquid=remove_liquid,
         )
+
         return FluidStream(existing_fluid=fluid_stream, fluid_model=self.fluid_model)
 
     def set_new_pressure_and_enthalpy_change(
