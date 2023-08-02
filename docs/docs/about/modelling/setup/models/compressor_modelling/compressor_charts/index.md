@@ -247,6 +247,8 @@ MODELS:
     TYPE: COMPRESSOR_CHART
     CHART_TYPE: GENERIC_FROM_INPUT
     POLYTROPIC_EFFICIENCY: 0.75
+    UNITS:
+      EFFICIENCY: FRACTION
 ~~~~~~~~
 
 ## Surge control margin for variable speed compressor chart
