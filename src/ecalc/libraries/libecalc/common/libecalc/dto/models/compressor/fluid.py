@@ -4,21 +4,21 @@ from typing import Optional
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import EoSModel, FluidStreamType
-from pydantic import confloat, root_validator
+from pydantic import Field, root_validator
 
 
 class FluidComposition(EcalcBaseModel):
-    water: confloat(ge=0) = 0.0
-    nitrogen: confloat(ge=0) = 0.0
-    CO2: confloat(ge=0) = 0.0
-    methane: confloat(ge=0) = 0.0
-    ethane: confloat(ge=0) = 0.0
-    propane: confloat(ge=0) = 0.0
-    i_butane: confloat(ge=0) = 0.0
-    n_butane: confloat(ge=0) = 0.0
-    i_pentane: confloat(ge=0) = 0.0
-    n_pentane: confloat(ge=0) = 0.0
-    n_hexane: confloat(ge=0) = 0.0
+    water: float = Field(0.0, ge=0.0)
+    nitrogen: float = Field(0.0, ge=0.0)
+    CO2: float = Field(0.0, ge=0.0)
+    methane: float = Field(0.0, ge=0.0)
+    ethane: float = Field(0.0, ge=0.0)
+    propane: float = Field(0.0, ge=0.0)
+    i_butane: float = Field(0.0, ge=0.0)
+    n_butane: float = Field(0.0, ge=0.0)
+    i_pentane: float = Field(0.0, ge=0.0)
+    n_pentane: float = Field(0.0, ge=0.0)
+    n_hexane: float = Field(0.0, ge=0.0)
 
 
 class FluidModel(EcalcBaseModel):
