@@ -114,6 +114,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        50.0,
+                        50.0,
+                        50.0,
+                        50.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        250.0,
+                        250.0,
+                        250.0,
+                        250.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -203,6 +233,8 @@
                         5000000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -1174,6 +1206,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        80.0,
+                        80.0,
+                        80.0,
+                        80.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        300.0,
+                        300.0,
+                        300.0,
+                        300.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -1263,6 +1325,8 @@
                         5800000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -1868,6 +1932,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        50.0,
+                        50.0,
+                        50.0,
+                        50.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        250.0,
+                        250.0,
+                        250.0,
+                        250.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -1957,6 +2051,8 @@
                         5000000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -2834,6 +2930,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        50.0,
+                        50.0,
+                        50.0,
+                        50.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        250.0,
+                        250.0,
+                        250.0,
+                        250.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -2923,6 +3049,8 @@
                         5000000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -3809,6 +3937,8 @@
                                 16004097.0,
                                 0.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -4650,6 +4780,8 @@
                                 16004097.0,
                                 0.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -5538,6 +5670,8 @@
                         16004097.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -6379,6 +6513,8 @@
                         16004097.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -7256,6 +7392,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        50.0,
+                        50.0,
+                        50.0,
+                        50.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        250.0,
+                        250.0,
+                        250.0,
+                        250.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -7345,6 +7511,8 @@
                         5000000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -8244,6 +8412,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        200.0,
+                        200.0,
+                        200.0,
+                        200.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        400.0,
+                        400.0,
+                        400.0,
+                        400.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -8328,6 +8526,8 @@
                         2667349.5,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -9062,6 +9262,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        80.0,
+                        80.0,
+                        80.0,
+                        80.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        300.0,
+                        300.0,
+                        300.0,
+                        300.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -9151,6 +9381,8 @@
                         5800000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -9831,6 +10063,8 @@
                             "rate_sm3_day": [
                                 2372352.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -10471,6 +10705,8 @@
                             "rate_sm3_day": [
                                 2372352.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -11111,6 +11347,8 @@
                             "rate_sm3_day": [
                                 2372352.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -11762,6 +12000,8 @@
                                 2667349.5,
                                 0.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -12482,6 +12722,8 @@
                                 2667349.5,
                                 0.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -13238,6 +13480,8 @@
                     "rate_sm3_day": [
                         2372352.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -13878,6 +14122,8 @@
                     "rate_sm3_day": [
                         2372352.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -14518,6 +14764,8 @@
                     "rate_sm3_day": [
                         2372352.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -15169,6 +15417,8 @@
                         2667349.5,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -15889,6 +16139,8 @@
                         2667349.5,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -16667,6 +16919,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        80.0,
+                        80.0,
+                        80.0,
+                        80.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        300.0,
+                        300.0,
+                        300.0,
+                        300.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -16756,6 +17038,8 @@
                         1000000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -17361,6 +17645,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        10.0,
+                        10.0,
+                        10.0,
+                        10.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        600.0,
+                        600.0,
+                        600.0,
+                        600.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -17465,6 +17779,8 @@
                             0.0
                         ]
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -19471,6 +19787,8 @@
                                 2667349.5,
                                 0.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -19659,6 +19977,8 @@
                                 2667349.5,
                                 0.0
                             ],
+                            "requested_inlet_pressure": null,
+                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -19894,6 +20214,8 @@
                         2667349.5,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -20082,6 +20404,8 @@
                         2667349.5,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -20311,6 +20635,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        30.0,
+                        30.0,
+                        30.0,
+                        30.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        200.0,
+                        200.0,
+                        200.0,
+                        200.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -20400,6 +20754,8 @@
                         5000000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -21415,6 +21771,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        50.0,
+                        50.0,
+                        50.0,
+                        50.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        250.0,
+                        250.0,
+                        250.0,
+                        250.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -21504,6 +21890,8 @@
                         5000000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -23090,6 +23478,36 @@
                         0.0
                     ]
                 },
+                "requested_inlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        80.0,
+                        80.0,
+                        80.0,
+                        80.0
+                    ]
+                },
+                "requested_outlet_pressure": {
+                    "timesteps": [
+                        "2017-01-01 00:00:00",
+                        "2018-01-01 00:00:00",
+                        "2019-01-01 00:00:00",
+                        "2020-01-01 00:00:00"
+                    ],
+                    "unit": "bara",
+                    "values": [
+                        300.0,
+                        300.0,
+                        300.0,
+                        300.0
+                    ]
+                },
                 "timesteps": [
                     "2017-01-01 00:00:00",
                     "2018-01-01 00:00:00",
@@ -23179,6 +23597,8 @@
                         5800000.0,
                         0.0
                     ],
+                    "requested_inlet_pressure": null,
+                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
