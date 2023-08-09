@@ -160,5 +160,7 @@ class CompressorConsumerFunction(ConsumerFunction):
             )
             if compressor_train_result.power is not None
             else None,
+            requested_inlet_pressure=suction_pressure,
+            requested_outlet_pressure=discharge_pressure,
         )
         return consumer_function_result
