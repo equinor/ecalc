@@ -67,6 +67,8 @@ def test_extend_mismatching_compressor_stage_results():
         stage_results=[],
         rate_sm3_day=[np.nan] * 3,
         failure_status=[None] * 3,
+        requested_inlet_pressure=[np.nan] * 3,
+        requested_outlet_pressure=[np.nan] * 3,
     )
     result_2 = CompressorTrainResult(
         energy_usage=[2.0] * 3,
@@ -79,6 +81,8 @@ def test_extend_mismatching_compressor_stage_results():
         ],
         rate_sm3_day=[np.nan] * 3,
         failure_status=[None] * 3,
+        requested_inlet_pressure=[np.nan] * 3,
+        requested_outlet_pressure=[np.nan] * 3,
     )
     result_3 = CompressorTrainResult(
         energy_usage=[3.0] * 3,
@@ -88,6 +92,8 @@ def test_extend_mismatching_compressor_stage_results():
         stage_results=[CompressorStageResult.create_empty(number_of_timesteps=3)],
         rate_sm3_day=[np.nan] * 3,
         failure_status=[None] * 3,
+        requested_inlet_pressure=[np.nan] * 3,
+        requested_outlet_pressure=[np.nan] * 3,
     )
 
     result_4 = CompressorTrainResult(
@@ -98,6 +104,8 @@ def test_extend_mismatching_compressor_stage_results():
         stage_results=[],
         rate_sm3_day=[],
         failure_status=[],
+        requested_inlet_pressure=[np.nan] * 3,
+        requested_outlet_pressure=[np.nan] * 3,
     )
 
     result = result_1.copy()
@@ -122,6 +130,8 @@ def test_extend_compressor_train_result_from_multiple_streams() -> None:
         stage_results=[],
         rate_sm3_day=[[1] * 3] * 3,
         failure_status=[None] * 3,
+        requested_inlet_pressure=[np.nan] * 3,
+        requested_outlet_pressure=[np.nan] * 3,
     )
     result_2 = CompressorTrainResult(
         energy_usage=[2.0] * 3,
@@ -134,6 +144,8 @@ def test_extend_compressor_train_result_from_multiple_streams() -> None:
         ],
         rate_sm3_day=[[2] * 3] * 3,
         failure_status=[None] * 3,
+        requested_inlet_pressure=[np.nan] * 3,
+        requested_outlet_pressure=[np.nan] * 3,
     )
     result = result_1.copy()
     result.extend(result_2)

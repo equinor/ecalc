@@ -53,6 +53,8 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_succe
                             )
                         ],
                         failure_status=[None],
+                        requested_inlet_pressure=[np.nan],
+                        requested_outlet_pressure=[np.nan],
                     ),
                 )
             ],
@@ -101,6 +103,8 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_failu
                             )
                         ],
                         failure_status=[None],
+                        requested_inlet_pressure=[np.nan],
+                        requested_outlet_pressure=[np.nan],
                     ),
                 )
             ],
@@ -151,6 +155,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_firs
                             )
                         ],
                         failure_status=[None],
+                        requested_inlet_pressure=[np.nan],
+                        requested_outlet_pressure=[np.nan],
                     ),
                 )
             ],
@@ -185,6 +191,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_firs
                             )
                         ],
                         failure_status=[None],
+                        requested_inlet_pressure=[np.nan],
+                        requested_outlet_pressure=[np.nan],
                     ),
                 )
             ],
@@ -233,6 +241,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_both
                             )
                         ],
                         failure_status=[None],
+                        requested_inlet_pressure=[np.nan],
+                        requested_outlet_pressure=[np.nan],
                     ),
                 )
             ],
@@ -270,6 +280,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_both
                             )
                         ],
                         failure_status=[None],
+                        requested_inlet_pressure=[np.nan],
+                        requested_outlet_pressure=[np.nan],
                     ),
                 )
             ],

@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from libecalc.common.units import Unit
 from libecalc.core.models.results.base import EnergyFunctionResult
@@ -71,6 +72,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 asv_recirculation_loss_mw=[0, 0, 0],
             ),
         ],
+        requested_inlet_pressure=[np.nan, np.nan, np.nan],
+        requested_outlet_pressure=[np.nan, np.nan, np.nan],
     )
 
 

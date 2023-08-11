@@ -203,6 +203,8 @@ def compressor_model_result() -> CompressorTrainResult:
         ],
         rate_sm3_day=[np.nan, np.nan, np.nan],
         failure_status=[None, None, None],
+        requested_inlet_pressure=[np.nan, np.nan, np.nan],
+        requested_outlet_pressure=[np.nan, np.nan, np.nan],
     )
 
 
@@ -236,6 +238,8 @@ def compressor_model_result_invalid_steps() -> CompressorTrainResult:
         ],
         rate_sm3_day=[np.nan, np.nan, np.nan],
         failure_status=[None, None, None],
+        requested_inlet_pressure=[np.nan, np.nan, np.nan],
+        requested_outlet_pressure=[np.nan, np.nan, np.nan],
     )
 
 
