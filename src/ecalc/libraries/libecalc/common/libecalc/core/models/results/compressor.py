@@ -127,6 +127,8 @@ class CompressorTrainResult(EnergyFunctionResult):
     stage_results: List[CompressorStageResult]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
     turbine_result: Optional[TurbineResult] = None
+    requested_inlet_pressure: List[Optional[float]]
+    requested_outlet_pressure: List[Optional[float]]
 
     def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time.

@@ -788,6 +788,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             ),
             rate_sm3_day=cast(list, rate.tolist()),
             failure_status=[t.failure_status for t in train_results],
+            requested_inlet_pressure=list(suction_pressure),
+            requested_outlet_pressure=list(discharge_pressure),
         )
 
     def calculate_compressor_train_given_rate_ps_speed(

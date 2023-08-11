@@ -107,8 +107,6 @@ class CompressorResult(EquipmentResultBase):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
-    requested_inlet_pressure: TimeSeriesFloat
-    requested_outlet_pressure: TimeSeriesFloat
 
 
 class DirectEmitterResult(EquipmentResultBase):

@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type, Union
 
@@ -198,6 +199,13 @@ class CompressorModelSampled(CompressorModel):
         ps_to_evaluate = suction_pressure[indices_to_evaluate] if suction_pressure is not None else []
         pd_to_evaluate = discharge_pressure[indices_to_evaluate] if discharge_pressure is not None else []
 
+        requested_inlet_pressure = (
+            list(ps_to_evaluate) if list(ps_to_evaluate) else [math.nan] * len(list(indices_to_evaluate))
+        )
+        requested_outlet_pressure = (
+            list(pd_to_evaluate) if list(pd_to_evaluate) else [math.nan] * len(list(indices_to_evaluate))
+        )
+
         interpolated_consumer_values[indices_to_evaluate] = self._qhull_sampled.evaluate(
             rate=rate_to_evaluate,
             suction_pressure=ps_to_evaluate,
@@ -248,6 +256,8 @@ class CompressorModelSampled(CompressorModel):
             ],
             failure_status=[None] * len(energy_usage),
             rate_sm3_day=list(rate) if rate is not None else [np.nan] * len(energy_usage),
+            requested_inlet_pressure=requested_inlet_pressure,
+            requested_outlet_pressure=requested_outlet_pressure,
         )
 
         return result

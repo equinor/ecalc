@@ -88,6 +88,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
         )
+
         train_results = self._evaluate_rate_ps_pd(
             rate=rate,
             suction_pressure=suction_pressure,
@@ -136,6 +137,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
             failure_status=[t.failure_status for t in train_results],
+            requested_inlet_pressure=list(suction_pressure),
+            requested_outlet_pressure=list(discharge_pressure),
         )
 
     @Feature.experimental(
