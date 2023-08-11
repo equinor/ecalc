@@ -45,8 +45,8 @@ class CompressorResult(GenericComponentResult):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
-    requested_inlet_pressure: Optional[TimeSeriesFloat]
-    requested_outlet_pressure: Optional[TimeSeriesFloat]
+    requested_inlet_pressure: TimeSeriesFloat
+    requested_outlet_pressure: TimeSeriesFloat
 
 
 class PumpResult(GenericComponentResult):
@@ -81,9 +81,6 @@ class PumpModelResult(ConsumerModelResultBase):
 
 
 class CompressorModelResult(ConsumerModelResultBase, CompressorTrainResult):
-    requested_inlet_pressure: Optional[List[Optional[float]]]
-    requested_outlet_pressure: Optional[List[Optional[float]]]
-
     @property
     def component_type(self):
         return ComponentType.COMPRESSOR

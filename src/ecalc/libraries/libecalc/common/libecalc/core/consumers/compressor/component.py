@@ -126,6 +126,20 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 timesteps=evaluated_timesteps,
                 unit=Unit.BARA,
             ),
+            requested_inlet_pressure=TimeSeriesFloat(
+                values=self.operational_settings.inlet_pressure.values
+                if self.operational_settings.inlet_pressure.values
+                else [np.nan for _ in evaluated_timesteps],
+                timesteps=evaluated_timesteps,
+                unit=Unit.BARA,
+            ),
+            requested_outlet_pressure=TimeSeriesFloat(
+                values=self.operational_settings.outlet_pressure.values
+                if operational_settings.outlet_pressure.values
+                else [np.nan for _ in evaluated_timesteps],
+                timesteps=evaluated_timesteps,
+                unit=Unit.BARA,
+            ),
         )
 
         return EcalcModelResult(

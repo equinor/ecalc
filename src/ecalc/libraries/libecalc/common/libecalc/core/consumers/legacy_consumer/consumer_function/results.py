@@ -41,8 +41,6 @@ class ConsumerFunctionResultBase(BaseModel):
 
     # New! to support fuel to power rate...for e.g. compressors emulating turbine
     power: Optional[NDArray[np.float64]]
-    requested_inlet_pressure: Optional[NDArray[np.float64]]
-    requested_outlet_pressure: Optional[NDArray[np.float64]]
 
     class Config:
         arbitrary_types_allowed = True
@@ -54,6 +52,9 @@ class ConsumerFunctionResultBase(BaseModel):
 
 class ConsumerFunctionResult(ConsumerFunctionResultBase):
     typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE  # type: ignore[valid-type]
+
+    requested_inlet_pressure: Optional[Union[List[Optional[float]], NDArray[np.float64]]]
+    requested_outlet_pressure: Optional[Union[List[Optional[float]], NDArray[np.float64]]]
 
     def extend(self, other) -> ConsumerFunctionResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time."""

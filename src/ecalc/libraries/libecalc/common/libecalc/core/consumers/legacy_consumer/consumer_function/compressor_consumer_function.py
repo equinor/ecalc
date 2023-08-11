@@ -1,3 +1,4 @@
+import math
 from typing import List, Optional, Union
 
 import numpy as np
@@ -160,7 +161,11 @@ class CompressorConsumerFunction(ConsumerFunction):
             )
             if compressor_train_result.power is not None
             else None,
-            requested_inlet_pressure=suction_pressure,
-            requested_outlet_pressure=discharge_pressure,
+            requested_inlet_pressure=suction_pressure
+            if suction_pressure is not None
+            else [math.nan] * variables_map.length,
+            requested_outlet_pressure=discharge_pressure
+            if discharge_pressure is not None
+            else [math.nan] * variables_map.length,
         )
         return consumer_function_result

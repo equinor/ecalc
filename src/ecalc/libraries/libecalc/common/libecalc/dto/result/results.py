@@ -107,8 +107,8 @@ class CompressorResult(EquipmentResultBase):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
-    requested_inlet_pressure: Optional[TimeSeriesFloat]
-    requested_outlet_pressure: Optional[TimeSeriesFloat]
+    requested_inlet_pressure: TimeSeriesFloat
+    requested_outlet_pressure: TimeSeriesFloat
 
 
 class DirectEmitterResult(EquipmentResultBase):
@@ -133,8 +133,6 @@ class PumpModelResult(ConsumerModelResultBase):
 
 class CompressorModelResult(ConsumerModelResultBase, CompressorTrainResult):
     componentType: Literal[ComponentType.COMPRESSOR]
-    requested_inlet_pressure: Optional[List[float]]
-    requested_outlet_pressure: Optional[List[float]]
 
 
 class GenericModelResult(ConsumerModelResultBase):
