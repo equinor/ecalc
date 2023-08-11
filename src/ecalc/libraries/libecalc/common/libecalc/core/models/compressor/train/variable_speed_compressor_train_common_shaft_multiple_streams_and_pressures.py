@@ -769,15 +769,18 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 train_results.append(compressor_train_result)
 
         power_mw = np.array([time_step.power_megawatt for time_step in train_results])
+        power_mw_adjusted = np.where(
+            power_mw > 0, power_mw + self.data_transfer_object.energy_usage_adjustment_constant, power_mw
+        )
 
         for i, train_result in enumerate(train_results):
             if input_failure_status[i]:
                 train_result.failure_status = input_failure_status[i]
 
         return CompressorTrainResult(
-            energy_usage=list(power_mw),
+            energy_usage=list(power_mw_adjusted),
             energy_usage_unit=Unit.MEGA_WATT,
-            power=list(power_mw),
+            power=list(power_mw_adjusted),
             power_unit=Unit.MEGA_WATT,
             stage_results=CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
                 result_list=train_results,
