@@ -53,9 +53,6 @@ class ConsumerFunctionResultBase(BaseModel):
 class ConsumerFunctionResult(ConsumerFunctionResultBase):
     typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE  # type: ignore[valid-type]
 
-    requested_inlet_pressure: Optional[Union[List[Optional[float]], NDArray[np.float64]]]
-    requested_outlet_pressure: Optional[Union[List[Optional[float]], NDArray[np.float64]]]
-
     def extend(self, other) -> ConsumerFunctionResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time."""
         if not isinstance(self, type(other)):
