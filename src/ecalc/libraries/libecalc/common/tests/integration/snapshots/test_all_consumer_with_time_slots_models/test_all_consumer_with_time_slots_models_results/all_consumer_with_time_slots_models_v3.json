@@ -840,8 +840,6 @@
                                 5000.0,
                                 5000.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -1775,8 +1773,6 @@
                                 0.0,
                                 0.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -2732,8 +2728,6 @@
                                 5000.0,
                                 5000.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -3815,8 +3809,6 @@
                                 0.0,
                                 0.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -4878,8 +4870,6 @@
                                 2500.0,
                                 2500.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -5813,8 +5803,6 @@
                                 2500.0,
                                 2500.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -6770,8 +6758,6 @@
                                 2500.0,
                                 2500.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -7853,8 +7839,6 @@
                                 2500.0,
                                 2500.0
                             ],
-                            "requested_inlet_pressure": null,
-                            "requested_outlet_pressure": null,
                             "stage_results": [
                                 {
                                     "asv_recirculation_loss_mw": [
@@ -9057,8 +9041,6 @@
                         5000.0,
                         5000.0
                     ],
-                    "requested_inlet_pressure": null,
-                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -9992,8 +9974,6 @@
                         0.0,
                         0.0
                     ],
-                    "requested_inlet_pressure": null,
-                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -10949,8 +10929,6 @@
                         5000.0,
                         5000.0
                     ],
-                    "requested_inlet_pressure": null,
-                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -12032,8 +12010,6 @@
                         0.0,
                         0.0
                     ],
-                    "requested_inlet_pressure": null,
-                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -14555,8 +14531,6 @@
                         5000.0,
                         5000.0
                     ],
-                    "requested_inlet_pressure": null,
-                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
@@ -16253,8 +16227,6 @@
                         5000.0,
                         5000.0
                     ],
-                    "requested_inlet_pressure": null,
-                    "requested_outlet_pressure": null,
                     "stage_results": [
                         {
                             "asv_recirculation_loss_mw": [
