@@ -787,6 +787,34 @@
         2000000.0,
         3000000.0
       ],
+      "requested_inlet_pressure": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "requested_outlet_pressure": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
       "stage_results": [
         {
           "asv_recirculation_loss_mw": [
@@ -1157,6 +1185,34 @@
         286000000.0,
         290000000.0,
         293000000.0
+      ],
+      "requested_inlet_pressure": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "requested_outlet_pressure": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
       ],
       "stage_results": [
         {
@@ -3743,68 +3799,6 @@
           0.0
         ]
       },
-      "requested_inlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ]
-      },
-      "requested_outlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ]
-      },
       "timesteps": [
         "2020-01-01 00:00:00",
         "2021-01-01 00:00:00",
@@ -4118,68 +4112,6 @@
           0.0,
           0.0,
           0.0
-        ]
-      },
-      "requested_inlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ]
-      },
-      "requested_outlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
         ]
       },
       "timesteps": [
