@@ -266,10 +266,26 @@ class Consumer(BaseConsumer):
                     )
                 )
 
+                requested_inlet_pressure = TimeSeriesFloat(
+                    timesteps=consumer_function_result.time_vector.tolist(),
+                    values=list(consumer_function_result.energy_function_result.requested_inlet_pressure),
+                    unit=Unit.BARA,
+                    regularity=regularity,
+                ).reindex(new_time_vector=variables_map.time_vector)
+
+                requested_outlet_pressure = TimeSeriesFloat(
+                    timesteps=consumer_function_result.time_vector.tolist(),
+                    values=list(consumer_function_result.energy_function_result.requested_outlet_pressure),
+                    unit=Unit.BARA,
+                    regularity=regularity,
+                ).reindex(new_time_vector=variables_map.time_vector)
+
             else:
                 recirculation_loss = [math.nan] * variables_map.length
                 rate_exceeds_maximum = [False] * variables_map.length
                 outlet_pressure_before_choking = [math.nan] * variables_map.length
+                requested_inlet_pressure = [math.nan] * variables_map.length
+                requested_outlet_pressure = [math.nan] * variables_map.length
 
             consumer_result = CompressorResult(
                 id=self._consumer_dto.id,
@@ -288,6 +304,8 @@ class Consumer(BaseConsumer):
                 outlet_pressure_before_choking=TimeSeriesFloat(
                     timesteps=variables_map.time_vector, values=outlet_pressure_before_choking, unit=Unit.BARA
                 ),
+                requested_inlet_pressure=requested_inlet_pressure,
+                requested_outlet_pressure=requested_outlet_pressure,
             )
             models = get_single_consumer_models(
                 result=consumer_function_result,
