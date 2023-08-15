@@ -35,8 +35,6 @@ class FluidStream:
             existing_fluid: Initialize FluidStream from an existing (NeqSim) fluid. Warning: Be mindful of keeping fluid_model and existing fluid consistent. If not the fluid properties may be incorrect.
         """
         self.fluid_model = fluid_model
-        self.initial_temperature_kelvin = temperature_kelvin
-        self.initial_pressure_bare = pressure_bara
 
         if not temperature_kelvin > 0:
             raise ValueError("FluidStream temperature needs to be above 0.")
@@ -64,7 +62,6 @@ class FluidStream:
             and temperature_kelvin == UnitConstants.STANDARD_TEMPERATURE_KELVIN
         ):
             self.standard_conditions_density = _neqsim_fluid_stream.density
-            self.molar_mass_kg_per_mol = _neqsim_fluid_stream.molar_mass
         else:
             _neqsim_fluid_at_standard_conditions = NeqsimFluid.create_thermo_system(
                 composition=self.fluid_model.composition,
