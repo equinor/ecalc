@@ -2,5 +2,5 @@ from enum import Enum
 
 
 class CompressorPressureState(str, Enum):
-    inlet_pressure = "inlet_pressure"
-    outlet_pressure = "outlet_pressure"
+    INLET_PRESSURE = "INLET_PRESSURE"
+    OUTLET_PRESSURE = "OUTLET_PRESSURE"

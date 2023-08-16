@@ -242,10 +242,10 @@ class GraphResult:
                 component = self.graph.get_component(consumer_id)
 
                 requested_inlet_pressure = self.get_pressures_from_temporal_models(
-                    component.energy_usage_model, component.regularity, CompressorPressureState.inlet_pressure
+                    component.energy_usage_model, component.regularity, CompressorPressureState.INLET_PRESSURE
                 )
                 requested_outlet_pressure = self.get_pressures_from_temporal_models(
-                    component.energy_usage_model, component.regularity, CompressorPressureState.outlet_pressure
+                    component.energy_usage_model, component.regularity, CompressorPressureState.OUTLET_PRESSURE
                 )
 
                 sub_components.append(
@@ -404,7 +404,7 @@ class GraphResult:
 
         for time_value, model in energy_usage_model.items():
             pressure = model.suction_pressure
-            if pressure_type.value == pressure_type.outlet_pressure:
+            if pressure_type.value == pressure_type.OUTLET_PRESSURE:
                 pressure = model.discharge_pressure
 
             if pressure is not None:
