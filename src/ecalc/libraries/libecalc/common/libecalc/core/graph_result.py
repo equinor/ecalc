@@ -390,7 +390,7 @@ class GraphResult:
         )
 
     def get_pressures_from_temporal_models(
-        self, energy_usage_model: dict, regularity: dict, input_pressure_type: CompressorInputPressures
+        self, energy_usage_model: dict, regularity: dict, pressure_type: CompressorPressureState
     ) -> Dict[datetime.datetime, TimeSeriesFloat]:
         """Extract compressor input pressures from temporal models.
 
