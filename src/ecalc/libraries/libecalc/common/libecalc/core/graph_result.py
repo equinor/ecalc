@@ -7,7 +7,7 @@ from typing import Dict, List
 import libecalc
 from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
-from libecalc.common.component_info.compressor import CompressorInputPressures
+from libecalc.common.component_info.compressor import CompressorPressureState
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
@@ -242,10 +242,10 @@ class GraphResult:
                 component = self.graph.get_component(consumer_id)
 
                 requested_inlet_pressure = self.get_pressures_from_temporal_models(
-                    component.energy_usage_model, component.regularity, CompressorInputPressures.inlet_pressure
+                    component.energy_usage_model, component.regularity, CompressorPressureState.inlet_pressure
                 )
                 requested_outlet_pressure = self.get_pressures_from_temporal_models(
-                    component.energy_usage_model, component.regularity, CompressorInputPressures.outlet_pressure
+                    component.energy_usage_model, component.regularity, CompressorPressureState.outlet_pressure
                 )
 
                 sub_components.append(
@@ -396,7 +396,7 @@ class GraphResult:
 
         :param energy_usage_model: dictionary of temporal energy models
         :param regularity: regularity for the actual component
-        :param input_pressure_type: type of pressure to evaluate (inlet- or outlet pressure)
+        :param pressure_type: type of pressure to evaluate (inlet- or outlet pressure)
         :return: inlet- and outlet input pressure time series
         """
 
@@ -404,7 +404,7 @@ class GraphResult:
 
         for time_value, model in energy_usage_model.items():
             pressure = model.suction_pressure
-            if input_pressure_type.value == input_pressure_type.outlet_pressure:
+            if pressure_type.value == pressure_type.outlet_pressure:
                 pressure = model.discharge_pressure
 
             if pressure is not None:
