@@ -1,3 +1,5 @@
+import datetime
+import math
 import operator
 from functools import reduce
 from typing import Dict, List
@@ -5,13 +7,18 @@ from typing import Dict, List
 import libecalc
 from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.component_info.compressor import CompressorInputPressures
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,
 )
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesRate
+from libecalc.common.utils.rates import (
+    TimeSeriesBoolean,
+    TimeSeriesFloat,
+    TimeSeriesRate,
+)
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.base import ComponentType
@@ -19,6 +26,7 @@ from libecalc.dto.graph import Graph
 from libecalc.dto.result.emission import EmissionIntensityResult
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
+from libecalc.expression import Expression
 from pydantic import BaseModel, parse_obj_as
 
 
@@ -230,30 +238,67 @@ class GraphResult:
                 ]
             )
 
-            sub_components.append(
-                parse_obj_as(
-                    libecalc.dto.result.ComponentResult,
-                    {
-                        **consumer_result.component_result.dict(),
-                        "name": consumer_node_info.name,
-                        "parent": self.graph.get_predecessor(consumer_id),
-                        "component_level": consumer_node_info.component_level,
-                        "componentType": consumer_node_info.component_type,
-                        "emissions": self._parse_emissions(self.emission_results[consumer_id])
-                        if consumer_id in self.emission_results
-                        else [],
-                        "energy_usage_cumulative": consumer_result.component_result.energy_usage.to_volumes()
-                        .cumulative()
-                        .dict(),
-                        "power_cumulative": consumer_result.component_result.power.to_volumes()
-                        .to_unit(Unit.GIGA_WATT_HOURS)
-                        .cumulative()
-                        .dict()
-                        if consumer_result.component_result.power is not None
-                        else None,
-                    },
+            if self.graph.get_component(consumer_id).component_type == ComponentType.COMPRESSOR:
+                component = self.graph.get_component(consumer_id)
+
+                requested_inlet_pressure = self.get_pressures_from_temporal_models(
+                    component.energy_usage_model, component.regularity, CompressorInputPressures.inlet_pressure
                 )
-            )
+                requested_outlet_pressure = self.get_pressures_from_temporal_models(
+                    component.energy_usage_model, component.regularity, CompressorInputPressures.outlet_pressure
+                )
+
+                sub_components.append(
+                    parse_obj_as(
+                        libecalc.dto.result.ComponentResult,
+                        {
+                            **consumer_result.component_result.dict(),
+                            "name": consumer_node_info.name,
+                            "parent": self.graph.get_predecessor(consumer_id),
+                            "component_level": consumer_node_info.component_level,
+                            "componentType": consumer_node_info.component_type,
+                            "emissions": self._parse_emissions(self.emission_results[consumer_id])
+                            if consumer_id in self.emission_results
+                            else [],
+                            "energy_usage_cumulative": consumer_result.component_result.energy_usage.to_volumes()
+                            .cumulative()
+                            .dict(),
+                            "power_cumulative": consumer_result.component_result.power.to_volumes()
+                            .to_unit(Unit.GIGA_WATT_HOURS)
+                            .cumulative()
+                            .dict()
+                            if consumer_result.component_result.power is not None
+                            else None,
+                            "requested_inlet_pressure": requested_inlet_pressure,
+                            "requested_outlet_pressure": requested_outlet_pressure,
+                        },
+                    )
+                )
+            else:
+                sub_components.append(
+                    parse_obj_as(
+                        libecalc.dto.result.ComponentResult,
+                        {
+                            **consumer_result.component_result.dict(),
+                            "name": consumer_node_info.name,
+                            "parent": self.graph.get_predecessor(consumer_id),
+                            "component_level": consumer_node_info.component_level,
+                            "componentType": consumer_node_info.component_type,
+                            "emissions": self._parse_emissions(self.emission_results[consumer_id])
+                            if consumer_id in self.emission_results
+                            else [],
+                            "energy_usage_cumulative": consumer_result.component_result.energy_usage.to_volumes()
+                            .cumulative()
+                            .dict(),
+                            "power_cumulative": consumer_result.component_result.power.to_volumes()
+                            .to_unit(Unit.GIGA_WATT_HOURS)
+                            .cumulative()
+                            .dict()
+                            if consumer_result.component_result.power is not None
+                            else None,
+                        },
+                    )
+                )
 
         for installation in asset.installations:
             for direct_emitter in installation.direct_emitters:
@@ -343,3 +388,42 @@ class GraphResult:
             emission_results=self.emission_results,
             variables_map=self.variables_map,
         )
+
+    def get_pressures_from_temporal_models(
+        self, energy_usage_model: dict, regularity: dict, input_pressure_type: CompressorInputPressures
+    ) -> Dict[datetime, TimeSeriesFloat]:
+        """Extract compressor input pressures from temporal models.
+
+        :param energy_usage_model: dictionary of temporal energy models
+        :param regularity: regularity for the actual component
+        :param input_pressure_type: type of pressure to evaluate (inlet- or outlet pressure)
+        :return: inlet- and outlet input pressure time series
+        """
+
+        pressures = {}
+
+        for time_value, model in energy_usage_model.items():
+            pressure = model.suction_pressure
+            if input_pressure_type.value == input_pressure_type.outlet_pressure:
+                pressure = model.discharge_pressure
+
+            if pressure is not None:
+                if isinstance(pressure, Expression):
+                    pressure_value = list(
+                        pressure.evaluate(self.variables_map, fill_length=len(self.variables_map.time_vector))
+                    )
+                else:
+                    pressure_value = pressure
+            else:
+                pressure_value = [math.nan] * len(self.timesteps)
+
+            pressure_time_series = TimeSeriesFloat(
+                timesteps=self.timesteps,
+                values=pressure_value,
+                unit=Unit.BARA,
+                regularity=regularity,
+            )
+
+            pressures[time_value] = pressure_time_series
+
+        return pressures
