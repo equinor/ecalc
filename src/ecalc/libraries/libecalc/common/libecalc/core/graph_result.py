@@ -391,7 +391,7 @@ class GraphResult:
 
     def get_pressures_from_temporal_models(
         self, energy_usage_model: dict, regularity: dict, input_pressure_type: CompressorInputPressures
-    ) -> Dict[datetime, TimeSeriesFloat]:
+    ) -> Dict[datetime.datetime, TimeSeriesFloat]:
         """Extract compressor input pressures from temporal models.
 
         :param energy_usage_model: dictionary of temporal energy models
@@ -408,12 +408,13 @@ class GraphResult:
                 pressure = model.discharge_pressure
 
             if pressure is not None:
+                pressure_value = pressure
+
                 if isinstance(pressure, Expression):
                     pressure_value = list(
                         pressure.evaluate(self.variables_map, fill_length=len(self.variables_map.time_vector))
                     )
-                else:
-                    pressure_value = pressure
+
             else:
                 pressure_value = [math.nan] * len(self.timesteps)
 
