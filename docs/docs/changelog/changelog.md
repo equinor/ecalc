@@ -39,7 +39,7 @@
 * update changelog 8.2 with changes for ltp- and stp ([#43](https://github.com/equinor/ecalc/issues/43)) ([6fe4b77](https://github.com/equinor/ecalc/commit/6fe4b773a156d01eec67e8e70b764d4e18d374ce))
 * update changelog for 8.2 ([3ccea74](https://github.com/equinor/ecalc/commit/3ccea743332f0d1950ff61ca6747bb507ea37bd4))
 * update docs and changelog for energy models ([#133](https://github.com/equinor/ecalc/issues/133)) ([8f0d716](https://github.com/equinor/ecalc/commit/8f0d71633d80a99da369dffa05f386e554f3c0bb))
-* update documentaion for heaters and boilers ([#52](https://github.com/equinor/ecalc/issues/52)) ([2bef707](https://github.com/equinor/ecalc/commit/2bef70731be94ace7d0a2269f2ebf07bd01e82b2))
+* update documentation for heaters and boilers ([#52](https://github.com/equinor/ecalc/issues/52)) ([2bef707](https://github.com/equinor/ecalc/commit/2bef70731be94ace7d0a2269f2ebf07bd01e82b2))
 * update migration guide with ltp- and stp changes ([#42](https://github.com/equinor/ecalc/issues/42)) ([4b0b230](https://github.com/equinor/ecalc/commit/4b0b23011a9d2161741dd52031070307fc6c1b68))
 
 
@@ -55,14 +55,14 @@
 * add test of count_parentheses ([0d1ce6f](https://github.com/equinor/ecalc/commit/0d1ce6feff7a6aaeecab57fd9a661122b691d3b5))
 * add test of validation of operational conditions when suction pressure exceeds discharge pressure ([d218273](https://github.com/equinor/ecalc/commit/d2182730c2fdcd98e54fef8625cd289dc206b2bf))
 * added changelog entry about interstage pressure fix ([#95](https://github.com/equinor/ecalc/issues/95)) ([2a1e8b0](https://github.com/equinor/ecalc/commit/2a1e8b085ed87dcbb8da874b64f737721f0ceaae))
-* count parantheses in list of tokens only among the elements that are strings ([#94](https://github.com/equinor/ecalc/issues/94)) ([0d1ce6f](https://github.com/equinor/ecalc/commit/0d1ce6feff7a6aaeecab57fd9a661122b691d3b5))
+* count parentheses in list of tokens only among the elements that are strings ([#94](https://github.com/equinor/ecalc/issues/94)) ([0d1ce6f](https://github.com/equinor/ecalc/commit/0d1ce6feff7a6aaeecab57fd9a661122b691d3b5))
 * energy model type not allowed to change over time ([#131](https://github.com/equinor/ecalc/issues/131)) ([670cff2](https://github.com/equinor/ecalc/commit/670cff2154e2881aea25903557a7f187bdab05ee))
 * enforce unique fuel type names, and unique emission names within one fuel type ([#84](https://github.com/equinor/ecalc/issues/84)) ([4ea9c63](https://github.com/equinor/ecalc/commit/4ea9c630510015e2030f0840b933ea399cc0734b))
 * fix broken link in documentation of GENERATORSETS keyword ([#103](https://github.com/equinor/ecalc/issues/103)) ([329c8e9](https://github.com/equinor/ecalc/commit/329c8e993c217e7685c082b7671a12c4115bba87))
 * fix typing of fluid composition ([c0d98b3](https://github.com/equinor/ecalc/commit/c0d98b3a6f4dfb411edfa9bdd8be3c887b28f6da))
 * improve documentation on defining compressor charts using CURVE and CURVES ([#97](https://github.com/equinor/ecalc/issues/97)) ([1bde68a](https://github.com/equinor/ecalc/commit/1bde68a38e75255c8f2d6cd88fb5b6ba1ddb97c9))
 * improve error message when bad yaml file name ([#77](https://github.com/equinor/ecalc/issues/77)) ([d2eb733](https://github.com/equinor/ecalc/commit/d2eb733264b2d5b2114a785096c9d6abbffea21b))
-* merge queque ([d4489c6](https://github.com/equinor/ecalc/commit/d4489c604b807c07a7e41a038cbdfeca9720ade1))
+* merge queue ([d4489c6](https://github.com/equinor/ecalc/commit/d4489c604b807c07a7e41a038cbdfeca9720ade1))
 * numpy ndarray typing ([#46](https://github.com/equinor/ecalc/issues/46)) ([9b7b308](https://github.com/equinor/ecalc/commit/9b7b308ea6ce5c0aee5acdf8226cd94b90b448aa))
 * pin numpy to compatible numpy version ([35a3640](https://github.com/equinor/ecalc/commit/35a3640a96c376f4d37e74fd62aec0f0a0bf458b))
 * remove limiting dependency typer-cli ([8208444](https://github.com/equinor/ecalc/commit/820844475c29460f29a44bb7917ed5bd37d4ad45))
@@ -77,7 +77,7 @@
 * ensure neqsim fluid is contained to FluidStream object ([#118](https://github.com/equinor/ecalc/issues/118)) ([d1d6ad6](https://github.com/equinor/ecalc/commit/d1d6ad6fa1c6cfdf4eee428477995c6f163fa11a))
 * enthalpy calculations ([#109](https://github.com/equinor/ecalc/issues/109)) ([a01a215](https://github.com/equinor/ecalc/commit/a01a2153fe904d191150c4ced09257dc45484194))
 * enthalpy calculations ([#110](https://github.com/equinor/ecalc/issues/110)) ([cf7d1a9](https://github.com/equinor/ecalc/commit/cf7d1a9e975fece41b98f4ab6c7bbb3edb562735))
-* imrpove naming and documentation ([94be7fa](https://github.com/equinor/ecalc/commit/94be7fa714a0db20944e9b35d1867d11a0748e7f))
+* improve naming and documentation ([94be7fa](https://github.com/equinor/ecalc/commit/94be7fa714a0db20944e9b35d1867d11a0748e7f))
 * molar_mass_kg_per_mol is not used in the code ([3ea535e](https://github.com/equinor/ecalc/commit/3ea535ef68ead2b600b33319c1ed70907e7ba681))
 * move NeqSimfluid creation into NeqSim wrapper ([57c4b24](https://github.com/equinor/ecalc/commit/57c4b244d6449c6b43bcea75a1f7ed1f82ccfc8c))
 * NeqSim mapping ([#120](https://github.com/equinor/ecalc/issues/120)) ([0a0b2fe](https://github.com/equinor/ecalc/commit/0a0b2fea564c1695bb920145086f23bccac91528))
@@ -93,7 +93,7 @@
 ### Continuous Integration
 
 * create release-please pr against correct branch ([be9426a](https://github.com/equinor/ecalc/commit/be9426a774b8704b2f22e9a83544e07bd92a8808))
-* fix issue with api refernce docs generation ([#44](https://github.com/equinor/ecalc/issues/44)) ([42c1402](https://github.com/equinor/ecalc/commit/42c140269a9e8a6d5f09e9354d14ae51d02f3e81))
+* fix issue with api reference docs generation ([#44](https://github.com/equinor/ecalc/issues/44)) ([42c1402](https://github.com/equinor/ecalc/commit/42c140269a9e8a6d5f09e9354d14ae51d02f3e81))
 * fix syntax for gh action workflow ([d8700dd](https://github.com/equinor/ecalc/commit/d8700dd9bccd40cb4b3bdb75119e0bd47baf3985))
 * Lock pydantic version in CI and update hooks ([#106](https://github.com/equinor/ecalc/issues/106)) ([2ea517e](https://github.com/equinor/ecalc/commit/2ea517e79a34195e561a4897798bd24ef9cae6ae))
 * remove duplicate build of docs ([#62](https://github.com/equinor/ecalc/issues/62)) ([e5b896b](https://github.com/equinor/ecalc/commit/e5b896b9f46a7e13c6d806237c4d4bef44833b77))
