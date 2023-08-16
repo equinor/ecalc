@@ -135,6 +135,24 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
     )
 
 
+@pytest.mark.parametrize(("new_pressure, enthalpy_change"), [(50,120e3), (100,180e3), (200, 400e3)])
+def test_fluid_stream_flash(dry_fluid, new_pressure, enthalpy_change):
+    """ Test calculating z from"""
+
+    regular_fluid_stream = FluidStream(fluid_model=dry_fluid)
+    ml_fluid_stream = FluidStream(fluid_model=dry_fluid,ml_backend=True)
+
+    flashed_stream = regular_fluid_stream.set_new_pressure_and_enthalpy_change(new_pressure=new_pressure, enthalpy_change_joule_per_kg=enthalpy_change)
+    flashed_ml_stream = ml_fluid_stream.set_new_pressure_and_enthalpy_change(new_pressure=new_pressure, enthalpy_change_joule_per_kg=enthalpy_change)
+
+    assert flashed_ml_stream.pressure_bara == flashed_stream.pressure_bara
+    assert flashed_ml_stream.enthalpy_joule_per_kg == pytest.approx(flashed_stream.enthalpy_joule_per_kg)
+    assert flashed_ml_stream.temperature_kelvin == pytest.approx(flashed_stream.temperature_kelvin, 0.03)
+    assert flashed_ml_stream.z == pytest.approx(flashed_stream.z, 0.03)
+    assert flashed_ml_stream.kappa == pytest.approx(flashed_stream.kappa, 0.1)
+    assert flashed_ml_stream.density == pytest.approx(flashed_stream.density, 0.02)
+
+
 def test_fluid_mixing(dry_fluid, rich_fluid):
     """Test mixing two fluids together, check that the order does not change"""
 

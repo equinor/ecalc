@@ -3,12 +3,15 @@ from __future__ import annotations
 from typing import List, Optional, Union
 
 import numpy as np
+import pandas as pd
+from xgboost import XGBRegressor
+
 from libecalc import dto
 from libecalc.common.units import UnitConstants
 from neqsim_ecalc_wrapper import NeqsimFluid
 from neqsim_ecalc_wrapper.thermo import mix_neqsim_streams
 from numpy.typing import NDArray
-
+import skops.io as sio
 
 class FluidStream:
     """Fluid interface used in eCalc compressor train simulation
@@ -25,6 +28,7 @@ class FluidStream:
         pressure_bara: float = UnitConstants.STANDARD_PRESSURE_BARA,
         temperature_kelvin: float = UnitConstants.STANDARD_TEMPERATURE_KELVIN,
         existing_fluid: Optional[NeqsimFluid] = None,
+        ml_backend: Optional[bool] = False
     ):
         """
 
@@ -35,6 +39,7 @@ class FluidStream:
             existing_fluid: Initialize FluidStream from an existing (NeqSim) fluid. Warning: Be mindful of keeping fluid_model and existing fluid consistent. If not the fluid properties may be incorrect.
         """
         self.fluid_model = fluid_model
+        self._ml_backend = ml_backend
 
         if not temperature_kelvin > 0:
             raise ValueError("FluidStream temperature needs to be above 0.")
@@ -62,6 +67,7 @@ class FluidStream:
             and temperature_kelvin == UnitConstants.STANDARD_TEMPERATURE_KELVIN
         ):
             self.standard_conditions_density = _neqsim_fluid_stream.density
+            self.molar_mass_kg_per_mol = _neqsim_fluid_stream.molar_mass
         else:
             _neqsim_fluid_at_standard_conditions = NeqsimFluid.create_thermo_system(
                 composition=self.fluid_model.composition,
@@ -71,6 +77,7 @@ class FluidStream:
             )
 
             self.standard_conditions_density = _neqsim_fluid_at_standard_conditions.density
+            self.molar_mass_kg_per_mol = _neqsim_fluid_at_standard_conditions.molar_mass
 
     @property
     def pressure_bara(self) -> float:
@@ -86,7 +93,11 @@ class FluidStream:
 
     @property
     def density(self) -> float:
-        return self._density
+        if self._ml_backend:
+            return self._pressure_bara*self.molar_mass_kg_per_mol/(self._z*8.314e-5*self._temperature_kelvin)
+        else:
+            return self._density
+
 
     @property
     def z(self) -> float:
@@ -216,19 +227,41 @@ class FluidStream:
             Mew fluid stream flashed to a new pressure and changed enthalpy
 
         """
-        fluid_stream = NeqsimFluid.create_thermo_system(
-            composition=self.fluid_model.composition,
-            temperature_kelvin=self.temperature_kelvin,
-            pressure_bara=self.pressure_bara,
-            eos_model=self.fluid_model.eos_model,
-        )
 
-        fluid_stream = fluid_stream.set_new_pressure_and_enthalpy(
-            new_pressure=new_pressure,
-            new_enthalpy_joule_per_kg=fluid_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg,
-            remove_liquid=remove_liquid,
-        )
-        return FluidStream(existing_fluid=fluid_stream, fluid_model=self.fluid_model)
+        if self._ml_backend:
+            ml_model = XGBRegressor()
+
+            ml_model.load_model("/Users/jorgen.engelsen/dev/ecalc-summer-students-2023/src/machine_learning/trained_model.json")
+
+            comp_dict = dict(self.fluid_model.composition)
+            composition_df = pd.DataFrame([comp_dict])
+
+            df = pd.DataFrame([{"pressure_2": new_pressure, "enthalpy_2": (self.enthalpy_joule_per_kg+enthalpy_change_joule_per_kg)/1000}])
+            X_test = pd.concat([df, composition_df], axis=1).drop(columns="water")
+            X_test = X_test.rename(columns={"n_butane":"n-butane", "n_pentane":"n-pentane", "n_hexane": "n-hexane", "i_pentane": "i-pentane", "i_butane": "i-butane"})
+
+            pred = ml_model.predict(X_test)
+
+            temperature, z, kappa = pred[0,:]
+
+            fluid = FluidStream(fluid_model=self.fluid_model, temperature_kelvin=self.temperature_kelvin, pressure_bara=self.pressure_bara)
+
+            return fluid.update_fluid_stream_properties(temperature_kelvin=temperature+273.15, pressure_bara=new_pressure, enthalpy_joule_per_kg=(self.enthalpy_joule_per_kg+enthalpy_change_joule_per_kg), kappa=kappa, z=z)
+
+        else:
+            fluid_stream = NeqsimFluid.create_thermo_system(
+                composition=self.fluid_model.composition,
+                temperature_kelvin=self.temperature_kelvin,
+                pressure_bara=self.pressure_bara,
+                eos_model=self.fluid_model.eos_model,
+            )
+
+            fluid_stream = fluid_stream.set_new_pressure_and_enthalpy(
+                new_pressure=new_pressure,
+                new_enthalpy_joule_per_kg=fluid_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg,
+                remove_liquid=remove_liquid,
+            )
+            return FluidStream(existing_fluid=fluid_stream, fluid_model=self.fluid_model)
 
     def mix_in_stream(
         self,
@@ -278,3 +311,12 @@ class FluidStream:
             pressure_bara=pressure_bara,
             fluid_model=dto.FluidModel(composition=mixed_fluid_composition, eos_model=self.fluid_model.eos_model),
         )
+
+    def update_fluid_stream_properties(self, temperature_kelvin: float, pressure_bara: float, z: float, kappa: float, enthalpy_joule_per_kg: float):
+        self._pressure_bara = pressure_bara
+        self._temperature_kelvin = temperature_kelvin
+        self._kappa = kappa
+        self._z = z
+        self._enthalpy_joule_per_kg = enthalpy_joule_per_kg
+        return self
+
