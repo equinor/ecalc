@@ -6,13 +6,15 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const math = require('remark-math');
 const katex = require('rehype-katex');
 
+const baseUrl = "/ecalc"
+
 async function createConfig() {
   const mdxMermaid = await import('mdx-mermaid');
   return {
     title: 'eCalc™ Docs',
     tagline: 'Documentation for eCalc™',
     url: 'https://equinor.github.io',
-    baseUrl: '/ecalc/',
+    baseUrl: baseUrl,
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'throw',
     favicon: 'img/favicon.svg',
@@ -126,7 +128,7 @@ async function createConfig() {
       }),
     stylesheets: [
       {
-        href: '/katex/katex.min.css',
+        href: `${baseUrl}/katex/katex.min.css`,
         type: 'text/css',
       },
     ],
