@@ -1,4 +1,3 @@
-import datetime
 import math
 import operator
 from functools import reduce
@@ -10,6 +9,9 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureState
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
+from libecalc.common.time_utils import (
+    define_time_model_for_period,
+)
 from libecalc.common.units import Unit
 from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,
@@ -391,7 +393,7 @@ class GraphResult:
 
     def get_pressures_from_temporal_models(
         self, energy_usage_model: dict, regularity: dict, pressure_type: CompressorPressureState
-    ) -> Dict[datetime.datetime, TimeSeriesFloat]:
+    ) -> TimeSeriesFloat:
         """Extract compressor input pressures from temporal models.
 
         :param energy_usage_model: dictionary of temporal energy models
@@ -400,9 +402,10 @@ class GraphResult:
         :return: inlet- and outlet input pressure time series
         """
 
-        pressures = {}
+        pressures = None
 
-        for time_value, model in energy_usage_model.items():
+        for period, model in TemporalModel(energy_usage_model).items():
+            define_time_model_for_period(time_model_data=model, target_period=period)
             pressure = model.suction_pressure
             if pressure_type.value == pressure_type.OUTLET_PRESSURE:
                 pressure = model.discharge_pressure
@@ -423,8 +426,12 @@ class GraphResult:
                 values=pressure_value,
                 unit=Unit.BARA,
                 regularity=regularity,
-            )
+            ).for_period(period=period)
 
-            pressures[time_value] = pressure_time_series
+            if pressures is not None:
+                pressures = pressures.extend(other=pressure_time_series)
+            else:
+                pressures = pressure_time_series
 
+        pressures = pressures.reindex(self.timesteps, fillna=math.nan)
         return pressures

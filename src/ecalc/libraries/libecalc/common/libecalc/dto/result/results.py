@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
@@ -108,8 +107,8 @@ class CompressorResult(EquipmentResultBase):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
-    requested_inlet_pressure: Dict[datetime, TimeSeriesFloat]
-    requested_outlet_pressure: Dict[datetime, TimeSeriesFloat]
+    requested_inlet_pressure: TimeSeriesFloat
+    requested_outlet_pressure: TimeSeriesFloat
 
 
 class DirectEmitterResult(EquipmentResultBase):

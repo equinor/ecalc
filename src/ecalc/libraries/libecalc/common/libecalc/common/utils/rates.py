@@ -366,11 +366,15 @@ class TimeSeriesFloat(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesFloat:
+    def reindex(
+        self,
+        new_time_vector: Iterable[datetime],
+        fillna: Union[str, float] = 0.0,
+    ) -> TimeSeriesFloat:
         """
         Ensure to map correct value to correct timestep in the final resulting time vector.
         """
-        reindex_values = self.reindex_time_vector(new_time_vector)
+        reindex_values = self.reindex_time_vector(new_time_vector, fillna)
         return TimeSeriesFloat(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
 
 
