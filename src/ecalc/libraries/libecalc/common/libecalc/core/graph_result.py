@@ -403,7 +403,7 @@ class GraphResult:
 
         for period, model in TemporalModel(energy_usage_model).items():
             pressure = model.suction_pressure
-            if pressure_type.value == pressure_type.OUTLET_PRESSURE:
+            if pressure_type.value == CompressorPressureState.OUTLET_PRESSURE:
                 pressure = model.discharge_pressure
 
             if pressure is not None:
