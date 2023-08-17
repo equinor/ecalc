@@ -9,9 +9,6 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureState
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
-from libecalc.common.time_utils import (
-    define_time_model_for_period,
-)
 from libecalc.common.units import Unit
 from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,
@@ -405,7 +402,6 @@ class GraphResult:
         pressures = None
 
         for period, model in TemporalModel(energy_usage_model).items():
-            define_time_model_for_period(time_model_data=model, target_period=period)
             pressure = model.suction_pressure
             if pressure_type.value == pressure_type.OUTLET_PRESSURE:
                 pressure = model.discharge_pressure
