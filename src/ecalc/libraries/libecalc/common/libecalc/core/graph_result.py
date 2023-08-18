@@ -23,6 +23,7 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.base import ComponentType
 from libecalc.dto.graph import Graph
 from libecalc.dto.result.emission import EmissionIntensityResult
+from libecalc.dto.result.results import CompressorResult
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.expression import Expression
@@ -246,31 +247,35 @@ class GraphResult:
                 requested_outlet_pressure = self.get_pressures_from_temporal_models(
                     component.energy_usage_model, component.regularity, CompressorPressureState.OUTLET_PRESSURE
                 )
-
                 sub_components.append(
-                    parse_obj_as(
-                        libecalc.dto.result.ComponentResult,
-                        {
-                            **consumer_result.component_result.dict(),
-                            "name": consumer_node_info.name,
-                            "parent": self.graph.get_predecessor(consumer_id),
-                            "component_level": consumer_node_info.component_level,
-                            "componentType": consumer_node_info.component_type,
-                            "emissions": self._parse_emissions(self.emission_results[consumer_id])
-                            if consumer_id in self.emission_results
-                            else [],
-                            "energy_usage_cumulative": consumer_result.component_result.energy_usage.to_volumes()
-                            .cumulative()
-                            .dict(),
-                            "power_cumulative": consumer_result.component_result.power.to_volumes()
-                            .to_unit(Unit.GIGA_WATT_HOURS)
-                            .cumulative()
-                            .dict()
-                            if consumer_result.component_result.power is not None
-                            else None,
-                            "requested_inlet_pressure": requested_inlet_pressure,
-                            "requested_outlet_pressure": requested_outlet_pressure,
-                        },
+                    CompressorResult(
+                        componentType=consumer_node_info.component_type,
+                        component_level=consumer_node_info.component_level,
+                        name=consumer_node_info.name,
+                        timesteps=self.timesteps,
+                        isValid=consumer_result.component_result.is_valid,
+                        energyUsage=consumer_result.component_result.energy_usage,
+                        energyUsageCumulative=consumer_result.component_result.energy_usage.to_volumes()
+                        .cumulative()
+                        .dict(),
+                        id=consumer_id,
+                        power=consumer_result.component_result.power
+                        if consumer_result.component_result.power is not None
+                        else None,
+                        powerCumulative=consumer_result.component_result.power.to_volumes()
+                        .to_unit(Unit.GIGA_WATT_HOURS)
+                        .cumulative()
+                        .dict()
+                        if consumer_result.component_result.power is not None
+                        else None,
+                        emissions=self._parse_emissions(self.emission_results[consumer_id])
+                        if consumer_id in self.emission_results
+                        else [],
+                        recirculationLoss=consumer_result.component_result.recirculation_loss,
+                        rateExceedsMaximum=consumer_result.component_result.rate_exceeds_maximum,
+                        outletPressureBeforeChoking=consumer_result.component_result.outlet_pressure_before_choking,
+                        requested_inlet_pressure=requested_inlet_pressure,
+                        requested_outlet_pressure=requested_outlet_pressure,
                     )
                 )
             else:
