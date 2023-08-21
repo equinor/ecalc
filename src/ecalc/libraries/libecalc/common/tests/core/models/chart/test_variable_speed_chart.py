@@ -255,7 +255,7 @@ def test_get_efficiency_variable_chart():
 def test_efficiency_as_function_of_rate_and_head_zero_chart_data():
     """Edge case when we create a chart based on generic from input where the design points are rate=0, head=0 and
     a given efficiency such as 95%. For robustness and defencive programming we allow this to happen when asking
-    for efficieny interpolation.
+    for efficiency interpolation.
     """
     chart = VariableSpeedChart(
         dto.VariableSpeedChart(

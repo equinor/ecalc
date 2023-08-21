@@ -1130,7 +1130,7 @@
                             "id": "MAIN_INSTALLATION-consumer-late_start_consumer_evolving_type",
                             "subdiagram": null,
                             "title": "late_start_consumer_evolving_type",
-                            "type": "direct"
+                            "type": "tabulated"
                         },
                         {
                             "id": "MAIN_INSTALLATION-consumer-salt_water_injection_tabular",

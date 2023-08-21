@@ -37,7 +37,7 @@ def argument_callback(
         help="Set the loglevel.",
     ),
     log_folder: Path = typer.Option(None, "--log-folder", help="Store log files in a folder"),
-    version: bool = typer.Option(  # noqa: version option
+    version: bool = typer.Option(
         None,
         "--version",
         help="Show current eCalc\u2122 version.",
@@ -79,7 +79,7 @@ def main():
     except DataValidationError as de:
         logger.error(de.extended_message)
     except Exception as e:
-        logger.exception("An unexpected error occured when running eCalc")  # in order to write to log
+        logger.exception("An unexpected error occurred when running eCalc")  # in order to write to log
         raise e  # in order for Typer to catch it and prettyprint it
 
 

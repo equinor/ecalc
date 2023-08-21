@@ -1,0 +1,44 @@
+TIME_SERIES:
+  - NAME: SIM
+    FILE: production_data.csv
+    TYPE: DEFAULT
+FACILITY_INPUTS:
+  - NAME: genset
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    PRICE: 1.5  # NOK/Sm3
+    EMISSIONS:
+      - NAME: CO2
+        FACTOR: 2.19  # CO2/Sm3 fuel gas burned
+        TAX: 1.5  # NOK/Sm3 fuel gas burned
+        QUOTA: 260  # NOK/ton
+  - NAME: fuel_gas
+    PRICE: 1.5  # NOK/Sm3
+    EMISSIONS:
+      - NAME: CO2
+        FACTOR: 5.19  # CO2/Sm3 fuel gas burned
+        TAX: 1.5  # NOK/Sm3 fuel gas burned
+        QUOTA: 260  # NOK/ton
+
+
+VARIABLES:
+  hydrocarbon_export_sm3_per_day:
+    VALUE: SIM;OIL_PROD {+} SIM;GAS_SALES {/} 1000  # divide the gas rate by 1000 to get oil equivalent
+
+INSTALLATIONS:
+  - NAME: Installation A
+    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
+    FUEL: fuel_gas
+    GENERATORSETS:
+      - NAME: Generator set A
+        ELECTRICITY2FUEL: genset
+        CATEGORY: TURBINE-GENERATOR
+        CONSUMERS:
+          - NAME: Base production load
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 11.8 # MW

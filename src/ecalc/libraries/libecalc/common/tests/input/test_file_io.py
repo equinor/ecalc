@@ -4,9 +4,8 @@ from io import StringIO
 from pathlib import Path
 from typing import IO
 
-import libecalc.input.file_io as file_io
 import pytest
-from libecalc.input import yaml_entities
+from libecalc.input import file_io, yaml_entities
 from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.input.yaml_entities import YamlTimeseriesType
 
@@ -25,6 +24,17 @@ def timeseries_content_missing_value() -> str:
 01.01.2019,    1
 01.01.2020,
 """
+
+
+@pytest.fixture
+def timeseries_resource_with_thousand_spacing(tmp_path):
+    file = tmp_path / "timeseries.csv"
+    file.write_text(
+        """DATE,          GAS_LIFT
+           01.01.2019,    10
+           01.01.2020,    10 000 """
+    )
+    return file
 
 
 @pytest.fixture
@@ -71,6 +81,12 @@ class TestReadTimeseriesResource:
         assert resource.data[0] == ["01.01.2019", "01.01.2020"]
         assert resource.data[1][0] == 1
         assert math.isnan(resource.data[1][1])
+
+    def test_read_timeseries_with_thousand_spacing(self, timeseries_resource_with_thousand_spacing):
+        resource = file_io.read_timeseries_resource(
+            resource_input=timeseries_resource_with_thousand_spacing, timeseries_type=YamlTimeseriesType.DEFAULT
+        )
+        assert resource.data[1] == [10, 10000]
 
 
 @pytest.fixture

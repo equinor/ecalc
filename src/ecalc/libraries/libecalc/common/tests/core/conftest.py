@@ -90,7 +90,7 @@ def pump_variable_speed() -> PumpVariableSpeed:
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=[x * 9.81 for x in data["head"].tolist()],  # meter liquid column to joule /kg
             efficiency_fraction=data["efficiency"].tolist(),
-            speed_rpm=float(speed),  # noqa
+            speed_rpm=float(speed),
         )
         chart_curves.append(chart_curve)
 
@@ -205,16 +205,15 @@ def variable_speed_compressor_chart_dto() -> dto.VariableSpeedChart:
         ],
         columns=["speed", "rate", "head", "efficiency"],
     )
-    chart_curves = []
-    for speed, data in df.groupby("speed"):
-        chart_curves.append(
-            dto.ChartCurve(
-                polytropic_head_joule_per_kg=data["head"].tolist(),
-                rate_actual_m3_hour=data["rate"].tolist(),
-                efficiency_fraction=data["efficiency"].tolist(),
-                speed_rpm=float(speed),  # noqa
-            )
+    chart_curves = [
+        dto.ChartCurve(
+            polytropic_head_joule_per_kg=data["head"].tolist(),
+            rate_actual_m3_hour=data["rate"].tolist(),
+            efficiency_fraction=data["efficiency"].tolist(),
+            speed_rpm=float(speed),
         )
+        for speed, data in df.groupby("speed")
+    ]
 
     return dto.VariableSpeedChart(curves=chart_curves)
 

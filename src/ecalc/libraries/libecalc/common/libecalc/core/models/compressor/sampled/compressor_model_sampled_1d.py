@@ -10,6 +10,7 @@ from libecalc.core.models.compressor.sampled.constants import (
     PS_NAME,
     RATE_NAME,
 )
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 
@@ -119,16 +120,16 @@ class CompressorModelSampled1D:
 
     def evaluate(
         self,
-        rate: Optional[np.ndarray] = None,
-        suction_pressure: Optional[np.ndarray] = None,
-        discharge_pressure: Optional[np.ndarray] = None,
-    ) -> np.ndarray:
+        rate: Optional[NDArray[np.float64]] = None,
+        suction_pressure: Optional[NDArray[np.float64]] = None,
+        discharge_pressure: Optional[NDArray[np.float64]] = None,
+    ) -> NDArray[np.float64]:
         if self._x_column_name == RATE_NAME:
-            return self._energy_function(rate)
+            return np.array(self._energy_function(rate))
         if self._x_column_name == PS_NAME:
-            return self._energy_function(suction_pressure)
+            return np.array(self._energy_function(suction_pressure))
         if self._x_column_name == PD_NAME:
-            return self._energy_function(discharge_pressure)
+            return np.array(self._energy_function(discharge_pressure))
         raise IllegalStateException(
             f"Unknown column name '{self._x_column_name}', allowed column names are '{RATE_NAME}', '{PS_NAME}' or '{PD_NAME}'"
         )

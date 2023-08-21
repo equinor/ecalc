@@ -10,6 +10,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.core.result.emission import EmissionResult
 from libecalc.expression import Expression
+from numpy.typing import NDArray
 
 
 class FuelModel:
@@ -22,7 +23,9 @@ class FuelModel:
         logger.debug("Creating fuel model")
         self.temporal_fuel_model = TemporalModel(fuel_time_function_dict)
 
-    def evaluate_emissions(self, variables_map: dto.VariablesMap, fuel_rate: np.ndarray) -> Dict[str, EmissionResult]:
+    def evaluate_emissions(
+        self, variables_map: dto.VariablesMap, fuel_rate: NDArray[np.float64]
+    ) -> Dict[str, EmissionResult]:
         """Evaluate fuel related expressions and results for a TimeSeriesCollection and a
         fuel_rate array.
 

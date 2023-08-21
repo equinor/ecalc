@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 import pytest
+from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
 
 
@@ -33,9 +34,7 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
     enthalpy_change_joule_per_kg = 100000.0
     pressure_increase_factor = 3.0
 
-    inlet_enthalpies_all_fluids = [
-        np.asarray([s._neqsim_fluid_stream.enthalpy_joule_per_kg for s in stream]) for stream in fluid_streams
-    ]
+    inlet_enthalpies_all_fluids = [np.asarray([s.enthalpy_joule_per_kg for s in stream]) for stream in fluid_streams]
 
     new_enthalpies_all_fluids = [
         enthalpy_array + enthalpy_change_joule_per_kg for enthalpy_array in inlet_enthalpies_all_fluids
@@ -128,10 +127,40 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
         )
     ]
     new_enthalpies_all_fluids_after_setting_new_temperature = [
-        np.asarray([s._neqsim_fluid_stream.enthalpy_joule_per_kg for s in streams])
-        for streams in streams_with_new_pressure_and_temperature
+        np.asarray([s.enthalpy_joule_per_kg for s in streams]) for streams in streams_with_new_pressure_and_temperature
     ]
     np.testing.assert_allclose(
         new_enthalpies_all_fluids_after_setting_new_temperature,
         new_enthalpies_all_fluids,
     )
+
+
+def test_fluid_mixing(dry_fluid, rich_fluid):
+    """Test mixing two fluids together, check that the order does not change"""
+
+    dry_fluid_stream = FluidStream(fluid_model=dry_fluid)
+    rich_fluid_stream = FluidStream(fluid_model=rich_fluid)
+
+    mix_rich_into_dry = dry_fluid_stream.mix_in_stream(
+        other_fluid_stream=rich_fluid_stream,
+        self_mass_rate=1,
+        other_mass_rate=1,
+        pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
+        temperature_kelvin=270,
+    )
+    mix_dry_into_rich = rich_fluid_stream.mix_in_stream(
+        other_fluid_stream=dry_fluid_stream,
+        self_mass_rate=1,
+        other_mass_rate=1,
+        pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
+        temperature_kelvin=270,
+    )
+
+    assert (
+        mix_rich_into_dry.standard_conditions_density == mix_dry_into_rich.standard_conditions_density
+    )  # Order of mixing should not matter
+    assert (
+        mix_rich_into_dry.standard_conditions_density != mix_rich_into_dry.density
+    )  # Check that the mixing conditions are set correctly, since we are not at standard conditions it should not be equal
+    np.testing.assert_allclose(actual=mix_rich_into_dry.density, desired=0.888741, rtol=1e-5)
+    np.testing.assert_allclose(actual=mix_dry_into_rich.standard_conditions_density, desired=0.832155, rtol=1e-5)

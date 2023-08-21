@@ -81,6 +81,12 @@
               },
               "INLET_TEMPERATURE": {
                 "$ref": "#/definitions/INLET_TEMPERATURE"
+              },
+              "CONTROL_MARGIN": {
+                    "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN"
+                  },
+              "CONTROL_MARGIN_UNIT": {
+                "$ref": "$SERVER_NAME/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN_UNIT"
               }
             },
             "additionalProperties": false,

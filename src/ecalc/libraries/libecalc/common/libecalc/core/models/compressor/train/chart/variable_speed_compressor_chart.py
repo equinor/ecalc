@@ -13,6 +13,7 @@ from libecalc.core.models.compressor.train.chart.types import (
     CompressorChartResult,
 )
 from libecalc.dto.types import ChartAreaFlag
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 NUMERICAL_TOLERANCE = 1e-7
@@ -75,7 +76,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
 
     def get_maximum_rate(
         self,
-        heads: np.ndarray,
+        heads: NDArray[np.float64],
         extrapolate_heads_below_minimum: bool,
     ):
         """The maximum rate for a given head value, will in general be defined by the maximum speed curve
@@ -105,8 +106,8 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
 
     def evaluate_capacity_and_extrapolate_below_minimum(
         self,
-        actual_volume_rates: np.ndarray,
-        heads: Union[np.ndarray, float],
+        actual_volume_rates: NDArray[np.float64],
+        heads: Union[NDArray[np.float64], float],
         extrapolate_heads_below_minimum: bool,
     ) -> CompressorChartResult:
         """Evaluate if (rate, head)-point is inside chart

@@ -8,11 +8,16 @@ from typing import Literal, NamedTuple
 
 import pandas as pd
 import pytest
+import yaml
 from cli import main
 from cli.commands import show
+from libecalc.common.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
+from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.examples import advanced, simple
 from libecalc.fixtures.cases import ltp_export
+from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.input.yaml_entities import ResourceStream
 from pydantic import Protocol
 from typer.testing import CliRunner
 
@@ -22,6 +27,26 @@ runner = CliRunner()
 @pytest.fixture(scope="session")
 def simple_yaml_path():
     return (Path(simple.__file__).parent / "model.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
+def simple_temporal_yaml_path():
+    return (Path(simple.__file__).parent / "model_temporal.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
+def simple_duplicate_names_yaml_path():
+    return (Path(simple.__file__).parent / "model_duplicate_names.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
+def simple_multiple_energy_models_yaml_path():
+    return (Path(simple.__file__).parent / "model_multiple_energy_models_one_consumer.yaml").absolute()
+
+
+@pytest.fixture(scope="session")
+def simple_duplicate_emissions_yaml_path():
+    return (Path(simple.__file__).parent / "model_duplicate_emissions_in_fuel.yaml").absolute()
 
 
 @pytest.fixture(scope="session")
@@ -137,6 +162,62 @@ class TestCsvOutput:
         with open(run_csv_output_file) as csv_file:
             csv_data = csv_file.read()
             snapshot.assert_match(csv_data, snapshot_name=run_csv_output_file.name)
+
+    @pytest.mark.snapshot
+    def test_csv_temporal_default(self, simple_temporal_yaml_path, simple_yaml_path, tmp_path, snapshot):
+        """
+        Check that reindex works and results are correct when using temporal models.
+        The temporal model is simple, and should not change the results compared to
+        the basic model.
+        """
+
+        run_name_prefix = "test"
+        run_name_prefix_temporal = "test_temporal"
+
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=simple_yaml_path,
+                csv=True,
+                output_folder=tmp_path,
+                name_prefix=run_name_prefix,
+                output_frequency="YEAR",
+            ),
+            catch_exceptions=False,
+        )
+
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=simple_temporal_yaml_path,
+                csv=True,
+                output_folder=tmp_path,
+                name_prefix=run_name_prefix_temporal,
+                output_frequency="YEAR",
+            ),
+            catch_exceptions=False,
+        )
+        run_csv_output_file = tmp_path / f"{run_name_prefix}.csv"
+        run_csv_temporal_output_file = tmp_path / f"{run_name_prefix_temporal}.csv"
+
+        assert run_csv_output_file.is_file()
+        assert run_csv_temporal_output_file.is_file()
+        csv_file = open(run_csv_output_file).read()
+        csv_temporal_file = open(run_csv_temporal_output_file).read()
+
+        # First check that snapshots are ok
+        snapshot.assert_match(csv_file, snapshot_name=run_csv_output_file.name)
+        snapshot.assert_match(csv_temporal_file, snapshot_name=run_csv_temporal_output_file.name)
+
+        # Then compare with- and without temporal model, result should be the same;
+        # only column name is different due to different yaml-files.
+        df_basic = pd.read_csv(run_csv_output_file)
+        df_temporal = pd.read_csv(run_csv_temporal_output_file)
+
+        # Rename column names to make headings identical, before comparing
+        df_temporal.columns = df_temporal.columns.str.replace("model_temporal", "model")
+
+        assert df_temporal.equals(df_basic)
 
     def test_operational_settings_used_available(self, advanced_yaml_path, tmp_path):
         """Check that we are providing operational settings used for systems."""
@@ -465,6 +546,44 @@ class TestShowResultsCommand:
         output_text = result.stdout
         snapshot.assert_match(output_text, snapshot_name="results_resampled.csv")
 
+    @pytest.mark.snapshot
+    def test_json_resampled(self, simple_run, monkeypatch, snapshot):
+        """
+        TEST REASON and SCOPE: That resampled json follows json schema
+
+        Testing the resample json from a representative model in order to make
+        sure that the resampled json is correctly changing the json according to
+        our schema. Not testing this may easily lead to json that violates the schema
+        when e.g. new data types are introduced. This test should make sure we have
+        control of that. This was added after a bug in resampling was found, where
+        resampling was creating different json than without resampling, and that
+        the json was invalid.
+
+        Args:
+            simple_run:
+            monkeypatch:
+            snapshot:
+
+        Returns:
+
+        """
+        result = runner.invoke(
+            show.app,
+            [
+                "results",
+                "--output-format",
+                "json",
+                "--output-folder",
+                str(simple_run.output_folder),
+                "--output-frequency",
+                "YEAR",
+            ],
+            catch_exceptions=False,
+        )
+
+        output_text = result.stdout
+        snapshot.assert_match(output_text, snapshot_name="results_resampled.json")
+
     def test_json_custom_date_format(self, simple_run, monkeypatch, snapshot):
         result = runner.invoke(
             show.app,
@@ -541,3 +660,112 @@ class TestShowResultsCommand:
 
         output_text = result.stdout
         snapshot.assert_match(output_text, snapshot_name="results.json")
+
+
+class TestYamlFile:
+    def test_yaml_file_error(self):
+        """
+        TEST SCOPE: Check error message when Yaml file name is wrong.
+
+        A file name with ´.´ in the file stem should not be accepted. The error message
+        should be understandable for the user.
+
+        Args:
+            simple model file with bad name:
+
+        Returns:
+
+        """
+
+        yaml_wrong_name = (Path("test.name.yaml")).absolute()
+        yaml_reader = PyYamlYamlModel.YamlReader(loader=yaml.SafeLoader)
+        stream = StringIO("")
+        yaml_stream = ResourceStream(name=yaml_wrong_name.name, stream=stream)
+
+        with pytest.raises(EcalcError) as ee:
+            yaml_reader.load(yaml_file=yaml_stream)
+
+        assert (
+            f"The model file, {yaml_wrong_name.name}, contains illegal special characters. "
+            f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}" in str(ee.value)
+        )
+
+    def test_yaml_duplicate_fuel(self, simple_duplicate_names_yaml_path, tmp_path):
+        """
+        TEST SCOPE: Check that duplicate fuel type names are not allowed in Yaml file.
+
+        Args:
+            simple model file with duplicate fuel names:
+
+        Returns:
+
+        """
+        with pytest.raises(ValueError) as exc_info:
+            runner.invoke(
+                main.app,
+                _get_args(
+                    model_file=simple_duplicate_names_yaml_path,
+                    csv=True,
+                    output_folder=tmp_path,
+                    name_prefix="test",
+                    output_frequency="YEAR",
+                ),
+                catch_exceptions=False,
+            )
+
+        assert "Duplicated names are: fuel_gas" in str(exc_info.value)
+
+    def test_yaml_duplicate_emissions_in_fuel(self, simple_duplicate_emissions_yaml_path, tmp_path):
+        """
+        TEST SCOPE: Check that duplicate emission names for one fuel type are not allowed in Yaml file.
+
+        Args:
+            simple model file with duplicate emission names:
+
+        Returns:
+
+        """
+        with pytest.raises(ValueError) as exc_info:
+            runner.invoke(
+                main.app,
+                _get_args(
+                    model_file=simple_duplicate_emissions_yaml_path,
+                    csv=True,
+                    output_folder=tmp_path,
+                    name_prefix="test",
+                    output_frequency="YEAR",
+                ),
+                catch_exceptions=False,
+            )
+
+        assert "Emission names must be unique for each fuel type. " "Duplicated names are: CO2,CH4" in str(
+            exc_info.value
+        )
+
+    def test_yaml_multiple_energy_models_one_consumer(self, simple_multiple_energy_models_yaml_path, tmp_path):
+        """
+        TEST SCOPE: Check that multiple energy models for one consumer are not allowed in Yaml file.
+
+        Args:
+            simple model file with energy models for one consumer:
+
+        Returns:
+
+        """
+        with pytest.raises(ValueError) as exc_info:
+            runner.invoke(
+                main.app,
+                _get_args(
+                    model_file=simple_multiple_energy_models_yaml_path,
+                    csv=True,
+                    output_folder=tmp_path,
+                    name_prefix="test",
+                    output_frequency="YEAR",
+                ),
+                catch_exceptions=False,
+            )
+
+        assert (
+            "Energy model type cannot change over time within a single consumer. "
+            "The model type is changed for gasinj: ['DIRECT', 'COMPRESSOR']" in str(exc_info.value)
+        )

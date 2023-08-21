@@ -119,7 +119,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 14995200.0,
                                 14995200.0
                             ],
@@ -139,6 +139,10 @@
                                 ]
                             },
                             "name": "N/A",
+                            "operational_head": [
+                                10000000.0,
+                                10000000.0
+                            ],
                             "outlet_pressure_bar": [
                                 250.0,
                                 250.0
@@ -181,7 +185,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -201,6 +205,10 @@
                                 ]
                             },
                             "name": "N/A",
+                            "operational_head": [
+                                10000000.0,
+                                10000000.0
+                            ],
                             "outlet_pressure_bar": [
                                 250.0,
                                 250.0
@@ -243,7 +251,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -263,6 +271,10 @@
                                 ]
                             },
                             "name": "N/A",
+                            "operational_head": [
+                                10000000.0,
+                                10000000.0
+                            ],
                             "outlet_pressure_bar": [
                                 250.0,
                                 250.0
@@ -307,7 +319,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 7495200.0,
                                 7495200.0
                             ],
@@ -327,6 +339,10 @@
                                 ]
                             },
                             "name": "N/A",
+                            "operational_head": [
+                                3750000.0,
+                                3750000.0
+                            ],
                             "outlet_pressure_bar": [
                                 125.0,
                                 125.0
@@ -369,7 +385,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -389,6 +405,10 @@
                                 ]
                             },
                             "name": "N/A",
+                            "operational_head": [
+                                3750000.0,
+                                3750000.0
+                            ],
                             "outlet_pressure_bar": [
                                 125.0,
                                 125.0
@@ -431,7 +451,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -451,6 +471,10 @@
                                 ]
                             },
                             "name": "N/A",
+                            "operational_head": [
+                                3750000.0,
+                                3750000.0
+                            ],
                             "outlet_pressure_bar": [
                                 125.0,
                                 125.0
@@ -528,7 +552,7 @@
                             NaN
                         ]
                     },
-                    "inlet_liquid_rate_m3_per_d": [
+                    "inlet_liquid_rate_m3_per_day": [
                         7495200.0,
                         7495200.0
                     ],
@@ -548,6 +572,10 @@
                         ]
                     },
                     "name": "N/A",
+                    "operational_head": [
+                        3750000.0,
+                        3750000.0
+                    ],
                     "outlet_pressure_bar": [
                         125.0,
                         125.0
@@ -590,7 +618,7 @@
                             NaN
                         ]
                     },
-                    "inlet_liquid_rate_m3_per_d": [
+                    "inlet_liquid_rate_m3_per_day": [
                         2400.0,
                         2400.0
                     ],
@@ -610,6 +638,10 @@
                         ]
                     },
                     "name": "N/A",
+                    "operational_head": [
+                        3750000.0,
+                        3750000.0
+                    ],
                     "outlet_pressure_bar": [
                         125.0,
                         125.0
@@ -652,7 +684,7 @@
                             NaN
                         ]
                     },
-                    "inlet_liquid_rate_m3_per_d": [
+                    "inlet_liquid_rate_m3_per_day": [
                         2400.0,
                         2400.0
                     ],
@@ -672,6 +704,10 @@
                         ]
                     },
                     "name": "N/A",
+                    "operational_head": [
+                        3750000.0,
+                        3750000.0
+                    ],
                     "outlet_pressure_bar": [
                         125.0,
                         125.0
@@ -749,7 +785,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 14995200.0,
                                 14995200.0
                             ],
@@ -769,6 +805,10 @@
                                 ]
                             },
                             "name": "pump1",
+                            "operational_head": [
+                                10000000.0,
+                                10000000.0
+                            ],
                             "outlet_pressure_bar": [
                                 250.0,
                                 250.0
@@ -811,7 +851,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -831,6 +871,10 @@
                                 ]
                             },
                             "name": "pump2",
+                            "operational_head": [
+                                10000000.0,
+                                10000000.0
+                            ],
                             "outlet_pressure_bar": [
                                 250.0,
                                 250.0
@@ -873,7 +917,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -893,6 +937,10 @@
                                 ]
                             },
                             "name": "pump3",
+                            "operational_head": [
+                                10000000.0,
+                                10000000.0
+                            ],
                             "outlet_pressure_bar": [
                                 250.0,
                                 250.0
@@ -937,7 +985,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 7495200.0,
                                 7495200.0
                             ],
@@ -957,6 +1005,10 @@
                                 ]
                             },
                             "name": "pump1",
+                            "operational_head": [
+                                3750000.0,
+                                3750000.0
+                            ],
                             "outlet_pressure_bar": [
                                 125.0,
                                 125.0
@@ -999,7 +1051,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -1019,6 +1071,10 @@
                                 ]
                             },
                             "name": "pump2",
+                            "operational_head": [
+                                3750000.0,
+                                3750000.0
+                            ],
                             "outlet_pressure_bar": [
                                 125.0,
                                 125.0
@@ -1061,7 +1117,7 @@
                                     NaN
                                 ]
                             },
-                            "inlet_liquid_rate_m3_per_d": [
+                            "inlet_liquid_rate_m3_per_day": [
                                 2400.0,
                                 2400.0
                             ],
@@ -1081,6 +1137,10 @@
                                 ]
                             },
                             "name": "pump3",
+                            "operational_head": [
+                                3750000.0,
+                                3750000.0
+                            ],
                             "outlet_pressure_bar": [
                                 125.0,
                                 125.0
@@ -1158,7 +1218,7 @@
                             NaN
                         ]
                     },
-                    "inlet_liquid_rate_m3_per_d": [
+                    "inlet_liquid_rate_m3_per_day": [
                         7495200.0,
                         7495200.0
                     ],
@@ -1178,6 +1238,10 @@
                         ]
                     },
                     "name": "pump1",
+                    "operational_head": [
+                        3750000.0,
+                        3750000.0
+                    ],
                     "outlet_pressure_bar": [
                         125.0,
                         125.0
@@ -1220,7 +1284,7 @@
                             NaN
                         ]
                     },
-                    "inlet_liquid_rate_m3_per_d": [
+                    "inlet_liquid_rate_m3_per_day": [
                         2400.0,
                         2400.0
                     ],
@@ -1240,6 +1304,10 @@
                         ]
                     },
                     "name": "pump2",
+                    "operational_head": [
+                        3750000.0,
+                        3750000.0
+                    ],
                     "outlet_pressure_bar": [
                         125.0,
                         125.0
@@ -1282,7 +1350,7 @@
                             NaN
                         ]
                     },
-                    "inlet_liquid_rate_m3_per_d": [
+                    "inlet_liquid_rate_m3_per_day": [
                         2400.0,
                         2400.0
                     ],
@@ -1302,6 +1370,10 @@
                         ]
                     },
                     "name": "pump3",
+                    "operational_head": [
+                        3750000.0,
+                        3750000.0
+                    ],
                     "outlet_pressure_bar": [
                         125.0,
                         125.0

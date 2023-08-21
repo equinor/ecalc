@@ -1,6 +1,7 @@
-from typing import Dict
+from typing import Dict, List
 
 from libecalc.common.logger import logger
+from libecalc.dto.utils.string_utils import get_duplicates
 from libecalc.input.mappers.facility_input import FacilityInputMapper
 from libecalc.input.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.input.mappers.model import ModelMapper
@@ -26,14 +27,86 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
         facility_inputs=facility_inputs_from_files,
         resources=resources,
     )
+
+    duplicated_fuel_names = get_duplicates(
+        [fuel_data.get(EcalcYamlKeywords.name) for fuel_data in configuration.fuel_types]
+    )
+
+    if len(duplicated_fuel_names) > 0:
+        raise ValueError(
+            "Fuel type names must be unique across installations."
+            f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
+        )
+
+    fuel_types_emissions = [list(fuel_data[EcalcYamlKeywords.emissions]) for fuel_data in configuration.fuel_types]
+
+    # Check each fuel for duplicated emissions
+    duplicated_emissions = []
+    for emissions in fuel_types_emissions:
+        duplicated_emissions.append(get_duplicates([emission.get(EcalcYamlKeywords.name) for emission in emissions]))
+
+    duplicated_emissions_names = ",".join(name for string in duplicated_emissions for name in string if len(string) > 0)
+
+    if len(duplicated_emissions_names) > 0:
+        raise ValueError(
+            "Emission names must be unique for each fuel type." f" Duplicated names are: {duplicated_emissions_names}"
+        )
+
     fuel_types = {
         fuel_data.get(EcalcYamlKeywords.name): FuelMapper.from_yaml_to_dto(fuel_data)
         for fuel_data in configuration.fuel_types
     }
+
+    consumers_installations = []
+    for installation in configuration.installations:
+        if installation.get(EcalcYamlKeywords.generator_sets) is not None:
+            consumers_installations.append(
+                [
+                    consumer
+                    for consumers in installation[EcalcYamlKeywords.generator_sets]
+                    for consumer in consumers[EcalcYamlKeywords.consumers]
+                ]
+            )
+
+        if installation.get(EcalcYamlKeywords.fuel_consumers) is not None:
+            consumers_installations.append(list(installation[EcalcYamlKeywords.fuel_consumers]))
+
+    check_multiple_energy_models(consumers_installations)
+
     return References(
         models=models,
         fuel_types=fuel_types,
     )
+
+
+def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
+    """
+    Check for different energy model types within one consumer.
+    Raises value error if different energy model types found within one consumer.
+
+    Args:
+        consumers_installations (List[List[Dict]]): List of consumers per installation
+
+    Returns:
+        None
+    """
+    for consumers in consumers_installations:
+        for consumer in consumers:
+            energy_models = []
+
+            # Check if key exists: ENERGY_USAGE_MODEL.
+            # Consumer system v2 has different structure/naming: test fails when looking for key ENERGY_USAGE_MODEL
+            if EcalcYamlKeywords.energy_usage_model in consumer:
+                for model in consumer[EcalcYamlKeywords.energy_usage_model].values():
+                    if isinstance(model, dict):
+                        for key, value in model.items():
+                            if key == EcalcYamlKeywords.type and value not in energy_models:
+                                energy_models.append(value)
+            if len(energy_models) > 1:
+                raise ValueError(
+                    "Energy model type cannot change over time within a single consumer."
+                    f" The model type is changed for {consumer[EcalcYamlKeywords.name]}: {energy_models}"
+                )
 
 
 def create_model_references(models_yaml_config, facility_inputs: Dict, resources: Resources):

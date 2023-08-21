@@ -48,7 +48,7 @@ class GraphResult:
     ):
         hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
         emission_intensities = []
-        for key in emissions.keys():
+        for key in emissions:
             cumulative_rate_kg = emissions[key].rate.to_volumes().to_unit(Unit.KILO).cumulative()
             intensity_sm3 = cumulative_rate_kg / hydrocarbon_export_cumulative
             intensity_yearly_sm3 = compute_emission_intensity_by_yearly_buckets(
@@ -191,7 +191,7 @@ class GraphResult:
                 quota_cumulative=emissions[key].quota.to_volumes().cumulative(),
                 tax_cumulative=emissions[key].tax.to_volumes().cumulative(),
             )
-            for key in emissions.keys()
+            for key in emissions
         }
 
     def get_asset_result(self) -> libecalc.dto.result.EcalcModelResult:

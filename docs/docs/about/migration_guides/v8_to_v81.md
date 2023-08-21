@@ -101,14 +101,14 @@ to be in separate files.
 ### 3. Empty data in time series columns no longer allowed
 
 Each column in a time series resource should have data for all time steps, eCalc™ will now show an error if this is not the case. 
-The reason behind this is that it can be ambigious to know whether missing data should be interpolated or considered as 0. Now
+The reason behind this is that it can be ambiguous to know whether missing data should be interpolated or considered as 0. Now
 users will have to be explicit, and this will lead to fewer ambiguities and errors.
 
 ### 4.  New LTP Category: STEAM-TURBINE-GENERATOR
 
 A new LTP requirement to report steam turbine generator consumption/generation. This affects the total generator production 
 negatively (reduced load), as some energy is provided through this steam turbine generator. It is therefore modelled as a consumer 
-with a negative load in order to substract from the total energy provided by the generator set. 
+with a negative load in order to subtract from the total energy provided by the generator set. 
 
 The load on the steam turbine generator is reported separately in a new column in LTP Export.
 

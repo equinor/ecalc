@@ -99,7 +99,7 @@ and making a pull request.
 
 See [Contribution Document](CONTRIBUTING.md) on how to contribute.
 
-See the [Developer Guide](https://equinor.github.io/ecalc/category/developer-guide) for details.
+See the [Developer Guide](https://equinor.github.io/ecalc/docs/contribute/get-started) for details.
 
 ## Examples
 Jupyter Notebook examples can be found in /examples. In order to run these examples, you need to install the optional

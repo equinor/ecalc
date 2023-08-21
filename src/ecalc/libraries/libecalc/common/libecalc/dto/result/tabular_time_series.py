@@ -37,13 +37,14 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                         tabular_df = item.to_dataframe(prefix=item.name)
                         df = df.join(tabular_df)
 
-            elif isinstance(attribute_value, dict):
-                if len(attribute_value) > 0 and all(
-                    isinstance(item, TabularTimeSeries) for item in attribute_value.values()
-                ):
-                    for item in attribute_value.values():
-                        tabular_df = item.to_dataframe(prefix=item.name)
-                        df = df.join(tabular_df)
+            elif (
+                isinstance(attribute_value, dict)
+                and len(attribute_value) > 0
+                and all(isinstance(item, TabularTimeSeries) for item in attribute_value.values())
+            ):
+                for item in attribute_value.values():
+                    tabular_df = item.to_dataframe(prefix=item.name)
+                    df = df.join(tabular_df)
 
         if prefix is not None:
             df = df.add_prefix(prefix=f"{prefix}.")
@@ -51,6 +52,18 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
         return df
 
     def resample(self, freq: Frequency) -> Self:
+        """
+        Immutable - returns a copy of itself
+
+        Resample the given time series to the new Frequency given. Only data
+        that is defined as a timeseries will be resampled.
+
+        Args:
+            freq: which frequency to resample to
+
+        Returns: return a copy of itself with all data resampled to given frequency
+
+        """
         if freq == freq.NONE:
             return self.copy()
         resampled = self.copy()
@@ -64,7 +77,13 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
 
             elif isinstance(values, dict):
                 if len(values) > 0 and all(isinstance(item, TabularTimeSeries) for item in values.values()):
-                    resampled.__setattr__(attribute, [item.resample(freq) for item in values.values()])
+                    resampled.__setattr__(attribute, {key: item.resample(freq) for key, item in values.items()})
+                else:
+                    # NOTE: Operational settings are not resampled. Should add support?
+                    pass
+            else:
+                # NOTE: turbine_result is not resampled. Should add support?
+                pass
 
         resampled.timesteps = (
             pd.date_range(start=self.timesteps[0], end=self.timesteps[-1], freq=freq.value).to_pydatetime().tolist()

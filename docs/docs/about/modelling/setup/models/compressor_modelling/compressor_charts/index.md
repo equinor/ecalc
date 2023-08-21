@@ -5,7 +5,7 @@ description: Introduction into compressor charts
 ---
 
 # Compressor chart
-The compressor chart is used to setup a model of each compressor. eCalc™ currently support four ways to setup a
+The compressor chart is used to set up a model of each compressor. eCalc™ currently support four ways to set up a
 compressor chart
 
 - Predefined single speed chart
@@ -15,7 +15,7 @@ compressor chart
 
 ## User defined single speed compressor chart
 
-The single speed chart type allows a single compressor curve for one speed.
+The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](../../../../../references/keywords/CURVE.md)
 
 ### Format
 ~~~~~~~~yaml
@@ -69,7 +69,7 @@ CURVE:
 ~~~~~~~~
 :::
 ## User defined variable speed compressor chart
-The variable speed chart type allows a fully defined compressor chart with data for two or more speeds. The upper and
+The variable speed chart type allows a fully defined compressor chart with data for two or more speeds, using the keyword [CURVES](../../../../../references/keywords/CURVES.md). The upper and
 lower speed curves will be interpreted as the speed capacity limits for the chart. 
 Whilst the lowest rate points on each of the upper and lower speed curves will define the minimum flow line for the compressor. 
 
@@ -227,7 +227,7 @@ However, in this case the design point is not specified when setting up the mode
 An algorithm is used to set a design point such that all the input data is within the capacity. 
 Even if there is a large spread in the data, all data points will solve. High rate/head data points will just be covered by the curve; whilst low rate points outside the minimum flow point will have recirculation. 
 
-This method has one major potential downside in comparison to the `Generic compressor chart with predefined design point`. As all data points will be covered by the compressor curve, if there is an extremely large or unrealistic head or rate value, the other more "normal" data points will be impacted and will either result in a large head adjustement (via upstream/downstream choking) or it will have a large recirculation rate. This has the potential to skew the entire data set solely due to one unrealistic data point.  Thus, if this generic chart is utilised it is important to make sure that unrealistic data is filtered out.
+This method has one major potential downside in comparison to the `Generic compressor chart with predefined design point`. As all data points will be covered by the compressor curve, if there is an extremely large or unrealistic head or rate value, the other more "normal" data points will be impacted and will either result in a large head adjustment (via upstream/downstream choking) or it will have a large recirculation rate. This has the potential to skew the entire data set solely due to one unrealistic data point.  Thus, if this generic chart is utilised it is important to make sure that unrealistic data is filtered out.
 
 ### Format
 ~~~~~~~~yaml
@@ -247,6 +247,8 @@ MODELS:
     TYPE: COMPRESSOR_CHART
     CHART_TYPE: GENERIC_FROM_INPUT
     POLYTROPIC_EFFICIENCY: 0.75
+    UNITS:
+      EFFICIENCY: FRACTION
 ~~~~~~~~
 
 ## Surge control margin for variable speed compressor chart

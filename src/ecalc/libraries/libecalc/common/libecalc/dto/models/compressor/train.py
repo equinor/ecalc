@@ -156,7 +156,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
 
     @property
     def has_interstage_pressure(self):
-        return any([stage.has_control_pressure for stage in self.stages])
+        return any(stage.has_control_pressure for stage in self.stages)
 
     @property
     def stage_number_interstage_pressure(self):

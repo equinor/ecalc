@@ -10,6 +10,7 @@ from libecalc.common.utils.adjustment import transform_linear
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.results import PumpModelResult
+from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 EPSILON = 1e-15
@@ -23,10 +24,10 @@ class PumpModel(BaseModel):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-        fluid_density: Union[np.ndarray, float] = 1,
-    ) -> np.ndarray:
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+        fluid_density: Union[NDArray[np.float64], float] = 1,
+    ) -> NDArray[np.float64]:
         """:param suction_pressures: Suction pressure per time-step
         :param discharge_pressures: Discharge pressure per time-step
         :param fluid_density:
@@ -38,34 +39,36 @@ class PumpModel(BaseModel):
         head = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=density)
         max_rate = self._max_flow_func(head) * UnitConstants.HOURS_PER_DAY
 
-        return max_rate
+        return np.array(max_rate)
 
     @abstractmethod
     def evaluate_rate_ps_pd_density(
         self,
-        rate: np.ndarray,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-        fluid_density: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+        fluid_density: NDArray[np.float64],
     ) -> PumpModelResult:
         pass
 
     @staticmethod
-    def _calculate_head(ps: np.ndarray, pd: np.ndarray, density: Union[np.ndarray, float]) -> np.ndarray:
+    def _calculate_head(
+        ps: NDArray[np.float64], pd: NDArray[np.float64], density: Union[NDArray[np.float64], float]
+    ) -> NDArray[np.float64]:
         """:return: Head in joule per kg [J/kg]"""
-        return Unit.BARA.to(Unit.PASCAL)(pd - ps) / density
+        return np.array(Unit.BARA.to(Unit.PASCAL)(pd - ps) / density)
 
     @staticmethod
     def _calculate_power(
-        densities: np.ndarray,
-        heads_joule_per_kg: np.ndarray,
-        efficiencies: Union[np.ndarray, float],
-        rates: np.ndarray,
-    ) -> np.ndarray:
+        densities: NDArray[np.float64],
+        heads_joule_per_kg: NDArray[np.float64],
+        efficiencies: Union[NDArray[np.float64], float],
+        rates: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """Calculate pump power in MW from densities, heads, rates and efficiencies
         heads [J/kg].
         """
-        return (
+        return np.array(
             densities
             * heads_joule_per_kg
             * rates
@@ -107,10 +110,10 @@ class PumpVariableSpeed(PumpModel):
 
     def evaluate_rate_ps_pd_density(
         self,
-        rate: np.ndarray,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-        fluid_density: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+        fluid_density: NDArray[np.float64],
     ) -> PumpModelResult:
         """Simulate a single pump with variable speed.
 
@@ -131,15 +134,15 @@ class PumpVariableSpeed(PumpModel):
         rates_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
 
         # Head [J/kg] calculation (for pump  with density).
-        heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
+        operational_heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
 
         # Adjust rates according to minimum flow line (recirc left of this line)
-        minimum_flow_at_head = self.pump_chart.minimum_rate_as_function_of_head(heads)
+        minimum_flow_at_head = self.pump_chart.minimum_rate_as_function_of_head(operational_heads)
         rates_m3_per_hour = np.fmax(rates_m3_per_hour, minimum_flow_at_head + EPSILON)
 
         # Adjust head according to minimum head line (choking below this line)
         minimum_head_at_rate = self.pump_chart.minimum_head_as_function_of_rate(rates_m3_per_hour)
-        heads = np.fmax(heads, minimum_head_at_rate + EPSILON)
+        heads = np.fmax(operational_heads, minimum_head_at_rate + EPSILON)
 
         maximum_head_at_rate = self.pump_chart.maximum_head_as_function_of_rate(rates_m3_per_hour)
 
@@ -154,7 +157,7 @@ class PumpVariableSpeed(PumpModel):
         and can be calculated) Those that fall outside the working area, means that this pump(s) is not able to handle
         those rates/heads (alone)
         """
-        points_in_envelope: np.ndarray = np.argwhere(
+        points_in_envelope: NDArray[np.float64] = np.argwhere(
             (rates_m3_per_hour <= self.pump_chart.maximum_rate) & (heads <= maximum_head_at_rate)
         )[:, 0]
         logger.debug(
@@ -203,12 +206,13 @@ class PumpVariableSpeed(PumpModel):
             suction_pressure=list(suction_pressures),
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_density),
+            operational_head=list(operational_heads),
         )
 
         return pump_result
 
 
-def _adjust_for_head_margin(heads: np.ndarray, maximum_heads: np.ndarray, head_margin: float):
+def _adjust_for_head_margin(heads: NDArray[np.float64], maximum_heads: NDArray[np.float64], head_margin: float):
     """A method which adjust heads and set head equal to maximum head if head is above maximum
     but below maximum + head margin.
 
@@ -250,10 +254,10 @@ class PumpSingleSpeed(PumpModel):
 
     def evaluate_rate_ps_pd_density(
         self,
-        rate: np.ndarray,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-        fluid_density: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+        fluid_density: NDArray[np.float64],
     ) -> PumpModelResult:
         """:param rate: Stream day rate. Must be converted from calendar_day_rate using regularity
         :param suction_pressures:
@@ -270,7 +274,7 @@ class PumpSingleSpeed(PumpModel):
         rates_m3_per_hour = np.fmax(rates_m3_per_hour, self.pump_chart.minimum_rate)
 
         # Head [J/kg]
-        heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
+        operational_heads = self._calculate_head(ps=suction_pressures, pd=discharge_pressures, density=fluid_density)
 
         # Single speed: calculate actual pump head [[J/kg]]
         actual_heads = self.pump_chart.head_as_function_of_rate(rates_m3_per_hour)
@@ -278,7 +282,8 @@ class PumpSingleSpeed(PumpModel):
         # Allowed calculation points is where required head is less than or equal to actual pump head
         # and rates are less than or equal to maximum pump rate
         allowed_points = np.argwhere(
-            (rates_m3_per_hour <= self.pump_chart.maximum_rate) & (heads <= actual_heads + self._head_margin)
+            (rates_m3_per_hour <= self.pump_chart.maximum_rate)
+            & (operational_heads <= actual_heads + self._head_margin)
         )[:, 0]
 
         efficiency = self.pump_chart.efficiency_as_function_of_rate(rates_m3_per_hour[allowed_points])
@@ -309,6 +314,7 @@ class PumpSingleSpeed(PumpModel):
             suction_pressure=list(suction_pressures),
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_density),
+            operational_head=list(operational_heads),
         )
 
         return pump_result

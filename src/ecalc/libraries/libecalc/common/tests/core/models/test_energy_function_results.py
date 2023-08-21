@@ -108,3 +108,34 @@ def test_extend_mismatching_compressor_stage_results():
     assert len(result.stage_results) == 2
     for stage_result in result.stage_results:
         assert len(stage_result.energy_usage) == 9
+
+
+def test_extend_compressor_train_result_from_multiple_streams() -> None:
+    """For a compressor train with multiple inlet/outlet streams rate_sm3_day will be a list of lists
+    Make sure that extend preserves this by extending each list within a list.
+    """
+    result_1 = CompressorTrainResult(
+        energy_usage=[1.0] * 3,
+        energy_usage_unit=Unit.MEGA_WATT,
+        power=[np.nan] * 3,
+        power_unit=Unit.MEGA_WATT,
+        stage_results=[],
+        rate_sm3_day=[[1] * 3] * 3,
+        failure_status=[None] * 3,
+    )
+    result_2 = CompressorTrainResult(
+        energy_usage=[2.0] * 3,
+        energy_usage_unit=Unit.MEGA_WATT,
+        power=[np.nan] * 3,
+        power_unit=Unit.MEGA_WATT,
+        stage_results=[
+            CompressorStageResult.create_empty(number_of_timesteps=3),
+            CompressorStageResult.create_empty(number_of_timesteps=3),
+        ],
+        rate_sm3_day=[[2] * 3] * 3,
+        failure_status=[None] * 3,
+    )
+    result = result_1.copy()
+    result.extend(result_2)
+
+    assert result.rate_sm3_day == [[1, 1, 1, 2, 2, 2], [1, 1, 1, 2, 2, 2], [1, 1, 1, 2, 2, 2]]

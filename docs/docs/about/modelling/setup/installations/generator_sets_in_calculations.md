@@ -109,3 +109,33 @@ GENERATORSETS:
     CONSUMERS:
       ...
 ~~~~~~~~
+
+## Heaters and boilers
+### Description
+:::note
+Heaters and boilers should be modeled in eCalc™ as 
+[GENERATORSETS](../../../references/keywords/GENERATORSETS), applying the [HEATER](../../../references/keywords/CATEGORY) and [BOILER](../../../references/keywords/CATEGORY) categories. This is an intermediate solution and may be dealt with differently in the future.
+:::
+
+### Example: Boiler as generator set
+Specify the correlation between energy delivered and fuel consumed under 
+[FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS):
+~~~~~~~~yaml
+FACILITY_INPUTS:
+ - NAME: boiler_energy_fuel
+   TYPE: ELECTRICITY2FUEL
+   FILE: boiler_energy_fuel.csv
+~~~~~~~~
+
+Use the `BOILER` category and the [ELECTRICITY2FUEL](../../../references/keywords/ELECTRICITY2FUEL) 
+specified under [FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS):
+
+~~~~~~~~yaml
+GENERATORSETS:
+  - NAME: boiler_as_generator
+    CATEGORY: BOILER
+    ELECTRICITY2FUEL: boiler_energy_fuel
+    CONSUMERS:
+      ...
+~~~~~~~~
+

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from datetime import datetime
 from typing import (
     Any,
+    DefaultDict,
     Dict,
     Generic,
     Iterable,
@@ -25,6 +27,7 @@ from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
+from numpy.typing import NDArray
 from pydantic import validator
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
@@ -35,7 +38,7 @@ TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
 
 class Rates:
     @staticmethod
-    def to_stream_day(calendar_day_rates: np.ndarray, regularity: List[float]) -> np.ndarray:
+    def to_stream_day(calendar_day_rates: NDArray[np.float64], regularity: List[float]) -> NDArray[np.float64]:
         """
         Convert (production) rate from calendar day to stream day
 
@@ -50,7 +53,7 @@ class Rates:
         return np.divide(calendar_day_rates, regularity, out=np.zeros_like(calendar_day_rates), where=regularity != 0.0)  # type: ignore[comparison-overlap]
 
     @staticmethod
-    def to_calendar_day(stream_day_rates: np.ndarray, regularity: List[float]) -> np.ndarray:
+    def to_calendar_day(stream_day_rates: NDArray[np.float64], regularity: List[float]) -> NDArray[np.float64]:
         """Convert (production) rate from stream day to calendar day.
 
         Args:
@@ -63,7 +66,7 @@ class Rates:
         return stream_day_rates * np.asarray(regularity, dtype=np.float64)
 
     @staticmethod
-    def forward_fill_nan_values(rates: np.ndarray) -> np.ndarray:
+    def forward_fill_nan_values(rates: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Forward fill Nan-values
 
@@ -77,14 +80,14 @@ class Rates:
 
     @staticmethod
     def to_volumes(
-        rates: Union[List[float], List[TimeSeriesValue], np.ndarray], time_steps: Iterable[datetime]
-    ) -> np.ndarray:
+        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], time_steps: Iterable[datetime]
+    ) -> NDArray[np.float64]:
         """
         Computes the volume between two dates from the corresponding rates, according to the given frequency.
         Note that the code does not perform any interpolation or extrapolation,
         it assumes that all requested dates are present, and that the rates are constant between dates.
 
-        Note that when the number of periodic volumes will be one less than the numer of rates
+        Note that when the number of periodic volumes will be one less than the number of rates
 
         Args:
             rates: Production rates, assumed to be constant between dates
@@ -98,12 +101,12 @@ class Rates:
 
     @staticmethod
     def compute_cumulative(
-        volumes: Union[List[float], np.ndarray[float, numpy.dtype[numpy.float64]]]
-    ) -> np.ndarray[float, numpy.dtype[numpy.float64]]:
+        volumes: Union[List[float], NDArray[np.float64][float, numpy.dtype[numpy.float64]]]
+    ) -> NDArray[np.float64][float, numpy.dtype[numpy.float64]]:
         """
         Compute cumulative volumes from a list of periodic volumes
 
-        The number of cumulative volumes will always be one more than the numer of periodic volumes. The first
+        The number of cumulative volumes will always be one more than the number of periodic volumes. The first
         cumulative volume will always be set zero.
 
         Args:
@@ -116,8 +119,8 @@ class Rates:
 
     @staticmethod
     def compute_cumulative_volumes_from_daily_rates(
-        rates: Union[List[float], List[TimeSeriesValue], np.ndarray], time_steps: Iterable[datetime]
-    ) -> np.ndarray:
+        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], time_steps: Iterable[datetime]
+    ) -> NDArray[np.float64]:
         """
         Compute cumulative production volumes based on production rates and the corresponding dates.
         The production rates are assumed to be constant between the different dates.
@@ -217,25 +220,45 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
                 raise ValueError(
                     f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
                 )
+        elif isinstance(indices, slice):
+            self.values[indices] = [values]
+        elif isinstance(indices, list):
+            for index in indices:
+                self.values[index] = values
+        elif isinstance(indices, int):
+            self.values[indices] = values
         else:
-            if isinstance(indices, slice):
-                self.values[indices] = [values]
-            elif isinstance(indices, list):
-                for index in indices:
-                    self.values[index] = values
-            elif isinstance(indices, int):
-                self.values[indices] = values
+            raise ValueError(
+                f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
+            )
+
+    def reindex_time_vector(
+        self,
+        new_time_vector: Iterable[datetime],
+        fillna: Union[float, str] = 0.0,
+    ) -> np.ndarray:
+        """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
+        the consumer time vector, we calculate the actual consumer (consumption) rate.
+        """
+        new_values: DefaultDict[datetime, Union[float, str]] = defaultdict(float)
+        new_values.update({t: fillna for t in new_time_vector})
+        for t, v in zip(self.timesteps, self.values):
+            if t in new_values:
+                new_values[t] = v
             else:
-                raise ValueError(
-                    f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
+                logger.warning(
+                    "Reindexing consumer time vector and losing data. This should not happen."
+                    " Please contact eCalc support."
                 )
+
+        return np.array([rate_sum for time, rate_sum in sorted(new_values.items())])
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, TimeSeries):
             return NotImplemented
         return bool(
             # Check that all values are either both NaN or equal
-            all([np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values)])
+            all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
             and self.timesteps == other.timesteps
             and self.unit == other.unit
         )
@@ -335,13 +358,20 @@ class TimeSeriesFloat(TimeSeries[float]):
         ds_tmp = pandas_data_series.reindex(pandas_data_series.index.union(target_index)).ffill()
 
         # New resampled pd.Series
-        ds_resampled = ds_tmp.groupby(pd.Grouper(freq=freq.value)).all()
+        ds_resampled = ds_tmp.groupby(pd.Grouper(freq=freq.value)).first()
 
         return TimeSeriesFloat(
             timesteps=ds_resampled.index.to_pydatetime().tolist(),
             values=[float(x) for x in ds_resampled.values.tolist()],
             unit=self.unit,
         )
+
+    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesFloat:
+        """
+        Ensure to map correct value to correct timestep in the final resulting time vector.
+        """
+        reindex_values = self.reindex_time_vector(new_time_vector)
+        return TimeSeriesFloat(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
@@ -444,7 +474,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
             if self.timesteps[0] <= time_step <= self.timesteps[-1] and time_step not in self.timesteps:
                 raise ValueError(f"Could not reindex volumes. Missing time step `{time_step}`.")
 
-        cumulative_volumes = Rates.compute_cumulative(self.values)  # type: ignore[arg-type]
+        cumulative_volumes = Rates.compute_cumulative(self.values)
 
         re_indexed_cumulative_values = pd.Series(index=self.timesteps, data=cumulative_volumes).reindex(time_steps)
 
@@ -452,7 +482,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
         re_indexed_volumes = re_indexed_cumulative_values.diff().shift(-1)[:-1]
 
         return self.__class__(
-            timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),  # type: ignore
+            timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),
             values=re_indexed_volumes.tolist(),
             unit=self.unit,
         )
@@ -471,7 +501,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
         """
         return TimeSeriesVolumesCumulative(
             timesteps=self.timesteps,
-            values=list(Rates.compute_cumulative(self.values)),  # type: ignore[arg-type]
+            values=list(Rates.compute_cumulative(self.values)),
             unit=self.unit,
         )
 
@@ -495,9 +525,8 @@ class TimeSeriesVolumes(TimeSeries[float]):
             delta_days = calculate_delta_days(self.timesteps).tolist()
             average_rates = [volume / days for volume, days in zip(self.values, delta_days)]
 
-            if regularity:
-                if len(regularity) == len(self.timesteps) - 1:
-                    regularity.append(0.0)
+            if regularity and len(regularity) == len(self.timesteps) - 1:
+                regularity.append(0.0)
             average_rates.append(0.0)
         else:
             average_rates = self.values
@@ -747,7 +776,7 @@ class TimeSeriesRate(TimeSeries[float]):
         else:
             return new_time_series.to_stream_day()
 
-    def __getitem__(self, indices: Union[slice, int, List[int], np.ndarray]) -> TimeSeriesRate:
+    def __getitem__(self, indices: Union[slice, int, List[int], NDArray[np.float64]]) -> TimeSeriesRate:
         if isinstance(indices, slice):
             return self.__class__(
                 timesteps=self.timesteps[indices],
@@ -782,9 +811,16 @@ class TimeSeriesRate(TimeSeries[float]):
             raise NotImplementedError
         return bool(
             # Check that all values are either both NaN or equal
-            all([np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values)])
+            all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
             and self.timesteps == other.timesteps
             and self.unit == other.unit
             and self.regularity == other.regularity
             and self.typ == other.typ
         )
+
+    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesRate:
+        """
+        Ensure to map correct value to correct timestep in the final resulting time vector.
+        """
+        reindex_values = self.reindex_time_vector(new_time_vector)
+        return TimeSeriesRate(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)

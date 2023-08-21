@@ -1,0 +1,47 @@
+TIME_SERIES:
+  - NAME: SIM
+    FILE: production_data.csv
+    TYPE: DEFAULT
+FACILITY_INPUTS:
+  - NAME: genset
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
+  - NAME: compressor_sampled
+    FILE: compressor_sampled.csv
+    TYPE: COMPRESSOR_TABULAR
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    PRICE: 1.5  # NOK/Sm3
+    EMISSIONS:
+      - NAME: CO2
+        FACTOR: 2.19  # CO2/Sm3 fuel gas burned
+        TAX: 1.5  # NOK/Sm3 fuel gas burned
+        QUOTA: 260  # NOK/ton
+
+
+VARIABLES:
+  hydrocarbon_export_sm3_per_day:
+    VALUE: SIM;OIL_PROD {+} SIM;GAS_SALES {/} 1000  # divide the gas rate by 1000 to get oil equivalent
+  gas_injection_rate_sm3_per_day:
+    VALUE: SIM;GAS_INJ {+} SIM;GAS_LIFT
+
+INSTALLATIONS:
+  - NAME: Installation A
+    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
+    FUEL: fuel_gas
+    GENERATORSETS:
+      - NAME: Generator set A
+        ELECTRICITY2FUEL: genset
+        CATEGORY: TURBINE-GENERATOR
+        CONSUMERS:
+          - NAME: gasinj
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              2020-01-01:
+                TYPE: DIRECT
+                LOAD: 11.8 # MW
+              2022-01-01:
+                TYPE: COMPRESSOR
+                ENERGYFUNCTION: compressor_sampled
+                RATE: $var.gas_injection_rate_sm3_per_day

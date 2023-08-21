@@ -10,6 +10,7 @@ from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
 from libecalc.dto.types import RateType
 from libecalc.dto.variables import VariablesMap
+from numpy.typing import NDArray
 
 
 class Genset:
@@ -29,7 +30,7 @@ class Genset:
     def evaluate(
         self,
         variables_map: VariablesMap,
-        power_requirement: np.ndarray,
+        power_requirement: NDArray[np.float64],
     ) -> GeneratorSetResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid timesteps. this will
         probably be changed soon.
@@ -88,7 +89,9 @@ class Genset:
             ),
         )
 
-    def evaluate_fuel_rate(self, power_requirement: np.ndarray, variables_map: dto.VariablesMap) -> np.ndarray:
+    def evaluate_fuel_rate(
+        self, power_requirement: NDArray[np.float64], variables_map: dto.VariablesMap
+    ) -> NDArray[np.float64]:
         result = np.full_like(power_requirement, fill_value=np.nan).astype(float)
         for period, model in self.temporal_generator_set_model.items():
             if Period.intersects(period, variables_map.period):
@@ -97,8 +100,8 @@ class Genset:
         return result
 
     def evaluate_power_capacity_margin(
-        self, power_requirement: np.ndarray, variables_map: dto.VariablesMap
-    ) -> np.ndarray:
+        self, power_requirement: NDArray[np.float64], variables_map: dto.VariablesMap
+    ) -> NDArray[np.float64]:
         result = np.zeros_like(power_requirement).astype(float)
         for period, model in self.temporal_generator_set_model.items():
             if Period.intersects(period, variables_map.period):

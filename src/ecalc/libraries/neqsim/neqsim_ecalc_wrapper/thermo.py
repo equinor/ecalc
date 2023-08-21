@@ -2,19 +2,27 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
+from libecalc import dto
 from libecalc.common.capturer import Capturer
 from libecalc.common.logger import logger
+from libecalc.dto import FluidComposition
+from libecalc.dto.types import EoSModel
 from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
 from neqsim_ecalc_wrapper import neqsim
 from neqsim_ecalc_wrapper.components import COMPONENTS
 from neqsim_ecalc_wrapper.exceptions import NeqsimPhaseError
+from neqsim_ecalc_wrapper.mappings import (
+    NeqsimEoSModelType,
+    _map_fluid_component_from_neqsim,
+    map_eos_model_to_neqsim,
+    map_fluid_composition_to_neqsim,
+)
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325
@@ -23,13 +31,6 @@ NEQSIM_MIXING_RULE = 2
 
 ThermodynamicSystem = neqsim.thermo.system.SystemEos
 ThermodynamicOperations = neqsim.thermodynamicOperations.ThermodynamicOperations
-
-
-class NeqsimEoSModelType(Enum):
-    SRK = neqsim.thermo.system.SystemSrkEos
-    PR = neqsim.thermo.system.SystemPrEos
-    GERG_SRK = neqsim.thermo.system.SystemSrkEos
-    GERG_PR = neqsim.thermo.system.SystemPrEos
 
 
 class NeqsimFluidComponent(BaseModel):
@@ -120,10 +121,10 @@ class NeqsimFluid:
     @classmethod
     def create_thermo_system(
         cls,
-        composition: Dict[str, float],
+        composition: dto.FluidComposition,
         temperature_kelvin: float = STANDARD_TEMPERATURE_KELVIN,
         pressure_bara: float = STANDARD_PRESSURE_BARA,
-        eos_model: NeqsimEoSModelType = NeqsimEoSModelType.SRK,
+        eos_model: EoSModel = EoSModel.SRK,
         mixing_rule: int = NEQSIM_MIXING_RULE,
     ) -> NeqsimFluid:
         """Initiates a NeqsimFluid that wraps both a Neqsim thermodynamic system and operations.
@@ -142,6 +143,9 @@ class NeqsimFluid:
         :return:
         """
         use_gerg = "gerg" in eos_model.name.lower()
+
+        composition = map_fluid_composition_to_neqsim(fluid_composition=composition)
+        eos_model = map_eos_model_to_neqsim(eos_model)
         non_existing_components = [
             component for component, value in composition.items() if (component not in COMPONENTS) and (value > 0.0)
         ]
@@ -273,60 +277,6 @@ class NeqsimFluid:
         return thermodynamic_system
 
     @staticmethod
-    def mix_streams(
-        stream_1: NeqsimFluid,
-        stream_2: NeqsimFluid,
-        mass_rate_stream_1: float,
-        mass_rate_stream_2: float,
-        pressure: float,
-        temperature: float,
-        eos_model: NeqsimEoSModelType = NeqsimEoSModelType.SRK,
-    ) -> Tuple[Dict, NeqsimFluid]:
-        """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
-        if stream_1 is None:
-            return (
-                {},  # Fixme: Need to return composition dict
-                stream_2.set_new_pressure_and_temperature(
-                    new_pressure_bara=pressure, new_temperature_kelvin=temperature
-                ),
-            )
-        if stream_2 is None:
-            return (
-                {},  # Fixme: Need to return composition dict
-                stream_1.set_new_pressure_and_temperature(
-                    new_pressure_bara=pressure,
-                    new_temperature_kelvin=temperature,
-                ),
-            )
-
-        composition_dict: Dict[str, float] = {}
-
-        mol_per_hour_1 = mass_rate_stream_1 / stream_1.molar_mass
-        mol_per_hour_2 = mass_rate_stream_2 / stream_2.molar_mass
-
-        fraction_1 = mol_per_hour_1 / (mol_per_hour_1 + mol_per_hour_2)
-        fraction_2 = mol_per_hour_2 / (mol_per_hour_1 + mol_per_hour_2)
-
-        for stream, fraction in zip((stream_1, stream_2), (fraction_1, fraction_2)):
-            for i in range(stream._thermodynamic_system.getNumberOfComponents()):
-                composition_name = stream._thermodynamic_system.getComponent(i).getComponentName()
-                composition_moles = fraction * stream._thermodynamic_system.getComponent(i).getNumberOfmoles()
-                if composition_name in composition_dict:
-                    composition_dict[composition_name] = composition_dict[composition_name] + composition_moles
-                else:
-                    composition_dict[composition_name] = composition_moles
-
-        return (
-            composition_dict,
-            NeqsimFluid.create_thermo_system(
-                composition=composition_dict,
-                temperature_kelvin=temperature,
-                pressure_bara=pressure,
-                eos_model=eos_model,
-            ),
-        )
-
-    @staticmethod
     def _remove_liquid(thermodynamic_system: ThermodynamicSystem) -> ThermodynamicSystem:
         """Remove liquid part of thermodynamic_system, return new NeqsimFluid object with only gas part."""
         return thermodynamic_system.clone().phaseToSystem("gas")
@@ -410,7 +360,7 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
     # Calculate kappa
     Cp = gerg_properties[10]
     R = 8.3144621
-    # This will be relative (volume independent) as the number of moles in Cp wil be divided by the number of moles
+    # This will be relative (volume independent) as the number of moles in Cp will be divided by the number of moles
     # multiplied by R. Cp and Cv have default units Joule/(mol Kelvin)
     # NB: In neqsim, this is calculated as Cp / (Cp - R * number_of_moles), but when GERG is not used, the unit for Cp
     # is J/K, while with GERG neqsim has unit J/(K mol).
@@ -426,3 +376,60 @@ def get_GERG2008_properties(thermodynamic_system: ThermodynamicSystem):
 
 def _get_enthalpy_joule_for_GERG2008_joule_per_kg(enthalpy: float, thermodynamic_system: ThermodynamicSystem) -> float:
     return enthalpy * thermodynamic_system.getTotalNumberOfMoles() * thermodynamic_system.getMolarMass()
+
+
+def mix_neqsim_streams(
+    stream_composition_1: FluidComposition,
+    stream_composition_2: FluidComposition,
+    mass_rate_stream_1: float,
+    mass_rate_stream_2: float,
+    pressure: float,
+    temperature: float,
+    eos_model: EoSModel = EoSModel.SRK,
+) -> Tuple[dto.FluidComposition, NeqsimFluid]:
+    """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
+
+    composition_dict: Dict[str, float] = {}
+
+    stream_1 = NeqsimFluid.create_thermo_system(
+        composition=stream_composition_1,
+        temperature_kelvin=temperature,
+        pressure_bara=pressure,
+        eos_model=eos_model,
+    )
+
+    stream_2 = NeqsimFluid.create_thermo_system(
+        composition=stream_composition_2,
+        temperature_kelvin=temperature,
+        pressure_bara=pressure,
+        eos_model=eos_model,
+    )
+
+    mol_per_hour_1 = mass_rate_stream_1 / stream_1.molar_mass
+    mol_per_hour_2 = mass_rate_stream_2 / stream_2.molar_mass
+
+    fraction_1 = mol_per_hour_1 / (mol_per_hour_1 + mol_per_hour_2)
+    fraction_2 = mol_per_hour_2 / (mol_per_hour_1 + mol_per_hour_2)
+
+    for stream, fraction in zip((stream_1, stream_2), (fraction_1, fraction_2)):
+        for i in range(stream._thermodynamic_system.getNumberOfComponents()):
+            composition_name = stream._thermodynamic_system.getComponent(i).getComponentName()
+            composition_moles = fraction * stream._thermodynamic_system.getComponent(i).getNumberOfmoles()
+            if composition_name in composition_dict:
+                composition_dict[composition_name] = composition_dict[composition_name] + composition_moles
+            else:
+                composition_dict[composition_name] = composition_moles
+
+    ecalc_fluid_composition = dto.FluidComposition.parse_obj(
+        {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()}
+    )
+
+    return (
+        ecalc_fluid_composition,
+        NeqsimFluid.create_thermo_system(
+            composition=ecalc_fluid_composition,
+            temperature_kelvin=temperature,
+            pressure_bara=pressure,
+            eos_model=eos_model,
+        ),
+    )

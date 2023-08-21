@@ -22,6 +22,7 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
+from numpy.typing import NDArray
 
 EPSILON = 1e-5
 
@@ -105,9 +106,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_rate_ps_pd(
         self,
-        rate: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given rate, suction pressure and discharge pressure.
         The evaluation will be different depending on the pressure control chosen.
@@ -135,7 +136,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     f"larger than maximum allowed discharge pressure in single speed compressor model"
                     f" ({self.maximum_discharge_pressure})"
                 )
-        mass_rates_kg_per_hour = self.fluid.standard_to_mass_rate(standard_rates=rate)
+        mass_rates_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             train_results = self._evaluate_train_results_and_failure_status_downstream_choking(
                 mass_rates_kg_per_hour=mass_rates_kg_per_hour,
@@ -173,9 +174,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_train_results_and_failure_status_downstream_choking(
         self,
-        mass_rates_kg_per_hour: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        mass_rates_kg_per_hour: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given mass rate, suction pressure and discharge pressure
         assuming the discharge pressure is controlled to meet target by a downstream choke valve.
@@ -224,9 +225,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_train_results_and_failure_status_upstream_choking(
         self,
-        mass_rates_kg_per_hour: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        mass_rates_kg_per_hour: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given mass rate, suction pressure and discharge pressure
         assuming the discharge pressure is controlled to meet target by a choking the suction pressure upstream. As the
@@ -259,9 +260,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_train_results_and_failure_status_individual_asv_rate(
         self,
-        mass_rates_kg_per_hour: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        mass_rates_kg_per_hour: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given mass rate, suction pressure and discharge pressure.
         Assuming the discharge pressure is controlled to meet target using the anti-surge valve(s) (ASVs) to increase
@@ -304,9 +305,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_train_results_and_failure_status_asv_pressure(
         self,
-        mass_rates_kg_per_hour: np.ndarray,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
+        mass_rates_kg_per_hour: NDArray[np.float64],
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Model of single speed compressor train where asv is used to meet target pressure assuming that the
         pressure ratios (discharge pressure / suction pressure=) is equal over all compressors in the compressor train.
@@ -327,7 +328,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
-                inlet_stream_stage = inlet_stream_train.copy()
+                inlet_stream_stage = inlet_stream_train
                 stage_results = []
                 for stage in self.stages:
                     outlet_pressure_for_stage = inlet_stream_stage.pressure_bara * pressure_ratio_per_stage
@@ -344,7 +345,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         new_pressure_bara=stage_result.outlet_stream.pressure_bara,
                         new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
                     )
-                    inlet_stream_stage = outlet_stream_stage.copy()
+                    inlet_stream_stage = outlet_stream_stage
                     stage_results.append(stage_result)
                     # only keep the first failure_status if many
                     if failure_status is not None and failure_status_this_time_step is None:
@@ -366,9 +367,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_train_results_and_failure_status_common_asv(
         self,
-        mass_rates_kg_per_hour: np.ndarray,
-        suction_pressure: np.ndarray,
-        discharge_pressure: np.ndarray,
+        mass_rates_kg_per_hour: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given mass rate, suction pressure and discharge pressure
         assuming the discharge pressure is controlled to meet target using the anti-surge valve (ASV) to increase
@@ -409,8 +410,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_rate_ps(
         self,
-        mass_rates_kg_per_hour: np.ndarray,
-        inlet_pressures_train_bara: np.ndarray,
+        mass_rates_kg_per_hour: NDArray[np.float64],
+        inlet_pressures_train_bara: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate the single speed compressor train total power given mass rate and suction pressure. The discharge
         pressure is a result of the inlet conditions, fluid rate and the resulting process.
@@ -445,8 +446,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_rate_pd(
         self,
-        mass_rates_kg_per_hour: np.ndarray,
-        outlet_pressures_train_bara: np.ndarray,
+        mass_rates_kg_per_hour: NDArray[np.float64],
+        outlet_pressures_train_bara: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given mass rates and outlet pressures (one per time step).
         Newton iteration is used on the forward model which flash the fluid at each stage given the inlet conditions to
@@ -502,9 +503,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_ps_pd_minimum_mass_rates(
         self,
-        inlet_pressures_train_bara: np.ndarray,
-        outlet_pressures_train_bara: np.ndarray,
-        minimum_mass_rates_kg_per_hour: np.ndarray,
+        inlet_pressures_train_bara: NDArray[np.float64],
+        outlet_pressures_train_bara: NDArray[np.float64],
+        minimum_mass_rates_kg_per_hour: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given net mass rate, suction pressure and discharge
         pressure assuming the discharge pressure is controlled to meet target using the anti-surge valve(s) (ASVs) to
@@ -583,9 +584,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def _evaluate_ps_pd_constant_mass_rates(
         self,
-        inlet_pressures_train_bara: np.ndarray,
-        outlet_pressures_train_bara: np.ndarray,
-        minimum_mass_rates_kg_per_hour: np.ndarray,
+        inlet_pressures_train_bara: NDArray[np.float64],
+        outlet_pressures_train_bara: NDArray[np.float64],
+        minimum_mass_rates_kg_per_hour: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given net mass rate, suction pressure and
         discharge pressure assuming the discharge pressure is controlled to meet target using the anti-surge valve
@@ -773,7 +774,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         outlet_stream = train_inlet_stream
 
         for stage, mass_rate_kg_per_hour in zip(self.stages, mass_rate_kg_per_hour_per_stage):
-            inlet_stream = outlet_stream.copy()
+            inlet_stream = outlet_stream
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
@@ -799,9 +800,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def get_max_standard_rate(
         self,
-        suction_pressures: np.ndarray,
-        discharge_pressures: np.ndarray,
-    ) -> np.ndarray:
+        suction_pressures: NDArray[np.float64],
+        discharge_pressures: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at."""
         valid_idx = np.where(suction_pressures > 0, 1, 0)
         suction_pressures = np.where(valid_idx, suction_pressures, 1)
@@ -824,8 +825,10 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
             max_mass_rates.append(max_mass_rate)
 
-        return self.fluid.mass_rate_to_standard_rate(
-            mass_rate_kg_per_hour=np.where(valid_idx, np.array(max_mass_rates), np.nan)
+        return np.array(
+            self.fluid.mass_rate_to_standard_rate(
+                mass_rate_kg_per_hour=np.where(valid_idx, np.array(max_mass_rates), np.nan)
+            )
         )
 
     def _get_max_mass_rate_single_timestep(
@@ -852,7 +855,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             We return 0.
         :param target_discharge_pressure: Discharge pressure per time step [bara]
         :param inlet_stream: The stream at the inlet of the single speed compressor train
-        :param allow_asv: Limits the solution search space. If allow_asv is True, the algorith will also search for
+        :param allow_asv: Limits the solution search space. If allow_asv is True, the algorithm will also search for
             a solution below the minimum mass rate for the first compressor stage, if that minimum mass rate is not
             a valid rate for the entire compressor train.
         :return: Standard volume rate [Sm3/day]

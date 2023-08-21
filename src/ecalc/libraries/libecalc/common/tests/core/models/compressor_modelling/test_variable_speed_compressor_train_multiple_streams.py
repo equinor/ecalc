@@ -13,9 +13,6 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
 from libecalc.dto import InterstagePressureControl
 from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
 
@@ -539,10 +536,10 @@ def test_zero_rate_zero_pressure_multiple_streams(variable_speed_compressor_trai
         discharge_pressure=np.array([0, 5, 5, 5]),
     )
 
-    # Ensuring that first stage returns zero energy usage and no failure.
-    assert result.is_valid == [False, True, True, True]
+    # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
+    assert result.is_valid == [True, True, True, True]
     assert result.failure_status == [
-        CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        None,
         None,
         None,
         None,
@@ -601,4 +598,54 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     )
     np.testing.assert_allclose(
         result.stage_results[1].asv_recirculation_loss_mw, np.array([4.25, 4.41, 4.46]), rtol=0.01
+    )
+
+
+@pytest.mark.parametrize("energy_usage_adjustment_constant", [1, 2, 3, 5, 10])
+def test_adjust_energy_usage(
+    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke,
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream,
+    energy_usage_adjustment_constant,
+):
+    result_comparison = variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate_rate_ps_pd(
+        rate=np.asarray([[3000000]]),
+        suction_pressure=np.asarray([30]),
+        discharge_pressure=np.asarray([100]),
+    )
+    result_comparison_intermediate = (
+        variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate_rate_ps_pint_pd(
+            rate=np.array([[1000000], [0]]),
+            suction_pressure=np.array([10]),
+            intermediate_pressure=np.array([30]),
+            discharge_pressure=np.array([90]),
+        )
+    )
+
+    variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.data_transfer_object.energy_usage_adjustment_constant = (
+        energy_usage_adjustment_constant  # MW
+    )
+    variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.data_transfer_object.energy_usage_adjustment_constant = (
+        energy_usage_adjustment_constant
+    )
+
+    result = variable_speed_compressor_train_one_compressor_one_stream_downstream_choke.evaluate_rate_ps_pd(
+        rate=np.asarray([[3000000]]),
+        suction_pressure=np.asarray([30]),
+        discharge_pressure=np.asarray([100]),
+    )
+    result_intermediate = (
+        variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream.evaluate_rate_ps_pint_pd(
+            rate=np.array([[1000000], [0]]),
+            suction_pressure=np.array([10]),
+            intermediate_pressure=np.array([30]),
+            discharge_pressure=np.array([90]),
+        )
+    )
+
+    np.testing.assert_allclose(
+        np.asarray(result_comparison.energy_usage) + energy_usage_adjustment_constant, result.energy_usage
+    )
+    np.testing.assert_allclose(
+        np.asarray(result_comparison_intermediate.energy_usage) + energy_usage_adjustment_constant,
+        result_intermediate.energy_usage,
     )

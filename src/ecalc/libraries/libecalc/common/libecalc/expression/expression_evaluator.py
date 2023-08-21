@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from libecalc.common.logger import logger
+from numpy.typing import NDArray
 from pydantic import BaseModel
 
 """
@@ -40,12 +41,12 @@ Example: SIM2;OIL_PROD:SC-102 {*} 2.0 {-} SIM1;OIL_PROD {+} SIM3:OIL_PROD_TOTAL:
 """
 
 
-def eval_tokens(tokens: List[Token], array_length: int) -> np.ndarray:
+def eval_tokens(tokens: List[Token], array_length: int) -> NDArray[np.float64]:
     token_values = [token.value for token in tokens]
     check_tokens(token_values)
 
     evaluated_values = np.nan_to_num(
-        x=eval_parenteses(
+        x=eval_parentheses(
             tokens=token_values,
         )  # type: ignore[arg-type]
     )
@@ -54,17 +55,16 @@ def eval_tokens(tokens: List[Token], array_length: int) -> np.ndarray:
     return evaluated_values
 
 
-def eval_parenteses(
-    tokens: List[Union[float, int, bool, np.ndarray, str]],
+def eval_parentheses(
+    tokens: List[Union[float, int, bool, NDArray[np.float64], str]],
     original_expression: Optional[str] = None,
-) -> Union[np.ndarray, Number]:
+) -> Union[NDArray[np.float64], Number]:
+    """Evaluate expressions within parentheses"""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        while tokens.count("(") or tokens.count(")"):
-            # Fixme: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
-            if tokens.count("(") != tokens.count(
-                ")"
-            ):  # Fixme: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+        number_of_left_parentheses, number_of_right_parentheses = count_parentheses(tokens=tokens)
+        while number_of_left_parentheses or number_of_right_parentheses:
+            if number_of_left_parentheses != number_of_right_parentheses:
                 error_message = "Number of left and right parentheses do not match"
                 if original_expression is not None:
                     error_message += f" for expression \n{original_expression}"
@@ -81,7 +81,7 @@ def eval_parenteses(
             tokens_to_evaluate = tokens[substart + 1 : subend]
 
             try:
-                tokens_evaluated = eval_parenteses(
+                tokens_evaluated = eval_parentheses(
                     tokens_to_evaluate,
                     original_expression=original_expression,
                 )
@@ -99,11 +99,21 @@ def eval_parenteses(
                 ) from e
 
             tokens = tokens[:substart] + [tokens_evaluated] + tokens[subend + 1 :]
+            number_of_left_parentheses, number_of_right_parentheses = count_parentheses(tokens=tokens)
 
     return eval_logicals(tokens)
 
 
+def count_parentheses(tokens: List[Union[float, int, bool, NDArray[np.float64], str]]) -> Tuple[int, int]:
+    """Count the number of left "(" and right ")" parentheses in a list of tokens"""
+    strings_in_tokens = [element for element in tokens if isinstance(element, str)]
+    return strings_in_tokens.count(Operators.left_parenthesis.value), strings_in_tokens.count(
+        Operators.right_parenthesis.value
+    )
+
+
 def eval_logicals(tokens):
+    """Evaluate logical operators in expression"""
     logical_ops = [">", "<", ">=", "<=", "==", "!="]
     ind = 0
     while ind < len(tokens):
@@ -127,6 +137,7 @@ def eval_logicals(tokens):
 
 
 def eval_additions(tokens):
+    """Evaluate additions and subtractions in expression"""
     add_ops = ["{+}", "{-}"]
     values = []
     with warnings.catch_warnings():
@@ -154,6 +165,7 @@ def eval_additions(tokens):
 
 
 def eval_mults(tokens):
+    """Evaluate multiplications in expression"""
     mult_ops = ["{*}", "{/}"]
     values = []
 
@@ -201,6 +213,7 @@ def eval_mults(tokens):
 
 
 def eval_powers(tokens):
+    """Evaluate exponential calculations in expression"""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         if tokens.count(
@@ -221,39 +234,37 @@ def eval_value(tokens):
     numpattern = r"[0-9.]+"
     regexnumber = re.compile(numpattern)
 
-    if type(tokens) is np.ndarray:
+    if type(tokens) is NDArray[np.float64]:
         var = tokens[0]
     elif len(tokens) < 1:
         raise ValueError(f"expression_evaluator: I can not evaluate {tokens}")
+    elif len(tokens) > 2:
+        outtext = "Wrong format of variable "
+        for ind in range(len(tokens)):
+            outtext += " " + str(tokens[ind])
+        raise Exception(outtext)
+    elif len(tokens) == 2:
+        raise ValueError("Should not enter here - no time series in expression evaluator")
+    elif isinstance(tokens[0], (int, int, float)):
+        return float(tokens[0])
     else:
-        if len(tokens) > 2:
-            outtext = "Wrong format of variable "
-            for ind in range(len(tokens)):
-                outtext += " " + str(tokens[ind])
-            raise Exception(outtext)
-        elif len(tokens) == 2:
+        pos = 0
+        match = regexnumber.match(str(tokens[0]), pos)
+        if match:  # This is a number
+            return float(match.group(0))
+        elif type(tokens[0]) is not np.ndarray:
+            tmp = tokens[0].split(";")
+            if len(tmp) != 2:
+                raise KeyError(
+                    'Not correct format of reservoir variable "'
+                    + tokens[0]
+                    + '", did you forget to specify reservoir case (e.g. "SIM1;'
+                    + tokens[0]
+                    + '")?'
+                )
             raise ValueError("Should not enter here - no time series in expression evaluator")
         else:
-            if isinstance(tokens[0], (int, int, float)):
-                return float(tokens[0])
-            pos = 0
-            match = regexnumber.match(str(tokens[0]), pos)
-            if match:  # This is a number
-                return float(match.group(0))
-            else:  # This is a variable
-                if type(tokens[0]) is not np.ndarray:
-                    tmp = tokens[0].split(";")
-                    if len(tmp) != 2:
-                        raise KeyError(
-                            'Not correct format of reservoir variable "'
-                            + tokens[0]
-                            + '", did you forget to specify reservoir case (e.g. "SIM1;'
-                            + tokens[0]
-                            + '")?'
-                        )
-                    raise ValueError("Should not enter here - no time series in expression evaluator")
-                else:
-                    var = tokens[0]
+            var = tokens[0]
     var = np.nan_to_num(var)
     return var
 
@@ -324,6 +335,7 @@ def lexer(expression: Union[str, int, float]) -> List[Token]:
         (r"while", TokenTag.operator),
         (r"do", TokenTag.operator),
         (r"end", TokenTag.operator),
+        (r"[0-9](\.[0-9]+)?e[-+]?[0-9]+", TokenTag.numeric),  # Scientific notation, e.g. 1.23e-05, 3.4e7, 1e+1
         (r"[0-9.]+", TokenTag.numeric),
         (r"[A-Za-z][A-Za-z0-9._;:+*/-]*", TokenTag.reference),
         (r"\$var\.[A-Za-z][A-Za-z0-9_]*", TokenTag.reference),
@@ -355,7 +367,7 @@ def check_tokens(tokens):
     if str(first_token) in list(OPERATORS.keys()):
         raise ValueError(f"Expression ({var}) can not start with an operator")
     if str(last_token) in list(OPERATORS.keys()):
-        raise ValueError(f"Expression ({var}) can not start with an operator")
+        raise ValueError(f"Expression ({var}) can not end with an operator")
     for idx, token in enumerate(tokens):
         prev_token = tokens[idx - 1]
         if str(prev_token) in list(OPERATORS.keys()) and str(token) in list(OPERATORS.keys()):
@@ -386,7 +398,7 @@ class Operators(Enum):
 
 class Token(BaseModel):
     tag: TokenTag
-    value: Union[float, int, bool, np.ndarray, str]
+    value: Union[float, int, bool, NDArray[np.float64], str]
 
     def __str__(self):
         return str(self.value)

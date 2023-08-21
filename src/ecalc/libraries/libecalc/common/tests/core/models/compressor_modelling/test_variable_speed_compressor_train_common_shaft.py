@@ -143,10 +143,10 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
             discharge_pressure=np.array([0, 2, 2]),
         )
 
-        # Ensuring that first stage returns zero energy usage and no failure.
-        assert result.is_valid == [False, True, True]
+        # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
+        assert result.is_valid == [True, True, True]
         assert result.failure_status == [
-            CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+            None,
             None,
             None,
         ]
@@ -168,7 +168,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
 
         # Result object generated but result marked as invalid when rates or pressures are altered by validation
         assert not all(result.is_valid)
-        assert all([flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags])
+        assert all(flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags)
         np.testing.assert_allclose(result.energy_usage, np.array([0, 0, 0]))
 
         np.testing.assert_allclose(result.mass_rate_kg_per_hr, 0)

@@ -33,9 +33,8 @@ on the calculated energy usage after the calculated energy usage from the model 
 
 ## Temporal energy usage model
 
-It is possible to change the energy model within a consumer over time. It is highly recommended that the
-`ENERGY_USAGE_MODEL` stays within one type. TYPE evolution, while supported, may create challenges when interpreting
-the results. In this case, if possible, we recommend that you split the model into two [CONSUMERS](CONSUMERS.md).
+It is possible to update the energy model within a consumer over time, as long as the
+`ENERGY_USAGE_MODEL` stays within one type. The `TYPE` cannot change over time. In case `TYPE` evolution is needed, we recommend that you split the model into two [CONSUMERS](CONSUMERS.md).
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:

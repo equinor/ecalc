@@ -6,21 +6,22 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const math = require('remark-math');
 const katex = require('rehype-katex');
 
+const baseUrl = "/ecalc"
+
 async function createConfig() {
   const mdxMermaid = await import('mdx-mermaid');
   return {
     title: 'eCalc™ Docs',
     tagline: 'Documentation for eCalc™',
     url: 'https://equinor.github.io',
-    baseUrl: '/ecalc/',
+    baseUrl: baseUrl,
     onBrokenLinks: 'throw',
-    onBrokenMarkdownLinks: 'warn',
+    onBrokenMarkdownLinks: 'throw',
     favicon: 'img/favicon.svg',
 
     // GitHub pages deployment config.
-    // If you aren't using GitHub pages, you don't need these.
-    organizationName: 'equinor', // Usually your GitHub org/user name.
-    projectName: 'ecalc', // Usually your repo name.
+    organizationName: 'equinor',
+    projectName: 'ecalc',
     deploymentBranch: 'gh-pages',
 
     // Even if you don't use internalization, you can use this field to set useful
@@ -127,7 +128,7 @@ async function createConfig() {
       }),
     stylesheets: [
       {
-        href: '/katex/katex.min.css',
+        href: `${baseUrl}/katex/katex.min.css`,
         type: 'text/css',
       },
     ],

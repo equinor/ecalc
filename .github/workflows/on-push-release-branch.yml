@@ -1,0 +1,22 @@
+name: "Release CI/CD - to patch a release"
+on:
+  push:
+    branches:
+      - release/*
+
+jobs:
+  pre-ci:
+    uses: ./.github/workflows/pre-ci.yml
+
+  lib-ci:
+    uses: ./.github/workflows/lib-ci.yml
+
+# We want/need to reserve patch bump in case we need to
+# patch a release that is deployed and active
+
+  release-please:
+    uses: ./.github/workflows/release-please.yml
+    with:
+      versioning_strategy: 'always-bump-patch'
+    secrets: inherit
+    needs: [lib-ci]

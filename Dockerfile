@@ -55,7 +55,7 @@ COPY . .
 
 RUN mkdir /dist
 
-# Set version in pyproject.toml, needed to update nighlty version. Already done by release-please otherwise.
+# Set version in pyproject.toml, needed to update nightly version. Already done by release-please otherwise.
 RUN poetry version $ECALC_VERSION
 
 # Finally build the cli

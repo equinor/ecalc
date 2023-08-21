@@ -102,7 +102,6 @@ class TabulatedConsumerFunction(ConsumerFunction):
             energy_function_result=energy_function_result,
             condition=condition,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),
-            # noqa
             power_loss_factor=power_loss_factor,
             energy_usage=apply_power_loss_factor(
                 energy_usage=np.asarray(energy_function_result.energy_usage),

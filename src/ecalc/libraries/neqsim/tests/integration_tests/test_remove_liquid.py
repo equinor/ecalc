@@ -1,43 +1,36 @@
 import math
 
 import pytest
+from libecalc import dto
 from neqsim_ecalc_wrapper.thermo import NeqsimFluid
 
-INLET_FLUID_COMPOSITION = {
-    "nitrogen": 6.78e-03,
-    "CO2": 5.74e-03,
-    "methane": 0.795667071,
-    "ethane": 9.82e-02,
-    "propane": 5.95e-02,
-    "i-butane": 6.25e-03,
-    "n-butane": 1.60e-02,
-    "i-pentane": 3.23e-03,
-    "n-pentane": 4.20e-03,
-    "n-hexane": 9.11e-08,
-    "n-heptane": 6.15e-04,
-    "n-octane": 1.40e-04,
-    "n-nonane": 1.50e-05,
-    "nC10": 3.14e-07,
-    "water": 3.69e-03,
-}
+INLET_FLUID_COMPOSITION = dto.FluidComposition(
+    nitrogen=6.78e-03,
+    CO2=5.74e-03,
+    methane=0.795667071,
+    ethane=9.82e-02,
+    propane=5.95e-02,
+    i_butane=6.25e-03,
+    n_butane=1.60e-02,
+    i_pentane=3.23e-03,
+    n_pentane=4.20e-03,
+    n_hexane=9.11e-08,
+    water=3.69e-03,
+)
 
-OUTLET_FLUID_COMPOSITION = {
-    "nitrogen": 6.79e-03,
-    "CO2": 5.75e-03,
-    "methane": 0.797181663,
-    "ethane": 0.098415785,
-    "propane": 5.96e-02,
-    "i-butane": 6.26e-03,
-    "n-butane": 1.60e-02,
-    "i-pentane": 3.24e-03,
-    "n-pentane": 4.21e-03,
-    "n-hexane": 9.13e-08,
-    "n-heptane": 6.16e-04,
-    "n-octane": 1.41e-04,
-    "n-nonane": 1.51e-05,
-    "nC10": 3.15e-07,
-    "water": 1.79e-03,
-}
+OUTLET_FLUID_COMPOSITION = dto.FluidComposition(
+    nitrogen=6.79e-03,
+    CO2=5.75e-03,
+    methane=0.797181663,
+    ethane=0.098415785,
+    propane=5.96e-02,
+    i_butane=6.26e-03,
+    n_butane=1.60e-02,
+    i_pentane=3.24e-03,
+    n_pentane=4.21e-03,
+    n_hexane=9.13e-08,
+    water=1.79e-03,
+)
 
 
 @pytest.fixture
@@ -92,7 +85,7 @@ def test_liquid_takeoff(inlet_fluid, outlet_fluid) -> None:
     """
     assert inlet_fluid.pressure_bara == 1700 / 100
     assert inlet_fluid.temperature_kelvin == 36.0 + 273.15
-    assert math.isclose(inlet_fluid.density, 14.50851117, rel_tol=0.01)  # 1 % tolerance
+    assert math.isclose(inlet_fluid.density, 14.343437, rel_tol=0.01)  # 1 % tolerance
 
     fluid_after_compressor = inlet_fluid.set_new_pressure_and_temperature(
         new_pressure_bara=4547.67395 / 100,

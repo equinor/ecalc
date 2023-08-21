@@ -8,11 +8,12 @@ from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
 from libecalc.core.consumers.legacy_consumer.system.results import (
     ConsumerSystemOperationalSettingResult,
 )
+from numpy.typing import NDArray
 
 
 def get_operational_settings_number_used_from_model_results(
     consumer_system_operational_settings_results: List[ConsumerSystemOperationalSettingResult],
-) -> np.ndarray:
+) -> NDArray[np.int_]:
     """Calculate which operational setting is used and the resulting energy usage
     The operational settings are interpreted as in prioritized order, and the operational setting to use,
     is the one with the lowest index of those with capacity.
@@ -98,7 +99,7 @@ def assemble_operational_setting_from_model_result_list(
     discharge_pressures = np.asarray([x.discharge_pressures for x in operational_settings])
     fluid_densities = (
         np.asarray([x.fluid_densities for x in operational_settings])
-        if any([x.fluid_densities for x in operational_settings])
+        if any(x.fluid_densities for x in operational_settings)
         else None
     )
 

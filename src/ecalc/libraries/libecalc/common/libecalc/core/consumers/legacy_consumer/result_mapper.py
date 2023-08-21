@@ -15,6 +15,7 @@ from libecalc.core.consumers.legacy_consumer.system.results import (
 )
 from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
 from libecalc.core.models.results.base import EnergyFunctionResult
+from numpy.typing import NDArray
 
 
 def get_single_consumer_models(
@@ -114,15 +115,14 @@ def get_operational_settings_results_from_consumer_result(
                             f"Unexpected type: {type(consumer_model_result.consumer_model_result)},"
                             f" can not map result for {parent_id}"
                         )
-            else:
-                time_slot_time_vector_index += n_steps
+            time_slot_time_vector_index += n_steps
 
     return operational_settings_results
 
 
 def map_energy_function_results(
     result: EnergyFunctionResult,
-    time_vector: np.ndarray,
+    time_vector: NDArray[np.float64],
     name: str,
 ) -> List[core_results.ConsumerModelResult]:
     """Returns a list of results that are specific to each consumer. This can be details for compressor trains with
@@ -186,9 +186,10 @@ def map_energy_function_results(
                     values=result.energy_usage,
                     unit=result.energy_usage_unit,
                 ),
-                inlet_liquid_rate_m3_per_d=result.rate,
+                inlet_liquid_rate_m3_per_day=result.rate,
                 inlet_pressure_bar=result.suction_pressure,
                 outlet_pressure_bar=result.discharge_pressure,
+                operational_head=result.operational_head,
             )
         )
     else:

@@ -20,31 +20,31 @@ Please note that the input is case-sensitive. The names should be in upper-case 
 
 Allowed categories for [CONSUMERS](CONSUMERS) and [FUELCONSUMERS](FUELCONSUMERS):
 
-| Category                      | Description/Examples                                                               |
-|-------------------------------|------------------------------------------------------------------------------------|
-| ``BASE-LOAD``                 | Consumers that do not vary with production                                         |
-| ``COLD-VENTING-FUGITIVE``     | Direct emissions through cold venting and fugitive emissions                       |
-| ``COMPRESSOR``                | Gas injection compressors, export compressors, etc.                                |
-| ``FIXED-PRODUCTION-LOAD``     | Consumer that is fixed/constant when production stream is on. Note that this is simply the name of the category. eCalc™ does **not** imply any condition (that production must be > 0) when this keyword is applied. For this to occur, [CONDITION](CONDITION.md) must be used. See example below.                    |
-| ``FLARE``                     | Flaring related energy usage/emissions                                             |
-| ``MISCELLANEOUS``             | Anything that don't apply other categories. Compressor and Genset (New in **v7.2**)|
-| ``PUMP``                      | Single speed pumps, variable speed pumps.                                          |
-| ``GAS-DRIVEN-COMPRESSOR``     | Compressor only. New in **v7.1**                                                   |
-| ``TURBINE-GENERATOR``         | Genset only. New in **v7.1**                                                       |
-| ``POWER-FROM-SHORE``          | Genset only. Dummy Genset (should have e.g. 0 fuel). New in **v7.1**               |
-| ``OFFSHORE-WIND``             | Direct load consumer only. Negative load. Indicate external power. New in **v7.1** |
-| ``LOADING``                   | Direct load consumer only. Indicate oil volume to be loaded. New in **v8.0** |
-| ``STORAGE``                   | Direct load consumer only. Indicate oil volume to be stored. New in **v8.0** |
- | ``STEAM-TURBINE-GENERATOR``   | Direct load consumer only. Negative load. Indicate power generated steam turbine. New in **v8.1** |
-| ``BOILER``                  | Indicate steam generated. New in **v8.2**                                                                                                                                                                                                                                                          |
-| ``HEATER``                  | Indicate hot medium generated. New in **v8.2**                                                                                                                                                                                                                                                     |
+| Category                      | Description/Examples                                                                                                                                                                                                                                                                               |
+|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ``BASE-LOAD``                 | Consumers that do not vary with production                                                                                                                                                                                                                                                         |
+| ``COLD-VENTING-FUGITIVE``     | Direct emissions through cold venting and fugitive emissions                                                                                                                                                                                                                                       |
+| ``COMPRESSOR``                | Gas injection compressors, export compressors, etc.                                                                                                                                                                                                                                                |
+| ``FIXED-PRODUCTION-LOAD``     | Consumer that is fixed/constant when production stream is on. Note that this is simply the name of the category. eCalc™ does **not** imply any condition (that production must be > 0) when this keyword is applied. For this to occur, [CONDITION](CONDITION.md) must be used. See example below. |
+| ``FLARE``                     | Flaring related energy usage/emissions                                                                                                                                                                                                                                                             |
+| ``MISCELLANEOUS``             | Anything that don't apply other categories. Compressor and Genset (New in **v7.2**)                                                                                                                                                                                                                |
+| ``PUMP``                      | Single speed pumps, variable speed pumps.                                                                                                                                                                                                                                                          |
+| ``GAS-DRIVEN-COMPRESSOR``     | Compressor only. New in **v7.1**                                                                                                                                                                                                                                                                   |
+| ``TURBINE-GENERATOR``         | Genset only. New in **v7.1**                                                                                                                                                                                                                                                                       |
+| ``POWER-FROM-SHORE``          | Genset only. Dummy Genset (should have e.g. 0 fuel). New in **v7.1**                                                                                                                                                                                                                               |
+| ``OFFSHORE-WIND``             | Direct load consumer only. Negative load. Indicate external power. New in **v7.1**                                                                                                                                                                                                                 |
+| ``LOADING``                   | Direct load consumer only. Indicate oil volume to be loaded. New in **v8.0**                                                                                                                                                                                                                       |
+| ``STORAGE``                   | Direct load consumer only. Indicate oil volume to be stored. New in **v8.0**                                                                                                                                                                                                                       |
+ | ``STEAM-TURBINE-GENERATOR``   | Direct load consumer only. Negative load. Indicate power generated steam turbine. New in **v8.1**                                                                                                                                                                                                  |
+| ``BOILER``                  | Genset only. Indicate steam generated. New in **v8.2**                                                                                                                                                                                                                        |
+| ``HEATER``                  | Genset only. Indicate hot medium generated. New in **v8.2**                                                                                                                                                                          |
 
 Allowed categories for [INSTALLATIONS](INSTALLATIONS):
 
-| Category                   | Description/Examples                                         |
-|----------------------------|--------------------------------------------------------------|
-| ``FIXED``                  | Fixed installation                                           |
-| ``MOBILE``                 | Mobile/satelite installation.                                |
+| Category                   | Description/Examples           |
+|----------------------------|--------------------------------|
+| ``FIXED``                  | Fixed installation             |
+| ``MOBILE``                 | Mobile/satellite installation. |
 
 Allowed categories for [FUEL_TYPES](FUEL_TYPES):
 

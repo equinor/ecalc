@@ -27,9 +27,7 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
     will be a list of results and not a merged object.
     """
     el_consumer = Consumer(consumer_dto=time_slot_electricity_consumer_with_changing_model_type)
-    input_variables_dict: Dict[str, List[float]] = {  # noqa
-        "RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()
-    }
+    input_variables_dict: Dict[str, List[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
 
     result = el_consumer.evaluate(
         variables_map=dto.VariablesMap(

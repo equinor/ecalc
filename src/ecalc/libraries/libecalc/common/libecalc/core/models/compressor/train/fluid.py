@@ -1,55 +1,22 @@
 from __future__ import annotations
 
-from typing import Dict, List, Union
+from typing import List, Optional, Union
 
 import numpy as np
 from libecalc import dto
-from libecalc.common.exceptions import EcalcError
-from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.dto.types import EoSModel
-from neqsim_ecalc_wrapper import NeqsimEoSModelType, NeqsimFluid
-
-_map_eos_model_to_neqsim = {
-    EoSModel.SRK: NeqsimEoSModelType.SRK,
-    EoSModel.PR: NeqsimEoSModelType.PR,
-    EoSModel.GERG_SRK: NeqsimEoSModelType.GERG_SRK,
-    EoSModel.GERG_PR: NeqsimEoSModelType.GERG_PR,
-}
-
-_map_fluid_component_to_neqsim = {
-    "water": "water",
-    "nitrogen": "nitrogen",
-    "CO2": "CO2",
-    "methane": "methane",
-    "ethane": "ethane",
-    "propane": "propane",
-    "i_butane": "i-butane",
-    "n_butane": "n-butane",
-    "i_pentane": "i-pentane",
-    "n_pentane": "n-pentane",
-    "n_hexane": "n-hexane",
-}
-
-_map_fluid_component_from_neqsim = {
-    "water": "water",
-    "nitrogen": "nitrogen",
-    "CO2": "CO2",
-    "methane": "methane",
-    "ethane": "ethane",
-    "propane": "propane",
-    "i-butane": "i_butane",
-    "n-butane": "n_butane",
-    "i-pentane": "i_pentane",
-    "n-pentane": "n_pentane",
-    "n-hexane": "n_hexane",
-}
+from neqsim_ecalc_wrapper import NeqsimFluid
+from neqsim_ecalc_wrapper.thermo import mix_neqsim_streams
+from numpy.typing import NDArray
 
 
 class FluidStream:
-    """Currently just a dataclass with a set composition.
+    """Fluid interface used in eCalc compressor train simulation
 
-    Keep as separate layer until having different initialization options to set composition
+    TODO:
+        - [x] Remove NeqSimFluid as class member
+        - [ ] Remove connections to NeqSimFluid
+        - [ ] Separate init methods based on config. To enable eCalc to be agnostick EoS package backend (NeqSim, ML, thermo(?))
     """
 
     def __init__(
@@ -57,79 +24,103 @@ class FluidStream:
         fluid_model: dto.FluidModel,
         pressure_bara: float = UnitConstants.STANDARD_PRESSURE_BARA,
         temperature_kelvin: float = UnitConstants.STANDARD_TEMPERATURE_KELVIN,
+        existing_fluid: Optional[NeqsimFluid] = None,
     ):
+        """
+
+        Args:
+            fluid_model: Describes fluid composition and EoS model
+            pressure_bara: Pressure of fluid [bara]
+            temperature_kelvin: Temperature of fluid [K]
+            existing_fluid: Initialize FluidStream from an existing (NeqSim) fluid. Warning: Be mindful of keeping fluid_model and existing fluid consistent. If not the fluid properties may be incorrect.
+        """
         self.fluid_model = fluid_model
+        self.initial_temperature_kelvin = temperature_kelvin
+        self.initial_pressure_bare = pressure_bara
 
         if not temperature_kelvin > 0:
             raise ValueError("FluidStream temperature needs to be above 0.")
         if not pressure_bara > 0:
             raise ValueError("FluidStream pressure needs to be above 0.")
+        if existing_fluid is None:
+            _neqsim_fluid_stream = NeqsimFluid.create_thermo_system(
+                composition=self.fluid_model.composition,
+                temperature_kelvin=temperature_kelvin,
+                pressure_bara=pressure_bara,
+                eos_model=self.fluid_model.eos_model,
+            )
+        else:
+            _neqsim_fluid_stream = existing_fluid
 
-        self._neqsim_fluid_stream = NeqsimFluid.create_thermo_system(
-            composition=self._map_fluid_composition_to_neqsim(fluid_composition=self.fluid_model.composition),
-            temperature_kelvin=temperature_kelvin,
-            pressure_bara=pressure_bara,
-            eos_model=_map_eos_model_to_neqsim[self.fluid_model.eos_model],
-        )
+        self._pressure_bara = _neqsim_fluid_stream.pressure_bara
+        self._temperature_kelvin = _neqsim_fluid_stream.temperature_kelvin
+        self._kappa = _neqsim_fluid_stream.kappa
+        self._density = _neqsim_fluid_stream.density
+        self._z = _neqsim_fluid_stream.z
+        self._enthalpy_joule_per_kg = _neqsim_fluid_stream.enthalpy_joule_per_kg
 
         if (
             pressure_bara == UnitConstants.STANDARD_PRESSURE_BARA
             and temperature_kelvin == UnitConstants.STANDARD_TEMPERATURE_KELVIN
         ):
-            self.standard_conditions_density = self._neqsim_fluid_stream.density
-            self.molar_mass_kg_per_mol = self._neqsim_fluid_stream.molar_mass
+            self.standard_conditions_density = _neqsim_fluid_stream.density
+            self.molar_mass_kg_per_mol = _neqsim_fluid_stream.molar_mass
         else:
             _neqsim_fluid_at_standard_conditions = NeqsimFluid.create_thermo_system(
-                composition=self._map_fluid_composition_to_neqsim(fluid_composition=self.fluid_model.composition),
+                composition=self.fluid_model.composition,
                 temperature_kelvin=UnitConstants.STANDARD_TEMPERATURE_KELVIN,
                 pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
-                eos_model=_map_eos_model_to_neqsim[self.fluid_model.eos_model],
+                eos_model=self.fluid_model.eos_model,
             )
 
             self.standard_conditions_density = _neqsim_fluid_at_standard_conditions.density
-            self.molar_mass_kg_per_mol = _neqsim_fluid_at_standard_conditions.molar_mass
 
     @property
     def pressure_bara(self) -> float:
-        return self._neqsim_fluid_stream.pressure_bara
+        return self._pressure_bara
 
     @property
     def temperature_kelvin(self) -> float:
-        return self._neqsim_fluid_stream.temperature_kelvin
+        return self._temperature_kelvin
 
     @property
     def kappa(self) -> float:
-        return self._neqsim_fluid_stream.kappa
+        return self._kappa
 
     @property
     def density(self) -> float:
-        return self._neqsim_fluid_stream.density
+        return self._density
 
     @property
     def z(self) -> float:
-        return self._neqsim_fluid_stream.z
+        return self._z
 
-    @staticmethod
-    def _map_fluid_composition_to_neqsim(fluid_composition: dto.FluidComposition) -> Dict[str, float]:
-        component_dict = {}
-        for component_name, value in fluid_composition.dict().items():
-            if value is not None and value > 0:
-                neqsim_name = _map_fluid_component_to_neqsim[component_name]
-                component_dict[neqsim_name] = float(value)
+    @property
+    def enthalpy_joule_per_kg(self) -> float:
+        return self._enthalpy_joule_per_kg
 
-        if len(component_dict) < 1:
-            msg = "Can not run pvt calculations for fluid without components"
-            logger.error(msg)
-            raise EcalcError(msg)
+    def standard_rate_to_mass_rate(
+        self, standard_rates: Union[NDArray[np.float64], float]
+    ) -> Union[NDArray[np.float64], float]:
+        """Convert standard rate [Sm3/day] to mass rate [kg/h].
 
-        return component_dict
+        Use standard conditions are 15C at 1atm = 1.01325 bara for fluid density.
 
-    def standard_to_mass_rate(self, standard_rates: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
-        """Sm3/day to kg/h. Standard conditions are 15C at 1atm = 1.01325 bara."""
+        Args:
+            standard_rates: List or single rate(s) to convert [Sm3/day]
+
+        Returns:
+            List or single standard rate(s) [kg/h]
+        """
         mass_rate_kg_per_hour = standard_rates * self.standard_conditions_density / UnitConstants.HOURS_PER_DAY
-        return mass_rate_kg_per_hour
+        if isinstance(mass_rate_kg_per_hour, np.ndarray):
+            return np.array(mass_rate_kg_per_hour)
+        else:
+            return float(mass_rate_kg_per_hour)
 
-    def mass_rate_to_standard_rate(self, mass_rate_kg_per_hour: Union[np.ndarray, float]) -> Union[np.ndarray, float]:
+    def mass_rate_to_standard_rate(
+        self, mass_rate_kg_per_hour: Union[NDArray[np.float64], float]
+    ) -> Union[NDArray[np.float64], float]:
         """Convert mass rate from kg/h to Sm3/day.
 
         Args:
@@ -139,8 +130,13 @@ class FluidStream:
             Mass rates in Sm3/day
 
         """
-        fluid_density_standard_conditions = self.standard_conditions_density
-        return mass_rate_kg_per_hour * UnitConstants.HOURS_PER_DAY / fluid_density_standard_conditions
+        standard_rate_kg_per_hour = (
+            mass_rate_kg_per_hour / self.standard_conditions_density * UnitConstants.HOURS_PER_DAY
+        )
+        if isinstance(standard_rate_kg_per_hour, np.ndarray):
+            return np.array(standard_rate_kg_per_hour)
+        else:
+            return float(standard_rate_kg_per_hour)
 
     def get_fluid_stream(self, pressure_bara: float, temperature_kelvin: float) -> FluidStream:
         """Return a fluid stream for given pressure and temperature
@@ -157,12 +153,14 @@ class FluidStream:
             fluid_model=self.fluid_model, pressure_bara=pressure_bara, temperature_kelvin=temperature_kelvin
         )
 
-    def get_fluid_streams(self, pressure_bara: np.ndarray, temperature_kelvin: np.ndarray) -> List[FluidStream]:
+    def get_fluid_streams(
+        self, pressure_bara: NDArray[np.float64], temperature_kelvin: NDArray[np.float64]
+    ) -> List[FluidStream]:
         """Get multiple fluid streams from multiple temperatures and pressures
 
         Args:
             pressure_bara: array of pressures [bara]
-            temperature_kelvin: array of temperatures [kelvin]
+            temperature_kelvin: array of temperatures [K]
 
         Returns:
             List of fluid streams at set temperatures and pressures
@@ -178,30 +176,62 @@ class FluidStream:
     def set_new_pressure_and_temperature(
         self, new_pressure_bara: float, new_temperature_kelvin: float, remove_liquid: bool = True
     ) -> FluidStream:
-        new_fluid_stream = self.copy()
-        new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.set_new_pressure_and_temperature(
+        """Get a new fluid with changed pressure and temperature.
+
+        This is a wrapper of a TP-flash
+
+        Args:
+            new_pressure_bara: Pressure setpoint of new fluid [bara]
+            new_temperature_kelvin: Temperature setpoint of new fluid [K]
+            remove_liquid: If true the new fluid will be forced to be single phase (Gas), defaults to true
+
+        Returns:
+            New fluid stream flashed to a new temperature and pressure setpoint
+
+        """
+        fluid_stream = NeqsimFluid.create_thermo_system(
+            composition=self.fluid_model.composition,
+            temperature_kelvin=self.temperature_kelvin,
+            pressure_bara=self.pressure_bara,
+            eos_model=self.fluid_model.eos_model,
+        )
+
+        fluid_stream = fluid_stream.set_new_pressure_and_temperature(
             new_pressure_bara=new_pressure_bara,
             new_temperature_kelvin=new_temperature_kelvin,
             remove_liquid=remove_liquid,
         )
-        return new_fluid_stream
+        return FluidStream(existing_fluid=fluid_stream, fluid_model=self.fluid_model)
 
     def set_new_pressure_and_enthalpy_change(
         self, new_pressure: float, enthalpy_change_joule_per_kg: float, remove_liquid: bool = True
     ) -> FluidStream:
-        new_fluid_stream = self.copy()
-        new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.set_new_pressure_and_enthalpy(
+        """Get a new fluid with changed pressure and changed enthalpy.
+
+        This is a wrapper of a PH-flash
+
+        Args:
+            new_pressure: Pressure setpoint of new fluid [bara]
+            enthalpy_change_joule_per_kg: Change in enthalpy performed on new fluid [J/kg]
+            remove_liquid: If true the new fluid will be forced to be single phase (Gas), defaults to true
+
+        Returns:
+            Mew fluid stream flashed to a new pressure and changed enthalpy
+
+        """
+        fluid_stream = NeqsimFluid.create_thermo_system(
+            composition=self.fluid_model.composition,
+            temperature_kelvin=self.temperature_kelvin,
+            pressure_bara=self.pressure_bara,
+            eos_model=self.fluid_model.eos_model,
+        )
+
+        fluid_stream = fluid_stream.set_new_pressure_and_enthalpy(
             new_pressure=new_pressure,
-            new_enthalpy_joule_per_kg=new_fluid_stream._neqsim_fluid_stream.enthalpy_joule_per_kg
-            + enthalpy_change_joule_per_kg,
+            new_enthalpy_joule_per_kg=fluid_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg,
             remove_liquid=remove_liquid,
         )
-        return new_fluid_stream
-
-    def copy(self) -> FluidStream:
-        return FluidStream(
-            fluid_model=self.fluid_model, pressure_bara=self.pressure_bara, temperature_kelvin=self.temperature_kelvin
-        )
+        return FluidStream(existing_fluid=fluid_stream, fluid_model=self.fluid_model)
 
     def mix_in_stream(
         self,
@@ -224,21 +254,30 @@ class FluidStream:
             New fluid stream with mixed in fluid
 
         """
-        new_fluid_stream = self.copy()
-        composition_dict, new_fluid_stream._neqsim_fluid_stream = new_fluid_stream._neqsim_fluid_stream.mix_streams(
-            stream_1=new_fluid_stream._neqsim_fluid_stream,
-            stream_2=other_fluid_stream._neqsim_fluid_stream,
+
+        if self.fluid_model.eos_model != other_fluid_stream.fluid_model.eos_model:
+            raise ValueError(
+                f"Mixing of fluids with different EoS Models is not supported. Got '{self.fluid_model.eos_model}' and '{other_fluid_stream.fluid_model.eos_model}"
+            )
+
+        if (self.pressure_bara != pressure_bara) or (other_fluid_stream.pressure_bara != pressure_bara):
+            raise ValueError(
+                f"Can not mix fluids at different pressures. The fluids are at {self.pressure_bara} bara and '{other_fluid_stream.pressure_bara}' bara and were attempted to be mixed at {pressure_bara} bara"
+            )
+
+        mixed_fluid_composition, mixed_neqsim_fluid_stream = mix_neqsim_streams(
+            stream_composition_1=self.fluid_model.composition,
+            stream_composition_2=other_fluid_stream.fluid_model.composition,
             mass_rate_stream_1=self_mass_rate,
             mass_rate_stream_2=other_mass_rate,
             pressure=pressure_bara,
             temperature=temperature_kelvin,
-            eos_model=_map_eos_model_to_neqsim[new_fluid_stream.fluid_model.eos_model],
+            eos_model=self.fluid_model.eos_model,
         )
 
-        new_composition_dict = {
-            _map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()
-        }
-
-        new_fluid_stream.fluid_model.composition = dto.FluidComposition.parse_obj(new_composition_dict)
-
-        return new_fluid_stream
+        return FluidStream(
+            existing_fluid=mixed_neqsim_fluid_stream,
+            temperature_kelvin=temperature_kelvin,
+            pressure_bara=pressure_bara,
+            fluid_model=dto.FluidModel(composition=mixed_fluid_composition, eos_model=self.fluid_model.eos_model),
+        )

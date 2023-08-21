@@ -42,7 +42,7 @@ def test_calculate_pressure_ratios_per_stage(compressor_train_two_stages):
     np.testing.assert_almost_equal(pressure_ratios, [1.0, 1.22474487, 1.41421356, 1.58113883, 1.73205081])
 
 
-def test_validate_operational_conditions():
+def test_validate_operational_conditions(compressor_train):
     #  test that valid single stream input is not changed
     [
         rate,
@@ -50,7 +50,7 @@ def test_validate_operational_conditions():
         discharge_pressure,
         intermediate_pressure,
         failure_status,
-    ] = CompressorTrainModel._validate_operational_conditions(
+    ] = compressor_train.validate_operational_conditions(
         rate=np.asarray([1000, 1000]),
         suction_pressure=np.asarray([1, 1]),
         intermediate_pressure=np.asarray([2, 2]),
@@ -69,7 +69,7 @@ def test_validate_operational_conditions():
         discharge_pressure,
         intermediate_pressure,
         failure_status,
-    ] = CompressorTrainModel._validate_operational_conditions(
+    ] = compressor_train.validate_operational_conditions(
         rate=np.asarray([[1000, 1000], [1000, 1000]]),
         suction_pressure=np.asarray([1, 1]),
         intermediate_pressure=np.asarray([2, 2]),
@@ -88,7 +88,7 @@ def test_validate_operational_conditions():
         discharge_pressure,
         intermediate_pressure,
         failure_status,
-    ] = CompressorTrainModel._validate_operational_conditions(
+    ] = compressor_train.validate_operational_conditions(
         rate=np.asarray([1000, 1000]),
         suction_pressure=np.asarray([-1, 0]),
         intermediate_pressure=np.asarray([2, 2]),
@@ -110,7 +110,7 @@ def test_validate_operational_conditions():
         discharge_pressure,
         intermediate_pressure,
         failure_status,
-    ] = CompressorTrainModel._validate_operational_conditions(
+    ] = compressor_train.validate_operational_conditions(
         rate=np.asarray([1000, 1000]),
         suction_pressure=np.asarray([1, 1]),
         intermediate_pressure=np.asarray([2, 2]),
@@ -132,7 +132,7 @@ def test_validate_operational_conditions():
         discharge_pressure,
         intermediate_pressure,
         failure_status,
-    ] = CompressorTrainModel._validate_operational_conditions(
+    ] = compressor_train.validate_operational_conditions(
         rate=np.asarray([1000, 1000]),
         suction_pressure=np.asarray([1, 1]),
         intermediate_pressure=np.asarray([-1, 0]),
@@ -154,7 +154,7 @@ def test_validate_operational_conditions():
         discharge_pressure,
         intermediate_pressure,
         failure_status,
-    ] = CompressorTrainModel._validate_operational_conditions(
+    ] = compressor_train.validate_operational_conditions(
         rate=np.asarray([[-1, 1000, 1000], [1000, -1, 1000]]),
         suction_pressure=np.asarray([1, 1, 1]),
         intermediate_pressure=np.asarray([2, 2, 2]),
@@ -178,7 +178,7 @@ def test_validate_operational_conditions():
         discharge_pressure,
         intermediate_pressure,
         failure_status,
-    ] = CompressorTrainModel._validate_operational_conditions(
+    ] = compressor_train.validate_operational_conditions(
         rate=np.asarray([-1, 1000]),
         suction_pressure=np.asarray([1, 1]),
         intermediate_pressure=np.asarray([2, 2]),
@@ -190,3 +190,25 @@ def test_validate_operational_conditions():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [CompressorTrainCommonShaftFailureStatus.INVALID_RATE_INPUT, None]
+
+    # test that suction_pressure, when suction_pressure > discharge_pressure, is set to discharge_pressure,
+    # and that rate at the same time is set to 0.
+    [
+        rate,
+        suction_pressure,
+        discharge_pressure,
+        intermediate_pressure,
+        failure_status,
+    ] = compressor_train.validate_operational_conditions(
+        rate=np.asarray([1000, 1000]),
+        suction_pressure=np.asarray([4, 3]),
+        intermediate_pressure=np.asarray([2, 2]),
+        discharge_pressure=np.asarray([3, 3]),
+    )
+    assert rate[0] == 0
+    assert rate[1] == 1000
+    assert suction_pressure[0] == 4
+    assert suction_pressure[1] == 3
+    assert np.all(intermediate_pressure == 2)
+    assert np.all(discharge_pressure == 3)
+    assert failure_status == [CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT, None]

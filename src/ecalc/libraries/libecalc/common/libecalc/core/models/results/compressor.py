@@ -90,6 +90,7 @@ class CompressorStageResult(EnergyModelBaseResult):
 
     @classmethod
     def create_empty(cls, number_of_timesteps: int) -> CompressorStageResult:
+        """Create empty CompressorStageResult"""
         nans = [np.nan] * number_of_timesteps
         return cls(
             energy_usage=nans,
@@ -163,7 +164,12 @@ class CompressorTrainResult(EnergyFunctionResult):
                 # In case of nested models such as compressor with turbine
                 values.extend(other_values)
             elif isinstance(values, list):
-                if isinstance(other_values, list):
+                # in case of list of lists
+                if isinstance(values[0], list):
+                    self.__setattr__(
+                        attribute, [value + other_value for value, other_value in zip(values, other_values)]
+                    )
+                elif isinstance(other_values, list):
                     self.__setattr__(attribute, values + other_values)
                 else:
                     self.__setattr__(attribute, values + [other_values])

@@ -34,6 +34,7 @@ from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.pump import PumpModel
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
+from numpy.typing import NDArray
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
@@ -304,11 +305,13 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def get_cross_over_used(
         operational_setting_used_without_cross_over: ConsumerSystemOperationalSetting,
         operational_settings_used: ConsumerSystemOperationalSetting,
-    ) -> np.ndarray:
+    ) -> NDArray[np.int_]:
         """Returns 1 for cross_over in use and 0 for not in use. One per timestep."""
         rates_before_cross_over = np.asarray(operational_setting_used_without_cross_over.rates)
         rates_adjusted_for_cross_over = np.asarray(operational_settings_used.rates)
-        return np.any(np.where(rates_before_cross_over > rates_adjusted_for_cross_over, 1, 0), axis=0).astype(int)
+        return np.array(
+            np.any(np.where(rates_before_cross_over > rates_adjusted_for_cross_over, 1, 0), axis=0).astype(int)
+        )
 
 
 class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
@@ -357,19 +360,17 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         """
         consumer_rates = operational_setting.rates
 
-        consumer_results = []
-        for i, consumer in enumerate(self.consumers):
-            consumer_results.append(
-                CompressorResult(
-                    name=consumer.name,
-                    consumer_model_result=consumer.facility_model.evaluate_rate_ps_pd(
-                        rate=consumer_rates[i],
-                        suction_pressure=operational_setting.suction_pressures[i],
-                        discharge_pressure=operational_setting.discharge_pressures[i],
-                    ),
-                )
+        return [
+            CompressorResult(
+                name=consumer.name,
+                consumer_model_result=consumer.facility_model.evaluate_rate_ps_pd(
+                    rate=consumer_rates[i],
+                    suction_pressure=operational_setting.suction_pressures[i],
+                    discharge_pressure=operational_setting.discharge_pressures[i],
+                ),
             )
-        return consumer_results
+            for i, consumer in enumerate(self.consumers)
+        ]
 
 
 class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):

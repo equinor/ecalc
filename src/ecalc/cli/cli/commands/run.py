@@ -108,11 +108,10 @@ def run(
 
     model = YamlModel(path=model_file, output_frequency=output_frequency)
 
-    if flow_diagram or ltp_export:
-        if model.start is None or model.end is None:
-            logger.warning(
-                "When using Flow Diagram or Long Term Prognosis export, START and END should be specified in YAML to make sure you get the intended period as output. See documentation for more information."
-            )
+    if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
+        logger.warning(
+            "When using Flow Diagram or Long Term Prognosis export, START and END should be specified in YAML to make sure you get the intended period as output. See documentation for more information."
+        )
 
     if flow_diagram:
         write_flow_diagram(

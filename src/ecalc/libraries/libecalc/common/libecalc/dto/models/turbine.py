@@ -21,6 +21,6 @@ class Turbine(EnergyModel):
         if len(turbine_loads) != len(turbine_efficiencies):
             raise ValueError("Need equal number of load and efficiency values for turbine model")
 
-        if not all([0 <= x <= 1 for x in turbine_efficiencies]):
+        if not all(0 <= x <= 1 for x in turbine_efficiencies):
             raise ValueError("Turbine efficiency fraction should be a number between 0 and 1")
         return values

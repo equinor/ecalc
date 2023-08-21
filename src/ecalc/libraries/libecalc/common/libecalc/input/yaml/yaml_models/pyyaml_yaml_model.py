@@ -6,6 +6,7 @@ import pydantic
 import yaml
 from libecalc.common.exceptions import EcalcError, ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
+from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS, ComponentNameStr
 from libecalc.input.validation_errors import (
     DataValidationError,
     DtoValidationError,
@@ -125,6 +126,12 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                 )
 
         def load(self, yaml_file: ResourceStream):
+            if ComponentNameStr.regex.search(Path(yaml_file.name).stem) is None:
+                raise EcalcError(
+                    title="Bad Yaml file name",
+                    message=f"The model file, {yaml_file.name}, contains illegal special characters. "
+                    f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}",
+                )
             try:
                 return yaml.load(yaml_file, Loader=self.__loader)  # noqa: S506 - loader should be SafeLoader
             except KeyError as e:
@@ -297,7 +304,7 @@ def find_date_keys_in_yaml(yaml_object: Union[List, Dict]) -> List[datetime.date
             index_to_datetime = convert_date_to_datetime(index)
             if index_to_datetime not in output:
                 output.append(index_to_datetime)
-        if isinstance(yaml_object[index], dict) or isinstance(yaml_object[index], list):  # type: ignore
+        if isinstance(yaml_object[index], (dict, list)):  # type: ignore
             output.extend(find_date_keys_in_yaml(yaml_object[index]))  # type: ignore
 
     return output

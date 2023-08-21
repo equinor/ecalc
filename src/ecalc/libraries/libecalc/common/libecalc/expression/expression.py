@@ -11,6 +11,7 @@ from libecalc.expression.expression_evaluator import (
     eval_tokens,
     lexer,
 )
+from numpy.typing import NDArray
 
 LEFT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.left_parenthesis.value)
 RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_parenthesis.value)
@@ -75,7 +76,7 @@ class Expression:
         tokens = cls.validate(expression=expression)
         return cls(tokens=tokens)
 
-    def evaluate(self, variables: Dict[str, List[float]], fill_length: int) -> np.ndarray:
+    def evaluate(self, variables: Dict[str, List[float]], fill_length: int) -> NDArray[np.float64]:
         missing_references = [reference_id for reference_id in self.variables if reference_id not in variables]
         if len(missing_references) != 0:
             msg = f"Unable to evaluate expression. Missing reference(s) {', '.join(missing_references)}"

@@ -135,7 +135,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         self, single_speed_compressor_train_common_shaft_downstream_choking_with_maximum_discharge_pressure
     ):
         # In the previous test, we see that the third point (index=2) have a floating discharge pressure 367.5
-        # Now, the maximum discharge pressure is set to 350.0, thus for this point, the discharge pressure shold be ~350
+        # Now, the maximum discharge pressure is set to 350.0, thus for this point, the discharge pressure should be ~350
         # And the suction pressure and other relevant attributes in the result should have been changed accordingly
         target_discharge_pressures = np.asarray([300.0, 310.0, 300.0, 300.0])
         suction_pressures = 4 * [80.0]
@@ -361,7 +361,7 @@ def test_calculate_single_speed_train_zero_mass_rate(medium_fluid, single_speed_
     )
 
     # Ensuring that first stage returns zero energy usage and no failure.
-    assert result.is_valid == [False, True, True]
+    assert result.is_valid == [True, True, True]
     assert result.energy_usage == pytest.approx([0.0, 0.14898322782599177, 0.14898322782599177])
 
     assert result.mass_rate_kg_per_hr[0] == 0
@@ -384,15 +384,15 @@ def test_calculate_single_speed_train_zero_pressure_non_zero_rate(medium_fluid, 
         rate=np.array([0, 0, 1, 1]), suction_pressure=np.array([0, 1, 1, 0]), discharge_pressure=np.array([0, 1, 0, 1])
     )
 
-    # All should be valid
-    assert result.is_valid == [False, True, False, False]
+    # Results with zero rate should be valid
+    assert result.is_valid == [True, True, False, False]
     assert result.failure_status == [
-        CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        None,
         None,
         CompressorTrainCommonShaftFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
         CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
     ]
-    assert all([flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags])
+    assert all(flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags)
     np.testing.assert_allclose(result.energy_usage, np.array([0, 0, 0, 0]))
 
     np.testing.assert_allclose(result.mass_rate_kg_per_hr, 0)

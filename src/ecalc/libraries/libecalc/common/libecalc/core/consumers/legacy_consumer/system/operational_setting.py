@@ -8,6 +8,7 @@ from libecalc.common.exceptions import EcalcError, IncompatibleDataError
 from libecalc.common.logger import logger
 from libecalc.common.utils.rates import Rates
 from libecalc.expression import Expression
+from numpy.typing import NDArray
 from pydantic import BaseModel, root_validator
 
 
@@ -75,11 +76,11 @@ class PumpSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingEx
 class ConsumerSystemOperationalSetting(BaseModel):
     """Warning! The methods below are fragile to changes in attribute names and types."""
 
-    rates: List[np.ndarray]
-    suction_pressures: List[np.ndarray]
-    discharge_pressures: List[np.ndarray]
+    rates: List[NDArray[np.float64]]
+    suction_pressures: List[NDArray[np.float64]]
+    discharge_pressures: List[NDArray[np.float64]]
     cross_overs: Optional[List[int]]
-    fluid_densities: Optional[List[np.ndarray]]
+    fluid_densities: Optional[List[NDArray[np.float64]]]
 
     class Config:
         arbitrary_types_allowed = True
@@ -87,7 +88,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
 
     @root_validator
     def check_list_length(cls, values):
-        def _log_error(field: str, field_values: List[np.ndarray], n_rates: int) -> None:
+        def _log_error(field: str, field_values: List[NDArray[np.float64]], n_rates: int) -> None:
             error_message = (
                 f"All attributes in a consumer system operational setting must have the same number of elements"
                 f"(corresponding to the number of consumers). The number of elements in {field} "
@@ -137,7 +138,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
 
     def set_rates_after_cross_over(
         self,
-        rates_after_cross_over: List[np.ndarray],
+        rates_after_cross_over: List[NDArray[np.float64]],
     ) -> ConsumerSystemOperationalSetting:
         """Note: Hack because of Config allow_mutation = False - to avoid Pydantic faux immutability
         Refactor so that we do not need to do this at all.
@@ -152,4 +153,4 @@ class CompressorSystemOperationalSetting(ConsumerSystemOperationalSetting):
 
 
 class PumpSystemOperationalSetting(ConsumerSystemOperationalSetting):
-    fluid_densities: List[np.ndarray]
+    fluid_densities: List[NDArray[np.float64]]
