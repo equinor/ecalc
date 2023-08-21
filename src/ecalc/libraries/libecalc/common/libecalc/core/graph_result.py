@@ -1,4 +1,3 @@
-import math
 import operator
 from functools import reduce
 from typing import Dict, List
@@ -26,7 +25,6 @@ from libecalc.dto.result.emission import EmissionIntensityResult
 from libecalc.dto.result.results import CompressorResult
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
-from libecalc.expression import Expression
 from pydantic import BaseModel, parse_obj_as
 
 
@@ -241,12 +239,28 @@ class GraphResult:
             if self.graph.get_component(consumer_id).component_type == ComponentType.COMPRESSOR:
                 component = self.graph.get_component(consumer_id)
 
-                requested_inlet_pressure = self.get_pressures_from_temporal_models(
-                    component.energy_usage_model, component.regularity, CompressorPressureState.INLET_PRESSURE
+                inlet_pressure_eval = CompressorResult.evaluate_energy_usage_model(
+                    energy_usage_model=component.energy_usage_model,
+                    pressure_type=CompressorPressureState.INLET_PRESSURE,
                 )
-                requested_outlet_pressure = self.get_pressures_from_temporal_models(
-                    component.energy_usage_model, component.regularity, CompressorPressureState.OUTLET_PRESSURE
+
+                outlet_pressure_eval = CompressorResult.evaluate_energy_usage_model(
+                    energy_usage_model=component.energy_usage_model,
+                    pressure_type=CompressorPressureState.OUTLET_PRESSURE,
                 )
+
+                requested_inlet_pressure = TimeSeriesFloat(
+                    timesteps=self.timesteps,
+                    values=TemporalExpression.evaluate(inlet_pressure_eval, self.variables_map),
+                    unit=Unit.BARA,
+                )
+
+                requested_outlet_pressure = TimeSeriesFloat(
+                    timesteps=self.timesteps,
+                    values=TemporalExpression.evaluate(outlet_pressure_eval, self.variables_map),
+                    unit=Unit.BARA,
+                )
+
                 sub_components.append(
                     CompressorResult(
                         componentType=consumer_node_info.component_type,
@@ -392,47 +406,3 @@ class GraphResult:
             emission_results=self.emission_results,
             variables_map=self.variables_map,
         )
-
-    def get_pressures_from_temporal_models(
-        self, energy_usage_model: dict, regularity: dict, pressure_type: CompressorPressureState
-    ) -> TimeSeriesFloat:
-        """Extract compressor input pressures from temporal models.
-
-        :param energy_usage_model: dictionary of temporal energy models
-        :param regularity: regularity for the actual component
-        :param pressure_type: type of pressure to evaluate (inlet- or outlet pressure)
-        :return: inlet- and outlet input pressure time series
-        """
-
-        pressures = None
-
-        for period, model in TemporalModel(energy_usage_model).items():
-            pressure = model.suction_pressure
-            if pressure_type.value == CompressorPressureState.OUTLET_PRESSURE:
-                pressure = model.discharge_pressure
-
-            if pressure is not None:
-                pressure_value = pressure
-
-                if isinstance(pressure, Expression):
-                    pressure_value = list(
-                        pressure.evaluate(self.variables_map, fill_length=len(self.variables_map.time_vector))
-                    )
-
-            else:
-                pressure_value = [math.nan] * len(self.timesteps)
-
-            pressure_time_series = TimeSeriesFloat(
-                timesteps=self.timesteps,
-                values=pressure_value,
-                unit=Unit.BARA,
-                regularity=regularity,
-            ).for_period(period=period)
-
-            if pressures is not None:
-                pressures = pressures.extend(other=pressure_time_series)
-            else:
-                pressures = pressure_time_series
-
-        pressures = pressures.reindex(self.timesteps, fillna=math.nan)
-        return pressures

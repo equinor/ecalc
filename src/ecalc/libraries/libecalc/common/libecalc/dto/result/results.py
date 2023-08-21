@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import math
+from datetime import datetime
 from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.component_info.compressor import CompressorPressureState
 from libecalc.common.logger import logger
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Frequency
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -20,6 +24,7 @@ from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
 from libecalc.dto.result.simple import SimpleComponentResult, SimpleResultData
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 from libecalc.dto.result.types import opt_float
+from libecalc.expression import Expression
 from pydantic import Field, validator
 from typing_extensions import Annotated
 
@@ -109,6 +114,33 @@ class CompressorResult(EquipmentResultBase):
     outlet_pressure_before_choking: TimeSeriesFloat
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
+
+    def evaluate_energy_usage_model(
+        energy_usage_model: Dict[datetime, Any],
+        pressure_type: CompressorPressureState,
+    ) -> TemporalModel[Expression]:
+        """Get temporal model for compressor inlet- and outlet pressures.
+        The pressures are the actual pressures defined by user in input.
+
+        :param energy_usage_model: Temporal energy model
+        :param pressure_type: Compressor pressure type, inlet- or outlet
+        :return: Temporal model with pressures as expressions
+        """
+        evaluated_temporal_energy_usage_models = {}
+        for period, model in TemporalModel(energy_usage_model).items():
+            pressures = model.suction_pressure
+
+            if pressure_type.value == CompressorPressureState.OUTLET_PRESSURE:
+                pressures = model.discharge_pressure
+
+            if pressures is None:
+                pressures = math.nan
+
+            if not isinstance(pressures, Expression):
+                pressures = Expression.setup_from_expression(value=pressures)
+
+            evaluated_temporal_energy_usage_models[period.start] = pressures
+        return TemporalModel(evaluated_temporal_energy_usage_models)
 
 
 class DirectEmitterResult(EquipmentResultBase):
