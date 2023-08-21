@@ -6,7 +6,7 @@ description: Generic workflow
 
 ## Simplified Process Flow Diagram
 The image below illustrates a simplified process flow diagram for a generic offshore oil and gas facility. Each unit included in this diagram can be modelled with the use of eCalc. 
-The [workflow](#workflow) below will outline what is necessary to obtain for each step. As well as some thought processes for setting up the model in general.
+The [workflow](#workflow) below will outline what is necessary to obtain for each step. In addition, there are some accompanied [explanations](#workflow-explanation) to the workflow.
 
 ![](images/simple_facility_pfd.jpg)
 
@@ -107,11 +107,13 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 
 ### Required Subsurface Profiles
 
-All subsurface profiles must be in Sm<sup>3</sup>/day. 
+All subsurface profiles must be in Sm<sup>3</sup>/day. This data must be inputted as a `TIME-SERIES` and references to how it is used in the facility or by a relevant consumer.
 
 ### Facility Information
 
 #### Constant Power Loads
+
+To simply certain models, there are some common assumptions made. Here are some examples:
 
 - **Base Load**: As eCalc™ is not simulating the whole facility there are often energy consumers that are not modelled. 
 Typically these energy consumers relate to things such as the energy consumption of living quarters and are often constant loads.
@@ -122,4 +124,37 @@ Thus, to simplify modelling, these recompressors are often modelled as constant 
 - **Oil Export Pumps**: Depending on the facility, there are often not too large pumps and do not have too large a load. 
 As eCalc™ does not model oil pumps, these are often modelled as constant loads or modelled with a table (that relates oil rate to power consumption).
 
+#### Additional Information
 
+Any emissions that do not fall within the defined categories can still be considered for a given platform. For example, if there are drilling activities, an additional fuel type can be specified and related to the fuel consumption of a drilling rig. 
+
+### Consumer Information
+
+#### Generator Set
+
+As eCalc™ does not indepthly model gas turbine generators, alternative methods are used. 
+Here, fuel consumed and electricity generated is related in tabular form. These are typically linear relationships, and if more than one generator is used, "generator switching" is modelled by adding another generator curve on top of the existing.
+
+This means that the facility will operate in the most efficienct manner, i.e. meaning that if one generator will satisfy the electricity demand, only one generator will always be used. 
+
+#### Compressor Curves
+
+eCalc™ has generic compressor curve functionality, which can be used when compressor curves are not available. But if a compressor curve is available, it is always recommended to do so. 
+The generic compressor curves, use the assumption of constant polytropic efficiency, which is only a good assumption if the compressor is running near the design points. 
+
+
+### Validation
+
+Checking whether an eCalc™ model is valid or not, is an essential task. If a model is not valid, this means that input requirements set by the user are not being fulfilled, or that some consumers are giving realistic solutions.
+
+Validity can be checked by consumer, and there are often specific reasons why certain consumers are invalid. For example:
+
+- **Compressors and Pumps**: It is common that either too high a head or rate value is specified. This means that the invalid point is outside the limits of the performance chart. To determine the issue, it is recommended that the operational points (Head, and actual flowrate) are plotted together with the chart.
+- **Generator Set**: The most common issue here is that the amount of power required is higher than the maximum value in the utilised genset. 
+
+### Calibration
+
+The term calibration in eCalc™ often refers to the history matching of the facility. Essentially, real operational data is compared against the eCalc™ model results. If they do not correlate various changes are made to the model.
+
+The main workflow with this would be to match every individual consumer, e.g. each pump and compressor. After that, it is the recommended to compare on the facility level (e.g. total power consumed or total fuel used), then various adjustments can be made.
+These adjustments can mean changes to the base load, or shifting the compressor curves.
