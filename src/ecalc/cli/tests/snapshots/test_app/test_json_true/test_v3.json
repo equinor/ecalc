@@ -3665,7 +3665,6 @@
           null
         ]
       },
-      "parent": "e852d5d4b9101f154db921ece82a697c",
       "rate_exceeds_maximum": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -3760,18 +3759,18 @@
         ],
         "unit": "bara",
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "requested_outlet_pressure": {
@@ -3791,18 +3790,18 @@
         ],
         "unit": "bara",
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "timesteps": [
@@ -3965,7 +3964,6 @@
           null
         ]
       },
-      "parent": "df82601448d0dfff409ca827eb200bf7",
       "power": {
         "regularity": [
           1.0,
@@ -4137,18 +4135,18 @@
         ],
         "unit": "bara",
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "requested_outlet_pressure": {
@@ -4168,18 +4166,18 @@
         ],
         "unit": "bara",
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
         ]
       },
       "timesteps": [

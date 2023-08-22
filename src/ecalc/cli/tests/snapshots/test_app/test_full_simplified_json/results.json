@@ -262,7 +262,6 @@
     {
       "componentType": "COMPRESSOR",
       "component_level": "CONSUMER",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
       "name": "Gas export compressor",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -330,7 +329,6 @@
     {
       "componentType": "COMPRESSOR",
       "component_level": "CONSUMER",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
       "name": "Gas injection compressor",
       "timesteps": [
         "2020-01-01 00:00:00",
