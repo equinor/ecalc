@@ -239,6 +239,7 @@ class GraphResult:
             if self.graph.get_component(consumer_id).component_type == ComponentType.COMPRESSOR:
                 component = self.graph.get_component(consumer_id)
 
+                # Get temporal expression for inlet- and outlet pressures
                 inlet_pressure_eval = CompressorResult.evaluate_energy_usage_model(
                     energy_usage_model=component.energy_usage_model,
                     pressure_type=CompressorPressureState.INLET_PRESSURE,
@@ -249,6 +250,7 @@ class GraphResult:
                     pressure_type=CompressorPressureState.OUTLET_PRESSURE,
                 )
 
+                # Evaluate pressures in temporal expression
                 requested_inlet_pressure = TimeSeriesFloat(
                     timesteps=self.timesteps,
                     values=TemporalExpression.evaluate(inlet_pressure_eval, self.variables_map),
