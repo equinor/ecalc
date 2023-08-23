@@ -1,11 +1,13 @@
+import math
 import operator
+from datetime import datetime
 from functools import reduce
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import libecalc
 from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
-from libecalc.common.component_info.compressor import CompressorPressureState
+from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
@@ -25,6 +27,7 @@ from libecalc.dto.result.emission import EmissionIntensityResult
 from libecalc.dto.result.results import CompressorResult
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
+from libecalc.expression import Expression
 from pydantic import BaseModel, parse_obj_as
 
 
@@ -200,6 +203,34 @@ class GraphResult:
             for key in emissions
         }
 
+    @staticmethod
+    def extract_pressures_from_models(
+        energy_usage_model: Dict[datetime, Any],
+        pressure_type: CompressorPressureType,
+    ) -> TemporalModel[Expression]:
+        """Get temporal model for compressor inlet- and outlet pressures.
+        The pressures are the actual pressures defined by user in input.
+
+        :param energy_usage_model: Temporal energy model
+        :param pressure_type: Compressor pressure type, inlet- or outlet
+        :return: Temporal model with pressures as expressions
+        """
+        evaluated_temporal_energy_usage_models = {}
+        for period, model in TemporalModel(energy_usage_model).items():
+            pressures = model.suction_pressure
+
+            if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
+                pressures = model.discharge_pressure
+
+            if pressures is None:
+                pressures = math.nan
+
+            if not isinstance(pressures, Expression):
+                pressures = Expression.setup_from_expression(value=pressures)
+
+            evaluated_temporal_energy_usage_models[period.start] = pressures
+        return TemporalModel(evaluated_temporal_energy_usage_models)
+
     def get_asset_result(self) -> libecalc.dto.result.EcalcModelResult:
         asset_id = self.graph.root
         asset = self.graph.get_component(asset_id)
@@ -240,14 +271,14 @@ class GraphResult:
                 component = self.graph.get_component(consumer_id)
 
                 # Get temporal expression for inlet- and outlet pressures
-                inlet_pressure_eval = CompressorResult.evaluate_energy_usage_model(
+                inlet_pressure_eval = GraphResult.extract_pressures_from_models(
                     energy_usage_model=component.energy_usage_model,
-                    pressure_type=CompressorPressureState.INLET_PRESSURE,
+                    pressure_type=CompressorPressureType.INLET_PRESSURE,
                 )
 
-                outlet_pressure_eval = CompressorResult.evaluate_energy_usage_model(
+                outlet_pressure_eval = GraphResult.extract_pressures_from_models(
                     energy_usage_model=component.energy_usage_model,
-                    pressure_type=CompressorPressureState.OUTLET_PRESSURE,
+                    pressure_type=CompressorPressureType.OUTLET_PRESSURE,
                 )
 
                 # Evaluate pressures in temporal expression
@@ -270,27 +301,24 @@ class GraphResult:
                         component_level=consumer_node_info.component_level,
                         name=consumer_node_info.name,
                         timesteps=self.timesteps,
-                        isValid=consumer_result.component_result.is_valid,
-                        energyUsage=consumer_result.component_result.energy_usage,
-                        energyUsageCumulative=consumer_result.component_result.energy_usage.to_volumes()
-                        .cumulative()
-                        .dict(),
+                        is_valid=consumer_result.component_result.is_valid,
+                        energy_usage=consumer_result.component_result.energy_usage,
+                        energy_usage_cumulative=consumer_result.component_result.energy_usage.to_volumes().cumulative(),
                         id=consumer_id,
                         power=consumer_result.component_result.power
                         if consumer_result.component_result.power is not None
                         else None,
-                        powerCumulative=consumer_result.component_result.power.to_volumes()
+                        power_cumulative=consumer_result.component_result.power.to_volumes()
                         .to_unit(Unit.GIGA_WATT_HOURS)
                         .cumulative()
-                        .dict()
                         if consumer_result.component_result.power is not None
                         else None,
                         emissions=self._parse_emissions(self.emission_results[consumer_id])
                         if consumer_id in self.emission_results
                         else [],
-                        recirculationLoss=consumer_result.component_result.recirculation_loss,
-                        rateExceedsMaximum=consumer_result.component_result.rate_exceeds_maximum,
-                        outletPressureBeforeChoking=consumer_result.component_result.outlet_pressure_before_choking,
+                        recirculation_loss=consumer_result.component_result.recirculation_loss,
+                        rate_exceeds_maximum=consumer_result.component_result.rate_exceeds_maximum,
+                        outlet_pressure_before_choking=consumer_result.component_result.outlet_pressure_before_choking,
                         requested_inlet_pressure=requested_inlet_pressure,
                         requested_outlet_pressure=requested_outlet_pressure,
                     )
