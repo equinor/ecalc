@@ -265,6 +265,7 @@ class GraphResult:
 
                 sub_components.append(
                     CompressorResult(
+                        parent=self.graph.get_predecessor(consumer_id),
                         componentType=consumer_node_info.component_type,
                         component_level=consumer_node_info.component_level,
                         name=consumer_node_info.name,
