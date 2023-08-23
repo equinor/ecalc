@@ -4,7 +4,14 @@ import pytest
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.case_utils import YamlCaseLoader
 from libecalc.fixtures.cases.consumer_system_v2.consumer_system_v2_dto import (
+    compressor1,
+    compressor2,
+    compressor3,
+    compressor_1d_model,
+    compressor_system_v2,
     consumer_system_v2_dto,
+    fuel,
+    regularity,
 )
 
 """

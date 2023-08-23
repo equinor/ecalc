@@ -204,7 +204,8 @@ class PumpSystem(ConsumerBase):
                 else:
                     rates = [
                         Expression.multiply(
-                            Expression.setup_from_expression(self.rate), Expression.setup_from_expression(rate_fraction)
+                            Expression.setup_from_expression(operational_setting.total_system_rate),
+                            Expression.setup_from_expression(rate_fraction),
                         )
                         for rate_fraction in operational_setting.rate_fractions
                     ]
@@ -213,6 +214,14 @@ class PumpSystem(ConsumerBase):
                     if operational_setting.fluid_densities is not None
                     else [operational_setting.fluid_density] * number_of_pumps
                 )
+
+                if operational_setting.conditions is not None:
+                    conditions = [
+                        Expression.setup_from_expression(condition) for condition in operational_setting.conditions
+                    ]
+                else:
+                    conditions = [Expression.setup_from_expression(1) for _ in range(len(rates))]
+
                 parsed_operational_settings[timestep].append(
                     dto.components.PumpSystemOperationalSetting(
                         rates=rates,
@@ -222,6 +231,7 @@ class PumpSystem(ConsumerBase):
                         fluid_density=[
                             Expression.setup_from_expression(fluid_density) for fluid_density in fluid_densities
                         ],
+                        conditions=conditions,
                     )
                 )
 

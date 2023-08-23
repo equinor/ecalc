@@ -190,12 +190,21 @@ class CompressorSystem(ConsumerBase):
                         )
                         for rate_fraction in operational_setting.rate_fractions
                     ]
+
+                if operational_setting.conditions is not None:
+                    conditions = [
+                        Expression.setup_from_expression(condition) for condition in operational_setting.conditions
+                    ]
+                else:
+                    conditions = [Expression.setup_from_expression(1) for _ in range(len(rates))]
+
                 parsed_operational_settings[timestep].append(
                     dto.components.CompressorSystemOperationalSetting(
                         rates=rates,
                         inlet_pressures=[Expression.setup_from_expression(pressure) for pressure in inlet_pressures],
                         outlet_pressures=[Expression.setup_from_expression(pressure) for pressure in outlet_pressures],
                         crossover=operational_setting.crossover or [0] * number_of_compressors,
+                        conditions=conditions,
                     )
                 )
 

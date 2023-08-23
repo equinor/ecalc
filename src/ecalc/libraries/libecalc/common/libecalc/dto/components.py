@@ -180,13 +180,11 @@ class CompressorSystemOperationalSetting(EcalcBaseModel):
     outlet_pressures: List[Expression]
     crossover: List[int]
 
+    conditions: List[Expression]
 
-class PumpSystemOperationalSetting(EcalcBaseModel):
+
+class PumpSystemOperationalSetting(CompressorSystemOperationalSetting):
     fluid_density: List[Expression]
-    rates: List[Expression]
-    inlet_pressures: List[Expression]
-    outlet_pressures: List[Expression]
-    crossover: List[int]
 
 
 class CompressorSystem(BaseConsumer):
@@ -201,7 +199,6 @@ class CompressorSystem(BaseConsumer):
         """Parameters
         ----------
         variables_map
-        operational_settings
         Returns
         -------
         """
@@ -223,6 +220,11 @@ class CompressorSystem(BaseConsumer):
                     )
                     for rate in operational_setting.rates
                 ]
+                conditions = [
+                    list(condition.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector)))
+                    for condition in operational_setting.conditions
+                ]
+                rates_after_condition = [rate.apply_condition(condition) for rate, condition in zip(rates, conditions)]
 
                 inlet_pressure = [
                     TimeSeriesFloat(
@@ -247,7 +249,7 @@ class CompressorSystem(BaseConsumer):
 
                 evaluated_operational_settings.append(
                     EvaluatedCompressorSystemOperationalSettings(
-                        rates=rates,
+                        rates=rates_after_condition,
                         inlet_pressures=inlet_pressure,
                         outlet_pressures=outlet_pressure,
                         crossover=operational_setting.crossover,
@@ -286,22 +288,31 @@ class PumpSystem(BaseConsumer):
                     )
                     for rate in operational_setting.rates
                 ]
+                conditions = [
+                    list(condition.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector)))
+                    for condition in operational_setting.conditions
+                ]
+                rates_after_condition = [rate.apply_condition(condition) for rate, condition in zip(rates, conditions)]
 
                 inlet_pressure = [
                     TimeSeriesFloat(
-                        values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                        values=list(
+                            pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))
+                        ),
                         timesteps=variables_map.time_vector,
                         unit=Unit.BARA,
                     )
-                    for rate in operational_setting.inlet_pressures
+                    for pressure in operational_setting.inlet_pressures
                 ]
                 outlet_pressure = [
                     TimeSeriesFloat(
-                        values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                        values=list(
+                            pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))
+                        ),
                         timesteps=variables_map.time_vector,
                         unit=Unit.BARA,
                     )
-                    for rate in operational_setting.outlet_pressures
+                    for pressure in operational_setting.outlet_pressures
                 ]
 
                 fluid_density = [
@@ -315,7 +326,7 @@ class PumpSystem(BaseConsumer):
 
                 evaluated_operational_settings.append(
                     EvaluatedPumpSystemOperationalSettings(
-                        rates=rates,
+                        rates=rates_after_condition,
                         inlet_pressures=inlet_pressure,
                         outlet_pressures=outlet_pressure,
                         fluid_density=fluid_density,

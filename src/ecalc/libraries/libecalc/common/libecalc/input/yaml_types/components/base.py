@@ -48,8 +48,8 @@ power_requirement = power_before_loss / (1 - power_loss_factor)
         raise NotImplementedError
 
 
-class ConsumerSystemOperationalConditionBase(OperationalConditionBase):
-    conditions: Optional[str] = Field(
+class ConsumerSystemOperationalConditionBase(YamlBase):
+    conditions: Optional[List[str]] = Field(
         None,
         title="Conditions",
         description="""
@@ -72,3 +72,6 @@ class ConsumerSystemOperationalConditionBase(OperationalConditionBase):
     power_requirement = power_before_loss / (1 - power_loss_factor)
     """,
     )
+
+    def to_dto(self):
+        raise NotImplementedError

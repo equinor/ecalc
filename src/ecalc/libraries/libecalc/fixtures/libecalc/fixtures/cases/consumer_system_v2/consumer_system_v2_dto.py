@@ -22,11 +22,8 @@ from libecalc.fixtures.case_types import DTOCase
 
 
 @pytest.fixture
-def consumer_system_v2_dto() -> DTOCase:
-    regularity = {
-        datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(1),
-    }
-    fuel = {
+def fuel():
+    return {
         datetime(2022, 1, 1, 0, 0): dto.FuelType(
             name="fuel_gas",
             price=Expression.setup_from_expression(1.5),
@@ -42,16 +39,17 @@ def consumer_system_v2_dto() -> DTOCase:
         )
     }
 
-    genset = dto.GeneratorSetSampled(
-        headers=["POWER", "FUEL"],
-        data=[
-            [0.0, 0.1, 1000000.0],
-            [0.0, 0.1, 1000000.0],
-        ],
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
-    )
-    compressor_1d = dto.CompressorSampled(
+
+@pytest.fixture
+def regularity():
+    return {
+        datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(1),
+    }
+
+
+@pytest.fixture
+def compressor_1d_model():
+    return dto.CompressorSampled(
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
         energy_usage_type=dto.types.EnergyUsageType.FUEL,
@@ -60,6 +58,98 @@ def consumer_system_v2_dto() -> DTOCase:
         suction_pressure_values=None,
         discharge_pressure_values=None,
         power_interpolation_values=[0.0, 1.0, 2.0, 3.0, 4.0],
+    )
+
+
+@pytest.fixture
+def compressor1(fuel, regularity, compressor_1d_model):
+    return dto.components.CompressorComponent(
+        name="compressor1",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        fuel=fuel,
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.FUEL,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d_model},
+    )
+
+
+@pytest.fixture
+def compressor2(fuel, regularity, compressor_1d_model):
+    return dto.components.CompressorComponent(
+        name="compressor2",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        fuel=fuel,
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.FUEL,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d_model},
+    )
+
+
+@pytest.fixture
+def compressor3(fuel, regularity, compressor_1d_model):
+    return dto.components.CompressorComponent(
+        name="compressor3",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        fuel=fuel,
+        regularity=regularity,
+        consumes=dto.types.ConsumptionType.FUEL,
+        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d_model},
+    )
+
+
+@pytest.fixture
+def compressor_system_v2(regularity, compressor1, compressor2, compressor3):
+    return dto.components.CompressorSystem(
+        name="compressor_system_v2",
+        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        regularity=regularity,
+        consumes=ConsumptionType.FUEL,
+        operational_settings={
+            datetime(2022, 1, 1, 0, 0): [
+                dto.components.CompressorSystemOperationalSetting(
+                    rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 6000000]],
+                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+                    outlet_pressures=[Expression.setup_from_expression("250")] * 3,
+                    crossover=[0, 1, 1],
+                    conditions=[
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                    ],
+                ),
+                dto.components.CompressorSystemOperationalSetting(
+                    rates=[Expression.setup_from_expression(x) for x in [500000, 2500000, 3000000]],
+                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+                    outlet_pressures=[Expression.setup_from_expression("125")] * 3,
+                    crossover=[0, 1, 1],
+                    conditions=[
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                    ],
+                ),
+            ]
+        },
+        compressors=[
+            compressor1,
+            compressor2,
+            compressor3,
+        ],
+    )
+
+
+@pytest.fixture
+def consumer_system_v2_dto(
+    fuel, regularity, compressor1, compressor_1d_model, compressor2, compressor3, compressor_system_v2
+) -> DTOCase:
+    genset = dto.GeneratorSetSampled(
+        headers=["POWER", "FUEL"],
+        data=[
+            [0.0, 0.1, 1000000.0],
+            [0.0, 0.1, 1000000.0],
+        ],
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
     )
 
     pump_model_single_speed = dto.PumpModel(
@@ -72,31 +162,6 @@ def consumer_system_v2_dto() -> DTOCase:
             speed_rpm=1,
         ),
         head_margin=0,
-    )
-
-    compressor1 = dto.components.CompressorComponent(
-        name="compressor1",
-        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-        fuel=fuel,
-        regularity=regularity,
-        consumes=dto.types.ConsumptionType.FUEL,
-        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
-    )
-    compressor2 = dto.components.CompressorComponent(
-        name="compressor2",
-        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-        fuel=fuel,
-        regularity=regularity,
-        consumes=dto.types.ConsumptionType.FUEL,
-        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
-    )
-    compressor3 = dto.components.CompressorComponent(
-        name="compressor3",
-        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-        fuel=fuel,
-        regularity=regularity,
-        consumes=dto.types.ConsumptionType.FUEL,
-        energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
     )
 
     pump1 = dto.components.PumpComponent(
@@ -132,15 +197,15 @@ def consumer_system_v2_dto() -> DTOCase:
                 compressors=[
                     CompressorSystemCompressor(
                         name="compressor1",
-                        compressor_train=compressor_1d,
+                        compressor_train=compressor_1d_model,
                     ),
                     CompressorSystemCompressor(
                         name="compressor2",
-                        compressor_train=compressor_1d,
+                        compressor_train=compressor_1d_model,
                     ),
                     CompressorSystemCompressor(
                         name="compressor3",
-                        compressor_train=compressor_1d,
+                        compressor_train=compressor_1d_model,
                     ),
                 ],
                 total_system_rate=None,
@@ -162,34 +227,6 @@ def consumer_system_v2_dto() -> DTOCase:
         },
         regularity=regularity,
         user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-    )
-
-    compressor_system_v2 = dto.components.CompressorSystem(
-        name="compressor_system_v2",
-        user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-        regularity=regularity,
-        consumes=ConsumptionType.FUEL,
-        operational_settings={
-            datetime(2022, 1, 1, 0, 0): [
-                dto.components.CompressorSystemOperationalSetting(
-                    rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 6000000]],
-                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                    outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                    crossover=[0, 1, 1],
-                ),
-                dto.components.CompressorSystemOperationalSetting(
-                    rates=[Expression.setup_from_expression(x) for x in [500000, 2500000, 3000000]],
-                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                    outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                    crossover=[0, 1, 1],
-                ),
-            ]
-        },
-        compressors=[
-            compressor1,
-            compressor2,
-            compressor3,
-        ],
     )
 
     pump_system = dto.ElectricityConsumer(
@@ -249,6 +286,11 @@ def consumer_system_v2_dto() -> DTOCase:
                     outlet_pressures=[Expression.setup_from_expression("250")] * 3,
                     crossover=[0, 1, 1],
                     fluid_density=[Expression.setup_from_expression("2")] * 3,
+                    conditions=[
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                    ],
                 ),
                 dto.components.PumpSystemOperationalSetting(
                     rates=[Expression.setup_from_expression(x) for x in [2000000, 2500000, 3000000]],
@@ -256,6 +298,11 @@ def consumer_system_v2_dto() -> DTOCase:
                     outlet_pressures=[Expression.setup_from_expression("125")] * 3,
                     crossover=[0, 1, 1],
                     fluid_density=[Expression.setup_from_expression("2")] * 3,
+                    conditions=[
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                        Expression.setup_from_expression(1),
+                    ],
                 ),
             ]
         },

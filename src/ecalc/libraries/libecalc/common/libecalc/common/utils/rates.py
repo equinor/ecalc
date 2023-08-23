@@ -698,6 +698,15 @@ class TimeSeriesRate(TimeSeries[float]):
             typ=RateType.STREAM_DAY,
         )
 
+    def apply_condition(self, condition: List[float]):
+        return self.__class__(
+            timesteps=self.timesteps,
+            values=list(np.where(condition, self.values, 0)),
+            regularity=self.regularity,
+            unit=self.unit,
+            typ=self.typ,
+        )
+
     def to_volumes(self) -> TimeSeriesVolumes:
         """Convert rates to volumes. After this step the time steps represents periods and should contain one more item
         than the rates vector. This means that the last rate is ignored.
