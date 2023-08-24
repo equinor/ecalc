@@ -964,7 +964,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     upper_bound_for_inlet_pressure=inlet_pressure,
                 )
                 # Set pressure before upstream choking to the given inlet pressure
-                train_results.stage_results[0].inlet_pressure_before_choking = inlet_pressure
+                train_results.stage_results[0].inlet_pressure_before_choking = (
+                    inlet_pressure - self.stages[0].pressure_drop_ahead_of_stage
+                )
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
                 if (
