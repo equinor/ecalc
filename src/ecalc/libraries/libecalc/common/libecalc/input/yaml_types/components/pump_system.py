@@ -254,4 +254,5 @@ class PumpSystem(ConsumerBase):
             consumes=consumes,
             operational_settings=parsed_operational_settings,
             pumps=pumps,
+            fuel=fuel,
         )

@@ -12,6 +12,7 @@ from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.graph import Graph
+from libecalc.dto.types import ConsumptionType
 
 
 class EnergyCalculator:
@@ -72,6 +73,15 @@ class EnergyCalculator:
     def evaluate_emissions(
         self, variables_map: dto.VariablesMap, consumer_results: Dict[str, EcalcModelResult]
     ) -> Dict[str, Dict[str, EmissionResult]]:
+        """
+        Calculate emissions for fuel consumers and emitters
+
+        Args:
+            variables_map:
+            consumer_results:
+
+        Returns: a mapping from consumer_id to emissions
+        """
         emission_results: Dict[str, Dict[str, EmissionResult]] = {}
         for consumer_dto in self._graph.components.values():
             if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)):
@@ -81,6 +91,13 @@ class EnergyCalculator:
                     variables_map=variables_map,
                     fuel_rate=np.asarray(energy_usage.values),
                 )
+            elif isinstance(consumer_dto, (dto.components.CompressorSystem, dto.components.PumpSystem)):
+                if consumer_dto.consumes == ConsumptionType.FUEL:
+                    fuel_model = FuelModel(consumer_dto.fuel)
+                    energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
+                    emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
+                        variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
+                    )
             elif isinstance(consumer_dto, dto.DirectEmitter):
                 emission_results[consumer_dto.id] = DirectEmitter(consumer_dto).evaluate(variables_map=variables_map)
         return emission_results

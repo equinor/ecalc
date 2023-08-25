@@ -87,6 +87,16 @@ class BaseConsumer(BaseEquipment, ABC):
     consumes: ConsumptionType
     fuel: Optional[Dict[datetime, FuelType]]
 
+    @validator("fuel")
+    def validate_fuel_exist(cls, fuel, values):
+        """
+        Make sure fuel is set if consumption type is FUEL.
+        """
+        if values.get("consumes") == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
+            msg = f"Missing fuel for fuel consumer '{values.get('name')}'"
+            raise ValueError(msg)
+        return fuel
+
 
 class ElectricityConsumer(BaseConsumer):
     consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY
@@ -114,13 +124,6 @@ class FuelConsumer(BaseConsumer):
     _check_model_energy_usage = validator("energy_usage_model", allow_reuse=True)(
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.FUEL)
     )
-
-    @validator("fuel")
-    def validate_fuel_exist(cls, fuel, values):
-        if len(fuel) < 1:
-            msg = f"Missing fuel for fuel consumer '{values.get('name')}'"
-            raise ValueError(msg)
-        return fuel
 
 
 Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]

@@ -228,4 +228,5 @@ class CompressorSystem(ConsumerBase):
             consumes=consumes,
             operational_settings=parsed_operational_settings,
             compressors=compressors,
+            fuel=fuel,
         )
