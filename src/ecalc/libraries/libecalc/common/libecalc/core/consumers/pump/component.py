@@ -86,13 +86,13 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 timesteps=evaluated_timesteps,
                 unit=aggregated_result.power_unit,
                 regularity=regularity,
-            ),
+            ).fill_nan(0.0),
             energy_usage=TimeSeriesRate(
                 values=aggregated_result.energy_usage,
                 timesteps=evaluated_timesteps,
                 unit=aggregated_result.energy_usage_unit,
                 regularity=regularity,
-            ),
+            ).fill_nan(0.0),
             inlet_liquid_rate_m3_per_day=TimeSeriesRate(
                 values=aggregated_result.rate,
                 timesteps=evaluated_timesteps,

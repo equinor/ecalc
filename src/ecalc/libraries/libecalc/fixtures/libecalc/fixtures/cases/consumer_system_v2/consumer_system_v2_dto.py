@@ -146,13 +146,19 @@ def consumer_system_v2_dto() -> DTOCase:
                 total_system_rate=None,
                 operational_settings=[
                     CompressorSystemOperationalSetting(
-                        rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 6000000]],
+                        rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                         suction_pressures=[Expression.setup_from_expression("50")] * 3,
                         discharge_pressures=[Expression.setup_from_expression("250")] * 3,
+                        crossover=[0, 0, 0],
+                    ),
+                    CompressorSystemOperationalSetting(
+                        rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
+                        suction_pressures=[Expression.setup_from_expression("50")] * 3,
+                        discharge_pressures=[Expression.setup_from_expression("125")] * 3,
                         crossover=[0, 1, 1],
                     ),
                     CompressorSystemOperationalSetting(
-                        rates=[Expression.setup_from_expression(x) for x in [500000, 2500000, 3000000]],
+                        rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                         suction_pressures=[Expression.setup_from_expression("50")] * 3,
                         discharge_pressures=[Expression.setup_from_expression("125")] * 3,
                         crossover=[0, 1, 1],
@@ -173,23 +179,29 @@ def consumer_system_v2_dto() -> DTOCase:
         operational_settings={
             datetime(2022, 1, 1, 0, 0): [
                 dto.components.CompressorSystemOperationalSetting(
-                    rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 6000000]],
+                    rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                     inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                     outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                    crossover=[0, 1, 1],
-                ),
+                    crossover=[0, 0, 0],
+                ),  # Invalid operational setting, should not be valid for any timesteps
                 dto.components.CompressorSystemOperationalSetting(
-                    rates=[Expression.setup_from_expression(x) for x in [500000, 2500000, 3000000]],
+                    rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
                     inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                     outlet_pressures=[Expression.setup_from_expression("125")] * 3,
                     crossover=[0, 1, 1],
+                ),  # Valid for first timestep
+                dto.components.CompressorSystemOperationalSetting(
+                    rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+                    inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+                    outlet_pressures=[Expression.setup_from_expression("125")] * 3,
+                    crossover=[0, 1, 1],  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
                 ),
             ]
         },
         compressors=[
-            compressor1,
-            compressor2,
-            compressor3,
+            compressor1,  # Max rate of 4000000
+            compressor2,  # Max rate of 4000000
+            compressor3,  # Max rate of 4000000
         ],
     )
 
@@ -297,5 +309,11 @@ def consumer_system_v2_dto() -> DTOCase:
                 )
             ],
         ),
-        variables=dto.VariablesMap(time_vector=[datetime(2022, 1, 1, 0, 0), datetime(2026, 1, 1, 0, 0)], variables={}),
+        variables=dto.VariablesMap(
+            time_vector=[datetime(2022, 1, 1, 0, 0), datetime(2026, 1, 1, 0, 0)],
+            variables={
+                "compressor1;rate": [0.0, 4000000.0],
+                "$var.compressor1": [0, 4000000],
+            },
+        ),
     )
