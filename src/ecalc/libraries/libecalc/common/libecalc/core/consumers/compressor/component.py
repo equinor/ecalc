@@ -90,6 +90,16 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             else:
                 aggregated_result.extend(model_result)
 
+        energy_usage = TimeSeriesRate(
+            values=aggregated_result.energy_usage,
+            timesteps=evaluated_timesteps,
+            unit=aggregated_result.energy_usage_unit,
+            regularity=regularity,
+        )
+
+        if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY:
+            energy_usage = energy_usage.to_calendar_day()  # provide fuel usage in calendar day, same as legacy consumer
+
         component_result = core_results.CompressorResult(
             timesteps=evaluated_timesteps,
             power=TimeSeriesRate(
@@ -97,13 +107,8 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 timesteps=evaluated_timesteps,
                 unit=aggregated_result.power_unit,
                 regularity=regularity,
-            ),
-            energy_usage=TimeSeriesRate(
-                values=aggregated_result.energy_usage,
-                timesteps=evaluated_timesteps,
-                unit=aggregated_result.energy_usage_unit,
-                regularity=regularity,
-            ),
+            ).fill_nan(0.0),
+            energy_usage=energy_usage.fill_nan(0.0),
             is_valid=TimeSeriesBoolean(
                 values=aggregated_result.is_valid, timesteps=evaluated_timesteps, unit=Unit.NONE
             ),

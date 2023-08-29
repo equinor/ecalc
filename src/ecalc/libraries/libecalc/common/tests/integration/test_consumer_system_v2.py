@@ -83,5 +83,7 @@ def test_compressor_system_v2_results(
     # assert pump_system_result.dict() == pump_system_v2_result.dict()
     # assert compressor_system_result.dict() == compressor_system_v2_result.dict()
 
+    # TODO: add test that selects different operational settings per timestep. Add test for temporal op settings
+
     snapshot_name = "consumer_system_v2.json"
     rounded_snapshot(data=result.dict(), snapshot_name=snapshot_name)
