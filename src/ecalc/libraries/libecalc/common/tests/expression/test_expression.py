@@ -1,5 +1,6 @@
 import datetime
 
+import numpy as np
 import pytest
 from libecalc.expression import Expression
 from pydantic import parse_obj_as
@@ -120,8 +121,8 @@ class TestExpression:
 
         # Check that nan is handled correctly when division by zero occur, but
         # values are later disregarded by conditions
-        assert (
-            Expression.setup_from_expression("0{/}0").evaluate(variables=variables, fill_length=len(time_vector)) == 0
+        assert np.isnan(
+            Expression.setup_from_expression("0{/}0").evaluate(variables=variables, fill_length=len(time_vector))[0]
         )
 
         with pytest.raises(ValueError):
