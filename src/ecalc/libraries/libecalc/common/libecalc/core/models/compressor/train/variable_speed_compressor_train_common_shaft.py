@@ -6,6 +6,7 @@ import numpy as np
 from libecalc import dto
 from libecalc.common.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
+from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -33,8 +34,6 @@ from libecalc.dto.types import FixedSpeedPressureControl
 from numpy.typing import NDArray
 
 EPSILON = 1e-5
-# Assume pressure needs to be above 1 bara. We can't choke to lower pressure than the environment.
-LOWEST_POSSIBLE_CHOKE_PRESSURE_BARA = 1.0
 
 
 class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
@@ -533,7 +532,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
 
         choked_inlet_pressure = find_root(
-            lower_bound=LOWEST_POSSIBLE_CHOKE_PRESSURE_BARA,
+            lower_bound=UnitConstants.STANDARD_PRESSURE_BARA + self.stages[0].pressure_drop_ahead_of_stage,
             upper_bound=upper_bound_for_inlet_pressure if upper_bound_for_inlet_pressure else outlet_pressure,
             func=lambda x: _calculate_train_result_given_rate_ps_speed(_inlet_pressure=x).discharge_pressure
             - outlet_pressure,
@@ -590,13 +589,16 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     upper_bound_for_inlet_pressure=inlet_pressure,
                 )
                 # Set pressure before upstream choking to the given inlet pressure
-                train_results.stage_results[0].inlet_pressure_before_choking = inlet_pressure
+                train_results.stage_results[0].inlet_pressure_before_choking = (
+                    inlet_pressure - self.stages[0].pressure_drop_ahead_of_stage
+                )
+
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
                 if (
                     train_results.failure_status
                     == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                    and outlet_pressure >= LOWEST_POSSIBLE_CHOKE_PRESSURE_BARA
+                    and outlet_pressure >= UnitConstants.STANDARD_PRESSURE_BARA
                 ):
                     train_results.failure_status = None
 

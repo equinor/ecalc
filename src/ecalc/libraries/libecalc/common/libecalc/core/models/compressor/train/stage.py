@@ -183,7 +183,7 @@ class CompressorTrainStage(BaseModel):
             power_megawatt=power_megawatt,
             point_is_valid=compressor_chart_head_and_efficiency_result.is_valid,
             polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change_J_per_kg / 1000,
-            inlet_pressure_before_choking=inlet_stream_stage.pressure_bara,
+            inlet_pressure_before_choking=inlet_stream_compressor.pressure_bara,
             outlet_pressure_before_choking=outlet_stream.pressure_bara,
         )
 

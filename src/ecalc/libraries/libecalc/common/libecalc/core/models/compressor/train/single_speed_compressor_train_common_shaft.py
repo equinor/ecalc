@@ -254,7 +254,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     )
             else:
                 # Set inlet_pressure_before_choking
-                train_result.stage_results[0].inlet_pressure_before_choking = suction_pressure[i]
+                train_result.stage_results[0].inlet_pressure_before_choking = (
+                    suction_pressure[i] - self.stages[0].pressure_drop_ahead_of_stage
+                )
 
         return train_results_per_time_step
 
