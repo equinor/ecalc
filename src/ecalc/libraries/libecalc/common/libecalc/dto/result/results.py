@@ -80,7 +80,12 @@ class GeneratorSetResult(EquipmentResultBase):
 
 
 class ConsumerSystemResult(EquipmentResultBase):
-    componentType: Literal[ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]
+    componentType: Literal[
+        ComponentType.PUMP_SYSTEM,
+        ComponentType.COMPRESSOR_SYSTEM,
+        ComponentType.COMPRESSOR_SYSTEM_V2,
+        ComponentType.PUMP_SYSTEM_V2,
+    ]
 
     operational_settings_used: Optional[TimeSeriesInt] = Field(
         None,

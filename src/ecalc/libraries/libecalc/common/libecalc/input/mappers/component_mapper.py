@@ -93,26 +93,22 @@ class ConsumerMapper:
         consumes: ConsumptionType,
         default_fuel: Optional[str] = None,
     ) -> dto.components.Consumer:
+        fuel = None
+        if consumes == ConsumptionType.FUEL:
+            try:
+                fuel = _resolve_fuel(
+                    data.get(EcalcYamlKeywords.fuel), default_fuel, self.__references, target_period=self._target_period
+                )
+            except ValueError as e:
+                raise DataValidationError(
+                    data=data,
+                    message=f"Fuel '{data.get(EcalcYamlKeywords.fuel)}' does not exist",
+                    error_key="fuel",
+                ) from e
+
         if EcalcYamlKeywords.type in data:
             if data[EcalcYamlKeywords.type] == ComponentType.COMPRESSOR_SYSTEM_V2:
                 compressor_system_yaml = YamlCompressorSystem(**data)
-
-                fuel = None
-                if consumes == ConsumptionType.FUEL:
-                    try:
-                        fuel = _resolve_fuel(
-                            data.get(EcalcYamlKeywords.fuel),
-                            default_fuel,
-                            self.__references,
-                            target_period=self._target_period,
-                        )
-                    except ValueError as e:
-                        raise DataValidationError(
-                            data=data,
-                            message=f"Fuel '{data.get(EcalcYamlKeywords.fuel)}' does not exist",
-                            error_key="fuel",
-                        ) from e
-
                 try:
                     return compressor_system_yaml.to_dto(
                         consumes=consumes,
@@ -125,22 +121,6 @@ class ConsumerMapper:
                     raise DtoValidationError(data=data, validation_error=e) from e
             if data[EcalcYamlKeywords.type] == ComponentType.PUMP_SYSTEM_V2:
                 pump_system_yaml = YamlPumpSystem(**data)
-
-                fuel = None
-                if consumes == ConsumptionType.FUEL:
-                    try:
-                        fuel = _resolve_fuel(
-                            data.get(EcalcYamlKeywords.fuel),
-                            default_fuel,
-                            self.__references,
-                            target_period=self._target_period,
-                        )
-                    except ValueError as e:
-                        raise DataValidationError(
-                            data=data,
-                            message=f"Fuel '{data.get(EcalcYamlKeywords.fuel)}' does not exist",
-                            error_key="fuel",
-                        ) from e
 
                 try:
                     return pump_system_yaml.to_dto(
@@ -164,17 +144,6 @@ class ConsumerMapper:
             raise DtoValidationError(data=data, validation_error=e) from e
 
         if consumes == ConsumptionType.FUEL:
-            try:
-                fuel = _resolve_fuel(
-                    data.get(EcalcYamlKeywords.fuel), default_fuel, self.__references, target_period=self._target_period
-                )
-            except ValueError as e:
-                raise DataValidationError(
-                    data=data,
-                    message=f"Fuel '{data.get(EcalcYamlKeywords.fuel)}' does not exist",
-                    error_key="fuel",
-                ) from e
-
             try:
                 fuel_consumer_name = data.get(EcalcYamlKeywords.name)
                 return dto.FuelConsumer(

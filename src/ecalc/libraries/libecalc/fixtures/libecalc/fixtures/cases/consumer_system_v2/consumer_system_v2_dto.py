@@ -169,6 +169,7 @@ def consumer_system_v2_dto() -> DTOCase:
         user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         consumes=ConsumptionType.FUEL,
+        fuel=fuel,
         operational_settings={
             datetime(2022, 1, 1, 0, 0): [
                 dto.components.CompressorSystemOperationalSetting(
