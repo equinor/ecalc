@@ -6,7 +6,7 @@ import numpy as np
 from libecalc import dto
 from libecalc.common.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.common.units import Unit
+from libecalc.common.units import Unit, UnitConstants
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.base import CompressorTrainModel
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -907,7 +907,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             )
 
         choked_inlet_pressure = find_root(
-            lower_bound=1,  # Fixme: What is a sensible value here?
+            lower_bound=UnitConstants.STANDARD_PRESSURE_BARA
+            + self.stages[0].pressure_drop_ahead_of_stage,  # Fixme: What is a sensible value here?
             upper_bound=upper_bound_for_inlet_pressure,
             func=lambda x: _calculate_train_result_given_rate_ps_speed(_inlet_pressure=x).discharge_pressure
             - outlet_pressure,
