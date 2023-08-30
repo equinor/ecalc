@@ -35,8 +35,6 @@ from libecalc.dto.types import FixedSpeedPressureControl
 from numpy.typing import NDArray
 
 EPSILON = 1e-5
-# Assume pressure needs to be above 1 bara. We can't choke to lower pressure than the environment.
-LOWEST_POSSIBLE_CHOKE_PRESSURE_BARA = 1.0
 
 
 class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
@@ -973,7 +971,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 if (
                     train_results.failure_status
                     == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                    and outlet_pressure >= LOWEST_POSSIBLE_CHOKE_PRESSURE_BARA
+                    and outlet_pressure >= UnitConstants.STANDARD_PRESSURE_BARA
                 ):
                     train_results.failure_status = None
 
