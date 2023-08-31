@@ -11,7 +11,7 @@ There are six separate sections which make up each model, these being:
 
 | Input | Function                                                                                                                                                                                          |
 | ----- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|[TIME_SERIES](time_series)| Input of time dependent variables. For example, production profiles for an installation                                                                                                           |
+|[TIME_SERIES](time_series)| Input of time dependent variables. For example, production profiles for an installation.                                                                                                           |
 |[FACILITY_INPUTS](facility_inputs/index.md)| Input of generator sets, and facility equipment that consumers either power or fuel *(with the exception of compressors that are modelled with compressor charts)*                                |
 |[MODELS](models/index.md)| Input of compressor models that use compressor charts. Gas turbines that are directly coupled to a compressor are also included here                                                              |
 |[FUEL_TYPES](fuel_types)| Input of the various fuel types used in the specified installation(s)                                                                                                                             |
