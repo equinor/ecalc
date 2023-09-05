@@ -180,7 +180,6 @@
         },
         "name": "co2",
         "quota": {
-          "rate_type": "STREAM_DAY",
           "regularity": [
             1.0,
             1.0,
@@ -209,6 +208,7 @@
             "2030-01-01 00:00:00",
             "2031-01-01 00:00:00"
           ],
+          "typ": "STREAM_DAY",
           "unit": "NOK/d",
           "values": [
             159248653.0,
@@ -257,7 +257,6 @@
           ]
         },
         "rate": {
-          "rate_type": "STREAM_DAY",
           "regularity": [
             1.0,
             1.0,
@@ -286,6 +285,7 @@
             "2030-01-01 00:00:00",
             "2031-01-01 00:00:00"
           ],
+          "typ": "STREAM_DAY",
           "unit": "t/d",
           "values": [
             612.4948,
@@ -303,7 +303,6 @@
           ]
         },
         "tax": {
-          "rate_type": "STREAM_DAY",
           "regularity": [
             1.0,
             1.0,
@@ -332,6 +331,7 @@
             "2030-01-01 00:00:00",
             "2031-01-01 00:00:00"
           ],
+          "typ": "STREAM_DAY",
           "unit": "NOK/d",
           "values": [
             419517.0,
@@ -396,7 +396,6 @@
       }
     },
     "energy_usage": {
-      "rate_type": "CALENDAR_DAY",
       "regularity": [
         1.0,
         1.0,
@@ -425,6 +424,7 @@
         "2030-01-01 00:00:00",
         "2031-01-01 00:00:00"
       ],
+      "typ": "CALENDAR_DAY",
       "unit": "Sm3/d",
       "values": [
         279678.0,
@@ -473,7 +473,6 @@
       ]
     },
     "hydrocarbon_export_rate": {
-      "rate_type": "CALENDAR_DAY",
       "regularity": [
         1.0,
         1.0,
@@ -502,6 +501,7 @@
         "2030-01-01 00:00:00",
         "2031-01-01 00:00:00"
       ],
+      "typ": "CALENDAR_DAY",
       "unit": "Sm3/d",
       "values": [
         12500.0,
@@ -552,7 +552,6 @@
     },
     "name": "model",
     "power": {
-      "rate_type": "STREAM_DAY",
       "regularity": [
         1.0,
         1.0,
@@ -581,6 +580,7 @@
         "2030-01-01 00:00:00",
         "2031-01-01 00:00:00"
       ],
+      "typ": "STREAM_DAY",
       "unit": "MW",
       "values": [
         22.69,
@@ -648,7 +648,6 @@
       "componentType": "COMPRESSOR",
       "component_level": "MODEL",
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -677,6 +676,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "Sm3/d",
         "values": [
           130000.0,
@@ -787,6 +787,68 @@
         2000000.0,
         3000000.0
       ],
+      "requested_inlet_pressure": {
+        "timesteps": [
+          "2020-01-01 00:00:00",
+          "2021-01-01 00:00:00",
+          "2022-01-01 00:00:00",
+          "2023-01-01 00:00:00",
+          "2024-01-01 00:00:00",
+          "2024-12-01 00:00:00",
+          "2026-01-01 00:00:00",
+          "2027-01-01 00:00:00",
+          "2028-01-01 00:00:00",
+          "2029-01-01 00:00:00",
+          "2030-01-01 00:00:00",
+          "2031-01-01 00:00:00"
+        ],
+        "unit": "bara",
+        "values": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "requested_outlet_pressure": {
+        "timesteps": [
+          "2020-01-01 00:00:00",
+          "2021-01-01 00:00:00",
+          "2022-01-01 00:00:00",
+          "2023-01-01 00:00:00",
+          "2024-01-01 00:00:00",
+          "2024-12-01 00:00:00",
+          "2026-01-01 00:00:00",
+          "2027-01-01 00:00:00",
+          "2028-01-01 00:00:00",
+          "2029-01-01 00:00:00",
+          "2030-01-01 00:00:00",
+          "2031-01-01 00:00:00"
+        ],
+        "unit": "bara",
+        "values": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
       "stage_results": [
         {
           "asv_recirculation_loss_mw": [
@@ -942,7 +1004,6 @@
       "componentType": "COMPRESSOR",
       "component_level": "MODEL",
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -971,6 +1032,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           4.89,
@@ -1066,52 +1128,6 @@
       },
       "name": "Gas injection compressor",
       "parent": "e9057e3053eac8e2dca7909380050de9",
-      "power": {
-        "rate_type": "STREAM_DAY",
-        "regularity": [
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "MW",
-        "values": [
-          4.89,
-          5.01,
-          5.13,
-          5.56,
-          5.72,
-          6.13,
-          6.25,
-          6.37,
-          6.52,
-          6.64,
-          6.8,
-          6.89
-        ]
-      },
       "power_cumulative": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -1158,6 +1174,68 @@
         290000000.0,
         293000000.0
       ],
+      "requested_inlet_pressure": {
+        "timesteps": [
+          "2020-01-01 00:00:00",
+          "2021-01-01 00:00:00",
+          "2022-01-01 00:00:00",
+          "2023-01-01 00:00:00",
+          "2024-01-01 00:00:00",
+          "2024-12-01 00:00:00",
+          "2026-01-01 00:00:00",
+          "2027-01-01 00:00:00",
+          "2028-01-01 00:00:00",
+          "2029-01-01 00:00:00",
+          "2030-01-01 00:00:00",
+          "2031-01-01 00:00:00"
+        ],
+        "unit": "bara",
+        "values": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "requested_outlet_pressure": {
+        "timesteps": [
+          "2020-01-01 00:00:00",
+          "2021-01-01 00:00:00",
+          "2022-01-01 00:00:00",
+          "2023-01-01 00:00:00",
+          "2024-01-01 00:00:00",
+          "2024-12-01 00:00:00",
+          "2026-01-01 00:00:00",
+          "2027-01-01 00:00:00",
+          "2028-01-01 00:00:00",
+          "2029-01-01 00:00:00",
+          "2030-01-01 00:00:00",
+          "2031-01-01 00:00:00"
+        ],
+        "unit": "bara",
+        "values": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
       "stage_results": [
         {
           "asv_recirculation_loss_mw": [
@@ -1327,7 +1405,6 @@
       "componentType": "PUMP",
       "component_level": "MODEL",
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -1356,6 +1433,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           null,
@@ -1493,7 +1571,6 @@
       ],
       "parent": "e1c82c648513148fb53d7b9dcff878ca",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -1522,6 +1599,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           null,
@@ -1588,7 +1666,6 @@
       "componentType": "GENERIC",
       "component_level": "MODEL",
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -1617,6 +1694,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           11.8,
@@ -1698,7 +1776,6 @@
       "name": "Base production load",
       "parent": "fcfb9185a43e0755ef4816d2f4d1a098",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -1727,6 +1804,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           11.8,
@@ -1793,7 +1871,6 @@
       "componentType": "GENERIC",
       "component_level": "MODEL",
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -1822,6 +1899,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "Sm3/d",
         "values": [
           7000.0,
@@ -1921,7 +1999,6 @@
       "componentType": "GENERIC",
       "component_level": "MODEL",
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -1950,6 +2027,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           6.0,
@@ -2031,7 +2109,6 @@
       "name": "Sea water injection pump",
       "parent": "2c369e853d9f77089ab26d579918b199",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -2060,6 +2137,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           6.0,
@@ -2305,7 +2383,6 @@
           },
           "name": "co2",
           "quota": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -2334,6 +2411,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               159248653.0,
@@ -2382,7 +2460,6 @@
             ]
           },
           "rate": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -2411,6 +2488,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "t/d",
             "values": [
               612.4948,
@@ -2428,7 +2506,6 @@
             ]
           },
           "tax": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -2457,6 +2534,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               419517.0,
@@ -2521,7 +2599,6 @@
         }
       },
       "energy_usage": {
-        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -2550,6 +2627,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "CALENDAR_DAY",
         "unit": "Sm3/d",
         "values": [
           279678.0,
@@ -2598,7 +2676,6 @@
         ]
       },
       "hydrocarbon_export_rate": {
-        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -2627,6 +2704,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "CALENDAR_DAY",
         "unit": "Sm3/d",
         "values": [
           12500.0,
@@ -2678,7 +2756,6 @@
       "name": "Installation A",
       "parent": "c0cdc34263d4b970f2f3e6cd5c68324d",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -2707,6 +2784,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           22.69,
@@ -2807,7 +2885,6 @@
           },
           "name": "co2",
           "quota": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -2836,6 +2913,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               81240853.0,
@@ -2884,7 +2962,6 @@
             ]
           },
           "rate": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -2913,6 +2990,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "t/d",
             "values": [
               312.4648,
@@ -2930,7 +3008,6 @@
             ]
           },
           "tax": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -2959,6 +3036,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               214017.0,
@@ -3023,7 +3101,6 @@
         }
       },
       "energy_usage": {
-        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -3052,6 +3129,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "CALENDAR_DAY",
         "unit": "Sm3/d",
         "values": [
           142678.0,
@@ -3134,7 +3212,6 @@
       "name": "Generator set A",
       "parent": "e852d5d4b9101f154db921ece82a697c",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -3163,6 +3240,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           22.69,
@@ -3180,7 +3258,6 @@
         ]
       },
       "power_capacity_margin": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -3209,6 +3286,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           77.31,
@@ -3309,7 +3387,6 @@
           },
           "name": "co2",
           "quota": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -3338,6 +3415,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               74022000.0,
@@ -3386,7 +3464,6 @@
             ]
           },
           "rate": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -3415,6 +3492,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "t/d",
             "values": [
               284.7,
@@ -3432,7 +3510,6 @@
             ]
           },
           "tax": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -3461,6 +3538,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               195000.0,
@@ -3525,7 +3603,6 @@
         }
       },
       "energy_usage": {
-        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -3554,6 +3631,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "CALENDAR_DAY",
         "unit": "Sm3/d",
         "values": [
           130000.0,
@@ -3698,7 +3776,6 @@
         ]
       },
       "recirculation_loss": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -3727,6 +3804,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           0.0,
@@ -3741,68 +3819,6 @@
           0.0,
           0.0,
           0.0
-        ]
-      },
-      "requested_inlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ]
-      },
-      "requested_outlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
         ]
       },
       "timesteps": [
@@ -3825,7 +3841,6 @@
       "component_level": "CONSUMER",
       "emissions": {},
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -3854,6 +3869,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           4.89,
@@ -3967,7 +3983,6 @@
       },
       "parent": "df82601448d0dfff409ca827eb200bf7",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -3996,6 +4011,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           4.89,
@@ -4075,7 +4091,6 @@
         ]
       },
       "recirculation_loss": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -4104,6 +4119,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           0.0,
@@ -4118,68 +4134,6 @@
           0.0,
           0.0,
           0.0
-        ]
-      },
-      "requested_inlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ]
-      },
-      "requested_outlet_pressure": {
-        "timesteps": [
-          "2020-01-01 00:00:00",
-          "2021-01-01 00:00:00",
-          "2022-01-01 00:00:00",
-          "2023-01-01 00:00:00",
-          "2024-01-01 00:00:00",
-          "2024-12-01 00:00:00",
-          "2026-01-01 00:00:00",
-          "2027-01-01 00:00:00",
-          "2028-01-01 00:00:00",
-          "2029-01-01 00:00:00",
-          "2030-01-01 00:00:00",
-          "2031-01-01 00:00:00"
-        ],
-        "unit": "bara",
-        "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
         ]
       },
       "timesteps": [
@@ -4202,7 +4156,6 @@
       "component_level": "CONSUMER",
       "emissions": {},
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -4231,6 +4184,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           0.0,
@@ -4280,7 +4234,6 @@
       },
       "id": "e1c82c648513148fb53d7b9dcff878ca",
       "inlet_liquid_rate_m3_per_day": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -4309,6 +4262,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "Sm3/d",
         "values": [
           18000.0,
@@ -4452,7 +4406,6 @@
       },
       "parent": "df82601448d0dfff409ca827eb200bf7",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -4481,6 +4434,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           0.0,
@@ -4548,7 +4502,6 @@
       "component_level": "CONSUMER",
       "emissions": {},
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -4577,6 +4530,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           11.8,
@@ -4659,7 +4613,6 @@
       "name": "Base production load",
       "parent": "df82601448d0dfff409ca827eb200bf7",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -4688,6 +4641,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           11.8,
@@ -4788,7 +4742,6 @@
           },
           "name": "co2",
           "quota": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -4817,6 +4770,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               3985800.0,
@@ -4865,7 +4819,6 @@
             ]
           },
           "rate": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -4894,6 +4847,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "t/d",
             "values": [
               15.33,
@@ -4911,7 +4865,6 @@
             ]
           },
           "tax": {
-            "rate_type": "STREAM_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -4940,6 +4893,7 @@
               "2030-01-01 00:00:00",
               "2031-01-01 00:00:00"
             ],
+            "typ": "STREAM_DAY",
             "unit": "NOK/d",
             "values": [
               10500.0,
@@ -5004,7 +4958,6 @@
         }
       },
       "energy_usage": {
-        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -5033,6 +4986,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "CALENDAR_DAY",
         "unit": "Sm3/d",
         "values": [
           7000.0,
@@ -5134,7 +5088,6 @@
       "component_level": "CONSUMER",
       "emissions": {},
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -5163,6 +5116,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           6.0,
@@ -5245,7 +5199,6 @@
       "name": "Sea water injection pump",
       "parent": "df82601448d0dfff409ca827eb200bf7",
       "power": {
-        "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -5274,6 +5227,7 @@
           "2030-01-01 00:00:00",
           "2031-01-01 00:00:00"
         ],
+        "typ": "STREAM_DAY",
         "unit": "MW",
         "values": [
           6.0,
