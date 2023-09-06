@@ -373,6 +373,10 @@ class TimeSeriesFloat(TimeSeries[float]):
         reindex_values = self.reindex_time_vector(new_time_vector)
         return TimeSeriesFloat(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
 
+    def subset(self, period: Period) -> TimeSeriesFloat:
+        start_index, stop_index = period.get_timestep_indices(self.timesteps)
+        return self[start_index : stop_index + 1]
+
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
     def resample(self, freq: Frequency) -> TimeSeriesVolumesCumulative:

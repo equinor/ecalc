@@ -282,19 +282,18 @@ class GraphResult:
                     )
 
                     period = Period(model.timesteps[0], model.timesteps[-1])
-                    start_index, end_index = period.get_timestep_indices(self.variables_map.time_vector)
 
                     requested_inlet_pressure = TimeSeriesFloat(
                         timesteps=self.timesteps,
                         values=TemporalExpression.evaluate(inlet_pressure_eval, self.variables_map),
                         unit=Unit.BARA,
-                    )[start_index : end_index + 1]
+                    ).subset(period=period)
 
                     requested_outlet_pressure = TimeSeriesFloat(
                         timesteps=self.timesteps,
                         values=TemporalExpression.evaluate(outlet_pressure_eval, self.variables_map),
                         unit=Unit.BARA,
-                    )[start_index : end_index + 1]
+                    ).subset(period=period)
 
                     models.extend(
                         [
