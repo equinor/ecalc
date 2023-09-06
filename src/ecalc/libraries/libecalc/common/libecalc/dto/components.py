@@ -197,6 +197,19 @@ class CompressorSystem(BaseConsumer):
     operational_settings: Dict[datetime, List[CompressorSystemOperationalSetting]]
     compressors: List[CompressorComponent]
 
+    def get_graph(self) -> Graph:
+        component_dtos = {}
+        graph = nx.DiGraph()
+        graph.add_node(self.id)
+        component_dtos[self.id] = self
+        for compressor in self.compressors:
+            component_dtos[compressor.id] = compressor
+            graph.add_edge(self.id, compressor.id)
+        return Graph(
+            graph=graph,
+            components=component_dtos,
+        )
+
     def evaluate_operational_settings(
         self,
         variables_map: VariablesMap,
@@ -406,7 +419,7 @@ class Installation(BaseComponent):
         for fuel_consumer in self.fuel_consumers:
             component_dtos[fuel_consumer.id] = fuel_consumer
 
-            if isinstance(fuel_consumer, dto.GeneratorSet):
+            if hasattr(fuel_consumer, "get_graph"):
                 generator_set_graph = fuel_consumer.get_graph()
                 component_dtos.update(generator_set_graph.components)
                 graph = nx.compose(graph, generator_set_graph.graph)
@@ -513,4 +526,14 @@ class Asset(Component):
         )
 
 
-ComponentDTO = Union[Asset, Installation, GeneratorSet, FuelConsumer, ElectricityConsumer]
+ComponentDTO = Union[
+    Asset,
+    Installation,
+    GeneratorSet,
+    FuelConsumer,
+    ElectricityConsumer,
+    PumpSystem,
+    CompressorSystem,
+    CompressorComponent,
+    PumpComponent,
+]
