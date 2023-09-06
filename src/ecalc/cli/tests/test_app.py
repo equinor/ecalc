@@ -301,6 +301,28 @@ class TestJsonOutput:
             json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
         )
 
+    def test_json_advanced_model(self, advanced_yaml_path, tmp_path, snapshot):
+        run_name_prefix = "test_json_advanced_model"
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=advanced_yaml_path,
+                json=True,
+                output_folder=tmp_path,
+                name_prefix=run_name_prefix,
+                detailed_output=True,
+            ),
+            catch_exceptions=False,
+        )
+
+        v3_json_actual_path = tmp_path / f"{run_name_prefix}_v3.json"
+        assert v3_json_actual_path.is_file()
+        with open(v3_json_actual_path) as json_file:
+            json_data = json.loads(json_file.read())
+        snapshot.assert_match(
+            json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
+        )
+
 
 class TestLtpExport:
     @pytest.mark.snapshot
