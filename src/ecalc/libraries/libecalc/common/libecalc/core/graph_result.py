@@ -10,6 +10,7 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,
@@ -280,17 +281,21 @@ class GraphResult:
                         name=model.name,
                     )
 
+                    period = Period(model.timesteps[0], model.timesteps[-1])
+                    start_index, end_index = period.get_timestep_indices(self.variables_map.time_vector)
+
                     requested_inlet_pressure = TimeSeriesFloat(
                         timesteps=self.timesteps,
                         values=TemporalExpression.evaluate(inlet_pressure_eval, self.variables_map),
                         unit=Unit.BARA,
-                    )
+                    )[start_index : end_index + 1]
 
                     requested_outlet_pressure = TimeSeriesFloat(
                         timesteps=self.timesteps,
                         values=TemporalExpression.evaluate(outlet_pressure_eval, self.variables_map),
                         unit=Unit.BARA,
-                    )
+                    )[start_index : end_index + 1]
+
                     models.extend(
                         [
                             libecalc.dto.result.CompressorModelResult(
@@ -315,6 +320,8 @@ class GraphResult:
                                     if model.power is not None
                                     else None
                                 ),
+                                power=model.power,
+                                power_unit=model.power_unit,
                             )
                         ]
                     )
