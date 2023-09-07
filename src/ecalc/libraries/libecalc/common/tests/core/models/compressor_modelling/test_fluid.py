@@ -135,22 +135,54 @@ def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[F
     )
 
 
-@pytest.mark.parametrize(("new_pressure, enthalpy_change"), [(50,120e3), (100,180e3), (200, 400e3)])
-def test_fluid_stream_flash(dry_fluid, new_pressure, enthalpy_change):
-    """ Test calculating z from"""
+@pytest.mark.parametrize(
+    ("start_pressure", "start_temperature", "new_pressure", "enthalpy_change"),
+    [
+        (36.2378, 312.5052, 84.0330, 160.5434e3),
+        (39.0387, 311.8861, 87.4806, 152.1574e3),
+        (17.6522, 300.7715, 55.8230, 227.5566e3),
+        (32.4481, 309.6129, 92.6186, 205.6851e3),
+        (28.1598, 304.5991, 74.5303, 186.1885e3),
+        (37.8314, 320.1981, 84.9293, 157.9740e3),
+        (42.5989, 312.6324, 98.3270, 158.2052e3),
+        (30.4022, 309.4903, 87.1471, 207.1905e3),
+        (30.6535, 314.6742, 96.6961, 233.9900e3),
+        (25.9634, 308.4516, 56.4820, 146.9774e3),
+        (54.7615, 323.6843, 147.4186, 198.7737e3),
+        (54.8938, 291.3938, 251.9422, 290.5772e3),
+        (25.4418, 295.6579, 76.0944, 207.1847e3),
+        (34.5833, 300.9703, 146.2616, 290.1039e3),
+        (20.2186, 293.0924, 65.4549, 225.1321e3),
+        (13.9914, 318.955, 68.0036, 357.3449e3),
+        (44.7701, 307.1822, 186.9763, 291.0688e3),
+        (5.4841, 303.5737, 21.1244, 284.21e3),
+        (28.3076, 312.4727, 101.0555, 262.9453e3),
+        (29.473, 329.0969, 78.7172, 205.7428e3),
+    ],
+)
+def test_fluid_stream_flash(dry_fluid, start_pressure, start_temperature, new_pressure, enthalpy_change):
+    """Test comparing NeqSim to ML model"""
 
-    regular_fluid_stream = FluidStream(fluid_model=dry_fluid)
-    ml_fluid_stream = FluidStream(fluid_model=dry_fluid,ml_backend=True)
+    regular_fluid_stream = FluidStream(
+        fluid_model=dry_fluid, pressure_bara=start_pressure, temperature_kelvin=start_temperature, ml_backend=False
+    )
+    ml_fluid_stream = FluidStream(
+        fluid_model=dry_fluid, pressure_bara=start_pressure, temperature_kelvin=start_temperature, ml_backend=True
+    )
 
-    flashed_stream = regular_fluid_stream.set_new_pressure_and_enthalpy_change(new_pressure=new_pressure, enthalpy_change_joule_per_kg=enthalpy_change)
-    flashed_ml_stream = ml_fluid_stream.set_new_pressure_and_enthalpy_change(new_pressure=new_pressure, enthalpy_change_joule_per_kg=enthalpy_change)
+    flashed_stream = regular_fluid_stream.set_new_pressure_and_enthalpy_change(
+        new_pressure=new_pressure, enthalpy_change_joule_per_kg=enthalpy_change
+    )
+    flashed_ml_stream = ml_fluid_stream.set_new_pressure_and_enthalpy_change(
+        new_pressure=new_pressure, enthalpy_change_joule_per_kg=enthalpy_change
+    )
 
-    assert flashed_ml_stream.pressure_bara == flashed_stream.pressure_bara
-    assert flashed_ml_stream.enthalpy_joule_per_kg == pytest.approx(flashed_stream.enthalpy_joule_per_kg)
-    assert flashed_ml_stream.temperature_kelvin == pytest.approx(flashed_stream.temperature_kelvin, 0.03)
-    assert flashed_ml_stream.z == pytest.approx(flashed_stream.z, 0.03)
-    assert flashed_ml_stream.kappa == pytest.approx(flashed_stream.kappa, 0.1)
-    assert flashed_ml_stream.density == pytest.approx(flashed_stream.density, 0.02)
+    assert flashed_ml_stream.pressure_bara == flashed_stream.pressure_bara, "pressure"
+    assert flashed_ml_stream.enthalpy_joule_per_kg == pytest.approx(flashed_stream.enthalpy_joule_per_kg), "enthalpy"
+    assert flashed_ml_stream.kappa == pytest.approx(flashed_stream.kappa, 0.01), "kappa"
+    assert flashed_ml_stream.z == pytest.approx(flashed_stream.z, 0.01), "z"
+    assert flashed_ml_stream.temperature_kelvin == pytest.approx(flashed_stream.temperature_kelvin, 0.01), "temperature"
+    assert flashed_ml_stream.density == pytest.approx(flashed_stream.density, 0.01), "density"
 
 
 def test_fluid_mixing(dry_fluid, rich_fluid):
