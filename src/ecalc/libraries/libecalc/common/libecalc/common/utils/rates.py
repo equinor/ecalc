@@ -192,10 +192,6 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
     def fill_nan(self, fill_value: float) -> Self:
         return self.copy(update={"values": pd.Series(self.values).fillna(fill_value).tolist()})
 
-    def subset(self, period: Period) -> TimeSeries:
-        start_index, stop_index = period.get_timestep_indices(self.timesteps)
-        return self[start_index : stop_index + 1]
-
     def __getitem__(self, indices: Union[slice, int, List[int]]) -> Self:
         if isinstance(indices, slice):
             return self.__class__(timesteps=self.timesteps[indices], values=self.values[indices], unit=self.unit)

@@ -287,13 +287,13 @@ class GraphResult:
                         timesteps=self.timesteps,
                         values=TemporalExpression.evaluate(inlet_pressure_eval, self.variables_map),
                         unit=Unit.BARA,
-                    ).subset(period=period)
+                    ).for_period(period=period)
 
                     requested_outlet_pressure = TimeSeriesFloat(
                         timesteps=self.timesteps,
                         values=TemporalExpression.evaluate(outlet_pressure_eval, self.variables_map),
                         unit=Unit.BARA,
-                    ).subset(period=period)
+                    ).for_period(period=period)
 
                     models.extend(
                         [
