@@ -16,6 +16,13 @@ class SingleVariable(YamlBase):
 
 
 class DefaultDatetime(datetime):
+    """
+    PyYAML is smart and detects datetime.date and datetime.datetime differently in YAML, and parses usually
+    dates to datetime.date. However, in eCalc we required datetime.datetime, and there is a subtle difference
+    in behaviour between those too. Therefore we need to cast to datetime.datetime as early as possible to make
+    sure eCalc behaves correctly.
+    """
+
     @classmethod
     def __get_validators__(cls):
         yield cls.date_to_datetime
