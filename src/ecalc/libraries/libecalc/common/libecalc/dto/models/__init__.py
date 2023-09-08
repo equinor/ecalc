@@ -59,3 +59,8 @@ FuelEnergyUsageModel = Union[
     CompressorSystemConsumerFunction,
     TabulatedConsumerFunction,
 ]
+
+EnergyUsageModel = Union[
+    FuelEnergyUsageModel,
+    ElectricEnergyUsageModel,
+]

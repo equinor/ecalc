@@ -2,7 +2,7 @@ import math
 import operator
 from datetime import datetime
 from functools import reduce
-from typing import Any, Dict, List
+from typing import Dict, List
 
 import libecalc
 from libecalc import dto
@@ -23,6 +23,7 @@ from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.base import ComponentType
 from libecalc.dto.graph import Graph
+from libecalc.dto.models import EnergyUsageModel
 from libecalc.dto.result.emission import EmissionIntensityResult
 from libecalc.dto.result.results import CompressorResult
 from libecalc.dto.types import RateType
@@ -204,25 +205,26 @@ class GraphResult:
         }
 
     @staticmethod
-    def extract_pressures_from_models(
-        energy_usage_model: Dict[datetime, Any],
+    def extract_requested_pressures_from_model(
+        energy_usage_model: Dict[datetime, EnergyUsageModel],
         pressure_type: CompressorPressureType,
     ) -> TemporalModel[Expression]:
-        """Get temporal model for compressor inlet- and outlet pressures.
-        The pressures are the actual pressures defined by user in input.
+        """Get compressor inlet- and outlet pressures.
+        The pressures are the requested pressures defined by user in input.
 
-        :param energy_usage_model: Temporal energy model
+        :param energy_usage_model: Temporal energy usage model
         :param pressure_type: Compressor pressure type, inlet- or outlet
         :return: Temporal model with pressures as expressions
         """
         evaluated_temporal_energy_usage_models = {}
         for period, model in TemporalModel(energy_usage_model).items():
-            pressures = model.suction_pressure
-
             if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
-                pressures = model.discharge_pressure
+                pressures = getattr(model, "discharge_pressure", None)
+            else:
+                pressures = getattr(model, "suction_pressure", None)
 
             if pressures is None:
+                # Handle when pressure attribute does not exist and if pressure attribute is None
                 pressures = math.nan
 
             if not isinstance(pressures, Expression):
@@ -271,12 +273,12 @@ class GraphResult:
                 component = self.graph.get_component(consumer_id)
 
                 # Get temporal expression for inlet- and outlet pressures
-                inlet_pressure_eval = GraphResult.extract_pressures_from_models(
+                inlet_pressure_eval = GraphResult.extract_requested_pressures_from_model(
                     energy_usage_model=component.energy_usage_model,
                     pressure_type=CompressorPressureType.INLET_PRESSURE,
                 )
 
-                outlet_pressure_eval = GraphResult.extract_pressures_from_models(
+                outlet_pressure_eval = GraphResult.extract_requested_pressures_from_model(
                     energy_usage_model=component.energy_usage_model,
                     pressure_type=CompressorPressureType.OUTLET_PRESSURE,
                 )
