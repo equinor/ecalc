@@ -5,8 +5,6 @@
   "description": "Fuel types",
   "properties": {
     "FUEL_TYPES": {
-      "title": "FUEL_TYPES",
-      "description": "Specifies the various fuel types and associated emissions used in the model.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
       "type": "array",
       "items": {
         "type": "object",
