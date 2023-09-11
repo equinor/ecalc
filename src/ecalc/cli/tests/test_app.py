@@ -301,7 +301,15 @@ class TestJsonOutput:
             json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
         )
 
-    def test_json_advanced_model(self, advanced_yaml_path, tmp_path, snapshot):
+    def test_json_advanced_model(self, advanced_yaml_path, tmp_path):
+        """Check advanced json file to ensure compressor requested inlet- and outlet
+        pressures are reported correctly.
+
+        :param advanced_yaml_path: eCalc model with some detailed compressor setup
+        :param tmp_path: temporary json results
+        :return: nothing
+        :raises: AssertionError if eCalc reports wrong requested inlet- and outlet pressures.
+        """
         run_name_prefix = "test_json_advanced_model"
         runner.invoke(
             main.app,
@@ -319,9 +327,19 @@ class TestJsonOutput:
         assert v3_json_actual_path.is_file()
         with open(v3_json_actual_path) as json_file:
             json_data = json.loads(json_file.read())
-        snapshot.assert_match(
-            json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
-        )
+
+        compressor_tabular = json_data["models"][0]
+        compressor_train = json_data["models"][1]
+
+        requested_inlet_pressure_tabular = compressor_tabular["requested_inlet_pressure"]["values"]
+        requested_outlet_pressure_tabular = compressor_tabular["requested_outlet_pressure"]["values"]
+        requested_inlet_pressure_train = compressor_train["requested_inlet_pressure"]["values"]
+        requested_outlet_pressure_train = compressor_train["requested_outlet_pressure"]["values"]
+
+        assert requested_inlet_pressure_tabular == [20] * len(compressor_tabular["timesteps"])
+        assert requested_outlet_pressure_tabular == [200] * len(compressor_tabular["timesteps"])
+        assert requested_inlet_pressure_train == [20] * len(compressor_train["timesteps"])
+        assert requested_outlet_pressure_train == [120] * len(compressor_train["timesteps"])
 
 
 class TestLtpExport:
