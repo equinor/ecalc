@@ -220,6 +220,41 @@ def variable_speed_compressor_train_two_compressors_two_streams(
 
 
 @pytest.fixture
+def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors(
+    variable_speed_compressor_train_stage_dto,
+    dry_fluid,
+    rich_fluid,
+    mock_variable_speed_compressor_train_multiple_streams_and_pressures,
+) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
+    """Train with only two compressors, and standard medium fluid, on stream in per stage, no liquid off take."""
+    fluid_streams = [
+        FluidStreamObjectForMultipleStreams(
+            fluid=FluidStream(rich_fluid),
+            is_inlet_stream=True,
+            connected_to_stage_no=0,
+        ),
+        FluidStreamObjectForMultipleStreams(
+            is_inlet_stream=False,
+            connected_to_stage_no=1,
+        ),
+        FluidStreamObjectForMultipleStreams(
+            fluid=FluidStream(dry_fluid),
+            is_inlet_stream=True,
+            connected_to_stage_no=1,
+        ),
+    ]
+    return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
+        streams=fluid_streams,
+        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.copy(
+            update={
+                "stages": [variable_speed_compressor_train_stage_dto] * 2,
+                "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+            }
+        ),
+    )
+
+
+@pytest.fixture
 def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing_stream(
     variable_speed_compressor_train_stage_dto,
     medium_fluid,
@@ -649,3 +684,26 @@ def test_adjust_energy_usage(
         np.asarray(result_comparison_intermediate.energy_usage) + energy_usage_adjustment_constant,
         result_intermediate.energy_usage,
     )
+
+
+def test_recirculate_mixing_streams_with_zero_mass_rate(
+    variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors,
+):
+    result = variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_streams_between_compressors.evaluate_rate_ps_pd(
+        rate=np.asarray(
+            [
+                [3000000, 3000000, 3000000, 3000000, 3000000, 3000000],
+                [0, 3000000, 2500000, 3000000, 3000000, 3000000],
+                [0, 0, 500000, 0, 1000000, 0],
+            ]
+        ),
+        suction_pressure=np.asarray([30, 30, 30, 30, 30, 30]),
+        discharge_pressure=np.asarray([150, 150, 150, 150, 150, 150]),
+    )
+    np.testing.assert_almost_equal(result.power[0], result.power[1], decimal=4)
+    np.testing.assert_almost_equal(result.power[2], result.power[3], decimal=4)
+    np.testing.assert_almost_equal(result.power[4], result.power[5], decimal=4)
+    assert result.recirculation_loss[0] < result.recirculation_loss[1]
+    assert result.recirculation_loss[2] < result.recirculation_loss[3]
+    assert result.recirculation_loss[4] < result.recirculation_loss[5]
+    assert result.power[0] < result.power[2] < result.power[4]  # more and more of the heavy fluid
