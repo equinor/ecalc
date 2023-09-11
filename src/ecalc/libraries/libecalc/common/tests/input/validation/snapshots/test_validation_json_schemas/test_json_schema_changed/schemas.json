@@ -6,6 +6,100 @@
         "schema": {
             "additionalProperties": false,
             "definitions": {
+                "Compressor": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "ENERGY_USAGE_MODEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "title": "Energy Usage Model"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "ENERGY_USAGE_MODEL"
+                    ],
+                    "title": "Compressor",
+                    "type": "object"
+                },
+                "CompressorSystem": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "CONSUMERS": {
+                            "items": {
+                                "$ref": "#/definitions/Compressor"
+                            },
+                            "title": "Consumers",
+                            "type": "array"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "OPERATIONAL_SETTINGS": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/definitions/libecalc__input__yaml_types__components__compressor_system__OperationalSettings"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "items": {
+                                            "$ref": "#/definitions/libecalc__input__yaml_types__components__compressor_system__OperationalSettings"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "title": "Operational Settings"
+                        },
+                        "TYPE": {
+                            "default": "COMPRESSOR_SYSTEM@v2",
+                            "description": "The type of the component",
+                            "enum": [
+                                "COMPRESSOR_SYSTEM@v2"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "OPERATIONAL_SETTINGS",
+                        "CONSUMERS"
+                    ],
+                    "title": "CompressorSystem",
+                    "type": "object"
+                },
                 "ConsumerUserDefinedCategoryType": {
                     "description": "Consumer category",
                     "enum": [
@@ -37,6 +131,100 @@
                     ],
                     "title": "InstallationUserDefinedCategoryType",
                     "type": "string"
+                },
+                "Pump": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "ENERGY_USAGE_MODEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "title": "Energy Usage Model"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "ENERGY_USAGE_MODEL"
+                    ],
+                    "title": "Pump",
+                    "type": "object"
+                },
+                "PumpSystem": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "CONSUMERS": {
+                            "items": {
+                                "$ref": "#/definitions/Pump"
+                            },
+                            "title": "Consumers",
+                            "type": "array"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "OPERATIONAL_SETTINGS": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/definitions/libecalc__input__yaml_types__components__pump_system__OperationalSettings"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "items": {
+                                            "$ref": "#/definitions/libecalc__input__yaml_types__components__pump_system__OperationalSettings"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "title": "Operational Settings"
+                        },
+                        "TYPE": {
+                            "default": "PUMP_SYSTEM@v2",
+                            "description": "The type of the component",
+                            "enum": [
+                                "PUMP_SYSTEM@v2"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "OPERATIONAL_SETTINGS",
+                        "CONSUMERS"
+                    ],
+                    "title": "PumpSystem",
+                    "type": "object"
                 },
                 "SingleVariable": {
                     "additionalProperties": false,
@@ -158,7 +346,17 @@
                         "FUELCONSUMERS": {
                             "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
                             "items": {
-                                "$ref": "#/definitions/YamlFuelConsumer"
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/YamlFuelConsumer"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CompressorSystem"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PumpSystem"
+                                    }
+                                ]
                             },
                             "title": "FUELCONSUMERS",
                             "type": "array"
@@ -273,6 +471,193 @@
                         "HCEXPORT"
                     ],
                     "title": "Installation",
+                    "type": "object"
+                },
+                "libecalc__input__yaml_types__components__compressor_system__OperationalSettings": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONDITION": {
+                            "description": "\nAll consumers may have a keyword CONDITION which specifies conditions for the consumer to be used. \n\nAt points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\nThis is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\nload whenever there is production. CONDITION supports the functionality described in Expressions, \n\nbut is required to evaluate to True/False or 1/0.\n\n",
+                            "title": "Condition",
+                            "type": "string"
+                        },
+                        "CONDITIONS": {
+                            "description": "\n    A consumer system my have the keywords CONDITIONS which specifies conditions for the consumers to be used. \n\n    At points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\n    This is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\n    load whenever there is production. CONDITIONS supports the functionality described in Expressions, \n\n    but is required to evaluate to True/False or 1/0.\n\n    ",
+                            "title": "Conditions",
+                            "type": "string"
+                        },
+                        "CROSSOVER": {
+                            "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: [2, 0]\nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: [3,3,0]",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "title": "Crossover",
+                            "type": "array"
+                        },
+                        "INLET_PRESSURE": {
+                            "description": "Inlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
+                            "title": "Inlet pressure",
+                            "type": "string"
+                        },
+                        "INLET_PRESSURES": {
+                            "description": "Inlet pressures [bara] as a list of expressions.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Inlet pressures",
+                            "type": "array"
+                        },
+                        "OUTLET_PRESSURE": {
+                            "description": "Outlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
+                            "title": "Outlet pressure",
+                            "type": "string"
+                        },
+                        "OUTLET_PRESSURES": {
+                            "description": "Outlet pressures [bara] as a list of expressions.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Outlet pressures",
+                            "type": "array"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "description": "\nA factor that may be added to account for power transmission losses. E.g. if you have a subsea installation with a \n\npower line to another installation, there may be line losses. For a power line loss of 5%, POWER_LOSS_FACTOR is set to \n\n0.05 and the power required from the power source (generator set) will be:\n\n\npower_requirement = power_before_loss / (1 - power_loss_factor)\n",
+                            "title": "Power loss factor",
+                            "type": "string"
+                        },
+                        "POWERLOSSFACTORS": {
+                            "description": "\n    A consumer system may have list of POWER_LOSS_FACTOR that may be added to account for power transmission losses.\n    E.g. if you have a subsea installation with a power line to another installation, there may be line losses. \n\n    For a power line loss of 5%, POWER_LOSS_FACTOR is set to 0.05 and the power required from the power source \n\n    (generator set) will be:\n\n\n    power_requirement = power_before_loss / (1 - power_loss_factor)\n    ",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Power loss factors",
+                            "type": "array"
+                        },
+                        "RATES": {
+                            "description": "Rates [Sm3/day] as a list of expressions\n\nThis is mutually exclusive with RATE_FRACTIONS.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Rates",
+                            "type": "array"
+                        },
+                        "RATE_FRACTIONS": {
+                            "description": "Rate fractions of total system rate, as a list of floats between 0 and 1.\n\nThis requires TOTAL_SYSTEM_RATE to be defined.\nThis is mutually exclusive with RATES.",
+                            "items": {
+                                "maximum": 1,
+                                "minimum": 0,
+                                "type": "number"
+                            },
+                            "title": "Rate fractions",
+                            "type": "array"
+                        },
+                        "TOTAL_SYSTEM_RATE": {
+                            "description": "The total system rate expression.\n\nShould be used with RATE_FRACTIONS in OPERATIONAL_SETTINGS.",
+                            "title": "Total system rate",
+                            "type": "string"
+                        }
+                    },
+                    "title": "OperationalSettings",
+                    "type": "object"
+                },
+                "libecalc__input__yaml_types__components__pump_system__OperationalSettings": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONDITION": {
+                            "description": "\nAll consumers may have a keyword CONDITION which specifies conditions for the consumer to be used. \n\nAt points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\nThis is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\nload whenever there is production. CONDITION supports the functionality described in Expressions, \n\nbut is required to evaluate to True/False or 1/0.\n\n",
+                            "title": "Condition",
+                            "type": "string"
+                        },
+                        "CONDITIONS": {
+                            "description": "\n    A consumer system my have the keywords CONDITIONS which specifies conditions for the consumers to be used. \n\n    At points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\n    This is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\n    load whenever there is production. CONDITIONS supports the functionality described in Expressions, \n\n    but is required to evaluate to True/False or 1/0.\n\n    ",
+                            "title": "Conditions",
+                            "type": "string"
+                        },
+                        "CROSSOVER": {
+                            "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: [2, 0]\nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: [3,3,0]",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "title": "Crossover",
+                            "type": "array"
+                        },
+                        "FLUID_DENSITIES": {
+                            "description": "The fluid density [kg/m3] as a list of expressions.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "FluidStream densities",
+                            "type": "array"
+                        },
+                        "FLUID_DENSITY": {
+                            "description": "The fluid density [kg/m3] as a single expression.",
+                            "title": "FluidStream density",
+                            "type": "string"
+                        },
+                        "INLET_PRESSURE": {
+                            "description": "Inlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
+                            "title": "Inlet pressure",
+                            "type": "string"
+                        },
+                        "INLET_PRESSURES": {
+                            "description": "Inlet pressures [bara] as a list of expressions.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Inlet pressures",
+                            "type": "array"
+                        },
+                        "OUTLET_PRESSURE": {
+                            "description": "Outlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
+                            "title": "Outlet pressure",
+                            "type": "string"
+                        },
+                        "OUTLET_PRESSURES": {
+                            "description": "Outlet pressures [bara] as a list of expressions.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Outlet pressures",
+                            "type": "array"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "description": "\nA factor that may be added to account for power transmission losses. E.g. if you have a subsea installation with a \n\npower line to another installation, there may be line losses. For a power line loss of 5%, POWER_LOSS_FACTOR is set to \n\n0.05 and the power required from the power source (generator set) will be:\n\n\npower_requirement = power_before_loss / (1 - power_loss_factor)\n",
+                            "title": "Power loss factor",
+                            "type": "string"
+                        },
+                        "POWERLOSSFACTORS": {
+                            "description": "\n    A consumer system may have list of POWER_LOSS_FACTOR that may be added to account for power transmission losses.\n    E.g. if you have a subsea installation with a power line to another installation, there may be line losses. \n\n    For a power line loss of 5%, POWER_LOSS_FACTOR is set to 0.05 and the power required from the power source \n\n    (generator set) will be:\n\n\n    power_requirement = power_before_loss / (1 - power_loss_factor)\n    ",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Power loss factors",
+                            "type": "array"
+                        },
+                        "RATES": {
+                            "description": "Rates [Sm3/day] as a list of expressions\n\nThis is mutually exclusive with RATE_FRACTIONS.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Rates",
+                            "type": "array"
+                        },
+                        "RATE_FRACTIONS": {
+                            "description": "Rate fractions of total system rate, as a list of floats between 0 and 1.\n\nThis requires TOTAL_SYSTEM_RATE to be defined.\nThis is mutually exclusive with RATES.",
+                            "items": {
+                                "maximum": 1,
+                                "minimum": 0,
+                                "type": "number"
+                            },
+                            "title": "Rate fractions",
+                            "type": "array"
+                        },
+                        "TOTAL_SYSTEM_RATE": {
+                            "description": "The total system rate expression.\n\nShould be used with RATE_FRACTIONS in OPERATIONAL_SETTINGS.",
+                            "title": "Total system rate",
+                            "type": "string"
+                        }
+                    },
+                    "title": "OperationalSettings",
                     "type": "object"
                 }
             },
