@@ -14,7 +14,6 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 ## Workflow 
 
 ```mermaid
-%%{init: {"flowchart": {"htmlLabels": false}} }%%
   flowchart LR;
       subgraph ide1 ["`**Required Subsurface Profiles [All in Sm3/d]**`"]
           ide1_A[Oil Produced];
@@ -23,7 +22,6 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
           ide1_D[Gas Injected];
           ide1_E[Water Injected];
       end
-
       subgraph ide2 ["`**Facility Information Needed**`"]
 
           ide2_A[[Power Generation System]] --> ide2_A_1([Gas Turbines]);
@@ -98,8 +96,6 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
           ide5_A_4_2 --> ide5_A_1
           ide5_A_3_1 -. no .-> ide5_A_4_1
       end
-
-      
 ```
 
 ## Workflow Explanation
