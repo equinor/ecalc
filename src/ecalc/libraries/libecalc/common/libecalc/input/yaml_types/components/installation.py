@@ -1,8 +1,16 @@
+from typing import Any, Dict, List, Type
+
 from libecalc.dto.base import InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.category import CategoryField
+from libecalc.input.yaml_types.components.legacy.yaml_fuel_consumer import (
+    YamlFuelConsumer,
+)
 from libecalc.input.yaml_types.placeholder_type import PlaceholderType
+from libecalc.input.yaml_types.schema_helpers import (
+    replace_placeholder_property_with_legacy_ref,
+)
 from libecalc.input.yaml_types.temporal_model import TemporalModel
 from pydantic import Field
 
@@ -10,6 +18,19 @@ from pydantic import Field
 class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelconsumers or gensets
     class Config:
         title = "Installation"
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any], model: Type["YamlInstallation"]) -> None:
+            replace_placeholder_property_with_legacy_ref(
+                schema=schema,
+                property_key="GENERATORSETS",
+                property_ref="$SERVER_NAME/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS",
+            )
+            replace_placeholder_property_with_legacy_ref(
+                schema=schema,
+                property_key="DIRECTEMITTERS",
+                property_ref="$SERVER_NAME/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS",
+            )
 
     name: str = Field(
         ...,
@@ -37,7 +58,7 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="GENERATORSETS",
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
     )
-    fuelconsumers: PlaceholderType = Field(
+    fuelconsumers: List[YamlFuelConsumer] = Field(
         None,
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",

@@ -33,18 +33,6 @@ def get_template(schema: str, schema_name: str, is_root: bool = False) -> str:
     return template
 
 
-def replace_asset_property_with_legacy_json_schema(schema: dict, property_key: str, property_ref: str) -> dict:
-    del schema["schema"]["properties"][property_key]["type"]
-    schema["schema"]["properties"][property_key]["$ref"] = property_ref
-    return schema
-
-
-def replace_installation_property_with_legacy_json_schema(schema: dict, property_key: str, property_ref: str) -> dict:
-    del schema["schema"]["definitions"]["YamlInstallation"]["properties"][property_key]["type"]
-    schema["schema"]["definitions"]["YamlInstallation"]["properties"][property_key]["$ref"] = property_ref
-    return schema
-
-
 def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[SchemaSettings]:
     schemas = []
 
@@ -53,43 +41,6 @@ def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[Schem
         get_template(
             schema=json.dumps(YamlAsset.schema(by_alias=True)), schema_name=ROOT_JSON_SCHEMA_FILE_NAME, is_root=True
         )
-    )
-
-    schema = replace_asset_property_with_legacy_json_schema(
-        schema=schema,
-        property_key="TIME_SERIES",
-        property_ref="$SERVER_NAME/api/v1/schema-validation/time-series.json#properties/TIME_SERIES",
-    )
-    schema = replace_asset_property_with_legacy_json_schema(
-        schema=schema,
-        property_key="FACILITY_INPUTS",
-        property_ref="$SERVER_NAME/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS",
-    )
-    schema = replace_asset_property_with_legacy_json_schema(
-        schema=schema,
-        property_key="MODELS",
-        property_ref="$SERVER_NAME/api/v1/schema-validation/models.json#properties/MODELS",
-    )
-    schema = replace_asset_property_with_legacy_json_schema(
-        schema=schema,
-        property_key="FUEL_TYPES",
-        property_ref="$SERVER_NAME/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
-    )
-
-    schema = replace_installation_property_with_legacy_json_schema(
-        schema=schema,
-        property_key="GENERATORSETS",
-        property_ref="$SERVER_NAME/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS",
-    )
-    schema = replace_installation_property_with_legacy_json_schema(
-        schema=schema,
-        property_key="FUELCONSUMERS",
-        property_ref="$SERVER_NAME/api/v1/schema-validation/fuel-consumers.json#properties/FUELCONSUMERS",
-    )
-    schema = replace_installation_property_with_legacy_json_schema(
-        schema=schema,
-        property_key="DIRECTEMITTERS",
-        property_ref="$SERVER_NAME/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS",
     )
 
     variables_schema = schema["schema"]["properties"]["VARIABLES"]

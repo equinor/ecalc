@@ -1,8 +1,11 @@
-from typing import List
+from typing import Any, Dict, List, Type
 
 from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.installation import YamlInstallation
 from libecalc.input.yaml_types.placeholder_type import PlaceholderType
+from libecalc.input.yaml_types.schema_helpers import (
+    replace_placeholder_property_with_legacy_ref,
+)
 from libecalc.input.yaml_types.variable import Variables
 from pydantic import Field
 
@@ -12,6 +15,29 @@ class YamlAsset(YamlBase):
 
     class Config:
         title = "Asset"
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any], model: Type["YamlInstallation"]) -> None:
+            replace_placeholder_property_with_legacy_ref(
+                schema=schema,
+                property_key="TIME_SERIES",
+                property_ref="$SERVER_NAME/api/v1/schema-validation/time-series.json#properties/TIME_SERIES",
+            )
+            replace_placeholder_property_with_legacy_ref(
+                schema=schema,
+                property_key="FACILITY_INPUTS",
+                property_ref="$SERVER_NAME/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS",
+            )
+            replace_placeholder_property_with_legacy_ref(
+                schema=schema,
+                property_key="MODELS",
+                property_ref="$SERVER_NAME/api/v1/schema-validation/models.json#properties/MODELS",
+            )
+            replace_placeholder_property_with_legacy_ref(
+                schema=schema,
+                property_key="FUEL_TYPES",
+                property_ref="$SERVER_NAME/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
+            )
 
     time_series: PlaceholderType = Field(
         None,
