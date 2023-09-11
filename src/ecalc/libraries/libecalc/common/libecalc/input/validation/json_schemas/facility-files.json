@@ -5,8 +5,6 @@
   "description": "Facility files",
   "properties": {
     "FACILITY_INPUTS": {
-      "title": "FACILITY_INPUTS",
-      "description": "Defines input files which characterize various facility elements.\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
       "type": "array",
       "items": {
         "type": "object",

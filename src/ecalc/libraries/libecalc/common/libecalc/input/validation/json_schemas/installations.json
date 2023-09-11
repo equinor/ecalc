@@ -5,8 +5,6 @@
   "description": "Installations",
   "properties": {
     "INSTALLATIONS": {
-      "title": "INSTALLATIONS",
-      "description": "Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
       "type": "array",
       "items": {
         "type": "object",

@@ -5,8 +5,38 @@
         ],
         "schema": {
             "additionalProperties": false,
-            "description": "An ecalc yaml file",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/ecalc-model.json",
+            "definitions": {
+                "SingleVariable": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "VALUE": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                    "type": "string"
+                                }
+                            ],
+                            "examples": [
+                                "SIM1;OIL_PROD {+} 1000",
+                                5
+                            ],
+                            "title": "Expression"
+                        }
+                    },
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "SingleVariable",
+                    "type": "object"
+                }
+            },
+            "description": "An eCalc\u2122 yaml file",
             "properties": {
                 "END": {
                     "description": "Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/END",
@@ -14,16 +44,24 @@
                     "type": "string"
                 },
                 "FACILITY_INPUTS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS"
+                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS",
+                    "description": "Defines input files which characterize various facility elements.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACILITY_INPUTS",
+                    "title": "FACILITY_INPUTS"
                 },
                 "FUEL_TYPES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES"
+                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
+                    "description": "Specifies the various fuel types and associated emissions used in the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL_TYPES",
+                    "title": "FUEL_TYPES"
                 },
                 "INSTALLATIONS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json#properties/INSTALLATIONS"
+                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json#properties/INSTALLATIONS",
+                    "description": "Description of the system of energy consumers.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INSTALLATIONS",
+                    "title": "INSTALLATIONS"
                 },
                 "MODELS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json#properties/MODELS"
+                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json#properties/MODELS",
+                    "description": "Defines input files which characterize various facility elements.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
+                    "title": "MODELS"
                 },
                 "START": {
                     "description": "Global start date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/START",
@@ -32,20 +70,32 @@
                 },
                 "TIME_SERIES": {
                     "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/time-series.json#properties/TIME_SERIES",
-                    "description": "Defines the inputs for time dependent variables, or \u201creservoir variables\u201d.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TIME_SERIES",
+                    "description": "Defines the inputs for time dependent variables, or 'reservoir variables'.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TIME_SERIES",
                     "title": "TIME_SERIES"
                 },
                 "VARIABLES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json#definitions/VARIABLES"
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/SingleVariable"
+                            },
+                            {
+                                "additionalProperties": {
+                                    "$ref": "#/definitions/SingleVariable"
+                                },
+                                "type": "object"
+                            }
+                        ]
+                    },
+                    "description": "Defines variables used in an energy usage model by means of expressions or constants.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/VARIABLES",
+                    "title": "VARIABLES",
+                    "type": "object"
                 }
             },
             "required": [
-                "INSTALLATIONS",
-                "TIME_SERIES",
-                "FACILITY_INPUTS",
-                "FUEL_TYPES"
+                "INSTALLATIONS"
             ],
-            "title": "ecalc yaml setup",
+            "title": "Asset",
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/ecalc-model.json"
@@ -428,55 +478,6 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "additionalProperties": false,
-            "description": "An ecalc yaml file",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/ecalc-model.json",
-            "properties": {
-                "END": {
-                    "description": "Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/END",
-                    "title": "END",
-                    "type": "string"
-                },
-                "FACILITY_INPUTS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS"
-                },
-                "FUEL_TYPES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES"
-                },
-                "INSTALLATIONS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json#properties/INSTALLATIONS"
-                },
-                "MODELS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json#properties/MODELS"
-                },
-                "START": {
-                    "description": "Global start date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/START",
-                    "title": "START",
-                    "type": "string"
-                },
-                "TIME_SERIES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/time-series.json#properties/TIME_SERIES",
-                    "description": "Defines the inputs for time dependent variables, or \u201creservoir variables\u201d.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TIME_SERIES",
-                    "title": "TIME_SERIES"
-                },
-                "VARIABLES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json#definitions/VARIABLES"
-                }
-            },
-            "required": [
-                "INSTALLATIONS",
-                "TIME_SERIES",
-                "FACILITY_INPUTS",
-                "FUEL_TYPES"
-            ],
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/ecalc-model.json"
     },
     {
         "fileMatch": [],
@@ -1451,7 +1452,6 @@
             "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json",
             "properties": {
                 "FACILITY_INPUTS": {
-                    "description": "Defines input files which characterize various facility elements.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACILITY_INPUTS",
                     "items": {
                         "additionalProperties": false,
                         "else": {
@@ -1613,7 +1613,6 @@
                         },
                         "type": "object"
                     },
-                    "title": "FACILITY_INPUTS",
                     "type": "array"
                 }
             },
@@ -1684,7 +1683,6 @@
             "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json",
             "properties": {
                 "FUEL_TYPES": {
-                    "description": "Specifies the various fuel types and associated emissions used in the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL_TYPES",
                     "items": {
                         "additionalProperties": false,
                         "properties": {
@@ -1759,7 +1757,6 @@
                         ],
                         "type": "object"
                     },
-                    "title": "FUEL_TYPES",
                     "type": "array"
                 }
             },
@@ -1893,7 +1890,6 @@
             "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json",
             "properties": {
                 "INSTALLATIONS": {
-                    "description": "Description of the system of energy consumers.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INSTALLATIONS",
                     "items": {
                         "additionalProperties": false,
                         "anyOf": [
@@ -1979,7 +1975,6 @@
                         ],
                         "type": "object"
                     },
-                    "title": "INSTALLATIONS",
                     "type": "array"
                 }
             },
@@ -3188,7 +3183,6 @@
             "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json",
             "properties": {
                 "MODELS": {
-                    "description": "Defines input files which characterize various facility elements.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
                     "items": {
                         "anyOf": [
                             {
@@ -3218,7 +3212,6 @@
                         ],
                         "type": "object"
                     },
-                    "title": "MODELS",
                     "type": "array"
                 }
             },
@@ -3376,57 +3369,5 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/time-series.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "additionalProperties": {
-                "anyOf": [
-                    {
-                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/variables.json#/definitions/SingleVariable"
-                    },
-                    {
-                        "additionalProperties": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/variables.json#/definitions/SingleVariable"
-                        },
-                        "type": "object"
-                    }
-                ]
-            },
-            "definitions": {
-                "SingleVariable": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "VALUE": {
-                            "anyOf": [
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                    "type": "string"
-                                }
-                            ],
-                            "examples": [
-                                "SIM1;OIL_PROD {+} 1000",
-                                5
-                            ],
-                            "title": "Expression"
-                        }
-                    },
-                    "required": [
-                        "VALUE"
-                    ],
-                    "title": "SingleVariable",
-                    "type": "object"
-                }
-            },
-            "title": "Variables",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/variables.json"
     }
 ]

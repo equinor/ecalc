@@ -4,12 +4,12 @@ from typing import List
 
 from libecalc.dto.ecalc_model import SchemaSettings
 from libecalc.input.validation import json_schemas
+from libecalc.input.yaml_types.components.asset import YamlAsset
 
 # This just needs to be a unique ID, it is required, but we do not need to have anything at that URI
 # since we are embedding everything within one file
 # Do not change this URI, since it has already been used in all json schemas
 from libecalc.input.yaml_types.models.turbine import Turbine
-from libecalc.input.yaml_types.variable import Variables
 from pydantic import schema_of
 
 BASE_URI = "$SERVER_NAME/api/v1/schema-validation"
@@ -33,18 +33,58 @@ def get_template(schema: str, schema_name: str, is_root: bool = False) -> str:
     return template
 
 
+def replace_property_with_legacy_json_schema(schema: dict, property_key: str, property_ref: str) -> dict:
+    del schema["schema"]["properties"][property_key]["type"]
+    schema["schema"]["properties"][property_key]["$ref"] = property_ref
+    return schema
+
+
 def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[SchemaSettings]:
     schemas = []
 
     # First we get the root schema
-    with open(JSON_SCHEMA_PATH / ROOT_JSON_SCHEMA_FILE_NAME) as root_model_file:
-        root_model_schema = root_model_file.read()
-        schema = get_template(
-            schema=root_model_schema,
-            schema_name="ecalc-model.json",
-            is_root=True,
+    schema = json.loads(
+        get_template(
+            schema=json.dumps(YamlAsset.schema(by_alias=True)), schema_name=ROOT_JSON_SCHEMA_FILE_NAME, is_root=True
         )
-        schemas.append(schema)
+    )
+
+    schema = replace_property_with_legacy_json_schema(
+        schema=schema,
+        property_key="TIME_SERIES",
+        property_ref="$SERVER_NAME/api/v1/schema-validation/time-series.json#properties/TIME_SERIES",
+    )
+    schema = replace_property_with_legacy_json_schema(
+        schema=schema,
+        property_key="FACILITY_INPUTS",
+        property_ref="$SERVER_NAME/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS",
+    )
+    schema = replace_property_with_legacy_json_schema(
+        schema=schema,
+        property_key="MODELS",
+        property_ref="$SERVER_NAME/api/v1/schema-validation/models.json#properties/MODELS",
+    )
+    schema = replace_property_with_legacy_json_schema(
+        schema=schema,
+        property_key="FUEL_TYPES",
+        property_ref="$SERVER_NAME/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
+    )
+    schema = replace_property_with_legacy_json_schema(
+        schema=schema,
+        property_key="INSTALLATIONS",
+        property_ref="$SERVER_NAME/api/v1/schema-validation/installations.json#properties/INSTALLATIONS",
+    )
+
+    variables_schema = schema["schema"]["properties"]["VARIABLES"]
+    # Patterned properties not supported in monaco-yaml, replace with additionalProperties.
+    monaco_variables_schema = {key: value for key, value in variables_schema.items() if key != "patternProperties"}
+    variables_pattern_properties = list(variables_schema["patternProperties"].values())
+    if len(variables_pattern_properties) > 1:
+        raise ValueError("Multiple patternProperties is not handled.")
+    monaco_variables_schema["additionalProperties"] = variables_pattern_properties[0]
+    schema["schema"]["properties"]["VARIABLES"] = monaco_variables_schema
+
+    schemas.append(json.dumps(schema))
 
     # Then we just take the rest
     for json_schema_file in sorted([file for file in JSON_SCHEMA_PATH.iterdir() if file.suffix == ".json"]):
@@ -65,21 +105,6 @@ def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[Schem
                     is_root=False,
                 )
                 schemas.append(schema)
-
-    variables_schema = schema_of(
-        Variables, by_alias=True, title="Variables", ref_template=f"{VARIABLES_URI}#/definitions/{{model}}"
-    )
-
-    # Patterned properties not supported in monaco-yaml, replace with additionalProperties.
-    monaco_schema = {key: value for key, value in variables_schema.items() if key != "patternProperties"}
-
-    variables_pattern_properties = list(variables_schema["patternProperties"].values())
-
-    if len(variables_pattern_properties) > 1:
-        raise ValueError("Multiple patternProperties is not handled.")
-
-    monaco_schema["additionalProperties"] = variables_pattern_properties[0]
-    schemas.append(get_template(schema=json.dumps(monaco_schema), schema_name="variables.json", is_root=False))
 
     processed_schemas = []
     for schema in schemas:
