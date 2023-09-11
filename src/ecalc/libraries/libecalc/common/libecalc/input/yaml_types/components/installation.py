@@ -1,12 +1,14 @@
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Type, Union
 
 from libecalc.dto.base import InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.category import CategoryField
+from libecalc.input.yaml_types.components.compressor_system import CompressorSystem
 from libecalc.input.yaml_types.components.legacy.yaml_fuel_consumer import (
     YamlFuelConsumer,
 )
+from libecalc.input.yaml_types.components.pump_system import PumpSystem
 from libecalc.input.yaml_types.placeholder_type import PlaceholderType
 from libecalc.input.yaml_types.schema_helpers import (
     replace_placeholder_property_with_legacy_ref,
@@ -58,7 +60,7 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="GENERATORSETS",
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
     )
-    fuelconsumers: List[YamlFuelConsumer] = Field(
+    fuelconsumers: List[Union[YamlFuelConsumer, CompressorSystem, PumpSystem]] = Field(
         None,
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
