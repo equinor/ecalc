@@ -38,6 +38,10 @@ class ComponentType(str, Enum):
 
 
 class ConsumerUserDefinedCategoryType(str, Enum):
+    """
+    Consumer category
+    """
+
     BASE_LOAD = "BASE-LOAD"
     COLD_VENTING_FUGITIVE = "COLD-VENTING-FUGITIVE"
     COMPRESSOR = "COMPRESSOR"
@@ -57,6 +61,10 @@ class ConsumerUserDefinedCategoryType(str, Enum):
 
 
 class InstallationUserDefinedCategoryType(str, Enum):
+    """
+    Installation category
+    """
+
     FIXED = "FIXED"
     MOBILE = "MOBILE"
 

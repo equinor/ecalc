@@ -6,8 +6,31 @@
         "schema": {
             "additionalProperties": false,
             "definitions": {
+                "ConsumerUserDefinedCategoryType": {
+                    "description": "Consumer category",
+                    "enum": [
+                        "BASE-LOAD",
+                        "COLD-VENTING-FUGITIVE",
+                        "COMPRESSOR",
+                        "FIXED-PRODUCTION-LOAD",
+                        "FLARE",
+                        "MISCELLANEOUS",
+                        "PUMP",
+                        "GAS-DRIVEN-COMPRESSOR",
+                        "TURBINE-GENERATOR",
+                        "POWER-FROM-SHORE",
+                        "OFFSHORE-WIND",
+                        "LOADING",
+                        "STORAGE",
+                        "STEAM-TURBINE-GENERATOR",
+                        "BOILER",
+                        "HEATER"
+                    ],
+                    "title": "ConsumerUserDefinedCategoryType",
+                    "type": "string"
+                },
                 "InstallationUserDefinedCategoryType": {
-                    "description": "An enumeration.",
+                    "description": "Installation category",
                     "enum": [
                         "FIXED",
                         "MOBILE"
@@ -44,6 +67,62 @@
                     "title": "SingleVariable",
                     "type": "object"
                 },
+                "YamlFuelConsumer": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "ENERGY_USAGE_MODEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                },
+                                {
+                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL",
+                                    "additionalProperties": {
+                                        "type": "object"
+                                    }
+                                }
+                            ],
+                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
+                            "title": "ENERGY_USAGE_MODEL"
+                        },
+                        "FUEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "The fuel used by the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "title": "FUEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the fuel consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "ENERGY_USAGE_MODEL"
+                    ],
+                    "title": "FUEL_CONSUMER",
+                    "type": "object"
+                },
                 "YamlInstallation": {
                     "additionalProperties": false,
                     "properties": {
@@ -77,9 +156,12 @@
                             "title": "FUEL"
                         },
                         "FUELCONSUMERS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-consumers.json#properties/FUELCONSUMERS",
                             "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
-                            "title": "FUELCONSUMERS"
+                            "items": {
+                                "$ref": "#/definitions/YamlFuelConsumer"
+                            },
+                            "title": "FUELCONSUMERS",
+                            "type": "array"
                         },
                         "GENERATORSETS": {
                             "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS",
