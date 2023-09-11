@@ -6,6 +6,15 @@
         "schema": {
             "additionalProperties": false,
             "definitions": {
+                "InstallationUserDefinedCategoryType": {
+                    "description": "An enumeration.",
+                    "enum": [
+                        "FIXED",
+                        "MOBILE"
+                    ],
+                    "title": "InstallationUserDefinedCategoryType",
+                    "type": "string"
+                },
                 "SingleVariable": {
                     "additionalProperties": false,
                     "properties": {
@@ -34,6 +43,155 @@
                     ],
                     "title": "SingleVariable",
                     "type": "object"
+                },
+                "YamlInstallation": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/InstallationUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "DIRECTEMITTERS": {
+                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS",
+                            "description": "Covers the direct emissions on the installation that are not consuming energy",
+                            "title": "DIRECTEMITTERS"
+                        },
+                        "FUEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Main fuel type for installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "title": "FUEL"
+                        },
+                        "FUELCONSUMERS": {
+                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-consumers.json#properties/FUELCONSUMERS",
+                            "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
+                            "title": "FUELCONSUMERS"
+                        },
+                        "GENERATORSETS": {
+                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS",
+                            "description": "Defines one or more generator sets.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/GENERATORSETS",
+                            "title": "GENERATORSETS"
+                        },
+                        "HCEXPORT": {
+                            "anyOf": [
+                                {
+                                    "anyOf": [
+                                        {
+                                            "type": "integer"
+                                        },
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "examples": [
+                                        "SIM1;OIL_PROD {+} 1000",
+                                        5
+                                    ],
+                                    "title": "Expression"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "anyOf": [
+                                            {
+                                                "type": "integer"
+                                            },
+                                            {
+                                                "type": "number"
+                                            },
+                                            {
+                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "examples": [
+                                            "SIM1;OIL_PROD {+} 1000",
+                                            5
+                                        ],
+                                        "title": "Expression"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HCEXPORT",
+                            "title": "HCEXPORT"
+                        },
+                        "NAME": {
+                            "description": "Name of the installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "REGULARITY": {
+                            "anyOf": [
+                                {
+                                    "anyOf": [
+                                        {
+                                            "type": "integer"
+                                        },
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "examples": [
+                                        "SIM1;OIL_PROD {+} 1000",
+                                        5
+                                    ],
+                                    "title": "Expression"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "anyOf": [
+                                            {
+                                                "type": "integer"
+                                            },
+                                            {
+                                                "type": "number"
+                                            },
+                                            {
+                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "examples": [
+                                            "SIM1;OIL_PROD {+} 1000",
+                                            5
+                                        ],
+                                        "title": "Expression"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
+                            "title": "REGULARITY"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "HCEXPORT"
+                    ],
+                    "title": "Installation",
+                    "type": "object"
                 }
             },
             "description": "An eCalc\u2122 yaml file",
@@ -54,9 +212,12 @@
                     "title": "FUEL_TYPES"
                 },
                 "INSTALLATIONS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json#properties/INSTALLATIONS",
                     "description": "Description of the system of energy consumers.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INSTALLATIONS",
-                    "title": "INSTALLATIONS"
+                    "items": {
+                        "$ref": "#/definitions/YamlInstallation"
+                    },
+                    "title": "INSTALLATIONS",
+                    "type": "array"
                 },
                 "MODELS": {
                     "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json#properties/MODELS",
