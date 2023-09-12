@@ -205,7 +205,8 @@ class PumpSystem(ConsumerBase):
                 else:
                     rates = [
                         Expression.multiply(
-                            Expression.setup_from_expression(self.rate), Expression.setup_from_expression(rate_fraction)
+                            Expression.setup_from_expression(operational_setting.total_system_rate),
+                            Expression.setup_from_expression(rate_fraction),
                         )
                         for rate_fraction in operational_setting.rate_fractions
                     ]
