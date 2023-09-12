@@ -117,7 +117,7 @@ class DtoValidationError(DataValidationError):
     ):
         errors = validation_error.errors()
 
-        component_name = data[EcalcYamlKeywords.name]
+        component_name = data.get(EcalcYamlKeywords.name, "Missing Component Name")
         messages = []
         error_locs = []
         try:
