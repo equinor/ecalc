@@ -23,6 +23,11 @@
                                     "additionalProperties": {
                                         "type": "string"
                                     },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "type": "object"
                                 }
                             ],
@@ -75,6 +80,14 @@
                                             "$ref": "#/definitions/libecalc__input__yaml_types__components__compressor_system__OperationalSettings"
                                         },
                                         "type": "array"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "items": {
+                                                "$ref": "#/definitions/libecalc__input__yaml_types__components__compressor_system__OperationalSettings"
+                                            },
+                                            "type": "array"
+                                        }
                                     },
                                     "type": "object"
                                 }
@@ -149,6 +162,11 @@
                                     "additionalProperties": {
                                         "type": "string"
                                     },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "type": "object"
                                 }
                             ],
@@ -201,6 +219,14 @@
                                             "$ref": "#/definitions/libecalc__input__yaml_types__components__pump_system__OperationalSettings"
                                         },
                                         "type": "array"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "items": {
+                                                "$ref": "#/definitions/libecalc__input__yaml_types__components__pump_system__OperationalSettings"
+                                            },
+                                            "type": "array"
+                                        }
                                     },
                                     "type": "object"
                                 }
@@ -255,6 +281,52 @@
                     "title": "SingleVariable",
                     "type": "object"
                 },
+                "YamlElectricityConsumer": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "ENERGY_USAGE_MODEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
+                            "title": "ENERGY_USAGE_MODEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "ENERGY_USAGE_MODEL"
+                    ],
+                    "title": "ELECTRICITY_CONSUMER",
+                    "type": "object"
+                },
                 "YamlFuelConsumer": {
                     "additionalProperties": false,
                     "properties": {
@@ -273,10 +345,15 @@
                                     "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
                                 },
                                 {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL",
                                     "additionalProperties": {
-                                        "type": "object"
-                                    }
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             ],
                             "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
@@ -291,6 +368,11 @@
                                     "additionalProperties": {
                                         "type": "string"
                                     },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "type": "object"
                                 }
                             ],
@@ -298,7 +380,7 @@
                             "title": "FUEL"
                         },
                         "NAME": {
-                            "description": "Name of the fuel consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
                             "title": "NAME",
                             "type": "string"
                         }
@@ -309,6 +391,81 @@
                         "ENERGY_USAGE_MODEL"
                     ],
                     "title": "FUEL_CONSUMER",
+                    "type": "object"
+                },
+                "YamlGeneratorSet": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "CONSUMERS": {
+                            "description": "Consumers getting electrical power from the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERS",
+                            "items": {
+                                "$ref": "#/definitions/YamlElectricityConsumer"
+                            },
+                            "title": "CONSUMERS",
+                            "type": "array"
+                        },
+                        "ELECTRICITY2FUEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Specifies the correlation between the electric power delivered and the fuel burned by a generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ELECTRICITY2FUEL",
+                            "title": "ELECTRICITY2FUEL"
+                        },
+                        "FUEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "The fuel used by the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "title": "FUEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "ELECTRICITY2FUEL",
+                        "CONSUMERS"
+                    ],
+                    "title": "GENERATORSET",
                     "type": "object"
                 },
                 "YamlInstallation": {
@@ -337,6 +494,11 @@
                                     "additionalProperties": {
                                         "type": "string"
                                     },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "type": "object"
                                 }
                             ],
@@ -362,9 +524,12 @@
                             "type": "array"
                         },
                         "GENERATORSETS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS",
                             "description": "Defines one or more generator sets.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/GENERATORSETS",
-                            "title": "GENERATORSETS"
+                            "items": {
+                                "$ref": "#/definitions/YamlGeneratorSet"
+                            },
+                            "title": "GENERATORSETS",
+                            "type": "array"
                         },
                         "HCEXPORT": {
                             "anyOf": [
@@ -406,6 +571,27 @@
                                             5
                                         ],
                                         "title": "Expression"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "integer"
+                                                },
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "examples": [
+                                                "SIM1;OIL_PROD {+} 1000",
+                                                5
+                                            ],
+                                            "title": "Expression"
+                                        }
                                     },
                                     "type": "object"
                                 }
@@ -458,6 +644,27 @@
                                             5
                                         ],
                                         "title": "Expression"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "integer"
+                                                },
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "examples": [
+                                                "SIM1;OIL_PROD {+} 1000",
+                                                5
+                                            ],
+                                            "title": "Expression"
+                                        }
                                     },
                                     "type": "object"
                                 }
@@ -2252,61 +2459,6 @@
     {
         "fileMatch": [],
         "schema": {
-            "description": "Fuel Consumers",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-consumers.json",
-            "properties": {
-                "FUELCONSUMERS": {
-                    "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
-                    "items": {
-                        "additionalProperties": false,
-                        "properties": {
-                            "CATEGORY": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category_temporal.json#properties/CATEGORY"
-                            },
-                            "ENERGY_USAGE_MODEL": {
-                                "oneOf": [
-                                    {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "patternProperties": {
-                                            "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                ]
-                            },
-                            "FUEL": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json#definitions/FUEL"
-                            },
-                            "NAME": {
-                                "description": "Name of the fuel consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                "title": "NAME",
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "NAME",
-                            "CATEGORY",
-                            "ENERGY_USAGE_MODEL"
-                        ],
-                        "type": "object"
-                    },
-                    "title": "FUELCONSUMERS",
-                    "type": "array"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-consumers.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
             "description": "Fuel types",
             "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json",
             "properties": {
@@ -2392,224 +2544,6 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "description": "Generator sets",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/generator-sets.json",
-            "properties": {
-                "GENERATORSETS": {
-                    "description": "Defines one or more generator sets.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/GENERATORSETS",
-                    "items": {
-                        "additionalProperties": false,
-                        "properties": {
-                            "CATEGORY": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category_temporal.json#properties/CATEGORY"
-                            },
-                            "CONSUMERS": {
-                                "description": "Consumers getting electrical power from the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERS",
-                                "items": {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "CATEGORY": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category_temporal.json#properties/CATEGORY"
-                                        },
-                                        "ENERGY_USAGE_MODEL": {
-                                            "oneOf": [
-                                                {
-                                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                                },
-                                                {
-                                                    "additionalProperties": false,
-                                                    "patternProperties": {
-                                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            ]
-                                        },
-                                        "NAME": {
-                                            "description": "Name of the electrical consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                            "title": "NAME",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "NAME",
-                                        "CATEGORY",
-                                        "ENERGY_USAGE_MODEL"
-                                    ],
-                                    "type": "object"
-                                },
-                                "title": "CONSUMERS",
-                                "type": "array"
-                            },
-                            "ELECTRICITY2FUEL": {
-                                "description": "Specifies the correlation between the electric power delivered and the fuel burned by a generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ELECTRICITY2FUEL",
-                                "oneOf": [
-                                    {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "patternProperties": {
-                                            "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                ],
-                                "title": "ELECTRICITY2FUEL"
-                            },
-                            "FUEL": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json#definitions/FUEL"
-                            },
-                            "NAME": {
-                                "description": "Name of the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                "title": "NAME",
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "NAME",
-                            "ELECTRICITY2FUEL",
-                            "CONSUMERS",
-                            "CATEGORY"
-                        ],
-                        "type": "object"
-                    },
-                    "title": "GENERATORSETS",
-                    "type": "array"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/generator-sets.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "FUEL": {
-                    "description": "Main fuel type for installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
-                    "oneOf": [
-                        {
-                            "additionalProperties": false,
-                            "patternProperties": {
-                                "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "title": "FUEL"
-                }
-            },
-            "description": "Installations",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json",
-            "properties": {
-                "INSTALLATIONS": {
-                    "items": {
-                        "additionalProperties": false,
-                        "anyOf": [
-                            {
-                                "required": [
-                                    "GENERATORSETS",
-                                    "FUELCONSUMERS"
-                                ]
-                            },
-                            {
-                                "required": [
-                                    "GENERATORSETS"
-                                ]
-                            },
-                            {
-                                "required": [
-                                    "FUELCONSUMERS"
-                                ]
-                            }
-                        ],
-                        "properties": {
-                            "CATEGORY": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category.json#properties/CATEGORY"
-                            },
-                            "DIRECT_EMITTERS": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS"
-                            },
-                            "FUEL": {
-                                "$ref": "#/definitions/FUEL"
-                            },
-                            "FUELCONSUMERS": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-consumers.json#properties/FUELCONSUMERS"
-                            },
-                            "GENERATORSETS": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS"
-                            },
-                            "HCEXPORT": {
-                                "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HCEXPORT",
-                                "oneOf": [
-                                    {
-                                        "additionalProperties": false,
-                                        "patternProperties": {
-                                            "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                    }
-                                ],
-                                "title": "HCEXPORT"
-                            },
-                            "NAME": {
-                                "description": "Name of the installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                "title": "NAME",
-                                "type": "string"
-                            },
-                            "REGULARITY": {
-                                "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
-                                "oneOf": [
-                                    {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "patternProperties": {
-                                            "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                ],
-                                "title": "REGULARITY"
-                            }
-                        },
-                        "required": [
-                            "NAME",
-                            "HCEXPORT",
-                            "FUEL"
-                        ],
-                        "type": "object"
-                    },
-                    "type": "array"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/installations.json"
     },
     {
         "fileMatch": [],
