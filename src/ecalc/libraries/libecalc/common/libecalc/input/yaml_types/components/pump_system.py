@@ -6,6 +6,7 @@ from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
+from libecalc.expression.expression import ExpressionType
 from libecalc.input.mappers.utils import resolve_and_validate_reference
 from libecalc.input.yaml_entities import References
 from libecalc.input.yaml_types.components.base import (
@@ -16,7 +17,7 @@ from libecalc.input.yaml_types.components.pump import Pump
 from libecalc.input.yaml_types.temporal_model import TemporalModel
 from pydantic import Field, confloat, root_validator, validator
 
-opt_expr_list = Optional[List[str]]
+opt_expr_list = Optional[List[ExpressionType]]
 
 
 class OperationalSettings(ConsumerSystemOperationalConditionBase):
@@ -38,7 +39,7 @@ class OperationalSettings(ConsumerSystemOperationalConditionBase):
         title="Rates",
         description="Rates [Sm3/day] as a list of expressions" "\n\nThis is mutually exclusive with RATE_FRACTIONS.",
     )
-    inlet_pressure: Optional[str] = Field(
+    inlet_pressure: Optional[ExpressionType] = Field(
         None,
         title="Inlet pressure",
         description="Inlet pressure [bara] as a single expression"
@@ -47,7 +48,7 @@ class OperationalSettings(ConsumerSystemOperationalConditionBase):
     inlet_pressures: opt_expr_list = Field(
         None, title="Inlet pressures", description="Inlet pressures [bara] as a list of expressions."
     )
-    outlet_pressure: Optional[str] = Field(
+    outlet_pressure: Optional[ExpressionType] = Field(
         None,
         title="Outlet pressure",
         description="Outlet pressure [bara] as a single expression"
@@ -56,7 +57,7 @@ class OperationalSettings(ConsumerSystemOperationalConditionBase):
     outlet_pressures: opt_expr_list = Field(
         None, title="Outlet pressures", description="Outlet pressures [bara] as a list of expressions."
     )
-    fluid_density: Optional[str] = Field(
+    fluid_density: Optional[ExpressionType] = Field(
         None, title="FluidStream density", description="The fluid density [kg/m3] as a single expression."
     )
     fluid_densities: opt_expr_list = Field(
