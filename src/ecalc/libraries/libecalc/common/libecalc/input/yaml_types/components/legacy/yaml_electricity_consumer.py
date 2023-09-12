@@ -11,12 +11,12 @@ from libecalc.input.yaml_types.temporal_model import TemporalModel
 from pydantic import Field
 
 
-class YamlFuelConsumer(YamlBase):
+class YamlElectricityConsumer(YamlBase):
     class Config:
-        title = "FUEL_CONSUMER"
+        title = "ELECTRICITY_CONSUMER"
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any], model: Type["YamlFuelConsumer"]) -> None:
+        def schema_extra(schema: Dict[str, Any], model: Type["YamlElectricityConsumer"]) -> None:
             replace_temporal_placeholder_property_with_legacy_ref(
                 schema=schema,
                 property_key="ENERGY_USAGE_MODEL",
@@ -34,10 +34,4 @@ class YamlFuelConsumer(YamlBase):
         title="ENERGY_USAGE_MODEL",
         description="Definition of the energy usage model for the consumer."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
-    )
-
-    fuel: TemporalModel[str] = Field(
-        None,
-        title="FUEL",
-        description="The fuel used by the consumer." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )

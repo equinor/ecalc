@@ -5,6 +5,7 @@ from libecalc.expression import Expression
 from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.category import CategoryField
 from libecalc.input.yaml_types.components.compressor_system import CompressorSystem
+from libecalc.input.yaml_types.components.generator_set import YamlGeneratorSet
 from libecalc.input.yaml_types.components.legacy.yaml_fuel_consumer import (
     YamlFuelConsumer,
 )
@@ -23,11 +24,6 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
 
         @staticmethod
         def schema_extra(schema: Dict[str, Any], model: Type["YamlInstallation"]) -> None:
-            replace_placeholder_property_with_legacy_ref(
-                schema=schema,
-                property_key="GENERATORSETS",
-                property_ref="$SERVER_NAME/api/v1/schema-validation/generator-sets.json#properties/GENERATORSETS",
-            )
             replace_placeholder_property_with_legacy_ref(
                 schema=schema,
                 property_key="DIRECTEMITTERS",
@@ -55,7 +51,7 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="REGULARITY",
         description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
     )
-    generatorsets: PlaceholderType = Field(
+    generatorsets: List[YamlGeneratorSet] = Field(
         None,
         title="GENERATORSETS",
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
