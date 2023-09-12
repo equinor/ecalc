@@ -14,7 +14,7 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 ## Workflow 
 
 ```mermaid
-  flowchart LR;
+  flowchart TD;
       subgraph ide1 ["`**Required Subsurface Profiles [All in Sm3/d]**`"]
           ide1_A[Oil Produced];
           ide1_B[Gas Produced];
@@ -96,6 +96,11 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
           ide5_A_4_2 --> ide5_A_1
           ide5_A_3_1 -. no .-> ide5_A_4_1
       end
+      
+      ide1 ~~~ ide2
+      ide2 ~~~ ide3
+      ide3 ~~~ ide4
+      ide4 ~~~ ide5
 ```
 
 ## Workflow Explanation
