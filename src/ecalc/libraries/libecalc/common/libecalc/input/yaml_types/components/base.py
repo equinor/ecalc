@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from libecalc.expression.expression import ExpressionType
 from libecalc.input.yaml_types import YamlBase
 from pydantic import Field
 
@@ -21,7 +22,7 @@ class ConsumerBase(YamlBase):
 
 
 class OperationalConditionBase(YamlBase):
-    condition: Optional[str] = Field(
+    condition: Optional[ExpressionType] = Field(
         None,
         title="Condition",
         description="""
@@ -32,7 +33,7 @@ load whenever there is production. CONDITION supports the functionality describe
 but is required to evaluate to True/False or 1/0.\n
 """,
     )
-    power_loss_factor: Optional[str] = Field(
+    power_loss_factor: Optional[ExpressionType] = Field(
         None,
         title="Power loss factor",
         alias="POWERLOSSFACTOR",  # Legacy support
@@ -49,7 +50,7 @@ power_requirement = power_before_loss / (1 - power_loss_factor)
 
 
 class ConsumerSystemOperationalConditionBase(OperationalConditionBase):
-    conditions: Optional[str] = Field(
+    conditions: Optional[ExpressionType] = Field(
         None,
         title="Conditions",
         description="""
@@ -60,7 +61,7 @@ class ConsumerSystemOperationalConditionBase(OperationalConditionBase):
     but is required to evaluate to True/False or 1/0.\n
     """,
     )
-    power_loss_factors: Optional[List[str]] = Field(
+    power_loss_factors: Optional[List[ExpressionType]] = Field(
         None,
         title="Power loss factors",
         alias="POWERLOSSFACTORS",  # Legacy support

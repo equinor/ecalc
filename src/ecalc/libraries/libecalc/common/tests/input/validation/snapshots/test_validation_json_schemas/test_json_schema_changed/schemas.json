@@ -684,14 +684,34 @@
                     "additionalProperties": false,
                     "properties": {
                         "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "\nAll consumers may have a keyword CONDITION which specifies conditions for the consumer to be used. \n\nAt points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\nThis is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\nload whenever there is production. CONDITION supports the functionality described in Expressions, \n\nbut is required to evaluate to True/False or 1/0.\n\n",
-                            "title": "Condition",
-                            "type": "string"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "\n    A consumer system my have the keywords CONDITIONS which specifies conditions for the consumers to be used. \n\n    At points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\n    This is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\n    load whenever there is production. CONDITIONS supports the functionality described in Expressions, \n\n    but is required to evaluate to True/False or 1/0.\n\n    ",
-                            "title": "Conditions",
-                            "type": "string"
+                            "title": "Conditions"
                         },
                         "CROSSOVER": {
                             "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: [2, 0]\nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: [3,3,0]",
@@ -702,40 +722,100 @@
                             "type": "array"
                         },
                         "INLET_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "Inlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
-                            "title": "Inlet pressure",
-                            "type": "string"
+                            "title": "Inlet pressure"
                         },
                         "INLET_PRESSURES": {
                             "description": "Inlet pressures [bara] as a list of expressions.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Inlet pressures",
                             "type": "array"
                         },
                         "OUTLET_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "Outlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
-                            "title": "Outlet pressure",
-                            "type": "string"
+                            "title": "Outlet pressure"
                         },
                         "OUTLET_PRESSURES": {
                             "description": "Outlet pressures [bara] as a list of expressions.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Outlet pressures",
                             "type": "array"
                         },
                         "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "\nA factor that may be added to account for power transmission losses. E.g. if you have a subsea installation with a \n\npower line to another installation, there may be line losses. For a power line loss of 5%, POWER_LOSS_FACTOR is set to \n\n0.05 and the power required from the power source (generator set) will be:\n\n\npower_requirement = power_before_loss / (1 - power_loss_factor)\n",
-                            "title": "Power loss factor",
-                            "type": "string"
+                            "title": "Power loss factor"
                         },
                         "POWERLOSSFACTORS": {
                             "description": "\n    A consumer system may have list of POWER_LOSS_FACTOR that may be added to account for power transmission losses.\n    E.g. if you have a subsea installation with a power line to another installation, there may be line losses. \n\n    For a power line loss of 5%, POWER_LOSS_FACTOR is set to 0.05 and the power required from the power source \n\n    (generator set) will be:\n\n\n    power_requirement = power_before_loss / (1 - power_loss_factor)\n    ",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Power loss factors",
                             "type": "array"
@@ -743,7 +823,17 @@
                         "RATES": {
                             "description": "Rates [Sm3/day] as a list of expressions\n\nThis is mutually exclusive with RATE_FRACTIONS.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Rates",
                             "type": "array"
@@ -759,9 +849,19 @@
                             "type": "array"
                         },
                         "TOTAL_SYSTEM_RATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "The total system rate expression.\n\nShould be used with RATE_FRACTIONS in OPERATIONAL_SETTINGS.",
-                            "title": "Total system rate",
-                            "type": "string"
+                            "title": "Total system rate"
                         }
                     },
                     "title": "OperationalSettings",
@@ -771,14 +871,34 @@
                     "additionalProperties": false,
                     "properties": {
                         "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "\nAll consumers may have a keyword CONDITION which specifies conditions for the consumer to be used. \n\nAt points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\nThis is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\nload whenever there is production. CONDITION supports the functionality described in Expressions, \n\nbut is required to evaluate to True/False or 1/0.\n\n",
-                            "title": "Condition",
-                            "type": "string"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "\n    A consumer system my have the keywords CONDITIONS which specifies conditions for the consumers to be used. \n\n    At points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n\n    This is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n\n    load whenever there is production. CONDITIONS supports the functionality described in Expressions, \n\n    but is required to evaluate to True/False or 1/0.\n\n    ",
-                            "title": "Conditions",
-                            "type": "string"
+                            "title": "Conditions"
                         },
                         "CROSSOVER": {
                             "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: [2, 0]\nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: [3,3,0]",
@@ -791,51 +911,131 @@
                         "FLUID_DENSITIES": {
                             "description": "The fluid density [kg/m3] as a list of expressions.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "FluidStream densities",
                             "type": "array"
                         },
                         "FLUID_DENSITY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "The fluid density [kg/m3] as a single expression.",
-                            "title": "FluidStream density",
-                            "type": "string"
+                            "title": "FluidStream density"
                         },
                         "INLET_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "Inlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
-                            "title": "Inlet pressure",
-                            "type": "string"
+                            "title": "Inlet pressure"
                         },
                         "INLET_PRESSURES": {
                             "description": "Inlet pressures [bara] as a list of expressions.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Inlet pressures",
                             "type": "array"
                         },
                         "OUTLET_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "Outlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
-                            "title": "Outlet pressure",
-                            "type": "string"
+                            "title": "Outlet pressure"
                         },
                         "OUTLET_PRESSURES": {
                             "description": "Outlet pressures [bara] as a list of expressions.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Outlet pressures",
                             "type": "array"
                         },
                         "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "\nA factor that may be added to account for power transmission losses. E.g. if you have a subsea installation with a \n\npower line to another installation, there may be line losses. For a power line loss of 5%, POWER_LOSS_FACTOR is set to \n\n0.05 and the power required from the power source (generator set) will be:\n\n\npower_requirement = power_before_loss / (1 - power_loss_factor)\n",
-                            "title": "Power loss factor",
-                            "type": "string"
+                            "title": "Power loss factor"
                         },
                         "POWERLOSSFACTORS": {
                             "description": "\n    A consumer system may have list of POWER_LOSS_FACTOR that may be added to account for power transmission losses.\n    E.g. if you have a subsea installation with a power line to another installation, there may be line losses. \n\n    For a power line loss of 5%, POWER_LOSS_FACTOR is set to 0.05 and the power required from the power source \n\n    (generator set) will be:\n\n\n    power_requirement = power_before_loss / (1 - power_loss_factor)\n    ",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Power loss factors",
                             "type": "array"
@@ -843,7 +1043,17 @@
                         "RATES": {
                             "description": "Rates [Sm3/day] as a list of expressions\n\nThis is mutually exclusive with RATE_FRACTIONS.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
                             },
                             "title": "Rates",
                             "type": "array"

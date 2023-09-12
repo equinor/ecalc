@@ -17,6 +17,8 @@ LEFT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.left_paren
 RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_parenthesis.value)
 MULTIPLICATION_TOKEN = Token(tag=TokenTag.operator, value=Operators.multiply.value)
 
+ExpressionType = Union[str, float, int]
+
 
 class Expression:
     def __init__(
@@ -28,7 +30,7 @@ class Expression:
     @classmethod
     def setup_from_expression(
         cls,
-        value: Union[str, float, int],
+        value: ExpressionType,
     ) -> Expression:
         tokens = cls.validate(value)
         return cls(tokens=tokens)
@@ -62,7 +64,7 @@ class Expression:
         return cls(tokens=tokens_multiplied)
 
     @classmethod
-    def validate(cls, expression: Union[str, float, int]) -> List[Token]:
+    def validate(cls, expression: ExpressionType) -> List[Token]:
         expression = _expression_as_number_if_number(expression_input=expression)
 
         if not isinstance(expression, (str, float, int)):
@@ -123,7 +125,7 @@ class Expression:
         yield cls.validator
 
 
-def _expression_as_number_if_number(expression_input: Union[str, float, int]) -> Union[str, float, int]:
+def _expression_as_number_if_number(expression_input: ExpressionType) -> ExpressionType:
     """Expressions may be either pure numbers, booleans or strings which define a combination of numbers, operators and
     references as a string. If very small numbers are parsed and represented in scientific notation, the expression
     parsing will wrongfully treat these as expressions with references/operators instead of pure numeric values. Thus,
