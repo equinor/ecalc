@@ -408,7 +408,17 @@
                         "CONSUMERS": {
                             "description": "Consumers getting electrical power from the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERS",
                             "items": {
-                                "$ref": "#/definitions/YamlElectricityConsumer"
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/YamlElectricityConsumer"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CompressorSystem"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PumpSystem"
+                                    }
+                                ]
                             },
                             "title": "CONSUMERS",
                             "type": "array"
