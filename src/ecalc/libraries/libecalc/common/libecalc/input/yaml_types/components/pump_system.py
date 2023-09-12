@@ -21,7 +21,7 @@ opt_expr_list = Optional[List[ExpressionType]]
 
 
 class OperationalSettings(ConsumerSystemOperationalConditionBase):
-    total_system_rate: Optional[str] = Field(
+    total_system_rate: Optional[ExpressionType] = Field(
         None,
         title="Total system rate",
         description="The total system rate expression."

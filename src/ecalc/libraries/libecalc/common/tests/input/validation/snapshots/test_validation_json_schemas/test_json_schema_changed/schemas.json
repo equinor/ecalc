@@ -1079,9 +1079,19 @@
                             "type": "array"
                         },
                         "TOTAL_SYSTEM_RATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
                             "description": "The total system rate expression.\n\nShould be used with RATE_FRACTIONS in OPERATIONAL_SETTINGS.",
-                            "title": "Total system rate",
-                            "type": "string"
+                            "title": "Total system rate"
                         }
                     },
                     "title": "OperationalSettings",
