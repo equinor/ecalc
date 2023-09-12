@@ -434,7 +434,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
                 )
             ),
             unit=unit,
-            typ=RateType.CALENDAR_DAY,
+            rate_type=RateType.CALENDAR_DAY,
         )
 
     def to_volumes(self) -> TimeSeriesVolumes:
@@ -536,7 +536,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
             values=average_rates,
             unit=self.unit.volume_to_rate(),
             regularity=regularity,
-            typ=RateType.CALENDAR_DAY,
+            rate_type=RateType.CALENDAR_DAY,
         )
 
 
@@ -582,7 +582,7 @@ class TimeSeriesRate(TimeSeries[float]):
     Stream day rates are not relevant for fuel consumption, tax and emissions.
     """
 
-    typ: Optional[RateType] = RateType.STREAM_DAY
+    rate_type: Optional[RateType] = RateType.STREAM_DAY
     regularity: Optional[List[float]]
 
     @validator("regularity", pre=True, always=True)
@@ -599,7 +599,7 @@ class TimeSeriesRate(TimeSeries[float]):
         if not self.unit == other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")
 
-        if not self.typ == other.typ:
+        if not self.rate_type == other.rate_type:
             raise ValueError(
                 "Mismatching rate type. Currently you can not add stream day rates and calendar day rates."
             )
@@ -612,7 +612,7 @@ class TimeSeriesRate(TimeSeries[float]):
                     values=list(elementwise_sum(self.values, other.values)),
                     unit=self.unit,
                     regularity=self.regularity,
-                    typ=self.typ,
+                    rate_type=self.rate_type,
                 )
             else:
                 # Adding two TimeSeriesRate with different regularity -> New TimeSeriesRate with new regularity
@@ -624,7 +624,7 @@ class TimeSeriesRate(TimeSeries[float]):
                     values=list(elementwise_sum(self.values, other.values)),
                     unit=self.unit,
                     regularity=list(sum_calendar_day / sum_stream_day),
-                    typ=self.typ,
+                    rate_type=self.rate_type,
                 )
         else:
             raise TypeError(
@@ -636,7 +636,7 @@ class TimeSeriesRate(TimeSeries[float]):
         if not self.unit == other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")
 
-        if not self.typ == other.typ:
+        if not self.rate_type == other.rate_type:
             raise ValueError(
                 "Mismatching rate type. Currently you can not extend stream/calendar day rates with calendar/stream day rates."
             )
@@ -646,7 +646,7 @@ class TimeSeriesRate(TimeSeries[float]):
             values=self.values + other.values,
             unit=self.unit,
             regularity=self.regularity + other.regularity,  # type: ignore
-            typ=self.typ,
+            rate_type=self.rate_type,
         )
 
     def for_period(self, period: Period) -> Self:
@@ -657,12 +657,12 @@ class TimeSeriesRate(TimeSeries[float]):
             values=self.values[start_index:end_index],
             regularity=self.regularity[start_index:end_index],  # type: ignore
             unit=self.unit,
-            typ=self.typ,
+            rate_type=self.rate_type,
         )
 
     def to_calendar_day(self) -> Self:
         """Convert rates to calendar day rates."""
-        if self.typ == RateType.CALENDAR_DAY:
+        if self.rate_type == RateType.CALENDAR_DAY:
             return self
 
         calendar_day_rates = list(
@@ -676,12 +676,12 @@ class TimeSeriesRate(TimeSeries[float]):
             values=calendar_day_rates,
             regularity=self.regularity,  # ignore: type
             unit=self.unit,
-            typ=RateType.CALENDAR_DAY,
+            rate_type=RateType.CALENDAR_DAY,
         )
 
     def to_stream_day(self) -> Self:
         """Convert rates to stream day rates."""
-        if self.typ == RateType.STREAM_DAY:
+        if self.rate_type == RateType.STREAM_DAY:
             return self
 
         stream_day_rates = list(
@@ -695,7 +695,7 @@ class TimeSeriesRate(TimeSeries[float]):
             values=stream_day_rates,
             regularity=self.regularity,  # ignore: type
             unit=self.unit,
-            typ=RateType.STREAM_DAY,
+            rate_type=RateType.STREAM_DAY,
         )
 
     def to_volumes(self) -> TimeSeriesVolumes:
@@ -771,7 +771,7 @@ class TimeSeriesRate(TimeSeries[float]):
         # go from period volumes to average rate in period (regularity assumed to be 1 if not provided)
         new_time_series = calendar_day_volumes.to_rate(regularity=new_regularity)
 
-        if self.typ == RateType.CALENDAR_DAY:
+        if self.rate_type == RateType.CALENDAR_DAY:
             return new_time_series
         else:
             return new_time_series.to_stream_day()
@@ -783,7 +783,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 values=self.values[indices],
                 regularity=self.regularity[indices],  # type: ignore
                 unit=self.unit,
-                typ=self.typ,
+                rate_type=self.rate_type,
             )
         elif isinstance(indices, int):
             return self.__class__(
@@ -791,7 +791,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 values=[self.values[indices]],
                 regularity=[self.regularity[indices]],  # type: ignore
                 unit=self.unit,
-                typ=self.typ,
+                rate_type=self.rate_type,
             )
         elif isinstance(indices, (list, np.ndarray)):
             indices = list(indices)
@@ -800,7 +800,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 values=[self.values[i] for i in indices],
                 regularity=[self.regularity[i] for i in indices],  # type: ignore
                 unit=self.unit,
-                typ=self.typ,
+                rate_type=self.rate_type,
             )
         raise ValueError(
             f"Unsupported indexing operation. Got '{type(indices)}', expected indices as a slice, single index or a list of indices"
@@ -815,7 +815,7 @@ class TimeSeriesRate(TimeSeries[float]):
             and self.timesteps == other.timesteps
             and self.unit == other.unit
             and self.regularity == other.regularity
-            and self.typ == other.typ
+            and self.rate_type == other.rate_type
         )
 
     def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesRate:

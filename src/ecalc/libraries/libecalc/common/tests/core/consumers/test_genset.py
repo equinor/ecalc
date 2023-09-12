@@ -70,7 +70,7 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
         values=[0, 0, 0.6, 0.6, 0.0, 0.0],
         regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        typ=RateType.CALENDAR_DAY,
+        rate_type=RateType.CALENDAR_DAY,
     )
     assert results.is_valid == TimeSeriesBoolean(
         timesteps=time_vector,
@@ -103,7 +103,7 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
         values=[1, 2, 2, 2, 2, 2],
         regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        typ=RateType.CALENDAR_DAY,
+        rate_type=RateType.CALENDAR_DAY,
     )
     assert results.is_valid == TimeSeriesBoolean(
         timesteps=time_vector,
@@ -139,7 +139,7 @@ def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto):
         values=[0.0, 0.0, 10.0, 0.0, 0.0, 0.0],
         regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        typ=RateType.CALENDAR_DAY,
+        rate_type=RateType.CALENDAR_DAY,
     )
     assert generator_set_result.is_valid == TimeSeriesBoolean(
         timesteps=time_vector,

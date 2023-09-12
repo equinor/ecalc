@@ -134,7 +134,7 @@ class CompressorResult(GenericComponentResult):
                         raise ValueError(
                             f"Invalid type of {key} for compressor result with id {other_compressor_result.id}"
                         )
-                    if value.typ != other_value.typ:
+                    if value.rate_type != other_value.rate_type:
                         raise ValueError("Rate types does not match")
 
                 if isinstance(value, TimeSeries):
@@ -157,14 +157,14 @@ class CompressorResult(GenericComponentResult):
                 values=merged_columns.get("energy_usage"),
                 unit=self.energy_usage.unit,
                 regularity=merged_columns.get("energy_usage_regularity"),
-                typ=self.energy_usage.typ,
+                rate_type=self.energy_usage.rate_type,
             ),
             power=TimeSeriesRate(
                 timesteps=timesteps,
                 values=merged_columns.get("power"),
                 unit=self.power.unit,
                 regularity=merged_columns.get("power_regularity"),
-                typ=self.power.typ,
+                rate_type=self.power.rate_type,
             ),
             is_valid=TimeSeriesBoolean(
                 timesteps=timesteps,
@@ -176,7 +176,7 @@ class CompressorResult(GenericComponentResult):
                 values=merged_columns.get("recirculation_loss"),
                 unit=self.recirculation_loss.unit,
                 regularity=merged_columns.get("recirculation_loss_regularity"),
-                typ=self.recirculation_loss.typ,
+                rate_type=self.recirculation_loss.rate_type,
             ),
             rate_exceeds_maximum=TimeSeriesBoolean(
                 timesteps=timesteps,
