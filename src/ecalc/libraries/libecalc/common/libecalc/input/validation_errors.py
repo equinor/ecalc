@@ -127,8 +127,7 @@ class DtoValidationError(DataValidationError):
                 error_location_info = " -> ".join(
                     [str(s).capitalize().replace("__root__", "General error").replace("_", " ") for s in error_loc]
                 )
-                if data.get(EcalcYamlKeywords.name):
-                    component_name = data.get(EcalcYamlKeywords.name)
+                if component_name := data.get(EcalcYamlKeywords.name):
                     messages.append(f"{component_name} - {error_location_info}:\n\t{error_message}\n")
                 else:
                     messages.append(f"{error_location_info}:\n\t{error_message}\n")
