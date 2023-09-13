@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, Iterable, List, Set, Tuple, Union
 
 from libecalc import dto
+from libecalc.common.time_utils import Period, Periods
 from libecalc.dto import (
     CompressorConsumerFunction,
     CompressorTrainSimplifiedWithKnownStages,
@@ -32,15 +32,6 @@ EMISSIONS_FLOW = Flow(id="emission-flow", label="Emissions", type=FlowType.EMISS
 ELECTRICITY_FLOW = Flow(id="electricity-flow", label="Electricity", type=FlowType.ELECTRICITY)
 
 
-@dataclass
-class TimeInterval:
-    start_date: datetime
-    end_date: datetime
-
-    def contains(self, date_check: datetime):
-        return self.start_date <= date_check <= self.end_date
-
-
 def _create_generator_set_node(generator_set: dto.GeneratorSet, installation: dto.Installation) -> Node:
     return Node(
         id=f"{installation.name}-generator-set-{generator_set.name}",
@@ -60,15 +51,15 @@ def _create_pump_system_diagram(
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
-    time_intervals = _get_time_intervals(set(energy_usage_model.keys()), global_end_date)
-    for time_interval in time_intervals:
-        energy_usage_model_step = energy_usage_model[time_interval.start_date]
+    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
+    for period in periods:
+        energy_usage_model_step = energy_usage_model[period.start]
         flow_diagrams.append(
             FlowDiagram(
                 id=consumer_id,
                 title=consumer_title,
-                start_date=time_interval.start_date,
-                end_date=time_interval.end_date,
+                start_date=period.start,
+                end_date=period.end,
                 nodes=[
                     Node(
                         id=pump.name,
@@ -95,16 +86,16 @@ def _create_compressor_system_diagram(
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
-    time_intervals = _get_time_intervals(set(energy_usage_model.keys()), global_end_date)
-    for time_interval in time_intervals:
-        energy_usage_model_step = energy_usage_model[time_interval.start_date]
+    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
+    for period in periods:
+        energy_usage_model_step = energy_usage_model[period.start]
 
         flow_diagrams.append(
             FlowDiagram(
                 id=consumer_id,
                 title=consumer_title,
-                start_date=time_interval.start_date,
-                end_date=time_interval.end_date,
+                start_date=period.start,
+                end_date=period.end,
                 nodes=[
                     Node(
                         id=compressor.name,
@@ -113,8 +104,8 @@ def _create_compressor_system_diagram(
                         subdiagram=FlowDiagram(
                             id=compressor.name,
                             title=compressor.name,
-                            start_date=time_interval.start_date,
-                            end_date=time_interval.end_date,
+                            start_date=period.start,
+                            end_date=period.end,
                             nodes=[
                                 Node(
                                     id=f"{compressor.name} stage {index}",
@@ -158,14 +149,14 @@ def _create_compressor_train_diagram(
     :param energy_usage_model:
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
-    time_intervals = _get_time_intervals(set(energy_usage_model.keys()), global_end_date)
+    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
     compressor_train_step = list(energy_usage_model.values())[0].model
     return [
         FlowDiagram(
             id=node_id,
             title=title,
-            start_date=time_interval.start_date,
-            end_date=time_interval.end_date,
+            start_date=period.start,
+            end_date=period.end,
             nodes=[
                 Node(
                     id=f"{title} stage {index}",
@@ -177,7 +168,7 @@ def _create_compressor_train_diagram(
             edges=[],
             flows=[],
         )
-        for time_interval in time_intervals
+        for period in periods
         if hasattr(compressor_train_step, "stages")
     ]
 
@@ -193,8 +184,8 @@ def _create_compressor_with_turbine_stages_diagram(
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
-    time_intervals = _get_time_intervals(set(energy_usage_model.keys()), global_end_date)
-    for time_interval in time_intervals:
+    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
+    for period in periods:
         compressor_train_type = list(energy_usage_model.values())[0].model.compressor_train
 
         if hasattr(compressor_train_type, "stages"):
@@ -202,8 +193,8 @@ def _create_compressor_with_turbine_stages_diagram(
                 FlowDiagram(
                     id=node_id,
                     title=title,
-                    start_date=time_interval.start_date,
-                    end_date=time_interval.end_date,
+                    start_date=period.start,
+                    end_date=period.end,
                     nodes=[
                         Node(
                             id=f"{title} stage {index}",
@@ -307,24 +298,23 @@ def _get_timesteps(consumers: List[Union[dto.FuelConsumer, dto.GeneratorSet]]) -
 
 def _consumer_is_active(
     consumer: Union[dto.FuelConsumer, dto.ElectricityConsumer, dto.GeneratorSet],
-    time_interval: TimeInterval,
+    period: Period,
 ) -> bool:
-    """Check whether the consumer is active or not. We only need to check the start date of the consumer as there is no
-    way to set an end date for a consumer. (At least if we assume the type of the consumer does not change)
+    """Check whether the consumer is active or not.
     :param consumer:
-    :param time_interval: the current time interval
+    :param period: the current period
     :return:
     """
     consumer_start_dates = (
         consumer.energy_usage_model if not isinstance(consumer, dto.GeneratorSet) else consumer.generator_set_model
     )
     consumer_start_date = sorted(consumer_start_dates)[0]
-    return consumer_start_date < time_interval.end_date
+    return consumer_start_date < period.end
 
 
 def _create_installation_flow_diagram(
     installation: dto.Installation,
-    time_interval: TimeInterval,
+    period: Period,
     global_end_date: datetime,
 ) -> FlowDiagram:
     generator_sets = [
@@ -334,7 +324,7 @@ def _create_installation_flow_diagram(
     electricity_consumer_nodes = []
     generator_set_to_electricity_consumers = []
     for generator_set_dto in generator_sets:
-        if _consumer_is_active(generator_set_dto, time_interval):
+        if _consumer_is_active(generator_set_dto, period):
             generator_set_node = _create_generator_set_node(
                 generator_set_dto,
                 installation,
@@ -342,7 +332,7 @@ def _create_installation_flow_diagram(
             generator_set_nodes.append(generator_set_node)
 
             for consumer in generator_set_dto.consumers:
-                if _consumer_is_active(consumer, time_interval):
+                if _consumer_is_active(consumer, period):
                     electricity_consumer_node = _create_consumer_node(
                         consumer,
                         installation,
@@ -370,7 +360,7 @@ def _create_installation_flow_diagram(
             global_end_date,
         )
         for fuel_consumer_dto in fuel_consumers_except_generator_sets
-        if _consumer_is_active(fuel_consumer_dto, time_interval)
+        if _consumer_is_active(fuel_consumer_dto, period)
     ]
 
     fuel_consumer_nodes = [
@@ -398,28 +388,20 @@ def _create_installation_flow_diagram(
     return FlowDiagram(
         id=f"installation-{installation.name}",
         title=installation.name,
-        start_date=time_interval.start_date,
-        end_date=time_interval.end_date,
+        start_date=period.start,
+        end_date=period.end,
         edges=[*fuel_to_fuel_consumer, *generator_set_to_electricity_consumers, *fuel_consumer_to_emission],
         nodes=[FUEL_NODE, *fuel_consumer_nodes, *electricity_consumer_nodes, EMISSION_NODE],
         flows=[FUEL_FLOW, ELECTRICITY_FLOW, EMISSIONS_FLOW],
     )
 
 
-def _get_time_intervals(
+def _get_periods(
     start_dates: Iterable[datetime],
     global_end_date: datetime,
-) -> List[TimeInterval]:
+) -> Periods:
     start_dates = sorted(start_dates)
-    # Shift start dates one and append an extra date at the end to ensure we always have a start and end date.
-    end_dates = start_dates[1:] + [global_end_date]
-    return [
-        TimeInterval(
-            start_date=start_date,
-            end_date=end_date,
-        )
-        for start_date, end_date in zip(start_dates, end_dates)
-    ]
+    return Periods.create_periods([*start_dates, global_end_date], include_before=False, include_after=False)
 
 
 def _create_installation_fde(installation: dto.Installation, global_end_date: datetime) -> List[FlowDiagram]:
@@ -428,10 +410,10 @@ def _create_installation_fde(installation: dto.Installation, global_end_date: da
     :return:
     """
     start_dates = _get_timesteps(installation.fuel_consumers)
-    installation_time_intervals = _get_time_intervals(start_dates, global_end_date)
+    installation_periods = _get_periods(start_dates, global_end_date)
     installation_flow_diagrams = [
-        _create_installation_flow_diagram(installation, installation_time_interval, global_end_date)
-        for installation_time_interval in installation_time_intervals
+        _create_installation_flow_diagram(installation, installation_period, global_end_date)
+        for installation_period in installation_periods
     ]
 
     if len(installation_flow_diagrams) <= 1:
