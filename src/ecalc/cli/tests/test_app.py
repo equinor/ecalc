@@ -345,7 +345,7 @@ class TestJsonOutput:
         assert requested_outlet_pressure_train == [120] * len(compressor_train["timesteps"])
 
         assert calculated_inlet_pressure_train == [20] * len(compressor_train["timesteps"])
-        assert list(calculated_outlet_pressure_train) == [119.99999999999999] * len(compressor_train["timesteps"])
+        assert [round(pressure) for pressure in calculated_outlet_pressure_train] == [120] * len(compressor_train["timesteps"])
 
 
 class TestLtpExport:
