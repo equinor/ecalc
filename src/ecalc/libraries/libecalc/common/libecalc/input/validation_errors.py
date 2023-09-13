@@ -117,7 +117,6 @@ class DtoValidationError(DataValidationError):
     ):
         errors = validation_error.errors()
 
-        component_name = data.get(EcalcYamlKeywords.name, "Missing Component Name")
         messages = []
         error_locs = []
         try:
@@ -128,7 +127,11 @@ class DtoValidationError(DataValidationError):
                 error_location_info = " -> ".join(
                     [str(s).capitalize().replace("__root__", "General error").replace("_", " ") for s in error_loc]
                 )
-                messages.append(f"{component_name} - {error_location_info}:\n\t{error_message}\n")
+                if data.get(EcalcYamlKeywords.name):
+                    component_name = data.get(EcalcYamlKeywords.name)
+                    messages.append(f"{component_name} - {error_location_info}:\n\t{error_message}\n")
+                else:
+                    messages.append(f"{error_location_info}:\n\t{error_message}\n")
         except Exception as e:
             logger.debug(f"Failed to add location specific error messages: {str(e)}")
 
