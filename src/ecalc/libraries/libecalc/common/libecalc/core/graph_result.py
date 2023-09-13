@@ -205,7 +205,7 @@ class GraphResult:
         }
 
     @staticmethod
-    def extract_input_compressor_pressures_from_models(
+    def get_requested_compressor_pressures(
         energy_usage_model: Dict[datetime, Any],
         pressure_type: CompressorPressureType,
         name: str,
@@ -270,12 +270,12 @@ class GraphResult:
                 component = self.graph.get_component(consumer_id)
 
                 for model in consumer_result.models:
-                    inlet_pressure_eval = GraphResult.extract_input_compressor_pressures_from_models(
+                    inlet_pressure_eval = GraphResult.get_requested_compressor_pressures(
                         energy_usage_model=component.energy_usage_model,
                         pressure_type=CompressorPressureType.INLET_PRESSURE,
                         name=model.name,
                     )
-                    outlet_pressure_eval = GraphResult.extract_input_compressor_pressures_from_models(
+                    outlet_pressure_eval = GraphResult.get_requested_compressor_pressures(
                         energy_usage_model=component.energy_usage_model,
                         pressure_type=CompressorPressureType.OUTLET_PRESSURE,
                         name=model.name,
