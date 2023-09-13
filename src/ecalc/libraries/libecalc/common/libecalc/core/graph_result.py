@@ -425,7 +425,7 @@ class GraphResult:
             id=asset.id,
             name=asset_node_info.name,
             component_level=asset_node_info.component_level,
-            componentType=asset_node_info.component_level,
+            componentType=asset_node_info.component_type,
             timesteps=self.variables_map.time_vector,
             is_valid=TimeSeriesBoolean(
                 timesteps=self.variables_map.time_vector,
