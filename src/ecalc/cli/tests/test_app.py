@@ -301,6 +301,54 @@ class TestJsonOutput:
             json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
         )
 
+    def test_json_advanced_model(self, advanced_yaml_path, tmp_path):
+        """Check advanced json file to ensure compressor requested inlet- and outlet
+        pressures are reported correctly.
+
+        :param advanced_yaml_path: eCalc model with some detailed compressor setup
+        :param tmp_path: temporary json results
+        :return: nothing
+        :raises: AssertionError if eCalc reports wrong requested inlet- and outlet pressures.
+        """
+        run_name_prefix = "test_json_advanced_model"
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=advanced_yaml_path,
+                json=True,
+                output_folder=tmp_path,
+                name_prefix=run_name_prefix,
+                detailed_output=True,
+            ),
+            catch_exceptions=False,
+        )
+
+        v3_json_actual_path = tmp_path / f"{run_name_prefix}_v3.json"
+        assert v3_json_actual_path.is_file()
+        with open(v3_json_actual_path) as json_file:
+            json_data = json.loads(json_file.read())
+
+        compressor_tabular = json_data["models"][0]
+        compressor_train = json_data["models"][1]
+
+        requested_inlet_pressure_tabular = compressor_tabular["requested_inlet_pressure"]["values"]
+        requested_outlet_pressure_tabular = compressor_tabular["requested_outlet_pressure"]["values"]
+        requested_inlet_pressure_train = compressor_train["requested_inlet_pressure"]["values"]
+        requested_outlet_pressure_train = compressor_train["requested_outlet_pressure"]["values"]
+
+        calculated_inlet_pressure_train = compressor_train["stage_results"][0]["inlet_stream_condition"]["pressure"]
+        calculated_outlet_pressure_train = compressor_train["stage_results"][-1]["outlet_stream_condition"]["pressure"]
+
+        assert requested_inlet_pressure_tabular == [20] * len(compressor_tabular["timesteps"])
+        assert requested_outlet_pressure_tabular == [200] * len(compressor_tabular["timesteps"])
+        assert requested_inlet_pressure_train == [20] * len(compressor_train["timesteps"])
+        assert requested_outlet_pressure_train == [120] * len(compressor_train["timesteps"])
+
+        assert calculated_inlet_pressure_train == [20] * len(compressor_train["timesteps"])
+        assert [round(pressure) for pressure in calculated_outlet_pressure_train] == [120] * len(
+            compressor_train["timesteps"]
+        )
+
 
 class TestLtpExport:
     @pytest.mark.snapshot
