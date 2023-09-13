@@ -52,19 +52,37 @@ class Periods:
     periods: List[Period]
 
     @classmethod
-    def create_periods(cls, times: List[datetime]) -> Periods:
+    def create_periods(cls, times: List[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
+        """
+        Create periods from the provided datetimes
+        :param times: the datetimes to create periods from
+        :param include_before: whether to add a period that ends with the first provided datetime, i.e. define a period
+        before the earliest provided datetime.
+        :param include_after: whether to add a period that starts with the last provided datetime, i.e. define a period
+        after the latest provided datetime.
+        :return:
+        """
         if len(times) == 0:
             return cls([])
 
-        return cls(
-            [
+        periods = []
+
+        if include_before:
+            periods.append(
                 Period(
                     end=times[0],
-                ),
-                *[Period(start=times[index], end=times[index + 1]) for index in range(len(times) - 1)],
-                Period(start=times[-1]),
-            ]
-        )
+                )
+            )
+
+        periods.extend([Period(start=times[index], end=times[index + 1]) for index in range(len(times) - 1)])
+
+        if include_after:
+            periods.append(Period(start=times[-1]))
+
+        return cls(periods)
+
+    def __iter__(self):
+        return self.periods.__iter__()
 
     def get_period(self, time: datetime) -> Period:
         for period in self.periods:
@@ -94,8 +112,7 @@ def define_time_model_for_period(
     # Make sure the model is a time model
     time_model_data = default_temporal_model(time_model_data, default_start=target_period.start)
 
-    model_periods = Periods.create_periods(list(time_model_data.keys()))
-    model_periods.periods = model_periods.periods[1:]  # Remove first period (from datetime.min to first model start).
+    model_periods = Periods.create_periods(list(time_model_data.keys()), include_before=False)
 
     return {
         max(model_period.start, target_period.start): model

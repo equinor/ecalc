@@ -76,7 +76,7 @@ class TestCreatePeriods:
 
     def test_three_dates(self):
         first_date = datetime(2020, 1, 1)
-        second_date = datetime(2022, 1, 1)
+        second_date = datetime(2021, 1, 1)
         third_date = datetime(2022, 1, 1)
         periods = Periods.create_periods([first_date, second_date, third_date])
         assert periods == Periods(
@@ -85,6 +85,46 @@ class TestCreatePeriods:
                 Period(start=first_date, end=second_date),
                 Period(start=second_date, end=third_date),
                 Period(start=third_date, end=datetime.max),
+            ]
+        )
+
+    def test_three_dates_not_include_before(self):
+        first_date = datetime(2020, 1, 1)
+        second_date = datetime(2021, 1, 1)
+        third_date = datetime(2022, 1, 1)
+        periods = Periods.create_periods([first_date, second_date, third_date], include_before=False)
+        assert periods == Periods(
+            [
+                Period(start=first_date, end=second_date),
+                Period(start=second_date, end=third_date),
+                Period(start=third_date, end=datetime.max),
+            ]
+        )
+
+    def test_three_dates_not_include_after(self):
+        first_date = datetime(2020, 1, 1)
+        second_date = datetime(2021, 1, 1)
+        third_date = datetime(2022, 1, 1)
+        periods = Periods.create_periods([first_date, second_date, third_date], include_after=False)
+        assert periods == Periods(
+            [
+                Period(start=datetime.min, end=first_date),
+                Period(start=first_date, end=second_date),
+                Period(start=second_date, end=third_date),
+            ]
+        )
+
+    def test_three_dates_not_include_before_and_after(self):
+        first_date = datetime(2020, 1, 1)
+        second_date = datetime(2021, 1, 1)
+        third_date = datetime(2022, 1, 1)
+        periods = Periods.create_periods(
+            [first_date, second_date, third_date], include_before=False, include_after=False
+        )
+        assert periods == Periods(
+            [
+                Period(start=first_date, end=second_date),
+                Period(start=second_date, end=third_date),
             ]
         )
 
