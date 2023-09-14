@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 from libecalc import dto
 from libecalc.common.units import Unit
@@ -65,16 +65,13 @@ def _get_curve_data_from_resource(resource: Resource, speed: float = 0.0):
 
 def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resources) -> dto.SingleSpeedChart:
     units = get_units_from_chart_config(chart_config=model_config)
-    curve_config: Optional[Dict] = model_config.get(EcalcYamlKeywords.consumer_chart_curve)
+    curve_config = model_config.get(EcalcYamlKeywords.consumer_chart_curve)
     name = model_config.get(EcalcYamlKeywords.name)
-    curves_instead_of_curve = (
-        True if isinstance(model_config.get(EcalcYamlKeywords.consumer_chart_curves), dict) else False
-    )
 
     # Check if user has used CURVES (reserved for variable speed compressors)
     # instead of CURVE (should be used for single speed compressors),
     # and give clear error message.
-    if curves_instead_of_curve:
+    if EcalcYamlKeywords.consumer_chart_curves in model_config:
         raise DataValidationError(
             data=model_config,
             message=f"Compressor model {name}:\n"
@@ -84,7 +81,7 @@ def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resourc
             f"{EcalcYamlKeywords.consumer_chart_curve}.",
         )
 
-    if not isinstance(curve_config, dict):
+    if EcalcYamlKeywords.consumer_chart_curve not in model_config:
         raise DataValidationError(
             data=model_config,
             message=f"The keyword {EcalcYamlKeywords.consumer_chart_curve} is not specified "
@@ -93,7 +90,7 @@ def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resourc
             f"single speed compressor models.",
         )
 
-    if EcalcYamlKeywords.file in curve_config:
+    if EcalcYamlKeywords.file in curve_config:  # type: ignore
         resource_name = curve_config.get(EcalcYamlKeywords.file)
         resource = resources.get(resource_name)
 
