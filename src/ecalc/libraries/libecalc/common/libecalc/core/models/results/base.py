@@ -7,9 +7,9 @@ from typing import List, Optional
 
 import numpy as np
 from libecalc.common.logger import logger
+from libecalc.common.string_utils import to_camel_case
 from libecalc.common.units import Unit
 from libecalc.dto import SingleSpeedChart, VariableSpeedChart
-from libecalc.dto.utils.camelcase import to_camel_case
 from pydantic import BaseModel
 from pydantic.json import custom_pydantic_encoder
 

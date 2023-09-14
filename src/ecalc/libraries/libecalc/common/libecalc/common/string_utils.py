@@ -21,3 +21,17 @@ def generate_id(*args: str) -> str:
     """
     full_string = "-".join(args)
     return hashlib.md5(full_string.encode()).hexdigest()  # noqa: S324 - insecure hash for ids
+
+
+def to_camel_case(string: str) -> str:
+    """Convert string from snake_case to camelCase
+
+    Args:
+        string: String in snake_case format
+
+    Returns:
+        String in camelCase format
+
+    """
+    string_split = string.replace("__", "_").split("_")
+    return string_split[0] + "".join(word[0].upper() + word[1:] for word in string_split[1:])

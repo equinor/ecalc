@@ -4,7 +4,7 @@ from enum import Enum
 from functools import partial
 from typing import Optional
 
-from libecalc.dto.utils.camelcase import to_camel_case
+from libecalc.common.string_utils import to_camel_case
 from libecalc.expression import Expression
 from orjson import orjson
 from pydantic import BaseModel, Extra
