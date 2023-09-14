@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional, Union
 
+from libecalc.common.string_utils import to_camel_case
 from pydantic import BaseModel
 
 
@@ -33,20 +34,6 @@ class FlowType:
     FUEL = "fuel-flow"
     EMISSION = "emission-flow"
     ELECTRICITY = "electricity-flow"
-
-
-def to_camel_case(string: str) -> str:
-    """Convert string from snake_case to camelCase
-
-    Args:
-        string: String in snake_case format
-
-    Returns:
-        String in camelCase format
-
-    """
-    string_split = string.split("_")
-    return string_split[0] + "".join(word.capitalize() for word in string_split[1:])
 
 
 class FlowDiagramBaseModel(BaseModel):
