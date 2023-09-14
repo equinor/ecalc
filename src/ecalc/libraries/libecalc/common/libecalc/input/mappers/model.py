@@ -117,8 +117,8 @@ def _variable_speed_compressor_chart_mapper(model_config: Dict, resources: Resou
 
     name = model_config.get(EcalcYamlKeywords.name)
 
-    # Check if user has used CURVES (reserved for variable speed compressors)
-    # instead of CURVE (should be used for single speed compressors),
+    # Check if user has used CURVE (reserved for single speed compressors)
+    # instead of CURVES (should be used for variable speed compressors),
     # and give clear error message.
     if EcalcYamlKeywords.consumer_chart_curve in model_config:
         raise DataValidationError(
