@@ -90,7 +90,15 @@ def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resourc
             f"single speed compressor models.",
         )
 
-    if EcalcYamlKeywords.file in curve_config:  # type: ignore
+    if not isinstance(curve_config, dict):
+        raise DataValidationError(
+            data=model_config,
+            message=f"Compressor model {name}:"
+            f"{EcalcYamlKeywords.consumer_chart_curve}"
+            f" should be an object. Type given: {type(curve_config)}.",
+        )
+
+    if EcalcYamlKeywords.file in curve_config:
         resource_name = curve_config.get(EcalcYamlKeywords.file)
         resource = resources.get(resource_name)
 
