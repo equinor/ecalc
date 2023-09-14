@@ -24,6 +24,7 @@ import pandas as pd
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.list_utils import elementwise_sum
 from libecalc.common.logger import logger
+from libecalc.common.string_utils import to_camel_case
 from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
@@ -145,6 +146,8 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
 
     class Config:
         use_enum_values = True
+        alias_generator = to_camel_case
+        allow_population_by_field_name = True
 
     @validator("values", each_item=True, pre=True)
     def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
