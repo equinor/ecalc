@@ -7,7 +7,7 @@ from libecalc.input.mappers.variables_mapper.variables_mapper import (
     VariableProcessor,
     _evaluate_variables,
 )
-from libecalc.input.yaml_types.variable import SingleVariable
+from libecalc.input.yaml_types.yaml_variable import YamlSingleVariable
 
 
 class TestEvaluateVariables:
@@ -15,10 +15,10 @@ class TestEvaluateVariables:
         with pytest.raises(ValueError) as exc_info:
             _evaluate_variables(
                 variables={
-                    "test_id": SingleVariable(value=Expression.setup_from_expression("SIM1;TEST")),
-                    "test_id1": SingleVariable(value=Expression.setup_from_expression("SIM1;TEST")),
-                    "test_id2": SingleVariable(value=Expression.setup_from_expression("SIM2;TEST")),
-                    "test_id3": SingleVariable(value=Expression.setup_from_expression("SIM3;TEST")),
+                    "test_id": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST")),
+                    "test_id1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST")),
+                    "test_id2": YamlSingleVariable(value=Expression.setup_from_expression("SIM2;TEST")),
+                    "test_id3": YamlSingleVariable(value=Expression.setup_from_expression("SIM3;TEST")),
                 },
                 variables_map=VariablesMap(variables={}, time_vector=[]),
             )
@@ -36,7 +36,7 @@ class TestEvaluateVariables:
                 datetime(2012, 1, 1),
             ],
         )
-        variables = {"VAR1": SingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2"))}
+        variables = {"VAR1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2"))}
         evaluated_variables = _evaluate_variables(variables=variables, variables_map=variables_map)
         assert evaluated_variables.variables["$var.VAR1"] == [4, 8]
 
@@ -50,11 +50,11 @@ class TestEvaluateVariables:
             ],
         )
         variables = {
-            "VAR5": SingleVariable(value=Expression.setup_from_expression("$var.VAR4 {*} 2")),
-            "VAR2": SingleVariable(value=Expression.setup_from_expression("$var.VAR1 {*} 2")),
-            "VAR1": SingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2")),
-            "VAR4": SingleVariable(value=Expression.setup_from_expression("$var.VAR3 {*} 2")),
-            "VAR3": SingleVariable(value=Expression.setup_from_expression("$var.VAR2 {*} 2")),
+            "VAR5": YamlSingleVariable(value=Expression.setup_from_expression("$var.VAR4 {*} 2")),
+            "VAR2": YamlSingleVariable(value=Expression.setup_from_expression("$var.VAR1 {*} 2")),
+            "VAR1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2")),
+            "VAR4": YamlSingleVariable(value=Expression.setup_from_expression("$var.VAR3 {*} 2")),
+            "VAR3": YamlSingleVariable(value=Expression.setup_from_expression("$var.VAR2 {*} 2")),
         }
         evaluated_variables = _evaluate_variables(variables=variables, variables_map=variables_map)
         for n in range(1, 5):
@@ -70,8 +70,8 @@ class TestEvaluateVariables:
         )
         variables = {
             "VAR1": {
-                datetime(2012, 1, 1): SingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2")),
-                datetime(2015, 1, 1): SingleVariable(value=Expression.setup_from_expression("2")),
+                datetime(2012, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2")),
+                datetime(2015, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("2")),
             }
         }
 
@@ -93,7 +93,7 @@ class TestVariableProcessor:
         processor = VariableProcessor(
             reference_id="$var.test",
             variable={
-                datetime(2010, 1, 1): SingleVariable(value=Expression.setup_from_expression("2")),
+                datetime(2010, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("2")),
             },
         )
         assert processor.process(variables={}, time_vector=time_vector) == [2.0, 2.0, 2.0]

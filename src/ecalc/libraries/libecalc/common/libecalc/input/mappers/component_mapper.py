@@ -14,11 +14,11 @@ from libecalc.input.validation_errors import DataValidationError, DtoValidationE
 from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.input.yaml_entities import References
 from libecalc.input.yaml_keywords import EcalcYamlKeywords
-from libecalc.input.yaml_types.components.compressor_system import (
-    CompressorSystem as YamlCompressorSystem,
+from libecalc.input.yaml_types.components.yaml_compressor_system import (
+    YamlCompressorSystem as YamlCompressorSystem,
 )
-from libecalc.input.yaml_types.components.pump_system import (
-    PumpSystem as YamlPumpSystem,
+from libecalc.input.yaml_types.components.yaml_pump_system import (
+    YamlPumpSystem as YamlPumpSystem,
 )
 from pydantic import ValidationError
 

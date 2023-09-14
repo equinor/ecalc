@@ -8,14 +8,14 @@ from pydantic import DateError, constr
 from pydantic.datetime_parse import parse_date, parse_datetime
 
 
-class SingleVariable(YamlBase):
+class YamlSingleVariable(YamlBase):
     value: Expression
 
     def to_dto(self):
         raise NotImplementedError
 
 
-class DefaultDatetime(datetime):
+class YamlDefaultDatetime(datetime):
     @classmethod
     def __get_validators__(cls):
         yield cls.date_to_datetime
@@ -29,10 +29,10 @@ class DefaultDatetime(datetime):
             return parse_datetime(value)
 
 
-TimeVariable = Dict[DefaultDatetime, SingleVariable]
+YamlTimeVariable = Dict[YamlDefaultDatetime, YamlSingleVariable]
 
-Variable = Union[SingleVariable, TimeVariable]
+YamlVariable = Union[YamlSingleVariable, YamlTimeVariable]
 
-VariableReferenceId = constr(regex=r"^[A-Za-z][A-Za-z0-9_]*$")
+YamlVariableReferenceId = constr(regex=r"^[A-Za-z][A-Za-z0-9_]*$")
 
-Variables = Dict[VariableReferenceId, Variable]
+YamlVariables = Dict[YamlVariableReferenceId, YamlVariable]

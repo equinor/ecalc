@@ -15,23 +15,23 @@ from libecalc.input.mappers.variables_mapper.timeseries_utils import (
 )
 from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.input.yaml_entities import Resources
-from libecalc.input.yaml_types.variable import SingleVariable, Variable
+from libecalc.input.yaml_types.yaml_variable import YamlSingleVariable, YamlVariable
 
 
 @dataclass
 class VariableProcessor:
     reference_id: str
-    variable: Variable
+    variable: YamlVariable
 
     @property
     def required_variables(self):
-        if isinstance(self.variable, SingleVariable):
+        if isinstance(self.variable, YamlSingleVariable):
             return self.variable.value.variables
         else:
             return {variable for expression in self.variable.values() for variable in expression.value.variables}
 
     def process(self, variables: Dict[str, List[float]], time_vector: List[datetime]) -> List[float]:
-        if isinstance(self.variable, SingleVariable):
+        if isinstance(self.variable, YamlSingleVariable):
             return list(self.variable.value.evaluate(variables, fill_length=len(time_vector)))
         else:
             processed_expressions = {
@@ -62,7 +62,7 @@ class VariableProcessor:
             return variable_result
 
 
-def _evaluate_variables(variables: Dict[str, Variable], variables_map: VariablesMap) -> VariablesMap:
+def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: VariablesMap) -> VariablesMap:
     variables_to_process = [
         VariableProcessor(reference_id=f"$var.{reference_id}", variable=variable)
         for reference_id, variable in variables.items()

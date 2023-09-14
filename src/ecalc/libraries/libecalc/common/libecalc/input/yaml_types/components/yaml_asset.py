@@ -1,12 +1,12 @@
 from typing import Any, Dict, List, Type
 
 from libecalc.input.yaml_types import YamlBase
-from libecalc.input.yaml_types.components.installation import YamlInstallation
-from libecalc.input.yaml_types.placeholder_type import PlaceholderType
-from libecalc.input.yaml_types.schema_helpers import (
+from libecalc.input.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.input.yaml_types.yaml_placeholder_type import YamlPlaceholderType
+from libecalc.input.yaml_types.yaml_schema_helpers import (
     replace_placeholder_property_with_legacy_ref,
 )
-from libecalc.input.yaml_types.variable import Variables
+from libecalc.input.yaml_types.yaml_variable import YamlVariables
 from pydantic import Field
 
 
@@ -39,31 +39,31 @@ class YamlAsset(YamlBase):
                 property_ref="$SERVER_NAME/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
             )
 
-    time_series: PlaceholderType = Field(
+    time_series: YamlPlaceholderType = Field(
         None,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
     )
-    facility_inputs: PlaceholderType = Field(
+    facility_inputs: YamlPlaceholderType = Field(
         None,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
     )
-    models: PlaceholderType = Field(
+    models: YamlPlaceholderType = Field(
         None,
         title="MODELS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
     )
-    fuel_types: PlaceholderType = Field(
+    fuel_types: YamlPlaceholderType = Field(
         None,
         title="FUEL_TYPES",
         description="Specifies the various fuel types and associated emissions used in the model."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
     )
-    variables: Variables = Field(
+    variables: YamlVariables = Field(
         None,
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."

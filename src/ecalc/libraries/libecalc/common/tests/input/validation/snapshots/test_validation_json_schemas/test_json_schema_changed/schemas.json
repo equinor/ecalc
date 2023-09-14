@@ -6,7 +6,39 @@
         "schema": {
             "additionalProperties": false,
             "definitions": {
-                "Compressor": {
+                "ConsumerUserDefinedCategoryType": {
+                    "description": "Consumer category",
+                    "enum": [
+                        "BASE-LOAD",
+                        "COLD-VENTING-FUGITIVE",
+                        "COMPRESSOR",
+                        "FIXED-PRODUCTION-LOAD",
+                        "FLARE",
+                        "MISCELLANEOUS",
+                        "PUMP",
+                        "GAS-DRIVEN-COMPRESSOR",
+                        "TURBINE-GENERATOR",
+                        "POWER-FROM-SHORE",
+                        "OFFSHORE-WIND",
+                        "LOADING",
+                        "STORAGE",
+                        "STEAM-TURBINE-GENERATOR",
+                        "BOILER",
+                        "HEATER"
+                    ],
+                    "title": "ConsumerUserDefinedCategoryType",
+                    "type": "string"
+                },
+                "InstallationUserDefinedCategoryType": {
+                    "description": "Installation category",
+                    "enum": [
+                        "FIXED",
+                        "MOBILE"
+                    ],
+                    "title": "InstallationUserDefinedCategoryType",
+                    "type": "string"
+                },
+                "YamlCompressor": {
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
@@ -46,7 +78,7 @@
                     "title": "Compressor",
                     "type": "object"
                 },
-                "CompressorSystem": {
+                "YamlCompressorSystem": {
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
@@ -56,7 +88,7 @@
                         },
                         "CONSUMERS": {
                             "items": {
-                                "$ref": "#/definitions/Compressor"
+                                "$ref": "#/definitions/YamlCompressor"
                             },
                             "title": "Consumers",
                             "type": "array"
@@ -70,21 +102,21 @@
                             "anyOf": [
                                 {
                                     "items": {
-                                        "$ref": "#/definitions/libecalc__input__yaml_types__components__compressor_system__OperationalSettings"
+                                        "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
                                     },
                                     "type": "array"
                                 },
                                 {
                                     "additionalProperties": {
                                         "items": {
-                                            "$ref": "#/definitions/libecalc__input__yaml_types__components__compressor_system__OperationalSettings"
+                                            "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
                                         },
                                         "type": "array"
                                     },
                                     "patternProperties": {
                                         "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
                                             "items": {
-                                                "$ref": "#/definitions/libecalc__input__yaml_types__components__compressor_system__OperationalSettings"
+                                                "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
                                             },
                                             "type": "array"
                                         }
@@ -113,584 +145,7 @@
                     "title": "CompressorSystem",
                     "type": "object"
                 },
-                "ConsumerUserDefinedCategoryType": {
-                    "description": "Consumer category",
-                    "enum": [
-                        "BASE-LOAD",
-                        "COLD-VENTING-FUGITIVE",
-                        "COMPRESSOR",
-                        "FIXED-PRODUCTION-LOAD",
-                        "FLARE",
-                        "MISCELLANEOUS",
-                        "PUMP",
-                        "GAS-DRIVEN-COMPRESSOR",
-                        "TURBINE-GENERATOR",
-                        "POWER-FROM-SHORE",
-                        "OFFSHORE-WIND",
-                        "LOADING",
-                        "STORAGE",
-                        "STEAM-TURBINE-GENERATOR",
-                        "BOILER",
-                        "HEATER"
-                    ],
-                    "title": "ConsumerUserDefinedCategoryType",
-                    "type": "string"
-                },
-                "InstallationUserDefinedCategoryType": {
-                    "description": "Installation category",
-                    "enum": [
-                        "FIXED",
-                        "MOBILE"
-                    ],
-                    "title": "InstallationUserDefinedCategoryType",
-                    "type": "string"
-                },
-                "Pump": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
-                        },
-                        "ENERGY_USAGE_MODEL": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "title": "Energy Usage Model"
-                        },
-                        "NAME": {
-                            "description": "Consumer name",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "ENERGY_USAGE_MODEL"
-                    ],
-                    "title": "Pump",
-                    "type": "object"
-                },
-                "PumpSystem": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
-                        },
-                        "CONSUMERS": {
-                            "items": {
-                                "$ref": "#/definitions/Pump"
-                            },
-                            "title": "Consumers",
-                            "type": "array"
-                        },
-                        "NAME": {
-                            "description": "Consumer name",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "OPERATIONAL_SETTINGS": {
-                            "anyOf": [
-                                {
-                                    "items": {
-                                        "$ref": "#/definitions/libecalc__input__yaml_types__components__pump_system__OperationalSettings"
-                                    },
-                                    "type": "array"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "items": {
-                                            "$ref": "#/definitions/libecalc__input__yaml_types__components__pump_system__OperationalSettings"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "items": {
-                                                "$ref": "#/definitions/libecalc__input__yaml_types__components__pump_system__OperationalSettings"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "title": "Operational Settings"
-                        },
-                        "TYPE": {
-                            "default": "PUMP_SYSTEM@v2",
-                            "description": "The type of the component",
-                            "enum": [
-                                "PUMP_SYSTEM@v2"
-                            ],
-                            "title": "Type",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CATEGORY",
-                        "OPERATIONAL_SETTINGS",
-                        "CONSUMERS"
-                    ],
-                    "title": "PumpSystem",
-                    "type": "object"
-                },
-                "SingleVariable": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "VALUE": {
-                            "anyOf": [
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                    "type": "string"
-                                }
-                            ],
-                            "examples": [
-                                "SIM1;OIL_PROD {+} 1000",
-                                5
-                            ],
-                            "title": "Expression"
-                        }
-                    },
-                    "required": [
-                        "VALUE"
-                    ],
-                    "title": "SingleVariable",
-                    "type": "object"
-                },
-                "YamlElectricityConsumer": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                }
-                            ],
-                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "CATEGORY"
-                        },
-                        "ENERGY_USAGE_MODEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-                            "title": "ENERGY_USAGE_MODEL"
-                        },
-                        "NAME": {
-                            "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CATEGORY",
-                        "ENERGY_USAGE_MODEL"
-                    ],
-                    "title": "ELECTRICITY_CONSUMER",
-                    "type": "object"
-                },
-                "YamlFuelConsumer": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                }
-                            ],
-                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "CATEGORY"
-                        },
-                        "ENERGY_USAGE_MODEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-                            "title": "ENERGY_USAGE_MODEL"
-                        },
-                        "FUEL": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "The fuel used by the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
-                            "title": "FUEL"
-                        },
-                        "NAME": {
-                            "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CATEGORY",
-                        "ENERGY_USAGE_MODEL"
-                    ],
-                    "title": "FUEL_CONSUMER",
-                    "type": "object"
-                },
-                "YamlGeneratorSet": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                }
-                            ],
-                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "CATEGORY"
-                        },
-                        "CONSUMERS": {
-                            "description": "Consumers getting electrical power from the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERS",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/YamlElectricityConsumer"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/CompressorSystem"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/PumpSystem"
-                                    }
-                                ]
-                            },
-                            "title": "CONSUMERS",
-                            "type": "array"
-                        },
-                        "ELECTRICITY2FUEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "Specifies the correlation between the electric power delivered and the fuel burned by a generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ELECTRICITY2FUEL",
-                            "title": "ELECTRICITY2FUEL"
-                        },
-                        "FUEL": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "The fuel used by the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
-                            "title": "FUEL"
-                        },
-                        "NAME": {
-                            "description": "Name of the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CATEGORY",
-                        "ELECTRICITY2FUEL",
-                        "CONSUMERS"
-                    ],
-                    "title": "GENERATORSET",
-                    "type": "object"
-                },
-                "YamlInstallation": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/InstallationUserDefinedCategoryType"
-                                }
-                            ],
-                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "CATEGORY"
-                        },
-                        "DIRECTEMITTERS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS",
-                            "description": "Covers the direct emissions on the installation that are not consuming energy",
-                            "title": "DIRECTEMITTERS"
-                        },
-                        "FUEL": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "Main fuel type for installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
-                            "title": "FUEL"
-                        },
-                        "FUELCONSUMERS": {
-                            "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/YamlFuelConsumer"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/CompressorSystem"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/PumpSystem"
-                                    }
-                                ]
-                            },
-                            "title": "FUELCONSUMERS",
-                            "type": "array"
-                        },
-                        "GENERATORSETS": {
-                            "description": "Defines one or more generator sets.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/GENERATORSETS",
-                            "items": {
-                                "$ref": "#/definitions/YamlGeneratorSet"
-                            },
-                            "title": "GENERATORSETS",
-                            "type": "array"
-                        },
-                        "HCEXPORT": {
-                            "anyOf": [
-                                {
-                                    "anyOf": [
-                                        {
-                                            "type": "integer"
-                                        },
-                                        {
-                                            "type": "number"
-                                        },
-                                        {
-                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                            "type": "string"
-                                        }
-                                    ],
-                                    "examples": [
-                                        "SIM1;OIL_PROD {+} 1000",
-                                        5
-                                    ],
-                                    "title": "Expression"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "anyOf": [
-                                            {
-                                                "type": "integer"
-                                            },
-                                            {
-                                                "type": "number"
-                                            },
-                                            {
-                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                                "type": "string"
-                                            }
-                                        ],
-                                        "examples": [
-                                            "SIM1;OIL_PROD {+} 1000",
-                                            5
-                                        ],
-                                        "title": "Expression"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "anyOf": [
-                                                {
-                                                    "type": "integer"
-                                                },
-                                                {
-                                                    "type": "number"
-                                                },
-                                                {
-                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                                    "type": "string"
-                                                }
-                                            ],
-                                            "examples": [
-                                                "SIM1;OIL_PROD {+} 1000",
-                                                5
-                                            ],
-                                            "title": "Expression"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HCEXPORT",
-                            "title": "HCEXPORT"
-                        },
-                        "NAME": {
-                            "description": "Name of the installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "REGULARITY": {
-                            "anyOf": [
-                                {
-                                    "anyOf": [
-                                        {
-                                            "type": "integer"
-                                        },
-                                        {
-                                            "type": "number"
-                                        },
-                                        {
-                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                            "type": "string"
-                                        }
-                                    ],
-                                    "examples": [
-                                        "SIM1;OIL_PROD {+} 1000",
-                                        5
-                                    ],
-                                    "title": "Expression"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "anyOf": [
-                                            {
-                                                "type": "integer"
-                                            },
-                                            {
-                                                "type": "number"
-                                            },
-                                            {
-                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                                "type": "string"
-                                            }
-                                        ],
-                                        "examples": [
-                                            "SIM1;OIL_PROD {+} 1000",
-                                            5
-                                        ],
-                                        "title": "Expression"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "anyOf": [
-                                                {
-                                                    "type": "integer"
-                                                },
-                                                {
-                                                    "type": "number"
-                                                },
-                                                {
-                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                                    "type": "string"
-                                                }
-                                            ],
-                                            "examples": [
-                                                "SIM1;OIL_PROD {+} 1000",
-                                                5
-                                            ],
-                                            "title": "Expression"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
-                            "title": "REGULARITY"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "HCEXPORT"
-                    ],
-                    "title": "Installation",
-                    "type": "object"
-                },
-                "libecalc__input__yaml_types__components__compressor_system__OperationalSettings": {
+                "YamlCompressorSystemOperationalSettings": {
                     "additionalProperties": false,
                     "properties": {
                         "CONDITION": {
@@ -874,10 +329,526 @@
                             "title": "Total system rate"
                         }
                     },
-                    "title": "OperationalSettings",
+                    "title": "CompressorSystemOperationalSettings",
                     "type": "object"
                 },
-                "libecalc__input__yaml_types__components__pump_system__OperationalSettings": {
+                "YamlElectricityConsumer": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "ENERGY_USAGE_MODEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
+                            "title": "ENERGY_USAGE_MODEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "ENERGY_USAGE_MODEL"
+                    ],
+                    "title": "ELECTRICITY_CONSUMER",
+                    "type": "object"
+                },
+                "YamlFuelConsumer": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "ENERGY_USAGE_MODEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
+                            "title": "ENERGY_USAGE_MODEL"
+                        },
+                        "FUEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "The fuel used by the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "title": "FUEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "ENERGY_USAGE_MODEL"
+                    ],
+                    "title": "FUEL_CONSUMER",
+                    "type": "object"
+                },
+                "YamlGeneratorSet": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "CONSUMERS": {
+                            "description": "Consumers getting electrical power from the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERS",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/YamlElectricityConsumer"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlCompressorSystem"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlPumpSystem"
+                                    }
+                                ]
+                            },
+                            "title": "CONSUMERS",
+                            "type": "array"
+                        },
+                        "ELECTRICITY2FUEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Specifies the correlation between the electric power delivered and the fuel burned by a generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ELECTRICITY2FUEL",
+                            "title": "ELECTRICITY2FUEL"
+                        },
+                        "FUEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "The fuel used by the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "title": "FUEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "ELECTRICITY2FUEL",
+                        "CONSUMERS"
+                    ],
+                    "title": "GeneratorSet",
+                    "type": "object"
+                },
+                "YamlInstallation": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/InstallationUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "DIRECTEMITTERS": {
+                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS",
+                            "description": "Covers the direct emissions on the installation that are not consuming energy",
+                            "title": "DIRECTEMITTERS"
+                        },
+                        "FUEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Main fuel type for installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "title": "FUEL"
+                        },
+                        "FUELCONSUMERS": {
+                            "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/YamlFuelConsumer"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlCompressorSystem"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlPumpSystem"
+                                    }
+                                ]
+                            },
+                            "title": "FUELCONSUMERS",
+                            "type": "array"
+                        },
+                        "GENERATORSETS": {
+                            "description": "Defines one or more generator sets.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/GENERATORSETS",
+                            "items": {
+                                "$ref": "#/definitions/YamlGeneratorSet"
+                            },
+                            "title": "GENERATORSETS",
+                            "type": "array"
+                        },
+                        "HCEXPORT": {
+                            "anyOf": [
+                                {
+                                    "anyOf": [
+                                        {
+                                            "type": "integer"
+                                        },
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "examples": [
+                                        "SIM1;OIL_PROD {+} 1000",
+                                        5
+                                    ],
+                                    "title": "Expression"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "anyOf": [
+                                            {
+                                                "type": "integer"
+                                            },
+                                            {
+                                                "type": "number"
+                                            },
+                                            {
+                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "examples": [
+                                            "SIM1;OIL_PROD {+} 1000",
+                                            5
+                                        ],
+                                        "title": "Expression"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "integer"
+                                                },
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "examples": [
+                                                "SIM1;OIL_PROD {+} 1000",
+                                                5
+                                            ],
+                                            "title": "Expression"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HCEXPORT",
+                            "title": "HCEXPORT"
+                        },
+                        "NAME": {
+                            "description": "Name of the installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "REGULARITY": {
+                            "anyOf": [
+                                {
+                                    "anyOf": [
+                                        {
+                                            "type": "integer"
+                                        },
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "examples": [
+                                        "SIM1;OIL_PROD {+} 1000",
+                                        5
+                                    ],
+                                    "title": "Expression"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "anyOf": [
+                                            {
+                                                "type": "integer"
+                                            },
+                                            {
+                                                "type": "number"
+                                            },
+                                            {
+                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "examples": [
+                                            "SIM1;OIL_PROD {+} 1000",
+                                            5
+                                        ],
+                                        "title": "Expression"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "integer"
+                                                },
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "examples": [
+                                                "SIM1;OIL_PROD {+} 1000",
+                                                5
+                                            ],
+                                            "title": "Expression"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
+                            "title": "REGULARITY"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "HCEXPORT"
+                    ],
+                    "title": "Installation",
+                    "type": "object"
+                },
+                "YamlPump": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "ENERGY_USAGE_MODEL": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "title": "Energy Usage Model"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "ENERGY_USAGE_MODEL"
+                    ],
+                    "title": "Pump",
+                    "type": "object"
+                },
+                "YamlPumpSystem": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "CONSUMERS": {
+                            "items": {
+                                "$ref": "#/definitions/YamlPump"
+                            },
+                            "title": "Consumers",
+                            "type": "array"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "OPERATIONAL_SETTINGS": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "items": {
+                                            "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "patternProperties": {
+                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                                            "items": {
+                                                "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "title": "Operational Settings"
+                        },
+                        "TYPE": {
+                            "default": "PUMP_SYSTEM@v2",
+                            "description": "The type of the component",
+                            "enum": [
+                                "PUMP_SYSTEM@v2"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "OPERATIONAL_SETTINGS",
+                        "CONSUMERS"
+                    ],
+                    "title": "PumpSystem",
+                    "type": "object"
+                },
+                "YamlPumpSystemOperationalSettings": {
                     "additionalProperties": false,
                     "properties": {
                         "CONDITION": {
@@ -1094,7 +1065,36 @@
                             "title": "Total system rate"
                         }
                     },
-                    "title": "OperationalSettings",
+                    "title": "PumpSystemOperationalSettings",
+                    "type": "object"
+                },
+                "YamlSingleVariable": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "VALUE": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                    "type": "string"
+                                }
+                            ],
+                            "examples": [
+                                "SIM1;OIL_PROD {+} 1000",
+                                5
+                            ],
+                            "title": "Expression"
+                        }
+                    },
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "YamlSingleVariable",
                     "type": "object"
                 }
             },
@@ -1142,11 +1142,11 @@
                     "additionalProperties": {
                         "anyOf": [
                             {
-                                "$ref": "#/definitions/SingleVariable"
+                                "$ref": "#/definitions/YamlSingleVariable"
                             },
                             {
                                 "additionalProperties": {
-                                    "$ref": "#/definitions/SingleVariable"
+                                    "$ref": "#/definitions/YamlSingleVariable"
                                 },
                                 "type": "object"
                             }
@@ -3609,9 +3609,9 @@
     {
         "fileMatch": [],
         "schema": {
-            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-turbine.json#/definitions/Turbine",
+            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-turbine.json#/definitions/YamlTurbine",
             "definitions": {
-                "Turbine": {
+                "YamlTurbine": {
                     "additionalProperties": false,
                     "examples": [
                         {
@@ -3696,7 +3696,7 @@
                         "TURBINE_LOADS",
                         "TURBINE_EFFICIENCIES"
                     ],
-                    "title": "Turbine",
+                    "title": "YamlTurbine",
                     "type": "object"
                 }
             },
