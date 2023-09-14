@@ -35,8 +35,6 @@ class FluidStream:
             existing_fluid: Initialize FluidStream from an existing (NeqSim) fluid. Warning: Be mindful of keeping fluid_model and existing fluid consistent. If not the fluid properties may be incorrect.
         """
         self.fluid_model = fluid_model
-        self.initial_temperature_kelvin = temperature_kelvin
-        self.initial_pressure_bare = pressure_bara
 
         if not temperature_kelvin > 0:
             raise ValueError("FluidStream temperature needs to be above 0.")
@@ -60,8 +58,8 @@ class FluidStream:
         self._enthalpy_joule_per_kg = _neqsim_fluid_stream.enthalpy_joule_per_kg
 
         if (
-            pressure_bara == UnitConstants.STANDARD_PRESSURE_BARA
-            and temperature_kelvin == UnitConstants.STANDARD_TEMPERATURE_KELVIN
+            self._pressure_bara == UnitConstants.STANDARD_PRESSURE_BARA
+            and self._temperature_kelvin == UnitConstants.STANDARD_TEMPERATURE_KELVIN
         ):
             self.standard_conditions_density = _neqsim_fluid_stream.density
             self.molar_mass_kg_per_mol = _neqsim_fluid_stream.molar_mass
@@ -72,8 +70,8 @@ class FluidStream:
                 pressure_bara=UnitConstants.STANDARD_PRESSURE_BARA,
                 eos_model=self.fluid_model.eos_model,
             )
-
             self.standard_conditions_density = _neqsim_fluid_at_standard_conditions.density
+            self.molar_mass_kg_per_mol = _neqsim_fluid_stream.molar_mass
 
     @property
     def pressure_bara(self) -> float:
@@ -201,7 +199,10 @@ class FluidStream:
             new_temperature_kelvin=new_temperature_kelvin,
             remove_liquid=remove_liquid,
         )
-        return FluidStream(existing_fluid=fluid_stream, fluid_model=self.fluid_model)
+        return FluidStream(
+            existing_fluid=fluid_stream,
+            fluid_model=self.fluid_model,
+        )
 
     def set_new_pressure_and_enthalpy_change(
         self, new_pressure: float, enthalpy_change_joule_per_kg: float, remove_liquid: bool = True
@@ -277,7 +278,5 @@ class FluidStream:
 
         return FluidStream(
             existing_fluid=mixed_neqsim_fluid_stream,
-            temperature_kelvin=temperature_kelvin,
-            pressure_bara=pressure_bara,
             fluid_model=dto.FluidModel(composition=mixed_fluid_composition, eos_model=self.fluid_model.eos_model),
         )
