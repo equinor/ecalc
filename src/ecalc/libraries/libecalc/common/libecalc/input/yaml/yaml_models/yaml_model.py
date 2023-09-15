@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, TextIO, Type
 from libecalc.common.logger import logger
 from libecalc.input.yaml_entities import ResourceStream, YamlTimeseriesResource
 from libecalc.input.yaml_keywords import EcalcYamlKeywords
-from libecalc.input.yaml_types.variable import Variable
+from libecalc.input.yaml_types.yaml_variable import YamlVariable
 
 
 class YamlValidator(abc.ABC):
@@ -28,7 +28,7 @@ class YamlValidator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def variables(self) -> Dict[str, Variable]:
+    def variables(self) -> Dict[str, YamlVariable]:
         pass
 
     @abc.abstractmethod

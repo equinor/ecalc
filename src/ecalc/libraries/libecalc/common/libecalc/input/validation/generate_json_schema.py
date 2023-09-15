@@ -4,12 +4,12 @@ from typing import List
 
 from libecalc.dto.ecalc_model import SchemaSettings
 from libecalc.input.validation import json_schemas
-from libecalc.input.yaml_types.components.asset import YamlAsset
+from libecalc.input.yaml_types.components.yaml_asset import YamlAsset
 
 # This just needs to be a unique ID, it is required, but we do not need to have anything at that URI
 # since we are embedding everything within one file
 # Do not change this URI, since it has already been used in all json schemas
-from libecalc.input.yaml_types.models.turbine import Turbine
+from libecalc.input.yaml_types.models.yaml_turbine import YamlTurbine
 from pydantic import schema_of
 
 BASE_URI = "$SERVER_NAME/api/v1/schema-validation"
@@ -58,7 +58,7 @@ def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[Schem
     for json_schema_file in sorted([file for file in JSON_SCHEMA_PATH.iterdir() if file.suffix == ".json"]):
         if json_schema_file.name == "models-turbine.json":
             schema = schema_of(
-                Turbine,
+                YamlTurbine,
                 by_alias=True,
                 title="TURBINE",
                 ref_template=f"{BASE_URI}/{json_schema_file.name}#/definitions/{{model}}",

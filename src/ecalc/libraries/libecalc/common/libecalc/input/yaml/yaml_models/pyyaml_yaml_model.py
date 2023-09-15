@@ -21,7 +21,7 @@ from libecalc.input.yaml_entities import (
     YamlTimeseriesType,
 )
 from libecalc.input.yaml_keywords import EcalcYamlKeywords
-from libecalc.input.yaml_types.variable import Variable, Variables
+from libecalc.input.yaml_types.yaml_variable import YamlVariables
 from yaml import SafeLoader
 
 
@@ -232,10 +232,10 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         return [*facility_resource_names, *timeseries_resource_names]
 
     @property
-    def variables(self) -> Dict[str, Variable]:
+    def variables(self) -> YamlVariables:
         variables = self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
         try:
-            return pydantic.parse_obj_as(Variables, variables)
+            return pydantic.parse_obj_as(YamlVariables, variables)
         except pydantic.ValidationError as e:
             raise DtoValidationError(data=variables, validation_error=e) from e
 

@@ -1,4 +1,4 @@
-from libecalc.input.yaml_types.temporal_model import TemporalModel
+from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
 from pydantic import schema_of
 
 
@@ -8,7 +8,7 @@ class TestSchema:
         Test to make sure temporal model creates the correct schema. We could improve TemporalModel to generate
         patternProperties, we would also need to change schema_helpers.replace_temporal_placeholder_property_with_legacy_ref
         """
-        assert schema_of(TemporalModel[str], title="TemporalModel") == {
+        assert schema_of(YamlTemporalModel[str], title="TemporalModel") == {
             "title": "TemporalModel",
             "anyOf": [
                 {

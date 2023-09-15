@@ -1,11 +1,11 @@
 from typing import Literal
 
 from libecalc.input.yaml_types import YamlBase
-from libecalc.input.yaml_types.models.enums import ModelType
+from libecalc.input.yaml_types.models.yaml_enums import YamlModelType
 from pydantic import Field
 
 
-class CompressorWithTurbine(YamlBase):
+class YamlCompressorWithTurbine(YamlBase):
     compressor_model: str = Field(..., description="Reference to a compressor model", title="COMPRESSOR_MODEL")
     name: str = Field(
         ...,
@@ -18,7 +18,7 @@ class CompressorWithTurbine(YamlBase):
         title="POWER_ADJUSTMENT_CONSTANT",
     )
     turbine_model: str = Field(..., description="Reference to a turbine model", title="TURBINE_MODEL")
-    type: Literal[ModelType.COMPRESSOR_WITH_TURBINE] = Field(
+    type: Literal[YamlModelType.COMPRESSOR_WITH_TURBINE] = Field(
         ...,
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",

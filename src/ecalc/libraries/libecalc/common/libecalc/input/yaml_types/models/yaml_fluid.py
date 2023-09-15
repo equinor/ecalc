@@ -2,24 +2,24 @@ import enum
 from typing import Literal, Optional, Union
 
 from libecalc.input.yaml_types import YamlBase
-from libecalc.input.yaml_types.models.enums import ModelType
+from libecalc.input.yaml_types.models.yaml_enums import YamlModelType
 from pydantic import BaseModel, Extra, Field
 from typing_extensions import Annotated
 
 
-class EosModel(enum.Enum):
+class YamlEosModel(enum.Enum):
     SRK = "SRK"
     PR = "PR"
     GERG_SRK = "GERG_SRK"
     GERG_PR = "GERG_PR"
 
 
-class FluidModelType(enum.Enum):
+class YamlFluidModelType(enum.Enum):
     PREDEFINED = "PREDEFINED"
     COMPOSITION = "COMPOSITION"
 
 
-class PredefinedFluidType(enum.Enum):
+class YamlPredefinedFluidType(enum.Enum):
     ULTRA_DRY = "ULTRA_DRY"
     DRY = "DRY"
     MEDIUM = "MEDIUM"
@@ -27,22 +27,22 @@ class PredefinedFluidType(enum.Enum):
     ULTRA_RICH = "ULTRA_RICH"
 
 
-class PredefinedFluidModel(YamlBase):
-    eos_model: EosModel = EosModel.SRK
-    fluid_model_type: Literal[FluidModelType.PREDEFINED] = FluidModelType.PREDEFINED
-    gas_type: PredefinedFluidType = None
+class YamlPredefinedFluidModel(YamlBase):
+    eos_model: YamlEosModel = YamlEosModel.SRK
+    fluid_model_type: Literal[YamlFluidModelType.PREDEFINED] = YamlFluidModelType.PREDEFINED
+    gas_type: YamlPredefinedFluidType = None
     name: str = Field(
         ...,
         description="Name of the model. See documentation for more information.",
         title="NAME",
     )
-    type: ModelType.FLUID
+    type: YamlModelType.FLUID
 
     def to_dto(self):
         raise NotImplementedError
 
 
-class Composition(BaseModel):
+class YamlComposition(BaseModel):
     class Config:
         extra = Extra.forbid
 
@@ -60,23 +60,25 @@ class Composition(BaseModel):
     water: float = 0.0
 
 
-class CompositionFluidModel(YamlBase):
-    composition: Composition = Field(
+class YamlCompositionFluidModel(YamlBase):
+    composition: YamlComposition = Field(
         ...,
         description="Components in fluid and amount (relative to the others) in mole weights",
         title="COMPOSITION",
     )
-    eos_model: Optional[EosModel] = EosModel.SRK
-    fluid_model_type: Literal[FluidModelType.COMPOSITION] = FluidModelType.COMPOSITION
+    eos_model: Optional[YamlEosModel] = YamlEosModel.SRK
+    fluid_model_type: Literal[YamlFluidModelType.COMPOSITION] = YamlFluidModelType.COMPOSITION
     name: Optional[str] = Field(
         None,
         description="Name of the model. See documentation for more information.",
         title="NAME",
     )
-    type: Literal[ModelType.FLUID] = ModelType.FLUID
+    type: Literal[YamlModelType.FLUID] = YamlModelType.FLUID
 
     def to_dto(self):
         raise NotImplementedError
 
 
-FluidModel = Annotated[Union[PredefinedFluidModel, CompositionFluidModel], Field(discriminator="fluid_model_type")]
+YamlFluidModel = Annotated[
+    Union[YamlPredefinedFluidModel, YamlCompositionFluidModel], Field(discriminator="fluid_model_type")
+]

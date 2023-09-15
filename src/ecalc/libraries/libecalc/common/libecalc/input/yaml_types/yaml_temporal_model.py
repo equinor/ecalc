@@ -8,4 +8,4 @@ class DatetimeString(ConstrainedStr):
 
 
 TModel = TypeVar("TModel")
-TemporalModel = Union[TModel, Dict[DatetimeString, TModel]]
+YamlTemporalModel = Union[TModel, Dict[DatetimeString, TModel]]

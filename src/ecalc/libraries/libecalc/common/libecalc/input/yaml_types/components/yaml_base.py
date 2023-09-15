@@ -5,7 +5,7 @@ from libecalc.input.yaml_types import YamlBase
 from pydantic import Field
 
 
-class ConsumerBase(YamlBase):
+class YamlConsumerBase(YamlBase):
     name: str = Field(
         ...,
         title="NAME",
@@ -21,7 +21,7 @@ class ConsumerBase(YamlBase):
         raise NotImplementedError
 
 
-class OperationalConditionBase(YamlBase):
+class YamlOperationalConditionBase(YamlBase):
     condition: Optional[ExpressionType] = Field(
         None,
         title="Condition",
@@ -49,7 +49,7 @@ power_requirement = power_before_loss / (1 - power_loss_factor)
         raise NotImplementedError
 
 
-class ConsumerSystemOperationalConditionBase(OperationalConditionBase):
+class YamlConsumerSystemOperationalConditionBase(YamlOperationalConditionBase):
     conditions: Optional[ExpressionType] = Field(
         None,
         title="Conditions",

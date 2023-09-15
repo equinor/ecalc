@@ -1,12 +1,14 @@
 from typing import Union
 
 from libecalc.dto import Turbine
-from libecalc.input.yaml_types.models.compressor_chart import CompressorChart
-from libecalc.input.yaml_types.models.compressor_with_turbine import (
-    CompressorWithTurbine,
+from libecalc.input.yaml_types.models.yaml_compressor_chart import YamlCompressorChart
+from libecalc.input.yaml_types.models.yaml_compressor_with_turbine import (
+    YamlCompressorWithTurbine,
 )
-from libecalc.input.yaml_types.models.fluid import FluidModel
+from libecalc.input.yaml_types.models.yaml_fluid import YamlFluidModel
 from pydantic import Field
 from typing_extensions import Annotated
 
-Model = Annotated[Union[CompressorChart, CompressorWithTurbine, FluidModel, Turbine], Field(discriminator="type")]
+YamlModel = Annotated[
+    Union[YamlCompressorChart, YamlCompressorWithTurbine, YamlFluidModel, Turbine], Field(discriminator="type")
+]
