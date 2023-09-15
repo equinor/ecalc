@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Type, Union
+from typing import List, Union
 
 from libecalc.dto.base import InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -12,10 +12,7 @@ from libecalc.input.yaml_types.components.yaml_compressor_system import (
 )
 from libecalc.input.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.input.yaml_types.components.yaml_pump_system import YamlPumpSystem
-from libecalc.input.yaml_types.yaml_placeholder_type import YamlPlaceholderType
-from libecalc.input.yaml_types.yaml_schema_helpers import (
-    replace_placeholder_property_with_legacy_ref,
-)
+from libecalc.input.yaml_types.emitters.yaml_direct_emitter import YamlDirectEmitter
 from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
 from pydantic import Field
 
@@ -23,14 +20,6 @@ from pydantic import Field
 class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelconsumers or gensets
     class Config:
         title = "Installation"
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any], model: Type["YamlInstallation"]) -> None:
-            replace_placeholder_property_with_legacy_ref(
-                schema=schema,
-                property_key="DIRECTEMITTERS",
-                property_ref="$SERVER_NAME/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS",
-            )
 
     name: str = Field(
         ...,
@@ -63,8 +52,8 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
     )
-    directemitters: YamlPlaceholderType = Field(
+    direct_emitters: List[YamlDirectEmitter] = Field(
         None,
-        title="DIRECTEMITTERS",
+        title="DIRECT_EMITTERS",
         description="Covers the direct emissions on the installation that are not consuming energy",
     )

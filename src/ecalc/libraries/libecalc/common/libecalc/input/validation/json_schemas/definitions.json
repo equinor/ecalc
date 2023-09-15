@@ -46,23 +46,6 @@
         }
       }
     },
-    "CUMULATIVES": {
-      "title": "CUMULATIVES",
-      "description": "Missing documentation.\n\n$ECALC_DOCS_KEYWORDS_URL/CUMULATIVES",
-      "type": "object",
-      "properties": {
-        "^[a-zA-Z0-9_\\[,\\]]+$": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            }
-          ]
-        }
-      }
-    },
     "ENERGYFUNCTION": {
       "title": "ENERGYFUNCTION",
       "description": "Definition of energy function of equipment.\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGYFUNCTION",
