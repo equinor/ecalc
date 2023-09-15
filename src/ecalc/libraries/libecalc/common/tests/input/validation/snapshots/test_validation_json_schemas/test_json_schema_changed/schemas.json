@@ -29,6 +29,15 @@
                     "title": "ConsumerUserDefinedCategoryType",
                     "type": "string"
                 },
+                "FuelTypeUserDefinedCategoryType": {
+                    "description": "An enumeration.",
+                    "enum": [
+                        "FUEL-GAS",
+                        "DIESEL"
+                    ],
+                    "title": "FuelTypeUserDefinedCategoryType",
+                    "type": "string"
+                },
                 "InstallationUserDefinedCategoryType": {
                     "description": "Installation category",
                     "enum": [
@@ -423,6 +432,67 @@
                     "title": "ELECTRICITY_CONSUMER",
                     "type": "object"
                 },
+                "YamlEmission": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "FACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Emission factor for fuel in kg emission/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACTOR",
+                            "title": "FACTOR"
+                        },
+                        "NAME": {
+                            "description": "Name of the emission.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "QUOTA": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Emission tax per kg emission emitted, i.e. NOK/kg emission. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/QUOTA",
+                            "title": "QUOTA"
+                        },
+                        "TAX": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Emission tax per volume fuel burned, i.e. NOK/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TAX",
+                            "title": "TAX"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FACTOR"
+                    ],
+                    "title": "Emission",
+                    "type": "object"
+                },
                 "YamlFuelConsumer": {
                     "additionalProperties": false,
                     "properties": {
@@ -487,6 +557,59 @@
                         "ENERGY_USAGE_MODEL"
                     ],
                     "title": "FUEL_CONSUMER",
+                    "type": "object"
+                },
+                "YamlFuelType": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/FuelTypeUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "EMISSIONS": {
+                            "description": "Emission types and their attributes for this fuel.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EMISSIONS",
+                            "items": {
+                                "$ref": "#/definitions/YamlEmission"
+                            },
+                            "title": "EMISSIONS",
+                            "type": "array"
+                        },
+                        "LOWER_HEATING_VALUE": {
+                            "description": "Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
+                            "title": "LOWER_HEATING_VALUE",
+                            "type": "number"
+                        },
+                        "NAME": {
+                            "description": "Name of the fuel.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "PRICE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Price or sales value of fuel in NOK per Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PRICE",
+                            "title": "PRICE"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "EMISSIONS"
+                    ],
+                    "title": "FuelType",
                     "type": "object"
                 },
                 "YamlGeneratorSet": {
@@ -1209,9 +1332,12 @@
                     "title": "FACILITY_INPUTS"
                 },
                 "FUEL_TYPES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
                     "description": "Specifies the various fuel types and associated emissions used in the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL_TYPES",
-                    "title": "FUEL_TYPES"
+                    "items": {
+                        "$ref": "#/definitions/YamlFuelType"
+                    },
+                    "title": "FUEL_TYPES",
+                    "type": "array"
                 },
                 "INSTALLATIONS": {
                     "description": "Description of the system of energy consumers.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INSTALLATIONS",
@@ -1266,6 +1392,7 @@
                 }
             },
             "required": [
+                "FUEL_TYPES",
                 "INSTALLATIONS"
             ],
             "title": "Asset",
@@ -2793,95 +2920,6 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "description": "Fuel types",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json",
-            "properties": {
-                "FUEL_TYPES": {
-                    "items": {
-                        "additionalProperties": false,
-                        "properties": {
-                            "CATEGORY": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category.json#properties/CATEGORY"
-                            },
-                            "EMISSIONS": {
-                                "description": "Emission types and their attributes for this fuel.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EMISSIONS",
-                                "items": {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "FACTOR": {
-                                            "description": "Emission factor for fuel in kg emission/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACTOR",
-                                            "title": "FACTOR",
-                                            "type": [
-                                                "number",
-                                                "string"
-                                            ]
-                                        },
-                                        "NAME": {
-                                            "description": "Name of the emission.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                            "title": "NAME",
-                                            "type": "string"
-                                        },
-                                        "QUOTA": {
-                                            "description": "Emission tax per kg emission emitted, i.e. NOK/kg emission. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/QUOTA",
-                                            "title": "QUOTA",
-                                            "type": [
-                                                "number",
-                                                "string"
-                                            ]
-                                        },
-                                        "TAX": {
-                                            "description": "Emission tax per volume fuel burned, i.e. NOK/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TAX",
-                                            "title": "TAX",
-                                            "type": [
-                                                "number",
-                                                "string"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "NAME",
-                                        "FACTOR"
-                                    ],
-                                    "type": "object"
-                                },
-                                "title": "EMISSIONS",
-                                "type": "array"
-                            },
-                            "LOWER_HEATING_VALUE": {
-                                "description": "Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
-                                "title": "LOWER_HEATING_VALUE",
-                                "type": "number"
-                            },
-                            "NAME": {
-                                "description": "Name of the fuel.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                "title": "NAME",
-                                "type": "string"
-                            },
-                            "PRICE": {
-                                "description": "Price or sales value of fuel in NOK per Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PRICE",
-                                "title": "PRICE",
-                                "type": [
-                                    "number",
-                                    "string"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "NAME"
-                        ],
-                        "type": "object"
-                    },
-                    "type": "array"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/fuel-types.json"
     },
     {
         "fileMatch": [],
