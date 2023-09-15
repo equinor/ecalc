@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 from libecalc import dto
 from libecalc.common.units import Unit
@@ -65,12 +65,36 @@ def _get_curve_data_from_resource(resource: Resource, speed: float = 0.0):
 
 def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resources) -> dto.SingleSpeedChart:
     units = get_units_from_chart_config(chart_config=model_config)
-    curve_config: Optional[Dict] = model_config.get(EcalcYamlKeywords.consumer_chart_curve)
+    curve_config = model_config.get(EcalcYamlKeywords.consumer_chart_curve)
+    name = model_config.get(EcalcYamlKeywords.name)
+
+    # Check if user has used CURVES (reserved for variable speed compressors)
+    # instead of CURVE (should be used for single speed compressors),
+    # and give clear error message.
+    if EcalcYamlKeywords.consumer_chart_curves in model_config:
+        raise DataValidationError(
+            data=model_config,
+            message=f"Compressor model {name}:\n"
+            f"The keyword {EcalcYamlKeywords.consumer_chart_curves} should only be used for "
+            f"variable speed compressor models.\n"
+            f"{name} is a single speed compressor model and should use the keyword "
+            f"{EcalcYamlKeywords.consumer_chart_curve}.",
+        )
+
+    if EcalcYamlKeywords.consumer_chart_curve not in model_config:
+        raise DataValidationError(
+            data=model_config,
+            message=f"The keyword {EcalcYamlKeywords.consumer_chart_curve} is not specified "
+            f"for the compressor model {name}.\n"
+            f"{EcalcYamlKeywords.consumer_chart_curve} is a required keyword for "
+            f"single speed compressor models.",
+        )
 
     if not isinstance(curve_config, dict):
         raise DataValidationError(
             data=model_config,
-            message=f"{EcalcYamlKeywords.consumer_chart_curve}"
+            message=f"Compressor model {name}:"
+            f"{EcalcYamlKeywords.consumer_chart_curve}"
             f" should be an object. Type given: {type(curve_config)}.",
         )
 
