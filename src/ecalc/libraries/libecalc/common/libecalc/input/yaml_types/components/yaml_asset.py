@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Type
 
 from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.input.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.input.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -20,7 +21,7 @@ class YamlAsset(YamlBase):
         title = "Asset"
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any], model: Type["YamlInstallation"]) -> None:
+        def schema_extra(schema: Dict[str, Any], model: Type["YamlAsset"]) -> None:
             replace_placeholder_property_with_legacy_ref(
                 schema=schema,
                 property_key="FACILITY_INPUTS",
@@ -30,11 +31,6 @@ class YamlAsset(YamlBase):
                 schema=schema,
                 property_key="MODELS",
                 property_ref="$SERVER_NAME/api/v1/schema-validation/models.json#properties/MODELS",
-            )
-            replace_placeholder_property_with_legacy_ref(
-                schema=schema,
-                property_key="FUEL_TYPES",
-                property_ref="$SERVER_NAME/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
             )
 
     time_series: List[YamlTimeSeriesCollection] = Field(
@@ -55,8 +51,8 @@ class YamlAsset(YamlBase):
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
     )
-    fuel_types: YamlPlaceholderType = Field(
-        None,
+    fuel_types: List[YamlFuelType] = Field(
+        ...,
         title="FUEL_TYPES",
         description="Specifies the various fuel types and associated emissions used in the model."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
