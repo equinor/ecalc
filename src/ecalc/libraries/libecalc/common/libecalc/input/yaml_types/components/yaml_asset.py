@@ -2,6 +2,9 @@ from typing import Any, Dict, List, Type
 
 from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.input.yaml_types.time_series.yaml_time_series import (
+    YamlTimeSeriesCollection,
+)
 from libecalc.input.yaml_types.yaml_placeholder_type import YamlPlaceholderType
 from libecalc.input.yaml_types.yaml_schema_helpers import (
     replace_placeholder_property_with_legacy_ref,
@@ -20,11 +23,6 @@ class YamlAsset(YamlBase):
         def schema_extra(schema: Dict[str, Any], model: Type["YamlInstallation"]) -> None:
             replace_placeholder_property_with_legacy_ref(
                 schema=schema,
-                property_key="TIME_SERIES",
-                property_ref="$SERVER_NAME/api/v1/schema-validation/time-series.json#properties/TIME_SERIES",
-            )
-            replace_placeholder_property_with_legacy_ref(
-                schema=schema,
                 property_key="FACILITY_INPUTS",
                 property_ref="$SERVER_NAME/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS",
             )
@@ -39,7 +37,7 @@ class YamlAsset(YamlBase):
                 property_ref="$SERVER_NAME/api/v1/schema-validation/fuel-types.json#properties/FUEL_TYPES",
             )
 
-    time_series: YamlPlaceholderType = Field(
+    time_series: List[YamlTimeSeriesCollection] = Field(
         None,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
