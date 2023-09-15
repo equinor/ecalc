@@ -332,6 +332,51 @@
                     "title": "CompressorSystemOperationalSettings",
                     "type": "object"
                 },
+                "YamlDefaultTimeSeriesCollection": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "FILE": {
+                            "description": "Specifies the name of a time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
+                            "title": "FILE",
+                            "type": "string"
+                        },
+                        "INFLUENCE_TIME_VECTOR": {
+                            "default": true,
+                            "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INFLUENCE_TIME_VECTOR",
+                            "title": "INFLUENCE_TIME_VECTOR",
+                            "type": "boolean"
+                        },
+                        "INTERPOLATION_TYPE": {
+                            "default": "RIGHT",
+                            "description": "Defines how the time series are interpolated between input time steps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
+                            "enum": [
+                                "RIGHT"
+                            ],
+                            "title": "INTERPOLATION_TYPE",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Name of the time series.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "Defines the type of time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "DEFAULT"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FILE",
+                        "TYPE"
+                    ],
+                    "title": "TimeSeries",
+                    "type": "object"
+                },
                 "YamlElectricityConsumer": {
                     "additionalProperties": false,
                     "properties": {
@@ -741,6 +786,59 @@
                     "title": "Installation",
                     "type": "object"
                 },
+                "YamlMiscellaneousTimeSeriesCollection": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "EXTRAPOLATION": {
+                            "default": false,
+                            "description": "Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EXTRAPOLATION",
+                            "title": "EXTRAPOLATION",
+                            "type": "boolean"
+                        },
+                        "FILE": {
+                            "description": "Specifies the name of a time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
+                            "title": "FILE",
+                            "type": "string"
+                        },
+                        "INFLUENCE_TIME_VECTOR": {
+                            "default": true,
+                            "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INFLUENCE_TIME_VECTOR",
+                            "title": "INFLUENCE_TIME_VECTOR",
+                            "type": "boolean"
+                        },
+                        "INTERPOLATION_TYPE": {
+                            "description": "Defines how the time series are interpolated between input time steps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
+                            "enum": [
+                                "LEFT",
+                                "RIGHT",
+                                "LINEAR"
+                            ],
+                            "title": "INTERPOLATION_TYPE",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Name of the time series.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "Defines the type of time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "MISCELLANEOUS"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FILE",
+                        "TYPE",
+                        "INTERPOLATION_TYPE"
+                    ],
+                    "title": "TimeSeries",
+                    "type": "object"
+                },
                 "YamlPump": {
                     "additionalProperties": false,
                     "properties": {
@@ -1134,9 +1232,19 @@
                     "type": "string"
                 },
                 "TIME_SERIES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/time-series.json#properties/TIME_SERIES",
                     "description": "Defines the inputs for time dependent variables, or 'reservoir variables'.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TIME_SERIES",
-                    "title": "TIME_SERIES"
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/YamlDefaultTimeSeriesCollection"
+                            },
+                            {
+                                "$ref": "#/definitions/YamlMiscellaneousTimeSeriesCollection"
+                            }
+                        ]
+                    },
+                    "title": "TIME_SERIES",
+                    "type": "array"
                 },
                 "VARIABLES": {
                     "additionalProperties": {
@@ -4011,155 +4119,5 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "description": "Time series",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/time-series.json",
-            "properties": {
-                "TIME_SERIES": {
-                    "description": "Defines the inputs for time dependent variables, or \u201creservoir variables\u201d.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TIME_SERIES",
-                    "items": {
-                        "oneOf": [
-                            {
-                                "properties": {
-                                    "EXTRAPOLATION": {
-                                        "description": "Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EXTRAPOLATION",
-                                        "title": "EXTRAPOLATION",
-                                        "type": "boolean"
-                                    },
-                                    "FILE": {
-                                        "description": "Specifies the name of a time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
-                                        "title": "FILE",
-                                        "type": "string"
-                                    },
-                                    "INFLUENCE_TIME_VECTOR": {
-                                        "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INFLUENCE_TIME_VECTOR",
-                                        "title": "INFLUENCE_TIME_VECTOR",
-                                        "type": "boolean"
-                                    },
-                                    "INTERPOLATION_TYPE": {
-                                        "anyOf": [
-                                            {
-                                                "const": "LEFT",
-                                                "description": "The value at a certain time step is defining the value in the time interval before this time step.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                                "title": "LEFT"
-                                            },
-                                            {
-                                                "const": "RIGHT",
-                                                "description": "The value at a certain time step is defining the value in the time interval after this time step.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                                "title": "RIGHT"
-                                            },
-                                            {
-                                                "const": "LINEAR",
-                                                "description": "The value will be linearly interpolated between the time steps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                                "title": "LINEAR"
-                                            }
-                                        ],
-                                        "description": "Defines how the time series are interpolated between input time steps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                        "title": "INTERPOLATION_TYPE",
-                                        "type": "string"
-                                    },
-                                    "NAME": {
-                                        "description": "Name of the time series.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                        "title": "NAME",
-                                        "type": "string"
-                                    },
-                                    "TYPE": {
-                                        "const": "MISCELLANEOUS",
-                                        "description": "User defined file. All file interpretation options need to be set manually.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE#use-in-time-series",
-                                        "title": "MISCELLANEOUS"
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "NAME",
-                                        "FILE",
-                                        "TYPE",
-                                        "INFLUENCE_TIME_VECTOR",
-                                        "EXTRAPOLATION",
-                                        "INTERPOLATION_TYPE"
-                                    ]
-                                },
-                                "type": "object"
-                            },
-                            {
-                                "properties": {
-                                    "EXTRAPOLATION": {
-                                        "description": "Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EXTRAPOLATION",
-                                        "title": "EXTRAPOLATION",
-                                        "type": "boolean"
-                                    },
-                                    "FILE": {
-                                        "description": "Specifies the name of a time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
-                                        "title": "FILE",
-                                        "type": "string"
-                                    },
-                                    "INFLUENCE_TIME_VECTOR": {
-                                        "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INFLUENCE_TIME_VECTOR",
-                                        "title": "INFLUENCE_TIME_VECTOR",
-                                        "type": "boolean"
-                                    },
-                                    "INTERPOLATION_TYPE": {
-                                        "anyOf": [
-                                            {
-                                                "const": "LEFT",
-                                                "description": "The value at a certain time step is defining the value in the time interval before this time step.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                                "title": "LEFT"
-                                            },
-                                            {
-                                                "const": "RIGHT",
-                                                "description": "The value at a certain time step is defining the value in the time interval after this time step.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                                "title": "RIGHT"
-                                            },
-                                            {
-                                                "const": "LINEAR",
-                                                "description": "The value will be linearly interpolated between the time steps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                                "title": "LINEAR"
-                                            }
-                                        ],
-                                        "description": "Defines how the time series are interpolated between input time steps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                                        "title": "INTERPOLATION_TYPE",
-                                        "type": "string"
-                                    },
-                                    "NAME": {
-                                        "description": "Name of the time series.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                        "title": "NAME",
-                                        "type": "string"
-                                    },
-                                    "TYPE": {
-                                        "anyOf": [
-                                            {
-                                                "const": "DEFAULT",
-                                                "description": "Reservoir profiles given in a CSV file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE#use-in-time-series",
-                                                "title": "DEFAULT"
-                                            }
-                                        ],
-                                        "description": "Defines the type of time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                                        "title": "TYPE",
-                                        "type": "string"
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "NAME",
-                                        "FILE",
-                                        "TYPE",
-                                        "INFLUENCE_TIME_VECTOR",
-                                        "EXTRAPOLATION",
-                                        "INTERPOLATION_TYPE"
-                                    ]
-                                },
-                                "type": "object"
-                            }
-                        ]
-                    },
-                    "title": "TIME_SERIES",
-                    "type": "array"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/time-series.json"
     }
 ]
