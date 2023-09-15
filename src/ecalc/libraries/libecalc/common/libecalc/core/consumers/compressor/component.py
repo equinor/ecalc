@@ -37,12 +37,15 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
 
     def get_max_rate(self, operational_settings: CompressorOperationalSettings) -> List[float]:
         results = []
-        for period, compressor in self._temporal_model.items():
-            operational_settings_this_period = operational_settings.get_subset_from_period(period)
+        # for period, compressor in self._temporal_model.items():
+        for timestep in operational_settings.timesteps:
+            compressor = self._temporal_model.get_model(timestep)
+            # operational_settings_this_period = operational_settings.get_subset_from_period(period)
+            operational_settings_this_timestep = operational_settings.get_subset_for_timestep(timestep)
             results.extend(
                 compressor.get_max_standard_rate(
-                    suction_pressures=np.asarray(operational_settings_this_period.inlet_pressure.values),
-                    discharge_pressures=np.asarray(operational_settings_this_period.outlet_pressure.values),
+                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_pressure.values),
+                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_pressure.values),
                 ).tolist()
             )
         return results
@@ -64,22 +67,24 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         """
         self._operational_settings = operational_settings
 
-        # Regularity is the same for all rate vectors.
-        # In case of cross-overs or multiple streams, there may be multiple rate vectors.
-        regularity = operational_settings.stream_day_rates[0].regularity
-
         model_results = []
         evaluated_timesteps = []
-        for period, compressor in self._temporal_model.items():
-            operational_settings_this_period = operational_settings.get_subset_from_period(period)
-            evaluated_timesteps.extend(operational_settings_this_period.timesteps)
+        # evaluated_regularity = []
+        evaluated_regularity = operational_settings.stream_day_rates[0].regularity
+        # for period, compressor in self._temporal_model.items():
+        for timestep in operational_settings.timesteps:
+            # operational_settings_this_period = operational_settings.get_subset_from_period(period)
+            compressor = self._temporal_model.get_model(timestep)
+            operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
+            # evaluated_regularity.extend(operational_settings_for_timestep.regularity)
+            evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
             if isinstance(compressor, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
                 raise NotImplementedError("Need to implement this")
             elif issubclass(type(compressor), CompressorModel):
                 model_result = compressor.evaluate_rate_ps_pd(
-                    rate=np.sum([rate.values for rate in operational_settings_this_period.stream_day_rates], axis=0),
-                    suction_pressure=np.asarray(operational_settings_this_period.inlet_pressure.values),
-                    discharge_pressure=np.asarray(operational_settings_this_period.outlet_pressure.values),
+                    rate=np.sum([rate.values for rate in operational_settings_for_timestep.stream_day_rates], axis=0),
+                    suction_pressure=np.asarray(operational_settings_for_timestep.inlet_pressure.values),
+                    discharge_pressure=np.asarray(operational_settings_for_timestep.outlet_pressure.values),
                 )
                 model_results.append(model_result)
 
@@ -94,7 +99,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             values=aggregated_result.energy_usage,
             timesteps=evaluated_timesteps,
             unit=aggregated_result.energy_usage_unit,
-            regularity=regularity,
+            regularity=evaluated_regularity,
         )
 
         if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY:
@@ -106,7 +111,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 values=aggregated_result.power,
                 timesteps=evaluated_timesteps,
                 unit=aggregated_result.power_unit,
-                regularity=regularity,
+                regularity=evaluated_regularity,
             ).fill_nan(0.0),
             energy_usage=energy_usage.fill_nan(0.0),
             is_valid=TimeSeriesBoolean(
@@ -117,7 +122,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 values=aggregated_result.recirculation_loss,
                 timesteps=evaluated_timesteps,
                 unit=Unit.MEGA_WATT,
-                regularity=regularity,
+                regularity=evaluated_regularity,
             ),
             rate_exceeds_maximum=TimeSeriesBoolean(
                 values=aggregated_result.rate_exceeds_maximum,
@@ -149,7 +154,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                         timesteps=evaluated_timesteps,
                         values=aggregated_result.power,
                         unit=aggregated_result.power_unit,
-                        regularity=regularity,
+                        regularity=evaluated_regularity,
                     )
                     if aggregated_result.power is not None
                     else None,
@@ -157,7 +162,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                         timesteps=evaluated_timesteps,
                         values=aggregated_result.energy_usage,
                         unit=aggregated_result.energy_usage_unit,
-                        regularity=regularity,
+                        regularity=evaluated_regularity,
                     ),
                     energy_usage_unit=aggregated_result.energy_usage_unit,
                     rate_sm3_day=aggregated_result.rate_sm3_day,

@@ -181,6 +181,16 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             unit=self.unit,
         )
 
+    def for_timestep(self, current_timestep: datetime) -> Self:
+        timestep_index = next(
+            timestep_index for timestep_index, timestep in enumerate(self.timesteps) if timestep == current_timestep
+        )
+        return self.__class__(
+            timesteps=self.timesteps[timestep_index : timestep_index + 1],
+            values=self.values[timestep_index : timestep_index + 1],
+            unit=self.unit,
+        )
+
     def to_unit(self, unit: Unit) -> Self:
         if unit == self.unit:
             return self.copy()
@@ -583,11 +593,13 @@ class TimeSeriesRate(TimeSeries[float]):
     """
 
     typ: Optional[RateType] = RateType.STREAM_DAY
-    regularity: Optional[List[float]]
+    regularity: Optional[List[float]]  # TODO: Optional? No, we need to have it...default to 1...
 
     @validator("regularity", pre=True, always=True)
     def set_regularity(cls, regularity: Optional[List[float]], values: Dict[str, Any]) -> List[float]:
-        if regularity is not None:
+        if (
+            regularity is not None and regularity != []
+        ):  # TODO: empty list..why? the regularity list and values list are off...
             return regularity
         try:
             return [1] * len(values["values"])
@@ -656,6 +668,18 @@ class TimeSeriesRate(TimeSeries[float]):
             timesteps=self.timesteps[start_index:end_index],
             values=self.values[start_index:end_index],
             regularity=self.regularity[start_index:end_index],  # type: ignore
+            unit=self.unit,
+            typ=self.typ,
+        )
+
+    def for_timestep(self, current_timestep: datetime) -> Self:
+        timestep_index = next(
+            timestep_index for timestep_index, timestep in enumerate(self.timesteps) if timestep == current_timestep
+        )
+        return self.__class__(
+            timesteps=self.timesteps[timestep_index : timestep_index + 1],
+            values=self.values[timestep_index : timestep_index + 1],
+            regularity=self.regularity[timestep_index : timestep_index + 1],  # type: ignore
             unit=self.unit,
             typ=self.typ,
         )
@@ -823,4 +847,7 @@ class TimeSeriesRate(TimeSeries[float]):
         Ensure to map correct value to correct timestep in the final resulting time vector.
         """
         reindex_values = self.reindex_time_vector(new_time_vector)
-        return TimeSeriesRate(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
+        # TODO: Regularity?
+        return TimeSeriesRate(
+            timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit, regularity=self.regularity
+        )

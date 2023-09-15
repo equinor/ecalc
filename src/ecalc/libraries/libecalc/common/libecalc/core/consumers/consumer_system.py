@@ -30,6 +30,10 @@ from libecalc.dto.core_specs.compressor.operational_settings import (
     CompressorOperationalSettings,
 )
 from libecalc.dto.core_specs.pump.operational_settings import PumpOperationalSettings
+from libecalc.dto.core_specs.system.operational_settings import (
+    EvaluatedCompressorSystemOperationalSettings,
+    EvaluatedPumpSystemOperationalSettings,
+)
 from numpy.typing import NDArray
 
 Consumer = TypeVar("Consumer", bound=Union[Compressor, Pump])
@@ -66,7 +70,11 @@ class ConsumerSystem(BaseConsumer):
 
     def _get_operational_settings_adjusted_for_crossover(
         self,
-        operational_setting: SystemOperationalSettings,
+        operational_setting: Union[
+            SystemOperationalSettings,
+            EvaluatedPumpSystemOperationalSettings,
+            EvaluatedCompressorSystemOperationalSettings,
+        ],
         variables_map: VariablesMap,
     ) -> List[ConsumerOperationalSettings]:
         """
@@ -105,11 +113,14 @@ class ConsumerSystem(BaseConsumer):
 
                 crossover_rates_map[crossover_to].append(list(crossover_rate))
 
+            # NOTE: Assume regularity same for all now
+            regularity = consumer_operational_settings.stream_day_rates[0].regularity
             consumer_operational_settings.stream_day_rates = [
                 TimeSeriesRate(
                     values=rate,
                     timesteps=variables_map.time_vector,
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    regularity=regularity,
                 )
                 for rate in [*rates, *crossover_rates_map[consumer_index]]
             ]
@@ -122,7 +133,15 @@ class ConsumerSystem(BaseConsumer):
     def evaluate(
         self,
         variables_map: VariablesMap,
-        temporal_operational_settings: TemporalModel[List[SystemOperationalSettings]],
+        temporal_operational_settings: TemporalModel[
+            List[
+                Union[
+                    SystemOperationalSettings,
+                    EvaluatedPumpSystemOperationalSettings,
+                    EvaluatedCompressorSystemOperationalSettings,
+                ]
+            ]
+        ],
     ) -> EcalcModelResult:
         """
         Evaluating a consumer system that may be composed of both consumers and other consumer systems. It will default
@@ -138,26 +157,30 @@ class ConsumerSystem(BaseConsumer):
         operational_settings_used = TimeSeriesInt(
             timesteps=variables_map.time_vector, values=[0] * len(variables_map.time_vector), unit=Unit.NONE
         )
-        operational_settings_results: Dict[int, Dict[str, EcalcModelResult]] = defaultdict(
+
+        operational_settings_results: Dict[datetime, Dict[int, Dict[str, EcalcModelResult]]] = defaultdict(
             dict
         )  # map operational settings index and consumer id to consumer result.
 
-        for period, operational_settings in temporal_operational_settings.items():
-            variables_map_for_period = variables_map.get_subset_from_period(period)
-            start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
+        for timestep_index, timestep in enumerate(variables_map.time_vector):
+            variables_map_for_timestep = variables_map.get_subset_for_timestep(timestep)
+            operational_settings_results[timestep] = defaultdict(dict)
+
+            operational_settings = temporal_operational_settings.get_model(timestep)
             for operational_setting_index, operational_setting in enumerate(operational_settings):
+                operational_setting_for_timestep = operational_setting.for_timestep(timestep)
                 adjusted_operational_settings: List[
                     ConsumerOperationalSettings
                 ] = self._get_operational_settings_adjusted_for_crossover(
-                    operational_setting=operational_setting,
-                    variables_map=variables_map_for_period,
+                    operational_setting=operational_setting_for_timestep,
+                    variables_map=variables_map_for_timestep,
                 )
 
                 for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings):
                     consumer_result = consumer.evaluate(adjusted_operational_setting)
-                    operational_settings_results[operational_setting_index][consumer.id] = consumer_result
+                    operational_settings_results[timestep][operational_setting_index][consumer.id] = consumer_result
 
-                consumer_results = operational_settings_results[operational_setting_index].values()
+                consumer_results = operational_settings_results[timestep][operational_setting_index].values()
 
                 # Check if consumers are valid for this operational setting, should be valid for all consumers
                 all_consumer_results_valid = reduce(
@@ -165,7 +188,7 @@ class ConsumerSystem(BaseConsumer):
                 )
                 all_consumer_results_valid_indices = np.nonzero(all_consumer_results_valid.values)[0]
                 all_consumer_results_valid_indices_period_shifted = [
-                    axis_indices + start_index for axis_indices in all_consumer_results_valid_indices
+                    axis_indices + timestep_index for axis_indices in all_consumer_results_valid_indices
                 ]
 
                 # Remove already valid indices, so we don't overwrite operational setting used with the latest valid
@@ -219,7 +242,7 @@ class ConsumerSystem(BaseConsumer):
     def collect_consumer_results(
         self,
         operational_settings_used: TimeSeriesInt,
-        operational_settings_results: Dict[int, Dict[str, EcalcModelResult]],
+        operational_settings_results: Dict[datetime, Dict[int, Dict[str, EcalcModelResult]]],
     ) -> List[Union[CompressorResult, PumpResult]]:
         """
         Merge consumer results into a single result per consumer based on the operational settings used. I.e. pick results
@@ -232,17 +255,14 @@ class ConsumerSystem(BaseConsumer):
 
         """
         consumer_results: Dict[str, Union[CompressorResult, PumpResult]] = {}
-        for unique_operational_setting in set(operational_settings_used.values):
-            operational_settings_used_indices = [
-                index
-                for index, operational_setting_used in enumerate(operational_settings_used.values)
-                if operational_setting_used == unique_operational_setting
-            ]
-            for consumer in self._consumers:
+        for consumer in self._consumers:
+            for timestep_index, timestep in enumerate(operational_settings_used.timesteps):
+                operational_setting_used = operational_settings_used.values[timestep_index]
                 prev_result = consumer_results.get(consumer.id)
-                consumer_result_subset = operational_settings_results[unique_operational_setting][
+                consumer_result_subset = operational_settings_results[timestep][operational_setting_used][
                     consumer.id
-                ].component_result.get_subset(operational_settings_used_indices)
+                ].component_result.get_subset([0])
+
                 if prev_result is None:
                     consumer_results[consumer.id] = consumer_result_subset
                 else:
@@ -279,14 +299,35 @@ class ConsumerSystem(BaseConsumer):
     def _get_crossover_rates(
         max_rate: List[float], rates: List[List[float]]
     ) -> Tuple[NDArray[np.float64], List[List[float]]]:
+        """
+        This function is run over a single consumer only, and is normally run in a for loop
+        across all "dependent" consumers in the consumer system, such as here, in a consumer system.
+
+
+        Args:
+            max_rate: a list of max rates for one consumer, for each relevant timestep
+            rates: list of list of the rates being sent in to this consumer. Usually this will have an outer list of length 1, since the consumer
+            will only have 1 incoming rate. However, due to potential incoming crossover rate, and due to multistream outer length may be > 1. Length of the outer list is
+            1 (standard incoming stream) at index 0, + nr of crossover streams + nr of additional incoming streams (multi stream)
+
+        Returns:    1. the additional crossover rate that is required if the total incoming
+        rate exceeds the max rate capacity for the consumer in question.
+                    2. the rates within capacity of the given consumer
+        """
+
+        # Get total rate across all input rates for this consumer (incl already crossovers from other consumers, if any)
         total_rate = np.sum(rates, axis=0)
+
+        # If we exceed total rate, we need to calculate exceeding rate, and return that as (potential) crossover rate to
+        # another consumer
         crossover_rate = np.where(total_rate > max_rate, total_rate - max_rate, 0)
+
         rates_within_capacity = []
         left_over_crossover_rate = crossover_rate.copy()
         for rate in reversed(rates):
             # We handle the rates per stream backwards in order to forward inbound cross-overs first
             # if the compressor/pump in question (with inbound cross-over) is above capacity itself.
             diff = np.subtract(rate, left_over_crossover_rate)
-            left_over_crossover_rate = np.where(diff < 0, diff, 0)
+            left_over_crossover_rate = np.where(diff < 0, diff, 0)  # >= 0? diff otherwise 0 and err?
             rates_within_capacity.append(list(np.where(diff >= 0, diff, 0)))
         return crossover_rate, list(reversed(rates_within_capacity))

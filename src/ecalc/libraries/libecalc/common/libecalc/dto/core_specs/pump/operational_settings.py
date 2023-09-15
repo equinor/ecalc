@@ -26,3 +26,16 @@ class PumpOperationalSettings(OperationalSettings):
             fluid_density=self.fluid_density[start_index:end_index],
             timesteps=self.timesteps[start_index:end_index],
         )
+
+    def get_subset_for_timestep(self, current_timestep: datetime) -> Self:
+        timestep_index = next(
+            timestep_index for timestep_index, timestep in enumerate(self.timesteps) if current_timestep == timestep
+        )
+
+        return PumpOperationalSettings(
+            stream_day_rates=[rate[timestep_index] for rate in self.stream_day_rates],
+            inlet_pressure=self.inlet_pressure[timestep_index],
+            outlet_pressure=self.outlet_pressure[timestep_index],
+            timesteps=[self.timesteps[timestep_index]],
+            fluid_density=self.fluid_density[timestep_index],
+        )

@@ -1,13 +1,17 @@
 import pytest
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import EnergyCalculatorResult, GraphResult
-from libecalc.fixtures import DTOCase
+from libecalc.fixtures import DTOCase, consumer_system_v2_dto
+from libecalc.fixtures.cases.consumer_system_v2.consumer_system_v2_dto import (
+    consumer_system_v2_dto_temporal_operational_settings,
+    consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models,
+    consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models,
+)
 
 
-@pytest.fixture
-def result(consumer_system_v2_dto) -> EnergyCalculatorResult:
-    ecalc_model = consumer_system_v2_dto.ecalc_model
-    variables = consumer_system_v2_dto.variables
+def result(consumer_system_v2: DTOCase) -> EnergyCalculatorResult:
+    ecalc_model = consumer_system_v2.ecalc_model
+    variables = consumer_system_v2.variables
 
     graph = ecalc_model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
@@ -26,10 +30,34 @@ def result(consumer_system_v2_dto) -> EnergyCalculatorResult:
     return result
 
 
+parameterized_v2_parameters = [
+    (
+        "consumer_system_v2",
+        consumer_system_v2_dto(),
+    ),
+    (
+        "consumer_system_v2_with_temporal_operational_settings",
+        consumer_system_v2_dto_temporal_operational_settings(consumer_system_v2_dto()),
+    ),
+    (
+        "consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models",
+        consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models(consumer_system_v2_dto()),
+    ),
+    (
+        "consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models",
+        consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models(
+            consumer_system_v2_dto()
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "name, consumer_system_v2",
+    parameterized_v2_parameters,
+)
 @pytest.mark.snapshot
-def test_compressor_system_v2_results(
-    result: EnergyCalculatorResult, rounded_snapshot, consumer_system_v2_dto: DTOCase
-):
+def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, request):
     """Overview of Consumer system v2 and how to get this done:
 
     1. Get this test to run
@@ -50,25 +78,29 @@ def test_compressor_system_v2_results(
     Note: Consumer system v2 for pump and compressor are very similar. We should consider if they can share most
     of the code. Right now we duplicate code.
     """
-    asset_graph = consumer_system_v2_dto.ecalc_model.get_graph()
+    rounded_snapshot = request.getfixturevalue("rounded_snapshot")
+
+    ecalc_result = result(consumer_system_v2)
+
+    asset_graph = consumer_system_v2.ecalc_model.get_graph()
     pump_system_id = asset_graph.get_component_id_by_name("pump_system")
     pump_system_v2_id = asset_graph.get_component_id_by_name("pump_system_v2")
     compressor_system_id = asset_graph.get_component_id_by_name("compressor_system")
     compressor_system_v2_id = asset_graph.get_component_id_by_name("compressor_system_v2")
 
-    pump_system_result = result.consumer_results[pump_system_id]
+    pump_system_result = ecalc_result.consumer_results[pump_system_id]
     pump_system_component_result = pump_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "pump system"}
     )
-    pump_system_v2_result = result.consumer_results[pump_system_v2_id]
+    pump_system_v2_result = ecalc_result.consumer_results[pump_system_v2_id]
     pump_system_v2_component_result = pump_system_v2_result.component_result.copy(
         update={"operational_settings_results": None, "id": "pump system"}
     )
-    compressor_system_result = result.consumer_results[compressor_system_id]
+    compressor_system_result = ecalc_result.consumer_results[compressor_system_id]
     compressor_system_component_result = compressor_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
-    compressor_system_v2_result = result.consumer_results[compressor_system_v2_id]
+    compressor_system_v2_result = ecalc_result.consumer_results[compressor_system_v2_id]
     compressor_system_v2_component_result = compressor_system_v2_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
@@ -78,12 +110,5 @@ def test_compressor_system_v2_results(
     assert pump_system_component_result.dict() == pump_system_v2_component_result.dict()
     assert compressor_system_component_result.dict() == compressor_system_v2_component_result.dict()
 
-    # Now everything is equal between V1 and V2 except for the fact that the sort the consumers depending on
-    #   crossover flows, and the fact that we don't have names on our components.
-    # assert pump_system_result.dict() == pump_system_v2_result.dict()
-    # assert compressor_system_result.dict() == compressor_system_v2_result.dict()
-
-    # TODO: add test that selects different operational settings per timestep. Add test for temporal op settings
-
-    snapshot_name = "consumer_system_v2.json"
-    rounded_snapshot(data=result.dict(), snapshot_name=snapshot_name)
+    snapshot_name = f"{name}.json"
+    rounded_snapshot(data=ecalc_result.dict(), snapshot_name=snapshot_name)

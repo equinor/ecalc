@@ -27,6 +27,18 @@ class CompressorOperationalSettings(OperationalSettings):
             timesteps=self.timesteps[start_index:end_index],
         )
 
+    def get_subset_for_timestep(self, current_timestep: datetime) -> Self:
+        timestep_index = next(
+            timestep_index for timestep_index, timestep in enumerate(self.timesteps) if current_timestep == timestep
+        )
+
+        return CompressorOperationalSettings(
+            stream_day_rates=[rate[timestep_index] for rate in self.stream_day_rates],
+            inlet_pressure=self.inlet_pressure[timestep_index],
+            outlet_pressure=self.outlet_pressure[timestep_index],
+            timesteps=[self.timesteps[timestep_index]],
+        )
+
     @property
     def regularity(self) -> List[float]:
         return self.stream_day_rates[0].regularity

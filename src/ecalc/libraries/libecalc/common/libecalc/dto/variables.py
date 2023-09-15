@@ -49,5 +49,11 @@ class VariablesMap(BaseModel):
         start_index, end_index = period.get_timestep_indices(self.time_vector)
         return self.get_subset(start_index, end_index)
 
+    def get_subset_for_timestep(self, current_timestep: datetime) -> VariablesMap:
+        timestep_index = next(
+            timestep_index for timestep_index, timestep in enumerate(self.time_vector) if timestep == current_timestep
+        )
+        return self.get_subset(timestep_index, timestep_index + 1)
+
     def zeros(self) -> List[float]:
         return [0.0] * len(self.time_vector)
