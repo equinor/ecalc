@@ -1,11 +1,6 @@
 from typing import Dict, TypeVar, Union
 
-from pydantic import ConstrainedStr
-
-
-class DatetimeString(ConstrainedStr):
-    regex = "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$"
-
+from libecalc.input.yaml_types.yaml_variable import YamlDefaultDatetime
 
 TModel = TypeVar("TModel")
-YamlTemporalModel = Union[TModel, Dict[DatetimeString, TModel]]
+YamlTemporalModel = Union[TModel, Dict[YamlDefaultDatetime, TModel]]

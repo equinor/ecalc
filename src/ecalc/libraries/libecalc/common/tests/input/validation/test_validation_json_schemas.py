@@ -47,11 +47,12 @@ class TestSchemas:
             },
             {
                 "type": "object",
-                "patternProperties": {
-                    "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                    }
-                },
+                # TODO: We need to make a trade off now, either make parsing fail, or that the Open API JSON Schema does not indicate the date pattern we require as key
+                # "patternProperties": {
+                # "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
+                # "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                # }
+                # },
                 "additionalProperties": {
                     "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
                 },
