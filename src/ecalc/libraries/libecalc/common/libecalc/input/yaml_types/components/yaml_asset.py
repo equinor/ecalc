@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Type
 
 from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.input.yaml_types.facility_type.yaml_facility_type import YamlFacilityType
 from libecalc.input.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.input.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
@@ -24,11 +25,6 @@ class YamlAsset(YamlBase):
         def schema_extra(schema: Dict[str, Any], model: Type["YamlAsset"]) -> None:
             replace_placeholder_property_with_legacy_ref(
                 schema=schema,
-                property_key="FACILITY_INPUTS",
-                property_ref="$SERVER_NAME/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS",
-            )
-            replace_placeholder_property_with_legacy_ref(
-                schema=schema,
                 property_key="MODELS",
                 property_ref="$SERVER_NAME/api/v1/schema-validation/models.json#properties/MODELS",
             )
@@ -39,7 +35,7 @@ class YamlAsset(YamlBase):
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
     )
-    facility_inputs: YamlPlaceholderType = Field(
+    facility_inputs: List[YamlFacilityType] = Field(
         None,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
