@@ -138,6 +138,31 @@ def _variable_speed_compressor_chart_mapper(model_config: Dict, resources: Resou
     units = get_units_from_chart_config(chart_config=model_config)
 
     curve_config = model_config.get(EcalcYamlKeywords.consumer_chart_curves)
+
+    name = model_config.get(EcalcYamlKeywords.name)
+
+    # Check if user has used CURVE (reserved for single speed compressors)
+    # instead of CURVES (should be used for variable speed compressors),
+    # and give clear error message.
+    if EcalcYamlKeywords.consumer_chart_curve in model_config:
+        raise DataValidationError(
+            data=model_config,
+            message=f"Compressor model {name}:\n"
+            f"The keyword {EcalcYamlKeywords.consumer_chart_curve} should only be used for "
+            f"single speed compressor models.\n"
+            f"{name} is a variable speed compressor model and should use the keyword "
+            f"{EcalcYamlKeywords.consumer_chart_curves}.",
+        )
+
+    if EcalcYamlKeywords.consumer_chart_curves not in model_config:
+        raise DataValidationError(
+            data=model_config,
+            message=f"The keyword {EcalcYamlKeywords.consumer_chart_curves} is not specified "
+            f"for the compressor model {name}.\n"
+            f"{EcalcYamlKeywords.consumer_chart_curves} is a required keyword for "
+            f"variable speed compressor models.",
+        )
+
     if isinstance(curve_config, dict) and EcalcYamlKeywords.file in curve_config:
         resource_name = curve_config.get(EcalcYamlKeywords.file)
         resource = resources.get(resource_name)
