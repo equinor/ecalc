@@ -279,8 +279,29 @@ class ConsumerSystem(BaseConsumer):
     def _get_crossover_rates(
         max_rate: List[float], rates: List[List[float]]
     ) -> Tuple[NDArray[np.float64], List[List[float]]]:
+        """
+        This function is run over a single consumer only, and is normally run in a for loop
+        across all "dependent" consumers in the consumer system, such as here, in a consumer system.
+
+
+        Args:
+            max_rate: a list of max rates for one consumer, for each relevant timestep
+            rates: list of list of the rates being sent in to this consumer. Usually this will have an outer list of length 1, since the consumer
+            will only have 1 incoming rate. However, due to potential incoming crossover rate, and due to multistream outer length may be > 1. Length of the outer list is
+            1 (standard incoming stream) at index 0, + nr of crossover streams + nr of additional incoming streams (multi stream)
+
+        Returns:    1. the additional crossover rate that is required if the total incoming
+        rate exceeds the max rate capacity for the consumer in question.
+                    2. the rates within capacity of the given consumer
+        """
+
+        # Get total rate across all input rates for this consumer (incl already crossovers from other consumers, if any)
         total_rate = np.sum(rates, axis=0)
+
+        # If we exceed total rate, we need to calculate exceeding rate, and return that as (potential) crossover rate to
+        # another consumer
         crossover_rate = np.where(total_rate > max_rate, total_rate - max_rate, 0)
+
         rates_within_capacity = []
         left_over_crossover_rate = crossover_rate.copy()
         for rate in reversed(rates):
