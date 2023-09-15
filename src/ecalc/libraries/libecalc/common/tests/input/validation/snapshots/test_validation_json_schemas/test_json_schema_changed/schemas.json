@@ -64,11 +64,6 @@
                                     "additionalProperties": {
                                         "type": "string"
                                     },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
-                                    },
                                     "type": "object"
                                 }
                             ],
@@ -121,14 +116,6 @@
                                             "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
                                         },
                                         "type": "array"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "items": {
-                                                "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
-                                            },
-                                            "type": "array"
-                                        }
                                     },
                                     "type": "object"
                                 }
@@ -407,11 +394,6 @@
                                     "additionalProperties": {
                                         "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
                                     },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                        }
-                                    },
                                     "type": "object"
                                 }
                             ],
@@ -514,11 +496,6 @@
                                     "additionalProperties": {
                                         "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
                                     },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
-                                        }
-                                    },
                                     "type": "object"
                                 }
                             ],
@@ -533,11 +510,6 @@
                                 {
                                     "additionalProperties": {
                                         "type": "string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
                                     },
                                     "type": "object"
                                 }
@@ -651,11 +623,6 @@
                                     "additionalProperties": {
                                         "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
                                     },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                                        }
-                                    },
                                     "type": "object"
                                 }
                             ],
@@ -670,11 +637,6 @@
                                 {
                                     "additionalProperties": {
                                         "type": "string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
                                     },
                                     "type": "object"
                                 }
@@ -722,11 +684,6 @@
                                 {
                                     "additionalProperties": {
                                         "type": "string"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
                                     },
                                     "type": "object"
                                 }
@@ -801,27 +758,6 @@
                                         ],
                                         "title": "Expression"
                                     },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "anyOf": [
-                                                {
-                                                    "type": "integer"
-                                                },
-                                                {
-                                                    "type": "number"
-                                                },
-                                                {
-                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                                    "type": "string"
-                                                }
-                                            ],
-                                            "examples": [
-                                                "SIM1;OIL_PROD {+} 1000",
-                                                5
-                                            ],
-                                            "title": "Expression"
-                                        }
-                                    },
                                     "type": "object"
                                 }
                             ],
@@ -873,27 +809,6 @@
                                             5
                                         ],
                                         "title": "Expression"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "anyOf": [
-                                                {
-                                                    "type": "integer"
-                                                },
-                                                {
-                                                    "type": "number"
-                                                },
-                                                {
-                                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
-                                                    "type": "string"
-                                                }
-                                            ],
-                                            "examples": [
-                                                "SIM1;OIL_PROD {+} 1000",
-                                                5
-                                            ],
-                                            "title": "Expression"
-                                        }
                                     },
                                     "type": "object"
                                 }
@@ -979,11 +894,6 @@
                                     "additionalProperties": {
                                         "type": "string"
                                     },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "type": "string"
-                                        }
-                                    },
                                     "type": "object"
                                 }
                             ],
@@ -1036,14 +946,6 @@
                                             "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
                                         },
                                         "type": "array"
-                                    },
-                                    "patternProperties": {
-                                        "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                            "items": {
-                                                "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
-                                            },
-                                            "type": "array"
-                                        }
                                     },
                                     "type": "object"
                                 }
@@ -1291,6 +1193,7 @@
                 },
                 "YamlSingleVariable": {
                     "additionalProperties": false,
+                    "description": "A variable in YAML that can be set to a valid eCalc Expression",
                     "properties": {
                         "VALUE": {
                             "anyOf": [
