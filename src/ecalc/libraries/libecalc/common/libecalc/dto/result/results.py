@@ -20,6 +20,7 @@ from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
 from libecalc.dto.result.simple import SimpleComponentResult, SimpleResultData
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 from libecalc.dto.result.types import opt_float
+from libecalc.dto.types import RateType
 from pydantic import Field, validator
 from typing_extensions import Annotated
 
@@ -138,6 +139,7 @@ class CompressorModelResult(ConsumerModelResultBase, CompressorTrainResult):
     componentType: Literal[ComponentType.COMPRESSOR]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
+    rate_type_all_rates_incl_stages: RateType
 
 
 class GenericModelResult(ConsumerModelResultBase):

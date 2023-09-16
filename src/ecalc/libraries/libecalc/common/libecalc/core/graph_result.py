@@ -302,6 +302,7 @@ class GraphResult:
                                 name=model.name,
                                 componentType=model.component_type,
                                 component_level=ComponentLevel.MODEL,
+                                rate_type_all_rates_incl_stages=RateType.STREAM_DAY,
                                 energy_usage=model.energy_usage,
                                 energy_usage_unit=model.energy_usage_unit,
                                 requested_inlet_pressure=requested_inlet_pressure,
