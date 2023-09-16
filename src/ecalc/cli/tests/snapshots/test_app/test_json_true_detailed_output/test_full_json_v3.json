@@ -787,6 +787,7 @@
         2000000.0,
         3000000.0
       ],
+      "rate_type_all_rates_incl_stages": "STREAM_DAY",
       "requested_inlet_pressure": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -1220,6 +1221,7 @@
         290000000.0,
         293000000.0
       ],
+      "rate_type_all_rates_incl_stages": "STREAM_DAY",
       "requested_inlet_pressure": {
         "timesteps": [
           "2020-01-01 00:00:00",
