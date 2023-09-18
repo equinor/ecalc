@@ -373,6 +373,59 @@
                     "title": "TimeSeries",
                     "type": "object"
                 },
+                "YamlDirectEmitter": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "EMISSION_NAME": {
+                            "description": "Name of emission",
+                            "title": "EMISSION_NAME",
+                            "type": "string"
+                        },
+                        "EMITTER_MODEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/YamlEmitterModel"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/YamlEmitterModel"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "The emitter model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EMITTER_MODEL",
+                            "title": "EMITTER_MODEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the emitter.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "EMISSION_NAME",
+                        "EMITTER_MODEL"
+                    ],
+                    "title": "YamlDirectEmitter",
+                    "type": "object"
+                },
                 "YamlElectricityConsumer": {
                     "additionalProperties": false,
                     "properties": {
@@ -473,6 +526,46 @@
                         "FACTOR"
                     ],
                     "title": "Emission",
+                    "type": "object"
+                },
+                "YamlEmitterModel": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "EMISSION_RATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Emission rate expression [kg/day]",
+                            "title": "EMISSION_RATE"
+                        },
+                        "QUOTA": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Emission cost per emission [NOK/kg]",
+                            "title": "QUOTA"
+                        }
+                    },
+                    "required": [
+                        "EMISSION_RATE"
+                    ],
+                    "title": "YamlEmitterModel",
                     "type": "object"
                 },
                 "YamlFuelConsumer": {
@@ -671,10 +764,13 @@
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
                         },
-                        "DIRECTEMITTERS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json#definitions/DIRECTEMITTERS",
+                        "DIRECT_EMITTERS": {
                             "description": "Covers the direct emissions on the installation that are not consuming energy",
-                            "title": "DIRECTEMITTERS"
+                            "items": {
+                                "$ref": "#/definitions/YamlDirectEmitter"
+                            },
+                            "title": "DIRECT_EMITTERS",
+                            "type": "array"
                         },
                         "FUEL": {
                             "anyOf": [
@@ -1306,171 +1402,7 @@
     {
         "fileMatch": [],
         "schema": {
-            "description": "Category",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/category.json",
-            "properties": {
-                "CATEGORY": {
-                    "anyOf": [
-                        {
-                            "const": "MISCELLANEOUS",
-                            "description": "Anything that doesn't belong in the other categories.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "MISCELLANEOUS"
-                        },
-                        {
-                            "const": "BASE-LOAD",
-                            "description": "Consumers that do not vary with production.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "BASE-LOAD"
-                        },
-                        {
-                            "const": "FIXED-PRODUCTION-LOAD",
-                            "description": "Consumer that is fixed/constant when production stream is on.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "FIXED-PRODUCTION-LOAD"
-                        },
-                        {
-                            "const": "FLARE",
-                            "description": "Flaring related energy usage/emissions.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "FLARE"
-                        },
-                        {
-                            "const": "COLD-VENTING-FUGITIVE",
-                            "description": "Direct emissions through cold venting and fugitive emissions.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "COLD-VENTING-FUGITIVE"
-                        },
-                        {
-                            "const": "COMPRESSOR",
-                            "description": "Gas injection compressors, export compressors, etc..\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "COMPRESSOR"
-                        },
-                        {
-                            "const": "PUMP",
-                            "description": "Single speed pumps, variable speed pumps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "PUMP"
-                        },
-                        {
-                            "const": "FIXED",
-                            "description": "Fixed installation. Reserved for use with INSTALLATION, normally with LTP.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "FIXED"
-                        },
-                        {
-                            "const": "MOBILE",
-                            "description": "Mobile installation. Reserved for use with installation, normally with LTP.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "MOBILE"
-                        },
-                        {
-                            "const": "FUEL-GAS",
-                            "description": "Fuel Gas. Reserved for use with fuel types, normally with LTP.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "FUEL-GAS"
-                        },
-                        {
-                            "const": "DIESEL",
-                            "description": "Diesel. Reserved for use with fuel types, normally with LTP.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "DIESEL"
-                        },
-                        {
-                            "const": "GAS-DRIVEN-COMPRESSOR",
-                            "description": "Used for LTP, to indicate that a compressor is gas (turbine) driven. Valid for compressors only. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "GAS-DRIVEN-COMPRESSOR"
-                        },
-                        {
-                            "const": "TURBINE-GENERATOR",
-                            "description": "Used for LTP, to indicate power to el-driven equipment from a gas turbine generator only. Valid for gensets only. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "TURBINE-GENERATOR"
-                        },
-                        {
-                            "const": "POWER-FROM-SHORE",
-                            "description": "Used for LTP, to indicate that the genset is a dummy (with 0 fuel) for power import from shore. Valid for gensets only. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "POWER-FROM-SHORE"
-                        },
-                        {
-                            "const": "OFFSHORE-WIND",
-                            "description": "Used for LTP, to indicate that the power is offshore wind. Should have negative load  (in order to deduct from total). Valid for direct consumer only. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "OFFSHORE-WIND"
-                        },
-                        {
-                            "const": "LOADING",
-                            "description": "Used for LTP, to indicate oil volume to be loaded. Oil volume per timestep equals fuel. Valid for direct consumer only. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "LOADING"
-                        },
-                        {
-                            "const": "STORAGE",
-                            "description": "Used for LTP, to indicate oil volume to be stored. Oil volume per timestep equals fuel. Valid for direct consumer only. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "STORAGE"
-                        },
-                        {
-                            "const": "STEAM-TURBINE-GENERATOR",
-                            "description": "Used for LTP, to indicate energy provided through steam turbine generator. Should have negative load  (in order to deduct from total). Valid for direct consumer only. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY.html",
-                            "title": "STEAM-TURBINE-GENERATOR"
-                        },
-                        {
-                            "const": "BOILER",
-                            "description": "Used for LTP, to indicate steam generated. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "BOILER"
-                        },
-                        {
-                            "const": "HEATER",
-                            "description": "Used for LTP, to indicate hot medium generated. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "HEATER"
-                        }
-                    ],
-                    "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                    "title": "CATEGORY",
-                    "type": "string"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/category.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "description": "Category",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/category_temporal.json",
-            "properties": {
-                "CATEGORY": {
-                    "oneOf": [
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category.json#properties/CATEGORY"
-                        },
-                        {
-                            "additionalProperties": false,
-                            "patternProperties": {
-                                "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$": {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category.json#properties/CATEGORY"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    ]
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/category_temporal.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
             "definitions": {
-                "CUMULATIVES": {
-                    "description": "Missing documentation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CUMULATIVES",
-                    "properties": {
-                        "^[a-zA-Z0-9_\\[,\\]]+$": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ]
-                        }
-                    },
-                    "title": "CUMULATIVES",
-                    "type": "object"
-                },
                 "ENERGYFUNCTION": {
                     "anyOf": [
                         {
@@ -1613,74 +1545,6 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "DIRECTEMITTERS": {
-                    "description": "Covers the direct emissions on the installation that are not consuming energy",
-                    "items": {
-                        "additionalProperties": false,
-                        "properties": {
-                            "CATEGORY": {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/category_temporal.json#properties/CATEGORY"
-                            },
-                            "EMISSION_NAME": {
-                                "description": "Name of emission",
-                                "title": "EMISSION_NAME",
-                                "type": "string"
-                            },
-                            "EMITTER_MODEL": {
-                                "$ref": "#/definitions/EMITTER_MODEL"
-                            },
-                            "NAME": {
-                                "description": "Name of the emitter.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                "title": "NAME",
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "NAME",
-                            "CATEGORY",
-                            "EMISSION_NAME",
-                            "EMITTER_MODEL"
-                        ],
-                        "type": "object"
-                    },
-                    "title": "DIRECTEMITTERS",
-                    "type": "array"
-                },
-                "EMITTER_MODEL": {
-                    "properties": {
-                        "EMISSION_RATE": {
-                            "description": "Emission rate expression or time series",
-                            "patternProperties": {
-                                "^[a-zA-Z0-9_]+$": {
-                                    "anyOf": [
-                                        {
-                                            "type": "string"
-                                        },
-                                        {
-                                            "type": "number"
-                                        }
-                                    ]
-                                }
-                            }
-                        },
-                        "QUOTA": {
-                            "type": "number"
-                        }
-                    },
-                    "type": "object"
-                }
-            },
-            "description": "Direct Emitters",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json",
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/direct-emitters.json"
     },
     {
         "fileMatch": [],
