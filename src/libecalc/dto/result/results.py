@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
@@ -13,7 +14,11 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
-from libecalc.core.models.results import CompressorTrainResult
+from libecalc.core.models.results.compressor import (
+    CompressorStageResult,
+    CompressorTrainCommonShaftFailureStatus,
+    TurbineResult,
+)
 from libecalc.dto.base import ComponentType
 from libecalc.dto.result.base import EcalcResultBaseModel
 from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
@@ -134,11 +139,17 @@ class PumpModelResult(ConsumerModelResultBase):
     operational_head: Optional[List[float]]
 
 
-class CompressorModelResult(ConsumerModelResultBase, CompressorTrainResult):
+class CompressorModelResult(ConsumerModelResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
+    # max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]]
+    failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
     rate_sm3_day: TimeSeriesRate
+    stage_results: List[CompressorStageResult]
+    turbine_result: Optional[TurbineResult] = None
+    energy_usage_unit: Unit
+    power_unit: Unit
 
 
 class GenericModelResult(ConsumerModelResultBase):
