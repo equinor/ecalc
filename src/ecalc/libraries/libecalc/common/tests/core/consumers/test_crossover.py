@@ -20,18 +20,24 @@ class TestCrossover:
             [1, 1],  # 1 exceeding
             [[4, 4]],
         ),
-        # (  # FAILS: Exceeds capacity, cross over required - fails as well..correct? leads to expected_rates_within_capacity = [[6, 6], [0, 0]]
-        # max_rate = [4, 4]  # 4 for both timesteps
-        # rates = [[5, 5], [2, 2]]  # 4 in rate
-        # expected_crossover_rate = [3, 3]  # 1 exceeding
-        # expected_rates_within_capacity = [[4, 4], [0, 0]]
-        # ),
-        # (  # FAILS: Exceeds capacity, cross over required - bug? leads to expected_rates_within_capacity = [[6, 6], [0, 0]]
-        # max_rate = [4, 4]  # 4 for both timesteps
-        # rates = [[5, 5], [0, 0]]  # 4 in rate
-        # expected_crossover_rate = [1, 1]  # 1 exceeding
-        # expected_rates_within_capacity = [[4, 4], [0, 0]]
-        # ),
+        (  # Exceeds capacity two times, cross over required
+            [4, 4],  # 4 for both timesteps
+            [[5, 5], [2, 2]],  # 4 in rate
+            [3, 3],  # 1 exceeding
+            [[4, 4], [0, 0]],
+        ),
+        (  # Exceeds capacity two times, cross over required
+            [4, 4],  # 4 for both timesteps
+            [[5, 5], [0, 0]],  # 4 in rate
+            [1, 1],  # 1 exceeding
+            [[4, 4], [0, 0]],
+        ),
+        (  # Exceeds capacity three times, cross over required
+            [2, 2],  # 4 for both timesteps
+            [[3, 3], [1, 1], [1, 1]],
+            [3, 3],  # 1 exceeding
+            [[2, 2], [0, 0], [0, 0]],
+        ),
         (  # Under capacity
             [4, 4],  # 4 for both timesteps
             [[2, 2], [1, 1]],  # 3 in rate, below 4
