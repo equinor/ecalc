@@ -150,7 +150,7 @@ class TestReadFacilityResource:
             with pytest.raises(ValueError) as e:
                 file_io.read_facility_resource(create_csv_from_line(get_tmp_path, csv_line))
             assert (
-                str(e.value) == "Csv input file must include header, each header value must start with a letter in the "
+                str(e.value) == "Each header value must start with a letter in the "
                 "english alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following "
                 "characters [ _ - # + : . , /] "
             )
@@ -158,11 +158,7 @@ class TestReadFacilityResource:
     def test_missing_headers(self, get_tmp_path):
         with pytest.raises(ValueError) as e:
             file_io.read_facility_resource(create_csv_from_line(get_tmp_path, "HEADER1        ,,HEADER3"))
-        assert (
-            str(e.value) == "Csv input file must include header, each header value must start with a letter in the "
-            "english alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following "
-            "characters [ _ - # + : . , /] "
-        )
+        assert str(e.value) == "CSV input file must include header"
 
 
 @pytest.fixture
