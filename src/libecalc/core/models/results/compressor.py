@@ -10,6 +10,7 @@ from libecalc import dto
 from libecalc.common.list_utils import elementwise_sum
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.core.models.results.base import (
     EnergyFunctionResult,
     EnergyModelBaseResult,
@@ -121,7 +122,7 @@ class CompressorStageResult(EnergyModelBaseResult):
 class CompressorTrainResult(EnergyFunctionResult):
     """The compressor train result component."""
 
-    rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]]]
+    rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]], TimeSeriesRate]
     max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]]
 
     stage_results: List[CompressorStageResult]
