@@ -138,6 +138,7 @@ class CompressorModelResult(ConsumerModelResultBase, CompressorTrainResult):
     componentType: Literal[ComponentType.COMPRESSOR]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
+    rate_sm3_day: TimeSeriesRate
 
 
 class GenericModelResult(ConsumerModelResultBase):
