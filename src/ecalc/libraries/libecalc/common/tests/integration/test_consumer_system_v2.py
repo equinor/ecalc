@@ -1,13 +1,21 @@
+import itertools
+import json
+from pathlib import Path
+
 import pytest
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import EnergyCalculatorResult, GraphResult
-from libecalc.fixtures import DTOCase
+from libecalc.fixtures import DTOCase, consumer_system_v2_dto
+from libecalc.fixtures.cases.consumer_system_v2.consumer_system_v2_dto import (
+    consumer_system_v2_dto_temporal_operational_settings,
+    consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models,
+    consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models,
+)
 
 
-@pytest.fixture
-def result(consumer_system_v2_dto) -> EnergyCalculatorResult:
-    ecalc_model = consumer_system_v2_dto.ecalc_model
-    variables = consumer_system_v2_dto.variables
+def result(consumer_system_v2: DTOCase) -> EnergyCalculatorResult:
+    ecalc_model = consumer_system_v2.ecalc_model
+    variables = consumer_system_v2.variables
 
     graph = ecalc_model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
@@ -26,11 +34,41 @@ def result(consumer_system_v2_dto) -> EnergyCalculatorResult:
     return result
 
 
+parameterized_v2_parameters = [
+    (
+        "consumer_system_v2",
+        consumer_system_v2_dto(),
+    ),
+    (
+        "consumer_system_v2_with_temporal_operational_settings",
+        consumer_system_v2_dto_temporal_operational_settings(consumer_system_v2_dto()),
+    ),
+    (
+        "consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models",
+        consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models(consumer_system_v2_dto()),
+    ),
+    (
+        "consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models",
+        consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models(
+            consumer_system_v2_dto()
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "name, consumer_system_v2",
+    parameterized_v2_parameters,
+)
 @pytest.mark.snapshot
-def test_compressor_system_v2_results(
-    result: EnergyCalculatorResult, rounded_snapshot, consumer_system_v2_dto: DTOCase
-):
-    """Overview of Consumer system v2 and how to get this done:
+def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, request):
+    """
+    NOTE: The test below depends on this test. If the order of parameters or names of the parameters are
+    changed, the test below will fail. This test is meant to show that despite different permutations of
+    temporal models for consumers (in a consumer system) or temporal operational settings, the results
+    will/shall be the same.
+
+    Overview of Consumer system v2 and how to get this done:
 
     1. Get this test to run
         We've done breaking changes in v8 that did not get fixed in consumer system v2 due to this test being
@@ -50,25 +88,29 @@ def test_compressor_system_v2_results(
     Note: Consumer system v2 for pump and compressor are very similar. We should consider if they can share most
     of the code. Right now we duplicate code.
     """
-    asset_graph = consumer_system_v2_dto.ecalc_model.get_graph()
+    rounded_snapshot = request.getfixturevalue("rounded_snapshot")
+
+    ecalc_result = result(consumer_system_v2)
+
+    asset_graph = consumer_system_v2.ecalc_model.get_graph()
     pump_system_id = asset_graph.get_component_id_by_name("pump_system")
     pump_system_v2_id = asset_graph.get_component_id_by_name("pump_system_v2")
     compressor_system_id = asset_graph.get_component_id_by_name("compressor_system")
     compressor_system_v2_id = asset_graph.get_component_id_by_name("compressor_system_v2")
 
-    pump_system_result = result.consumer_results[pump_system_id]
+    pump_system_result = ecalc_result.consumer_results[pump_system_id]
     pump_system_component_result = pump_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "pump system"}
     )
-    pump_system_v2_result = result.consumer_results[pump_system_v2_id]
+    pump_system_v2_result = ecalc_result.consumer_results[pump_system_v2_id]
     pump_system_v2_component_result = pump_system_v2_result.component_result.copy(
         update={"operational_settings_results": None, "id": "pump system"}
     )
-    compressor_system_result = result.consumer_results[compressor_system_id]
+    compressor_system_result = ecalc_result.consumer_results[compressor_system_id]
     compressor_system_component_result = compressor_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
-    compressor_system_v2_result = result.consumer_results[compressor_system_v2_id]
+    compressor_system_v2_result = ecalc_result.consumer_results[compressor_system_v2_id]
     compressor_system_v2_component_result = compressor_system_v2_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
@@ -78,12 +120,40 @@ def test_compressor_system_v2_results(
     assert pump_system_component_result.dict() == pump_system_v2_component_result.dict()
     assert compressor_system_component_result.dict() == compressor_system_v2_component_result.dict()
 
-    # Now everything is equal between V1 and V2 except for the fact that the sort the consumers depending on
-    #   crossover flows, and the fact that we don't have names on our components.
-    # assert pump_system_result.dict() == pump_system_v2_result.dict()
-    # assert compressor_system_result.dict() == compressor_system_v2_result.dict()
+    snapshot_name = f"{name}.json"
+    rounded_snapshot(data=ecalc_result.dict(), snapshot_name=snapshot_name)
 
-    # TODO: add test that selects different operational settings per timestep. Add test for temporal op settings
 
-    snapshot_name = "consumer_system_v2.json"
-    rounded_snapshot(data=result.dict(), snapshot_name=snapshot_name)
+def test_compare_snapshots(snapshot):
+    """
+    NOTE: This test depends on the test above. If you change order or names of the above tests, this will fail.
+    This test is meant to show that despite different permutations of temporal models for consumers (in a consumer system) or temporal operational settings, the results
+    will/shall be the same.
+
+    Above, we generate snapshots for different scenarios wrt. temporal models etc. We should perhaps be able to
+    compare those snapshots with each other...at least the "main result" should be comparable - since
+    all the models above should yield the same results, but they are just using different temporal models ... but
+    the temporal models have the same data
+    :return:
+    """
+
+    consumer_system_v2_snapshots = []
+
+    for consumer_system_v2_snapshot_index, consumer_system_v2_snapshot in enumerate(parameterized_v2_parameters):
+        consumer_system_v2_snapshot_name, _ = consumer_system_v2_snapshot
+
+        print(f"testing {consumer_system_v2_snapshot_name}")
+        # NOTE: When we use parameterized tests, there is some magic wrt. the name the snapshots are given, to make sure that they are 1. unique and 2. retrievable
+        with open(
+            Path(
+                snapshot.snapshot_dir.parent
+                / "test_compressor_system_v2_results"
+                / f"{consumer_system_v2_snapshot_name}-consumer_system_v2{consumer_system_v2_snapshot_index}"
+                / f"{consumer_system_v2_snapshot_name}.json"
+            )
+        ) as snapshot_file:
+            consumer_system_v2_snapshots.append(json.loads(snapshot_file.read()))
+
+    # Will generate pairs of all combinations of snapshots in order to compare all against each other for equality
+    for a, b in itertools.combinations(consumer_system_v2_snapshots, 2):
+        assert a == b

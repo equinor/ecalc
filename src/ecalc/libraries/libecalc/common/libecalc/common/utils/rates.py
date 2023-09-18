@@ -184,6 +184,20 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             unit=self.unit,
         )
 
+    def for_timestep(self, current_timestep: datetime) -> Self:
+        """
+        Get the timeseries data for the single timestep given
+        :param current_timestep:
+        :return: A timeseries with a single step/value corresponding to the timestep given
+        """
+        timestep_index = self.timesteps.index(current_timestep)
+
+        return self.__class__(
+            timesteps=self.timesteps[timestep_index : timestep_index + 1],
+            values=self.values[timestep_index : timestep_index + 1],
+            unit=self.unit,
+        )
+
     def to_unit(self, unit: Unit) -> Self:
         if unit == self.unit:
             return self.copy()
@@ -586,11 +600,13 @@ class TimeSeriesRate(TimeSeries[float]):
     """
 
     rate_type: Optional[RateType] = RateType.STREAM_DAY
-    regularity: Optional[List[float]]
+    regularity: Optional[List[float]]  # TODO: Consider to set explicitly as a fallback to 1 may easily lead to errors
 
     @validator("regularity", pre=True, always=True)
     def set_regularity(cls, regularity: Optional[List[float]], values: Dict[str, Any]) -> List[float]:
-        if regularity is not None:
+        if (
+            regularity is not None and regularity != []
+        ):  # TODO: Current workaround. To be handled when regularity is handled correctly
             return regularity
         try:
             return [1] * len(values["values"])
@@ -659,6 +675,21 @@ class TimeSeriesRate(TimeSeries[float]):
             timesteps=self.timesteps[start_index:end_index],
             values=self.values[start_index:end_index],
             regularity=self.regularity[start_index:end_index],  # type: ignore
+            unit=self.unit,
+            rate_type=self.rate_type,
+        )
+
+    def for_timestep(self, current_timestep: datetime) -> Self:
+        """
+        Get the timeseries data for the single timestep given
+        :param current_timestep:
+        :return: A timeseries with a single step/value corresponding to the timestep given
+        """
+        timestep_index = self.timesteps.index(current_timestep)
+        return self.__class__(
+            timesteps=self.timesteps[timestep_index : timestep_index + 1],
+            values=self.values[timestep_index : timestep_index + 1],
+            regularity=self.regularity[timestep_index : timestep_index + 1],  # type: ignore
             unit=self.unit,
             rate_type=self.rate_type,
         )
@@ -826,4 +857,6 @@ class TimeSeriesRate(TimeSeries[float]):
         Ensure to map correct value to correct timestep in the final resulting time vector.
         """
         reindex_values = self.reindex_time_vector(new_time_vector)
-        return TimeSeriesRate(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
+        return TimeSeriesRate(
+            timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit, regularity=self.regularity
+        )

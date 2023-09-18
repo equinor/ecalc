@@ -27,6 +27,22 @@ class CompressorOperationalSettings(OperationalSettings):
             timesteps=self.timesteps[start_index:end_index],
         )
 
+    def get_subset_for_timestep(self, current_timestep: datetime) -> Self:
+        """
+        For a given timestep, get the operational settings that is relevant
+        for that timestep only. Only valid for timesteps a part of the global timevector.
+        :param current_timestep: the timestep must be a part of the global timevector
+        :return:
+        """
+        timestep_index = self.timesteps.index(current_timestep)
+
+        return CompressorOperationalSettings(
+            stream_day_rates=[rate[timestep_index] for rate in self.stream_day_rates],
+            inlet_pressure=self.inlet_pressure[timestep_index],
+            outlet_pressure=self.outlet_pressure[timestep_index],
+            timesteps=[self.timesteps[timestep_index]],
+        )
+
     @property
     def regularity(self) -> List[float]:
         return self.stream_day_rates[0].regularity

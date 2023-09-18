@@ -49,5 +49,14 @@ class VariablesMap(BaseModel):
         start_index, end_index = period.get_timestep_indices(self.time_vector)
         return self.get_subset(start_index, end_index)
 
+    def get_subset_for_timestep(self, current_timestep: datetime) -> VariablesMap:
+        """
+        Get variables that are active and in use for the given timestep only
+        :param current_timestep:
+        :return:
+        """
+        timestep_index = self.time_vector.index(current_timestep)
+        return self.get_subset(timestep_index, timestep_index + 1)
+
     def zeros(self) -> List[float]:
         return [0.0] * len(self.time_vector)

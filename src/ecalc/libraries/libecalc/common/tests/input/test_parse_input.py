@@ -49,11 +49,11 @@ class TestParseYaml:
         assert model_dto.dict() == all_energy_usage_models_dto.ecalc_model.dict()
         assert variables == all_energy_usage_models_dto.variables
 
-    def test_parse_input_with_consumer_system_v2(self, consumer_system_v2_yaml, consumer_system_v2_dto):
+    def test_parse_input_with_consumer_system_v2(self, consumer_system_v2_yaml, consumer_system_v2_dto_fixture):
         model_dto, variables = parse_input(
             ResourceStream(stream=consumer_system_v2_yaml.main_file, name="consumer_system_v2.yaml"),
             resources=consumer_system_v2_yaml.resources,
         )
 
-        assert model_dto.dict() == consumer_system_v2_dto.ecalc_model.dict()
-        assert variables == consumer_system_v2_dto.variables
+        assert model_dto.dict() == consumer_system_v2_dto_fixture.ecalc_model.dict()
+        assert variables == consumer_system_v2_dto_fixture.variables
