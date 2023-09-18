@@ -328,6 +328,45 @@
                     "title": "CompressorSystemOperationalSettings",
                     "type": "object"
                 },
+                "YamlCompressorTabularModel": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "ADJUSTMENT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                }
+                            ],
+                            "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
+                            "title": "ADJUSTMENT"
+                        },
+                        "FILE": {
+                            "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
+                            "title": "FILE",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Name of the facility input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "COMPRESSOR_TABULAR"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FILE",
+                        "TYPE"
+                    ],
+                    "title": "YamlCompressorTabularModel",
+                    "type": "object"
+                },
                 "YamlDefaultTimeSeriesCollection": {
                     "additionalProperties": false,
                     "properties": {
@@ -568,6 +607,25 @@
                     "title": "YamlEmitterModel",
                     "type": "object"
                 },
+                "YamlFacilityAdjustment": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONSTANT": {
+                            "default": 0,
+                            "description": "Adjust input data with a constant value.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSTANT",
+                            "title": "CONSTANT",
+                            "type": "number"
+                        },
+                        "FACTOR": {
+                            "default": 1,
+                            "description": "Adjust input data with a constant multiplier.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACTOR",
+                            "title": "FACTOR",
+                            "type": "number"
+                        }
+                    },
+                    "title": "YamlFacilityAdjustment",
+                    "type": "object"
+                },
                 "YamlFuelConsumer": {
                     "additionalProperties": false,
                     "properties": {
@@ -750,6 +808,45 @@
                         "CONSUMERS"
                     ],
                     "title": "GeneratorSet",
+                    "type": "object"
+                },
+                "YamlGeneratorSetModel": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "ADJUSTMENT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                }
+                            ],
+                            "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
+                            "title": "ADJUSTMENT"
+                        },
+                        "FILE": {
+                            "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
+                            "title": "FILE",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Name of the facility input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "ELECTRICITY2FUEL"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FILE",
+                        "TYPE"
+                    ],
+                    "title": "YamlGeneratorSetModel",
                     "type": "object"
                 },
                 "YamlInstallation": {
@@ -1006,6 +1103,153 @@
                         "ENERGY_USAGE_MODEL"
                     ],
                     "title": "Pump",
+                    "type": "object"
+                },
+                "YamlPumpChartSingleSpeed": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "ADJUSTMENT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                }
+                            ],
+                            "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
+                            "title": "ADJUSTMENT"
+                        },
+                        "FILE": {
+                            "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
+                            "title": "FILE",
+                            "type": "string"
+                        },
+                        "HEAD_MARGIN": {
+                            "description": "Adjustment of the head margin for power calibration.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HEAD_MARGIN",
+                            "title": "HEAD_MARGIN",
+                            "type": "number"
+                        },
+                        "NAME": {
+                            "description": "Name of the facility input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "PUMP_CHART_SINGLE_SPEED"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        },
+                        "UNITS": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlPumpChartUnits"
+                                }
+                            ],
+                            "description": "Units for pump charts: RATE, HEAD and EFFICIENCY.",
+                            "title": "UNITS"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FILE",
+                        "UNITS",
+                        "TYPE"
+                    ],
+                    "title": "YamlPumpChartSingleSpeed",
+                    "type": "object"
+                },
+                "YamlPumpChartUnits": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "EFFICIENCY": {
+                            "description": "Unit of efficiency in pump chart. Supported units are PERCENTAGE (default) and FRACTION.",
+                            "enum": [
+                                "PERCENTAGE",
+                                "FRACTION"
+                            ],
+                            "title": "EFFICIENCY",
+                            "type": "string"
+                        },
+                        "HEAD": {
+                            "description": "Unit for head in pump chart. Supported units are M (default), KJ_PER_KG and JOULE_PER_KG",
+                            "enum": [
+                                "M",
+                                "KJ_PER_KG",
+                                "JOULE_PER_KG"
+                            ],
+                            "title": "HEAD",
+                            "type": "string"
+                        },
+                        "RATE": {
+                            "description": "Unit for rate in pump chart. Currently only AM3_PER_HOUR is supported",
+                            "enum": [
+                                "AM3_PER_HOUR"
+                            ],
+                            "title": "RATE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "RATE",
+                        "HEAD",
+                        "EFFICIENCY"
+                    ],
+                    "title": "YamlPumpChartUnits",
+                    "type": "object"
+                },
+                "YamlPumpChartVariableSpeed": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "ADJUSTMENT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                }
+                            ],
+                            "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
+                            "title": "ADJUSTMENT"
+                        },
+                        "FILE": {
+                            "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
+                            "title": "FILE",
+                            "type": "string"
+                        },
+                        "HEAD_MARGIN": {
+                            "description": "Adjustment of the head margin for power calibration.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HEAD_MARGIN",
+                            "title": "HEAD_MARGIN",
+                            "type": "number"
+                        },
+                        "NAME": {
+                            "description": "Name of the facility input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "PUMP_CHART_VARIABLE_SPEED"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        },
+                        "UNITS": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlPumpChartUnits"
+                                }
+                            ],
+                            "description": "Units for pump charts: RATE, HEAD and EFFICIENCY.",
+                            "title": "UNITS"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FILE",
+                        "UNITS",
+                        "TYPE"
+                    ],
+                    "title": "YamlPumpChartVariableSpeed",
                     "type": "object"
                 },
                 "YamlPumpSystem": {
@@ -1316,6 +1560,45 @@
                     ],
                     "title": "YamlSingleVariable",
                     "type": "object"
+                },
+                "YamlTabularModel": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "ADJUSTMENT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                }
+                            ],
+                            "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
+                            "title": "ADJUSTMENT"
+                        },
+                        "FILE": {
+                            "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
+                            "title": "FILE",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Name of the facility input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "TABULAR"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "FILE",
+                        "TYPE"
+                    ],
+                    "title": "YamlTabularModel",
+                    "type": "object"
                 }
             },
             "description": "An eCalc\u2122 yaml file",
@@ -1326,9 +1609,38 @@
                     "type": "string"
                 },
                 "FACILITY_INPUTS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json#properties/FACILITY_INPUTS",
                     "description": "Defines input files which characterize various facility elements.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACILITY_INPUTS",
-                    "title": "FACILITY_INPUTS"
+                    "items": {
+                        "discriminator": {
+                            "mapping": {
+                                "COMPRESSOR_TABULAR": "#/definitions/YamlCompressorTabularModel",
+                                "ELECTRICITY2FUEL": "#/definitions/YamlGeneratorSetModel",
+                                "PUMP_CHART_SINGLE_SPEED": "#/definitions/YamlPumpChartSingleSpeed",
+                                "PUMP_CHART_VARIABLE_SPEED": "#/definitions/YamlPumpChartVariableSpeed",
+                                "TABULAR": "#/definitions/YamlTabularModel"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/YamlGeneratorSetModel"
+                            },
+                            {
+                                "$ref": "#/definitions/YamlTabularModel"
+                            },
+                            {
+                                "$ref": "#/definitions/YamlCompressorTabularModel"
+                            },
+                            {
+                                "$ref": "#/definitions/YamlPumpChartSingleSpeed"
+                            },
+                            {
+                                "$ref": "#/definitions/YamlPumpChartVariableSpeed"
+                            }
+                        ]
+                    },
+                    "title": "FACILITY_INPUTS",
+                    "type": "array"
                 },
                 "FUEL_TYPES": {
                     "description": "Specifies the various fuel types and associated emissions used in the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL_TYPES",
@@ -2511,182 +2823,6 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "description": "Facility files",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json",
-            "properties": {
-                "FACILITY_INPUTS": {
-                    "items": {
-                        "additionalProperties": false,
-                        "else": {
-                            "required": [
-                                "NAME",
-                                "FILE",
-                                "TYPE"
-                            ]
-                        },
-                        "if": {
-                            "anyOf": [
-                                {
-                                    "properties": {
-                                        "TYPE": {
-                                            "const": "PUMP_CHART_SINGLE_SPEED"
-                                        }
-                                    },
-                                    "required": [
-                                        "TYPE"
-                                    ]
-                                },
-                                {
-                                    "properties": {
-                                        "TYPE": {
-                                            "const": "PUMP_CHART_VARIABLE_SPEED"
-                                        }
-                                    },
-                                    "required": [
-                                        "TYPE"
-                                    ]
-                                }
-                            ]
-                        },
-                        "properties": {
-                            "ADJUSTMENT": {
-                                "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
-                                "oneOf": [
-                                    {
-                                        "required": [
-                                            "CONSTANT"
-                                        ]
-                                    },
-                                    {
-                                        "required": [
-                                            "FACTOR"
-                                        ]
-                                    }
-                                ],
-                                "properties": {
-                                    "CONSTANT": {
-                                        "description": "Adjust input data with a constant value.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSTANT",
-                                        "title": "CONSTANT",
-                                        "type": "number"
-                                    },
-                                    "FACTOR": {
-                                        "description": "Adjust input data with a constant multiplier.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACTOR",
-                                        "title": "FACTOR",
-                                        "type": "number"
-                                    }
-                                },
-                                "title": "ADJUSTMENT",
-                                "type": "object"
-                            },
-                            "FILE": {
-                                "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
-                                "title": "FILE",
-                                "type": "string"
-                            },
-                            "HEAD_MARGIN": {
-                                "description": "Adjustment of the head margin for power calibration.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HEAD_MARGIN",
-                                "title": "HEAD_MARGIN",
-                                "type": "number"
-                            },
-                            "NAME": {
-                                "description": "Name of the facility input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                "title": "NAME",
-                                "type": "string"
-                            },
-                            "TYPE": {
-                                "anyOf": [
-                                    {
-                                        "const": "ELECTRICITY2FUEL",
-                                        "description": "Table specifying the relationship between electrical load and fuel consumption for an entire generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE#use-in-facility-inputs",
-                                        "title": "ELECTRICITY2FUEL"
-                                    },
-                                    {
-                                        "const": "TABULAR",
-                                        "description": "Consumer energy function for pure barycentric interpolation, no extrapolation outside convex area.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE#use-in-facility-inputs",
-                                        "title": "TABULAR"
-                                    },
-                                    {
-                                        "const": "COMPRESSOR_TABULAR",
-                                        "description": "Consumer energy function for compressor (or compressor train) in tabular format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE.html#use-in-facility-inputs",
-                                        "title": "COMPRESSOR_TABULAR"
-                                    },
-                                    {
-                                        "const": "PUMP_CHART_SINGLE_SPEED",
-                                        "description": "Pump chart data for single speed pump.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE#use-in-facility-inputs",
-                                        "title": "PUMP_CHART_SINGLE_SPEED"
-                                    },
-                                    {
-                                        "const": "PUMP_CHART_VARIABLE_SPEED",
-                                        "description": "Pump chart data for variable speed (VSD) pump.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE#use-in-facility-inputs",
-                                        "title": "PUMP_CHART_VARIABLE_SPEED"
-                                    }
-                                ],
-                                "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                                "title": "TYPE",
-                                "type": "string"
-                            },
-                            "UNITS": {
-                                "additionalProperties": false,
-                                "description": "Units for pump charts: RATE, HEAD and EFFICIENCY.",
-                                "properties": {
-                                    "EFFICIENCY": {
-                                        "anyOf": [
-                                            {
-                                                "const": "FRACTION"
-                                            },
-                                            {
-                                                "const": "PERCENTAGE"
-                                            }
-                                        ],
-                                        "description": "Unit of efficiency in pump chart. Supported units are PERCENTAGE (default) and FRACTION.",
-                                        "title": "EFFICIENCY"
-                                    },
-                                    "HEAD": {
-                                        "anyOf": [
-                                            {
-                                                "const": "M"
-                                            },
-                                            {
-                                                "const": "KJ_PER_KG"
-                                            },
-                                            {
-                                                "const": "JOULE_PER_KG"
-                                            }
-                                        ],
-                                        "description": "Unit for head in pump chart. Supported units are M (default), KJ_PER_KG and JOULE_PER_KG",
-                                        "title": "HEAD"
-                                    },
-                                    "RATE": {
-                                        "const": "AM3_PER_HOUR",
-                                        "description": "Unit for rate in pump chart. Currently only AM3_PER_HOUR is supported",
-                                        "title": "RATE"
-                                    }
-                                },
-                                "title": "pump_chart_units",
-                                "type": "object"
-                            }
-                        },
-                        "then": {
-                            "required": [
-                                "NAME",
-                                "FILE",
-                                "TYPE",
-                                "UNITS"
-                            ]
-                        },
-                        "type": "object"
-                    },
-                    "type": "array"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/facility-files.json"
     },
     {
         "fileMatch": [],
