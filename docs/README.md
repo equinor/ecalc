@@ -114,10 +114,10 @@ $ npm run serve
 ```
 
 ### Generate CLI reference documentation
-In order to generate the CLI reference documentation, use the following (from `src/ecalc/cli`):
+In order to generate the CLI reference documentation, use the following (from `src`):
 ```
-$ cd src/ecalc/cli
-$ poetry run python generate_docs.py > ../../../docs/docs/about/references/cli_reference.md
+$ cd src
+$ poetry run python generate_docs.py > ../docs/docs/about/references/cli_reference.md
 ```
 
 Then build the documentation:

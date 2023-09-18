@@ -4,7 +4,7 @@
 * @equinor/ecalc-ops-team
 
 # eCalc Lib
-/src/ecalc/ @equinor/ecalc-core-library-team
+/src/ @equinor/ecalc-core-library-team
 
 # Examples
 /examples/ @equinor/ecalc-core-library-team

@@ -31,8 +31,8 @@ jobs:
     
     - name: Generate CLI reference
       run: |
-        cd src/ecalc/cli
-        poetry run python generate_docs.py > ../../../docs/docs/about/references/cli_reference.md
+        cd src
+        poetry run python generate_docs.py > ../docs/docs/about/references/cli_reference.md
 
     - name: Setup node
       uses: actions/setup-node@v3

@@ -29,12 +29,6 @@ classifiers=[
     "Natural Language :: English",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
-packages = [
-    { include = "cli", from = "src/ecalc/cli" },
-    { include = "neqsim_ecalc_wrapper", from = "src/ecalc/libraries/neqsim" },
-    { include = "libecalc", from = "src/ecalc/libraries/libecalc/common" },
-    { include = "libecalc", from = "src/ecalc/libraries/libecalc/fixtures" },
-]
 
 [tool.poetry.scripts]
 ecalc = 'cli.main:main'
