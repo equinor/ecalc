@@ -210,59 +210,56 @@ class PumpResult(GenericComponentResult):
             operational_head=self.operational_head[indices],
         )
 
-    def merge(self, *other_compressor_results: CompressorResult) -> Self:
+    def merge(self, *other_pump_results: PumpResult) -> Self:
         """
         Merge all attributes of a sequence type, while also making sure the other attributes can be merged (i.e. id should be equal).
         Args:
-            *other_compressor_results:
+            *other_pump_results:
 
         Returns:
 
         """
 
         # Verify that the results are for the same consumer
-        if len({self.id, *[other_compressor_result.id for other_compressor_result in other_compressor_results]}) == 1:
+        if len({self.id, *[other_pump_result.id for other_pump_result in other_pump_results]}) != 1:
             raise ValueError("Can not merge results with differing ids.")
 
         # Verify units and rate types
         for key, value in self.__dict__.items():
-            for other_compressor_result in other_compressor_results:
-                other_value = other_compressor_result.__getattribute__(key)
+            for other_pump_result in other_pump_results:
+                other_value = other_pump_result.__getattribute__(key)
                 if isinstance(value, TimeSeriesRate):
                     if not isinstance(other_value, TimeSeriesRate):
-                        raise ValueError(
-                            f"Invalid type of {key} for compressor result with id {other_compressor_result.id}"
-                        )
-                    if value.typ != other_value.typ:
+                        raise ValueError(f"Invalid type of {key} for pump result with id {other_pump_result.id}")
+                    if value.rate_type != other_value.rate_type:
                         raise ValueError("Rate types does not match")
 
                 if isinstance(value, TimeSeries):
                     if not isinstance(other_value, TimeSeries):
-                        raise ValueError(
-                            f"Invalid type of {key} for compressor result with id {other_compressor_result.id}"
-                        )
+                        raise ValueError(f"Invalid type of {key} for pump result with id {other_pump_result.id}")
 
                     if value.unit != other_value.unit:
                         raise ValueError("Units does not match")
 
-        merged_columns = self._merge_columns(*other_compressor_results)
+        merged_columns = self._merge_columns(*other_pump_results)
         timesteps = merged_columns.get("timesteps")
 
         return self.__class__(
+            id=self.id,
             timesteps=timesteps,
             energy_usage=TimeSeriesRate(
                 timesteps=timesteps,
                 values=merged_columns.get("energy_usage"),
                 unit=self.energy_usage.unit,
                 regularity=merged_columns.get("energy_usage_regularity"),
-                typ=self.energy_usage.typ,
+                rate_type=self.energy_usage.rate_type,
             ),
             power=TimeSeriesRate(
                 timesteps=timesteps,
                 values=merged_columns.get("power"),
                 unit=self.power.unit,
                 regularity=merged_columns.get("power_regularity"),
-                typ=self.energy_usage.typ,
+                rate_type=self.energy_usage.rate_type,
             ),
             is_valid=TimeSeriesBoolean(
                 timesteps=timesteps,
@@ -274,7 +271,7 @@ class PumpResult(GenericComponentResult):
                 values=merged_columns.get("inlet_liquid_rate_m3_per_day"),
                 unit=self.inlet_liquid_rate_m3_per_day.unit,
                 regularity=merged_columns.get("inlet_liquid_rate_m3_per_day_regularity"),
-                typ=self.inlet_liquid_rate_m3_per_day.typ,
+                rate_type=self.inlet_liquid_rate_m3_per_day.rate_type,
             ),
             inlet_pressure_bar=TimeSeriesFloat(
                 timesteps=timesteps,

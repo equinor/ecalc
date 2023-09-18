@@ -30,14 +30,21 @@ class Pump(BaseConsumerWithoutOperationalSettings):
         self._operational_settings = None
 
     def get_max_rate(self, operational_settings: PumpOperationalSettings) -> List[float]:
+        """
+        For each timestep, get the maximum rate that this pump can handle, given
+        the operational settings given, such as in -and outlet pressures and fluid density (current conditions)
+        :param operational_settings:
+        :return:
+        """
         results = []
-        for period, pump in self._temporal_model.items():
-            operational_settings_this_period = operational_settings.get_subset_from_period(period)
+        for timestep in operational_settings.timesteps:
+            pump = self._temporal_model.get_model(timestep)
+            operational_settings_this_timestep = operational_settings.get_subset_for_timestep(timestep)
             results.extend(
                 pump.get_max_standard_rate(
-                    suction_pressures=np.asarray(operational_settings_this_period.inlet_pressure.values),
-                    discharge_pressures=np.asarray(operational_settings_this_period.outlet_pressure.values),
-                    fluid_density=np.asarray(operational_settings_this_period.fluid_density.values),
+                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_pressure.values),
+                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_pressure.values),
+                    fluid_density=np.asarray(operational_settings_this_timestep.fluid_density.values),
                 ).tolist()
             )
         return results
@@ -58,18 +65,20 @@ class Pump(BaseConsumerWithoutOperationalSettings):
 
         # Regularity is the same for all rate vectors.
         # In case of cross-overs or multiple streams, there may be multiple rate vectors.
+        # TODO: False assumption, to be handled shortly
         regularity = operational_settings.stream_day_rates[0].regularity
 
         model_results = []
         evaluated_timesteps = []
-        for period, pump in self._temporal_model.items():
-            operational_settings_this_period = operational_settings.get_subset_from_period(period)
-            evaluated_timesteps.extend(operational_settings_this_period.timesteps)
+        for timestep in operational_settings.timesteps:
+            pump = self._temporal_model.get_model(timestep)
+            operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
+            evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
             model_result = pump.evaluate_rate_ps_pd_density(
-                rate=np.sum([rate.values for rate in operational_settings_this_period.stream_day_rates], axis=0),
-                suction_pressures=np.asarray(operational_settings_this_period.inlet_pressure.values),
-                discharge_pressures=np.asarray(operational_settings_this_period.outlet_pressure.values),
-                fluid_density=np.asarray(operational_settings_this_period.fluid_density.values),
+                rate=np.sum([rate.values for rate in operational_settings_for_timestep.stream_day_rates], axis=0),
+                suction_pressures=np.asarray(operational_settings_for_timestep.inlet_pressure.values),
+                discharge_pressures=np.asarray(operational_settings_for_timestep.outlet_pressure.values),
+                fluid_density=np.asarray(operational_settings_for_timestep.fluid_density.values),
             )
             model_results.append(model_result)
 
