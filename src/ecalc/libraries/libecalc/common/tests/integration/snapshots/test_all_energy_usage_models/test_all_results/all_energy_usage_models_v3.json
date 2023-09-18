@@ -8359,12 +8359,7 @@
                             ],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": [
-                                    3035242.5,
-                                    2372352.0,
-                                    2667349.5,
-                                    0.0
-                                ],
+                                "actual_rate_m3_per_hr": null,
                                 "density_kg_per_m3": null,
                                 "kappa": null,
                                 "pressure": [
@@ -19502,12 +19497,7 @@
                                     ],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": [
-                                            3035242.5,
-                                            2372352.0,
-                                            2667349.5,
-                                            0.0
-                                        ],
+                                        "actual_rate_m3_per_hr": null,
                                         "density_kg_per_m3": null,
                                         "kappa": null,
                                         "pressure": [
@@ -19690,12 +19680,7 @@
                                     ],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": [
-                                            3035242.5,
-                                            2372352.0,
-                                            2667349.5,
-                                            0.0
-                                        ],
+                                        "actual_rate_m3_per_hr": null,
                                         "density_kg_per_m3": null,
                                         "kappa": null,
                                         "pressure": [
@@ -19925,12 +19910,7 @@
                             ],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": [
-                                    3035242.5,
-                                    2372352.0,
-                                    2667349.5,
-                                    0.0
-                                ],
+                                "actual_rate_m3_per_hr": null,
                                 "density_kg_per_m3": null,
                                 "kappa": null,
                                 "pressure": [
@@ -20113,12 +20093,7 @@
                             ],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": [
-                                    3035242.5,
-                                    2372352.0,
-                                    2667349.5,
-                                    0.0
-                                ],
+                                "actual_rate_m3_per_hr": null,
                                 "density_kg_per_m3": null,
                                 "kappa": null,
                                 "pressure": [
