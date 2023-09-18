@@ -28,7 +28,7 @@ repos:
     rev: v1.4.1
     hooks:
       - id: mypy
-        files: ^(src/ecalc/libraries/)
+        files: ^(src/ecalc/)
         exclude: tests|conftest.py
         args: ['--config-file=./pyproject.toml']
         additional_dependencies:

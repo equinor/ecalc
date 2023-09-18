@@ -16,4 +16,4 @@ class DateFormat(str, enum.Enum):
     """DD_MM_YYYY"""
 
 
-Frequency = enum.Enum("Frequency", {e.name: e.name for e in time_utils.Frequency})
+Frequency = enum.Enum("Frequency", {e.name: e.name for e in time_utils.Frequency})  # type: ignore
