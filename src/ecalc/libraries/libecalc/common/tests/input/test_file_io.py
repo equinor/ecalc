@@ -100,14 +100,14 @@ def facility_resource_missing_value_file(tmp_path):
     return facility_file
 
 
-def create_csv_from_line(tmp_path, csv_line: str):
+def create_csv_from_line(tmp_path: Path, csv_line: str) -> Path:
     csv_file = tmp_path / "csv_file.csv"
     csv_file.write_text(csv_line)
     return csv_file
 
 
 @pytest.fixture
-def get_tmp_path(tmp_path):
+def get_tmp_path(tmp_path: Path) -> Path:
     return tmp_path
 
 
@@ -143,7 +143,7 @@ class TestReadFacilityResource:
             ("aa ><, bb", False),
         ],
     )  # This is not meant to be extensive, just to test that we have some validation
-    def test_valid_characters(self, get_tmp_path, csv_line, is_valid_characters):
+    def test_valid_characters(self, get_tmp_path, csv_line: str, is_valid_characters: bool):
         if is_valid_characters:
             file_io.read_facility_resource(create_csv_from_line(get_tmp_path, csv_line))
         else:
