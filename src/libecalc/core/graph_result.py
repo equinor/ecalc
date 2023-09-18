@@ -26,6 +26,7 @@ from libecalc.dto.base import ComponentType
 from libecalc.dto.graph import Graph
 from libecalc.dto.models.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto.result.emission import EmissionIntensityResult
+from libecalc.dto.result.results import CompressorModelResult
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.expression import Expression
@@ -308,16 +309,23 @@ class GraphResult:
 
                     # Convert rates in stage results from lists to time series:
                     for stage_result in model.stage_results:
-                        stage_result.asv_recirculation_loss_mw = TimeSeriesRate(
-                            timesteps=self.timesteps,
-                            values=stage_result.asv_recirculation_loss_mw
-                            if stage_result.asv_recirculation_loss_mw is not None
-                            else [math.nan] * len(model.timesteps),
+                        # stage_result.asv_recirculation_loss_mw = TimeSeriesRate(
+                        #    timesteps=model.timesteps,
+                        #    values=stage_result.asv_recirculation_loss_mw
+                        #    if stage_result.asv_recirculation_loss_mw is not None
+                        #    else [math.nan] * len(model.timesteps),
+                        #    unit=Unit.MEGA_WATT,
+                        #    rate_type=RateType.STREAM_DAY,
+                        # )
+
+                        stage_result.asv_recirculation_loss_mw = CompressorModelResult.to_time_series(
+                            self=model,
+                            stage_result=stage_result.asv_recirculation_loss_mw,
                             unit=Unit.MEGA_WATT,
-                            rate_type=RateType.STREAM_DAY,
                         )
+
                         stage_result.energy_usage = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.energy_usage
                             if stage_result.energy_usage is not None
                             else [math.nan] * len(model.timesteps),
@@ -325,7 +333,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.mass_rate_kg_per_hr = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.mass_rate_kg_per_hr
                             if stage_result.mass_rate_kg_per_hr is not None
                             else [math.nan] * len(model.timesteps),
@@ -333,7 +341,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.mass_rate_before_asv_kg_per_hr = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.mass_rate_before_asv_kg_per_hr
                             if stage_result.mass_rate_before_asv_kg_per_hr is not None
                             else [math.nan] * len(model.timesteps),
@@ -341,7 +349,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.power = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.power
                             if stage_result.power is not None
                             else [math.nan] * len(model.timesteps),
@@ -349,7 +357,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.inlet_stream_condition.actual_rate_m3_per_hr = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.inlet_stream_condition.actual_rate_m3_per_hr
                             if stage_result.inlet_stream_condition.actual_rate_m3_per_hr is not None
                             else [math.nan] * len(model.timesteps),
@@ -357,7 +365,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.inlet_stream_condition.actual_rate_before_asv_m3_per_hr = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.inlet_stream_condition.actual_rate_before_asv_m3_per_hr
                             if stage_result.inlet_stream_condition.actual_rate_before_asv_m3_per_hr is not None
                             else [math.nan] * len(model.timesteps),
@@ -365,7 +373,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.inlet_stream_condition.density_kg_per_m3 = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.inlet_stream_condition.density_kg_per_m3
                             if stage_result.inlet_stream_condition.density_kg_per_m3 is not None
                             else [math.nan] * len(model.timesteps),
@@ -374,7 +382,7 @@ class GraphResult:
                         )
 
                         stage_result.outlet_stream_condition.actual_rate_m3_per_hr = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.outlet_stream_condition.actual_rate_m3_per_hr
                             if stage_result.outlet_stream_condition.actual_rate_m3_per_hr is not None
                             else [math.nan] * len(model.timesteps),
@@ -382,7 +390,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.outlet_stream_condition.actual_rate_before_asv_m3_per_hr = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.outlet_stream_condition.actual_rate_before_asv_m3_per_hr
                             if stage_result.outlet_stream_condition.actual_rate_before_asv_m3_per_hr is not None
                             else [math.nan] * len(model.timesteps),
@@ -390,7 +398,7 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                         )
                         stage_result.outlet_stream_condition.density_kg_per_m3 = TimeSeriesRate(
-                            timesteps=self.timesteps,
+                            timesteps=model.timesteps,
                             values=stage_result.outlet_stream_condition.density_kg_per_m3
                             if stage_result.outlet_stream_condition.density_kg_per_m3 is not None
                             else [math.nan] * len(model.timesteps),

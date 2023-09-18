@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
@@ -8,6 +9,7 @@ from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    RateType,
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
@@ -150,6 +152,14 @@ class CompressorModelResult(ConsumerModelResultBase):
     turbine_result: Optional[TurbineResult] = None
     energy_usage_unit: Unit
     power_unit: Unit
+
+    def to_time_series(self, stage_result: list, unit: Unit) -> TimeSeriesRate:
+        return TimeSeriesRate(
+            timesteps=self.timesteps,
+            values=stage_result if stage_result is not None else [math.nan] * len(self.timesteps),
+            unit=unit,
+            rate_type=RateType.STREAM_DAY,
+        )
 
 
 class GenericModelResult(ConsumerModelResultBase):
