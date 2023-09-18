@@ -100,6 +100,17 @@ def facility_resource_missing_value_file(tmp_path):
     return facility_file
 
 
+def create_csv_from_line(tmp_path, csv_line: str):
+    csv_file = tmp_path / "csv_file.csv"
+    csv_file.write_text(csv_line)
+    return csv_file
+
+
+@pytest.fixture
+def get_tmp_path(tmp_path):
+    return tmp_path
+
+
 class TestReadFacilityResource:
     def test_no_nans(self, facility_resource_missing_value_file):
         with pytest.raises(ValueError) as exc:
@@ -107,6 +118,50 @@ class TestReadFacilityResource:
         assert (
             str(exc.value)
             == "csv file contains invalid data at row 1, all headers must be associated with a valid column value"
+        )
+
+    @pytest.mark.parametrize(
+        "csv_line, is_valid_characters",
+        [
+            ("aa :, bb", True),
+            ("aa ., bb", True),
+            ("aa +, bb", True),
+            ("aa 0, bb", True),
+            ("aa _, bb", True),
+            ("aa -, bb", True),
+            ("aa /, bb", True),
+            ("aa #, bb", True),
+            ("aa @, bb", False),
+            ("aa %, bb", False),
+            ("aa &, bb", False),
+            ("aa ?, bb", False),
+            ("aa ', bb", False),
+            ('aa ", bb', False),
+            ("aa )(, bb", False),
+            ("aa ][, bb", False),
+            ("aa }{, bb", False),
+            ("aa ><, bb", False),
+        ],
+    )  # This is not meant to be extensive, just to test that we have some validation
+    def test_valid_characters(self, get_tmp_path, csv_line, is_valid_characters):
+        if is_valid_characters:
+            file_io.read_facility_resource(create_csv_from_line(get_tmp_path, csv_line))
+        else:
+            with pytest.raises(ValueError) as e:
+                file_io.read_facility_resource(create_csv_from_line(get_tmp_path, csv_line))
+            assert (
+                str(e.value) == "Csv input file must include header, each header value must start with a letter in the "
+                "english alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following "
+                "characters [ _ - # + : . , /] "
+            )
+
+    def test_missing_headers(self, get_tmp_path):
+        with pytest.raises(ValueError) as e:
+            file_io.read_facility_resource(create_csv_from_line(get_tmp_path, "HEADER1        ,,HEADER3"))
+        assert (
+            str(e.value) == "Csv input file must include header, each header value must start with a letter in the "
+            "english alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following "
+            "characters [ _ - # + : . , /] "
         )
 
 

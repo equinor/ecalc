@@ -388,7 +388,7 @@ def unpack_zip(file: IO) -> Tuple[List[ValidEcalcFile], List[InvalidEcalcFile]]:
 
 def _validate_headers(headers: List[str]):
     for header in headers:
-        if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header):
+        if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header) or re.match(r"^Unnamed: \d+$", header):
             raise ValueError(
                 "Csv input file must include header, each header value must start with a letter in the english "
                 "alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following characters "
