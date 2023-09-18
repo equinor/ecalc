@@ -327,6 +327,6 @@ class ConsumerSystem(BaseConsumer):
             # We handle the rates per stream backwards in order to forward inbound cross-overs first
             # if the compressor/pump in question (with inbound cross-over) is above capacity itself.
             diff = np.subtract(rate, left_over_crossover_rate)
-            left_over_crossover_rate = np.where(diff < 0, diff, 0)
+            left_over_crossover_rate = np.where(diff < 0, np.absolute(diff), 0)
             rates_within_capacity.append(list(np.where(diff >= 0, diff, 0)))
         return crossover_rate, list(reversed(rates_within_capacity))
