@@ -211,6 +211,8 @@ class CompressorModelSampled(CompressorModel):
         energy_usage = turbine_result.energy_usage if turbine_result is not None else list(interpolated_consumer_values)
 
         # Returning a result as if the sampled compressor is a train with a single stage.
+        # Note that actual rates are not available since it is not possible to convert from standard rates to
+        # actual rates when information about fluid composition (density in particular) is not available
         result = CompressorTrainResult(
             energy_usage=energy_usage,
             energy_usage_unit=Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -226,7 +228,6 @@ class CompressorModelSampled(CompressorModel):
                     power_unit=Unit.MEGA_WATT,
                     inlet_stream_condition=CompressorStreamCondition(
                         pressure=list(suction_pressure) if suction_pressure is not None else None,
-                        actual_rate_m3_per_hr=list(rate) if rate is not None else None,
                     ),
                     outlet_stream_condition=CompressorStreamCondition(
                         pressure=list(discharge_pressure) if discharge_pressure is not None else None
