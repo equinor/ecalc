@@ -773,7 +773,7 @@
       "name": "Gas export compressor",
       "parent": "a549932c65ddb3c5726af8fc99301ce5",
       "power_unit": "MW",
-      "rate_sm3_day": {
+      "rate": {
         "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
@@ -1703,7 +1703,7 @@
         ]
       },
       "power_unit": "MW",
-      "rate_sm3_day": {
+      "rate": {
         "rate_type": "STREAM_DAY",
         "regularity": [
           1.0,
