@@ -143,11 +143,10 @@ class PumpModelResult(ConsumerModelResultBase):
 
 class CompressorModelResult(ConsumerModelResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
-    # max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
-    rate_sm3_day: TimeSeriesRate
+    rate: TimeSeriesRate
     stage_results: List[CompressorStageResult]
     turbine_result: Optional[TurbineResult] = None
     energy_usage_unit: Unit

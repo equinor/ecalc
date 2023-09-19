@@ -300,7 +300,7 @@ class GraphResult:
                         unit=Unit.BARA,
                     ).for_period(period=period)
 
-                    rate_sm3_day = TimeSeriesRate(
+                    rate = TimeSeriesRate(
                         timesteps=model.timesteps,
                         values=model.rate_sm3_day,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -417,7 +417,7 @@ class GraphResult:
                                 energy_usage_unit=model.energy_usage_unit,
                                 requested_inlet_pressure=requested_inlet_pressure,
                                 requested_outlet_pressure=requested_outlet_pressure,
-                                rate_sm3_day=rate_sm3_day,
+                                rate=rate,
                                 stage_results=model.stage_results,
                                 failure_status=model.failure_status,
                                 timesteps=model.timesteps,
