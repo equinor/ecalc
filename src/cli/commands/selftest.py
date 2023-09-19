@@ -1,4 +1,3 @@
-import libecalc.common.time_utils
 import libecalc.version
 from cli.logger import logger
 from neqsim_ecalc_wrapper import start_server

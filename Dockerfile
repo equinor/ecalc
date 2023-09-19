@@ -40,7 +40,7 @@ FROM dev AS build
 COPY . .
 RUN python3 -m venv $VIRTUAL_ENV && poetry install
 
-WORKDIR /project/libecalc/src/ecalc/
+WORKDIR /project/libecalc/src/
 
 
 FROM dev as dist
