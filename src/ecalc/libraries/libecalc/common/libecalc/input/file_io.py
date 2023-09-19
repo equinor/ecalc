@@ -390,10 +390,12 @@ def _validate_headers(headers: List[str]):
     for header in headers:
         if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header):
             raise ValueError(
-                "Csv input file must include header, each header value must start with a letter in the english "
+                "Each header value must start with a letter in the english "
                 "alphabet (a-zA-Z). And may only contain letters, spaces, numbers or any of the following characters "
                 "[ _ - # + : . , /] "
             )
+        elif re.match(r"^Unnamed: \d+$", header):
+            raise ValueError("CSV input file must include header")
 
 
 def _validate_not_nan(columns: List[List]):
