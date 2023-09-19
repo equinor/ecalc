@@ -292,10 +292,18 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
             further out in iterations to meet pressure targets, and one need to get information about if the point
             is valid (within capacity) or not.
 
-        :param speed: [rpm]
-        :param increase_speed_below_assuming_choke: True or False
-        :param rate: [Am3/h]
-        :param increase_rate_left_of_minimum_flow_assuming_asv: True or False
+        Args:
+            speed: the speed related to the operation point [rpm]
+            increase_speed_below_assuming_choke: boolean telling whether the speed related to an operation point should
+              be changed to the minimum speed if the speed is below the minimum speed (assumes up/down-stream choking)
+            rate: the actual inlet flow rate of the operation point [Am3/h]
+            recirculated_rate: potential additional flow rate introduced by the anti-surge valve for pressure control
+            increase_rate_left_of_minimum_flow_assuming_asv: boolean telling whether the actual flow rate should be
+              automatically changed to the minimum flow rate for the compressor chart when below the minimum flow rate
+
+        Returns:
+            A tuple of values describing if the operation point is valid, information about where the operation
+            point is placed relative to the compressor chart, and the (potentially updated) values for speed and rate
         """
         point_is_valid = True
         chart_area_flag = ChartAreaFlag.INTERNAL_POINT
@@ -317,16 +325,21 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
             # Todo: Need to QA this logic. Below minimum speed requires speed < minimum_speed, but this is not enforced?
             minimum_flow_rate_for_speed = self.minimum_rate_as_function_of_speed(speed_to_use)
             maximum_flow_rate_for_speed = self.maximum_rate_as_function_of_speed(speed_to_use)
-            if rate < minimum_flow_rate_for_speed:
+            # first update rate_to_use when below minimum flow if increase_rate_left_of_minimum_flow_assuming_asv
+            if rate_to_use < minimum_flow_rate_for_speed:
+                if increase_rate_left_of_minimum_flow_assuming_asv:
+                    rate_to_use = minimum_flow_rate_for_speed
+                else:
+                    point_is_valid = False
+            # second, decide ChartAreaFlag based on the original rate input
+            if rate == 0:
+                chart_area_flag = ChartAreaFlag.NO_FLOW_RATE
+            elif rate < minimum_flow_rate_for_speed:
                 chart_area_flag = (
                     ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE
                     if speed_is_increased
                     else ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
                 )
-                if increase_rate_left_of_minimum_flow_assuming_asv:
-                    rate_to_use = max(minimum_flow_rate_for_speed, rate_to_use)
-                else:
-                    point_is_valid = False
             elif rate > maximum_flow_rate_for_speed:
                 chart_area_flag = (
                     ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE

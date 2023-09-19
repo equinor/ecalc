@@ -872,6 +872,11 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     stage_number=stage_number
                 )
                 if fluid_to_recirculate:
+                    logger.warning(
+                        f"For stage number {stage_number}, there is no fluid entering the stage at at this time step. "
+                        f"The compressor is only recirculating fluid. Standard rates are "
+                        f"{std_rates_std_m3_per_day_per_stream}."
+                    )
                     inlet_stream = fluid_to_recirculate
                 else:
                     raise ValueError(
