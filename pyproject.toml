@@ -30,6 +30,12 @@ classifiers=[
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
 
+packages = [
+    { include = "cli", from = "src" },
+    { include = "neqsim_ecalc_wrapper", from = "src" },
+    { include = "libecalc", from = "src" },
+]
+
 [tool.poetry.scripts]
 ecalc = 'cli.main:main'
 
