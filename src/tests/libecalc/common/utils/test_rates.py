@@ -12,6 +12,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesVolumes,
     TimeSeriesVolumesCumulative,
 )
+from libecalc.dto.types import RateType
 
 
 def test_compute_stream_day_rate():
@@ -419,3 +420,208 @@ def test_resample_up_sampling():
     rates_monthly = rates.resample(freq=Frequency.MONTH)
     assert len(rates_monthly) == 2 * 12 + 1  # Including January 2025.
     assert rates_monthly.values[::12] == [10, 20, 30]
+
+
+class TestTimeSeriesMerge:
+    def test_merge_time_series_float_success(self):
+        """
+        Use TimeSeriesFloat to test the 'generic' merge (parent class merge)
+        """
+
+        first = TimeSeriesFloat(
+            timesteps=[datetime(2021, 1, 1), datetime(2023, 1, 1)],
+            values=[11, 12],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        second = TimeSeriesFloat(
+            timesteps=[datetime(2020, 1, 1), datetime(2022, 1, 1), datetime(2024, 1, 1), datetime(2030, 1, 1)],
+            values=[21, 22, 23, 24],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        assert first.merge(second) == TimeSeriesFloat(
+            timesteps=[
+                datetime(2020, 1, 1),
+                datetime(2021, 1, 1),
+                datetime(2022, 1, 1),
+                datetime(2023, 1, 1),
+                datetime(2024, 1, 1),
+                datetime(2030, 1, 1),
+            ],
+            values=[21, 11, 22, 12, 23, 24],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+    def test_merge_time_series_float_different_unit(self):
+        first = TimeSeriesFloat(
+            timesteps=[datetime(2021, 1, 1)],
+            values=[11],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        second = TimeSeriesFloat(
+            timesteps=[datetime(2020, 1, 1)],
+            values=[21],
+            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == "Mismatching units: 'NOK' != 'NOK/d'"
+
+    def test_merge_time_series_float_overlapping_timesteps(self):
+        first = TimeSeriesFloat(
+            timesteps=[datetime(2021, 1, 1)],
+            values=[11],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        second = TimeSeriesFloat(
+            timesteps=[datetime(2020, 1, 1), datetime(2021, 1, 1)],
+            values=[21, 22],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == "Can not merge two TimeSeries with common timesteps"
+
+    def test_merge_time_series_different_types(self):
+        first = TimeSeriesFloat(
+            timesteps=[datetime(2021, 1, 1)],
+            values=[11],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        second = TimeSeriesBoolean(
+            timesteps=[datetime(2020, 1, 1)],
+            values=[True],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == (
+            "Can not merge <class 'libecalc.common.utils.rates.TimeSeriesFloat'> with "
+            "<class 'libecalc.common.utils.rates.TimeSeriesBoolean'>"
+        )
+
+    def test_merge_time_series_rate_success(self):
+        """
+        Use TimeSeriesFloat to test the 'generic' merge (parent class merge)
+        """
+
+        first = TimeSeriesRate(
+            timesteps=[datetime(2021, 1, 1), datetime(2023, 1, 1)],
+            values=[11, 12],
+            unit=Unit.NORWEGIAN_KRONER,
+            regularity=[11, 12],
+            rate_type=RateType.STREAM_DAY,
+        )
+
+        second = TimeSeriesRate(
+            timesteps=[datetime(2020, 1, 1), datetime(2022, 1, 1), datetime(2024, 1, 1), datetime(2030, 1, 1)],
+            values=[21, 22, 23, 24],
+            unit=Unit.NORWEGIAN_KRONER,
+            regularity=[21, 22, 23, 24],
+            rate_type=RateType.STREAM_DAY,
+        )
+
+        assert first.merge(second) == TimeSeriesRate(
+            timesteps=[
+                datetime(2020, 1, 1),
+                datetime(2021, 1, 1),
+                datetime(2022, 1, 1),
+                datetime(2023, 1, 1),
+                datetime(2024, 1, 1),
+                datetime(2030, 1, 1),
+            ],
+            values=[21, 11, 22, 12, 23, 24],
+            unit=Unit.NORWEGIAN_KRONER,
+            regularity=[21, 11, 22, 12, 23, 24],
+            rate_type=RateType.STREAM_DAY,
+        )
+
+    def test_merge_time_series_rate_different_unit(self):
+        first = TimeSeriesRate(
+            timesteps=[datetime(2021, 1, 1)],
+            values=[11],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        second = TimeSeriesRate(
+            timesteps=[datetime(2020, 1, 1)],
+            values=[21],
+            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == "Mismatching units: 'NOK' != 'NOK/d'"
+
+    def test_merge_time_series_rate_overlapping_timesteps(self):
+        first = TimeSeriesRate(
+            timesteps=[datetime(2021, 1, 1)],
+            values=[11],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        second = TimeSeriesRate(
+            timesteps=[datetime(2020, 1, 1), datetime(2021, 1, 1)],
+            values=[21, 22],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == "Can not merge two TimeSeries with common timesteps"
+
+    def test_merge_time_series_rate_different_types(self):
+        first = TimeSeriesRate(
+            timesteps=[datetime(2021, 1, 1)],
+            values=[11],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        second = TimeSeriesBoolean(
+            timesteps=[datetime(2020, 1, 1)],
+            values=[True],
+            unit=Unit.NORWEGIAN_KRONER,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == (
+            "Can not merge <class 'libecalc.common.utils.rates.TimeSeriesRate'> with "
+            "<class 'libecalc.common.utils.rates.TimeSeriesBoolean'>"
+        )
+
+    def test_merge_time_series_rate_different_rate_types(self):
+        first = TimeSeriesRate(
+            timesteps=[datetime(2021, 1, 1)],
+            values=[11],
+            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+            rate_type=RateType.STREAM_DAY,
+        )
+
+        second = TimeSeriesRate(
+            timesteps=[datetime(2020, 1, 1)],
+            values=[21],
+            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == (
+            "Mismatching rate type. Currently you can not merge stream/calendar day rates "
+            "with calendar/stream day rates."
+        )
