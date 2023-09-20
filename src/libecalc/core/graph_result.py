@@ -26,7 +26,6 @@ from libecalc.dto.base import ComponentType
 from libecalc.dto.graph import Graph
 from libecalc.dto.models.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto.result.emission import EmissionIntensityResult
-from libecalc.dto.result.results import CompressorModelResult
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.expression import Expression
@@ -309,21 +308,14 @@ class GraphResult:
 
                     # Convert rates in stage results from lists to time series:
                     for stage_result in model.stage_results:
-                        # stage_result.asv_recirculation_loss_mw = TimeSeriesRate(
-                        #    timesteps=model.timesteps,
-                        #    values=stage_result.asv_recirculation_loss_mw
-                        #    if stage_result.asv_recirculation_loss_mw is not None
-                        #    else [math.nan] * len(model.timesteps),
-                        #    unit=Unit.MEGA_WATT,
-                        #    rate_type=RateType.STREAM_DAY,
-                        # )
-
-                        stage_result.asv_recirculation_loss_mw = CompressorModelResult.to_time_series(
-                            self=model,
-                            stage_result=stage_result.asv_recirculation_loss_mw,
+                        stage_result.asv_recirculation_loss_mw = TimeSeriesRate(
+                            timesteps=model.timesteps,
+                            values=stage_result.asv_recirculation_loss_mw
+                            if stage_result.asv_recirculation_loss_mw is not None
+                            else [math.nan] * len(model.timesteps),
                             unit=Unit.MEGA_WATT,
+                            rate_type=RateType.STREAM_DAY,
                         )
-
                         stage_result.energy_usage = TimeSeriesRate(
                             timesteps=model.timesteps,
                             values=stage_result.energy_usage
@@ -380,7 +372,6 @@ class GraphResult:
                             unit=Unit.KG_M3,
                             rate_type=RateType.STREAM_DAY,
                         )
-
                         stage_result.outlet_stream_condition.actual_rate_m3_per_hr = TimeSeriesRate(
                             timesteps=model.timesteps,
                             values=stage_result.outlet_stream_condition.actual_rate_m3_per_hr
