@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
+from libecalc.common.stream import Stage
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -116,6 +117,8 @@ class CompressorResult(EquipmentResultBase):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
+
+    stages: List[Stage] = None  # Optional because only in v2
 
 
 class DirectEmitterResult(EquipmentResultBase):
