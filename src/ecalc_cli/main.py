@@ -2,10 +2,10 @@ from pathlib import Path
 
 import libecalc.version
 import typer
-from cli.commands import show
-from cli.commands.run import run
-from cli.commands.selftest import selftest
-from cli.logger import CLILogConfigurator, LogLevel, logger
+from ecalc_cli.commands import show
+from ecalc_cli.commands.run import run
+from ecalc_cli.commands.selftest import selftest
+from ecalc_cli.logger import CLILogConfigurator, LogLevel, logger
 from libecalc.input.validation_errors import DataValidationError
 
 app = typer.Typer(name="ecalc")

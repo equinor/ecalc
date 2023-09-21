@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List
 
 import libecalc.common.time_utils
-from cli.errors import EcalcCLIError
+from ecalc_cli.errors import EcalcCLIError
 from libecalc import dto
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_time_steps

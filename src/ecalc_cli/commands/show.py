@@ -3,10 +3,10 @@ from pathlib import Path
 import libecalc.common.time_utils
 import libecalc.version
 import typer
-from cli.io.cache import Cache
-from cli.io.output import write_output
-from cli.logger import logger
-from cli.types import DateFormat, Frequency
+from ecalc_cli.io.cache import Cache
+from ecalc_cli.io.output import write_output
+from ecalc_cli.logger import logger
+from ecalc_cli.types import DateFormat, Frequency
 from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.input.yaml_entities import ResourceStream
 from libecalc.output.utils.file_utils import (

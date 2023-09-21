@@ -31,13 +31,13 @@ classifiers=[
 ]
 
 packages = [
-    { include = "cli", from = "src" },
+    { include = "ecalc_cli", from = "src" },
     { include = "neqsim_ecalc_wrapper", from = "src" },
     { include = "libecalc", from = "src" },
 ]
 
 [tool.poetry.scripts]
-ecalc = 'cli.main:main'
+ecalc = 'ecalc_cli.main:main'
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"

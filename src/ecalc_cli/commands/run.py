@@ -4,17 +4,17 @@ from pathlib import Path
 import libecalc.common.time_utils
 import libecalc.version
 import typer
-from cli.errors import EcalcCLIError
-from cli.io.cache import Cache
-from cli.io.output import (
+from ecalc_cli.errors import EcalcCLIError
+from ecalc_cli.io.cache import Cache
+from ecalc_cli.io.output import (
     write_flow_diagram,
     write_json,
     write_ltp_export,
     write_output,
     write_stp_export,
 )
-from cli.logger import logger
-from cli.types import DateFormat, Frequency
+from ecalc_cli.logger import logger
+from ecalc_cli.types import DateFormat, Frequency
 from libecalc.common.run_info import RunInfo
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
