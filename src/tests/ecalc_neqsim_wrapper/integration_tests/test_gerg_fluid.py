@@ -1,6 +1,6 @@
 import math
 
-from neqsim_ecalc_wrapper.thermo import NeqsimFluid
+from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 
 
 def test_gerg_model_against_unisim(medium_fluid_with_gerg: NeqsimFluid) -> None:

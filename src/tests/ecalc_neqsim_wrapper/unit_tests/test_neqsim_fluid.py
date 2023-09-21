@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from neqsim_ecalc_wrapper.thermo import NeqsimFluid
+from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 
 
 def test_gerg_properties(medium_fluid: NeqsimFluid, medium_fluid_with_gerg: NeqsimFluid) -> None:

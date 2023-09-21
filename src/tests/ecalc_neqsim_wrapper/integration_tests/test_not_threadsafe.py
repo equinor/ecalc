@@ -1,6 +1,6 @@
 from threading import Thread
 
-from neqsim_ecalc_wrapper import start_server
+from ecalc_neqsim_wrapper import start_server
 
 """
 A small test class showing that NeqSim is currently not thread-safe

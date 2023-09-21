@@ -8,7 +8,7 @@ from libecalc.common.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.dto.types import EoSModel
 
-from neqsim_ecalc_wrapper import neqsim
+from ecalc_neqsim_wrapper import neqsim
 
 
 class NeqsimEoSModelType(Enum):

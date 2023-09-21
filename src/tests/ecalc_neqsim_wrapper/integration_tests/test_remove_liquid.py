@@ -1,8 +1,8 @@
 import math
 
 import pytest
+from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc import dto
-from neqsim_ecalc_wrapper.thermo import NeqsimFluid
 
 INLET_FLUID_COMPOSITION = dto.FluidComposition(
     nitrogen=6.78e-03,
