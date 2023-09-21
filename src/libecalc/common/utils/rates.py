@@ -29,7 +29,7 @@ from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
 from numpy.typing import NDArray
-from pydantic import validator
+from pydantic import Extra, validator
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
 from typing_extensions import Self
@@ -148,6 +148,7 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         use_enum_values = True
         alias_generator = to_camel_case
         allow_population_by_field_name = True
+        extra = Extra.forbid
 
     @validator("values", each_item=True, pre=True)
     def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
