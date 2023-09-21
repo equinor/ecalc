@@ -58,7 +58,7 @@ RUN mkdir /dist
 # Set version in pyproject.toml, needed to update nightly version. Already done by release-please otherwise.
 RUN poetry version $ECALC_VERSION
 
-# Finally build the cli
+# Finally build the libecalc package
 RUN poetry build
 RUN cp dist/*.whl /dist/
 RUN chown -R $ECALC_USER:$ECALC_GROUP /dist/

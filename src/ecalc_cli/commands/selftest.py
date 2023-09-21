@@ -1,5 +1,5 @@
 import libecalc.version
-from cli.logger import logger
+from ecalc_cli.logger import logger
 from neqsim_ecalc_wrapper import start_server
 
 

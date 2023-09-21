@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from cli.logger import logger
+from ecalc_cli.logger import logger
 from libecalc import dto
 from libecalc.common.run_info import RunInfo
 from libecalc.core.graph_result import EnergyCalculatorResult, GraphResult

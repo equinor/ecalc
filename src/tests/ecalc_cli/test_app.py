@@ -9,8 +9,8 @@ from typing import Literal, NamedTuple
 import pandas as pd
 import pytest
 import yaml
-from cli import main
-from cli.commands import show
+from ecalc_cli import main
+from ecalc_cli.commands import show
 from libecalc.common.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS

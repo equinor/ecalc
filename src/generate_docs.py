@@ -26,7 +26,7 @@ def generate(
 ) -> None:
     """Generate Markdown docs for a Typer app."""
     # Ref: https://github.com/tiangolo/typer-cli/pull/67#issuecomment-1271983950
-    from cli.main import app as main_app
+    from ecalc_cli.main import app as main_app
 
     click_obj = typer.main.get_command(main_app)
     docs = typer_cli.get_docs_for_click(obj=click_obj, ctx=ctx, name=name)
