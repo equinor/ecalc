@@ -1,4 +1,4 @@
-from neqsim_ecalc_wrapper import neqsim
+from ecalc_neqsim_wrapper import neqsim
 
 
 def test_py4j_service():

@@ -14,10 +14,10 @@ from libecalc.dto.types import EoSModel
 from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
-from neqsim_ecalc_wrapper import neqsim
-from neqsim_ecalc_wrapper.components import COMPONENTS
-from neqsim_ecalc_wrapper.exceptions import NeqsimPhaseError
-from neqsim_ecalc_wrapper.mappings import (
+from ecalc_neqsim_wrapper import neqsim
+from ecalc_neqsim_wrapper.components import COMPONENTS
+from ecalc_neqsim_wrapper.exceptions import NeqsimPhaseError
+from ecalc_neqsim_wrapper.mappings import (
     NeqsimEoSModelType,
     _map_fluid_component_from_neqsim,
     map_eos_model_to_neqsim,

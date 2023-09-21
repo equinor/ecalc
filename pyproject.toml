@@ -32,7 +32,7 @@ classifiers=[
 
 packages = [
     { include = "ecalc_cli", from = "src" },
-    { include = "neqsim_ecalc_wrapper", from = "src" },
+    { include = "ecalc_neqsim_wrapper", from = "src" },
     { include = "libecalc", from = "src" },
 ]
 
