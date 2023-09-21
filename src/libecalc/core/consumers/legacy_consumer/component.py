@@ -200,21 +200,18 @@ class Consumer(BaseConsumer):
                 timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.suction_pressure),
                 unit=Unit.BARA,
-                regularity=regularity,
             ).reindex(new_time_vector=variables_map.time_vector)
 
             outlet_pressure_time_series = TimeSeriesFloat(
                 timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.discharge_pressure),
                 unit=Unit.BARA,
-                regularity=regularity,
             ).reindex(new_time_vector=variables_map.time_vector)
 
             operational_head_time_series = TimeSeriesFloat(
                 timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.operational_head),
                 unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
-                regularity=regularity,
             ).reindex(new_time_vector=variables_map.time_vector)
 
             consumer_result = PumpResult(
