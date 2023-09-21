@@ -24,14 +24,14 @@ class TestMerge:
                 timesteps=timesteps,
                 values=[1, 2, 3, 4],
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                typ=RateType.STREAM_DAY,
+                rate_type=RateType.STREAM_DAY,
                 regularity=[1, 1, 1, 1],
             ),
             power=TimeSeriesRate(
                 timesteps=timesteps,
                 values=[1, 2, 3, 4],
                 unit=Unit.MEGA_WATT,
-                typ=RateType.STREAM_DAY,
+                rate_type=RateType.STREAM_DAY,
                 regularity=[1, 1, 1, 1],
             ),
             is_valid=TimeSeriesBoolean(
@@ -43,7 +43,7 @@ class TestMerge:
                 timesteps=timesteps,
                 values=[0.1, 0.2, 0.3, 0.4],
                 unit=Unit.MEGA_WATT,
-                typ=RateType.STREAM_DAY,
+                rate_type=RateType.STREAM_DAY,
                 regularity=[1, 1, 1, 1],
             ),
             rate_exceeds_maximum=TimeSeriesBoolean(

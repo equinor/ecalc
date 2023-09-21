@@ -69,10 +69,14 @@ class GraphResult:
                 EmissionIntensityResult(
                     name=emissions[key].name,
                     timesteps=emissions[key].timesteps,
-                    intensity_sm3=intensity_sm3,
-                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
-                    intensity_yearly_sm3=intensity_yearly_sm3,
-                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
+                    intensity_sm3=intensity_sm3.dict(exclude={"rate_type": True, "regularity": True}),
+                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE).dict(
+                        exclude={"rate_type": True, "regularity": True}
+                    ),
+                    intensity_yearly_sm3=intensity_yearly_sm3.dict(exclude={"rate_type": True, "regularity": True}),
+                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE).dict(
+                        exclude={"rate_type": True, "regularity": True}
+                    ),
                 )
             )
         return emission_intensities
