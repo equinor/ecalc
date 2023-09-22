@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import math
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -170,6 +171,41 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         return self.__class__(
             timesteps=self.timesteps + other.timesteps,
             values=self.values + other.values,
+            unit=self.unit,
+        )
+
+    def merge(self, other: TimeSeries) -> Self:
+        """
+        Merge two TimeSeries with differing timesteps
+        Args:
+            other:
+
+        Returns:
+
+        """
+        if not isinstance(other, type(self)):
+            raise ValueError(f"Can not merge {type(self)} with {type(other)}")
+
+        if self.unit != other.unit:
+            raise ValueError(f"Mismatching units: '{self.unit}' != '{other.unit}'")
+
+        if len(set(self.timesteps).intersection(other.timesteps)) != 0:
+            raise ValueError("Can not merge two TimeSeries with common timesteps")
+
+        merged_timesteps = sorted(itertools.chain(self.timesteps, other.timesteps))
+        merged_values = []
+
+        for timestep in merged_timesteps:
+            if timestep in self.timesteps:
+                timestep_index = self.timesteps.index(timestep)
+                merged_values.append(self.values[timestep_index])
+            else:
+                timestep_index = other.timesteps.index(timestep)
+                merged_values.append(other.values[timestep_index])
+
+        return self.__class__(
+            timesteps=merged_timesteps,
+            values=merged_values,
             unit=self.unit,
         )
 
@@ -426,7 +462,8 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         ds_resampled = ds_interpolated.reindex(new_index)
 
         return TimeSeriesVolumesCumulative(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),  # Are we sure this is always an DatetimeIndex? type: ignore
+            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            # Are we sure this is always an DatetimeIndex? type: ignore
             values=ds_resampled.values.tolist(),
             unit=self.unit,
         )
@@ -666,6 +703,58 @@ class TimeSeriesRate(TimeSeries[float]):
             values=self.values + other.values,
             unit=self.unit,
             regularity=self.regularity + other.regularity,  # type: ignore
+            rate_type=self.rate_type,
+        )
+
+    def merge(self, other: TimeSeries) -> TimeSeriesRate:
+        """
+        Merge two TimeSeries with differing timesteps
+        Args:
+            other:
+
+        Returns:
+
+        """
+
+        if not isinstance(other, TimeSeriesRate):
+            raise ValueError(f"Can not merge {type(self)} with {type(other)}")
+
+        if self.unit != other.unit:
+            raise ValueError(f"Mismatching units: '{self.unit}' != '{other.unit}'")
+
+        if not self.rate_type == other.rate_type:
+            raise ValueError(
+                "Mismatching rate type. Currently you can not merge stream/calendar day rates with calendar/stream day rates."
+            )
+
+        if len(set(self.timesteps).intersection(other.timesteps)) != 0:
+            raise ValueError("Can not merge two TimeSeries with common timesteps")
+
+        merged_timesteps = sorted(itertools.chain(self.timesteps, other.timesteps))
+        merged_values = []
+        merged_regularity = []
+
+        for timestep in merged_timesteps:
+            if timestep in self.timesteps:
+                timestep_index = self.timesteps.index(timestep)
+                merged_values.append(self.values[timestep_index])
+                if self.regularity is not None:
+                    merged_regularity.append(self.regularity[timestep_index])
+                else:
+                    merged_regularity.append(1)  # whaaaaaaaaaa
+            else:
+                timestep_index = other.timesteps.index(timestep)
+                merged_values.append(other.values[timestep_index])
+                if other.regularity is not None:
+                    merged_regularity.append(other.regularity[timestep_index])
+                else:
+                    merged_regularity.append(1)  # whaaaaaaaaaa
+
+        return self.__class__(
+            timesteps=merged_timesteps,
+            values=merged_values,
+            regularity=merged_regularity,
+            unit=self.unit,
             rate_type=self.rate_type,
         )
 
