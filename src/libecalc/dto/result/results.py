@@ -16,7 +16,6 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
-    TurbineResult,
 )
 from libecalc.dto.base import ComponentType
 from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
