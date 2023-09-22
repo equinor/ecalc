@@ -139,6 +139,18 @@ class PumpModelResult(ConsumerModelResultBase):
     operational_head: Optional[List[float]]
 
 
+class TurbineModelResult(BaseModel):
+    energy_usage_unit: Unit
+    power_unit: Unit
+    efficiency: TimeSeriesFloat
+    energy_usage: TimeSeriesRate
+    exceeds_maximum_load: TimeSeriesBoolean
+    fuel_rate: TimeSeriesRate
+    is_valid: TimeSeriesBoolean
+    load: TimeSeriesRate
+    power: TimeSeriesRate
+
+
 class CompressorStreamConditionResult(BaseModel):
     actual_rate_m3_per_hr: TimeSeriesRate
     actual_rate_before_asv_m3_per_hr: TimeSeriesRate
@@ -183,7 +195,7 @@ class CompressorModelResult(ConsumerModelResultBase):
     requested_outlet_pressure: TimeSeriesFloat
     rate: TimeSeriesRate
     stage_results: List[CompressorModelStageResult]
-    turbine_result: Optional[TurbineResult] = None
+    turbine_result: Optional[TurbineModelResult] = None
     energy_usage_unit: Unit
     power_unit: Unit
 

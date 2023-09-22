@@ -30,6 +30,7 @@ from libecalc.dto.result.results import (
     CompressorModelResult,
     CompressorModelStageResult,
     CompressorStreamConditionResult,
+    TurbineModelResult,
 )
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
@@ -556,6 +557,68 @@ class GraphResult:
 
                         model_stage_results.append(model_stage_result)
 
+                    turbine_result = (
+                        TurbineModelResult(
+                            energy_usage_unit=model.turbine_result.energy_usage_unit,
+                            power_unit=model.turbine_result.power_unit,
+                            efficiency=TimeSeriesFloat(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.efficiency
+                                if model.turbine_result.efficiency is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.FRACTION,
+                            ),
+                            energy_usage=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.energy_usage
+                                if model.turbine_result.energy_usage is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=model.turbine_result.energy_usage_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            exceeds_maximum_load=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.exceeds_maximum_load
+                                if model.turbine_result.exceeds_maximum_load is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            fuel_rate=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.fuel_rate
+                                if model.turbine_result.fuel_rate is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            is_valid=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=list(model.turbine_result.is_valid)
+                                if model.turbine_result.is_valid is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            load=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.load
+                                if model.turbine_result.load is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=model.turbine_result.energy_usage_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            power=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.power
+                                if model.turbine_result.power is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=model.turbine_result.power_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                        )
+                        if model.turbine_result is not None
+                        else None
+                    )
+
                     models.extend(
                         [
                             CompressorModelResult(
@@ -582,6 +645,7 @@ class GraphResult:
                                 ),
                                 power=model.power,
                                 power_unit=model.power_unit,
+                                turbine_result=turbine_result,
                             )
                         ]
                     )
