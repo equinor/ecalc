@@ -15,17 +15,17 @@ from libecalc.common.utils.rates import (
     TimeSeriesVolumesCumulative,
 )
 from libecalc.core.models.results.compressor import (
-    CompressorStageResult,
     CompressorTrainCommonShaftFailureStatus,
     TurbineResult,
 )
 from libecalc.dto.base import ComponentType
+from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
 from libecalc.dto.result.base import EcalcResultBaseModel
 from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
 from libecalc.dto.result.simple import SimpleComponentResult, SimpleResultData
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 from libecalc.dto.result.types import opt_float
-from pydantic import Field, validator
+from pydantic import BaseModel, Field, validator
 from typing_extensions import Annotated
 
 
@@ -139,13 +139,50 @@ class PumpModelResult(ConsumerModelResultBase):
     operational_head: Optional[List[float]]
 
 
+class CompressorStreamConditionResult(BaseModel):
+    actual_rate_m3_per_hr: TimeSeriesRate
+    actual_rate_before_asv_m3_per_hr: TimeSeriesRate
+    kappa: TimeSeriesFloat
+    density_kg_per_m3: TimeSeriesRate
+    pressure: TimeSeriesFloat
+    pressure_before_choking: TimeSeriesFloat
+    temperature_kelvin: TimeSeriesFloat
+    z: TimeSeriesFloat
+
+
+class CompressorModelStageResult(BaseModel):
+    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]]
+    chart_area_flags: List[str]
+    energy_usage_unit: Unit
+    power_unit: Unit
+    fluid_composition: Dict[str, Optional[float]]
+
+    head_exceeds_maximum: TimeSeriesBoolean
+    is_valid: TimeSeriesBoolean
+    polytropic_efficiency: TimeSeriesFloat
+    polytropic_enthalpy_change_before_choke_kJ_per_kg: TimeSeriesFloat
+    polytropic_enthalpy_change_kJ_per_kg: TimeSeriesFloat
+    polytropic_head_kJ_per_kg: TimeSeriesFloat
+    asv_recirculation_loss_mw: TimeSeriesRate
+    energy_usage: TimeSeriesRate
+    mass_rate_kg_per_hr: TimeSeriesRate
+    mass_rate_before_asv_kg_per_hr: TimeSeriesRate
+    power: TimeSeriesRate
+    pressure_is_choked: TimeSeriesBoolean
+    rate_exceeds_maximum: TimeSeriesBoolean
+    rate_has_recirculation: TimeSeriesBoolean
+    speed: TimeSeriesFloat
+    inlet_stream_condition: CompressorStreamConditionResult
+    outlet_stream_condition: CompressorStreamConditionResult
+
+
 class CompressorModelResult(ConsumerModelResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
     rate: TimeSeriesRate
-    stage_results: List[CompressorStageResult]
+    stage_results: List[CompressorModelStageResult]
     turbine_result: Optional[TurbineResult] = None
     energy_usage_unit: Unit
     power_unit: Unit

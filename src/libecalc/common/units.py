@@ -86,6 +86,8 @@ class Unit(str, Enum):
     NORWEGIAN_KRONER_PER_DAY = "NOK/d"
     NORWEGIAN_KRONER = "NOK"
 
+    SPEED_RPM = "RPM"
+
     def __str__(self) -> str:
         return self.value
 
