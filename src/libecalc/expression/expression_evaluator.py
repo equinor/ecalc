@@ -45,7 +45,11 @@ def eval_tokens(tokens: List[Token], array_length: int) -> NDArray[np.float64]:
     token_values = [token.value for token in tokens]
     check_tokens(token_values)
 
-    evaluated_values = eval_parentheses(tokens=token_values)
+    evaluated_values = np.nan_to_num(
+        x=eval_parentheses(
+            tokens=token_values,
+        )  # type: ignore[arg-type]
+    )
 
     if isinstance(evaluated_values, (Number, int, float)):
         evaluated_values = np.full(fill_value=evaluated_values, shape=array_length)
@@ -206,7 +210,7 @@ def eval_mults(tokens):
         for factor in values:
             value = value * factor
         np.seterr(**current_numpy_error)
-    return value
+    return np.nan_to_num(value)
 
 
 def eval_powers(tokens):
@@ -224,7 +228,7 @@ def eval_powers(tokens):
         else:
             value = eval_value(tokens)
 
-    return value
+    return np.nan_to_num(value)
 
 
 def eval_value(tokens):
@@ -262,7 +266,7 @@ def eval_value(tokens):
             raise ValueError("Should not enter here - no time series in expression evaluator")
         else:
             var = tokens[0]
-    var = var
+    var = np.nan_to_num(var)
     return var
 
 
