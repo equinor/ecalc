@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from libecalc.expression.expression import ExpressionType
 from libecalc.input.yaml_types import YamlBase
-from pydantic import Field
+from pydantic import Field, validator
 
 
 class YamlConsumerBase(YamlBase):
@@ -43,5 +43,66 @@ power_requirement = power_before_loss / (1 - power_loss_factor)
     )
 
 
+opt_expr_list = Optional[List[ExpressionType]]
+
+
 class YamlConsumerSystemOperationalConditionBase(YamlBase):
-    pass
+    rates: List[ExpressionType] = Field(
+        None,
+        title="Rates",
+        description="Rates [Sm3/day] as a list of expressions",
+    )
+    inlet_pressure: Optional[ExpressionType] = Field(
+        None,
+        title="Inlet pressure",
+        description="Inlet pressure [bara] as a single expression"
+        " This inlet pressure will be the same for all components in the consumer system.",
+    )
+    inlet_pressures: opt_expr_list = Field(
+        None, title="Inlet pressures", description="Inlet pressures [bara] as a list of expressions."
+    )
+    outlet_pressure: Optional[ExpressionType] = Field(
+        None,
+        title="Outlet pressure",
+        description="Outlet pressure [bara] as a single expression"
+        " This outlet pressure will be the same for all components in the consumer system.",
+    )
+    outlet_pressures: opt_expr_list = Field(
+        None, title="Outlet pressures", description="Outlet pressures [bara] as a list of expressions."
+    )
+    crossover: Optional[List[int]] = Field(
+        None,
+        title="Crossover",
+        description=(
+            "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy"
+            " consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the"
+            " consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\n"
+            "To avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the"
+            ' discharge pressure at the consumer "receiving" overshooting rate must be higher than or equal to the discharge'
+            ' pressure of the "sending" consumer. This is because it is possible to choke pressure down to meet the outlet pressure'
+            ' in a flow line with lower pressure, but not possible to "pressure up" in the crossover flow line.\n'
+            "Some examples show how the crossover logic works:\n"
+            "Crossover is given as and list of integer values for the first position is the first consumer, second position is"
+            " the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no"
+            " cross-over possible. Note that we use 1-index here.\n"
+            "Example 1:\n"
+            "Two consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity,"
+            " the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\n"
+            "CROSSOVER: [2, 0]\n"
+            "Example 2:\n"
+            "The first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\n"
+            "CROSSOVER: [3,3,0]"
+        ),
+    )
+
+    @validator("inlet_pressure", always=True)
+    def mutually_exclusive_inlet_pressure(cls, v, values):
+        if values.get("inlet_pressures") is not None and v:
+            raise ValueError("'INLET_PRESSURE' and 'INLET_PRESSURES' are mutually exclusive.")
+        return v
+
+    @validator("outlet_pressure", always=True)
+    def mutually_exclusive_outlet_pressure(cls, v, values):
+        if values.get("outlet_pressures") is not None and v:
+            raise ValueError("'OUTLET_PRESSURE' and 'OUTLET_PRESSURES' are mutually exclusive.")
+        return v
