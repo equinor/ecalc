@@ -17,6 +17,7 @@ from libecalc.dto.base import (
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
+from libecalc.dto.components import SystemComponentConditions
 from libecalc.dto.types import ConsumptionType, EnergyUsageType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
@@ -194,26 +195,26 @@ compressor_system_v2 = dto.components.CompressorSystem(
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
     fuel=fuel,
+    component_conditions=SystemComponentConditions(
+        crossover=[0, 1, 1],
+    ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],
             ),  # Valid for first timestep
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-            ),
+            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
         ]
     },
     compressors=[
@@ -229,46 +230,43 @@ compressor_system_v2_with_temporal_model = dto.components.CompressorSystem(
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
     fuel=fuel,
+    component_conditions=SystemComponentConditions(
+        crossover=[0, 1, 1],
+    ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],
             ),  # Valid for first timestep
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-            ),
+            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
         ],
         datetime(2024, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],
             ),  # Valid for first timestep
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-            ),
+            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
         ],
     },
     compressors=[
@@ -284,46 +282,43 @@ compressor_system_v2_with_overlapping_temporal_models = dto.components.Compresso
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
     fuel=fuel,
+    component_conditions=SystemComponentConditions(
+        crossover=[0, 1, 1],
+    ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],
             ),  # Valid for first timestep
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-            ),
+            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
         ],
         datetime(2025, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],
             ),  # Valid for first timestep
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-            ),
+            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
         ],
     },
     compressors=[
@@ -382,20 +377,21 @@ pump_system_v2 = dto.components.PumpSystem(
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=dto.types.ConsumptionType.ELECTRICITY,
+    component_conditions=SystemComponentConditions(
+        crossover=[0, 1, 1],
+    ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
             dto.components.PumpSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 1, 1],
                 fluid_density=[Expression.setup_from_expression("2")] * 3,
             ),
             dto.components.PumpSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in [2000000, 2500000, 3000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                crossover=[0, 1, 1],
                 fluid_density=[Expression.setup_from_expression("2")] * 3,
             ),
         ]

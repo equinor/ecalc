@@ -4,11 +4,15 @@ from typing import Any, Dict, List, Literal, Optional
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
+from libecalc.dto.components import SystemComponentConditions
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
 from libecalc.input.mappers.utils import resolve_and_validate_reference
 from libecalc.input.yaml_entities import References
+from libecalc.input.yaml_types.components.system.yaml_system_component_conditions import (
+    YamlSystemComponentConditions,
+)
 from libecalc.input.yaml_types.components.yaml_base import (
     YamlConsumerBase,
     YamlConsumerSystemOperationalConditionBase,
@@ -48,7 +52,15 @@ class YamlPumpSystem(YamlConsumerBase):
         description="The type of the component",
         alias="TYPE",
     )
+
+    component_conditions: YamlSystemComponentConditions = Field(
+        None,
+        title="System component conditions",
+        description="Contains conditions for the component, in this case the system.",
+    )
+
     operational_settings: YamlTemporalModel[List[YamlPumpSystemOperationalSettings]]
+
     consumers: List[YamlPump]
 
     @root_validator
@@ -130,7 +142,6 @@ class YamlPumpSystem(YamlConsumerBase):
                         rates=rates,
                         inlet_pressures=[Expression.setup_from_expression(pressure) for pressure in inlet_pressures],
                         outlet_pressures=[Expression.setup_from_expression(pressure) for pressure in outlet_pressures],
-                        crossover=operational_setting.crossover or [0] * number_of_pumps,
                         fluid_density=[
                             Expression.setup_from_expression(fluid_density) for fluid_density in fluid_densities
                         ],
@@ -159,11 +170,23 @@ class YamlPumpSystem(YamlConsumerBase):
             for pump in self.consumers
         ]
 
+        if self.component_conditions is not None:
+            component_conditions = SystemComponentConditions(
+                crossover=self.component_conditions.crossover
+                if self.component_conditions.crossover is not None
+                else [0] * number_of_pumps,
+            )
+        else:
+            component_conditions = SystemComponentConditions(
+                crossover=[0] * number_of_pumps,
+            )
+
         return dto.components.PumpSystem(
             name=self.name,
             user_defined_category=define_time_model_for_period(self.category, target_period=target_period),
             regularity=regularity,
             consumes=consumes,
+            component_conditions=component_conditions,
             operational_settings=parsed_operational_settings,
             pumps=pumps,
             fuel=fuel,

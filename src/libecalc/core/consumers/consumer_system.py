@@ -42,9 +42,11 @@ ConsumerOperationalSettings = TypeVar(
 )
 
 
-class SystemOperationalSettings(Protocol):
+class SystemComponentConditions(Protocol):
     crossover: List[int]
 
+
+class SystemOperationalSettings(Protocol):
     @abstractmethod
     def get_consumer_operational_settings(
         self,
@@ -64,14 +66,14 @@ class ConsumerSystem(BaseConsumer):
     for a period of time -> Turn of compressor #2, and vice versa.
     """
 
-    def __init__(self, id: str, consumers: List[ConsumerComponent]):
+    def __init__(self, id: str, consumers: List[ConsumerComponent], component_conditions: SystemComponentConditions):
         self.id = id
         self._consumers = [create_consumer(consumer) for consumer in consumers]
+        self._component_conditions = component_conditions
 
     def _get_operational_settings_adjusted_for_crossover(
         self,
         operational_setting: Union[
-            SystemOperationalSettings,
             EvaluatedPumpSystemOperationalSettings,
             EvaluatedCompressorSystemOperationalSettings,
         ],
@@ -82,7 +84,7 @@ class ConsumerSystem(BaseConsumer):
         consumers.
         """
         sorted_consumers = ConsumerSystem._topologically_sort_consumers_by_crossover(
-            crossover=operational_setting.crossover,
+            crossover=self._component_conditions.crossover,
             consumers=self._consumers,
         )
         adjusted_operational_settings = []
@@ -92,7 +94,7 @@ class ConsumerSystem(BaseConsumer):
         }
 
         # Converting from index 1 to index 0.
-        crossover = [crossover_flow_to_index - 1 for crossover_flow_to_index in operational_setting.crossover]
+        crossover = [crossover_flow_to_index - 1 for crossover_flow_to_index in self._component_conditions.crossover]
 
         for consumer in sorted_consumers:
             consumer_index = self._consumers.index(consumer)

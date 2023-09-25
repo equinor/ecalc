@@ -181,7 +181,6 @@ class CompressorSystemOperationalSetting(EcalcBaseModel):
     rates: List[Expression]
     inlet_pressures: List[Expression]
     outlet_pressures: List[Expression]
-    crossover: List[int]
 
 
 class PumpSystemOperationalSetting(EcalcBaseModel):
@@ -189,11 +188,15 @@ class PumpSystemOperationalSetting(EcalcBaseModel):
     rates: List[Expression]
     inlet_pressures: List[Expression]
     outlet_pressures: List[Expression]
+
+
+class SystemComponentConditions(EcalcBaseModel):
     crossover: List[int]
 
 
 class CompressorSystem(BaseConsumer):
     component_type: Literal[ComponentType.COMPRESSOR_SYSTEM_V2] = ComponentType.COMPRESSOR_SYSTEM_V2
+    component_conditions: SystemComponentConditions
     operational_settings: Dict[datetime, List[CompressorSystemOperationalSetting]]
     compressors: List[CompressorComponent]
 
@@ -266,7 +269,6 @@ class CompressorSystem(BaseConsumer):
                         rates=rates,
                         inlet_pressures=inlet_pressure,
                         outlet_pressures=outlet_pressure,
-                        crossover=operational_setting.crossover,
                     )
                 )
             evaluated_temporal_operational_settings[period.start] = evaluated_operational_settings
@@ -276,6 +278,7 @@ class CompressorSystem(BaseConsumer):
 
 class PumpSystem(BaseConsumer):
     component_type: Literal[ComponentType.PUMP_SYSTEM_V2] = ComponentType.PUMP_SYSTEM_V2
+    component_conditions: SystemComponentConditions
     operational_settings: Dict[datetime, List[PumpSystemOperationalSetting]]
     pumps: List[PumpComponent]
 
@@ -335,7 +338,6 @@ class PumpSystem(BaseConsumer):
                         inlet_pressures=inlet_pressure,
                         outlet_pressures=outlet_pressure,
                         fluid_density=fluid_density,
-                        crossover=operational_setting.crossover,
                     )
                 )
             evaluated_temporal_operational_settings[period.start] = evaluated_operational_settings

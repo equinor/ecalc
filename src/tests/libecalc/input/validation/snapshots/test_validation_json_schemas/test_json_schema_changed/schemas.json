@@ -90,6 +90,15 @@
                             "title": "CATEGORY",
                             "type": "string"
                         },
+                        "COMPONENT_CONDITIONS": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlSystemComponentConditions"
+                                }
+                            ],
+                            "description": "Contains conditions for the component, in this case the system.",
+                            "title": "System component conditions"
+                        },
                         "CONSUMERS": {
                             "items": {
                                 "$ref": "#/definitions/YamlCompressor"
@@ -144,14 +153,6 @@
                 "YamlCompressorSystemOperationalSettings": {
                     "additionalProperties": false,
                     "properties": {
-                        "CROSSOVER": {
-                            "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: [2, 0]\nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: [3,3,0]",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "title": "Crossover",
-                            "type": "array"
-                        },
                         "INLET_PRESSURE": {
                             "anyOf": [
                                 {
@@ -1172,6 +1173,15 @@
                             "title": "CATEGORY",
                             "type": "string"
                         },
+                        "COMPONENT_CONDITIONS": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlSystemComponentConditions"
+                                }
+                            ],
+                            "description": "Contains conditions for the component, in this case the system.",
+                            "title": "System component conditions"
+                        },
                         "CONSUMERS": {
                             "items": {
                                 "$ref": "#/definitions/YamlPump"
@@ -1226,14 +1236,6 @@
                 "YamlPumpSystemOperationalSettings": {
                     "additionalProperties": false,
                     "properties": {
-                        "CROSSOVER": {
-                            "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: [2, 0]\nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: [3,3,0]",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "title": "Crossover",
-                            "type": "array"
-                        },
                         "FLUID_DENSITIES": {
                             "description": "The fluid density [kg/m3] as a list of expressions.",
                             "items": {
@@ -1383,6 +1385,21 @@
                         "VALUE"
                     ],
                     "title": "YamlSingleVariable",
+                    "type": "object"
+                },
+                "YamlSystemComponentConditions": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CROSSOVER": {
+                            "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: [2, 0]\nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: [3,3,0]",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "title": "Crossover",
+                            "type": "array"
+                        }
+                    },
+                    "title": "YamlSystemComponentConditions",
                     "type": "object"
                 },
                 "YamlTabularModel": {

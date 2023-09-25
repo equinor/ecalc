@@ -52,7 +52,11 @@ class EnergyCalculator:
                     sub_components=[],
                 )
             elif isinstance(component_dto, libecalc.dto.components.PumpSystem):
-                pump_system = ConsumerSystem(id=component_dto.id, consumers=component_dto.pumps)
+                pump_system = ConsumerSystem(
+                    id=component_dto.id,
+                    consumers=component_dto.pumps,
+                    component_conditions=component_dto.component_conditions,
+                )
                 evaluated_operational_settings = component_dto.evaluate_operational_settings(
                     variables_map=variables_map,
                 )
@@ -60,7 +64,11 @@ class EnergyCalculator:
                     variables_map=variables_map, temporal_operational_settings=evaluated_operational_settings
                 )
             elif isinstance(component_dto, libecalc.dto.components.CompressorSystem):
-                compressor_system = ConsumerSystem(id=component_dto.id, consumers=component_dto.compressors)
+                compressor_system = ConsumerSystem(
+                    id=component_dto.id,
+                    consumers=component_dto.compressors,
+                    component_conditions=component_dto.component_conditions,
+                )
                 evaluated_operational_settings = component_dto.evaluate_operational_settings(
                     variables_map=variables_map,
                 )
