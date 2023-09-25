@@ -15,7 +15,7 @@ from libecalc.input.yaml_types.components.yaml_base import (
 )
 from libecalc.input.yaml_types.components.yaml_pump import YamlPump
 from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
-from pydantic import Field, confloat, root_validator, validator
+from pydantic import Field, root_validator, validator
 
 opt_expr_list = Optional[List[ExpressionType]]
 
@@ -24,20 +24,7 @@ class YamlPumpSystemOperationalSettings(YamlConsumerSystemOperationalConditionBa
     class Config:
         title = "PumpSystemOperationalSettings"
 
-    total_system_rate: Optional[ExpressionType] = Field(
-        None,
-        title="Total system rate",
-        description="The total system rate expression."
-        "\n\nShould be used with RATE_FRACTIONS in OPERATIONAL_SETTINGS.",
-    )
-    rate_fractions: Optional[List[confloat(ge=0, le=1)]] = Field(
-        None,
-        title="Rate fractions",
-        description="Rate fractions of total system rate, as a list of floats between 0 and 1."
-        "\n\nThis requires TOTAL_SYSTEM_RATE to be defined."
-        "\nThis is mutually exclusive with RATES.",
-    )
-    rates: opt_expr_list = Field(
+    rates: List[ExpressionType] = Field(
         None,
         title="Rates",
         description="Rates [Sm3/day] as a list of expressions" "\n\nThis is mutually exclusive with RATE_FRACTIONS.",
@@ -91,12 +78,6 @@ class YamlPumpSystemOperationalSettings(YamlConsumerSystemOperationalConditionBa
         ),
     )
 
-    @validator("rate_fractions", always=True)
-    def mutually_exclusive_rates(cls, v, values):
-        if values.get("rates") is not None and v:
-            raise ValueError("'RATE_FRACTIONS' and 'RATES' are mutually exclusive.")
-        return v
-
     @validator("inlet_pressure", always=True)
     def mutually_exclusive_inlet_pressure(cls, v, values):
         if values.get("inlet_pressures") is not None and v:
@@ -131,7 +112,6 @@ class YamlPumpSystem(YamlConsumerBase):
 
     @root_validator
     def validate_operational_settings(cls, values):
-        rate = values.get("rate")
         operational_settings = values.get("operational_settings")
 
         if operational_settings is None:
@@ -145,15 +125,6 @@ class YamlPumpSystem(YamlConsumerBase):
             flattened_operational_settings = operational_settings
 
         for operational_setting in flattened_operational_settings:
-            # Validate rates
-            rate_fractions = operational_setting.rate_fractions
-            rates = operational_setting.rates
-            if rate_fractions is not None:
-                if rate is None:
-                    raise ValueError("RATE should be specified when using RATE_FRACTIONS.")
-            elif rate_fractions is None and rates is None:
-                raise ValueError("Either RATES or RATE_FRACTIONS should be specified.")
-
             # Validate pressures
             inlet_pressures = operational_setting.inlet_pressures
             inlet_pressure = operational_setting.inlet_pressure
@@ -206,16 +177,8 @@ class YamlPumpSystem(YamlConsumerBase):
                     if operational_setting.outlet_pressures is not None
                     else [operational_setting.outlet_pressure] * number_of_pumps
                 )
-                if operational_setting.rates is not None:
-                    rates = [Expression.setup_from_expression(rate) for rate in operational_setting.rates]
-                else:
-                    rates = [
-                        Expression.multiply(
-                            Expression.setup_from_expression(operational_setting.total_system_rate),
-                            Expression.setup_from_expression(rate_fraction),
-                        )
-                        for rate_fraction in operational_setting.rate_fractions
-                    ]
+                rates = [Expression.setup_from_expression(rate) for rate in operational_setting.rates]
+
                 fluid_densities = (
                     operational_setting.fluid_densities
                     if operational_setting.fluid_densities is not None

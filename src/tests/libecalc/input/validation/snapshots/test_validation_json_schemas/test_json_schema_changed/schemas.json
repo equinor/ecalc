@@ -298,31 +298,6 @@
                             },
                             "title": "Rates",
                             "type": "array"
-                        },
-                        "RATE_FRACTIONS": {
-                            "description": "Rate fractions of total system rate, as a list of floats between 0 and 1.\n\nThis requires TOTAL_SYSTEM_RATE to be defined.\nThis is mutually exclusive with RATES.",
-                            "items": {
-                                "maximum": 1,
-                                "minimum": 0,
-                                "type": "number"
-                            },
-                            "title": "Rate fractions",
-                            "type": "array"
-                        },
-                        "TOTAL_SYSTEM_RATE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ],
-                            "description": "The total system rate expression.\n\nShould be used with RATE_FRACTIONS in OPERATIONAL_SETTINGS.",
-                            "title": "Total system rate"
                         }
                     },
                     "title": "CompressorSystemOperationalSettings",
@@ -1501,31 +1476,6 @@
                             },
                             "title": "Rates",
                             "type": "array"
-                        },
-                        "RATE_FRACTIONS": {
-                            "description": "Rate fractions of total system rate, as a list of floats between 0 and 1.\n\nThis requires TOTAL_SYSTEM_RATE to be defined.\nThis is mutually exclusive with RATES.",
-                            "items": {
-                                "maximum": 1,
-                                "minimum": 0,
-                                "type": "number"
-                            },
-                            "title": "Rate fractions",
-                            "type": "array"
-                        },
-                        "TOTAL_SYSTEM_RATE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ],
-                            "description": "The total system rate expression.\n\nShould be used with RATE_FRACTIONS in OPERATIONAL_SETTINGS.",
-                            "title": "Total system rate"
                         }
                     },
                     "title": "PumpSystemOperationalSettings",
