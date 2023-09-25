@@ -80,16 +80,12 @@ INSTALLATIONS:
               - NAME: pump3
                 ENERGY_USAGE_MODEL: pump_single_speed
             OPERATIONAL_SETTINGS:
-              - CONDITION: true
-                POWERLOSSFACTOR: 0.0
-                RATES: [4000000, 5000000, 6000000]
+              - RATES: [4000000, 5000000, 6000000]
                 INLET_PRESSURE: 50
                 OUTLET_PRESSURE: 250
                 FLUID_DENSITY: 2
                 CROSSOVER: [0, 1, 1]
-              - CONDITION: true
-                POWERLOSSFACTOR: 0.0
-                RATES: [2000000, 2500000, 3000000]
+              - RATES: [2000000, 2500000, 3000000]
                 INLET_PRESSURE: 50
                 OUTLET_PRESSURE: 125
                 FLUID_DENSITY: 2
@@ -130,21 +126,15 @@ INSTALLATIONS:
           - NAME: compressor3
             ENERGY_USAGE_MODEL: compressor_sampled_1d
         OPERATIONAL_SETTINGS:
-          - CONDITION: true
-            POWERLOSSFACTOR: 0.0
-            RATES: [ 1000000, 5000000, 5000000 ]
+          - RATES: [ 1000000, 5000000, 5000000 ]
             INLET_PRESSURE: 50
             OUTLET_PRESSURE: 250
             CROSSOVER: [ 0, 0, 0 ]
-          - CONDITION: true
-            POWERLOSSFACTOR: 0.0
-            RATES: [ "$var.compressor1", 5000000, 5000000 ]
+          - RATES: [ "$var.compressor1", 5000000, 5000000 ]
             INLET_PRESSURE: 50
             OUTLET_PRESSURE: 125
             CROSSOVER: [ 0, 1, 1 ]
-          - CONDITION: true
-            POWERLOSSFACTOR: 0.0
-            RATES: [ 1000000, 5000000, 5000000 ]
+          - RATES: [ 1000000, 5000000, 5000000 ]
             INLET_PRESSURE: 50
             OUTLET_PRESSURE: 125
             CROSSOVER: [ 0, 1, 1 ]

@@ -8,7 +8,3 @@ class YamlBase(BaseModel, ABC):
         allow_population_by_field_name = True
         alias_generator = str.upper
         extra = Extra.forbid
-
-    @abstractmethod
-    def to_dto(self):
-        ...
