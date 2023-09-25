@@ -6,12 +6,12 @@ from libecalc.input.yaml_types import YamlBase
 from libecalc.input.yaml_types.components.legacy.yaml_fuel_consumer import (
     YamlFuelConsumer,
 )
-from libecalc.input.yaml_types.components.yaml_category_field import CategoryField
-from libecalc.input.yaml_types.components.yaml_compressor_system import (
+from libecalc.input.yaml_types.components.system.yaml_compressor_system import (
     YamlCompressorSystem,
 )
+from libecalc.input.yaml_types.components.system.yaml_pump_system import YamlPumpSystem
+from libecalc.input.yaml_types.components.yaml_category_field import CategoryField
 from libecalc.input.yaml_types.components.yaml_generator_set import YamlGeneratorSet
-from libecalc.input.yaml_types.components.yaml_pump_system import YamlPumpSystem
 from libecalc.input.yaml_types.emitters.yaml_direct_emitter import YamlDirectEmitter
 from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
 from pydantic import Field
