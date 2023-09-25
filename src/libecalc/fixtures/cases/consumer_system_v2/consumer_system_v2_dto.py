@@ -355,7 +355,7 @@ pump_system = dto.ElectricityConsumer(
                     pump_model=pump_model_single_speed,
                 ),
             ],
-            total_system_rate=Expression.setup_from_expression("1"),
+            total_system_rate=None,
             operational_settings=[
                 PumpSystemOperationalSetting(
                     rates=[Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]],
