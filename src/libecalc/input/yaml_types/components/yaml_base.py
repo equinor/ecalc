@@ -17,9 +17,6 @@ class YamlConsumerBase(YamlBase):
         description="User defined category",
     )
 
-    def to_dto(self, **kwargs):
-        raise NotImplementedError
-
 
 class YamlOperationalConditionBase(YamlBase):
     condition: Optional[ExpressionType] = Field(
@@ -45,31 +42,6 @@ power_requirement = power_before_loss / (1 - power_loss_factor)
 """,
     )
 
-    def to_dto(self):
-        raise NotImplementedError
 
-
-class YamlConsumerSystemOperationalConditionBase(YamlOperationalConditionBase):
-    conditions: Optional[ExpressionType] = Field(
-        None,
-        title="Conditions",
-        description="""
-    A consumer system my have the keywords CONDITIONS which specifies conditions for the consumers to be used. \n
-    At points in the time series where the condition evaluates to 0 (or False), the energy consumption will be 0. \n
-    This is practical for some otherwise constant consumers, for example, fixed production loads, which have a constant \n
-    load whenever there is production. CONDITIONS supports the functionality described in Expressions, \n
-    but is required to evaluate to True/False or 1/0.\n
-    """,
-    )
-    power_loss_factors: Optional[List[ExpressionType]] = Field(
-        None,
-        title="Power loss factors",
-        alias="POWERLOSSFACTORS",  # Legacy support
-        description="""
-    A consumer system may have list of POWER_LOSS_FACTOR that may be added to account for power transmission losses.
-    E.g. if you have a subsea installation with a power line to another installation, there may be line losses. \n
-    For a power line loss of 5%, POWER_LOSS_FACTOR is set to 0.05 and the power required from the power source \n
-    (generator set) will be:\n\n
-    power_requirement = power_before_loss / (1 - power_loss_factor)
-    """,
-    )
+class YamlConsumerSystemOperationalConditionBase(YamlBase):
+    pass
