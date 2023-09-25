@@ -1,5 +1,92 @@
 # Changelog
 
+## [8.4.0](https://github.com/equinor/ecalc/compare/v8.3.0...v8.4.0) (2023-09-25)
+
+
+### Features
+
+* add compressor inlet- and outlet pressures to models/train level ([#152](https://github.com/equinor/ecalc/issues/152)) ([9b95ee5](https://github.com/equinor/ecalc/commit/9b95ee50fd78d77c59dfe2533c10dbcdc41461a7))
+* add input compressor pressures to output ([#140](https://github.com/equinor/ecalc/issues/140)) ([74e3e56](https://github.com/equinor/ecalc/commit/74e3e5673bad36bf30d8b217609819a79d7e76bb))
+* add support for system v2 in FDE ([e6d1f93](https://github.com/equinor/ecalc/commit/e6d1f938d62d68479835f90932bc09b49203a6c9))
+* add support for temporal operational settings in v2 ([f2b217a](https://github.com/equinor/ecalc/commit/f2b217acaaf445df03fba077cd7407a4c37375d2))
+
+
+### Bug Fixes
+
+* add system v2 subcomponents to components list ([b61a0fe](https://github.com/equinor/ecalc/commit/b61a0feba9d28c27992128a2e02262c58dedcbdb))
+* add system v2 to generator set consumers ([#166](https://github.com/equinor/ecalc/issues/166)) ([d40558e](https://github.com/equinor/ecalc/commit/d40558eb0c727723ba1cf952dfbd58b73dca0cd0))
+* avoid name conflicts with ecalc cli package ([#197](https://github.com/equinor/ecalc/issues/197)) ([140c448](https://github.com/equinor/ecalc/commit/140c4481b8a860b203b338b51a883c41bd6b4dc6))
+* bug in asset_result_dto ([#170](https://github.com/equinor/ecalc/issues/170)) ([c45a7ac](https://github.com/equinor/ecalc/commit/c45a7acfb4bf3c89f8c89e71561a90e2831ccb17))
+* correct type for total system rate in pump system v2 ([#167](https://github.com/equinor/ecalc/issues/167)) ([5559cdd](https://github.com/equinor/ecalc/commit/5559cdd478511b050a3f344da33110621f221b76))
+* do not return actual rate in results for compressor sampled since it can not be calculated ([#190](https://github.com/equinor/ecalc/issues/190)) ([74fcfd8](https://github.com/equinor/ecalc/commit/74fcfd8ffc4835d6ddec442374f1389f24df66d7))
+* expression type in system v2 ([5318fb5](https://github.com/equinor/ecalc/commit/5318fb536945cd2aeb82f03cb922fa1a4ed950e1))
+* forbid extra attributes in TimeSeries ([#195](https://github.com/equinor/ecalc/issues/195)) ([24c27bb](https://github.com/equinor/ecalc/commit/24c27bb0d3f9ee5570dc76e6d6cf3a45bc006e27))
+* full run with system v2 components ([#147](https://github.com/equinor/ecalc/issues/147)) ([2279ef4](https://github.com/equinor/ecalc/commit/2279ef430f04673bc91926316663cdbd97cfc61d))
+* generate system v2 schema ([#161](https://github.com/equinor/ecalc/issues/161)) ([a27c392](https://github.com/equinor/ecalc/commit/a27c39253d91a3f1c7cc559164874c2d5f9443d3))
+* handle all situations where zero mass rate is entering a compressor stage in a multiple streams compressor train ([#164](https://github.com/equinor/ecalc/issues/164)) ([ba9235e](https://github.com/equinor/ecalc/commit/ba9235efd01f8b6cfc1dd776f6355d076c3fb93b))
+* handle dates in yaml correctly ([e9c28d0](https://github.com/equinor/ecalc/commit/e9c28d057413aa801ec9af86b89f3c4d5b3de8e5))
+* issue with crossover rate calculation in system v2 ([#188](https://github.com/equinor/ecalc/issues/188)) ([623a1cf](https://github.com/equinor/ecalc/commit/623a1cfa1e9ee888d69543dc2050cf4c25945baf))
+* make ecalc installable again ([58693de](https://github.com/equinor/ecalc/commit/58693debf2cdb774a7b9659214ba9aa9453af8d0))
+* rate_type was snake_case in json output ([#172](https://github.com/equinor/ecalc/issues/172)) ([dc82a88](https://github.com/equinor/ecalc/commit/dc82a88930e158fc5b6a762cd1fe7d75534d86d7))
+* requested pressures not always an attribute ([#155](https://github.com/equinor/ecalc/issues/155)) ([0078405](https://github.com/equinor/ecalc/commit/0078405e3ad2d254b320239fc8636c3c2bdfbebf))
+* system v2 evaluation ([6494257](https://github.com/equinor/ecalc/commit/6494257c5d67f8a19582b2c152d73ec550289196))
+* use results base ([#199](https://github.com/equinor/ecalc/issues/199)) ([cebde33](https://github.com/equinor/ecalc/commit/cebde330135210bcc25a5950a2416a8fcf747b09))
+* wrongly accessed rate in pump system v2 ([56da4b2](https://github.com/equinor/ecalc/commit/56da4b2a07188200589795ab8a2e7f1ebfe3fe95))
+
+
+### Documentation
+
+* add further explanation to generic workflow ([ddcb462](https://github.com/equinor/ecalc/commit/ddcb462ba1eda072df2abfd40e95fa677832ef91))
+* add generic workflow ([30553e0](https://github.com/equinor/ecalc/commit/30553e0e7282ef35e616d2f3629de57e104d7e42))
+* add powerlossfactor in generic workflow ([3d152c8](https://github.com/equinor/ecalc/commit/3d152c880b9d8b33e3ac496ddc96eb2b2f588fb1))
+* changelog v8.4 add input compressor pressures to output ([#150](https://github.com/equinor/ecalc/issues/150)) ([46e308f](https://github.com/equinor/ecalc/commit/46e308fba1c1f4001bd1eaa340880c8409c8841b))
+* correct order of diagrams ([71a07f5](https://github.com/equinor/ecalc/commit/71a07f5315a28d053557db25209d543d4a570307))
+* make mermaid diagram of workflow render correctly ([b1c5b23](https://github.com/equinor/ecalc/commit/b1c5b233907fa705832e55621e6917efb8620df7))
+* make mermaid workflow diagram render correctly ([7a99b5b](https://github.com/equinor/ecalc/commit/7a99b5b062804b0f0661ac4d6a62f8d6f32a2fdb))
+* update changelog for v8.3 ([b424176](https://github.com/equinor/ecalc/commit/b424176c1dad13f4a29ba7c84cc2354e37b75c2a))
+* update workflow with comments ([a71abfe](https://github.com/equinor/ecalc/commit/a71abfe32f02a056a0253ec7e4596b0b10fb94b2))
+
+
+### Miscellaneous Chores
+
+* add pressure drop ahead of stage to inlet pressure before choking ([#146](https://github.com/equinor/ecalc/issues/146)) ([e5368de](https://github.com/equinor/ecalc/commit/e5368de941febf44f7e5e13c11b1fc3509c2e95d))
+* add rate type to compressor model results and convert to time series ([#187](https://github.com/equinor/ecalc/issues/187)) ([c86bf3f](https://github.com/equinor/ecalc/commit/c86bf3f940224ca765f5705f10df676eb6e5d557))
+* add validation for missing headers in csv resource file ([#191](https://github.com/equinor/ecalc/issues/191)) ([60e8403](https://github.com/equinor/ecalc/commit/60e84032d932deaf0591c6f5d5d68d70d23dc753))
+* adding test of full recirculation in multiple streams compressor trains ([ba9235e](https://github.com/equinor/ecalc/commit/ba9235efd01f8b6cfc1dd776f6355d076c3fb93b))
+* calculate correct standard condition density when mixing two streams ([ba9235e](https://github.com/equinor/ecalc/commit/ba9235efd01f8b6cfc1dd776f6355d076c3fb93b))
+* clarify neqsim depenedency in ecalc ([#198](https://github.com/equinor/ecalc/issues/198)) ([d6635a9](https://github.com/equinor/ecalc/commit/d6635a988de18799563c09c51ae7f3f7944c8915))
+* **docs:** fix equations showing twice ([#141](https://github.com/equinor/ecalc/issues/141)) ([2455e34](https://github.com/equinor/ecalc/commit/2455e34cbaf047bc416a287052c12d9fbbdc963e))
+* enable mypy for cli ([#189](https://github.com/equinor/ecalc/issues/189)) ([da713fc](https://github.com/equinor/ecalc/commit/da713fcdac9d2c32ed6b60b788de31a765c1644a))
+* fix spelling errors in changelog ([de3c2eb](https://github.com/equinor/ecalc/commit/de3c2eb0cf74068dd6c04e7710eaeb1d2dd27a77))
+* remove unnecessary folders ([#186](https://github.com/equinor/ecalc/issues/186)) ([e861d87](https://github.com/equinor/ecalc/commit/e861d8782aa2d3280a7e3e5c24f757558e5656f5))
+* rename conflicting file names ([#153](https://github.com/equinor/ecalc/issues/153)) ([654175e](https://github.com/equinor/ecalc/commit/654175e9be0e40b521c6c68871b8a0b85906605c))
+* revert nan to num in expressions ([#202](https://github.com/equinor/ecalc/issues/202)) ([2f95c29](https://github.com/equinor/ecalc/commit/2f95c2966ebfc906ebeda2f12ad1fe72ec0a59b4))
+* update archive ([#181](https://github.com/equinor/ecalc/issues/181)) ([03abf64](https://github.com/equinor/ecalc/commit/03abf64e9267374b8cd641c09d870631200a2ec5))
+* update deps to latest ([0f30f49](https://github.com/equinor/ecalc/commit/0f30f49db6febd033cfd139727c85c31c4676fd2))
+
+
+### Code Refactoring
+
+* change typ to rate_type for TimeSeriesRate ([#89](https://github.com/equinor/ecalc/issues/89)) ([8be87dd](https://github.com/equinor/ecalc/commit/8be87ddff732592e16ff337fe9927ead438d5928))
+* generate asset/ecalc model schema ([#157](https://github.com/equinor/ecalc/issues/157)) ([6818848](https://github.com/equinor/ecalc/commit/6818848afa5f9c390d9214597b8ea938eeb43037))
+* generate direct emitter schema ([#180](https://github.com/equinor/ecalc/issues/180)) ([924526a](https://github.com/equinor/ecalc/commit/924526ad7958cfce6e75aa43791224edbcf6db70))
+* generate facility type schema ([#182](https://github.com/equinor/ecalc/issues/182)) ([9428979](https://github.com/equinor/ecalc/commit/942897921d8f38115878bdd95349c43c449240b7))
+* generate fuel consumer schema ([#160](https://github.com/equinor/ecalc/issues/160)) ([9f580c1](https://github.com/equinor/ecalc/commit/9f580c16f6f25e22d30e8d36dd05536303ec6929))
+* generate fuel types schema ([#179](https://github.com/equinor/ecalc/issues/179)) ([e17ef3b](https://github.com/equinor/ecalc/commit/e17ef3be779921e029db5c7ca10ed86a2e71f797))
+* generate generator set schema ([#165](https://github.com/equinor/ecalc/issues/165)) ([ab25e05](https://github.com/equinor/ecalc/commit/ab25e055de634a4ecc59ae580834ee2e537fd991))
+* generate installation schema ([#159](https://github.com/equinor/ecalc/issues/159)) ([030a44b](https://github.com/equinor/ecalc/commit/030a44baf61719a8de6ed48b772a47eccd7d923c))
+* generate time series schema ([#176](https://github.com/equinor/ecalc/issues/176)) ([b02d68d](https://github.com/equinor/ecalc/commit/b02d68dbc615b9802c54d6e9806430aceee1b354))
+* improve error message when wrong CURVE-keyword input to single speed compressor ([#173](https://github.com/equinor/ecalc/issues/173)) ([9502bcc](https://github.com/equinor/ecalc/commit/9502bcc8ee504d490e293f4bada839e96e011092))
+* improve error message when wrong CURVES-keyword input to variable speed compressor ([#175](https://github.com/equinor/ecalc/issues/175)) ([714e867](https://github.com/equinor/ecalc/commit/714e867f7593527078480e4d9c7bca62da163d7a))
+* merge functionality for results ([#193](https://github.com/equinor/ecalc/issues/193)) ([db1e9b1](https://github.com/equinor/ecalc/commit/db1e9b1d52d9dfce48d54dfa6cd77ac4a1bbf92f))
+* move common properties for system v2 operational settings ([10b5e07](https://github.com/equinor/ecalc/commit/10b5e07915d52ce6b08f508dd87d31c4d8dc8778))
+* move yaml system into package ([b477b15](https://github.com/equinor/ecalc/commit/b477b159cc60df96c5ec230cd8d8db519f721f85))
+* remove condition and power_loss_factor from system v2 ([2507bb9](https://github.com/equinor/ecalc/commit/2507bb92730cd4e9b5bd35d2f7e429d493fb5478))
+* remove rate_fractions from system v2 ([ba788fd](https://github.com/equinor/ecalc/commit/ba788fdd8dff754c3ca16315d098e00911d91fa0))
+* use common Period,Periods classes ([76366ce](https://github.com/equinor/ecalc/commit/76366cec64da5c7585635db69adf457fbb36775e))
+* use common to_camel_case function ([#171](https://github.com/equinor/ecalc/issues/171)) ([f5f0c2f](https://github.com/equinor/ecalc/commit/f5f0c2f8da6e07ad666f8fc203876eece646e6e8))
+* use yaml prefix for yaml klasses/modules ([#174](https://github.com/equinor/ecalc/issues/174)) ([e91ac2a](https://github.com/equinor/ecalc/commit/e91ac2a77345556d8a53c10a4be049eb8ec2c7ce))
+
 ## [8.3.0](https://github.com/equinor/ecalc/compare/v8.2.2...v8.3.0) (2023-08-11)
 
 
