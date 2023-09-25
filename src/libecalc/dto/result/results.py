@@ -24,7 +24,7 @@ from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
 from libecalc.dto.result.simple import SimpleComponentResult, SimpleResultData
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 from libecalc.dto.result.types import opt_float
-from pydantic import BaseModel, Field, validator
+from pydantic import Field, validator
 from typing_extensions import Annotated
 
 
@@ -138,7 +138,7 @@ class PumpModelResult(ConsumerModelResultBase):
     operational_head: Optional[List[float]]
 
 
-class TurbineModelResult(BaseModel):
+class TurbineModelResult(EcalcResultBaseModel):
     energy_usage_unit: Unit
     power_unit: Unit
     efficiency: TimeSeriesFloat
@@ -150,7 +150,7 @@ class TurbineModelResult(BaseModel):
     power: TimeSeriesRate
 
 
-class CompressorStreamConditionResult(BaseModel):
+class CompressorStreamConditionResult(EcalcResultBaseModel):
     actual_rate_m3_per_hr: TimeSeriesRate
     actual_rate_before_asv_m3_per_hr: TimeSeriesRate
     kappa: TimeSeriesFloat
@@ -161,7 +161,7 @@ class CompressorStreamConditionResult(BaseModel):
     z: TimeSeriesFloat
 
 
-class CompressorModelStageResult(BaseModel):
+class CompressorModelStageResult(EcalcResultBaseModel):
     chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]]
     chart_area_flags: List[str]
     energy_usage_unit: Unit
