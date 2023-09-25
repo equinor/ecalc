@@ -61,13 +61,13 @@ INSTALLATIONS:
               FLUID_DENSITY: 2
               POWERLOSSFACTOR: 0.0
               OPERATIONAL_SETTINGS:
-                - RATES: [4000000, 5000000, 6000000]
-                  SUCTION_PRESSURES: [50, 50, 50]
-                  DISCHARGE_PRESSURES: [250, 250, 250]
-                  CROSSOVER: [0, 1, 1]
+                - RATES: [ 4000000, 5000000, 6000000 ]
+                  SUCTION_PRESSURES: [ 50, 50, 50 ]
+                  DISCHARGE_PRESSURES: [ 250, 250, 250 ]
+                  CROSSOVER: [ 0, 1, 1 ]
                 - RATES: [ 2000000, 2500000, 3000000 ]
-                  SUCTION_PRESSURES: [50, 50, 50]
-                  DISCHARGE_PRESSURES: [125, 125, 125]
+                  SUCTION_PRESSURES: [ 50, 50, 50 ]
+                  DISCHARGE_PRESSURES: [ 125, 125, 125 ]
                   CROSSOVER: [ 0, 1, 1 ]
           - NAME: pump_system_v2
             CATEGORY: PUMP
@@ -80,7 +80,7 @@ INSTALLATIONS:
               - NAME: pump3
                 ENERGY_USAGE_MODEL: pump_single_speed
             OPERATIONAL_SETTINGS:
-              - RATES: [4000000, 5000000, 6000000]
+              - RATES: [ 4000000, 5000000, 6000000 ]
                 INLET_PRESSURE: 50
                 OUTLET_PRESSURE: 250
                 FLUID_DENSITY: 2
@@ -103,10 +103,10 @@ INSTALLATIONS:
             - NAME: compressor3
               COMPRESSOR_MODEL: compressor_sampled_1d
           OPERATIONAL_SETTINGS:
-            - RATES: [ 1000000, 5000000, 5000000 ]
+            - RATES: [ 1000000, 6000000, 6000000 ]
               SUCTION_PRESSURES: [ 50, 50, 50 ]
               DISCHARGE_PRESSURES: [ 250, 250, 250 ]
-              CROSSOVER: [ 0, 0, 0 ]
+              CROSSOVER: [ 0, 1, 1 ]
             - RATES: [ "$var.compressor1", 5000000, 5000000 ]
               SUCTION_PRESSURES: [ 50, 50, 50 ]
               DISCHARGE_PRESSURES: [ 125, 125, 125 ]
@@ -126,10 +126,10 @@ INSTALLATIONS:
           - NAME: compressor3
             ENERGY_USAGE_MODEL: compressor_sampled_1d
         OPERATIONAL_SETTINGS:
-          - RATES: [ 1000000, 5000000, 5000000 ]
+          - RATES: [ 1000000, 6000000, 6000000 ]
             INLET_PRESSURE: 50
             OUTLET_PRESSURE: 250
-            CROSSOVER: [ 0, 0, 0 ]
+            CROSSOVER: [ 0, 1, 1 ]
           - RATES: [ "$var.compressor1", 5000000, 5000000 ]
             INLET_PRESSURE: 50
             OUTLET_PRESSURE: 125
