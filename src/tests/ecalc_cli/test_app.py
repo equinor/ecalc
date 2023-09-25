@@ -336,8 +336,12 @@ class TestJsonOutput:
         requested_inlet_pressure_train = compressor_train["requested_inlet_pressure"]["values"]
         requested_outlet_pressure_train = compressor_train["requested_outlet_pressure"]["values"]
 
-        calculated_inlet_pressure_train = compressor_train["stage_results"][0]["inlet_stream_condition"]["pressure"]
-        calculated_outlet_pressure_train = compressor_train["stage_results"][-1]["outlet_stream_condition"]["pressure"]
+        calculated_inlet_pressure_train = compressor_train["stage_results"][0]["inlet_stream_condition"]["pressure"][
+            "values"
+        ]
+        calculated_outlet_pressure_train = compressor_train["stage_results"][-1]["outlet_stream_condition"]["pressure"][
+            "values"
+        ]
 
         assert requested_inlet_pressure_tabular == [20] * len(compressor_tabular["timesteps"])
         assert requested_outlet_pressure_tabular == [200] * len(compressor_tabular["timesteps"])

@@ -26,6 +26,12 @@ from libecalc.dto.base import ComponentType
 from libecalc.dto.graph import Graph
 from libecalc.dto.models.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto.result.emission import EmissionIntensityResult
+from libecalc.dto.result.results import (
+    CompressorModelResult,
+    CompressorModelStageResult,
+    CompressorStreamConditionResult,
+    TurbineModelResult,
+)
 from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.expression import Expression
@@ -299,9 +305,323 @@ class GraphResult:
                         unit=Unit.BARA,
                     ).for_period(period=period)
 
+                    rate = TimeSeriesRate(
+                        timesteps=model.timesteps,
+                        values=model.rate_sm3_day,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        rate_type=RateType.STREAM_DAY,
+                    )
+
+                    model_stage_results = []
+                    # Convert rates in stage results from lists to time series:
+                    for stage_result in model.stage_results:
+                        model_stage_result = CompressorModelStageResult(
+                            chart=stage_result.chart,
+                            chart_area_flags=stage_result.chart_area_flags,
+                            energy_usage_unit=stage_result.energy_usage_unit,
+                            power_unit=stage_result.power_unit,
+                            fluid_composition=stage_result.fluid_composition,
+                            asv_recirculation_loss_mw=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=stage_result.asv_recirculation_loss_mw
+                                if stage_result.asv_recirculation_loss_mw is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.MEGA_WATT,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            head_exceeds_maximum=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=stage_result.head_exceeds_maximum
+                                if stage_result.asv_recirculation_loss_mw is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            is_valid=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=stage_result.is_valid
+                                if stage_result.is_valid is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            polytropic_efficiency=TimeSeriesFloat(
+                                timesteps=model.timesteps,
+                                values=stage_result.polytropic_efficiency
+                                if stage_result.polytropic_efficiency is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.FRACTION,
+                            ),
+                            polytropic_enthalpy_change_before_choke_kJ_per_kg=TimeSeriesFloat(
+                                timesteps=model.timesteps,
+                                values=stage_result.polytropic_enthalpy_change_before_choke_kJ_per_kg
+                                if stage_result.polytropic_enthalpy_change_before_choke_kJ_per_kg is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
+                            ),
+                            polytropic_enthalpy_change_kJ_per_kg=TimeSeriesFloat(
+                                timesteps=model.timesteps,
+                                values=stage_result.polytropic_enthalpy_change_kJ_per_kg
+                                if stage_result.polytropic_enthalpy_change_kJ_per_kg is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
+                            ),
+                            polytropic_head_kJ_per_kg=TimeSeriesFloat(
+                                timesteps=model.timesteps,
+                                values=stage_result.polytropic_head_kJ_per_kg
+                                if stage_result.polytropic_head_kJ_per_kg is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
+                            ),
+                            energy_usage=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=stage_result.energy_usage
+                                if stage_result.energy_usage is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=stage_result.energy_usage_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            mass_rate_kg_per_hr=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=stage_result.mass_rate_kg_per_hr
+                                if stage_result.mass_rate_kg_per_hr is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.KILO_PER_HOUR,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            mass_rate_before_asv_kg_per_hr=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=stage_result.mass_rate_before_asv_kg_per_hr
+                                if stage_result.mass_rate_before_asv_kg_per_hr is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.KILO_PER_HOUR,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            power=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=stage_result.power
+                                if stage_result.power is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=stage_result.power_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            pressure_is_choked=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=stage_result.pressure_is_choked
+                                if stage_result.pressure_is_choked is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            rate_exceeds_maximum=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=stage_result.rate_exceeds_maximum
+                                if stage_result.rate_exceeds_maximum is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            rate_has_recirculation=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=stage_result.rate_has_recirculation
+                                if stage_result.rate_has_recirculation is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            speed=TimeSeriesFloat(
+                                timesteps=model.timesteps,
+                                values=stage_result.speed
+                                if stage_result.speed is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.SPEED_RPM,
+                            ),
+                            inlet_stream_condition=CompressorStreamConditionResult(
+                                actual_rate_m3_per_hr=TimeSeriesRate(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.actual_rate_m3_per_hr
+                                    if stage_result.inlet_stream_condition.actual_rate_m3_per_hr is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                                    rate_type=RateType.STREAM_DAY,
+                                ),
+                                actual_rate_before_asv_m3_per_hr=TimeSeriesRate(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.actual_rate_before_asv_m3_per_hr
+                                    if stage_result.inlet_stream_condition.actual_rate_before_asv_m3_per_hr is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                                    rate_type=RateType.STREAM_DAY,
+                                ),
+                                kappa=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.kappa
+                                    if stage_result.inlet_stream_condition.kappa is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.NONE,
+                                ),
+                                density_kg_per_m3=TimeSeriesRate(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.density_kg_per_m3
+                                    if stage_result.inlet_stream_condition.density_kg_per_m3 is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.KG_M3,
+                                    rate_type=RateType.STREAM_DAY,
+                                ),
+                                pressure=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.pressure
+                                    if stage_result.inlet_stream_condition.pressure is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.BARA,
+                                ),
+                                pressure_before_choking=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.pressure_before_choking
+                                    if stage_result.inlet_stream_condition.pressure_before_choking is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.BARA,
+                                ),
+                                temperature_kelvin=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.temperature_kelvin
+                                    if stage_result.inlet_stream_condition.temperature_kelvin is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.KELVIN,
+                                ),
+                                z=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.inlet_stream_condition.z
+                                    if stage_result.inlet_stream_condition.z is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.NONE,
+                                ),
+                            ),
+                            outlet_stream_condition=CompressorStreamConditionResult(
+                                actual_rate_m3_per_hr=TimeSeriesRate(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.actual_rate_m3_per_hr
+                                    if stage_result.outlet_stream_condition.actual_rate_m3_per_hr is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                                    rate_type=RateType.STREAM_DAY,
+                                ),
+                                actual_rate_before_asv_m3_per_hr=TimeSeriesRate(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.actual_rate_before_asv_m3_per_hr
+                                    if stage_result.outlet_stream_condition.actual_rate_before_asv_m3_per_hr is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                                    rate_type=RateType.STREAM_DAY,
+                                ),
+                                kappa=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.kappa
+                                    if stage_result.outlet_stream_condition.kappa is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.NONE,
+                                ),
+                                density_kg_per_m3=TimeSeriesRate(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.density_kg_per_m3
+                                    if stage_result.outlet_stream_condition.density_kg_per_m3 is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.KG_M3,
+                                    rate_type=RateType.STREAM_DAY,
+                                ),
+                                pressure=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.pressure
+                                    if stage_result.outlet_stream_condition.pressure is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.BARA,
+                                ),
+                                pressure_before_choking=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.pressure_before_choking
+                                    if stage_result.outlet_stream_condition.pressure_before_choking is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.BARA,
+                                ),
+                                temperature_kelvin=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.temperature_kelvin
+                                    if stage_result.outlet_stream_condition.temperature_kelvin is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.KELVIN,
+                                ),
+                                z=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=stage_result.outlet_stream_condition.z
+                                    if stage_result.outlet_stream_condition.z is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.NONE,
+                                ),
+                            ),
+                        )
+
+                        model_stage_results.append(model_stage_result)
+
+                    turbine_result = (
+                        TurbineModelResult(
+                            energy_usage_unit=model.turbine_result.energy_usage_unit,
+                            power_unit=model.turbine_result.power_unit,
+                            efficiency=TimeSeriesFloat(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.efficiency
+                                if model.turbine_result.efficiency is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.FRACTION,
+                            ),
+                            energy_usage=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.energy_usage
+                                if model.turbine_result.energy_usage is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=model.turbine_result.energy_usage_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            exceeds_maximum_load=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.exceeds_maximum_load
+                                if model.turbine_result.exceeds_maximum_load is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            fuel_rate=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.fuel_rate
+                                if model.turbine_result.fuel_rate is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            is_valid=TimeSeriesBoolean(
+                                timesteps=model.timesteps,
+                                values=list(model.turbine_result.is_valid)
+                                if model.turbine_result.is_valid is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=Unit.NONE,
+                            ),
+                            load=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.load
+                                if model.turbine_result.load is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=model.turbine_result.energy_usage_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                            power=TimeSeriesRate(
+                                timesteps=model.timesteps,
+                                values=model.turbine_result.power
+                                if model.turbine_result.power is not None
+                                else [math.nan] * len(model.timesteps),
+                                unit=model.turbine_result.power_unit,
+                                rate_type=RateType.STREAM_DAY,
+                            ),
+                        )
+                        if model.turbine_result is not None
+                        else None
+                    )
+
                     models.extend(
                         [
-                            libecalc.dto.result.CompressorModelResult(
+                            CompressorModelResult(
                                 parent=consumer_id,
                                 name=model.name,
                                 componentType=model.component_type,
@@ -310,8 +630,8 @@ class GraphResult:
                                 energy_usage_unit=model.energy_usage_unit,
                                 requested_inlet_pressure=requested_inlet_pressure,
                                 requested_outlet_pressure=requested_outlet_pressure,
-                                rate_sm3_day=model.rate_sm3_day,
-                                stage_results=model.stage_results,
+                                rate=rate,
+                                stage_results=model_stage_results,
                                 failure_status=model.failure_status,
                                 timesteps=model.timesteps,
                                 is_valid=TimeSeriesBoolean(
@@ -325,6 +645,7 @@ class GraphResult:
                                 ),
                                 power=model.power,
                                 power_unit=model.power_unit,
+                                turbine_result=turbine_result,
                             )
                         ]
                     )

@@ -47,6 +47,7 @@ class Unit(str, Enum):
     NONE = "N/A"
     KG_BOE = "kg/BOE"
     KG_SM3 = "kg/Sm3"
+    KG_M3 = "kg/m3"
     STANDARD_CUBIC_METER = "Sm3"
     BOE = "BOE"
 
@@ -54,6 +55,7 @@ class Unit(str, Enum):
     TONS = "t"
 
     KILO_PER_DAY = "kg/d"
+    KILO_PER_HOUR = "kg/h"
     KILO = "kg"
 
     LITRES_PER_DAY = "L/d"
@@ -83,6 +85,8 @@ class Unit(str, Enum):
 
     NORWEGIAN_KRONER_PER_DAY = "NOK/d"
     NORWEGIAN_KRONER = "NOK"
+
+    SPEED_RPM = "RPM"
 
     def __str__(self) -> str:
         return self.value
