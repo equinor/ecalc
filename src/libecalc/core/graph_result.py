@@ -697,7 +697,7 @@ class GraphResult:
                                     values=model.operational_head
                                     if model.operational_head is not None
                                     else [math.nan] * len(model.timesteps),
-                                    unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,  # Docs: support for M, KJ/KG and J/KG: how to check?
+                                    unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
                                 ),
                             )
                         ]
