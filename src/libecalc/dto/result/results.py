@@ -111,6 +111,8 @@ class PumpResult(EquipmentResultBase):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
+    stages: List[Stage] = None  # Optional because only in v2
+
 
 class CompressorResult(EquipmentResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]

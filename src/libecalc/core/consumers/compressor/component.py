@@ -72,12 +72,20 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         """
         self._operational_settings = operational_settings
 
+        # Creating a single input rate until we decide how to deal with multiple rates, multiple rates added because of
+        # multiple streams and pressures model, but we need to look at how streams are defined there.
+        total_requested_rate = TimeSeriesRate(
+            timesteps=operational_settings.timesteps,
+            values=list(np.sum([rate.values for rate in operational_settings.stream_day_rates], axis=0)),
+            unit=operational_settings.stream_day_rates[0].unit,
+            regularity=operational_settings.stream_day_rates[0].regularity,
+            rate_type=operational_settings.stream_day_rates[0].rate_type,
+        )
+
         model_results = []
         evaluated_timesteps = []
 
-        # TODO: This is a false assumption and will be dealt with shortly (that the regularity is the same
-        #   for all timesteps, and only taken for the first timestep). Not the first timestep, the first rate
-        evaluated_regularity = operational_settings.stream_day_rates[0].regularity
+        evaluated_regularity = total_requested_rate.regularity
         for timestep in operational_settings.timesteps:
             compressor = self._temporal_model.get_model(timestep)
             operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
@@ -86,7 +94,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 raise NotImplementedError("Need to implement this")
             elif issubclass(type(compressor), CompressorModel):
                 model_result = compressor.evaluate_rate_ps_pd(
-                    rate=np.sum([rate.values for rate in operational_settings_for_timestep.stream_day_rates], axis=0),
+                    rate=np.asarray(total_requested_rate.values),
                     suction_pressure=np.asarray(operational_settings_for_timestep.inlet_pressure.values),
                     discharge_pressure=np.asarray(operational_settings_for_timestep.outlet_pressure.values),
                 )
@@ -108,16 +116,6 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
 
         if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY:
             energy_usage = energy_usage.to_calendar_day()  # provide fuel usage in calendar day, same as legacy consumer
-
-        # Creating a single input rate until we decide how to deal with multiple rates, multiple rates added because of
-        # multiple streams and pressures model, but we need to look at how streams are defined there.
-        total_requested_rate = TimeSeriesRate(
-            timesteps=operational_settings.timesteps,
-            values=list(np.sum([rate.values for rate in operational_settings.stream_day_rates], axis=0)),
-            unit=operational_settings.stream_day_rates[0].unit,
-            regularity=operational_settings.stream_day_rates[0].regularity,
-            rate_type=operational_settings.stream_day_rates[0].rate_type,
-        )
 
         outlet_pressure_before_choke = TimeSeriesFloat(
             values=aggregated_result.outlet_pressure_before_choking

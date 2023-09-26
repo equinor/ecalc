@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from libecalc import dto
+from libecalc.common.stream import Stage, Stream
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -62,11 +63,15 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             Handle regularity outside
         """
         self._operational_settings = operational_settings
+        total_requested_rate = TimeSeriesRate(
+            timesteps=operational_settings.timesteps,
+            values=list(np.sum([rate.values for rate in operational_settings.stream_day_rates], axis=0)),
+            unit=operational_settings.stream_day_rates[0].unit,
+            regularity=operational_settings.stream_day_rates[0].regularity,
+            rate_type=operational_settings.stream_day_rates[0].rate_type,
+        )
 
-        # Regularity is the same for all rate vectors.
-        # In case of cross-overs or multiple streams, there may be multiple rate vectors.
-        # TODO: False assumption, to be handled shortly
-        regularity = operational_settings.stream_day_rates[0].regularity
+        regularity = total_requested_rate.regularity
 
         model_results = []
         evaluated_timesteps = []
@@ -75,7 +80,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
             evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
             model_result = pump.evaluate_rate_ps_pd_density(
-                rate=np.sum([rate.values for rate in operational_settings_for_timestep.stream_day_rates], axis=0),
+                rate=np.asarray(total_requested_rate.values),
                 suction_pressures=np.asarray(operational_settings_for_timestep.inlet_pressure.values),
                 discharge_pressures=np.asarray(operational_settings_for_timestep.outlet_pressure.values),
                 fluid_density=np.asarray(operational_settings_for_timestep.fluid_density.values),
@@ -88,6 +93,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 aggregated_result = model_result
             else:
                 aggregated_result.extend(model_result)
+
         component_result = core_results.PumpResult(
             timesteps=evaluated_timesteps,
             power=TimeSeriesRate(
@@ -127,6 +133,22 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 values=aggregated_result.is_valid, timesteps=evaluated_timesteps, unit=Unit.NONE
             ),
             id=self.id,
+            stages=[
+                Stage(
+                    name="inlet",
+                    stream=Stream(
+                        rate=total_requested_rate,
+                        pressure=operational_settings.inlet_pressure,
+                    ),
+                ),
+                Stage(
+                    name="outlet",
+                    stream=Stream(
+                        rate=total_requested_rate,
+                        pressure=operational_settings.outlet_pressure,
+                    ),
+                ),
+            ],
         )
 
         return EcalcModelResult(

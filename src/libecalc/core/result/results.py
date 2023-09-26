@@ -84,6 +84,8 @@ class PumpResult(GenericComponentResult):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
+    stages: List[Stage] = None  # Optional because only in v2
+
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(
             id=self.id,

@@ -282,6 +282,19 @@ class PumpSystem(BaseConsumer):
     operational_settings: Dict[datetime, List[PumpSystemOperationalSetting]]
     pumps: List[PumpComponent]
 
+    def get_graph(self) -> Graph:
+        component_dtos = {}
+        graph = nx.DiGraph()
+        graph.add_node(self.id)
+        component_dtos[self.id] = self
+        for pump in self.pumps:
+            component_dtos[pump.id] = pump
+            graph.add_edge(self.id, pump.id)
+        return Graph(
+            graph=graph,
+            components=component_dtos,
+        )
+
     def evaluate_operational_settings(
         self,
         variables_map: VariablesMap,
@@ -372,8 +385,15 @@ class GeneratorSet(BaseEquipment):
 
         for electricity_consumer in self.consumers:
             component_dtos[electricity_consumer.id] = electricity_consumer
-            graph.add_node(electricity_consumer.id)
-            graph.add_edge(self.id, electricity_consumer.id)
+
+            if hasattr(electricity_consumer, "get_graph"):
+                consumer_sub_graph = electricity_consumer.get_graph()
+                component_dtos.update(consumer_sub_graph.components)
+                graph = nx.compose(graph, consumer_sub_graph.graph)
+                graph.add_edge(self.id, electricity_consumer.id)
+            else:
+                graph.add_node(electricity_consumer.id)
+                graph.add_edge(self.id, electricity_consumer.id)
 
         return Graph(
             graph=graph,
@@ -422,9 +442,9 @@ class Installation(BaseComponent):
             component_dtos[fuel_consumer.id] = fuel_consumer
 
             if hasattr(fuel_consumer, "get_graph"):
-                generator_set_graph = fuel_consumer.get_graph()
-                component_dtos.update(generator_set_graph.components)
-                graph = nx.compose(graph, generator_set_graph.graph)
+                consumer_sub_graph = fuel_consumer.get_graph()
+                component_dtos.update(consumer_sub_graph.components)
+                graph = nx.compose(graph, consumer_sub_graph.graph)
                 graph.add_edge(self.id, fuel_consumer.id)
             else:
                 graph.add_node(fuel_consumer.id)
