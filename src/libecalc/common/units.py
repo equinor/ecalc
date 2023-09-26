@@ -49,7 +49,6 @@ class Unit(str, Enum):
     KG_SM3 = "kg/Sm3"
     KG_M3 = "kg/m3"
     STANDARD_CUBIC_METER = "Sm3"
-    CUBIC_METER = "m3"
     BOE = "BOE"
 
     TONS_PER_DAY = "t/d"
