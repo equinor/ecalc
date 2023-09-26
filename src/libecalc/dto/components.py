@@ -300,7 +300,8 @@ class PumpSystem(BaseConsumer):
         variables_map: VariablesMap,
     ) -> TemporalModel[List[EvaluatedPumpSystemOperationalSettings]]:
         evaluated_regularity = TemporalExpression.evaluate(
-            temporal_expression=TemporalModel(self.regularity), variables_map=variables_map
+            temporal_expression=TemporalModel(self.regularity),
+            variables_map=variables_map,
         )
 
         evaluated_temporal_operational_settings: Dict[datetime, List[EvaluatedPumpSystemOperationalSettings]] = {}

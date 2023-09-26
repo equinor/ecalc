@@ -160,6 +160,14 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
     def __len__(self) -> int:
         return len(self.values)
 
+    def __lt__(self, other) -> bool:
+        if not isinstance(other, TimeSeries):
+            # The binary special methods should return NotImplemented instead of raising errors.
+            # https://docs.python.org/3/library/constants.html#NotImplemented
+            return NotImplemented
+
+        return all(self_value < other_value for self_value, other_value in zip(self.values, other.values))
+
     @abstractmethod
     def resample(self, freq: Frequency) -> Self:
         ...
