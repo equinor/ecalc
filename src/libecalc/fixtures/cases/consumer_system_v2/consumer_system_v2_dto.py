@@ -164,10 +164,10 @@ compressor_system = dto.FuelConsumer(
             total_system_rate=None,
             operational_settings=[
                 CompressorSystemOperationalSetting(
-                    rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+                    rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                     suction_pressures=[Expression.setup_from_expression("50")] * 3,
                     discharge_pressures=[Expression.setup_from_expression("250")] * 3,
-                    crossover=[0, 0, 0],
+                    crossover=[0, 1, 1],
                 ),
                 CompressorSystemOperationalSetting(
                     rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
@@ -197,10 +197,10 @@ compressor_system_v2 = dto.components.CompressorSystem(
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 0, 0],
+                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
@@ -232,10 +232,10 @@ compressor_system_v2_with_temporal_model = dto.components.CompressorSystem(
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 0, 0],
+                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
@@ -252,10 +252,10 @@ compressor_system_v2_with_temporal_model = dto.components.CompressorSystem(
         ],
         datetime(2024, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 0, 0],
+                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
@@ -287,10 +287,10 @@ compressor_system_v2_with_overlapping_temporal_models = dto.components.Compresso
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 0, 0],
+                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
@@ -307,10 +307,10 @@ compressor_system_v2_with_overlapping_temporal_models = dto.components.Compresso
         ],
         datetime(2025, 1, 1, 0, 0): [
             dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
                 inlet_pressures=[Expression.setup_from_expression("50")] * 3,
                 outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                crossover=[0, 0, 0],
+                crossover=[0, 1, 1],
             ),  # Invalid operational setting, should not be valid for any timesteps
             dto.components.CompressorSystemOperationalSetting(
                 rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
