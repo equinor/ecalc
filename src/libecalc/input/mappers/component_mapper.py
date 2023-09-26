@@ -108,8 +108,8 @@ class ConsumerMapper:
 
         if EcalcYamlKeywords.type in data:
             if data[EcalcYamlKeywords.type] == ComponentType.COMPRESSOR_SYSTEM_V2:
-                compressor_system_yaml = YamlCompressorSystem(**data)
                 try:
+                    compressor_system_yaml = YamlCompressorSystem(**data)
                     return compressor_system_yaml.to_dto(
                         consumes=consumes,
                         regularity=regularity,
@@ -120,9 +120,8 @@ class ConsumerMapper:
                 except ValidationError as e:
                     raise DtoValidationError(data=data, validation_error=e) from e
             if data[EcalcYamlKeywords.type] == ComponentType.PUMP_SYSTEM_V2:
-                pump_system_yaml = YamlPumpSystem(**data)
-
                 try:
+                    pump_system_yaml = YamlPumpSystem(**data)
                     return pump_system_yaml.to_dto(
                         consumes=consumes,
                         regularity=regularity,

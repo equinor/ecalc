@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
+from libecalc.common.stream import Stage
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -62,6 +63,7 @@ class CompressorResult(GenericComponentResult):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
+    stages: List[Stage] = None  # Optional because only in v2
 
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(

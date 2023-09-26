@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 import numpy as np
 from libecalc import dto
 from libecalc.common.exceptions import ProgrammingError
+from libecalc.common.stream import Stage, StreamCondition
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -75,7 +76,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         evaluated_timesteps = []
 
         # TODO: This is a false assumption and will be dealt with shortly (that the regularity is the same
-        # for all timesteps, and only taken for the first timestep)
+        #   for all timesteps, and only taken for the first timestep). Not the first timestep, the first rate
         evaluated_regularity = operational_settings.stream_day_rates[0].regularity
         for timestep in operational_settings.timesteps:
             compressor = self._temporal_model.get_model(timestep)
@@ -108,6 +109,24 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY:
             energy_usage = energy_usage.to_calendar_day()  # provide fuel usage in calendar day, same as legacy consumer
 
+        # Creating a single input rate until we decide how to deal with multiple rates, multiple rates added because of
+        # multiple streams and pressures model, but we need to look at how streams are defined there.
+        total_requested_rate = TimeSeriesRate(
+            timesteps=operational_settings.timesteps,
+            values=list(np.sum([rate.values for rate in operational_settings.stream_day_rates], axis=0)),
+            unit=operational_settings.stream_day_rates[0].unit,
+            regularity=operational_settings.stream_day_rates[0].regularity,
+            rate_type=operational_settings.stream_day_rates[0].rate_type,
+        )
+
+        outlet_pressure_before_choke = TimeSeriesFloat(
+            values=aggregated_result.outlet_pressure_before_choking
+            if aggregated_result.outlet_pressure_before_choking
+            else [np.nan for _ in evaluated_timesteps],
+            timesteps=evaluated_timesteps,
+            unit=Unit.BARA,
+        )
+
         component_result = core_results.CompressorResult(
             timesteps=evaluated_timesteps,
             power=TimeSeriesRate(
@@ -132,13 +151,30 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 timesteps=evaluated_timesteps,
                 unit=Unit.NONE,
             ),
-            outlet_pressure_before_choking=TimeSeriesFloat(
-                values=aggregated_result.outlet_pressure_before_choking
-                if aggregated_result.outlet_pressure_before_choking
-                else [np.nan for _ in evaluated_timesteps],
-                timesteps=evaluated_timesteps,
-                unit=Unit.BARA,
-            ),
+            outlet_pressure_before_choking=outlet_pressure_before_choke,
+            stages=[
+                Stage(
+                    name="inlet",
+                    stream_condition=StreamCondition(
+                        rate=total_requested_rate,
+                        pressure=operational_settings.inlet_pressure,
+                    ),
+                ),
+                Stage(
+                    name="before_choke",
+                    stream_condition=StreamCondition(
+                        rate=total_requested_rate,
+                        pressure=outlet_pressure_before_choke,
+                    ),
+                ),
+                Stage(
+                    name="outlet",
+                    stream_condition=StreamCondition(
+                        rate=total_requested_rate,
+                        pressure=operational_settings.outlet_pressure,
+                    ),
+                ),
+            ],
         )
 
         return EcalcModelResult(

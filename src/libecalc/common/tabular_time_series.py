@@ -1,7 +1,9 @@
 import itertools
 from typing import Protocol, TypeVar
 
+from libecalc.common.list_utils import transpose
 from libecalc.common.utils.rates import TimeSeries
+from pydantic import BaseModel
 from typing_extensions import Self
 
 
@@ -52,5 +54,30 @@ class TabularTimeSeriesUtils:
                     merged_object.__setattr__(key, merged_timesteps)
                 elif isinstance(value, TimeSeries):
                     merged_object.__setattr__(key, accumulated_value.merge(other_value))
+                elif isinstance(value, BaseModel):
+                    merged_object.__setattr__(
+                        key, cls.merge(*[obj.__getattribute__(key) for obj in objects_with_time_series])
+                    )
+                elif (
+                    isinstance(value, list)
+                    and len(value) > 0
+                    and (isinstance(value[0], TimeSeries) or isinstance(value[0], BaseModel))
+                ):
+                    list_attributes = [obj.__getattribute__(key) for obj in objects_with_time_series]
+                    transposed_list_attributes = transpose(list_attributes)
+                    merged_list_attributes = []
+                    if isinstance(value[0], TimeSeries):
+                        for time_series_to_merge in transposed_list_attributes:
+                            first_time_series, *others_time_series = time_series_to_merge
+                            merged_time_series = first_time_series
+                            for other_time_series in others_time_series:
+                                merged_time_series = merged_time_series.merge(other_time_series)
+                            merged_list_attributes.append(merged_time_series)
+                    elif isinstance(value[0], BaseModel):
+                        merged_list_attributes = [
+                            cls.merge(*objs_to_merge) for objs_to_merge in transposed_list_attributes
+                        ]
+
+                    merged_object.__setattr__(key, merged_list_attributes)
 
         return merged_object

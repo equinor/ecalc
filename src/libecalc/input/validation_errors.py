@@ -73,9 +73,8 @@ class DataValidationError(ValidationError):
         error_key: Optional[str] = None,
         dump_flow_style: Optional[DumpFlowStyle] = None,
     ):
-        self.message = message
         super().__init__(message)
-
+        self.message = message
         extended_message = "\nError in object\n"
 
         if data is not None:
