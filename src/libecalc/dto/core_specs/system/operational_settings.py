@@ -16,7 +16,6 @@ class EvaluatedPumpSystemOperationalSettings(BaseModel):
     rates: List[TimeSeriesRate]
     inlet_pressures: List[TimeSeriesFloat]
     outlet_pressures: List[TimeSeriesFloat]
-    crossover: List[int]
 
     def get_consumer_operational_settings(
         self, consumer_index: int, timesteps: List[datetime]
@@ -38,21 +37,18 @@ class EvaluatedPumpSystemOperationalSettings(BaseModel):
         new_rates = []
         new_inlet_pressures = []
         new_outlet_pressures = []
-        new_crossover = []
         new_fluid_density = []
         for consumer_index, _ in enumerate(self.rates):
             new_rates.append(self.rates[consumer_index].for_timestep(timestep))
             new_inlet_pressures.append(self.inlet_pressures[consumer_index].for_timestep(timestep))
             new_outlet_pressures.append(self.outlet_pressures[consumer_index].for_timestep(timestep))
             new_fluid_density.append(self.fluid_density[consumer_index].for_timestep(timestep))
-            new_crossover.append(self.crossover[consumer_index])
 
         return EvaluatedPumpSystemOperationalSettings(
             rates=new_rates,
             inlet_pressures=new_inlet_pressures,
             outlet_pressures=new_outlet_pressures,
             fluid_density=new_fluid_density,
-            crossover=new_crossover,
         )
 
 
@@ -60,7 +56,6 @@ class EvaluatedCompressorSystemOperationalSettings(BaseModel):
     rates: List[TimeSeriesRate]
     inlet_pressures: List[TimeSeriesFloat]
     outlet_pressures: List[TimeSeriesFloat]
-    crossover: List[int]
 
     def get_consumer_operational_settings(
         self, consumer_index: int, timesteps: List[datetime]
@@ -81,16 +76,13 @@ class EvaluatedCompressorSystemOperationalSettings(BaseModel):
         new_rates = []
         new_inlet_pressures = []
         new_outlet_pressures = []
-        new_crossover = []
         for consumer_index, _ in enumerate(self.rates):
             new_rates.append(self.rates[consumer_index].for_timestep(timestep))
             new_inlet_pressures.append(self.inlet_pressures[consumer_index].for_timestep(timestep))
             new_outlet_pressures.append(self.outlet_pressures[consumer_index].for_timestep(timestep))
-            new_crossover.append(self.crossover[consumer_index])
 
         return EvaluatedCompressorSystemOperationalSettings(
             rates=new_rates,
             inlet_pressures=new_inlet_pressures,
             outlet_pressures=new_outlet_pressures,
-            crossover=new_crossover,
         )
