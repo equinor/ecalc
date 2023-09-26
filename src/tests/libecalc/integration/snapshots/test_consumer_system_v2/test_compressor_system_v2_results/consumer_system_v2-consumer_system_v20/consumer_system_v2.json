@@ -3919,7 +3919,7 @@
                 "stages": [
                     {
                         "name": "inlet",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -3962,7 +3962,7 @@
                     },
                     {
                         "name": "before_choke",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -4005,7 +4005,7 @@
                     },
                     {
                         "name": "outlet",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -4174,7 +4174,7 @@
                 "stages": [
                     {
                         "name": "inlet",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -4217,7 +4217,7 @@
                     },
                     {
                         "name": "before_choke",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -4260,7 +4260,7 @@
                     },
                     {
                         "name": "outlet",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -4515,7 +4515,7 @@
                     "stages": [
                         {
                             "name": "inlet",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -4558,7 +4558,7 @@
                         },
                         {
                             "name": "before_choke",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -4601,7 +4601,7 @@
                         },
                         {
                             "name": "outlet",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -4766,7 +4766,7 @@
                     "stages": [
                         {
                             "name": "inlet",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -4809,7 +4809,7 @@
                         },
                         {
                             "name": "before_choke",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -4852,7 +4852,7 @@
                         },
                         {
                             "name": "outlet",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -5017,7 +5017,7 @@
                     "stages": [
                         {
                             "name": "inlet",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -5060,7 +5060,7 @@
                         },
                         {
                             "name": "before_choke",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -5103,7 +5103,7 @@
                         },
                         {
                             "name": "outlet",
-                            "stream_condition": {
+                            "stream": {
                                 "fluid_density": null,
                                 "pressure": {
                                     "timesteps": [
@@ -5271,7 +5271,7 @@
                 "stages": [
                     {
                         "name": "inlet",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -5314,7 +5314,7 @@
                     },
                     {
                         "name": "before_choke",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [
@@ -5357,7 +5357,7 @@
                     },
                     {
                         "name": "outlet",
-                        "stream_condition": {
+                        "stream": {
                             "fluid_density": null,
                             "pressure": {
                                 "timesteps": [

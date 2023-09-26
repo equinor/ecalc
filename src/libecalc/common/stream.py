@@ -5,7 +5,7 @@ from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
 from pydantic import BaseModel, Extra
 
 
-class StreamCondition(BaseModel):
+class Stream(BaseModel):
     class Config:
         extra = Extra.forbid
         alias_generator = to_camel_case
@@ -23,4 +23,4 @@ class Stage(BaseModel):
         allow_population_by_field_name = True
 
     name: Literal["inlet", "before_choke", "outlet"]
-    stream_condition: StreamCondition
+    stream: Stream

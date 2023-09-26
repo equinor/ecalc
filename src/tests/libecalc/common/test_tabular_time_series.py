@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 import pytest
-from libecalc.common.stream import Stage, StreamCondition
+from libecalc.common.stream import Stage, Stream
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
@@ -73,7 +73,7 @@ class TestMerge:
             stage_list=[
                 Stage(
                     name="inlet",
-                    stream_condition=StreamCondition(
+                    stream=Stream(
                         rate=TimeSeriesRate(
                             timesteps=first_timesteps,
                             values=[-111, -112],
@@ -90,7 +90,7 @@ class TestMerge:
                 ),
                 Stage(
                     name="outlet",
-                    stream_condition=StreamCondition(
+                    stream=Stream(
                         rate=TimeSeriesRate(
                             timesteps=first_timesteps,
                             values=[-121, -122],
@@ -157,7 +157,7 @@ class TestMerge:
             stage_list=[
                 Stage(
                     name="inlet",
-                    stream_condition=StreamCondition(
+                    stream=Stream(
                         rate=TimeSeriesRate(
                             timesteps=second_timesteps,
                             values=[-211, -212],
@@ -174,7 +174,7 @@ class TestMerge:
                 ),
                 Stage(
                     name="outlet",
-                    stream_condition=StreamCondition(
+                    stream=Stream(
                         rate=TimeSeriesRate(
                             timesteps=second_timesteps,
                             values=[-221, -222],
@@ -246,7 +246,7 @@ class TestMerge:
                 stage_list=[
                     Stage(
                         name="inlet",
-                        stream_condition=StreamCondition(
+                        stream=Stream(
                             rate=TimeSeriesRate(
                                 timesteps=expected_timesteps,
                                 values=[-111, -211, -112, -212],
@@ -263,7 +263,7 @@ class TestMerge:
                     ),
                     Stage(
                         name="outlet",
-                        stream_condition=StreamCondition(
+                        stream=Stream(
                             rate=TimeSeriesRate(
                                 timesteps=expected_timesteps,
                                 values=[-121, -221, -122, -222],
