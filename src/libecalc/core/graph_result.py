@@ -30,6 +30,7 @@ from libecalc.dto.result.results import (
     CompressorModelResult,
     CompressorModelStageResult,
     CompressorStreamConditionResult,
+    PumpModelResult,
     TurbineModelResult,
 )
 from libecalc.dto.types import RateType
@@ -649,6 +650,59 @@ class GraphResult:
                             )
                         ]
                     )
+            elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
+                component = self.graph.get_component(consumer_id)
+                for model in consumer_result.models:
+                    models.extend(
+                        [
+                            PumpModelResult(
+                                parent=consumer_id,
+                                name=model.name,
+                                componentType=model.component_type,
+                                component_level=ComponentLevel.MODEL,
+                                energy_usage=model.energy_usage,
+                                is_valid=model.is_valid,
+                                energy_usage_cumulative=model.energy_usage.to_volumes().cumulative(),
+                                timesteps=model.timesteps,
+                                power_cumulative=(
+                                    model.power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                                    if model.power is not None
+                                    else None
+                                ),
+                                power=model.power,
+                                inlet_liquid_rate_m3_per_day=TimeSeriesRate(
+                                    timesteps=model.timesteps,
+                                    values=model.inlet_liquid_rate_m3_per_day
+                                    if model.inlet_liquid_rate_m3_per_day is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.CUBIC_METER_PER_DAY,
+                                    rate_type=RateType.STREAM_DAY,
+                                ),
+                                inlet_pressure_bar=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=model.inlet_pressure_bar
+                                    if model.inlet_pressure_bar is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.BARA,
+                                ),
+                                outlet_pressure_bar=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=model.outlet_pressure_bar
+                                    if model.outlet_pressure_bar is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.BARA,
+                                ),
+                                operational_head=TimeSeriesFloat(
+                                    timesteps=model.timesteps,
+                                    values=model.operational_head
+                                    if model.operational_head is not None
+                                    else [math.nan] * len(model.timesteps),
+                                    unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,  # Docs: support for M, KJ/KG and J/KG: how to check?
+                                ),
+                            )
+                        ]
+                    )
+
             else:
                 models.extend(
                     [

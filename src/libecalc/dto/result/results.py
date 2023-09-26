@@ -24,7 +24,6 @@ from libecalc.dto.result.base import EcalcResultBaseModel
 from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
 from libecalc.dto.result.simple import SimpleComponentResult, SimpleResultData
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
-from libecalc.dto.result.types import opt_float
 from pydantic import Field, validator
 from typing_extensions import Annotated
 
@@ -137,10 +136,11 @@ class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
     componentType: Literal[ComponentType.PUMP]
-    inlet_liquid_rate_m3_per_day: Optional[List[opt_float]]
-    inlet_pressure_bar: Optional[List[opt_float]]
-    outlet_pressure_bar: Optional[List[opt_float]]
-    operational_head: Optional[List[float]]
+    inlet_liquid_rate_m3_per_day: Optional[TimeSeriesRate]
+    inlet_pressure_bar: Optional[TimeSeriesFloat]
+    outlet_pressure_bar: Optional[TimeSeriesFloat]
+    operational_head: Optional[TimeSeriesFloat]
+    is_valid: TimeSeriesBoolean
 
 
 class TurbineModelResult(EcalcResultBaseModel):

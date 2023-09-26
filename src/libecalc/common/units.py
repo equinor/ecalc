@@ -49,6 +49,7 @@ class Unit(str, Enum):
     KG_SM3 = "kg/Sm3"
     KG_M3 = "kg/m3"
     STANDARD_CUBIC_METER = "Sm3"
+    CUBIC_METER = "m3"
     BOE = "BOE"
 
     TONS_PER_DAY = "t/d"
@@ -82,6 +83,7 @@ class Unit(str, Enum):
 
     ACTUAL_VOLUMETRIC_M3_PER_HOUR = "Am3/h"
     STANDARD_CUBIC_METER_PER_DAY = "Sm3/d"
+    CUBIC_METER_PER_DAY = "m3/d"
 
     NORWEGIAN_KRONER_PER_DAY = "NOK/d"
     NORWEGIAN_KRONER = "NOK"
@@ -204,6 +206,8 @@ class Unit(str, Enum):
             return Unit.KILO_PER_DAY
         elif self == Unit.LITRES:
             return Unit.LITRES_PER_DAY
+        elif self == Unit.CUBIC_METER:
+            return Unit.CUBIC_METER_PER_DAY
         else:
             raise NotImplementedError(f"Unknown unit for cumulative calculation '{self}'")
 
@@ -223,5 +227,7 @@ class Unit(str, Enum):
             return Unit.KILO
         elif self == Unit.LITRES_PER_DAY:
             return Unit.LITRES
+        elif self == Unit.CUBIC_METER_PER_DAY:
+            return Unit.CUBIC_METER
         else:
             raise NotImplementedError(f"Unknown unit for rate calculation '{self}'")
