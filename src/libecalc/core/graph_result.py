@@ -675,7 +675,7 @@ class GraphResult:
                                     values=model.inlet_liquid_rate_m3_per_day
                                     if model.inlet_liquid_rate_m3_per_day is not None
                                     else [math.nan] * len(model.timesteps),
-                                    unit=Unit.CUBIC_METER_PER_DAY,
+                                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                     rate_type=RateType.STREAM_DAY,
                                 ),
                                 inlet_pressure_bar=TimeSeriesFloat(
