@@ -60,9 +60,16 @@ class EnergyCalculator:
                 evaluated_operational_settings = component_dto.evaluate_operational_settings(
                     variables_map=variables_map,
                 )
-                consumer_results[component_dto.id] = pump_system.evaluate(
+                system_result = pump_system.evaluate(
                     variables_map=variables_map, temporal_operational_settings=evaluated_operational_settings
                 )
+                consumer_results[component_dto.id] = system_result
+                for consumer_result in system_result.sub_components:
+                    consumer_results[consumer_result.id] = EcalcModelResult(
+                        component_result=consumer_result,
+                        sub_components=[],
+                        models=[],
+                    )
             elif isinstance(component_dto, libecalc.dto.components.CompressorSystem):
                 compressor_system = ConsumerSystem(
                     id=component_dto.id,
