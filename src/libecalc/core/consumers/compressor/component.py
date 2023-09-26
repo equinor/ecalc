@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 import numpy as np
 from libecalc import dto
 from libecalc.common.exceptions import ProgrammingError
-from libecalc.common.stream import Stage, StreamCondition
+from libecalc.common.stream import Stage, Stream
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -155,21 +155,21 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             stages=[
                 Stage(
                     name="inlet",
-                    stream_condition=StreamCondition(
+                    stream=Stream(
                         rate=total_requested_rate,
                         pressure=operational_settings.inlet_pressure,
                     ),
                 ),
                 Stage(
                     name="before_choke",
-                    stream_condition=StreamCondition(
+                    stream=Stream(
                         rate=total_requested_rate,
                         pressure=outlet_pressure_before_choke,
                     ),
                 ),
                 Stage(
                     name="outlet",
-                    stream_condition=StreamCondition(
+                    stream=Stream(
                         rate=total_requested_rate,
                         pressure=operational_settings.outlet_pressure,
                     ),
