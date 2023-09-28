@@ -195,8 +195,8 @@ class CompressorModelStageResult(EcalcResultBaseModel):
 class CompressorModelResult(ConsumerModelResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
-    requested_inlet_pressure: TimeSeriesFloat
-    requested_outlet_pressure: TimeSeriesFloat
+    requested_inlet_pressure: Union[TimeSeriesFloat, List[TimeSeriesFloat]]
+    requested_outlet_pressure: Union[TimeSeriesFloat, List[TimeSeriesFloat]]
     rate: TimeSeriesRate
     stage_results: List[CompressorModelStageResult]
     turbine_result: Optional[TurbineModelResult] = None
