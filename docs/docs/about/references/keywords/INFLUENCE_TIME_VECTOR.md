@@ -1,7 +1,7 @@
 # INFLUENCE_TIME_VECTOR
 
-[TIME_SERIES](TIME_SERIES.md) /
-[INFLUENCE_TIME_VECTOR](INFLUENCE_TIME_VECTOR.md)
+[TIME_SERIES](/about/references/keywords/TIME_SERIES.md) /
+[INFLUENCE_TIME_VECTOR](/about/references/keywords/INFLUENCE_TIME_VECTOR.md)
 
 ## Description
 
@@ -19,4 +19,4 @@ INFLUENCE_TIME_VECTOR: <True/False>
 
 ## Example
 
-See the [TIME_SERIES](TIME_SERIES.md) `time_series_format`.
+See the [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) `time_series_format`.

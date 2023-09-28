@@ -1,14 +1,14 @@
 # MODELS
 
-[MODELS](MODELS)
+[MODELS](/about/references/keywords/MODELS.md)
 
 ## Description
 Each element is specified in a list. These are later used as input to other models, or in the
-[INSTALLATIONS](INSTALLATIONS) part of the setup by referencing their
-[NAME](NAME).
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) part of the setup by referencing their
+[NAME](/about/references/keywords/NAME.md).
 
 This part of the setup specifies models not having any input data and/or multi level models, that is models which use
-other models (from both [MODELS](MODELS) and from [FACILITY_INPUTS](FACILITY_INPUTS)).
+other models (from both [MODELS](/about/references/keywords/MODELS.md) and from [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)).
 
 ## Format
 
@@ -33,4 +33,4 @@ The supported types are:
 - `COMPRESSOR_WITH_TURBINE`
 
 
-The documentation of each of these is found on the [Compressor Modelling](../../modelling/setup/models/compressor_modelling/compressor_models_types/) page.
+The documentation of each of these is found on the [Compressor Modelling](/about/modelling/setup/models/compressor_modelling/compressor_models_types/index.md) page.

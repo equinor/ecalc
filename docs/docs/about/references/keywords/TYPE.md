@@ -1,24 +1,24 @@
 # TYPE
 
 [...] / 
-[TYPE](TYPE.md) /
+[TYPE](/about/references/keywords/TYPE.md) /
 
 ## Description
-The [TYPE](TYPE.md) is always a string. The allowed strings, and the resulting change in behavior,
-will depend on where [TYPE](TYPE.md) is used:
+The [TYPE](/about/references/keywords/TYPE.md) is always a string. The allowed strings, and the resulting change in behavior,
+will depend on where [TYPE](/about/references/keywords/TYPE.md) is used:
 
-### Use in [FACILITY_INPUTS](FACILITY_INPUTS.md)
+### Use in [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)
 - `ELECTRICITY2FUEL`
 - `TABULAR`
 - `COMPRESSOR_TABULAR`
 - `PUMP_CHART_SINGLE_SPEED`
 - `PUMP_CHART_VARIABLE_SPEED`
 
-### Use in [TIME_SERIES](TIME_SERIES.md)
+### Use in [TIME_SERIES](/about/references/keywords/TIME_SERIES.md)
 - `MISCELLANEOUS`
 - `DEFAULT`
 
-### Use in [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL.md)
+### Use in [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
  - `DIRECT`
  - `COMPRESSOR`
  - `PUMP`
@@ -27,7 +27,7 @@ will depend on where [TYPE](TYPE.md) is used:
  - `TABULATED`
  - `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
 
-### Use in [MODELS](MODELS.md)
+### Use in [MODELS](/about/references/keywords/MODELS.md)
 - `FLUID`
 - `VARIABLE_SPEED_COMPRESSOR_TRAIN`
 - `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`

@@ -1,13 +1,13 @@
 # INTERPOLATION_TYPE
  
-[TIME_SERIES](TIME_SERIES.md) /
-[INTERPOLATION_TYPE](INTERPOLATION_TYPE)
+[TIME_SERIES](/about/references/keywords/TIME_SERIES.md) /
+[INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md)
 
 New in **v8.1**, previously known as `RATE_INTERPOLATION_TYPE` that was renamed to `INTERPOLATION_TYPE`.
 
 ## Description
 :::caution Caution
-Only valid for CSV data of source `MISCELLANEOUS`. For `TIME_SERIES` of [TYPE](TYPE)
+Only valid for CSV data of source `MISCELLANEOUS`. For `TIME_SERIES` of [TYPE](/about/references/keywords/TYPE.md)
 `DEFAULT` the keyword is not allowed as input. The following applies:
 - MISCELLANEOUS: Interpolation type is mandatory.
 - DEFAULT: Interpolation type not allowed. Default `RIGHT` is used.
@@ -24,7 +24,7 @@ within the same file.
 :::
 
 Rates are given at defined time steps in the data source but are in essence valid for a time
-interval. The [INTERPOLATION_TYPE](INTERPOLATION_TYPE)
+interval. The [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md)
 will determine how rates are interpolated between the given time steps.
 
 - `LEFT`: The rate given at the current time step is defining the rate in the time interval between the current and
@@ -33,7 +33,7 @@ will determine how rates are interpolated between the given time steps.
   next time step. This is in data science also known as forward filling of missing values.
 - `LINEAR`: The rate will be linearly interpolated between the time steps.
 
-The plot below shows how the different choices for [INTERPOLATION_TYPE](INTERPOLATION_TYPE) works in practice.
+The plot below shows how the different choices for [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md) works in practice.
 
 ![](/img/docs/interpolation_plot.png)
 
@@ -44,10 +44,10 @@ INTERPOLATION_TYPE: <LEFT/RIGHT/LINEAR>
 ```
 
 ### Requirements
-[INTERPOLATION_TYPE](INTERPOLATION_TYPE) has to be specified if
-[TYPE](TYPE) is set to `MISCELLANEOUS`.
+[INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md) has to be specified if
+[TYPE](/about/references/keywords/TYPE.md) is set to `MISCELLANEOUS`.
 
-[INTERPOLATION_TYPE](INTERPOLATION_TYPE) can not be specified if [TYPE](TYPE) is set to `DEFAULT`.
+[INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md) can not be specified if [TYPE](/about/references/keywords/TYPE.md) is set to `DEFAULT`.
 
 ## Example
-See the [TIME_SERIES](TIME_SERIES.md) `time_series_format`.
+See the [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) `time_series_format`.

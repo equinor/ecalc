@@ -1,9 +1,9 @@
 # INTERSTAGE_CONTROL_PRESSURE
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)  / [...] /
-[INTERSTAGE_CONTROL_PRESSURE](INTERSTAGE_CONTROL_PRESSURE)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)  / [...] /
+[INTERSTAGE_CONTROL_PRESSURE](/about/references/keywords/INTERSTAGE_CONTROL_PRESSURE.md)
 
 ## Description
 
@@ -12,13 +12,13 @@ This keyword can **only** be utilised for a `VARIABLE_SPEED_COMPRESSOR_TRAIN_MUL
 - `MODELS` - to define the upstream and downstream pressure control methods
 - `ENERGY_USAGE_MODEL` - to define the interstage pressure
 
-### Use in [MODELS](MODELS)
+### Use in [MODELS](/about/references/keywords/MODELS.md)
 
 :::note
 This keyword cannot be specified for the first stage, and it may only be used **once** in a given compression train.
 :::
 
-Under the `INTERSTAGE_CONTROL_PRESSURE` keyword, the [UPSTREAM_PRESSURE_CONTROL](UPSTREAM_PRESSURE_CONTROL) and [DOWNSTREAM_PRESSURE_CONTROL](DOWNSTREAM_PRESSURE_CONTROL) keywords can be specified.
+Under the `INTERSTAGE_CONTROL_PRESSURE` keyword, the [UPSTREAM_PRESSURE_CONTROL](/about/references/keywords/UPSTREAM_PRESSURE_CONTROL.md) and [DOWNSTREAM_PRESSURE_CONTROL](/about/references/keywords/DOWNSTREAM_PRESSURE_CONTROL.md) keywords can be specified.
 
 #### Format
 
@@ -41,12 +41,12 @@ MODELS:
 ~~~~
 
 The reason why upstream and downstream pressure control methods need to be specified is that the compression train is essentially split in two - before and after the interstage pressure. Thus, a control method for each "side" of the model needs to be defined.
-See [Variable speed compressor train model with multiple streams and pressures](../../modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures) for more details.
+See [Variable speed compressor train model with multiple streams and pressures](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md) for more details.
 
-### Use in [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)
+### Use in [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
 
-Within the `ENERGY_USAGE_MODEL` section (**only** when [TYPE](TYPE) is set to `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`) the actual value for the interstage pressure is set in **bar**.
-This can either be a single value or an [EXPRESSION](EXPRESSION.md).
+Within the `ENERGY_USAGE_MODEL` section (**only** when [TYPE](/about/references/keywords/TYPE.md) is set to `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`) the actual value for the interstage pressure is set in **bar**.
+This can either be a single value or an [EXPRESSION](/about/references/keywords/EXPRESSION.md).
 
 #### Format
 

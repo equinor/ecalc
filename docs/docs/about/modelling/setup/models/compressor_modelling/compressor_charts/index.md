@@ -15,7 +15,7 @@ compressor chart
 
 ## User defined single speed compressor chart
 
-The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](../../../../../references/keywords/CURVE.md)
+The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](/about/references/keywords/CURVE.md)
 
 ### Format
 ~~~~~~~~yaml
@@ -69,7 +69,7 @@ CURVE:
 ~~~~~~~~
 :::
 ## User defined variable speed compressor chart
-The variable speed chart type allows a fully defined compressor chart with data for two or more speeds, using the keyword [CURVES](../../../../../references/keywords/CURVES.md). The upper and
+The variable speed chart type allows a fully defined compressor chart with data for two or more speeds, using the keyword [CURVES](/about/references/keywords/CURVES.md). The upper and
 lower speed curves will be interpreted as the speed capacity limits for the chart. 
 Whilst the lowest rate points on each of the upper and lower speed curves will define the minimum flow line for the compressor. 
 
@@ -261,7 +261,7 @@ speed curves in the compressor chart, to find how much the minimum flow should b
 flow will be the same for all speed curves. The corresponding head and efficiency values for the new minimum flow rate
 is found by interpolation along the speed curves. The same compressor chart can be used for multiple compressor stages,
 but with different surge control margins. Hence, the surge control margin is defined when setting up the stages in a
-[`Variable speed compressor train model`](../compressor_models_types/variable_speed_compressor_train_model.md) or [`Variable speed compressor train model with multiple streams and pressures`](../compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
+[`Variable speed compressor train model`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md) or [`Variable speed compressor train model with multiple streams and pressures`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
 
 ### Format
 ~~~~~~~~yaml

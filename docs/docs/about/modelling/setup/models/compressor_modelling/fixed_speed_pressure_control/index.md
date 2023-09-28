@@ -9,7 +9,7 @@ description: Introduction to fixed speed pressure control
 ## Theory
 
 Compressors are typically controlled by changing the rotational speed of the compressor train shaft, which can either increase or decrease the work performed. 
-In the case where this is not possible ([single speed compressors](../compressor_models_types/single_speed_compressor_train_model.md)), or this is not sufficient to control the compressor, other methods of control need to be used.
+In the case where this is not possible ([single speed compressors](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md)), or this is not sufficient to control the compressor, other methods of control need to be used.
 In eCalc™, there are three main compressor control methods considered (aside from rotational speed control), these are:
 
 - Upstream choking/throttling
@@ -43,11 +43,11 @@ This will further be elaborated upon in the [recirculation options](index.md#pre
 
 Some scenarios where additional pressure control is required can be when:
 
-- The compressor train only operates at one speed ([SINGLE_SPEED_COMPRESSOR_TRAIN](../compressor_models_types/single_speed_compressor_train_model.md)),
+- The compressor train only operates at one speed ([SINGLE_SPEED_COMPRESSOR_TRAIN](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md)),
   and the given rate and suction pressure gives a too high discharge pressure.
-- The compressor train is a [VARIABLE_SPEED_COMPRESSOR_TRAIN](../compressor_models_types/variable_speed_compressor_train_model.md),
+- The compressor train is a [VARIABLE_SPEED_COMPRESSOR_TRAIN](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md),
   but it already operates at the minimum speed, and still the discharge pressure is too high.
-- The compressor train is a [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](../compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md) 
+- The compressor train is a [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md) 
   required to meet an export pressure, before compressing gas further for injection. Here the
   rotational speed required to bring the gas from inlet pressure to export pressure may be higher than the speed
   required to bring the gas from export pressure to discharge pressure. Hence, the rotational speed giving 

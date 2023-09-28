@@ -1,9 +1,9 @@
 # LOAD
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] / 
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[LOAD](LOAD)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[LOAD](/about/references/keywords/LOAD.md)
 
 ## Description
 Used for direct load `energy usage models<ENERGY_USAGE_MODEL>` to define electrical power load directly

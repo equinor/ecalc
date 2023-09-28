@@ -1,14 +1,14 @@
 # FUELCONSUMERS
 
-[INSTALLATIONS](INSTALLATIONS) / 
-[FUELCONSUMERS](FUELCONSUMERS.md)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
+[FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md)
 
 ## Description
-The [FUELCONSUMERS](FUELCONSUMERS.md) keyword covers the fuel consumers on the installation
-that are not generators. The attributes [NAME](NAME), 
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) and 
-[CATEGORY](CATEGORY) are required, while 
-[FUEL](FUEL) is optional and may be used to
+The [FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md) keyword covers the fuel consumers on the installation
+that are not generators. The attributes [NAME](/about/references/keywords/NAME.md), 
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) and 
+[CATEGORY](/about/references/keywords/CATEGORY.md) are required, while 
+[FUEL](/about/references/keywords/FUEL.md) is optional and may be used to
 override the installation's default fuel type.
 
 ## Format

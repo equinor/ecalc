@@ -25,7 +25,7 @@ put in the cloud of data to be unbiased. However, eCalc will treat all head valu
 maximum defined in the chart as infeasible (outside pump capacity). 
 
 To mitigate this when
-running through historical data for power calibration, the keyword [HEAD_MARGIN](../../../../references/keywords/HEAD_MARGIN) may be used to move points outside capacity (but inside the margin) to the capacity limit.
+running through historical data for power calibration, the keyword [HEAD_MARGIN](/about/references/keywords/HEAD_MARGIN.md) may be used to move points outside capacity (but inside the margin) to the capacity limit.
 :::
 
 ## PUMP_CHART_SINGLE_SPEED

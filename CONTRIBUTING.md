@@ -11,4 +11,4 @@ behalf of external users.
 
 There are a few things you need to know.
 
-We wrote a [Contribution Guide](https://equinor.github.io/ecalc/docs/contribute/get-started) to help you get started.
+We wrote a [Contribution Guide](/contribute/get-started) to help you get started.

@@ -24,6 +24,6 @@ By using eCalc™ you will be able to forecast your energy consumption and emiss
 
 ### How to use eCalc™?
 To use eCalc™ you need to create a model setup of your asset.
-This is described in the [Modelling](modelling/index.md) section.
+This is described in the [Modelling](/about/modelling/index.md) section.
 
 Once the model is ready, you can run the eCalc™ calculator. Different user interfaces for the calculator are offered. These are described in detail in the [Getting started](getting_started/index.md) section.

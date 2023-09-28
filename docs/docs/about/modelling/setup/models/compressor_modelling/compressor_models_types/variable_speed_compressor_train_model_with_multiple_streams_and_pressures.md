@@ -9,7 +9,7 @@ This compressor type is a more advanced model which covers compressor trains whi
 
 ## Format
 
-The model is defined under the main keyword [MODELS](../../../../../references/keywords/MODELS) in the format:
+The model is defined under the main keyword [MODELS](/about/references/keywords/MODELS.md) in the format:
 
 ~~~~~~~~yaml
 MODELS:
@@ -58,7 +58,7 @@ MODELS:
 
 ## Keyword usage
 
-- [STREAMS](../../../../../references/keywords/STREAMS.md) is a list of all in- and out-going streams for the compressor train.
+- [STREAMS](/about/references/keywords/STREAMS.md) is a list of all in- and out-going streams for the compressor train.
   - The same equation of state (EOS) must be used for each INGOING stream fluid models
   - OUTGOING fluid models **cannot** be specified.
   
@@ -76,14 +76,14 @@ be subtracted the rate of the outgoing stream.
 - `PRESSURE_DROP_AHEAD_OF_STAGE` is optional, but if defined it will reduce the inlet pressure of that particular stage by a fixed value.
 As of now, only a single value is supported - i.e. a time series cannot be used here.
 
-- `CONTROL_MARGIN` is a surge control margin, see [Surge control margin for variable speed compressor chart](../compressor_charts/index.md).
+- `CONTROL_MARGIN` is a surge control margin, see [Surge control margin for variable speed compressor chart](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
 
 - `CONTROL_MARGIN_UNIT` is the unit of the surge control margin.
 
 ### INTERSTAGE_PRESSURE_CONTROL
 
 :::note
-`INTERSTAGE_CONTROL_PRESSURE` may be specified for one (only one!) of the stages 2, ..., N. It may **not** be specified for the first stage. See [INTERSTAGE_CONTROL_PRESSURE](../../../../../references/keywords/INTERSTAGE_CONTROL_PRESSURE.md) for more usage details
+`INTERSTAGE_CONTROL_PRESSURE` may be specified for one (only one!) of the stages 2, ..., N. It may **not** be specified for the first stage. See [INTERSTAGE_CONTROL_PRESSURE](/about/references/keywords/INTERSTAGE_CONTROL_PRESSURE.md) for more usage details
 :::
 
 This is optional but essentially when this is specified the compression train is split into two parts - before and after the `INTERSTAGE_CONTROL_PRESSURE`. As all rates and pressures (suction, discharge and interstage) are known, each side of the compression train can be solved independently.
@@ -92,7 +92,7 @@ Thus, given this, the rotational speed needed to match the suction and interstag
 
 The highest speed between the first and second parts of the train is then taken as the rotational speed of the compression train.
 This speed will essentially be needed to meet the most demanding pressure interval.
-The section with the lower rotational speed must then be run with a form of pressure control (see [UPSTREAM_PRESSURE_CONTROL](../../../../../references/keywords/UPSTREAM_PRESSURE_CONTROL.md)/[DOWNSTREAM_PRESSURE_CONTROL](../../../../../references/keywords/DOWNSTREAM_PRESSURE_CONTROL.md)).
+The section with the lower rotational speed must then be run with a form of pressure control (see [UPSTREAM_PRESSURE_CONTROL](/about/references/keywords/UPSTREAM_PRESSURE_CONTROL.md)/[DOWNSTREAM_PRESSURE_CONTROL](/about/references/keywords/DOWNSTREAM_PRESSURE_CONTROL.md)).
 
 In a given simulation, the section of the compression train that requires either upstream or downstream pressure control is not fixed. This means that for different time steps, the part of the train with the highest rotational speed is not set to either the first or second section. Thus, both pressure control methods must be specified but only one of them will be used for each time step.
 
@@ -116,7 +116,7 @@ determined from the other sub-train. The inlet and outlet pressures for a sub-tr
 and the interstage control pressure or interstage control pressure and the discharge pressure, depending on which sub
 part governs the speed of the full train.
 
-See [FIXED PRESSURE CONTROL](../fixed_speed_pressure_control/index.md) for more details.
+See [FIXED PRESSURE CONTROL](/about/modelling/setup/models/compressor_modelling/fixed_speed_pressure_control/index.md) for more details.
 
 ## Example
 

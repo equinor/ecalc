@@ -74,7 +74,7 @@ TIME_SERIES:
 
 ## FACILITY_INPUTS
 
-In this case, the compressors are not specified in this section as [GENERIC COMPRESSOR CHARTS](../setup/models/compressor_modelling/compressor_charts/index.md). Thus, the pump chart and generator set will be the only facility components specified within this section. 
+In this case, the compressors are not specified in this section as [GENERIC COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md). Thus, the pump chart and generator set will be the only facility components specified within this section. 
 
 The pump will be variable speed, meaning that the pump type will be `PUMP_CHART_VARIABLE_SPEED`. The generator set will be a tabulated, where power consumption will be linked to fuel gas utilised.
 
@@ -99,7 +99,7 @@ Peng-Robinson (PR) will be the selected equation of state in this example.
 
 This example will use a generic compressor chart. In this case, a generic compressor chart from input will utilised. Here, the a "typical" chart will be shifted to match the input head and rate data. See [GENERIC COMPRESSOR CHARTS](../setup/models/compressor_modelling/compressor_charts/index.md) for more details. When a generic chart is used, a polytropic efficiency needs to be specified. This value will be constant throughout the use, in this case a value of 0.8 is used.
 
-A [SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN](../setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train_model) model is used in this example, as this is necessary when a generic chart is used. Instead of manually specifying the number of compression stages, a `MAXIMUM_PRESSURE_RATIO_PER_STAGE` of 3.5 is defined. This will automatically distribute the pressure increase amongst the compression train so that no pressure ratio per compression stage will be above 3.5. 
+A [SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train_model.md) model is used in this example, as this is necessary when a generic chart is used. Instead of manually specifying the number of compression stages, a `MAXIMUM_PRESSURE_RATIO_PER_STAGE` of 3.5 is defined. This will automatically distribute the pressure increase amongst the compression train so that no pressure ratio per compression stage will be above 3.5. 
 
 ~~~~~~~~yaml
 MODELS:

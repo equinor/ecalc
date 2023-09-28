@@ -1,9 +1,9 @@
 # CONSUMPTION_RATE_TYPE
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] / 
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[CONSUMPTION_RATE_TYPE](CONSUMPTION_RATE_TYPE)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[CONSUMPTION_RATE_TYPE](/about/references/keywords/CONSUMPTION_RATE_TYPE.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
@@ -15,9 +15,9 @@ You must have good control of the input rates - which are stream day rates and w
 specify `CALENDAR_DAY` as input if necessary.
 :::
 
-When [REGULARITY](REGULARITY) is used,the consumption rate type may be specified for
-`DIRECT ENERGY USAGE MODEL`([LOAD](LOAD) or [FUELRATE](FUELRATE))
-by setting [CONSUMPTION_RATE_TYPE](CONSUMPTION_RATE_TYPE) to either `CALENDAR_DAY` or
+When [REGULARITY](/about/references/keywords/REGULARITY.md) is used,the consumption rate type may be specified for
+`DIRECT ENERGY USAGE MODEL`([LOAD](/about/references/keywords/LOAD.md) or [FUELRATE](/about/references/keywords/FUELRATE.md))
+by setting [CONSUMPTION_RATE_TYPE](/about/references/keywords/CONSUMPTION_RATE_TYPE.md) to either `CALENDAR_DAY` or
 `STREAM_DAY`.
 
 The default behaviour, is that these will be interpreted as `STREAM_DAY` if not set explicitly. This will result in
@@ -28,7 +28,7 @@ stream day when passed to the generator set calculation.
 `CALENDAR_DAY`: The average rate over a period after adjusting for operating conditions that keeps the
 average throughput below the maximum achievable throughput for a single day, known as stream day.
 
-`STREAM_DAY`: The actual rate at a given moment. When multiplied with a [REGULARITY](REGULARITY)
+`STREAM_DAY`: The actual rate at a given moment. When multiplied with a [REGULARITY](/about/references/keywords/REGULARITY.md)
 factor you get the calendar day rate which needs to be used when evaluating the economics of a process unit.
 
 $$
@@ -56,6 +56,6 @@ CONSUMPTION_RATE_TYPE: STREAM_DAY
 Given `CALENDAR_DAY` input the rate will be converted to `STREAM_DAY` when evaluating, and any fuel rate in output
 will be converted back again to `CALENDAR_DAY` rate equivalent in the results.
 
-Given `STREAM_DAY` input, and a [REGULARITY](REGULARITY) factor of 0.5 (50%), the
+Given `STREAM_DAY` input, and a [REGULARITY](/about/references/keywords/REGULARITY.md) factor of 0.5 (50%), the
 interpretation is that the process unit will run at full capacity half of the time. The resulting fuel rate reported
 for a fuel consumer will be halved compared to 1 (100%) regularity.

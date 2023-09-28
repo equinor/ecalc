@@ -1,8 +1,8 @@
 # ENERGY_USAGE_MODEL
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
 
 
  | Required   | Child of                  | Children/Options                   |
@@ -20,21 +20,21 @@ for each type. The available types are:
 
 Energy usage model types:
 
-* [DIRECT](../../modelling/setup/installations/direct_consumers)
-* [TABULATED](../../modelling/setup/installations/tabular_models_in_calculations)
-* [PUMP](../../modelling/setup/installations/pump_models_in_calculations#pump-energy-usage-model)
-* [PUMP_SYSTEM](../../modelling/setup/installations/pump_models_in_calculations#pump_system-energy-usage-model)
-* [COMPRESSOR](../../modelling/setup/installations/compressor_models_in_calculations/compressor)
-* [COMPRESSOR_SYSTEM](../../modelling/setup/installations/compressor_models_in_calculations/compressor_system)
-* [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](../../modelling/setup/installations/compressor_models_in_calculations/variable_speed_compressor_train_model_with_multiple_streams_and_pressures)
+* [DIRECT](/about/modelling/setup/installations/direct_consumers.md)
+* [TABULATED](/about/modelling/setup/installations/tabular_models_in_calculations.md)
+* [PUMP](/about/modelling/setup/installations/pump_models_in_calculations.md#pump-energy-usage-model)
+* [PUMP_SYSTEM](/about/modelling/setup/installations/pump_models_in_calculations.md#pump_system-energy-usage-model)
+* [COMPRESSOR](/about/modelling/setup/installations/compressor_models_in_calculations/compressor.md)
+* [COMPRESSOR_SYSTEM](/about/modelling/setup/installations/compressor_models_in_calculations/compressor_system.md)
+* [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](/about/modelling/setup/installations/compressor_models_in_calculations/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md)
 
-For all types, the keywords [CONDITION](CONDITION.md), [CONDITIONS](CONDITIONS.md) and [POWERLOSSFACTOR](POWERLOSSFACTOR.md) are optional and supported, and these will act
-on the calculated energy usage after the calculated energy usage from the model defined by [TYPE](TYPE.md).
+For all types, the keywords [CONDITION](/about/references/keywords/CONDITION.md), [CONDITIONS](/about/references/keywords/CONDITIONS.md) and [POWERLOSSFACTOR](/about/references/keywords/POWERLOSSFACTOR.md) are optional and supported, and these will act
+on the calculated energy usage after the calculated energy usage from the model defined by [TYPE](/about/references/keywords/TYPE.md).
 
 ## Temporal energy usage model
 
 It is possible to update the energy model within a consumer over time, as long as the
-`ENERGY_USAGE_MODEL` stays within one type. The `TYPE` cannot change over time. In case `TYPE` evolution is needed, we recommend that you split the model into two [CONSUMERS](CONSUMERS.md).
+`ENERGY_USAGE_MODEL` stays within one type. The `TYPE` cannot change over time. In case `TYPE` evolution is needed, we recommend that you split the model into two [CONSUMERS](/about/references/keywords/CONSUMERS.md).
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:

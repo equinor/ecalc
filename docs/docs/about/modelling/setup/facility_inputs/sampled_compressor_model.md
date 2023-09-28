@@ -27,7 +27,7 @@ inputted into eCalc™. Each line in the `.csv` defines a point (rate, suction p
 
 ## Format
 
-The sampled compressor model is defined under the main keyword [`FACILITY_INPUTS`](../../../references/keywords/FACILITY_INPUTS) in the format
+The sampled compressor model is defined under the main keyword [`FACILITY_INPUTS`](/about/references/keywords/FACILITY_INPUTS.md) in the format
 
 ~~~~~~~~yaml
     NAME: <model name>

@@ -1,12 +1,12 @@
 # CROSSOVER
 
-[INSTALLATIONS](INSTALLATIONS) /
-[...] / [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL.md) / 
-[OPERATIONAL_SETTINGS](OPERATIONAL_SETTINGS.md) / [CROSSOVER](COMPRESSOR_MODEL.md)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
+[...] / [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[OPERATIONAL_SETTINGS](/about/references/keywords/OPERATIONAL_SETTINGS.md) / [CROSSOVER](/about/references/keywords/COMPRESSOR_MODEL.md)
 
-| Required | Child of      | Children/Options |
-|----------|---------------|------------------|
-| Yes      | [OPERATIONAL_SETTINGS](OPERATIONAL_SETTINGS.md)  | None             |
+| Required | Child of                                                                   | Children/Options |
+|----------|----------------------------------------------------------------------------|------------------|
+| Yes      | [OPERATIONAL_SETTINGS](/about/references/keywords/OPERATIONAL_SETTINGS.md) | None             |
 
 ## Description
 

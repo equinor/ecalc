@@ -7,7 +7,7 @@ description: VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES Ener
 # VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES energy usage model
 
 This energy usage model allows the compressor train model type 
-[Variable speed compressor train model with multiple streams and pressures](../../models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures).
+[Variable speed compressor train model with multiple streams and pressures](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
 
 ## Format
 
@@ -29,9 +29,9 @@ ENERGY_USAGE_MODEL:
   POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
 ~~~~~~~~
 
-The number of elements in [RATE_PER_STREAM](../../../../references/keywords/RATE_PER_STREAM) must correspond to the number of streams defined for the model referenced in
-[COMPRESSOR_TRAIN_MODEL](../../../../references/keywords/COMPRESSOR_TRAIN_MODEL).
+The number of elements in [RATE_PER_STREAM](/about/references/keywords/RATE_PER_STREAM.md) must correspond to the number of streams defined for the model referenced in
+[COMPRESSOR_TRAIN_MODEL](/about/references/keywords/COMPRESSOR_TRAIN_MODEL.md).
 
-[INTERSTAGE_CONTROL_PRESSURE](../../../../references/keywords/INTERSTAGE_CONTROL_PRESSURE) is required if the model referenced in [COMPRESSOR_TRAIN_MODEL](../../../../references/keywords/COMPRESSOR_TRAIN_MODEL) has has an
-interstage control pressure defined. If there is no interstage control pressure defined in [COMPRESSOR_TRAIN_MODEL](../../../../references/keywords/COMPRESSOR_TRAIN_MODEL),
-[INTERSTAGE_CONTROL_PRESSURE](../../../../references/keywords/INTERSTAGE_CONTROL_PRESSURE) should not be defined.
+[INTERSTAGE_CONTROL_PRESSURE](/about/references/keywords/INTERSTAGE_CONTROL_PRESSURE.md) is required if the model referenced in [COMPRESSOR_TRAIN_MODEL](/about/references/keywords/COMPRESSOR_TRAIN_MODEL.md) has has an
+interstage control pressure defined. If there is no interstage control pressure defined in [COMPRESSOR_TRAIN_MODEL](/about/references/keywords/COMPRESSOR_TRAIN_MODEL.md),
+[INTERSTAGE_CONTROL_PRESSURE](/about/references/keywords/INTERSTAGE_CONTROL_PRESSURE.md) should not be defined.

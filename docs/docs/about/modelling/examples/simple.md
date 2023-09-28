@@ -39,11 +39,11 @@ The results of a performed characterization of the equipment are listed below:
 
 ## YAML model overview
 The YAML model consist of these main components:
-- Time series inputs - [TIME_SERIES](../../references/keywords/TIME_SERIES.md)
-- Facility characterization input - [FACILITY_INPUTS](../../references/keywords/FACILITY_INPUTS)
-- Fuel input - [FUEL_TYPES](../../references/keywords/FUEL_TYPES)
-- Model variables - [VARIABLES](../../references/keywords/VARIABLES)
-- Installation topology - [INSTALLATIONS](../../references/keywords/INSTALLATIONS)
+- Time series inputs - [TIME_SERIES](/about/references/keywords/TIME_SERIES.md)
+- Facility characterization input - [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)
+- Fuel input - [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md)
+- Model variables - [VARIABLES](/about/references/keywords/VARIABLES.md)
+- Installation topology - [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md)
 
 The YAML setup file looks like this:
 
@@ -65,7 +65,7 @@ We will now replace the placeholders for each of the main keywords above.
 ## TIME_SERIES
 The reservoir variables, in this case, are found in a CSV (Comma separated file) `production_data.csv`.
 We give the time-series data a name that can be referenced as variables elsewhere in the form `<NAME>:<NAME OF COLUMN>`.
-See [TIME_SERIES](../../references/keywords/TIME_SERIES.md) for further details.
+See [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) for further details.
 
 ~~~~~~~~yaml title="model.yaml"
 TIME_SERIES:
@@ -77,11 +77,11 @@ TIME_SERIES:
 ## FACILITY_INPUTS
 We specify CSV input data for processing equipment using FACILITY_INPUTS. This is used for generatorsets,
 tabulated/sampled models and pump charts.
-See [FACILITY_INPUTS](../../references/keywords/FACILITY_INPUTS.md) for further details.
+See [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) for further details.
 
 Here we define a tabulated genset, a sampled compressor, a sampled compressor driven by a turbine, a sampled pump,
 and a single speed pump chart. These will be used in the final model for illustration.
-Note that more complicated energy models are defined under the [MODELS-keyword](../../references/keywords/MODELS.md).
+Note that more complicated energy models are defined under the [MODELS-keyword](/about/references/keywords/MODELS.md).
 
 See the input data further down to understand the input formats.
 
@@ -109,7 +109,7 @@ FACILITY_INPUTS:
 ~~~~~~~~
 
 ## FUEL_TYPES
-In this example there is only one [FUEL_TYPES](../../references/keywords/FUEL_TYPES) - `fuel_gas`. This has a price/value
+In this example there is only one [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) - `fuel_gas`. This has a price/value
 of 1.5 NOK/Sm<sup>3</sup> and the emissions we model with the fuel is CO<sub>2</sub>. The CO<sub>2</sub> factor
 is 2.19 kg CO2 per Sm<sup>3</sup> fuel gas burned. The CO<sub>2</sub> tax is set to 1.5 NOK/Sm<sup>3</sup>
 fuel gas burned, and it has a quota price of 260 NOK/ton.
@@ -126,7 +126,7 @@ FUEL_TYPES:
 ~~~~~~~~
 
 ## VARIABLES
-To run the model it is recommended to specify [VARIABLES](../../references/keywords/VARIABLES),
+To run the model it is recommended to specify [VARIABLES](/about/references/keywords/VARIABLES.md),
 instead of hard coding values in difference places. This makes it easier to develop, maintain and understand the model
 by allowing descriptive variable names and avoid duplications.
 
@@ -227,7 +227,7 @@ The direct fuel consumers are **Flare** and **Gas export compressor**.
 ~~~~~~~~
 
 ## ENERGY_USAGE_MODEL
-We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](../../references/keywords/ENERGY_USAGE_MODEL.md)s.
+We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)s.
 
 
 `Base production load` has a constant load of 11.8 MW:

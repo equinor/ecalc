@@ -5,7 +5,7 @@ description: Variables guide and description
 ---
 
 :::note
-The [VARIABLES](../../references/keywords/VARIABLES) keyword is **optional** for an eCalc™ model to run.
+The [VARIABLES](/about/references/keywords/VARIABLES.md) keyword is **optional** for an eCalc™ model to run.
 :::
 
 ## Defining variables
@@ -52,7 +52,7 @@ Variables can be used in any expression throughout the YAML file and can even be
 
 ### Example 
 
-Using variables in the [INSTALLATION](installations/index.md) section:
+Using variables in the [INSTALLATION](/about/modelling/setup/installations/index.md) section:
 
 ~~~~yaml
 VARIABLES:

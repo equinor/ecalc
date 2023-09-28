@@ -13,23 +13,23 @@ The setup file is written in YAML format and needs to follow a strict pattern wh
 The overall system in eCalc is that the user defines inputs from subsurface and facility and
 then establishes a model between these.
 
-On the top level, the required keywords are [FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS) which defines the input from facility characterization, [TIME_SERIES](../../../references/keywords/TIME_SERIES.md) which defines time-dependant input parameters (e.g. reservoir profiles), [FUEL_TYPES](../../../references/keywords/FUEL_TYPES) which defines the various fuel types used in the system, and [INSTALLATIONS](../../../references/keywords/INSTALLATIONS) which is the top node defining the system of energy consumers. [MODELS](../../../references/keywords/MODELS) is optional and may be used for multi-level energy usage models.
+On the top level, the required keywords are [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) which defines the input from facility characterization, [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) which defines time-dependant input parameters (e.g. reservoir profiles), [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) which defines the various fuel types used in the system, and [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) which is the top node defining the system of energy consumers. [MODELS](/about/references/keywords/MODELS.md) is optional and may be used for multi-level energy usage models.
 
 Documentation about how to set up each of these fields are found here, respectively:
 
-- [TIME_SERIES](../../..//references/keywords/TIME_SERIES.md): List of input sources, CSV-files, containing all time series data including the
+- [TIME_SERIES](/about/references/keywords/TIME_SERIES.md): List of input sources, CSV-files, containing all time series data including the
   reservoir variables.
-- [FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS): List of input files from facility characterization. Typically, this can be
+- [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md): List of input files from facility characterization. Typically, this can be
   characteristics for an element in a consumer system or characteristics for a generator set.
   Also, if fuel price or/and CO<sub>2</sub> tax is of type `VARIABLE_FUEL_PRICE` or
   `VARIABLE_EMISSION_TAX`, these files should also be put here. These are later used as input
   to the energy functions for each consumer. Some may also be used as energy functions directly.
-- [FUEL_TYPES](../../../references/keywords/FUEL_TYPES): Defining the fuel types being used in the model and the corresponding
+- [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md): Defining the fuel types being used in the model and the corresponding
   emissions.
-- [MODELS](../../../references/keywords/MODELS): Used for multi-level models, one model may refer to other models from either
-  [MODELS](../../../references/keywords/MODELS) or [FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS)
-- [VARIABLES](../../../references/keywords/VARIABLES): Used for defining variables to be used in expressions throughout the YAML file
-- [INSTALLATIONS](../../../references/keywords/INSTALLATIONS): Defining the system of energy consumers on each installation
+- [MODELS](/about/references/keywords/MODELS.md): Used for multi-level models, one model may refer to other models from either
+  [MODELS](/about/references/keywords/MODELS.md) or [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)
+- [VARIABLES](/about/references/keywords/VARIABLES.md): Used for defining variables to be used in expressions throughout the YAML file
+- [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md): Defining the system of energy consumers on each installation
   (e.g. platform or mobile unit).
 
 
@@ -42,12 +42,12 @@ are the fuel burners. As the figure below shows, there are three main types of f
 - Turbine-driven processes,
 - Flare/vent/other non reservoir dependent burners/emitters.
 
-In eCalc under each installation, there is one keyword ([GENERATORSETS](../../../references/keywords/GENERATORSETS.md))
-specifying the generator sets and one keyword ([FUELCONSUMERS](../../../references/keywords/FUELCONSUMERS.md))
+In eCalc under each installation, there is one keyword ([GENERATORSETS](/about/references/keywords/GENERATORSETS.md))
+specifying the generator sets and one keyword ([FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md))
 specifying processes that require fuel directly (turbine-driven processes and flare/vent).
 
 The processes with electrical motor drives and other electrical loads are modeled at the sublevel
-under [GENERATORSETS](../../../references/keywords/GENERATORSETS.md).
+under [GENERATORSETS](/about/references/keywords/GENERATORSETS.md).
 
 ![](ecalc_general_consumer_overview.png)
 
@@ -99,4 +99,4 @@ INSTALLATIONS:
 
 ### Full examples
 
-Examples are an excellent way to quickly get an overview of the syntax. Check them out [here](../../examples/index.md).
+Examples are an excellent way to quickly get an overview of the syntax. Check them out [here](/about/modelling/examples/index.md).

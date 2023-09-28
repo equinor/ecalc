@@ -1,23 +1,23 @@
 # OPERATIONAL_SETTINGS
  
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[OPERATIONAL_SETTINGS](OPERATIONAL_SETTINGS)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[OPERATIONAL_SETTINGS](/about/references/keywords/OPERATIONAL_SETTINGS.md)
 
 ## Description
-Used to define the operational settings in an [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)
+Used to define the operational settings in an [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
  of type `PUMP_SYSTEM` or `COMPRESSOR_SYSTEM`.
 
 The rate [Sm<sup>3</sup>/day] through each consumer in the system may be specified in two different ways, either directly using
 `RATES`, or by defining the `rate fraction<RATE_FRACTIONS>` for each consumer which is then multiplied with the
 `total system rate<TOTAL_SYSTEM_RATE>`.
 
-The suction pressure may either be specified with [SUCTION_PRESSURE](SUCTION_PRESSURE)
+The suction pressure may either be specified with [SUCTION_PRESSURE](/about/references/keywords/SUCTION_PRESSURE.md)
 which will then be the common suction pressure for all consumers in the system. Alternatively, 
 `SUCTION_PRESSURES`  may be used to specify one suction pressure expression per consumer.
 
-The discharge pressure may either be specified with [DISCHARGE_PRESSURE](DISCHARGE_PRESSURE)
+The discharge pressure may either be specified with [DISCHARGE_PRESSURE](/about/references/keywords/DISCHARGE_PRESSURE.md)
 which will then be the common discharge pressure for all consumers in the system. Alternatively, 
 `DISCHARGE_PRESSURES` may be used to specify one discharge pressure expression per consumer.
 
@@ -36,29 +36,29 @@ not both in one operational setting.
 
 ### RATE_FRACTIONS
 A list with one expression per consumer specifying the rate fraction for each consumer. If this is used,
-[TOTAL_SYSTEM_RATE](TOTAL_SYSTEM_RATE) for the [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)
+[TOTAL_SYSTEM_RATE](/about/references/keywords/TOTAL_SYSTEM_RATE.md) for the [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
 is also required. Use either `RATES` or `RATE_FRACTIONS`, not both in one operational setting.
 
 ### SUCTION_PRESSURES
 A list with one expression per consumer specifying the suction pressure for each consumer. Use either `SUCTION_PRESSURES` or 
-[SUCTION_PRESSURE](SUCTION_PRESSURE), not both in the same operational setting.
+[SUCTION_PRESSURE](/about/references/keywords/SUCTION_PRESSURE.md), not both in the same operational setting.
 
-Use [SUCTION_PRESSURE](SUCTION_PRESSURE) to set the same suction pressure for all consumers in the system and 
+Use [SUCTION_PRESSURE](/about/references/keywords/SUCTION_PRESSURE.md) to set the same suction pressure for all consumers in the system and 
 `SUCTION_PRESSURES` to specify one suction pressure expression per consumer.
 
 ### DISCHARGE_PRESSURES
 A list with one expression per consumer specifying the discharge pressure for each consumer. Use either `DISCHARGE_PRESSURES`
-or [DISCHARGE_PRESSURE](DISCHARGE_PRESSURE), not both in the same operational setting.
+or [DISCHARGE_PRESSURE](/about/references/keywords/DISCHARGE_PRESSURE.md), not both in the same operational setting.
 
-Use [DISCHARGE_PRESSURE](DISCHARGE_PRESSURE) to set the same discharge pressure for all consumers in the system and
+Use [DISCHARGE_PRESSURE](/about/references/keywords/DISCHARGE_PRESSURE.md) to set the same discharge pressure for all consumers in the system and
 `DISCHARGE_PRESSURES` to specify one discharge pressure expression per consumer.
 
 ### FLUID_DENSITIES
 Only supported for `energy usage models<ENERGY_USAGE_MODEL>` of type `PUMP_SYSTEM`.
 A list with one expression per consumer specifying the fluid density for each consumer. If used, it will over-ride
-[FLUID_DENSITY](FLUID_DENSITY) for the `PUMP_SYSTEM`.
+[FLUID_DENSITY](/about/references/keywords/FLUID_DENSITY.md) for the `PUMP_SYSTEM`.
 
-Use [FLUID_DENSITY](FLUID_DENSITY) for the `energy usage models<ENERGY_USAGE_MODEL>`
+Use [FLUID_DENSITY](/about/references/keywords/FLUID_DENSITY.md) for the `energy usage models<ENERGY_USAGE_MODEL>`
 to set one fixed fluid density for the entire system for all operational settings. Use 
 `FLUID_DENSITIES` for the `operational setting<OPERATIONAL_SETTINGS>` to vary the fluid density between consumers and operational settings.
 

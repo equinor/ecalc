@@ -1,8 +1,8 @@
 # STREAMS
 
-[MODELS](MODELS) /
+[MODELS](/about/references/keywords/MODELS.md) /
 [...] /
-[STREAMS](STREAMS.md)
+[STREAMS](/about/references/keywords/STREAMS.md)
 
 ## Description
 

@@ -1,7 +1,7 @@
 # DIRECT_EMITTERS
 
-[INSTALLATIONS](INSTALLATIONS) / 
-[DIRECT_EMITTERS](DIRECT_EMITTERS)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
+[DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md)
 
 
 | Required   | Child of                  | Children/Options                   |
@@ -10,10 +10,10 @@
 
 
 ## Description
-The [DIRECT_EMITTERS](DIRECT_EMITTERS) keyword covers the direct emissions on the installation
-that are not consuming energy. The attributes [NAME](NAME),
-[EMISSION_NAME](EMISSION_NAME), [CATEGORY](CATEGORY) and
-[EMITTER_MODEL](EMITTER_MODEL) are required.
+The [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md) keyword covers the direct emissions on the installation
+that are not consuming energy. The attributes [NAME](/about/references/keywords/NAME.md),
+[EMISSION_NAME](/about/references/keywords/EMISSION_NAME.md), [CATEGORY](/about/references/keywords/CATEGORY.md) and
+[EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) are required.
 
 ## Format
 ~~~~~~~~yaml

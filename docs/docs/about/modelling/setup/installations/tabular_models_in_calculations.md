@@ -40,7 +40,7 @@ ENERGY_USAGE_MODEL:
 Consumer energy function for the compressor (or compressor train) is in a tabulated format,
 where each line is a point defining the energy consumption for the given variables.
 
-See [Sampled compressor model](../facility_inputs/sampled_compressor_model) for details.
+See [Sampled compressor model](/about/modelling/setup/facility_inputs/sampled_compressor_model.md) for details.
 
 As a single compressor/compressor train (no system), it can be set up in the following way:
 

@@ -1,13 +1,13 @@
 # RATE_PER_STREAM
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[RATE_PER_STREAM](RATE_PER_STREAM)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[RATE_PER_STREAM](/about/references/keywords/RATE_PER_STREAM.md)
 
 ## Description
 Used to define the rate for each stream for the VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) types using a list of `expression<Expressions>`
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) types using a list of `expression<Expressions>`
 
 ## Format
 ~~~~~~~~yaml

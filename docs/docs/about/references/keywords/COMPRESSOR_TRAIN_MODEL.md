@@ -1,18 +1,18 @@
 # COMPRESSOR_TRAIN_MODEL
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] / 
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) /
-[COMPRESSOR_TRAIN_MODEL](COMPRESSOR_TRAIN_MODEL)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) /
+[COMPRESSOR_TRAIN_MODEL](/about/references/keywords/COMPRESSOR_TRAIN_MODEL.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
 | Yes        | `ENERGY_USAGE_MODEL`      | None                               |
 
 ## Description
-Reference to an compressor train model defined in [FACILITY_INPUTS](FACILITY_INPUTS) or 
-[MODELS](MODELS) used for [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) 
-TYPE [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](ENERGY_USAGE_MODEL#variable_speed_compressor_train_multiple_streams_and_pressures-energy-usage-model).
+Reference to an compressor train model defined in [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) or 
+[MODELS](/about/references/keywords/MODELS.md) used for [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) 
+TYPE [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](/about/references/keywords/ENERGY_USAGE_MODEL.md#variable_speed_compressor_train_multiple_streams_and_pressures-energy-usage-model).
 
 ## Format
 ~~~~~~~~yaml
