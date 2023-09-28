@@ -305,13 +305,6 @@ class GraphResult:
                         unit=Unit.BARA,
                     ).for_period(period=period)
 
-                    rate = TimeSeriesRate(
-                        timesteps=model.timesteps,
-                        values=model.rate_sm3_day,
-                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                        rate_type=RateType.STREAM_DAY,
-                    )
-
                     model_stage_results = []
                     # Convert rates in stage results from lists to time series:
                     for stage_result in model.stage_results:
@@ -618,6 +611,24 @@ class GraphResult:
                         if model.turbine_result is not None
                         else None
                     )
+
+                    if len(model.rate_sm3_day) > 0 and isinstance(model.rate_sm3_day[0], list):
+                        # Handle multi stream
+                        # Select the first rate from multi stream, only a workaround until we have more info by using
+                        # streams
+                        rate = TimeSeriesRate(
+                            timesteps=model.timesteps,
+                            values=model.rate_sm3_day[0],
+                            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                            rate_type=RateType.STREAM_DAY,
+                        )
+                    else:
+                        rate = TimeSeriesRate(
+                            timesteps=model.timesteps,
+                            values=model.rate_sm3_day,
+                            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                            rate_type=RateType.STREAM_DAY,
+                        )
 
                     models.extend(
                         [
