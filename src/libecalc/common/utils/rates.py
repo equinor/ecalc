@@ -648,8 +648,9 @@ class TimeSeriesRate(TimeSeries[float]):
             return regularity
         try:
             return [1] * len(values["values"])
-        except KeyError as e:
-            raise KeyError("Failed to set default values for regularity. 'Values' of timeseries is not defined") from e
+        except KeyError:
+            # 'Values' of timeseries is not defined. Not this validators responsibility.
+            return []
 
     def __add__(self, other: TimeSeriesRate) -> TimeSeriesRate:
         # Check for same unit
