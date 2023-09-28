@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.4.2](https://github.com/equinor/ecalc/compare/v8.4.1...v8.4.2) (2023-09-28)
+
+
+### Bug Fixes
+
+* rate when multiple streams model ([#214](https://github.com/equinor/ecalc/issues/214)) ([2adb695](https://github.com/equinor/ecalc/commit/2adb69595d0fbc08cfc9c1ffaa2bb9f7177dbe91))
+* set_regularity fixture ([#213](https://github.com/equinor/ecalc/issues/213)) ([bcb5c94](https://github.com/equinor/ecalc/commit/bcb5c94d60c5e361fbdc38ef7d0ab5d9aee450c1))
+
 ## [8.4.1](https://github.com/equinor/ecalc/compare/v8.4.0...v8.4.1) (2023-09-26)
 
 
