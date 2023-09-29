@@ -2,7 +2,7 @@ import math
 import operator
 from datetime import datetime
 from functools import reduce
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import libecalc
 from libecalc import dto
@@ -18,6 +18,7 @@ from libecalc.common.utils.calculate_emission_intensity import (
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
+    TimeSeriesInt,
     TimeSeriesRate,
 )
 from libecalc.core.result import ComponentResult, EcalcModelResult
@@ -216,10 +217,21 @@ class GraphResult:
         }
 
     @staticmethod
+    def get_operational_setting_index(timestep: datetime, operational_settings_used: TimeSeriesInt):
+        timestep_index = operational_settings_used.timesteps.index(timestep)
+
+        operational_setting_index = operational_settings_used.values[timestep_index]
+
+        return operational_setting_index - 1
+
+    @staticmethod
     def get_requested_compressor_pressures(
         energy_usage_model: Dict[datetime, Any],
         pressure_type: CompressorPressureType,
         name: str,
+        model_period: Period,
+        model_timesteps: List[datetime],
+        operational_settings_used: Optional[TimeSeriesInt] = None,
     ) -> TemporalModel[Expression]:
         """Get temporal model for compressor inlet- and outlet pressures.
         The pressures are the actual pressures defined by user in input.
@@ -227,23 +239,35 @@ class GraphResult:
         :param energy_usage_model: Temporal energy model
         :param pressure_type: Compressor pressure type, inlet- or outlet
         :param name: name of compressor
-        :param operational_setting_index: if multiple operational settings for one model
+        :param model_period: start- and stop time for model
+        :param model_timesteps: actual timesteps in model
+        :param operational_settings_used: time series indicating which priority is active
         :return: Temporal model with pressures as expressions
         """
 
         evaluated_temporal_energy_usage_models = {}
-        operational_setting_index = 0
+        default_date = datetime(1900, 1, 1, 0, 0)
 
-        for period, model in TemporalModel(energy_usage_model).items():
-            if isinstance(model, CompressorSystemConsumerFunction):
-                for compressor in model.compressors:
+        # Extract relevant temporal model:
+        if len(energy_usage_model.items()) == 1 and default_date in energy_usage_model:
+            model_subset = TemporalModel(energy_usage_model).models[0].model
+        else:
+            model_subset = TemporalModel({model_period.start: energy_usage_model[model_period.start]}).models[0].model
+
+        if isinstance(model_subset, CompressorSystemConsumerFunction):
+            # Loop timesteps in temporal model, to find correct operational settings used:
+            for timestep in model_timesteps:
+                for compressor in model_subset.compressors:
                     if compressor.name == name:
-                        # Challenge: do not handle variation in operational settings, just select first priority.
-                        # Possible to vary inlet- and outlet pressures between different operational settings
-                        # priorities, within one temporal model,
-                        operational_setting = model.operational_settings[operational_setting_index]
+                        operational_setting_index = GraphResult.get_operational_setting_index(
+                            timestep=timestep, operational_settings_used=operational_settings_used
+                        )
+
+                        operational_setting = model_subset.operational_settings[operational_setting_index]
+
+                        # Find correct compressor in case of different pressures for different components in system:
                         compressor_nr = int(
-                            [i for i, compressor in enumerate(model.compressors) if compressor.name == name][0]
+                            [i for i, compressor in enumerate(model_subset.compressors) if compressor.name == name][0]
                         )
 
                         if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
@@ -262,20 +286,20 @@ class GraphResult:
 
                         if not isinstance(pressures, Expression):
                             pressures = Expression.setup_from_expression(value=pressures)
-                        evaluated_temporal_energy_usage_models[period.start] = pressures
-            else:
-                pressures = model.suction_pressure
+                        evaluated_temporal_energy_usage_models[timestep] = pressures
+        else:
+            pressures = model_subset.suction_pressure
 
-                if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
-                    pressures = model.discharge_pressure
+            if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
+                pressures = model_subset.discharge_pressure
 
-                if pressures is None:
-                    pressures = math.nan
+            if pressures is None:
+                pressures = math.nan
 
-                if not isinstance(pressures, Expression):
-                    pressures = Expression.setup_from_expression(value=pressures)
+            if not isinstance(pressures, Expression):
+                pressures = Expression.setup_from_expression(value=pressures)
 
-                evaluated_temporal_energy_usage_models[period.start] = pressures
+            evaluated_temporal_energy_usage_models[model_period.start] = pressures
 
         return TemporalModel(evaluated_temporal_energy_usage_models)
 
@@ -298,18 +322,28 @@ class GraphResult:
                 component = self.graph.get_component(consumer_id)
 
                 for model in consumer_result.models:
+                    period = Period(model.timesteps[0], model.timesteps[-1])
+
                     inlet_pressure_eval = GraphResult.get_requested_compressor_pressures(
                         energy_usage_model=component.energy_usage_model,
                         pressure_type=CompressorPressureType.INLET_PRESSURE,
                         name=model.name,
+                        operational_settings_used=consumer_result.component_result.operational_settings_used
+                        if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
+                        else None,
+                        model_period=period,
+                        model_timesteps=model.timesteps,
                     )
                     outlet_pressure_eval = GraphResult.get_requested_compressor_pressures(
                         energy_usage_model=component.energy_usage_model,
                         pressure_type=CompressorPressureType.OUTLET_PRESSURE,
                         name=model.name,
+                        operational_settings_used=consumer_result.component_result.operational_settings_used
+                        if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
+                        else None,
+                        model_period=period,
+                        model_timesteps=model.timesteps,
                     )
-
-                    period = Period(model.timesteps[0], model.timesteps[-1])
 
                     requested_inlet_pressure = TimeSeriesFloat(
                         timesteps=self.timesteps,
