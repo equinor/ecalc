@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Dict, List
 
 import libecalc.common.time_utils
-from ecalc_cli.errors import EcalcCLIError
 from libecalc import dto
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_time_steps
@@ -16,6 +15,8 @@ from libecalc.output.results.exporter import Exporter
 from libecalc.output.results.formatters.formatter import CSVFormatter
 from libecalc.output.results.handlers.handler import MultiFileHandler
 from libecalc.output.utils.file_utils import OutputFormat, get_result_output
+
+from ecalc_cli.errors import EcalcCLIError
 
 
 def write_output(output: str, output_file: Path = None):

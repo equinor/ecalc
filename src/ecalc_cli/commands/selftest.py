@@ -1,6 +1,7 @@
 import libecalc.version
-from ecalc_cli.logger import logger
 from ecalc_neqsim_wrapper import start_server
+
+from ecalc_cli.logger import logger
 
 
 def selftest_java() -> bool:
