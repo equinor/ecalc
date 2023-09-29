@@ -4,6 +4,12 @@ from pathlib import Path
 import libecalc.common.time_utils
 import libecalc.version
 import typer
+from libecalc.common.run_info import RunInfo
+from libecalc.core.ecalc import EnergyCalculator
+from libecalc.core.graph_result import GraphResult
+from libecalc.input.model import YamlModel
+from libecalc.output.utils.file_utils import OutputFormat, get_result_output
+
 from ecalc_cli.errors import EcalcCLIError
 from ecalc_cli.io.cache import Cache
 from ecalc_cli.io.output import (
@@ -15,11 +21,6 @@ from ecalc_cli.io.output import (
 )
 from ecalc_cli.logger import logger
 from ecalc_cli.types import DateFormat, Frequency
-from libecalc.common.run_info import RunInfo
-from libecalc.core.ecalc import EnergyCalculator
-from libecalc.core.graph_result import GraphResult
-from libecalc.input.model import YamlModel
-from libecalc.output.utils.file_utils import OutputFormat, get_result_output
 
 
 def run(
