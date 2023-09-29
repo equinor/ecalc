@@ -43,7 +43,7 @@ jobs:
           extra-files: |
             pyproject.toml
             src/libecalc/version.py
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Create vX.Y release branch (for simpler patching) - if normal release (not patching)
         if: ${{ steps.release.outputs.release_created && env.VERSIONING_STRATEGY != 'always-bump-patch' }}
         run: |
