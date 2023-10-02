@@ -1,7 +1,7 @@
 # MAXIMUM_DISCHARGE_PRESSURE
 
-[MODELS](MODELS) / 
-[MAXIMUM_DISCHARGE_PRESSURE](MAXIMUM_DISCHARGE_PRESSURE.md)
+[MODELS](/about/references/keywords/MODELS.md) / 
+[MAXIMUM_DISCHARGE_PRESSURE](/about/references/keywords/MAXIMUM_DISCHARGE_PRESSURE.md)
 
 ## Description
 
@@ -10,7 +10,7 @@ In reality, setting the maximum discharge pressure can be to avoid excessively h
 
 ## Functionality
 
-This is an optional setting and is **only** supported for [SINGLE SPEED COMPRESSORS](../../modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model), and **only** if the `PRESSURE_CONTROL` is `DOWNSTREAM_CHOKE`.
+This is an optional setting and is **only** supported for [SINGLE SPEED COMPRESSORS](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md), and **only** if the `PRESSURE_CONTROL` is `DOWNSTREAM_CHOKE`.
 
 * If `MAXIMUM_DISCHARGE_PRESSURE` has been defined and if any of the inputted discharge pressures exceeds the maximum value, a ValueError message will be raised.
 * If any of the input rates and suction pressures result in a discharge pressure which is above the `MAXIMUM_DISCHARGE_PRESSURE`, the suction pressure will be reduced until the calculations provide a discharge pressure below the maximum value (assuming an upstream choke can handle this).

@@ -19,7 +19,7 @@ and fuel consumption for an entire generator set. This means that if you have se
 this table needs to include a "jump" every time a new generator is started. An example of this
 is shown [below](#Table-example).
 
-Under [FACILITY_INPUTS](../facility_inputs/index.md), this electricity to fuel table is specified using the keyword [ELECTRICITY2FUEL](../../../references/keywords/ELECTRICITY2FUEL)
+Under [FACILITY_INPUTS](/about/modelling/setup/facility_inputs/index.md), this electricity to fuel table is specified using the keyword [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md)
 
 ### Facility input format
 

@@ -1,6 +1,6 @@
 # TIME_SERIES
  
-[TIME_SERIES](TIME_SERIES.md) /
+[TIME_SERIES](/about/references/keywords/TIME_SERIES.md) /
 
 ## Description
 This keyword defines the inputs for time dependent variables, or "reservoir
@@ -11,9 +11,9 @@ For example, a field may have a reservoir simulation model for some areas and de
 the reservoir. There may also be tie-ins which are affecting the energy/emissions on the field
 installations. Also, there may be time profiles for fuel prices, emission tax, etc.
 Therefore, a set of sources may be specified with a name, path to data and type. The name is
-later referred to in the system of energy consumers defined under [INSTALLATIONS](INSTALLATIONS).
+later referred to in the system of energy consumers defined under [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md).
 
 Reservoir variables and other time varying data not coming from a reservoir simulation model can
 be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file.
 
-See [TIME SERIES](../../modelling/setup/time_series) for more details about usage.
+See [TIME SERIES](/about/modelling/setup/time_series.md) for more details about usage.

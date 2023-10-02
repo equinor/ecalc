@@ -5,30 +5,30 @@ description: Guide on how to use facility inputs
 ---
 
 :::note
-The [FACILITY_INPUTS](../../../references/keywords/FACILITY_INPUTS.md) keyword is **mandatory** within the eCalc™ YAML file.
+The [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) keyword is **mandatory** within the eCalc™ YAML file.
 :::
 
 This part of the setup defines input files that characterize various facility elements. Each facility element is
-specified in a list. These are later used as input in the [INSTALLATIONS](../../../references/keywords/INSTALLATIONS) part of the setup by referencing their [NAME](../../../references/keywords/NAME). 
+specified in a list. These are later used as input in the [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) part of the setup by referencing their [NAME](/about/references/keywords/NAME.md). 
 
 All facility inputs are in essence a `CSV` (Comma separated file) file that specifies input data to a model that
 calculates how much energy the equipment is using depending on the operating mode/throughput. There are multiple
 [supported types](#supported-types).
 
 There are four categories of data that can be used here:
-- Files describing the performance of a [generator set](generator_modelling)
-- Files describing the performance of pumps [(pump charts)](pump_modelling/pump_charts)
-- Files describing the performance of **only** tabular compressors [(sampled compressor data)](sampled_compressor_model)
+- Files describing the performance of a [generator set](/about/modelling/setup/facility_inputs/generator_modelling.md)
+- Files describing the performance of pumps [(pump charts)](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md)
+- Files describing the performance of **only** tabular compressors [(sampled compressor data)](/about/modelling/setup/facility_inputs/sampled_compressor_model.md)
 - Other energy consuming equipment modeled variable w.r.t. reservoir management
   (tabulated relationship between variables and consumption)
 
-eCalc™ supports making simple adjustments to a table by using the [ADJUSTMENT](../../../references/keywords/ADJUSTMENT)
-keyword as well as modification of the [HEAD_MARGIN](../../../references/keywords/HEAD_MARGIN)
+eCalc™ supports making simple adjustments to a table by using the [ADJUSTMENT](/about/references/keywords/ADJUSTMENT.mdx)
+keyword as well as modification of the [HEAD_MARGIN](/about/references/keywords/HEAD_MARGIN.md)
 which can be used while calibrating pump charts.
 
 ## Format 
 
-Each facility input has the skeleton as seen below. However, some inputs require further information. For example, [pump models](pump_modelling/pump_charts)
+Each facility input has the skeleton as seen below. However, some inputs require further information. For example, [pump models](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md)
 
 ~~~~yaml
 FACILITY_INPUTS:
@@ -38,7 +38,7 @@ FACILITY_INPUTS:
 ~~~~
 
 ### Supported types
-The facility input type is defined using the [TYPE](../../../references/keywords/TYPE) keyword and defines the type of model applied
+The facility input type is defined using the [TYPE](/about/references/keywords/TYPE.md) keyword and defines the type of model applied
 to the data in this file. The input files are in `CSV` (Comma separated file) format. The paths to the input files may be either absolute or relative to the setup file.
 
 The supported types are:

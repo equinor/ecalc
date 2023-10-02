@@ -1,16 +1,16 @@
 # CONDITIONS
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[CONDITIONS](CONDITIONS)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[CONDITIONS](/about/references/keywords/CONDITIONS.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
 | No         | `ENERGY_USAGE_MODEL`      | None                               |
 
 ## Description
-See [CONDITION](CONDITION).
+See [CONDITION](/about/references/keywords/CONDITION.md).
 
 ## Format
 ~~~~~~~~yaml

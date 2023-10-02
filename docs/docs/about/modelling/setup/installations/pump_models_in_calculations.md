@@ -5,12 +5,12 @@ description: Using pumps in calculations
 ---
 
 # Pump models in calculations
-Pump charts are defined in the [FACILITY_INPUTS](../facility_inputs/index.md) section, and is then referred to from an
-[ENERGY_USAGE_MODEL](../../../references/keywords/ENERGY_USAGE_MODEL).
+Pump charts are defined in the [FACILITY_INPUTS](/about/modelling/setup/facility_inputs/index.md) section, and is then referred to from an
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md).
 
 ## PUMP energy usage model
 To configure a single pump, the pump rate, suction- and discharge pressures and fluid density must be given as inputs. In addition, a reference to a pump chart defined in the
-[FACILITY_INPUTS](../facility_inputs/pump_modelling/pump_charts) section has to be included.
+[FACILITY_INPUTS](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) section has to be included.
 
 ### Format
 ~~~~~~~~yaml

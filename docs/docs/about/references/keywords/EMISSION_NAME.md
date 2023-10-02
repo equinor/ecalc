@@ -1,7 +1,7 @@
 # EMISSION_NAME
 
 [...] /
-[EMISSION_NAME](EMISSION_NAME)
+[EMISSION_NAME](/about/references/keywords/EMISSION_NAME.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
@@ -16,7 +16,7 @@ EMISSION_NAME: <name>
 ~~~~~~~~
 
 ## Example
-Usage in [DIRECT_EMITTERS](DIRECT_EMITTERS):
+Usage in [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md):
 
 ~~~~~~~~yaml
 DIRECT_EMITTERS:

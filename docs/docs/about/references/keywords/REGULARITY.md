@@ -1,11 +1,11 @@
 # REGULARITY
 
-[INSTALLATIONS](INSTALLATIONS) /
-[REGULARITY](REGULARITY)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
+[REGULARITY](/about/references/keywords/REGULARITY.md)
 
 ## Description
 
-In eCalc™, consumers in an [ENERGY USAGE MODEL](ENERGY_USAGE_MODEL) are evaluated with the actual rate passing through them whilst
+In eCalc™, consumers in an [ENERGY USAGE MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) are evaluated with the actual rate passing through them whilst
 they are in operation. This actual rate is referred to as _stream day (sd) rates_.
 Despite the consumers being evaluated with stream day rates, input files are often given in _calender day (cd) rates_. As expected from this definition, `REGULARITY` is closely related to the production efficiency (PE) of a facility.
 
@@ -23,23 +23,23 @@ An example of this can be seen in the figure below:
 
 ![Regularity work flow example](regularity.png)
 
-For detailed modeling, it might be a better option to increase the resolution in the [TIME_SERIES](TIME_SERIES.md)
+For detailed modeling, it might be a better option to increase the resolution in the [TIME_SERIES](/about/references/keywords/TIME_SERIES.md)
 inputs to capture down periods and variations in conditions rather than using regularity.
 
 :::note
 - Rates from reservoir simulations may be both stream day and calendar day.
 - If eCalc™ is used
-without specifying [REGULARITY](REGULARITY), then regularity will default to 1.
-- All user defined input rates used in [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) are **assumed to be calendar day rates**.
+without specifying [REGULARITY](/about/references/keywords/REGULARITY.md), then regularity will default to 1.
+- All user defined input rates used in [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) are **assumed to be calendar day rates**.
 :::
 
 ### Use in a `DIRECT ENERGY USAGE MODEL`
 
-It should be noted that not all [ENERGY USAGE MODELS](ENERGY_USAGE_MODEL) are evaluated with _stream day rates_.
-`DIRECT ENERGY USAGE MODELS` can be specified with the keyword [CONSUMPTION_RATE_TYPE](CONSUMPTION_RATE_TYPE) - where either `CALENDAR_DAY` or `STREAM_DAY` can be specified.
+It should be noted that not all [ENERGY USAGE MODELS](/about/references/keywords/ENERGY_USAGE_MODEL.md) are evaluated with _stream day rates_.
+`DIRECT ENERGY USAGE MODELS` can be specified with the keyword [CONSUMPTION_RATE_TYPE](/about/references/keywords/CONSUMPTION_RATE_TYPE.md) - where either `CALENDAR_DAY` or `STREAM_DAY` can be specified.
 Note that the default input rate is `STREAM_DAY` rate - the opposite of the other models.
 
-For further details on stream day rate vs. calendar day rate, see [CONSUMPTION_RATE_TYPE](CONSUMPTION_RATE_TYPE).
+For further details on stream day rate vs. calendar day rate, see [CONSUMPTION_RATE_TYPE](/about/references/keywords/CONSUMPTION_RATE_TYPE.md).
 
 |ENERGY_USAGE_MODEL Type|Can use CONSUMPTION_RATE_TYPE?| Evaluated rate type |
 |:---:|:---:|:-------------------:|
@@ -88,7 +88,7 @@ REGULARITY: SIM1;REGULARITY
 ### Special: Combining calendar and stream day rates
 
 If there is a need to combine stream day and calendar day rates in an expression,
-(or to use a stream day rate from a [TIME_SERIES](TIME_SERIES.md) source), one can manually do
+(or to use a stream day rate from a [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) source), one can manually do
 what is necessary to obtain calendar day rates by dividing by regularity.
 
 For example, combining a calendar day rate (`SIM2;GAS_PROD_A`) with stream day rate

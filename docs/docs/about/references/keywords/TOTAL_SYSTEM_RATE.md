@@ -1,8 +1,8 @@
 # TOTAL_SYSTEM_RATE
  
-[INSTALLATIONS](INSTALLATIONS) / [...] / 
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[TOTAL_SYSTEM_RATE](TOTAL_SYSTEM_RATE)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / [...] / 
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[TOTAL_SYSTEM_RATE](/about/references/keywords/TOTAL_SYSTEM_RATE.md)
 
 ## Description
 Used to define the total system rate [Sm<sup>3</sup>/day] for `ENERGY_USAGE_MODEL` of type `COMPRESSOR_SYSTEM`

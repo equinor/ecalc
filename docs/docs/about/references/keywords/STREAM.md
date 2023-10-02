@@ -1,8 +1,8 @@
 # STREAM
 
-[MODELS](MODELS) /
-[...] / [STAGES](STAGES.md)
-[STREAMS](STREAMS.md)
+[MODELS](/about/references/keywords/MODELS.md) /
+[...] / [STAGES](/about/references/keywords/STAGES.md)
+[STREAMS](/about/references/keywords/STREAMS.md)
 
 :::note
 This keyword is not to be confused with `STREAMS` - which is also utilised for `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
@@ -10,9 +10,9 @@ This keyword is not to be confused with `STREAMS` - which is also utilised for `
 
 ## Description
 
-This keyword can **only** be utilised for a `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` model type and is used under the [STAGES](STAGES.md) keyword.
+This keyword can **only** be utilised for a `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` model type and is used under the [STAGES](/about/references/keywords/STAGES.md) keyword.
 
-This is used to refer a [STAGE](STAGES.md) to a previously defined [STREAMS](STREAMS.md). 
+This is used to refer a [STAGE](/about/references/keywords/STAGES.md) to a previously defined [STREAMS](/about/references/keywords/STREAMS.md). 
 
 ## Format
 

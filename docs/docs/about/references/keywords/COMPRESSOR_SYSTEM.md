@@ -1,9 +1,9 @@
 # COMPRESSORS
 
-[INSTALLATIONS](INSTALLATIONS) / 
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[COMPRESSOR_SYSTEM](COMPRESSOR_SYSTEM)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[COMPRESSOR_SYSTEM](/about/references/keywords/COMPRESSOR_SYSTEM.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
@@ -12,9 +12,9 @@
 ## Description
 Used to define a list of compressors in a compressor system model (
 
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) of type `COMPRESSOR_SYSTEM`).
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) of type `COMPRESSOR_SYSTEM`).
 Each compressor is defined with a name and a reference to a compressor energy function defined in either
-[FACILITY_INPUTS](FACILITY_INPUTS) or [MODELS](MODELS)
+[FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) or [MODELS](/about/references/keywords/MODELS.md)
 
 ## Format
 ~~~~~~~~yaml
@@ -27,7 +27,7 @@ ENERGY_USAGE_MODEL:
   OPERATIONAL_SETTINGS: <operational settings>
 ~~~~~~~~
 
-See [OPERATIONAL_SETTINGS](OPERATIONAL_SETTINGS) for details.
+See [OPERATIONAL_SETTINGS](/about/references/keywords/OPERATIONAL_SETTINGS.md) for details.
 
 ## Example 1
 ~~~~~~~~yaml

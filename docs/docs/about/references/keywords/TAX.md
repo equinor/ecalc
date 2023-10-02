@@ -1,11 +1,11 @@
 # TAX
 
-[FUEL_TYPES](FUEL_TYPES) / 
-[EMISSIONS](EMISSIONS.md) / 
-[TAX](TAX)
+[FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) / 
+[EMISSIONS](/about/references/keywords/EMISSIONS.md) / 
+[TAX](/about/references/keywords/TAX.md)
 
 ## Description
-Tax is payable in NOK/Sm<sup>3</sup> for the emission. [TAX](TAX) can either be a fixed number or an 
+Tax is payable in NOK/Sm<sup>3</sup> for the emission. [TAX](/about/references/keywords/TAX.md) can either be a fixed number or an 
 `expression <Expressions>`.
 
 ## Format
@@ -49,5 +49,5 @@ DATE,           TAX
 01.01.2023,     2.1
 ~~~~~~~~
 
-Make sure the file [TYPE](TYPE) is set to `EMISSION_TAX_PER_FUEL_VOLUME` to have a default `RIGHT`
-[INTERPOLATION_TYPE](INTERPOLATION_TYPE).
+Make sure the file [TYPE](/about/references/keywords/TYPE.md) is set to `EMISSION_TAX_PER_FUEL_VOLUME` to have a default `RIGHT`
+[INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md).

@@ -1,16 +1,16 @@
 # CONSUMERS
 
-[INSTALLATIONS](INSTALLATIONS) / 
-[GENERATORSETS](GENERATORSETS.md) / 
-[CONSUMERS](CONSUMERS)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
+[GENERATORSETS](/about/references/keywords/GENERATORSETS.md) / 
+[CONSUMERS](/about/references/keywords/CONSUMERS.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
 | Yes        | `GENERATORSETS`           | `CATEGORY`    <br />  `NAME`     <br />    `ENERGY_USAGE_MODEL`    |
 
 ## Description
-Consumers getting electrical power from the generator set. The attributes [NAME](NAME), 
-[CATEGORY](CATEGORY) and [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)
+Consumers getting electrical power from the generator set. The attributes [NAME](/about/references/keywords/NAME.md), 
+[CATEGORY](/about/references/keywords/CATEGORY.md) and [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
 are all required
 
 ## Format

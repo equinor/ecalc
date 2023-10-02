@@ -13,12 +13,12 @@ This means that a single speed compressor model needs the following to be define
 
 - A polytropic compressor chart for every compressor stage in the compressor train. For single speed trains, eCalc
   only supports user defined single speed compressor charts.
-- A [FLUID MODEL](../../fluid_model).
-- A [PRESSURE_CONTROL](../fixed_speed_pressure_control/index.md).
+- A [FLUID MODEL](/about/modelling/setup/models/fluid_model.md).
+- A [PRESSURE_CONTROL](/about/modelling/setup/models/compressor_modelling/fixed_speed_pressure_control/index.md).
 
 
 
-The model is defined under the main keyword [MODELS](../../../../../references/keywords/MODELS) in the format
+The model is defined under the main keyword [MODELS](/about/references/keywords/MODELS.md) in the format
 
 ## Format
 

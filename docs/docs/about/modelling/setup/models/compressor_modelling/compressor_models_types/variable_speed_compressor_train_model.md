@@ -9,7 +9,7 @@ outlet is equal to the requested discharge pressure.
 
 This model only supports `User defined variable speed compressor chart`.
 
-In addition, a [FLUID MODEL](../../fluid_model) must be specified.
+In addition, a [FLUID MODEL](/about/modelling/setup/models/fluid_model.md) must be specified.
 
 **Control mechanisms**
 
@@ -22,7 +22,7 @@ The variable speed comporessor train model has the following automatic control m
 ![](control_mech_variable_speed.PNG)
 **Format**
 
-The model is defined under the main keyword [MODELS](../../../../../references/keywords/MODELS) in the format
+The model is defined under the main keyword [MODELS](/about/references/keywords/MODELS.md) in the format
 
 ~~~~~~~~yaml
 MODELS:

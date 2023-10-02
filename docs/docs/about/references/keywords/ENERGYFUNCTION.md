@@ -1,9 +1,9 @@
 # ENERGYFUNCTION
  
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] / 
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[ENERGYFUNCTION](ENERGYFUNCTION)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[ENERGYFUNCTION](/about/references/keywords/ENERGYFUNCTION.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
@@ -11,12 +11,12 @@
 
 ## Description
 
-This refers to an energy function model defined in either [FACILITY INPUTS](FACILITY_INPUTS.md) or in [MODELS](MODELS.md) used for [ENERGY USAGE MODEL](ENERGY_USAGE_MODEL.md).
+This refers to an energy function model defined in either [FACILITY INPUTS](/about/references/keywords/FACILITY_INPUTS.md) or in [MODELS](/about/references/keywords/MODELS.md) used for [ENERGY USAGE MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md).
 The following attributes can be utilised:
 
-* [COMPRESSOR MODEL](../../modelling/setup/installations/compressor_models_in_calculations/index.md)
-* [PUMP ENERGY USAGE MODEL](../../modelling/setup/installations/pump_models_in_calculations)
-* [TABULATED ENERGY USAGE MODEL](ENERGY_USAGE_MODEL.md)
+* [COMPRESSOR MODEL](/about/modelling/setup/installations/compressor_models_in_calculations/index.md)
+* [PUMP ENERGY USAGE MODEL](/about/modelling/setup/installations/pump_models_in_calculations.md)
+* [TABULATED ENERGY USAGE MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
 
 ## Format
 

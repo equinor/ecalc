@@ -2,7 +2,7 @@
 
 ## Description
 
-`LOWER_HEATING_VALUE` is a required to be specified under the [TURBINE_MODEL](TURBINE_MODEL.md) keyword.
+`LOWER_HEATING_VALUE` is a required to be specified under the [TURBINE_MODEL](/about/references/keywords/TURBINE_MODEL.md) keyword.
 This **must** be specified in MJ/Sm<sup>3</sup>
 
 This can only be inputted as a single value and dictates the quantity of thermal energy available after burning a standard cubic metre of fuel (natural gas in this gas).

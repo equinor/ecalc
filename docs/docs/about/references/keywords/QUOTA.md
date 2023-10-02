@@ -1,10 +1,10 @@
 # QUOTA
 
 [...] /
-[QUOTA](QUOTA)
+[QUOTA](/about/references/keywords/QUOTA.md)
 
 ## Description
-Quota cost in NOK/Sm<sup>3</sup> for the emission. [QUOTA](QUOTA) can either be a fixed number or an
+Quota cost in NOK/Sm<sup>3</sup> for the emission. [QUOTA](/about/references/keywords/QUOTA.md) can either be a fixed number or an
 expression (time series). With the use of an expression, a time series can be defined which can let the quota value vary over the model timespan.
 
 ## Format

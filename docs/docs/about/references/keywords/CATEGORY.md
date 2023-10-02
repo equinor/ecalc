@@ -1,24 +1,24 @@
 # CATEGORY
-[eCalc Model](../index.md)
-/ [INSTALLATIONS](INSTALLATIONS) 
-/ [...] / [CATEGORY](CATEGORY)
+[eCalc Model](/about/references/index.md)
+/ [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) 
+/ [...] / [CATEGORY](/about/references/keywords/CATEGORY.md)
 
-| Required | Child of      | Children/Options |
-|----------|---------------|------------------|
-| Yes      | [CONSUMERS](CONSUMERS)  <br /> [FUELCONSUMERS](FUELCONSUMERS) <br /> [INSTALLATIONS](INSTALLATIONS) <br /> [FUEL_TYPES](FUEL_TYPES) <br /> | None             |
+| Required | Child of                                                                                                                                                                                                                                                           | Children/Options |
+|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| Yes      | [CONSUMERS](/about/references/keywords/CONSUMERS.md)  <br /> [FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md) <br /> [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) <br /> [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) <br /> | None             |
 
 ## Description
-The [CATEGORY](CATEGORY) keyword is used to specify which category certain data types belong to - these data types are:
+The [CATEGORY](/about/references/keywords/CATEGORY.md) keyword is used to specify which category certain data types belong to - these data types are:
 
-* [CONSUMERS](CONSUMERS) and [FUELCONSUMERS](FUELCONSUMERS): Required
-* [INSTALLATIONS](INSTALLATIONS.md): Optional
-* [FUEL_TYPE](FUEL_TYPES.md): Optional
+* [CONSUMERS](/about/references/keywords/CONSUMERS.md) and [FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md): Required
+* [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md): Optional
+* [FUEL_TYPE](/about/references/keywords/FUEL_TYPES.md): Optional
 
 Only a limited pre-defined set of categories is valid input to the 
-[CATEGORY](CATEGORY) keyword. The complete list of possible categories is given below. 
+[CATEGORY](/about/references/keywords/CATEGORY.md) keyword. The complete list of possible categories is given below. 
 Please note that the input is case-sensitive. The names should be in upper-case and the spelling/dash must match the names in the list exactly.
 
-Allowed categories for [CONSUMERS](CONSUMERS) and [FUELCONSUMERS](FUELCONSUMERS):
+Allowed categories for [CONSUMERS](/about/references/keywords/CONSUMERS.md) and [FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md):
 
 | Category                      | Description/Examples                                                                                                                                                                                                                                                                               |
 |-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -39,14 +39,14 @@ Allowed categories for [CONSUMERS](CONSUMERS) and [FUELCONSUMERS](FUELCONSUMERS)
 | ``BOILER``                  | Genset only. Indicate steam generated. New in **v8.2**                                                                                                                                                                                                                        |
 | ``HEATER``                  | Genset only. Indicate hot medium generated. New in **v8.2**                                                                                                                                                                          |
 
-Allowed categories for [INSTALLATIONS](INSTALLATIONS):
+Allowed categories for [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md):
 
 | Category                   | Description/Examples           |
 |----------------------------|--------------------------------|
 | ``FIXED``                  | Fixed installation             |
 | ``MOBILE``                 | Mobile/satellite installation. |
 
-Allowed categories for [FUEL_TYPES](FUEL_TYPES):
+Allowed categories for [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md):
 
 | Category                   | Description/Examples                                         |
 |----------------------------|--------------------------------------------------------------|

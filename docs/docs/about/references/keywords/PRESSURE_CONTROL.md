@@ -10,7 +10,7 @@
 - COMMON_ASV
 - NONE
 
-Further description on how each pressure control method works can be found in [COMPRESSOR MODELLING](../../modelling/setup/models/compressor_modelling/compressor_models_types/)
+Further description on how each pressure control method works can be found in [COMPRESSOR MODELLING](/about/modelling/setup/models/compressor_modelling/compressor_models_types/index.md)
 
 ## Format
 

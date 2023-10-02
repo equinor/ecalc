@@ -1,10 +1,10 @@
 # FUELRATE
 
-[INSTALLATIONS](INSTALLATIONS)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md)
  /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) /
-[FUELRATE](FUELRATE)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) /
+[FUELRATE](/about/references/keywords/FUELRATE.md)
 
 ## Description
 Used for direct fuel `energy usage models<ENERGY_USAGE_MODEL>` to define fuel consumption directly with an

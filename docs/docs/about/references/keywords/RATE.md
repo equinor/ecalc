@@ -1,17 +1,17 @@
 # RATE
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[RATE](RATE)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[RATE](/about/references/keywords/RATE.md)
 
 ## Description
 
 This can be used in two ways:
 
-- Used to define the rate for some [ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL)
+- Used to define the rate for some [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
 types using an `Expression`
-- Used defining the units of a [PUMP](../../modelling/setup/facility_inputs/pump_modelling/pump_charts) and [COMPRESSOR CHARTS](../../modelling/setup/models/compressor_modelling/compressor_charts/).
+- Used defining the units of a [PUMP](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) and [COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
 
 ## Format
 

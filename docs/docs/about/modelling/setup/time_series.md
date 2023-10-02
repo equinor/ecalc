@@ -5,7 +5,7 @@ description: Time series guide and description
 ---
 
 :::note
-The [TIME_SERIES](../../references/keywords/TIME_SERIES.md) keyword is **mandatory** within the eCalc™ YAML file.
+The [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) keyword is **mandatory** within the eCalc™ YAML file.
 :::
 
 This part of the setup file defines the inputs for time dependent variables, or "reservoir
@@ -16,7 +16,7 @@ For example, a field may have a reservoir simulation model for some areas and de
 the reservoir. There may also be tie-ins which are affecting the energy/emissions on the field
 installations. Also, there may be time profiles for fuel prices, emission tax, etc.
 Therefore, a set of sources may be specified with a name, path to data and type. The name is
-later referred to in the system of energy consumers defined under [INSTALLATIONS](../../references/keywords/INSTALLATIONS).
+later referred to in the system of energy consumers defined under [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md).
 
 Reservoir variables and other time varying data not coming from a reservoir simulation model can
 be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file.
@@ -33,7 +33,7 @@ The supported time series types are:
 | MISCELLANEOUS | .csv                    | Mandatory input:<br />`LEFT`/`RIGHT`/`LINEAR`                   |                                                                                                            |
 
 ## Format
-Each line under [TIME_SERIES](../../references/keywords/TIME_SERIES.md) has the format:
+Each line under [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) has the format:
 
 ~~~~~~~~yaml
 TIME_SERIES:
@@ -45,14 +45,14 @@ TIME_SERIES:
     INTERPOLATION_TYPE: <LEFT/RIGHT/LINEAR>
 ~~~~~~~~
 
-The input data is expected to be in metric units. The [NAME](../../references/keywords/NAME) is later referred
-to in the [INSTALLATIONS](../../references/keywords/INSTALLATIONS) part of the setup file.
-[INFLUENCE_TIME_VECTOR](../../references/keywords/INFLUENCE_TIME_VECTOR), [EXTRAPOLATION](../../references/keywords/EXTRAPOLATION)
-and [INTERPOLATION_TYPE](../../references/keywords/INTERPOLATION_TYPE) may have default values set depending
-on the choice of [TYPE](../../references/keywords/TYPE). See the documentation for each keyword for details.
+The input data is expected to be in metric units. The [NAME](/about/references/keywords/NAME.md) is later referred
+to in the [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) part of the setup file.
+[INFLUENCE_TIME_VECTOR](/about/references/keywords/INFLUENCE_TIME_VECTOR.md), [EXTRAPOLATION](/about/references/keywords/EXTRAPOLATION.md)
+and [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md) may have default values set depending
+on the choice of [TYPE](/about/references/keywords/TYPE.md). See the documentation for each keyword for details.
 
 ### Requirements
-- At least one input source with [INFLUENCE_TIME_VECTOR](../../references/keywords/INFLUENCE_TIME_VECTOR) set to True.
+- At least one input source with [INFLUENCE_TIME_VECTOR](/about/references/keywords/INFLUENCE_TIME_VECTOR.md) set to True.
 - Must include sources referred to in the variables for each consumer.
 
 ## Example

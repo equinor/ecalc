@@ -1,11 +1,11 @@
 # FUEL
 
 ... /
-[FUEL](FUEL.md)
+[FUEL](/about/references/keywords/FUEL.md)
 
 ## Description
 
-The [FUEL](FUEL.md) keyword defines the fuel type that can be used in
+The [FUEL](/about/references/keywords/FUEL.md) keyword defines the fuel type that can be used in
 `INSTALLATIONS`, `GENERATORSETS`, or `FUELCONSUMERS`.
 It can be set directly and used for the entire time interval, or it can be set differently for different time intervals.
 

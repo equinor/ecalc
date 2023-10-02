@@ -1,10 +1,10 @@
 # HCEXPORT
 
-[INSTALLATIONS](INSTALLATIONS) /
-[HCEXPORT](HCEXPORT)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
+[HCEXPORT](/about/references/keywords/HCEXPORT.md)
 
 ## Description
-[HCEXPORT](HCEXPORT) defines the export of hydrocarbons as a number of oil equivalents in Sm<sup>3</sup>.
+[HCEXPORT](/about/references/keywords/HCEXPORT.md) defines the export of hydrocarbons as a number of oil equivalents in Sm<sup>3</sup>.
 This keyword is required for the output of emission intensity (i.e., kg CO<sub>2</sub>/boe).
 This could be a single time series variable or an `expression <expressions>` containing multiple time series variables.
 Typically it would be the sum of exported oil and gas in units of oil equivalents.
@@ -43,7 +43,7 @@ HCEXPORT:
 ~~~~~~~~
 
 ### Full example
-Example showing [HCEXPORT](HCEXPORT) the modelling hierarchy:
+Example showing [HCEXPORT](/about/references/keywords/HCEXPORT.md) the modelling hierarchy:
 
 ~~~~~~~~yaml
 INSTALLATIONS:

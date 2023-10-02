@@ -1,17 +1,17 @@
 # EMISSION_RATE
  
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[EMITTER_MODEL](EMITTER_MODEL) /
-[EMISSION_RATE](EMISSION_RATE)
+[EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) /
+[EMISSION_RATE](/about/references/keywords/EMISSION_RATE.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
 | Yes         | `EMITTER_MODEL`      | None                               |
 
 ## Description
-Used to define the emission rate for some [EMITTER_MODEL](EMITTER_MODEL) types
-using an [Expressions](EXPRESSION)
+Used to define the emission rate for some [EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) types
+using an [Expressions](/about/references/keywords/EXPRESSION.md)
 
 ## Format
 ~~~~~~~~yaml

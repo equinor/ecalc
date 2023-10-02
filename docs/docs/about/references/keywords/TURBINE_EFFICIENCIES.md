@@ -2,7 +2,7 @@
 
 ## Description
 
-`TURBINE_EFFICIENCIES` is a required to be specified under the [TURBINE_MODEL](TURBINE_MODEL.md) keyword.
+`TURBINE_EFFICIENCIES` is a required to be specified under the [TURBINE_MODEL](/about/references/keywords/TURBINE_MODEL.md) keyword.
 
 This **must** be specified as a fraction and **must** have equal length to the corresponding `TURBINE_LOAD` values.
 

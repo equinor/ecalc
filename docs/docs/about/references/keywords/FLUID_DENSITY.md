@@ -1,9 +1,9 @@
 # FLUID_DENSITY
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) /
-[FLUID_DENSITY](FLUID_DENSITY)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) /
+[FLUID_DENSITY](/about/references/keywords/FLUID_DENSITY.md)
 
 ## Description
 Used to define the fluid density for
