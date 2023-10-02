@@ -1,13 +1,13 @@
 # POWERLOSSFACTOR
 
-[INSTALLATIONS](INSTALLATIONS) /
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) /
-[POWERLOSSFACTOR](POWERLOSSFACTOR)
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) /
+[POWERLOSSFACTOR](/about/references/keywords/POWERLOSSFACTOR.md)
 
 ## Description
 A factor that may be added to account for power line losses. E.g. if you have a subsea installation with a power line to
-another installation, there may be line losses. For a power line loss of 5%, [POWERLOSSFACTOR](POWERLOSSFACTOR)
+another installation, there may be line losses. For a power line loss of 5%, [POWERLOSSFACTOR](/about/references/keywords/POWERLOSSFACTOR.md)
 is set to 0.05 and the power required from the power source (generator set) will be
 
 $$

@@ -2,7 +2,7 @@
 
 ## Description
 
-`TURBINE_LOAD` is a required to be specified under the [TURBINE_MODEL](TURBINE_MODEL.md) keyword.
+`TURBINE_LOAD` is a required to be specified under the [TURBINE_MODEL](/about/references/keywords/TURBINE_MODEL.md) keyword.
 
 This **must** be specified in MW (Mega-Watts) and **must** have equal length to the corresponding `TURBINE_EFFICIENCY` values.
 

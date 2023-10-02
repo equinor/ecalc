@@ -1,6 +1,6 @@
 # END
 
-[END](END)
+[END](/about/references/keywords/END.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
@@ -14,7 +14,7 @@ If you specify the end date as 2080-01-01, the last period to be calculated is 2
 You can provide a date that is after the global time vector, but it is recommended to set it to the end of your timeseries data. Normally the timeseries do not provide this information directly. The last timestep provided in a timeseries is e.g. 2079-01-01, which would often mean that the data changed at that point,
 and will e.g. be valid 1 year from then (if we work with YEARLY output frequency). To make sure that eCalc stops at the correct place, you should therefore specify the exclusive  date of the data.
 
-The [START](START) keyword have similar behaviour.
+The [START](/about/references/keywords/START.md) keyword have similar behaviour.
 
 If END is not specified, eCalc will make an educated (but possibly incorrect) *guess* on when the output data should end.
 

@@ -1,8 +1,8 @@
 # PUMPS
 
-[INSTALLATIONS](INSTALLATIONS) / [...] /
-[ENERGY_USAGE_MODEL](ENERGY_USAGE_MODEL) / 
-[PUMPS](PUMPS)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / [...] /
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) / 
+[PUMPS](/about/references/keywords/PUMPS.md)
 
 ## Description
 Used to define a list of pumps in a `PUMP_SYSTEM ENERGY USAGE MODEL`. Each pump is defined with a name and with a 

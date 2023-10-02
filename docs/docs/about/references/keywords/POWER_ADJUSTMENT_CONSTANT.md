@@ -1,7 +1,7 @@
 # POWER_ADJUSTMENT_CONSTANT
 
-[MODELS](MODELS) / 
-[POWER_ADJUSTMENT_CONSTANT](POWER_ADJUSTMENT_CONSTANT)
+[MODELS](/about/references/keywords/MODELS.md) / 
+[POWER_ADJUSTMENT_CONSTANT](/about/references/keywords/POWER_ADJUSTMENT_CONSTANT.md)
 
 ## Description
 Optional constant MW adjustment added to the model. Only added if (electrical) POWER > 0.

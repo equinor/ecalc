@@ -6,11 +6,11 @@ description: COMPRESSOR Energy Usage Model
 
 # COMPRESSOR Energy Usage Model
 
-When `COMPRESSOR` is specified under [ENERGY_USAGE_MODEL](../../../../references/keywords/ENERGY_USAGE_MODEL) the only keyword that is allowed is [ENERGYFUNCTION](../../../../references/keywords/ENERGYFUNCTION).
-This model only supports a single compressor, which can either be a tabular compressor model defined in [FACILITY_INPUTS](../../facility_inputs/index.md)  or a compressor model defined in [MODELS](../../models/index.md).
+When `COMPRESSOR` is specified under [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) the only keyword that is allowed is [ENERGYFUNCTION](/about/references/keywords/ENERGYFUNCTION.md).
+This model only supports a single compressor, which can either be a tabular compressor model defined in [FACILITY_INPUTS](/about/modelling/setup/facility_inputs/index.md)  or a compressor model defined in [MODELS](/about/modelling/setup/models/index.md).
 
-The attributes [RATE](../../../../references/keywords/RATE), [SUCTION_PRESSURE](../../../../references/keywords/SUCTION_PRESSURE) and
-[DISCHARGE_PRESSURE](../../../../references/keywords/DISCHARGE_PRESSURE) are required to be specified in the energy usage model. Here, the specified rate will be for the entire train, the
+The attributes [RATE](/about/references/keywords/RATE.md), [SUCTION_PRESSURE](/about/references/keywords/SUCTION_PRESSURE.md) and
+[DISCHARGE_PRESSURE](/about/references/keywords/DISCHARGE_PRESSURE.md) are required to be specified in the energy usage model. Here, the specified rate will be for the entire train, the
 suction pressure will be at the inlet of the first stage, whilst the discharge pressure will be the outlet pressure of the last stage.
 
 ## Format

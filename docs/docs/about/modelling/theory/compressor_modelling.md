@@ -11,7 +11,7 @@ At the suction side, one need information about the fluid (natural gas) which ha
 composition, a specified rate, a temperature and a pressure. As the fluid is going through the compressor in a fluid
 dynamic process, the enthalpy changes, resulting in a new state and both the pressure and the
 temperature of the fluid is increased, while the volume is decreased. This change is calculated using an
-equation-of-state (EOS) model. See [`Fluid model`](../setup/models/fluid_model)
+equation-of-state (EOS) model. See [`Fluid model`](/about/modelling/setup/models/fluid_model.md)
 
 ![](process_compressor.png)
 

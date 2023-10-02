@@ -9,9 +9,9 @@ calculated independently for each compressor as if it was a standalone compresso
 the same shaft and thus have a common speed.
 
 This model supports both `user defined compressor charts` and
-`generic compressor charts`. See [compressor charts](../compressor_charts/index.md) for more information. 
+`generic compressor charts`. See [compressor charts](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md) for more information. 
 
-In addition, a [FLUID MODEL](../../fluid_model) must be specified.
+In addition, a [FLUID MODEL](/about/modelling/setup/models/fluid_model.md) must be specified.
 
 The model comes in two versions, one where the compressor stages are known (pre defined), and one where the compressor
 stages are calculated at run-time based on input data.

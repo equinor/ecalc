@@ -2,7 +2,7 @@
 
 ## Description
 
-`EFFICIENCY` is a keyword that is used defining [PUMP](../../modelling/setup/facility_inputs/pump_modelling/pump_charts) and [COMPRESSOR CHARTS](../../modelling/setup/models/compressor_modelling/compressor_charts/).
+`EFFICIENCY` is a keyword that is used defining [PUMP](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) and [COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
 Efficiency can either be given as a fraction or percentage.
 
 For compressors, it is used in two separate ways under the `MODELS` or section:

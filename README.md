@@ -28,7 +28,7 @@ eCalc™ is a software tool for calculation of energy demand and greenhouse gas 
 ---
 ## Reference Links
 
-* [**Documentation**](https://equinor.github.io/ecalc/docs/about/)
+* [**Documentation**](/about/)
 * [**Contribution**](CONTRIBUTING.md)
 * [**Security**](SECURITY.md)
 * [**Code of Conduct**](CODE_OF_CONDUCT.md)
@@ -49,7 +49,7 @@ eCalc™ uses a bottom-up approach to give high-quality installation and portfol
 eCalc™ is both a Python library and has a command line interface (CLI) to use with eCalc YAML Models. We currently recommend using eCalc™ from the command line with eCalc YAML Models, since the Python API is about to change soon, but the YAML will
 be more or less stable and backwards compatible.
 
-To get started, please refer to the [eCalc™ Docs - Getting Started](https://equinor.github.io/ecalc/docs/about/getting_started/),
+To get started, please refer to the [eCalc™ Docs - Getting Started](/about/getting_started/),
 or follow the quick guide below:
 
 ### Prerequisites
@@ -99,7 +99,7 @@ and making a pull request.
 
 See [Contribution Document](CONTRIBUTING.md) on how to contribute.
 
-See the [Developer Guide](https://equinor.github.io/ecalc/docs/contribute/get-started) for details.
+See the [Developer Guide](/contribute/get-started) for details.
 
 ## Examples
 Jupyter Notebook examples can be found in /examples. In order to run these examples, you need to install the optional

@@ -2,7 +2,7 @@
 
 ## Description
 
-When using a detailed variable speed compressor model, it is necessary to specify the variable speed [COMPRESSOR CHART](../../modelling/setup/models/compressor_modelling/compressor_charts/index.md#user-defined-variable-speed-compressor-chart). This can be defined from a .csv file, or it can be defined directly in the YAML file. 
+When using a detailed variable speed compressor model, it is necessary to specify the variable speed [COMPRESSOR CHART](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md#user-defined-variable-speed-compressor-chart). This can be defined from a .csv file, or it can be defined directly in the YAML file. 
 In either case, the keyword `CURVES` needs to be used, and curves for at least two different speeds must be defined. If a .csv file is being used, under the `CURVES` keyword, `FILE` must be used. If specified directly in the YAML file, `SPEED`, `RATE`, `HEAD` and `EFFICIENCY` must be defined for each speed.
 
 ## Format

@@ -1,7 +1,7 @@
 # EXPRESSION
  
-[VARIABLES](VARIABLES) / 
-[EXPRESSION](EXPRESSION)
+[VARIABLES](/about/references/keywords/VARIABLES.md) / 
+[EXPRESSION](/about/references/keywords/EXPRESSION.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|

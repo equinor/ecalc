@@ -1,7 +1,7 @@
 # HEAD_MARGIN
 
-[FACILITY_INPUTS](FACILITY_INPUTS) / 
-[HEAD_MARGIN](HEAD_MARGIN)
+[FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) / 
+[HEAD_MARGIN](/about/references/keywords/HEAD_MARGIN.md)
 
 ## Description
 When calibrating pump charts to historical data, the head values at maximum speed

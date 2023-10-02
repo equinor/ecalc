@@ -1,7 +1,7 @@
 # FILE
 
 ... /
-[FILE](FILE)
+[FILE](/about/references/keywords/FILE.md)
 
 ## Description
 Specifies the path (relative or absolute) to the input file.
@@ -14,4 +14,4 @@ FILE: </path/to/file.csv>
 ~~~~~~~~
 
 ## Example
-See the [TIME_SERIES](TIME_SERIES.md) `time_series_format`.
+See the [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) `time_series_format`.

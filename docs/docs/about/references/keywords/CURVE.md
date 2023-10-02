@@ -2,7 +2,7 @@
 
 ## Description
 
-When using a detailed single speed compressor model, it is necessary to specify the single speed [COMPRESSOR CHART](../../modelling/setup/models/compressor_modelling/compressor_charts/index.md#user-defined-single-speed-compressor-chart). This can be defined from a .csv file, or it can be defined directly in the YAML file. 
+When using a detailed single speed compressor model, it is necessary to specify the single speed [COMPRESSOR CHART](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md#user-defined-single-speed-compressor-chart). This can be defined from a .csv file, or it can be defined directly in the YAML file. 
 In either case, the keyword `CURVE` needs to be used. If a .csv file is being used, under the `CURVE` keyword, `FILE` must be used. If specified directly in the YAML file, `SPEED`, `RATE`, `HEAD` and `EFFICIENCY` must be defined.
 
 ## Format

@@ -4,7 +4,7 @@ title: Advanced model
 description: An advanced model using consumer systems and two installations
 ---
 # Advanced model example
-This is a model very similar to [Simple example](simple.md). The main difference is the use of more advanced
+This is a model very similar to [Simple example](/about/modelling/examples/simple.md). The main difference is the use of more advanced
 energy usage models and consumer systems, and the addition of a second installation.
 
 Both installations exports oil (`OIL_PROD`) and gas (`GAS_PROD`).
@@ -54,12 +54,12 @@ The results of a performed characterization of the equipment are listed below:
 
 ## YAML model overview
 The YAML model consist of these main components:
-- Time series inputs - [TIME_SERIES](../../references/keywords/TIME_SERIES.md)
-- Facility characterization input - [FACILITY_INPUTS](../../references/keywords/FACILITY_INPUTS)
-- Fuel input - [FUEL_TYPES](../../references/keywords/FUEL_TYPES)
-- Model specifications - [MODELS](../../references/keywords/MODELS)
-- Model variables - [VARIABLES](../../references/keywords/VARIABLES)
-- Installation topology - [INSTALLATIONS](../../references/keywords/INSTALLATIONS)
+- Time series inputs - [TIME_SERIES](/about/references/keywords/TIME_SERIES.md)
+- Facility characterization input - [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)
+- Fuel input - [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md)
+- Model specifications - [MODELS](/about/references/keywords/MODELS.md)
+- Model variables - [VARIABLES](/about/references/keywords/VARIABLES.md)
+- Installation topology - [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md)
 
 The YAML setup file looks like this:
 
@@ -81,7 +81,7 @@ We will now replace the placeholders for each of the main keywords above.
 ## TIME_SERIES
 The reservoir variables, in this case, are found in a CSV (Comma separated file) `production_data.csv`.
 We give the time-series data a name that can be referenced as variables elsewhere in the form `<NAME>:<NAME OF COLUMN>`.
-See [TIME_SERIES](../../references/keywords/TIME_SERIES.md) for further details.
+See [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) for further details.
 
 ~~~~~~~~yaml title="model.yaml"
 TIME_SERIES:
@@ -92,10 +92,10 @@ TIME_SERIES:
 
 ## FACILITY_INPUTS
 We specify CSV input data for processing equipment using FACILITY_INPUTS. This is used for generatorsets,
-tabulated/sampled models and pump charts. See [FACILITY_INPUTS](../../references/keywords/FACILITY_INPUTS.md) for further details.
+tabulated/sampled models and pump charts. See [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) for further details.
 
 Here we define a tabulated genset, a sampled compressor, and a single speed pump chart.
-Note that more complicated energy models are defined under the [MODELS](../../references/keywords/MODELS.md)-keyword. 
+Note that more complicated energy models are defined under the [MODELS](/about/references/keywords/MODELS.md)-keyword. 
 
 ~~~~~~~~yaml title="model.yaml"
 FACILITY_INPUTS:
@@ -115,7 +115,7 @@ FACILITY_INPUTS:
 ~~~~~~~~
 
 ## FUEL_TYPES
-In this example there are two [FUEL_TYPES](../../references/keywords/FUEL_TYPES) - `fuel_gas` and `bad_fuel_gas`.
+In this example there are two [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) - `fuel_gas` and `bad_fuel_gas`.
 These are used for Installation A and Installation B respectively.
 Here we also define emissions in CO<sub>2</sub> and CH<sub>4</sub>. Note that the two fuels have different prices,
 emissions factors and the same taxes and are defined:
@@ -146,7 +146,7 @@ FUEL_TYPES:
 
 ## MODELS
 
-This advanced example requires some energy usage models to be defined under the model section. See [MODELS](../../references/keywords/MODELS) for details.
+This advanced example requires some energy usage models to be defined under the model section. See [MODELS](/about/references/keywords/MODELS.md) for details.
 
 Here we specify:
 - Compressor chart based on design points
@@ -199,10 +199,10 @@ MODELS:
           COMPRESSOR_CHART: predefined_variable_speed_compressor_chart
 ~~~~~~~~
 
-See [MODELS](../../references/keywords/MODELS) for further details.
+See [MODELS](/about/references/keywords/MODELS.md) for further details.
 
 ## VARIABLES
-To run the model it is recommended to specify [VARIABLES](../../references/keywords/VARIABLES),
+To run the model it is recommended to specify [VARIABLES](/about/references/keywords/VARIABLES.md),
 instead of hard coding values in difference places. This makes it easier to develop, maintain and understand the model
 by allowing descriptive variable names and avoid duplications.
 
@@ -254,7 +254,7 @@ We specify:
 - `NAME`: the installation name
 - `HCEXPORT`: Hydrocarbon export in Sm<sup>3</sup>/day by referring to the variable $var.hydrocarbon_export_sm3_per_day specified under [VARIABLES](#variables) above.
 - `FUEl`: Default fuel specified in [FUEL_TYPES](#fuel_types) above. Note the different fuels used by the two installations.
-- `CATEGORY`: FIXED (installation) category is used to group result data for reporting. See [CATEGORY](../../references/keywords/CATEGORY) for details.
+- `CATEGORY`: FIXED (installation) category is used to group result data for reporting. See [CATEGORY](/about/references/keywords/CATEGORY.md) for details.
 
 ~~~~~~~~yaml
 INSTALLATIONS:
@@ -346,7 +346,7 @@ The setup for `Installation B` thus becomes:
 ~~~~~~~~
 
 ## ENERGY_USAGE_MODEL
-We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](../../references/keywords/ENERGY_USAGE_MODEL.md)s.
+We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)s.
 
 `Base production loads A` has a load of 7.6 MW with additional 4.1 MW when the field gas injection rate is positive:
 
@@ -364,7 +364,7 @@ rate distributions between these two compressor trains. It will first send all r
 and nothing to the second `RATE_FRACTIONS: [1.0, 0.0]` and then it will run the same input while distributing equal
 rates to the two compressor trains `RATE_FRACTIONS: [0.5, 0.5]`. The final result will be composed of the first
 setting that returns a valid result for the compressors.
-See [COMPRESSOR_SYSTEM](../../references/keywords/ENERGY_USAGE_MODEL#compressor-system) for further details.
+See [COMPRESSOR_SYSTEM](/about/references/keywords/ENERGY_USAGE_MODEL.md#compressor-system) for further details.
 
 The model compressor model is defined:
 ~~~~~~~~yaml
@@ -394,7 +394,7 @@ This is when the water injection rate is positive. Fluid density, suction pressu
 is also defined.
 
 This PUMP_SYSTEM behaves much the same as the COMPRESSOR_SYSTEM above.
-See [PUMP_SYSTEM](../../references/keywords/ENERGY_USAGE_MODEL#pump-system) for further details.
+See [PUMP_SYSTEM](/about/references/keywords/ENERGY_USAGE_MODEL.md#pump-system) for further details.
 
 ~~~~~~~~yaml
           - NAME: Water injection pump system A

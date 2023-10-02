@@ -7,7 +7,7 @@ description: Using compressor models in calculations
 # Compressor models in calculations
 
 There are different options on how to utilise compressor models in the calculations within the 
-[ENERGY_USAGE_MODEL](../../../../references/keywords/ENERGY_USAGE_MODEL) section in [INSTALLATIONS](../../../../references/keywords/INSTALLATIONS). Three different options will be illustrated here:
+[ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) section in [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md). Three different options will be illustrated here:
 
 No matter the compressor model type, it can either be placed in two sections, which can be:
 

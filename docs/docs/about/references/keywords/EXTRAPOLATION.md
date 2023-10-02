@@ -1,7 +1,7 @@
 # EXTRAPOLATION
  
-[TIME_SERIES](TIME_SERIES.md) / 
-[EXTRAPOLATION](EXTRAPOLATION)
+[TIME_SERIES](/about/references/keywords/TIME_SERIES.md) / 
+[EXTRAPOLATION](/about/references/keywords/EXTRAPOLATION.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
@@ -9,7 +9,7 @@
 
 ## Description
 :::caution
-Only valid for `TIME_SERIES` of [TYPE](TYPE) `MISCELLANEOUS`. For type
+Only valid for `TIME_SERIES` of [TYPE](/about/references/keywords/TYPE.md) `MISCELLANEOUS`. For type
 `DEFAULT` the keyword is not supported as input, and the functionality is defaulted to `False`.
 :::
 
@@ -30,6 +30,6 @@ EXTRAPOLATION: <True/False>
 | `MISCELLANEOUS`                     | `False`                 |
 
 ## Example
-See the [TIME_SERIES](TIME_SERIES.md) `time_series_format`.
+See the [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) `time_series_format`.
 
 

@@ -1,15 +1,15 @@
 # ELECTRICITY2FUEL
 
-[INSTALLATIONS](INSTALLATIONS) / 
-[GENERATORSETS](GENERATORSETS.md) / 
-[ELECTRICITY2FUEL](ELECTRICITY2FUEL)
+[INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
+[GENERATORSETS](/about/references/keywords/GENERATORSETS.md) / 
+[ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md)
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
 | Yes         | `GENERATORSETS`      | None                               |
 
 ## Description
-[ELECTRICITY2FUEL](ELECTRICITY2FUEL) specifies the correlation between the electric power
+[ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) specifies the correlation between the electric power
 delivered and the fuel consumed by a generator set.
 
 
@@ -19,7 +19,7 @@ generator, the power vs. fuel usually makes a "jump" when the capacity of the ge
 exceeded and an additional generator is started.
 :::
 
-[ELECTRICITY2FUEL](ELECTRICITY2FUEL) may be modelled with a constant function through time or
+[ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) may be modelled with a constant function through time or
 with different power vs. fuel relations for different time intervals.
 
 ## Format
@@ -48,5 +48,5 @@ ELECTRICITY2FUEL:
   2005-01-01: generatorset_electricity_to_fuel_reference2
 ~~~~~~~~
 
-Where `generatorset_electricity_to_fuel_reference<N>` is a [FACILITY_INPUTS](FACILITY_INPUTS)
- of [TYPE](TYPE) `ELECTRICITY2FUEL`.
+Where `generatorset_electricity_to_fuel_reference<N>` is a [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)
+ of [TYPE](/about/references/keywords/TYPE.md) `ELECTRICITY2FUEL`.

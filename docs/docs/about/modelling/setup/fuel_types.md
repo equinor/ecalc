@@ -5,18 +5,18 @@ description: Guide on how to use fuel types
 ---
 
 :::note
-The [FUEL_TYPES](../../references/keywords/FUEL_TYPES) keyword is **mandatory** within the eCalc™ YAML file.
+The [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) keyword is **mandatory** within the eCalc™ YAML file.
 :::
 
 This part of the setup specifies the various fuel types and associated emissions
 used in the model. Each fuel type is specified in a list and the defined fuels can later be referred to the 
-[INSTALLATIONS](installations/) part of the setup by its name.
+[INSTALLATIONS](/about/modelling/setup/installations/index.md) part of the setup by its name.
 
-A fuel type can have a fuel-cost [PRICE](../../references/keywords/PRICE) associated with
-its use. The use of fuel can lead to one or more emission types, specified in [EMISSIONS](../../references/keywords/EMISSIONS.md),
+A fuel type can have a fuel-cost [PRICE](/about/references/keywords/PRICE.md) associated with
+its use. The use of fuel can lead to one or more emission types, specified in [EMISSIONS](/about/references/keywords/EMISSIONS.md),
 which in turn can have associated costs.
 
-You can optionally specify a [CATEGORY](../../references/keywords/CATEGORY).
+You can optionally specify a [CATEGORY](/about/references/keywords/CATEGORY.md).
 
 ## Format
 ~~~~~~~~yaml
@@ -33,7 +33,7 @@ FUEL_TYPES:
 
 ## Example
 This is a full example where there are 3 fuel type definitions, i.e., there are 3 different
-fuels defined that can be used in your [INSTALLATIONS](installations/index.md).
+fuels defined that can be used in your [INSTALLATIONS](/about/modelling/setup/installations/index.md).
 
 ~~~~~~~~yaml
 FUEL_TYPES:
