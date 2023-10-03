@@ -4,7 +4,7 @@ from typing import Dict, List, Protocol, Union, ValuesView
 
 from libecalc.common.list_utils import transpose
 from libecalc.common.utils.rates import TimeSeriesBoolean
-from libecalc.core.result.emission import EmissionResult
+from libecalc.dto.result.emission import PartialEmissionResult
 
 
 class HasIsValid(Protocol):
@@ -17,15 +17,15 @@ def aggregate_is_valid(components: List[HasIsValid]) -> List[bool]:
 
 
 class HasEmissions(Protocol):
-    emissions: List[EmissionResult]
+    emissions: List[PartialEmissionResult]
 
 
 def aggregate_emissions(
-    emissions_lists: Union[List[Dict[str, EmissionResult]], ValuesView],
-) -> Dict[str, EmissionResult]:
+    emissions_lists: Union[List[Dict[str, PartialEmissionResult]], ValuesView]
+) -> Dict[str, PartialEmissionResult]:
     """Aggregates emissions e.g. for a total asset across installations
     Args:
-        emissions_lists (List[Dict[str, EmissionResult]] or dict.values): Includes emissions to aggregate
+        emissions_lists (List[Dict[str, PartialEmissionResult]] or dict.values): Includes emissions to aggregate
 
     Returns:
         dto.types.FuelType
@@ -43,7 +43,7 @@ def aggregate_emissions(
     for emission_name in emission_names:
         emissions = [emission for emission in all_emissions if emission.name == emission_name]
 
-        emissions_aggregated[emission_name] = EmissionResult(
+        emissions_aggregated[emission_name] = PartialEmissionResult(
             name=emission_name,
             timesteps=emissions[0].timesteps,
             rate=reduce(operator.add, [emission.rate for emission in emissions]),

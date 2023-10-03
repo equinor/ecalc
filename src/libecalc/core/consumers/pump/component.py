@@ -11,7 +11,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
-    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.base import BaseConsumerWithoutOperationalSettings
 from libecalc.core.models.pump import create_pump_model
@@ -63,15 +63,11 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             Handle regularity outside
         """
         self._operational_settings = operational_settings
-        total_requested_rate = TimeSeriesRate(
+        total_requested_rate = TimeSeriesStreamDayRate(
             timesteps=operational_settings.timesteps,
             values=list(np.sum([rate.values for rate in operational_settings.stream_day_rates], axis=0)),
             unit=operational_settings.stream_day_rates[0].unit,
-            regularity=operational_settings.stream_day_rates[0].regularity,
-            rate_type=operational_settings.stream_day_rates[0].rate_type,
         )
-
-        regularity = total_requested_rate.regularity
 
         model_results = []
         evaluated_timesteps = []
@@ -96,23 +92,20 @@ class Pump(BaseConsumerWithoutOperationalSettings):
 
         component_result = core_results.PumpResult(
             timesteps=evaluated_timesteps,
-            power=TimeSeriesRate(
+            power=TimeSeriesStreamDayRate(
                 values=aggregated_result.power,
                 timesteps=evaluated_timesteps,
                 unit=aggregated_result.power_unit,
-                regularity=regularity,
             ).fill_nan(0.0),
-            energy_usage=TimeSeriesRate(
+            energy_usage=TimeSeriesStreamDayRate(
                 values=aggregated_result.energy_usage,
                 timesteps=evaluated_timesteps,
                 unit=aggregated_result.energy_usage_unit,
-                regularity=regularity,
             ).fill_nan(0.0),
-            inlet_liquid_rate_m3_per_day=TimeSeriesRate(
+            inlet_liquid_rate_m3_per_day=TimeSeriesStreamDayRate(
                 values=aggregated_result.rate,
                 timesteps=evaluated_timesteps,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                regularity=regularity,
             ),
             inlet_pressure_bar=TimeSeriesFloat(
                 values=aggregated_result.suction_pressure,
@@ -163,19 +156,17 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                         values=aggregated_result.is_valid,
                         unit=Unit.NONE,
                     ),
-                    power=TimeSeriesRate(
+                    power=TimeSeriesStreamDayRate(
                         timesteps=evaluated_timesteps,
                         values=aggregated_result.power,
                         unit=aggregated_result.power_unit,
-                        regularity=regularity,
                     )
                     if aggregated_result.power is not None
                     else None,
-                    energy_usage=TimeSeriesRate(
+                    energy_usage=TimeSeriesStreamDayRate(
                         timesteps=evaluated_timesteps,
                         values=aggregated_result.energy_usage,
                         unit=aggregated_result.energy_usage_unit,
-                        regularity=regularity,
                     ),
                     inlet_liquid_rate_m3_per_day=aggregated_result.rate,
                     inlet_pressure_bar=aggregated_result.suction_pressure,

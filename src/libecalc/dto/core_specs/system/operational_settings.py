@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.dto.core_specs.compressor.operational_settings import (
     CompressorOperationalSettings,
 )
@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 class EvaluatedPumpSystemOperationalSettings(BaseModel):
     fluid_density: List[TimeSeriesFloat]
-    rates: List[TimeSeriesRate]
+    rates: List[TimeSeriesStreamDayRate]
     inlet_pressures: List[TimeSeriesFloat]
     outlet_pressures: List[TimeSeriesFloat]
 
@@ -53,7 +53,7 @@ class EvaluatedPumpSystemOperationalSettings(BaseModel):
 
 
 class EvaluatedCompressorSystemOperationalSettings(BaseModel):
-    rates: List[TimeSeriesRate]
+    rates: List[TimeSeriesStreamDayRate]
     inlet_pressures: List[TimeSeriesFloat]
     outlet_pressures: List[TimeSeriesFloat]
 

@@ -624,6 +624,56 @@ class TimeSeriesIntensity(TimeSeries[float]):
         )
 
 
+class TimeSeriesStreamDayRate(TimeSeriesFloat):
+    """
+    Domain/core? layer only
+
+    Explicit class for only internal core usage. Makes it easy to catch that the
+    type of data is rate, and has been converted to Stream Day for internal usage.
+
+    When used internally, rate is handled as a "point in time float". It is only needed to
+    be handled specifically when reporting, e.g. converting to calendar day rate, if needed.
+
+    Will need to make a decision whether it makes sense to also represent and convert to calendar day rate.
+    TODO: Remove timeseries internally...use lists directly or some other timestep agnostic thing?
+    models have no knowledge of timesteps, but components must have since they merge results...so might be
+    a thing in the "component layer"...which is more or less network layer?
+    """
+
+    ...
+
+    def to_timeseries_rate(self, regularity: List[float]) -> TimeSeriesRate:
+        # TODO: Verify that length of regularity is the same, or 1
+        return TimeSeriesRate(
+            timesteps=self.timesteps,
+            values=self.values,
+            unit=self.unit,
+            rate_type=RateType.STREAM_DAY,
+            regularity=regularity,
+        )
+
+
+class TimeSeriesCalendarDayRate(TimeSeriesFloat):
+    """
+    Infrastructure/presentation layer only?
+
+    Explicit class for only external usage. Makes it easy to catch that the
+    type of data is rate, and is never converted to stream day, but taken directly from input and never converted.
+
+    Does not make sense to convert to stream day rate.
+    """
+
+    def to_timeseries_rate(self, regularity: List[float]) -> TimeSeriesRate:
+        # TODO: Verify that length of regularity is the same, or 1
+        return TimeSeriesRate(
+            timesteps=self.timesteps,
+            values=self.values,
+            unit=self.unit,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=regularity,
+        )
+
+
 class TimeSeriesRate(TimeSeries[float]):
     """A rate time series with can be either in RateType.STREAM_DAY (default) or RateType.CALENDAR_DAY.
 
@@ -821,6 +871,20 @@ class TimeSeriesRate(TimeSeries[float]):
             regularity=self.regularity,  # ignore: type
             unit=self.unit,
             rate_type=RateType.STREAM_DAY,
+        )
+
+    def to_stream_day_timeseries(self) -> TimeSeriesStreamDayRate:
+        """Convert to fixed stream day rate timeseries"""
+        stream_day_rate = self.to_stream_day()
+        return TimeSeriesStreamDayRate(
+            timesteps=stream_day_rate.timesteps, values=stream_day_rate.values, unit=stream_day_rate.unit
+        )
+
+    def to_calendar_day_timeseries(self) -> TimeSeriesCalendarDayRate:
+        """Convert to fixed calendar day rate timeseries"""
+        calendar_day_rate = self.to_calendar_day()
+        return TimeSeriesCalendarDayRate(
+            timesteps=calendar_day_rate.timesteps, values=calendar_day_rate.values, unit=calendar_day_rate.unit
         )
 
     def to_volumes(self) -> TimeSeriesVolumes:

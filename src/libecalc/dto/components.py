@@ -7,7 +7,11 @@ from libecalc import dto
 from libecalc.common.string_utils import generate_id, get_duplicates
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
+from libecalc.common.utils.rates import (
+    TimeSeriesFloat,
+    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.dto.base import (
     Component,
     ComponentType,
@@ -28,7 +32,7 @@ from libecalc.dto.models import (
 )
 from libecalc.dto.models.compressor import CompressorModel
 from libecalc.dto.models.pump import PumpModel
-from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType
+from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType, RateType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
     EmissionNameStr,
@@ -233,13 +237,14 @@ class CompressorSystem(BaseConsumer):
             regularity_for_period = evaluated_regularity[period_start:period_end]
             evaluated_operational_settings: List[EvaluatedCompressorSystemOperationalSettings] = []
             for operational_setting in operational_settings:
-                rates: List[TimeSeriesRate] = [
+                rates: List[TimeSeriesStreamDayRate] = [
                     TimeSeriesRate(
                         values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
                         timesteps=variables_map.time_vector,
                         regularity=regularity_for_period,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    )
+                        rate_type=RateType.STREAM_DAY,
+                    ).to_stream_day_timeseries()
                     for rate in operational_setting.rates
                 ]
 
@@ -309,13 +314,14 @@ class PumpSystem(BaseConsumer):
             regularity_for_period = evaluated_regularity[period_start:period_end]
             evaluated_operational_settings: List[EvaluatedPumpSystemOperationalSettings] = []
             for operational_setting in operational_settings:
-                rates: List[TimeSeriesRate] = [
+                rates: List[TimeSeriesStreamDayRate] = [
                     TimeSeriesRate(
                         values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
                         timesteps=variables_map.time_vector,
                         regularity=regularity_for_period,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    )
+                        rate_type=RateType.STREAM_DAY,
+                    ).to_stream_day_timeseries()
                     for rate in operational_setting.rates
                 ]
 

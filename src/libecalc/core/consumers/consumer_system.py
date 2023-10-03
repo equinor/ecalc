@@ -13,7 +13,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesInt,
-    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.compressor import Compressor
@@ -115,14 +115,11 @@ class ConsumerSystem(BaseConsumer):
 
                 crossover_rates_map[crossover_to].append(list(crossover_rate))
 
-            # TODO: Assume regularity same for all now (false assumption, to be handled shortly)
-            regularity = consumer_operational_settings.stream_day_rates[0].regularity
             consumer_operational_settings.stream_day_rates = [
-                TimeSeriesRate(
+                TimeSeriesStreamDayRate(
                     values=rate,
                     timesteps=variables_map.time_vector,
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    regularity=regularity,
                 )
                 for rate in [*rates, *crossover_rates_map[consumer_index]]
             ]

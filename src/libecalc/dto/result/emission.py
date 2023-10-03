@@ -9,8 +9,10 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
+from libecalc.core.result.emission import EmissionResult as EmissionCoreResult
 from libecalc.dto.result.simple import SimpleEmissionResult
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
+from typing_extensions import Self
 
 
 class EmissionResult(TabularTimeSeries):
@@ -62,6 +64,26 @@ class EmissionResult(TabularTimeSeries):
                 values=[0] * len(timesteps),
                 unit=Unit.NORWEGIAN_KRONER,
             ),
+        )
+
+
+class PartialEmissionResult(TabularTimeSeries):
+    """The partial emissions - a direct translation from the core emission results"""
+
+    name: str
+    rate: TimeSeriesRate
+    tax: TimeSeriesRate
+    quota: TimeSeriesRate
+
+    @classmethod
+    def from_emission_core_result(cls, emission_result: EmissionCoreResult, regularity: List[float]) -> Self:
+        # TODO: This is an intermediate result, cumulatives are not included. Skip Pydantic validation
+        return PartialEmissionResult(
+            name=emission_result.name,
+            timesteps=emission_result.timesteps,
+            rate=emission_result.rate.to_timeseries_rate(regularity),
+            tax=emission_result.tax.to_timeseries_rate(regularity),
+            quota=emission_result.quota.to_timeseries_rate(regularity),
         )
 
 

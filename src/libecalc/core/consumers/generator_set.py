@@ -5,10 +5,13 @@ from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import Rates, TimeSeriesBoolean, TimeSeriesRate
+from libecalc.common.utils.rates import (
+    Rates,
+    TimeSeriesBoolean,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
-from libecalc.dto.types import RateType
 from libecalc.dto.variables import VariablesMap
 from numpy.typing import NDArray
 
@@ -69,23 +72,20 @@ class Genset:
                 values=list(valid_timesteps),
                 unit=Unit.NONE,
             ),
-            power_capacity_margin=TimeSeriesRate(
+            power_capacity_margin=TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
                 values=list(power_capacity_margin),
                 unit=Unit.MEGA_WATT,
             ),
-            power=TimeSeriesRate(
+            power=TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
                 values=array_to_list(power_requirement),
                 unit=Unit.MEGA_WATT,
-                regularity=regularity,
             ),
-            energy_usage=TimeSeriesRate(
+            energy_usage=TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
                 values=array_to_list(fuel_rate),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                regularity=regularity,
-                rate_type=RateType.CALENDAR_DAY,
             ),
         )
 

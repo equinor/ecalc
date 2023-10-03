@@ -10,7 +10,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
-    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
 )
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.result.base import EcalcResultBaseModel
@@ -25,8 +25,8 @@ class CommonResultBase(EcalcResultBaseModel):
     is_valid: TimeSeriesBoolean
 
     # We need both energy usage and power rate since we sometimes want both fuel and power usage.
-    energy_usage: TimeSeriesRate
-    power: Optional[TimeSeriesRate]
+    energy_usage: TimeSeriesStreamDayRate
+    power: Optional[TimeSeriesStreamDayRate]
 
 
 class GenericComponentResult(CommonResultBase):
@@ -51,7 +51,7 @@ class GenericComponentResult(CommonResultBase):
 class GeneratorSetResult(GenericComponentResult):
     """The Generator set result component."""
 
-    power_capacity_margin: TimeSeriesRate
+    power_capacity_margin: TimeSeriesStreamDayRate
 
 
 class ConsumerSystemResult(GenericComponentResult):
@@ -60,7 +60,7 @@ class ConsumerSystemResult(GenericComponentResult):
 
 
 class CompressorResult(GenericComponentResult):
-    recirculation_loss: TimeSeriesRate
+    recirculation_loss: TimeSeriesStreamDayRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
     stages: List[Stage] = None  # Optional because only in v2
@@ -79,7 +79,7 @@ class CompressorResult(GenericComponentResult):
 
 
 class PumpResult(GenericComponentResult):
-    inlet_liquid_rate_m3_per_day: TimeSeriesRate
+    inlet_liquid_rate_m3_per_day: TimeSeriesStreamDayRate
     inlet_pressure_bar: TimeSeriesFloat
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
