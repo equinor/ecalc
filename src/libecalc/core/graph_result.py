@@ -217,12 +217,12 @@ class GraphResult:
         }
 
     @staticmethod
-    def get_operational_setting_index(timestep: datetime, operational_settings_used: TimeSeriesInt):
+    def operational_setting_used_id(timestep: datetime, operational_settings_used: TimeSeriesInt) -> int:
         timestep_index = operational_settings_used.timesteps.index(timestep)
 
-        operational_setting_index = operational_settings_used.values[timestep_index]
+        operational_setting_id = operational_settings_used.values[timestep_index]
 
-        return operational_setting_index - 1
+        return operational_setting_id - 1
 
     @staticmethod
     def get_requested_compressor_pressures(
@@ -259,11 +259,11 @@ class GraphResult:
             for timestep in model_timesteps:
                 for compressor in model_subset.compressors:
                     if compressor.name == name:
-                        operational_setting_index = GraphResult.get_operational_setting_index(
+                        operational_setting_used_id = GraphResult.operational_setting_used_id(
                             timestep=timestep, operational_settings_used=operational_settings_used
                         )
 
-                        operational_setting = model_subset.operational_settings[operational_setting_index]
+                        operational_setting = model_subset.operational_settings[operational_setting_used_id]
 
                         # Find correct compressor in case of different pressures for different components in system:
                         compressor_nr = int(
