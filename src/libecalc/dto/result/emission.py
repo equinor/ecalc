@@ -5,6 +5,7 @@ from typing import List
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    TimeSeriesFloat,
     TimeSeriesIntensity,
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
@@ -76,7 +77,7 @@ class PartialEmissionResult(TabularTimeSeries):
     quota: TimeSeriesRate
 
     @classmethod
-    def from_emission_core_result(cls, emission_result: EmissionCoreResult, regularity: List[float]) -> Self:
+    def from_emission_core_result(cls, emission_result: EmissionCoreResult, regularity: TimeSeriesFloat) -> Self:
         # TODO: This is an intermediate result, cumulatives are not included. Skip Pydantic validation
         return PartialEmissionResult(
             name=emission_result.name,

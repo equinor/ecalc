@@ -235,6 +235,22 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             unit=self.unit,
         )
 
+    def for_timesteps(self, timesteps: List[datetime]) -> Self:
+        """For a given list of datetime, return corresponding values
+
+        Args:
+            timesteps:
+
+        Returns:
+
+        """
+        values: List[TimeSeriesValue] = []
+        for timestep in timesteps:
+            timestep_index = self.timesteps.index(timestep)
+            values.append(self.values[timestep_index])
+
+        return self.__class__(timesteps=timesteps, values=values, unit=self.unit)
+
     def to_unit(self, unit: Unit) -> Self:
         if unit == self.unit:
             return self.copy()
@@ -973,18 +989,19 @@ class TimeSeriesRate(TimeSeries[float]):
 
     @classmethod
     def from_timeseries_stream_day_rate(
-        cls, time_series_stream_day_rate: TimeSeriesStreamDayRate, regularity: List[float]
+        cls, time_series_stream_day_rate: TimeSeriesStreamDayRate, regularity: TimeSeriesFloat
     ) -> Self:
         if time_series_stream_day_rate is None:
             return None
 
-        # TODO: Verify that length of regularity is the same, or 1
+        regularity = regularity.for_timesteps(time_series_stream_day_rate.timesteps)
+
         return cls(
             timesteps=time_series_stream_day_rate.timesteps,
             values=time_series_stream_day_rate.values,
             unit=time_series_stream_day_rate.unit,
             rate_type=RateType.STREAM_DAY,
-            regularity=regularity,
+            regularity=regularity.values,
         )
 
     def to_stream_day_timeseries(self) -> TimeSeriesStreamDayRate:
