@@ -49,8 +49,8 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             operational_settings_this_timestep = operational_settings.get_subset_for_timestep(timestep)
             results.extend(
                 compressor.get_max_standard_rate(
-                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_pressure.values),
-                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_pressure.values),
+                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_streams[0].pressure.values),
+                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_stream.pressure.values),
                 ).tolist()
             )
         return results
@@ -74,18 +74,12 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
 
         # Creating a single input rate until we decide how to deal with multiple rates, multiple rates added because of
         # multiple streams and pressures model, but we need to look at how streams are defined there.
-        total_requested_rate = TimeSeriesRate(
-            timesteps=operational_settings.timesteps,
-            values=list(np.sum([rate.values for rate in operational_settings.stream_day_rates], axis=0)),
-            unit=operational_settings.stream_day_rates[0].unit,
-            regularity=operational_settings.stream_day_rates[0].regularity,
-            rate_type=operational_settings.stream_day_rates[0].rate_type,
-        )
+        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
 
         model_results = []
         evaluated_timesteps = []
 
-        evaluated_regularity = total_requested_rate.regularity
+        evaluated_regularity = total_requested_inlet_stream.rate.regularity
         for timestep in operational_settings.timesteps:
             compressor = self._temporal_model.get_model(timestep)
             operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
@@ -94,9 +88,9 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 raise NotImplementedError("Need to implement this")
             elif issubclass(type(compressor), CompressorModel):
                 model_result = compressor.evaluate_rate_ps_pd(
-                    rate=np.asarray(total_requested_rate.values),
-                    suction_pressure=np.asarray(operational_settings_for_timestep.inlet_pressure.values),
-                    discharge_pressure=np.asarray(operational_settings_for_timestep.outlet_pressure.values),
+                    rate=np.asarray(total_requested_inlet_stream.rate.values),
+                    suction_pressure=np.asarray(total_requested_inlet_stream.pressure.values),
+                    discharge_pressure=np.asarray(operational_settings_for_timestep.outlet_stream.pressure.values),
                 )
                 model_results.append(model_result)
 
@@ -151,25 +145,19 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             ),
             outlet_pressure_before_choking=outlet_pressure_before_choke,
             stages=[
-                Stage(
-                    name="inlet",
-                    stream=Stream(
-                        rate=total_requested_rate,
-                        pressure=operational_settings.inlet_pressure,
-                    ),
-                ),
+                Stage(name="inlet", stream=total_requested_inlet_stream),
                 Stage(
                     name="before_choke",
                     stream=Stream(
-                        rate=total_requested_rate,
+                        rate=total_requested_inlet_stream.rate,
                         pressure=outlet_pressure_before_choke,
                     ),
                 ),
                 Stage(
                     name="outlet",
                     stream=Stream(
-                        rate=total_requested_rate,
-                        pressure=operational_settings.outlet_pressure,
+                        rate=total_requested_inlet_stream.rate,  # Actual, not requested, different because of crossover
+                        pressure=operational_settings.outlet_stream.pressure,
                     ),
                 ),
             ],

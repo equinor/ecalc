@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from libecalc import dto
+from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.stream import Stage, Stream
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
@@ -28,7 +29,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             data={timestep: create_pump_model(model) for timestep, model in energy_usage_model.items()}
         )
 
-        self._operational_settings = None
+        self._operational_settings: Optional[PumpOperationalSettings] = None
 
     def get_max_rate(self, operational_settings: PumpOperationalSettings) -> List[float]:
         """
@@ -43,15 +44,17 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             operational_settings_this_timestep = operational_settings.get_subset_for_timestep(timestep)
             results.extend(
                 pump.get_max_standard_rate(
-                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_pressure.values),
-                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_pressure.values),
-                    fluid_density=np.asarray(operational_settings_this_timestep.fluid_density.values),
+                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_streams[0].pressure.values),
+                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_stream.pressure.values),
+                    fluid_density=np.asarray(operational_settings_this_timestep.inlet_streams[0].fluid_density.values),
                 ).tolist()
             )
         return results
 
     @property
     def operational_settings(self) -> PumpOperationalSettings:
+        if self._operational_settings is None:
+            raise ProgrammingError("Operational settings has not been set. Need to call evaluate first.")
         return self._operational_settings
 
     def evaluate(
@@ -63,15 +66,9 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             Handle regularity outside
         """
         self._operational_settings = operational_settings
-        total_requested_rate = TimeSeriesRate(
-            timesteps=operational_settings.timesteps,
-            values=list(np.sum([rate.values for rate in operational_settings.stream_day_rates], axis=0)),
-            unit=operational_settings.stream_day_rates[0].unit,
-            regularity=operational_settings.stream_day_rates[0].regularity,
-            rate_type=operational_settings.stream_day_rates[0].rate_type,
-        )
+        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
 
-        regularity = total_requested_rate.regularity
+        regularity = total_requested_inlet_stream.rate.regularity
 
         model_results = []
         evaluated_timesteps = []
@@ -80,10 +77,10 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
             evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
             model_result = pump.evaluate_rate_ps_pd_density(
-                rate=np.asarray(total_requested_rate.values),
-                suction_pressures=np.asarray(operational_settings_for_timestep.inlet_pressure.values),
-                discharge_pressures=np.asarray(operational_settings_for_timestep.outlet_pressure.values),
-                fluid_density=np.asarray(operational_settings_for_timestep.fluid_density.values),
+                rate=np.asarray(total_requested_inlet_stream.rate.values),
+                suction_pressures=np.asarray(total_requested_inlet_stream.pressure.values),
+                discharge_pressures=np.asarray(operational_settings_for_timestep.outlet_stream.pressure.values),
+                fluid_density=np.asarray(total_requested_inlet_stream.fluid_density.values),
             )
             model_results.append(model_result)
 
@@ -136,16 +133,14 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             stages=[
                 Stage(
                     name="inlet",
-                    stream=Stream(
-                        rate=total_requested_rate,
-                        pressure=operational_settings.inlet_pressure,
-                    ),
+                    stream=total_requested_inlet_stream,
                 ),
                 Stage(
                     name="outlet",
                     stream=Stream(
-                        rate=total_requested_rate,
-                        pressure=operational_settings.outlet_pressure,
+                        rate=total_requested_inlet_stream.rate,  # Actual, not requested, different because of crossover
+                        pressure=operational_settings.outlet_stream.pressure,
+                        fluid_density=operational_settings.outlet_stream.fluid_density,
                     ),
                 ),
             ],

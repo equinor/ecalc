@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
+from libecalc.common.stream import Stream
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
 from libecalc.dto.core_specs.compressor.operational_settings import (
     CompressorOperationalSettings,
@@ -20,11 +21,18 @@ class EvaluatedPumpSystemOperationalSettings(BaseModel):
     def get_consumer_operational_settings(
         self, consumer_index: int, timesteps: List[datetime]
     ) -> PumpOperationalSettings:
-        return PumpOperationalSettings(
-            stream_day_rates=[self.rates[consumer_index]],
-            inlet_pressure=self.inlet_pressures[consumer_index],
-            outlet_pressure=self.outlet_pressures[consumer_index],
+        inlet_stream = Stream(
+            rate=self.rates[consumer_index],
+            pressure=self.inlet_pressures[consumer_index],
             fluid_density=self.fluid_density[consumer_index],
+        )
+        return PumpOperationalSettings(
+            inlet_streams=[inlet_stream],
+            outlet_stream=Stream(
+                rate=inlet_stream.rate,
+                pressure=self.outlet_pressures[consumer_index],
+                fluid_density=inlet_stream.fluid_density,
+            ),
             timesteps=timesteps,
         )
 
@@ -60,10 +68,16 @@ class EvaluatedCompressorSystemOperationalSettings(BaseModel):
     def get_consumer_operational_settings(
         self, consumer_index: int, timesteps: List[datetime]
     ) -> CompressorOperationalSettings:
+        inlet_stream = Stream(
+            rate=self.rates[consumer_index],
+            pressure=self.inlet_pressures[consumer_index],
+        )
         return CompressorOperationalSettings(
-            stream_day_rates=[self.rates[consumer_index]],
-            inlet_pressure=self.inlet_pressures[consumer_index],
-            outlet_pressure=self.outlet_pressures[consumer_index],
+            inlet_streams=[inlet_stream],
+            outlet_stream=Stream(
+                rate=inlet_stream.rate,
+                pressure=self.outlet_pressures[consumer_index],
+            ),
             timesteps=timesteps,
         )
 
