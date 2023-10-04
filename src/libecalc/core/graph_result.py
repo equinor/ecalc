@@ -226,9 +226,7 @@ class GraphResult:
         return operational_setting_id - 1
 
     @staticmethod
-    @Feature.experimental(
-        feature_description="Reporting requested pressures from compressor systems is an experimental feature."
-    )
+    @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
         energy_usage_model: Dict[datetime, Any],
         pressure_type: CompressorPressureType,
