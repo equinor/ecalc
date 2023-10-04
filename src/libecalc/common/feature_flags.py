@@ -19,13 +19,13 @@ class Feature:
 
         def decorate(experimental_feature: Callable):
             @wraps(experimental_feature)
-            def with_experimental(self, *args, **kwargs):
+            def with_experimental(*args, **kwargs):
                 logger.warning(
                     f"!EXPERIMENTAL! {feature_description}."
-                    f" It has not thoroughly tested and Quality Assured yet. Use at own risk. !EXPERIMENTAL!"
+                    f" It has not been thoroughly tested and Quality Assured yet. Use at own risk. !EXPERIMENTAL!"
                 )
                 try:
-                    return experimental_feature(self, *args, **kwargs)
+                    return experimental_feature(*args, **kwargs)
                 except Exception as e:
                     logger.error(
                         f"Error in {feature_description}: {e}."
