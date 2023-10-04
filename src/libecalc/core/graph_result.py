@@ -49,37 +49,6 @@ class EnergyCalculatorResult(BaseModel):
 # TODO: Move to "DTO"..this is presentation layer stuff
 
 
-def convert_to_timeseries(
-    emission_core_results: Dict[str, Dict[str, EmissionResult]],
-    regularities: Union[TimeSeriesFloat, Dict[str, TimeSeriesFloat]],
-) -> Dict[str, Dict[str, PartialEmissionResult]]:
-    """
-    Emissions by installation and name
-    Args:
-        emission_core_results:
-        regularities:
-
-    Returns:
-
-    """
-    dto_result: Dict[str, Dict[str, PartialEmissionResult]] = {}
-
-    for installation_name, emissions in emission_core_results.items():
-        dto_result[installation_name] = defaultdict()
-
-        if isinstance(regularities, Dict):
-            regularity = regularities[installation_name]
-        else:
-            regularity = regularities
-
-        for emission_name, emission_result in emissions.items():
-            dto_result[installation_name][emission_name] = PartialEmissionResult.from_emission_core_result(
-                emission_result, regularity=regularity
-            )
-
-    return dto_result
-
-
 class GraphResult:
     def __init__(
         self,
@@ -191,7 +160,7 @@ class GraphResult:
                 ],
             )
 
-            emission_dto_results = convert_to_timeseries(self.emission_results, regularity)
+            emission_dto_results = self.convert_to_timeseries(self.emission_results, regularity)
             aggregated_emissions = aggregate_emissions(
                 [
                     emission_dto_results[fuel_consumer_id]
@@ -966,9 +935,9 @@ class GraphResult:
         )
 
         # TODO: Convert to TimeSeriesRate for DTO before doing this?
-        emission_dto_results = convert_to_timeseries(
+        emission_dto_results = self.convert_to_timeseries(
             self.emission_results,
-            {installation_id: regularity.values for installation_id, regularity in regularities.items()},
+            dict(regularities.items()),
         )
         asset_aggregated_emissions = aggregate_emissions(emission_dto_results.values())
 
@@ -1025,3 +994,35 @@ class GraphResult:
             emission_results=self.emission_results,
             variables_map=self.variables_map,
         )
+
+    def convert_to_timeseries(
+        self,
+        emission_core_results: Dict[str, Dict[str, EmissionResult]],
+        regularities: Union[TimeSeriesFloat, Dict[str, TimeSeriesFloat]],
+    ) -> Dict[str, Dict[str, PartialEmissionResult]]:
+        """
+        Emissions by consumer id and emisssion name
+        Args:
+            emission_core_results:
+            regularities:
+
+        Returns:
+
+        """
+        dto_result: Dict[str, Dict[str, PartialEmissionResult]] = {}
+
+        for consumer_id, emissions in emission_core_results.items():
+            installation_id = self.graph.get_parent_installation_id(consumer_id)
+            dto_result[consumer_id] = defaultdict()
+
+            if isinstance(regularities, Dict):
+                regularity = regularities[installation_id]
+            else:
+                regularity = regularities
+
+            for emission_name, emission_result in emissions.items():
+                dto_result[consumer_id][emission_name] = PartialEmissionResult.from_emission_core_result(
+                    emission_result, regularity=regularity
+                )
+
+        return dto_result

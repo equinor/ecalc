@@ -32,6 +32,15 @@ class EmissionResult(TabularTimeSeries):
 
     @classmethod
     def create_empty(cls, name: str, timesteps: List[datetime]):
+        """Empty placeholder for emissions, when needed
+
+        Args:
+            name:
+            timesteps:
+
+        Returns:
+
+        """
         return cls(
             name=name,
             timesteps=timesteps,
@@ -78,7 +87,6 @@ class PartialEmissionResult(TabularTimeSeries):
 
     @classmethod
     def from_emission_core_result(cls, emission_result: EmissionCoreResult, regularity: TimeSeriesFloat) -> Self:
-        # TODO: This is an intermediate result, cumulatives are not included. Skip Pydantic validation
         return PartialEmissionResult(
             name=emission_result.name,
             timesteps=emission_result.timesteps,
