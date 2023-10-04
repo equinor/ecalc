@@ -217,9 +217,6 @@ class GraphResult:
         }
 
     @staticmethod
-    @Feature.experimental(
-        feature_description="Reporting requested pressures from compressor systems is an experimental feature."
-    )
     def operational_setting_used_id(timestep: datetime, operational_settings_used: TimeSeriesInt) -> int:
         timestep_index = operational_settings_used.timesteps.index(timestep)
 
@@ -228,6 +225,7 @@ class GraphResult:
         return operational_setting_id - 1
 
     @staticmethod
+    @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
     def get_requested_compressor_pressures(
         energy_usage_model: Dict[datetime, Any],
         pressure_type: CompressorPressureType,
