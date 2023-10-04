@@ -81,9 +81,9 @@ class PartialEmissionResult(TabularTimeSeries):
         return PartialEmissionResult(
             name=emission_result.name,
             timesteps=emission_result.timesteps,
-            rate=emission_result.rate.to_timeseries_rate(regularity),
-            tax=emission_result.tax.to_timeseries_rate(regularity),
-            quota=emission_result.quota.to_timeseries_rate(regularity),
+            rate=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.rate, regularity),
+            tax=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.tax, regularity),
+            quota=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.quota, regularity),
         )
 
 

@@ -165,7 +165,7 @@ class GraphResult:
             power = reduce(
                 operator.add,
                 [
-                    component.power.to_timeseries_rate(regularity=regularity)
+                    TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
                     for component in sub_components
                     if self.graph.get_node_info(component.id).component_type == ComponentType.GENERATOR_SET
                 ],
@@ -181,7 +181,7 @@ class GraphResult:
             energy_usage = reduce(
                 operator.add,
                 [
-                    component.energy_usage.to_timeseries_rate(regularity=regularity)
+                    TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
                     for component in sub_components
                     if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
                 ],
@@ -271,15 +271,20 @@ class GraphResult:
             key: libecalc.dto.result.EmissionResult(
                 name=key,
                 timesteps=emissions[key].timesteps,
-                rate=emissions[key].rate.to_timeseries_rate(regularity=regularity),
-                quota=emissions[key].quota.to_timeseries_rate(regularity=regularity),
-                tax=emissions[key].tax.to_timeseries_rate(regularity=regularity),
-                cumulative=emissions[key].rate.to_timeseries_rate(regularity=regularity).to_volumes().cumulative(),
-                quota_cumulative=emissions[key]
-                .quota.to_timeseries_rate(regularity=regularity)
+                rate=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity),
+                quota=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].quota, regularity=regularity),
+                tax=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].tax, regularity=regularity),
+                cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity)
                 .to_volumes()
                 .cumulative(),
-                tax_cumulative=emissions[key].tax.to_timeseries_rate(regularity=regularity).to_volumes().cumulative(),
+                quota_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                    emissions[key].quota, regularity=regularity
+                )
+                .to_volumes()
+                .cumulative(),
+                tax_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].tax, regularity=regularity)
+                .to_volumes()
+                .cumulative(),
             )
             for key in emissions
         }
@@ -759,7 +764,9 @@ class GraphResult:
                                 name=model.name,
                                 componentType=model.component_type,
                                 component_level=ComponentLevel.MODEL,
-                                energy_usage=model.energy_usage.to_timeseries_rate(regularity=regularity.values),
+                                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity.values
+                                ),
                                 energy_usage_unit=model.energy_usage_unit,
                                 requested_inlet_pressure=requested_inlet_pressure,
                                 requested_outlet_pressure=requested_outlet_pressure,
@@ -770,20 +777,24 @@ class GraphResult:
                                 is_valid=TimeSeriesBoolean(
                                     timesteps=model.timesteps, values=model.is_valid, unit=Unit.NONE
                                 ),
-                                energy_usage_cumulative=model.energy_usage.to_timeseries_rate(
-                                    regularity=regularity.values
+                                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity.values
                                 )
                                 .to_volumes()
                                 .cumulative(),
                                 power_cumulative=(
-                                    model.power.to_timeseries_rate(regularity=regularity.values)
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(
+                                        model.power, regularity=regularity.values
+                                    )
                                     .to_volumes()
                                     .to_unit(Unit.GIGA_WATT_HOURS)
                                     .cumulative()
                                     if model.power is not None
                                     else None
                                 ),
-                                power=model.power.to_timeseries_rate(regularity=regularity.values)
+                                power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.power, regularity=regularity.values
+                                )
                                 if model.power is not None
                                 else None,
                                 power_unit=model.power_unit,
@@ -801,23 +812,29 @@ class GraphResult:
                                 name=model.name,
                                 componentType=model.component_type,
                                 component_level=ComponentLevel.MODEL,
-                                energy_usage=model.energy_usage.to_timeseries_rate(regularity=regularity.values),
+                                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity.values
+                                ),
                                 is_valid=model.is_valid,
-                                energy_usage_cumulative=model.energy_usage.to_timeseries_rate(
-                                    regularity=regularity.values
+                                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity.values
                                 )
                                 .to_volumes()
                                 .cumulative(),
                                 timesteps=model.timesteps,
                                 power_cumulative=(
-                                    model.power.to_timeseries_rate(regularity=regularity.values)
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(
+                                        model.power, regularity=regularity.values
+                                    )
                                     .to_volumes()
                                     .to_unit(Unit.GIGA_WATT_HOURS)
                                     .cumulative()
                                     if model.power is not None
                                     else None
                                 ),
-                                power=model.power.to_timeseries_rate(regularity=regularity.values)
+                                power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.power, regularity=regularity.values
+                                )
                                 if model.power is not None
                                 else None,
                                 inlet_liquid_rate_m3_per_day=TimeSeriesRate(
@@ -864,14 +881,16 @@ class GraphResult:
                                 "parent": consumer_id,
                                 "componentType": model.component_type,
                                 "component_level": ComponentLevel.MODEL,
-                                "energy_usage_cumulative": model.energy_usage.to_timeseries_rate(
-                                    regularity=regularity.values
+                                "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity.values
                                 )
                                 .to_volumes()
                                 .cumulative()
                                 .dict(),
                                 "power_cumulative": (
-                                    model.power.to_timeseries_rate(regularity=regularity.values)
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(
+                                        model.power, regularity=regularity.values
+                                    )
                                     .to_volumes()
                                     .to_unit(Unit.GIGA_WATT_HOURS)
                                     .cumulative()
@@ -897,14 +916,14 @@ class GraphResult:
                         "emissions": self._parse_emissions(self.emission_results[consumer_id], regularity.values)
                         if consumer_id in self.emission_results
                         else [],
-                        "energy_usage_cumulative": consumer_result.component_result.energy_usage.to_timeseries_rate(
-                            regularity=regularity.values
+                        "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.energy_usage, regularity=regularity.values
                         )
                         .to_volumes()
                         .cumulative()
                         .dict(),
-                        "power_cumulative": consumer_result.component_result.power.to_timeseries_rate(
-                            regularity=regularity.values
+                        "power_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.power, regularity=regularity.values
                         )
                         .to_volumes()
                         .to_unit(Unit.GIGA_WATT_HOURS)

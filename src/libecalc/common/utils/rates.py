@@ -642,37 +642,6 @@ class TimeSeriesStreamDayRate(TimeSeriesFloat):
 
     ...
 
-    def to_timeseries_rate(self, regularity: List[float]) -> TimeSeriesRate:
-        # TODO: Verify that length of regularity is the same, or 1
-        return TimeSeriesRate(
-            timesteps=self.timesteps,
-            values=self.values,
-            unit=self.unit,
-            rate_type=RateType.STREAM_DAY,
-            regularity=regularity,
-        )
-
-
-class TimeSeriesCalendarDayRate(TimeSeriesFloat):
-    """
-    Infrastructure/presentation layer only?
-
-    Explicit class for only external usage. Makes it easy to catch that the
-    type of data is rate, and is never converted to stream day, but taken directly from input and never converted.
-
-    Does not make sense to convert to stream day rate.
-    """
-
-    def to_timeseries_rate(self, regularity: List[float]) -> TimeSeriesRate:
-        # TODO: Verify that length of regularity is the same, or 1
-        return TimeSeriesRate(
-            timesteps=self.timesteps,
-            values=self.values,
-            unit=self.unit,
-            rate_type=RateType.CALENDAR_DAY,
-            regularity=regularity,
-        )
-
 
 class TimeSeriesRate(TimeSeries[float]):
     """A rate time series with can be either in RateType.STREAM_DAY (default) or RateType.CALENDAR_DAY.
@@ -873,20 +842,6 @@ class TimeSeriesRate(TimeSeries[float]):
             rate_type=RateType.STREAM_DAY,
         )
 
-    def to_stream_day_timeseries(self) -> TimeSeriesStreamDayRate:
-        """Convert to fixed stream day rate timeseries"""
-        stream_day_rate = self.to_stream_day()
-        return TimeSeriesStreamDayRate(
-            timesteps=stream_day_rate.timesteps, values=stream_day_rate.values, unit=stream_day_rate.unit
-        )
-
-    def to_calendar_day_timeseries(self) -> TimeSeriesCalendarDayRate:
-        """Convert to fixed calendar day rate timeseries"""
-        calendar_day_rate = self.to_calendar_day()
-        return TimeSeriesCalendarDayRate(
-            timesteps=calendar_day_rate.timesteps, values=calendar_day_rate.values, unit=calendar_day_rate.unit
-        )
-
     def to_volumes(self) -> TimeSeriesVolumes:
         """Convert rates to volumes. After this step the time steps represents periods and should contain one more item
         than the rates vector. This means that the last rate is ignored.
@@ -1014,4 +969,27 @@ class TimeSeriesRate(TimeSeries[float]):
         reindex_values = self.reindex_time_vector(new_time_vector)
         return TimeSeriesRate(
             timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit, regularity=self.regularity
+        )
+
+    @classmethod
+    def from_timeseries_stream_day_rate(
+        cls, time_series_stream_day_rate: TimeSeriesStreamDayRate, regularity: List[float]
+    ) -> Self:
+        if time_series_stream_day_rate is None:
+            return None
+
+        # TODO: Verify that length of regularity is the same, or 1
+        return cls(
+            timesteps=time_series_stream_day_rate.timesteps,
+            values=time_series_stream_day_rate.values,
+            unit=time_series_stream_day_rate.unit,
+            rate_type=RateType.STREAM_DAY,
+            regularity=regularity,
+        )
+
+    def to_stream_day_timeseries(self) -> TimeSeriesStreamDayRate:
+        """Convert to fixed stream day rate timeseries"""
+        stream_day_rate = self.to_stream_day()
+        return TimeSeriesStreamDayRate(
+            timesteps=stream_day_rate.timesteps, values=stream_day_rate.values, unit=stream_day_rate.unit
         )
