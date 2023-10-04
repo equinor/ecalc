@@ -5,7 +5,7 @@ from typing import List, Optional
 import pandas as pd
 from typing_extensions import Self
 
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, resample_time_steps
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
@@ -102,7 +102,5 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                 # NOTE: turbine_result is not resampled. Should add support?
                 pass
 
-        resampled.timesteps = (
-            pd.date_range(start=self.timesteps[0], end=self.timesteps[-1], freq=freq.value).to_pydatetime().tolist()
-        )
+        resampled.timesteps = resample_time_steps(self.timesteps, frequency=freq)
         return resampled

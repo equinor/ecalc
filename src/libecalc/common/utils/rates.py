@@ -27,7 +27,12 @@ from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
+from libecalc.common.time_utils import (
+    Frequency,
+    Period,
+    calculate_delta_days,
+    resample_time_steps,
+)
 from libecalc.common.units import Unit
 from numpy.typing import NDArray
 from pydantic import Extra, validator
@@ -191,7 +196,7 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         return all(self_value < other_value for self_value, other_value in zip(self.values, other.values))
 
     @abstractmethod
-    def resample(self, freq: Frequency) -> Self:
+    def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self:
         ...
 
     def extend(self, other: TimeSeries) -> Self:
@@ -365,7 +370,7 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
 
 
 class TimeSeriesString(TimeSeries[str]):
-    def resample(self, freq: Frequency) -> Self:
+    def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self:
         """
         Resample using forward-fill This means that a value is assumed to be the same until the next observation,
         e.g. covering the whole period interval.
@@ -392,7 +397,7 @@ class TimeSeriesString(TimeSeries[str]):
 
 
 class TimeSeriesInt(TimeSeries[int]):
-    def resample(self, freq: Frequency) -> Self:
+    def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True) -> Self:
         """
         Resample using forward-fill This means that a value is assumed to be the same until the next observation,
         e.g. covering the whole period interval.
@@ -408,18 +413,21 @@ class TimeSeriesInt(TimeSeries[int]):
 
         ds = pd.Series(index=self.timesteps, data=self.values)
 
+        new_timesteps = resample_time_steps(
+            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        )
         # New resampled pd.Series
-        ds_resampled = ds.resample(freq).ffill()
+        ds_resampled = ds.reindex(new_timesteps).ffill()
 
         return TimeSeriesInt(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            timesteps=new_timesteps,
             values=list(ds_resampled.values.tolist()),
             unit=self.unit,
         )
 
 
 class TimeSeriesBoolean(TimeSeries[bool]):
-    def resample(self, freq: Frequency) -> Self:
+    def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True) -> Self:
         """
         Resample using forward-fill This means that a value is assumed to be the same until the next observation,
         e.g. covering the whole period interval.
@@ -435,16 +443,13 @@ class TimeSeriesBoolean(TimeSeries[bool]):
 
         ds = pd.Series(index=self.timesteps, data=self.values)
 
-        target_index = ds.resample(freq.value).asfreq().index
-
-        # Union of old and new index. Forward-fill missing values.
-        ds_tmp = ds.reindex(ds.index.union(target_index)).ffill()
-
-        # New resampled pd.Series
-        ds_resampled = ds_tmp.groupby(pd.Grouper(freq=freq.value)).all()
+        new_timeseries = resample_time_steps(
+            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        )
+        ds_resampled = ds.reindex(new_timeseries).ffill()
 
         return TimeSeriesBoolean(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            timesteps=new_timeseries,
             values=[bool(x) for x in ds_resampled.values.tolist()],
             unit=self.unit,
         )
@@ -463,7 +468,7 @@ class TimeSeriesBoolean(TimeSeries[bool]):
 
 
 class TimeSeriesFloat(TimeSeries[float]):
-    def resample(self, freq: Frequency) -> Self:
+    def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True) -> Self:
         """
         Resample using forward-fill This means that a value is assumed to be the same until the next observation,
         e.g. covering the whole period interval.
@@ -477,18 +482,15 @@ class TimeSeriesFloat(TimeSeries[float]):
         if freq is Frequency.NONE:
             return self.copy()
 
-        pandas_data_series = pd.Series(index=self.timesteps, data=self.values)
+        ds = pd.Series(index=self.timesteps, data=self.values)
 
-        target_index = pandas_data_series.resample(freq.value).asfreq().index
-
-        # Union of old and new index. Forward-fill missing values.
-        ds_tmp = pandas_data_series.reindex(pandas_data_series.index.union(target_index)).ffill()
-
-        # New resampled pd.Series
-        ds_resampled = ds_tmp.groupby(pd.Grouper(freq=freq.value)).first()
+        new_timeseries = resample_time_steps(
+            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        )
+        ds_resampled = ds.reindex(new_timeseries).ffill()
 
         return TimeSeriesFloat(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            timesteps=new_timeseries,
             values=[float(x) for x in ds_resampled.values.tolist()],
             unit=self.unit,
         )
@@ -502,7 +504,9 @@ class TimeSeriesFloat(TimeSeries[float]):
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
-    def resample(self, freq: Frequency) -> TimeSeriesVolumesCumulative:
+    def resample(
+        self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
+    ) -> TimeSeriesVolumesCumulative:
         """
         Resample cumulative production volumes according to given frequency. Since the production rates between
         dates are assumed to be constant, the cumulative production volumes will increase linearly between dates.
@@ -522,20 +526,22 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
             return self.copy()
 
         ds = pd.Series(index=self.timesteps, data=self.values)
-        new_index = ds.resample(freq.value).asfreq().index
-        if ds.index[-1] not in new_index:
+        new_timeseries = resample_time_steps(
+            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        )
+        if ds.index[-1] not in new_timeseries:
             logger.warning(
                 f"The final date in the rate input ({ds.index[-1].strftime('%m/%d/%Y')}) does not "
                 f"correspond to the end of a period with the requested output frequency. There is a "
                 f"possibility that the resampling will drop volumes."
             )
-        ds_interpolated = ds.reindex(ds.index.union(new_index)).interpolate("slinear")
+        ds_interpolated = ds.reindex(ds.index.union(new_timeseries)).interpolate("slinear")
 
         # New resampled pd.Series
-        ds_resampled = ds_interpolated.reindex(new_index)
+        ds_resampled = ds_interpolated.reindex(new_timeseries)
 
         return TimeSeriesVolumesCumulative(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            timesteps=new_timeseries,
             # Are we sure this is always an DatetimeIndex? type: ignore
             values=ds_resampled.values.tolist(),
             unit=self.unit,
@@ -593,7 +599,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
             )
         return v
 
-    def resample(self, freq: Frequency):
+    def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
         msg = (
             f"{self.__repr_name__()} does not have an resample method."
             f" You should not land here. Please contact the eCalc Support."
@@ -681,7 +687,9 @@ class TimeSeriesVolumes(TimeSeries[float]):
 
 
 class TimeSeriesIntensity(TimeSeries[float]):
-    def resample(self, freq: Frequency) -> TimeSeriesIntensity:
+    def resample(
+        self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
+    ) -> TimeSeriesIntensity:
         """
         Resample emission intensity according to given frequency.
         Slinear is used in order to only interpolate, not extrapolate.
@@ -696,14 +704,16 @@ class TimeSeriesIntensity(TimeSeries[float]):
             return self.copy()
 
         ds = pd.Series(index=self.timesteps, data=self.values)
-        new_index = ds.resample(freq.value).asfreq().index
-        ds_interpolated = ds.reindex(ds.index.union(new_index)).interpolate("slinear")
+        new_timeseries = resample_time_steps(
+            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        )
+        ds_interpolated = ds.reindex(ds.index.union(new_timeseries)).interpolate("slinear")
 
         # New resampled pd.Series
-        ds_resampled = ds_interpolated.reindex(new_index)
+        ds_resampled = ds_interpolated.reindex(new_timeseries)
 
         return TimeSeriesIntensity(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),  # type: ignore
+            timesteps=new_timeseries,
             values=ds_resampled.to_numpy().tolist(),
             unit=self.unit,
         )
@@ -966,7 +976,9 @@ class TimeSeriesRate(TimeSeries[float]):
 
         return TimeSeriesVolumes(timesteps=self.timesteps, values=volumes, unit=self.unit.rate_to_volume())
 
-    def resample(self, freq: Frequency) -> TimeSeriesRate:
+    def resample(
+        self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
+    ) -> TimeSeriesRate:
         """
         Resample to average rate. If a period at the given frequency spans multiple input periods, the rate will be a
         weighted average or the rates in those periods. The regularity is also recalculated to reflect the new
@@ -998,7 +1010,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 timesteps=self.timesteps,
                 unit=self.to_volumes().unit,
             )
-            .resample(freq=freq)
+            .resample(freq=freq, include_start_date=include_start_date, include_end_date=include_end_date)
             .to_volumes()
         )
         # make resampled stream day volumes via cumulative "stream-day-volumes"
@@ -1011,7 +1023,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 timesteps=self.timesteps,
                 unit=self.to_volumes().unit,
             )
-            .resample(freq=freq)
+            .resample(freq=freq, include_start_date=include_start_date, include_end_date=include_end_date)
             .to_volumes()
         )
 
