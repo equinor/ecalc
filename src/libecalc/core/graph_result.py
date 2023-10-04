@@ -783,7 +783,9 @@ class GraphResult:
                                     if model.power is not None
                                     else None
                                 ),
-                                power=model.power.to_timeseries_rate(regularity=regularity.values),
+                                power=model.power.to_timeseries_rate(regularity=regularity.values)
+                                if model.power is not None
+                                else None,
                                 power_unit=model.power_unit,
                                 turbine_result=turbine_result,
                             )
@@ -815,7 +817,9 @@ class GraphResult:
                                     if model.power is not None
                                     else None
                                 ),
-                                power=model.power.to_timeseries_rate(regularity=regularity.values),
+                                power=model.power.to_timeseries_rate(regularity=regularity.values)
+                                if model.power is not None
+                                else None,
                                 inlet_liquid_rate_m3_per_day=TimeSeriesRate(
                                     timesteps=model.timesteps,
                                     values=model.inlet_liquid_rate_m3_per_day
