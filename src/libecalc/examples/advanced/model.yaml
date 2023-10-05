@@ -209,24 +209,9 @@ INSTALLATIONS:
       - NAME: Gas export compressors B
         CATEGORY: COMPRESSOR
         ENERGY_USAGE_MODEL:
-          2022-01-01:
-            TYPE: COMPRESSOR
-            ENERGYFUNCTION: gasexp
-            CONDITION: $var.gas_export_condition
-            RATE: $var.gas_export_rate_sm3_per_day
-            SUCTION_PRESSURE: 20
-            DISCHARGE_PRESSURE: 200
-          2025-01-01:
-            TYPE: COMPRESSOR
-            ENERGYFUNCTION: gasexp
-            CONDITION: $var.gas_export_condition
-            RATE: $var.gas_export_rate_sm3_per_day
-            SUCTION_PRESSURE: 20
-            DISCHARGE_PRESSURE: 210
-          2027-01-01:
-            TYPE: COMPRESSOR
-            ENERGYFUNCTION: gasexp
-            CONDITION: $var.gas_export_condition
-            RATE: $var.gas_export_rate_sm3_per_day
-            SUCTION_PRESSURE: 20
-            DISCHARGE_PRESSURE: 200
+          TYPE: COMPRESSOR
+          ENERGYFUNCTION: gasexp
+          CONDITION: $var.gas_export_condition
+          RATE: $var.gas_export_rate_sm3_per_day
+          SUCTION_PRESSURE: 20
+          DISCHARGE_PRESSURE: 200
