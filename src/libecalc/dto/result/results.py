@@ -81,7 +81,7 @@ class GeneratorSetResult(EquipmentResultBase):
     """The Generator set result component."""
 
     componentType: Literal[ComponentType.GENERATOR_SET]
-    power_capacity_margin: TimeSeriesRate
+    power_capacity_margin: Optional[TimeSeriesRate]
 
 
 class ConsumerSystemResult(EquipmentResultBase):

@@ -31,6 +31,7 @@ from libecalc.dto.result.results import (
     CompressorModelResult,
     CompressorModelStageResult,
     CompressorStreamConditionResult,
+    GeneratorSetResult,
     PumpModelResult,
     TurbineModelResult,
 )
@@ -66,7 +67,7 @@ class GraphResult:
     def _compute_intensity(
         hydrocarbon_export_rate: TimeSeriesRate,
         emissions: Dict[str, PartialEmissionResult],
-    ):
+    ) -> List[EmissionIntensityResult]:
         hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
         emission_intensities = []
         for key in emissions:
@@ -80,14 +81,10 @@ class GraphResult:
                 EmissionIntensityResult(
                     name=emissions[key].name,
                     timesteps=emissions[key].timesteps,
-                    intensity_sm3=intensity_sm3.dict(exclude={"rate_type": True, "regularity": True}),
-                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE).dict(
-                        exclude={"rate_type": True, "regularity": True}
-                    ),
-                    intensity_yearly_sm3=intensity_yearly_sm3.dict(exclude={"rate_type": True, "regularity": True}),
-                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE).dict(
-                        exclude={"rate_type": True, "regularity": True}
-                    ),
+                    intensity_sm3=intensity_sm3,
+                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
+                    intensity_yearly_sm3=intensity_yearly_sm3,
+                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
                 )
             )
         return emission_intensities
@@ -861,17 +858,22 @@ class GraphResult:
                                     if model.power is not None
                                     else None
                                 ),
+                                "power": TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.power, regularity=regularity
+                                ),
+                                "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity
+                                ),
                             },
                         )
                         for model in consumer_result.models
                     ]
                 )
 
-            sub_components.append(
-                parse_obj_as(
+                obj = parse_obj_as(
                     libecalc.dto.result.ComponentResult,
                     {
-                        **consumer_result.component_result.dict(),
+                        **consumer_result.component_result.dict(exclude={"power_capacity_margin"}),
                         "name": consumer_node_info.name,
                         "parent": self.graph.get_predecessor(consumer_id),
                         "component_level": consumer_node_info.component_level,
@@ -894,9 +896,21 @@ class GraphResult:
                         .dict()
                         if consumer_result.component_result.power is not None
                         else None,
+                        "power": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.power, regularity=regularity
+                        ),
+                        "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.energy_usage, regularity=regularity
+                        ),
                     },
                 )
-            )
+                if isinstance(obj, GeneratorSetResult):
+                    obj.power_capacity_margin = TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power_capacity_margin, regularity=regularity
+                    )
+
+                sub_components.append(obj)
+            # )
 
         for installation in asset.installations:
             print(f"inst {installation}")
@@ -908,6 +922,7 @@ class GraphResult:
                     values=[0.0] * self.variables_map.length,
                     regularity=[1] * self.variables_map.length,  # TODO: Correct? Dummy? Use calendar rate?
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    rate_type=RateType.CALENDAR_DAY,
                 )
                 sub_components.append(
                     libecalc.dto.result.DirectEmitterResult(
@@ -937,7 +952,7 @@ class GraphResult:
         # TODO: Convert to TimeSeriesRate for DTO before doing this?
         emission_dto_results = self.convert_to_timeseries(
             self.emission_results,
-            dict(regularities.items()),
+            regularities,
         )
         asset_aggregated_emissions = aggregate_emissions(emission_dto_results.values())
 

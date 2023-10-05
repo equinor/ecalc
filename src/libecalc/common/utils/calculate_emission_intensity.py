@@ -4,8 +4,10 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesRate, TimeSeriesVolumesCumulative
-from libecalc.dto.types import RateType
+from libecalc.common.utils.rates import (
+    TimeSeriesCalendarDayRate,
+    TimeSeriesVolumesCumulative,
+)
 
 
 def compute_emission_intensity_yearly(
@@ -64,7 +66,7 @@ def compute_emission_intensity_yearly(
 def compute_emission_intensity_by_yearly_buckets(
     emission_cumulative: TimeSeriesVolumesCumulative,
     hydrocarbon_export_cumulative: TimeSeriesVolumesCumulative,
-) -> TimeSeriesRate:
+) -> TimeSeriesCalendarDayRate:
     """Legacy code that computes yearly intensity and casts the results back to the original time-vector."""
     timesteps = emission_cumulative.timesteps
     yearly_buckets = range(timesteps[0].year, timesteps[-1].year + 1)
@@ -73,9 +75,8 @@ def compute_emission_intensity_by_yearly_buckets(
         hydrocarbon_export_cumulative=hydrocarbon_export_cumulative.values,
         time_vector=timesteps,
     )
-    return TimeSeriesRate(
+    return TimeSeriesCalendarDayRate(
         timesteps=timesteps,
         values=[yearly_intensity[yearly_buckets.index(t.year)] for t in timesteps],
         unit=Unit.KG_SM3,
-        rate_type=RateType.CALENDAR_DAY,
     )
