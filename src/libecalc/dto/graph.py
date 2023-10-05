@@ -83,7 +83,7 @@ class Graph:
             component_level=component_level,
         )
 
-    def get_component(self, component_id: str):
+    def get_component(self, component_id: str) -> ComponentDTO:
         return self.components[component_id]
 
     def get_component_id_by_name(self, name: str) -> str:
