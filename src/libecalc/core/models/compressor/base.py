@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 from libecalc import dto
 from libecalc.common.logger import logger
+from libecalc.common.stream import Stream
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.compressor.train.utils.common import (
@@ -40,6 +41,14 @@ class CompressorModel(BaseModel):
         raise NotImplementedError
 
     @abstractmethod
+    def get_max_standard_rate_from_streams(
+        self,
+        inlet_streams: List[Stream],
+        outlet_stream: Stream,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
     def evaluate_rate_ps_pd(
         self,
         rate: NDArray[np.float64],
@@ -52,6 +61,14 @@ class CompressorModel(BaseModel):
         :param suction_pressure: Suction pressure per time step  [bara]
         :param discharge_pressure: Discharge pressure per time step bar [bara]
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def evaluate_streams(
+        self,
+        inlet_streams: List[Stream],
+        outlet_stream: Stream,
+    ):
         raise NotImplementedError
 
     def validate_operational_conditions(
@@ -272,6 +289,17 @@ class CompressorWithTurbineModel(CompressorModel):
                 rate=rate,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
+            )
+        )
+
+    def evaluate_streams(
+        self,
+        inlet_streams: List[Stream],
+        outlet_stream: Stream,
+    ) -> CompressorTrainResult:
+        return self.evaluate_turbine_based_on_compressor_model_result(
+            compressor_energy_function_result=self.compressor_model.evaluate_streams(
+                inlet_streams=inlet_streams, outlet_stream=outlet_stream
             )
         )
 

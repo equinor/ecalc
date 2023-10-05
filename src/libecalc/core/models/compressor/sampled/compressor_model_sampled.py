@@ -6,6 +6,7 @@ import pandas as pd
 from libecalc import dto
 from libecalc.common.feature_flags import Feature
 from libecalc.common.logger import logger
+from libecalc.common.stream import Stream
 from libecalc.common.units import Unit
 from libecalc.common.utils.adjustment import transform_linear
 from libecalc.core.models.compressor.base import CompressorModel
@@ -252,6 +253,18 @@ class CompressorModelSampled(CompressorModel):
         )
 
         return result
+
+    def evaluate_streams(
+        self,
+        inlet_streams: List[Stream],
+        outlet_stream: Stream,
+    ) -> CompressorTrainResult:
+        mixed_input_streams = Stream.mix_all(streams=inlet_streams)
+        return self.evaluate_rate_ps_pd(
+            rate=np.asarray(mixed_input_streams.rate.values),
+            suction_pressure=np.asarray(mixed_input_streams.pressure.values),
+            discharge_pressure=np.asarray(outlet_stream.pressure.values),
+        )
 
     @staticmethod
     def _get_indices_from_condition(condition: List[bool]) -> List[int]:
