@@ -290,18 +290,19 @@ class GraphResult:
                             pressures = Expression.setup_from_expression(value=pressures)
                         evaluated_temporal_energy_usage_models[timestep] = pressures
         else:
-            pressures = model_subset.suction_pressure
+            for period, model in TemporalModel(energy_usage_model).items():
+                pressures = model.suction_pressure
 
-            if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
-                pressures = model_subset.discharge_pressure
+                if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
+                    pressures = model_subset.discharge_pressure
 
-            if pressures is None:
-                pressures = math.nan
+                if pressures is None:
+                    pressures = math.nan
 
-            if not isinstance(pressures, Expression):
-                pressures = Expression.setup_from_expression(value=pressures)
+                if not isinstance(pressures, Expression):
+                    pressures = Expression.setup_from_expression(value=pressures)
 
-            evaluated_temporal_energy_usage_models[model_period.start] = pressures
+                evaluated_temporal_energy_usage_models[period.start] = pressures
 
         return TemporalModel(evaluated_temporal_energy_usage_models)
 
