@@ -1,3 +1,5 @@
+inst component_type=<ComponentType.INSTALLATION: 'INSTALLATION'> name='Installation A' regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))} user_defined_category=None hydrocarbon_export={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.reference: 'ID'>, value='$var.hydrocarbon_export_sm3_per_day'))} fuel_consumers=[GeneratorSet(component_type=<ComponentType.GENERATOR_SET: 'GENERATOR_SET'>, name='Generator set A', regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))}, user_defined_category={datetime.datetime(1900, 1, 1, 0, 0): <ConsumerUserDefinedCategoryType.TURBINE_GENERATOR: 'TURBINE-GENERATOR'>}, fuel={datetime.datetime(1900, 1, 1, 0, 0): FuelType(name='fuel_gas', user_defined_category=None, price=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.5)), emissions=[Emission(name='co2', factor=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=2.19)), tax=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.5)), quota=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=260.0)))])}, generator_set_model={datetime.datetime(1900, 1, 1, 0, 0): GeneratorSetSampled(energy_usage_adjustment_constant=0.0, energy_usage_adjustment_factor=1.0, headers=['POWER', 'FUEL'], data=[[0.0, 0.1, 10.0, 20.0, 40.0, 100.0], [0.0, 65000.0, 75000.0, 126000.0, 250000.0, 750000.0]], typ=<EnergyModelType.GENERATOR_SET_SAMPLED: 'GENERATOR_SET_SAMPLED'>)}, consumers=[ElectricityConsumer(component_type=<ComponentType.GENERIC: 'GENERIC'>, name='Base production load', regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))}, user_defined_category={datetime.datetime(1900, 1, 1, 0, 0): <ConsumerUserDefinedCategoryType.BASE_LOAD: 'BASE-LOAD'>}, consumes=<ConsumptionType.ELECTRICITY: 'ELECTRICITY'>, fuel=None, energy_usage_model={datetime.datetime(1900, 1, 1, 0, 0): DirectConsumerFunction(typ=<ConsumerType.DIRECT: 'DIRECT'>, energy_usage_type='POWER', condition=None, fuel_rate=None, load=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=11.8)), power_loss_factor=None, consumption_rate_type='STREAM_DAY')}), ElectricityConsumer(component_type=<ComponentType.COMPRESSOR: 'COMPRESSOR'>, name='Gas injection compressor', regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))}, user_defined_category={datetime.datetime(1900, 1, 1, 0, 0): <ConsumerUserDefinedCategoryType.COMPRESSOR: 'COMPRESSOR'>}, consumes=<ConsumptionType.ELECTRICITY: 'ELECTRICITY'>, fuel=None, energy_usage_model={datetime.datetime(1900, 1, 1, 0, 0): CompressorConsumerFunction(typ=<ConsumerType.COMPRESSOR: 'COMPRESSOR'>, energy_usage_type='POWER', condition=None, power_loss_factor=None, model=CompressorSampled(energy_usage_adjustment_constant=0.0, energy_usage_adjustment_factor=1.0, typ=<EnergyModelType.COMPRESSOR_SAMPLED: 'COMPRESSOR_SAMPLED'>, energy_usage_type='POWER', energy_usage_values=[0.0, 4.1, 4.1, 4.1, 4.1, 4.4, 4.8, 5.1, 5.4, 5.8, 6.1, 6.4, 6.8, 7.1, 14.2], rate_values=[0.0, 1.0, 100000000.0, 200000000.0, 210000000.0, 220000000.0, 230000000.0, 240000000.0, 250000000.0, 260000000.0, 270000000.0, 280000000.0, 290000000.0, 300000000.0, 500000000.0], suction_pressure_values=None, discharge_pressure_values=None, power_interpolation_values=None), rate_standard_m3_day=Expression(tokens=Token(tag=<TokenTag.reference: 'ID'>, value='$var.gas_injection_rate_sm3_per_day')), suction_pressure=None, discharge_pressure=None, interstage_control_pressure=None)}), ElectricityConsumer(component_type=<ComponentType.PUMP: 'PUMP'>, name='Produced water reinjection pump', regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))}, user_defined_category={datetime.datetime(1900, 1, 1, 0, 0): <ConsumerUserDefinedCategoryType.PUMP: 'PUMP'>}, consumes=<ConsumptionType.ELECTRICITY: 'ELECTRICITY'>, fuel=None, energy_usage_model={datetime.datetime(1900, 1, 1, 0, 0): PumpConsumerFunction(typ=<ConsumerType.PUMP: 'PUMP'>, energy_usage_type='POWER', condition=Expression(tokens=Token(tag=<TokenTag.reference: 'ID'>, value='$var.produced_water_reinjection_condition')), power_loss_factor=None, model=PumpModel(energy_usage_adjustment_constant=0.0, energy_usage_adjustment_factor=1.0, typ=<EnergyModelType.PUMP_MODEL: 'PUMP_MODEL'>, chart=SingleSpeedChart(speed_rpm=3250.0, rate_actual_m3_hour=[250.0, 360.0, 500.0, 600.0, 667.0, 735.0], polytropic_head_joule_per_kg=[25898.4, 24426.9, 22975.02, 21680.1, 20287.08, 18344.7], efficiency_fraction=[0.59, 0.68, 0.77, 0.8, 0.78, 0.74], typ=<ChartType.SINGLE_SPEED: 'SINGLE_SPEED_CHART'>), head_margin=0.0), rate_standard_m3_day=Expression(tokens=Token(tag=<TokenTag.reference: 'ID'>, value='$var.produced_water_reinjection_total_system_rate_m3_per_day')), suction_pressure=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=10.0)), discharge_pressure=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=200.0)), fluid_density=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1010.0)))}), ElectricityConsumer(component_type=<ComponentType.GENERIC: 'GENERIC'>, name='Sea water injection pump', regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))}, user_defined_category={datetime.datetime(1900, 1, 1, 0, 0): <ConsumerUserDefinedCategoryType.PUMP: 'PUMP'>}, consumes=<ConsumptionType.ELECTRICITY: 'ELECTRICITY'>, fuel=None, energy_usage_model={datetime.datetime(1900, 1, 1, 0, 0): TabulatedConsumerFunction(typ=<ConsumerType.TABULATED: 'TABULATED'>, energy_usage_type='POWER', condition=None, power_loss_factor=None, model=TabulatedData(energy_usage_adjustment_constant=0.0, energy_usage_adjustment_factor=1.0, headers=['RATE', 'POWER'], data=[[0.0, 1.0, 8500.0, 9000.0, 17000.0, 17500.0, 36000.0], [0.0, 3.0, 4.0, 4.0, 6.0, 9.0, 13.0]], typ=<EnergyModelType.TABULATED: 'TABULATED'>), variables=[Variables(name='RATE', expression=Expression(tokens=Token(tag=<TokenTag.reference: 'ID'>, value='$var.salt_water_injection_rate_m3_per_day')))])})]), FuelConsumer(component_type=<ComponentType.GENERIC: 'GENERIC'>, name='Flare', regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))}, user_defined_category={datetime.datetime(1900, 1, 1, 0, 0): <ConsumerUserDefinedCategoryType.FLARE: 'FLARE'>}, consumes=<ConsumptionType.FUEL: 'FUEL'>, fuel={datetime.datetime(1900, 1, 1, 0, 0): FuelType(name='fuel_gas', user_defined_category=None, price=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.5)), emissions=[Emission(name='co2', factor=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=2.19)), tax=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.5)), quota=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=260.0)))])}, energy_usage_model={datetime.datetime(1900, 1, 1, 0, 0): DirectConsumerFunction(typ=<ConsumerType.DIRECT: 'DIRECT'>, energy_usage_type='FUEL', condition=None, fuel_rate=Expression(tokens=Token(tag=<TokenTag.reference: 'ID'>, value='$var.flare_fuel_rate_sm3_day')), load=None, power_loss_factor=None, consumption_rate_type='STREAM_DAY')}), FuelConsumer(component_type=<ComponentType.COMPRESSOR: 'COMPRESSOR'>, name='Gas export compressor', regularity={datetime.datetime(1900, 1, 1, 0, 0): Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.0))}, user_defined_category={datetime.datetime(1900, 1, 1, 0, 0): <ConsumerUserDefinedCategoryType.COMPRESSOR: 'COMPRESSOR'>}, consumes=<ConsumptionType.FUEL: 'FUEL'>, fuel={datetime.datetime(1900, 1, 1, 0, 0): FuelType(name='fuel_gas', user_defined_category=None, price=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.5)), emissions=[Emission(name='co2', factor=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=2.19)), tax=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=1.5)), quota=Expression(tokens=Token(tag=<TokenTag.numeric: 'NUMBER'>, value=260.0)))])}, energy_usage_model={datetime.datetime(1900, 1, 1, 0, 0): CompressorConsumerFunction(typ=<ConsumerType.COMPRESSOR: 'COMPRESSOR'>, energy_usage_type='FUEL', condition=None, power_loss_factor=None, model=CompressorSampled(energy_usage_adjustment_constant=0.0, energy_usage_adjustment_factor=1.0, typ=<EnergyModelType.COMPRESSOR_SAMPLED: 'COMPRESSOR_SAMPLED'>, energy_usage_type='FUEL', energy_usage_values=[0.0, 50000.0, 50000.0, 130000.0, 170000.0], rate_values=[0.0, 0.1, 3000000.0, 3500000.0, 7000000.0], suction_pressure_values=None, discharge_pressure_values=None, power_interpolation_values=None), rate_standard_m3_day=Expression(tokens=Token(tag=<TokenTag.reference: 'ID'>, value='$var.gas_export_rate_sm3_per_day')), suction_pressure=None, discharge_pressure=None, interstage_control_pressure=None)})] direct_emitters=[]
+reg {'e852d5d4b9101f154db921ece82a697c': TimeSeriesFloat(timesteps=[datetime.datetime(2020, 1, 1, 0, 0), datetime.datetime(2021, 1, 1, 0, 0), datetime.datetime(2022, 1, 1, 0, 0), datetime.datetime(2023, 1, 1, 0, 0), datetime.datetime(2024, 1, 1, 0, 0), datetime.datetime(2024, 12, 1, 0, 0), datetime.datetime(2026, 1, 1, 0, 0), datetime.datetime(2027, 1, 1, 0, 0), datetime.datetime(2028, 1, 1, 0, 0), datetime.datetime(2029, 1, 1, 0, 0), datetime.datetime(2030, 1, 1, 0, 0), datetime.datetime(2031, 1, 1, 0, 0)], values=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], unit=<Unit.NONE: 'N/A'>)}
 {
   "timesteps": [
     "2020-01-01 00:00:00",
@@ -51,13 +53,13 @@
           "name": "co2",
           "rate": [
             612.4948,
-            606.4435,
+            606.4436,
             677.538,
             695.1672,
             746.8714,
             756.4229,
             754.6835,
-            778.0674,
+            778.0675,
             742.4678,
             576.2036,
             574.433,
@@ -128,25 +130,7 @@
         1,
         1
       ],
-      "emissions": {
-        "co2": {
-          "name": "co2",
-          "rate": [
-            612.4948,
-            606.4435,
-            677.538,
-            695.1672,
-            746.8714,
-            756.4229,
-            754.6835,
-            778.0674,
-            742.4678,
-            576.2036,
-            574.433,
-            0.0
-          ]
-        }
-      },
+      "emissions": {},
       "energy_usage": [
         279678.0,
         276914.9,
@@ -256,202 +240,6 @@
         32.26232,
         32.92043,
         32.79003,
-        0.0
-      ]
-    },
-    {
-      "componentType": "COMPRESSOR",
-      "component_level": "CONSUMER",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
-      "name": "Gas export compressor",
-      "timesteps": [
-        "2020-01-01 00:00:00",
-        "2021-01-01 00:00:00",
-        "2022-01-01 00:00:00",
-        "2023-01-01 00:00:00",
-        "2024-01-01 00:00:00",
-        "2025-01-01 00:00:00",
-        "2026-01-01 00:00:00",
-        "2027-01-01 00:00:00",
-        "2028-01-01 00:00:00",
-        "2029-01-01 00:00:00",
-        "2030-01-01 00:00:00",
-        "2031-01-01 00:00:00"
-      ],
-      "is_valid": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1
-      ],
-      "emissions": {
-        "co2": {
-          "name": "co2",
-          "rate": [
-            284.7,
-            287.2029,
-            289.7057,
-            292.2086,
-            294.9234,
-            297.2143,
-            299.7171,
-            309.7286,
-            284.7,
-            109.5,
-            109.5,
-            0.0
-          ]
-        }
-      },
-      "energy_usage": [
-        130000.0,
-        131142.9,
-        132285.7,
-        133428.6,
-        134668.2,
-        135714.3,
-        136857.1,
-        141428.6,
-        130000.0,
-        50000.0,
-        50000.0,
-        0.0
-      ],
-      "energy_usage_unit": "Sm3/d"
-    },
-    {
-      "componentType": "COMPRESSOR",
-      "component_level": "CONSUMER",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
-      "name": "Gas injection compressor",
-      "timesteps": [
-        "2020-01-01 00:00:00",
-        "2021-01-01 00:00:00",
-        "2022-01-01 00:00:00",
-        "2023-01-01 00:00:00",
-        "2024-01-01 00:00:00",
-        "2025-01-01 00:00:00",
-        "2026-01-01 00:00:00",
-        "2027-01-01 00:00:00",
-        "2028-01-01 00:00:00",
-        "2029-01-01 00:00:00",
-        "2030-01-01 00:00:00",
-        "2031-01-01 00:00:00"
-      ],
-      "is_valid": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1
-      ],
-      "emissions": {},
-      "energy_usage": [
-        4.89,
-        5.01,
-        5.13,
-        5.56,
-        5.754727,
-        6.13,
-        6.25,
-        6.37,
-        6.52,
-        6.64,
-        6.8,
-        0.0
-      ],
-      "energy_usage_unit": "MW",
-      "power": [
-        4.89,
-        5.01,
-        5.13,
-        5.56,
-        5.754727,
-        6.13,
-        6.25,
-        6.37,
-        6.52,
-        6.64,
-        6.8,
-        0.0
-      ]
-    },
-    {
-      "componentType": "PUMP",
-      "component_level": "CONSUMER",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
-      "name": "Produced water reinjection pump",
-      "timesteps": [
-        "2020-01-01 00:00:00",
-        "2021-01-01 00:00:00",
-        "2022-01-01 00:00:00",
-        "2023-01-01 00:00:00",
-        "2024-01-01 00:00:00",
-        "2025-01-01 00:00:00",
-        "2026-01-01 00:00:00",
-        "2027-01-01 00:00:00",
-        "2028-01-01 00:00:00",
-        "2029-01-01 00:00:00",
-        "2030-01-01 00:00:00",
-        "2031-01-01 00:00:00"
-      ],
-      "is_valid": [
-        0,
-        0,
-        1,
-        1,
-        1,
-        1,
-        0,
-        1,
-        1,
-        1,
-        1,
-        1
-      ],
-      "emissions": {},
-      "energy_usage": [
-        0.0,
-        0.0,
-        4.681676,
-        4.865702,
-        4.522214,
-        4.681676,
-        4.681676,
-        4.681676,
-        4.185565,
-        4.507458,
-        4.865702,
-        0.0
-      ],
-      "energy_usage_unit": "MW",
-      "power": [
-        0.0,
-        0.0,
-        4.681676,
-        4.865702,
-        4.522214,
-        4.681676,
-        4.681676,
-        4.681676,
-        4.185565,
-        4.507458,
-        4.865702,
         0.0
       ]
     },

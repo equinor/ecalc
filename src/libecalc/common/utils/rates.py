@@ -654,7 +654,30 @@ class TimeSeriesStreamDayRate(TimeSeriesFloat):
     a thing in the "component layer"...which is more or less network layer?
     """
 
-    ...
+    def __add__(self, other: TimeSeriesStreamDayRate) -> TimeSeriesStreamDayRate:
+        """
+        Temp? Check if we need to have the ability to add timeseries rate at domain level
+        We might need it, but it may also be possible to wait until returning to user
+        Args:
+            other:
+
+        Returns:
+
+        """
+        # Check for same unit
+        if not self.unit == other.unit:
+            raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")
+
+        if isinstance(other, TimeSeriesStreamDayRate):
+            return TimeSeriesStreamDayRate(
+                timesteps=self.timesteps,
+                values=list(elementwise_sum(self.values, other.values)),
+                unit=self.unit,
+            )
+        else:
+            raise TypeError(
+                f"TimeSeriesRate can only be added to another TimeSeriesRate. Received type '{str(other.__class__)}'."
+            )
 
 
 class TimeSeriesCalendarDayRate(TimeSeriesFloat):

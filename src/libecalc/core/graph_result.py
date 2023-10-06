@@ -954,7 +954,7 @@ class GraphResult:
             self.emission_results,
             regularities,
         )
-        asset_aggregated_emissions = aggregate_emissions(emission_dto_results.values())
+        asset_aggregated_emissions = aggregate_emissions(list(emission_dto_results.values()))
 
         asset_power_core = reduce(
             operator.add,
@@ -1016,7 +1016,7 @@ class GraphResult:
         regularities: Union[TimeSeriesFloat, Dict[str, TimeSeriesFloat]],
     ) -> Dict[str, Dict[str, PartialEmissionResult]]:
         """
-        Emissions by consumer id and emisssion name
+        Emissions by consumer id and emission name
         Args:
             emission_core_results:
             regularities:

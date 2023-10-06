@@ -3,13 +3,6 @@
         "09c1b79cf6cf1ef0773a194679246a4a": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -41,13 +34,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -63,13 +49,6 @@
                     ]
                 },
                 "power_capacity_margin": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -97,13 +76,6 @@
         "5e69b2c1b61362f59f53c7b2f02ed4d9": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -120,13 +92,6 @@
                 },
                 "id": "5e69b2c1b61362f59f53c7b2f02ed4d9",
                 "inlet_liquid_rate_m3_per_day": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -202,13 +167,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -244,13 +202,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -287,13 +238,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -324,13 +268,6 @@
         "656e1bc8df0c83c2dda044b7bd654631": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -378,13 +315,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -410,13 +340,6 @@
             "sub_components": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -433,13 +356,6 @@
                     },
                     "id": "5e69b2c1b61362f59f53c7b2f02ed4d9",
                     "inlet_liquid_rate_m3_per_day": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -515,13 +431,6 @@
                         ]
                     },
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -557,13 +466,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -600,13 +502,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -633,13 +528,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -656,13 +544,6 @@
                     },
                     "id": "81798f85c9244fbd547076bbaa2d5746",
                     "inlet_liquid_rate_m3_per_day": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -738,13 +619,6 @@
                         ]
                     },
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -780,13 +654,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -823,13 +690,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -856,13 +716,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -879,13 +732,6 @@
                     },
                     "id": "81fd4a36dee423b6bf8143654336d3cd",
                     "inlet_liquid_rate_m3_per_day": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -961,13 +807,6 @@
                         ]
                     },
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -1003,13 +842,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -1046,13 +878,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -1082,13 +907,6 @@
         "81798f85c9244fbd547076bbaa2d5746": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -1105,13 +923,6 @@
                 },
                 "id": "81798f85c9244fbd547076bbaa2d5746",
                 "inlet_liquid_rate_m3_per_day": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -1187,13 +998,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -1229,13 +1033,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1272,13 +1069,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1309,13 +1099,6 @@
         "81fd4a36dee423b6bf8143654336d3cd": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -1332,13 +1115,6 @@
                 },
                 "id": "81fd4a36dee423b6bf8143654336d3cd",
                 "inlet_liquid_rate_m3_per_day": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -1414,13 +1190,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -1456,13 +1225,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1499,13 +1261,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1536,13 +1291,6 @@
         "9ecb7728acb755a3356d53ef62eac57c": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -1577,13 +1325,6 @@
                     "1": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1639,13 +1380,6 @@
                                 250.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1669,13 +1403,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1731,13 +1458,6 @@
                                 250.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1761,13 +1481,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1823,13 +1536,6 @@
                                 250.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1855,13 +1561,6 @@
                     "2": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1917,13 +1616,6 @@
                                 125.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -1947,13 +1639,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2009,13 +1694,6 @@
                                 125.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2039,13 +1717,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2101,13 +1772,6 @@
                                 125.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2147,13 +1811,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -2178,13 +1835,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -2240,13 +1890,6 @@
                         125.0
                     ],
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -2270,13 +1913,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -2332,13 +1968,6 @@
                         125.0
                     ],
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -2362,13 +1991,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -2424,13 +2046,6 @@
                         125.0
                     ],
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -2458,13 +2073,6 @@
         "b16b9265fc6f9743594a2441fcc0d7c8": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -2499,13 +2107,6 @@
                     "1": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2545,13 +2146,6 @@
                             "max_standard_rate": null,
                             "name": "compressor1",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2682,13 +2276,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2728,13 +2315,6 @@
                             "max_standard_rate": null,
                             "name": "compressor2",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2865,13 +2445,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -2911,13 +2484,6 @@
                             "max_standard_rate": null,
                             "name": "compressor3",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3050,13 +2616,6 @@
                     "2": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3096,13 +2655,6 @@
                             "max_standard_rate": null,
                             "name": "compressor1",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3233,13 +2785,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3279,13 +2824,6 @@
                             "max_standard_rate": null,
                             "name": "compressor2",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3416,13 +2954,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3462,13 +2993,6 @@
                             "max_standard_rate": null,
                             "name": "compressor3",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3601,13 +3125,6 @@
                     "3": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3647,13 +3164,6 @@
                             "max_standard_rate": null,
                             "name": "compressor1",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3784,13 +3294,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3830,13 +3333,6 @@
                             "max_standard_rate": null,
                             "name": "compressor2",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -3967,13 +3463,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -4013,13 +3502,6 @@
                             "max_standard_rate": null,
                             "name": "compressor3",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -4166,13 +3648,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -4197,13 +3672,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -4243,13 +3711,6 @@
                     "max_standard_rate": null,
                     "name": "compressor1",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -4380,13 +3841,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -4426,13 +3880,6 @@
                     "max_standard_rate": null,
                     "name": "compressor2",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -4563,13 +4010,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -4609,13 +4049,6 @@
                     "max_standard_rate": null,
                     "name": "compressor3",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -4750,13 +4183,6 @@
         "b80d0e9e3b460f3aa72d02c927e75f3b": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -4803,13 +4229,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -4840,13 +4259,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -4882,13 +4294,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -4925,13 +4330,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -4968,13 +4366,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -5005,13 +4396,6 @@
         "c24dc4da68e0455a82e0f549eb2fa342": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -5058,13 +4442,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -5095,13 +4472,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -5137,13 +4507,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -5180,13 +4543,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -5223,13 +4579,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -5260,13 +4609,6 @@
         "cbc0427cf665c504a8081b89cf167ee3": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -5314,13 +4656,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -5346,13 +4681,6 @@
             "sub_components": [
                 {
                     "energy_usage": {
-                        "rate_type": "CALENDAR_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5399,13 +4727,6 @@
                         ]
                     },
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5436,13 +4757,6 @@
                         ]
                     },
                     "recirculation_loss": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5478,13 +4792,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -5521,13 +4828,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -5564,13 +4864,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -5597,13 +4890,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "CALENDAR_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5650,13 +4936,6 @@
                         ]
                     },
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5687,13 +4966,6 @@
                         ]
                     },
                     "recirculation_loss": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5729,13 +5001,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -5772,13 +5037,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -5815,13 +5073,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -5848,13 +5099,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "CALENDAR_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5901,13 +5145,6 @@
                         ]
                     },
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5938,13 +5175,6 @@
                         ]
                     },
                     "recirculation_loss": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2022-01-01 00:00:00",
                             "2024-01-01 00:00:00",
@@ -5980,13 +5210,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -6023,13 +5246,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -6066,13 +5282,6 @@
                                     ]
                                 },
                                 "rate": {
-                                    "rate_type": "STREAM_DAY",
-                                    "regularity": [
-                                        1.0,
-                                        1.0,
-                                        1.0,
-                                        1.0
-                                    ],
                                     "timesteps": [
                                         "2022-01-01 00:00:00",
                                         "2024-01-01 00:00:00",
@@ -6102,13 +5311,6 @@
         "e097ee21d82b7bc26d1385f7f904757c": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6155,13 +5357,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6192,13 +5387,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6234,13 +5422,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -6277,13 +5458,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -6320,13 +5494,6 @@
                                 ]
                             },
                             "rate": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
                                     "2024-01-01 00:00:00",
@@ -6360,13 +5527,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6382,13 +5542,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6404,13 +5557,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6437,13 +5583,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6459,13 +5598,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6481,13 +5613,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6514,13 +5639,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6536,13 +5654,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
@@ -6558,13 +5669,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2022-01-01 00:00:00",
                         "2024-01-01 00:00:00",
