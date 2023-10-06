@@ -294,7 +294,7 @@ class GraphResult:
                 pressures = model.suction_pressure
 
                 if pressure_type.value == CompressorPressureType.OUTLET_PRESSURE:
-                    pressures = model_subset.discharge_pressure
+                    pressures = model.discharge_pressure
 
                 if pressures is None:
                     pressures = math.nan
