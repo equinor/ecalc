@@ -188,6 +188,7 @@ def _direct_mapper(energy_usage_model: Dict, references: References = None) -> d
     :return:
     """
     is_power_consumer = EcalcYamlKeywords.load in energy_usage_model
+
     return dto.DirectConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER if is_power_consumer else EnergyUsageType.FUEL,
         load=energy_usage_model.get(EcalcYamlKeywords.load),

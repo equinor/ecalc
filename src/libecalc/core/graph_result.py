@@ -913,8 +913,6 @@ class GraphResult:
             # )
 
         for installation in asset.installations:
-            print(f"inst {installation}")
-            print(f"reg {regularities}")
             regularity = regularities[installation.id]  # Already evaluated regularities
             for direct_emitter in installation.direct_emitters:
                 energy_usage = TimeSeriesRate(
