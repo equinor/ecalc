@@ -28,7 +28,7 @@ from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
 from numpy.typing import NDArray
-from pydantic import Extra, validator
+from pydantic import Extra, root_validator, validator
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
 from typing_extensions import Self
@@ -704,18 +704,16 @@ class TimeSeriesRate(TimeSeries[float]):
     rate_type: RateType
     regularity: List[float]
 
-    # Disallow, Require explicit
-    # @validator("regularity", pre=True, always=True)
-    # def set_regularity(cls, regularity: Optional[List[float]], values: Dict[str, Any]) -> List[float]:
-    #     if (
-    #         regularity is not None and regularity != []
-    #     ):  # TODO: Current workaround. To be handled when regularity is handled correctly
-    #         return regularity
-    #     try:
-    #         return [1] * len(values["values"])
-    #     except KeyError:
-    #         # 'Values' of timeseries is not defined. Not this validators responsibility.
-    #         return []
+    @root_validator
+    def set_values(cls, values):
+        regularity_length = len(values["regularity"])
+        values_length = len(values["regularity"])
+        if regularity_length != values_length:
+            raise ProgrammingError(
+                f"values {values_length} and regularity {regularity_length} does not have same length!"
+            )
+
+        return values
 
     def __add__(self, other: TimeSeriesRate) -> TimeSeriesRate:
         # Check for same unit

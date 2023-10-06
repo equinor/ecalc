@@ -397,7 +397,7 @@ class GraphResult:
                             asv_recirculation_loss_mw=TimeSeriesRate(
                                 timesteps=model.timesteps,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                                 values=stage_result.asv_recirculation_loss_mw
                                 if stage_result.asv_recirculation_loss_mw is not None
                                 else [math.nan] * len(model.timesteps),
@@ -452,7 +452,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=stage_result.energy_usage_unit,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             mass_rate_kg_per_hr=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -461,7 +461,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.KILO_PER_HOUR,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             mass_rate_before_asv_kg_per_hr=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -470,7 +470,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.KILO_PER_HOUR,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             power=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -479,7 +479,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=stage_result.power_unit,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             pressure_is_choked=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
@@ -517,7 +517,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.values,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 actual_rate_before_asv_m3_per_hr=TimeSeriesRate(
                                     timesteps=model.timesteps,
@@ -526,7 +526,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.values,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 kappa=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -542,7 +542,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.KG_M3,
                                     rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.values,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 pressure=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -581,7 +581,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.values,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 actual_rate_before_asv_m3_per_hr=TimeSeriesRate(
                                     timesteps=model.timesteps,
@@ -590,7 +590,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.values,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 kappa=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -606,7 +606,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.KG_M3,
                                     rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.values,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 pressure=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -659,7 +659,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=model.turbine_result.energy_usage_unit,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             exceeds_maximum_load=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
@@ -675,7 +675,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             is_valid=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
@@ -691,7 +691,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=model.turbine_result.energy_usage_unit,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             power=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -700,7 +700,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=model.turbine_result.power_unit,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.values,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                         )
                         if model.turbine_result is not None
@@ -716,7 +716,7 @@ class GraphResult:
                             values=model.rate_sm3_day[0],
                             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.values,
+                            regularity=regularity.for_timesteps(model.timesteps).values,
                         )
                     else:
                         rate = TimeSeriesRate(
@@ -724,7 +724,7 @@ class GraphResult:
                             values=model.rate_sm3_day,
                             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.values,
+                            regularity=regularity.for_timesteps(model.timesteps).values,
                         )
 
                     models.extend(
@@ -806,7 +806,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                     rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.values,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 inlet_pressure_bar=TimeSeriesFloat(
                                     timesteps=model.timesteps,
