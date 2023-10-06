@@ -256,9 +256,9 @@ MODELS:
 
 
 For a variable speed compressor chart it is possible to add a surge control margin. This is currently done by giving a
-fraction or percentage as input. This percentage/fraction is applied to the average of the minimum flow rate for all
-speed curves in the compressor chart, to find how much the minimum flow should be increased. The increase in minimum
-flow will be the same for all speed curves. The corresponding head and efficiency values for the new minimum flow rate
+fraction or percentage as input. The control margin is used to calculate the increase in minimum flow, i.e. as a percentage 
+or fraction of the rate difference between minimum- and maximum flow, for the given speed. The increase in minimum
+flow is calculated individually for each speed curve. The corresponding head and efficiency values for the new minimum flow rate
 is found by interpolation along the speed curves. The same compressor chart can be used for multiple compressor stages,
 but with different surge control margins. Hence, the surge control margin is defined when setting up the stages in a
 [`Variable speed compressor train model`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md) or [`Variable speed compressor train model with multiple streams and pressures`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
