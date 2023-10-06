@@ -37,11 +37,9 @@ def get_outlet_pressure(list_index: int, timestep: datetime, models: List[Compre
     return models[list_index].requested_outlet_pressure.for_timestep(timestep).values[0]
 
 
-def test_requested_pressures_compressor_train_no_system_temporal_model(result: EcalcModelResult):
+def test_requested_pressures_compressor_train_temporal_model(result: EcalcModelResult):
     """
-    Check requested inlet- and outlet pressures for compressor trains and compressor systems.
-    Use temporal models, different inlet/outlet pressures for each compressor in the system,
-    and several priorities (operational settings).
+    Check requested inlet- and outlet pressures for compressor trains, using temporal models.
 
     :param result: eCalc result including models with requested pressures
     :return: Nothing
@@ -63,6 +61,20 @@ def test_requested_pressures_compressor_train_no_system_temporal_model(result: E
     # Temporal model 2
     assert requested_inlet_pressure_date2 == 40.0
     assert requested_outlet_pressure_date2 == 260.0
+
+
+def test_requested_pressures_compressor_system_temporal_model(result: EcalcModelResult):
+    """
+    Check requested inlet- and outlet pressures for compressor systems.
+    Use temporal models, different inlet/outlet pressures for each compressor in the system,
+    and several priorities (operational settings).
+
+    :param result: eCalc result including models with requested pressures
+    :return: Nothing
+    """
+    date_temporal_1 = datetime(2018, 1, 1)
+    date_temporal_2 = datetime(2019, 1, 1)
+    models = result.models
 
     # Compressor system with temporal model and inlet/outlet pressures per compressor
     requested_inlet_pressure_train1 = get_inlet_pressure(1, date_temporal_1, models)
