@@ -268,6 +268,7 @@ class TestTimeSeriesRate:
             values=[10] * 16,
             regularity=[1, 1, 1, 1, 0.9, 0.9, 0.9, 0.9, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0],
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            rate_type=RateType.STREAM_DAY,
         )
         rate2 = TimeSeriesRate(
             timesteps=[
@@ -279,6 +280,7 @@ class TestTimeSeriesRate:
             values=[10] * 16,
             regularity=[1.0, 0.9, 0.5, 0.0] * 4,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            rate_type=RateType.STREAM_DAY,
         )
 
         expected_values = [20] * 16  # all values are 10
@@ -303,6 +305,8 @@ class TestTimeseriesRateToVolumes:
             ],
             values=[3, 4, 5, 6],
             unit=Unit.KILO_PER_DAY,
+            rate_type=RateType.STREAM_DAY,
+            regularity=[1.0],
         )
         volumes = rates.to_volumes()
         assert volumes.values == [9, 12, 10]
@@ -324,6 +328,8 @@ class TestTimeseriesRateToVolumes:
             ],
             values=[1, 2, 3, 4],
             unit=Unit.KILO_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
 
         rates_monthly = rates.resample(freq=Frequency.MONTH)
@@ -353,6 +359,8 @@ class TestTimeseriesRateToVolumes:
             ],
             values=[1, 2, 3, 4, 5, 6, 7, 8],
             unit=Unit.KILO_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
         rates_yearly = rates.resample(freq=Frequency.YEAR)
         # now with average rates in the new sampling period
@@ -377,6 +385,8 @@ class TestTimeseriesRateToVolumes:
             ],
             values=[1, 2, 3, 4, 5, 6, 7],
             unit=Unit.KILO_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
         rates_monthly = rates.resample(freq=Frequency.MONTH)
         rates_yearly = rates.resample(freq=Frequency.YEAR)
@@ -551,12 +561,16 @@ class TestTimeSeriesMerge:
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
             unit=Unit.NORWEGIAN_KRONER,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
 
         second = TimeSeriesRate(
             timesteps=[datetime(2020, 1, 1)],
             values=[21],
             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
 
         with pytest.raises(ValueError) as exc_info:
@@ -569,12 +583,16 @@ class TestTimeSeriesMerge:
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
             unit=Unit.NORWEGIAN_KRONER,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
 
         second = TimeSeriesRate(
             timesteps=[datetime(2020, 1, 1), datetime(2021, 1, 1)],
             values=[21, 22],
             unit=Unit.NORWEGIAN_KRONER,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
 
         with pytest.raises(ValueError) as exc_info:
@@ -587,6 +605,8 @@ class TestTimeSeriesMerge:
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
             unit=Unit.NORWEGIAN_KRONER,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
 
         second = TimeSeriesBoolean(
@@ -609,6 +629,7 @@ class TestTimeSeriesMerge:
             values=[11],
             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
             rate_type=RateType.STREAM_DAY,
+            regularity=[1.0],
         )
 
         second = TimeSeriesRate(
@@ -616,6 +637,7 @@ class TestTimeSeriesMerge:
             values=[21],
             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
+            regularity=[1.0],
         )
 
         with pytest.raises(ValueError) as exc_info:

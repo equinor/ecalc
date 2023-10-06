@@ -4,7 +4,7 @@ from typing import List
 import pandas as pd
 from libecalc import dto
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesRate
+from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.core.result.emission import EmissionResult
@@ -92,19 +92,19 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
 def get_emission_with_only_rate(rates: List[float], name: str):
     timesteps = list(pd.date_range(start="2020-01-01", freq="Y", periods=len(rates)))
     return EmissionResult(
-        rate=TimeSeriesRate(
+        rate=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=rates,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         ),
         timesteps=timesteps,
         name=name,
-        tax=TimeSeriesRate(
+        tax=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=[0] * len(rates),
             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
         ),
-        quota=TimeSeriesRate(
+        quota=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=[0] * len(rates),
             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
