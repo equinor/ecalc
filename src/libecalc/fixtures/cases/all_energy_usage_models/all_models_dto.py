@@ -1024,7 +1024,6 @@ def all_energy_usage_models_dto(
     genset_sampled,
     generic_from_design_point_compressor_train_consumer,
     simplified_variable_speed_compressor_train_known_stages_consumer,
-    simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model,
     simplified_variable_speed_compressor_train_unknown_stages_consumer,
     deh,
     late_start_consumer,
@@ -1046,7 +1045,6 @@ def all_energy_usage_models_dto(
     compressor_system,
     turbine_driven_compressor_train,
     compressor_system_variable_speed_compressor_trains,
-    compressor_system_variable_speed_compressor_trains_multiple_suction_discharge_pressures,
     methane_direct,
     flare,
     all_energy_usage_models_variables,
@@ -1079,7 +1077,6 @@ def all_energy_usage_models_dto(
                             consumers=[
                                 generic_from_design_point_compressor_train_consumer,
                                 simplified_variable_speed_compressor_train_known_stages_consumer,
-                                simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model,
                                 simplified_variable_speed_compressor_train_unknown_stages_consumer,
                                 deh,
                                 late_start_consumer,
@@ -1104,7 +1101,6 @@ def all_energy_usage_models_dto(
                         compressor_system,
                         turbine_driven_compressor_train,
                         compressor_system_variable_speed_compressor_trains,
-                        compressor_system_variable_speed_compressor_trains_multiple_suction_discharge_pressures,
                     ],
                     direct_emitters=[
                         methane_direct,
