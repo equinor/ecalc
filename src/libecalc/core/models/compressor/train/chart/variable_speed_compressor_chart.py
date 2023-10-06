@@ -36,8 +36,8 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
             "Any usage of this functionality is at your own risk."
         )
         new_curves = []
-        adjust_minimum_rate_by = np.average([np.min(curve.rate) for curve in self.curves]) * control_margin
         for curve in self.curves:
+            adjust_minimum_rate_by = (np.max(curve.rate) - np.min(curve.rate)) * control_margin
             new_minimum_rate = np.min(curve.rate) + adjust_minimum_rate_by
             rate_head_efficiency_array = np.vstack((curve.rate, curve.head, curve.efficiency))
             # remove points with rate less than the new minimum rate (i.e. chop off left part of chart curve)
