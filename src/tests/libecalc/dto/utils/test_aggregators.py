@@ -202,7 +202,9 @@ class TestAggregateEmissions:
                     {
                         emission_name: PartialEmissionResult.from_emission_core_result(
                             emission,
-                            regularity=TimeSeriesFloat(values=[1.0], timesteps=emission.timesteps, unit=Unit.NONE),
+                            regularity=TimeSeriesFloat(
+                                values=[1.0] * len(emission.timesteps), timesteps=emission.timesteps, unit=Unit.NONE
+                            ),
                         )
                         for fuel_consumer_id in graph_result.graph.get_successors(installation.id)
                         for emission_name, emission in graph_result.emission_results[fuel_consumer_id].items()
@@ -218,12 +220,14 @@ class TestAggregateEmissions:
                         emission_name: PartialEmissionResult.from_emission_core_result(
                             emission_result=emission_result,
                             regularity=TimeSeriesFloat(
-                                values=[1.0], timesteps=emission_result.timesteps, unit=Unit.NONE
+                                values=[1.0] * len(emission_result.timesteps),
+                                timesteps=emission_result.timesteps,
+                                unit=Unit.NONE,
                             ),
                         )
-                        for emission_name, emission_result in emission_results
-                        for consumer_name, emission_results in graph_result.emission_results.items()
+                        for emission_name, emission_result in emission_results.items()
                     }
+                    for consumer_name, emission_results in graph_result.emission_results.items()
                 ]
             )
 
