@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.4.4](https://github.com/equinor/ecalc/compare/v8.4.3...v8.4.4) (2023-10-09)
+
+
+### Bug Fixes
+
+* handle requested pressures correct for compressors without system correctly ([#233](https://github.com/equinor/ecalc/issues/233)) ([#234](https://github.com/equinor/ecalc/issues/234)) ([d07c6d2](https://github.com/equinor/ecalc/commit/d07c6d259d60775ba505f4ed4eeba3ae34af8e7d))
+
 ## [8.4.3](https://github.com/equinor/ecalc/compare/v8.4.2...v8.4.3) (2023-10-04)
 
 
