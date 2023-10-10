@@ -707,3 +707,11 @@ def test_recirculate_mixing_streams_with_zero_mass_rate(
     assert result.recirculation_loss[2] < result.recirculation_loss[3]
     assert result.recirculation_loss[4] < result.recirculation_loss[5]
     assert result.power[0] < result.power[2] < result.power[4]  # more and more of the heavy fluid
+    assert result.stage_results[1].chart_area_flags == [
+        ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE.value,
+        ChartAreaFlag.NO_FLOW_RATE.value,
+        ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE.value,
+        ChartAreaFlag.NO_FLOW_RATE.value,
+        ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE.value,
+        ChartAreaFlag.NO_FLOW_RATE.value,
+    ]
