@@ -28,7 +28,7 @@ def _setup_intensity_testcase(
             timesteps=time_vector,
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.STREAM_DAY,
-            regularity=[1.0],
+            regularity=[1.0] * len(time_vector),
         ),
         TimeSeriesVolumes(values=list(emission_cumulative), timesteps=time_vector, unit=Unit.KILO),
         TimeSeriesRate(
@@ -36,7 +36,7 @@ def _setup_intensity_testcase(
             timesteps=time_vector,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.STREAM_DAY,
-            regularity=[1.0],
+            regularity=[1.0] * len(time_vector),
         ),
         TimeSeriesVolumes(values=list(hcexport_cumulative), timesteps=time_vector, unit=Unit.STANDARD_CUBIC_METER),
     )

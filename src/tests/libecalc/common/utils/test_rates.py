@@ -265,8 +265,8 @@ class TestTimeSeriesRate:
                 datetime(2023, 1, 7),
                 datetime(2023, 1, 9),
             ],
-            values=[10] * 16,
-            regularity=[1, 1, 1, 1, 0.9, 0.9, 0.9, 0.9, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0],
+            values=[10] * 4,
+            regularity=[1, 0.9, 0.5, 0.0],
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.STREAM_DAY,
         )
@@ -277,13 +277,13 @@ class TestTimeSeriesRate:
                 datetime(2023, 1, 7),
                 datetime(2023, 1, 9),
             ],
-            values=[10] * 16,
-            regularity=[1.0, 0.9, 0.5, 0.0] * 4,
+            values=[10] * 4,
+            regularity=[1.0, 0.9, 0.5, 0.0],
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.STREAM_DAY,
         )
 
-        expected_values = [20] * 16  # all values are 10
+        expected_values = [20] * 4  # all values are 10
         expected_regularity = [
             (regularity1 + regularity2) / 2 for regularity1, regularity2 in zip(rate1.regularity, rate2.regularity)
         ]
@@ -306,7 +306,7 @@ class TestTimeseriesRateToVolumes:
             values=[3, 4, 5, 6],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.STREAM_DAY,
-            regularity=[1.0],
+            regularity=[1.0] * 4,
         )
         volumes = rates.to_volumes()
         assert volumes.values == [9, 12, 10]
@@ -329,7 +329,7 @@ class TestTimeseriesRateToVolumes:
             values=[1, 2, 3, 4],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0],
+            regularity=[1.0] * 4,
         )
 
         rates_monthly = rates.resample(freq=Frequency.MONTH)
@@ -360,7 +360,7 @@ class TestTimeseriesRateToVolumes:
             values=[1, 2, 3, 4, 5, 6, 7, 8],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0],
+            regularity=[1.0] * 8,
         )
         rates_yearly = rates.resample(freq=Frequency.YEAR)
         # now with average rates in the new sampling period
@@ -386,7 +386,7 @@ class TestTimeseriesRateToVolumes:
             values=[1, 2, 3, 4, 5, 6, 7],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0],
+            regularity=[1.0] * 7,
         )
         rates_monthly = rates.resample(freq=Frequency.MONTH)
         rates_yearly = rates.resample(freq=Frequency.YEAR)
@@ -592,7 +592,7 @@ class TestTimeSeriesMerge:
             values=[21, 22],
             unit=Unit.NORWEGIAN_KRONER,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0],
+            regularity=[1.0] * 2,
         )
 
         with pytest.raises(ValueError) as exc_info:

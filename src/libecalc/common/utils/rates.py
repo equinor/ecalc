@@ -594,11 +594,12 @@ class TimeSeriesVolumes(TimeSeries[float]):
             delta_days = calculate_delta_days(self.timesteps).tolist()
             average_rates = [volume / days for volume, days in zip(self.values, delta_days)]
 
-            if regularity and len(regularity) == len(self.timesteps) - 1:
+            if regularity is not None and isinstance(regularity, list) and len(regularity) == len(self.timesteps) - 1:
                 regularity.append(0.0)
             average_rates.append(0.0)
         else:
             average_rates = self.values
+            regularity = [1.0] * len(self.timesteps)
 
         return TimeSeriesRate(
             timesteps=self.timesteps,
@@ -705,12 +706,12 @@ class TimeSeriesRate(TimeSeries[float]):
     regularity: List[float]
 
     @root_validator
-    def set_values(cls, values):
+    def check_regularity_length(cls, values):
         regularity_length = len(values["regularity"])
-        values_length = len(values["regularity"])
-        if regularity_length != values_length:
+        timesteps_length = len(values["timesteps"])
+        if regularity_length != timesteps_length:
             raise ProgrammingError(
-                f"values {values_length} and regularity {regularity_length} does not have same length!"
+                f"Regularity must correspond to nr of timesteps. Length of timesteps ({timesteps_length}) !=  length of regularity ({regularity_length})."
             )
 
         return values
