@@ -290,15 +290,22 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def chart_area_status(self) -> ChartAreaFlag:
-        chart_area_failure = [
-            stage.chart_area_flag
-            for stage in self.stage_results
-            if stage.chart_area_flag != ChartAreaFlag.INTERNAL_POINT
-        ]
+        """Checks where the operational points are placed in relation to the compressor charts in a compressor train.
+
+        Returns:
+            A chart area flag describing the placement of the operational points in the compressor train.
+            If several of the compressors in the compressor train is out of capacity, only the first failure will
+            be returned.
+        """
+        chart_area_failure = [stage.chart_area_flag for stage in self.stage_results if not stage.point_is_valid]
         if len(chart_area_failure) > 0:
             return chart_area_failure[0]
         else:
-            return [stage.chart_area_flag for stage in self.stage_results][0]
+            chart_area_flag = [stage.chart_area_flag for stage in self.stage_results if stage.point_is_valid]
+            if ChartAreaFlag.NO_FLOW_RATE in chart_area_flag:
+                return ChartAreaFlag.NO_FLOW_RATE
+            else:
+                return chart_area_flag[0]
 
     @property
     def is_valid(self) -> bool:
