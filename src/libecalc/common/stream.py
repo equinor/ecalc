@@ -58,10 +58,10 @@ class Stream(BaseModel):
         )
 
     @classmethod
-    def mix_all(cls, inlet_streams: List["Stream"]) -> "Stream":
-        if len(inlet_streams) == 0:
+    def mix_all(cls, streams: List["Stream"]) -> "Stream":
+        if len(streams) == 0:
             raise ValueError("No streams to mix")
-        return reduce(Stream.mix, inlet_streams)
+        return reduce(Stream.mix, streams)
 
 
 class Stage(BaseModel):

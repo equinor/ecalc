@@ -15,10 +15,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
 )
 from libecalc.core.consumers.base import BaseConsumerWithoutOperationalSettings
-from libecalc.core.models.compressor import CompressorModel, create_compressor_model
-from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
-    VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
-)
+from libecalc.core.models.compressor import create_compressor_model
 from libecalc.core.models.results.compressor import CompressorTrainResult
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result import results as core_results
@@ -72,27 +69,18 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         """
         self._operational_settings = operational_settings
 
-        # Creating a single input rate until we decide how to deal with multiple rates, multiple rates added because of
-        # multiple streams and pressures model, but we need to look at how streams are defined there.
-        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
-
         model_results = []
         evaluated_timesteps = []
 
-        evaluated_regularity = total_requested_inlet_stream.rate.regularity
         for timestep in operational_settings.timesteps:
             compressor = self._temporal_model.get_model(timestep)
             operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
             evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
-            if isinstance(compressor, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
-                raise NotImplementedError("Need to implement this")
-            elif issubclass(type(compressor), CompressorModel):
-                model_result = compressor.evaluate_rate_ps_pd(
-                    rate=np.asarray(total_requested_inlet_stream.rate.values),
-                    suction_pressure=np.asarray(total_requested_inlet_stream.pressure.values),
-                    discharge_pressure=np.asarray(operational_settings_for_timestep.outlet_stream.pressure.values),
-                )
-                model_results.append(model_result)
+            model_result = compressor.evaluate_streams(
+                inlet_streams=operational_settings.inlet_streams,
+                outlet_stream=operational_settings.outlet_stream,
+            )
+            model_results.append(model_result)
 
         aggregated_result: Optional[CompressorTrainResult] = None
         for model_result in model_results:
@@ -100,6 +88,10 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 aggregated_result = model_result
             else:
                 aggregated_result.extend(model_result)
+
+        # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
+        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
+        evaluated_regularity = total_requested_inlet_stream.rate.regularity
 
         energy_usage = TimeSeriesRate(
             values=aggregated_result.energy_usage,
