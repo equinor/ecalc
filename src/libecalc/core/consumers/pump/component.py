@@ -66,9 +66,6 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             Handle regularity outside
         """
         self._operational_settings = operational_settings
-        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
-
-        regularity = total_requested_inlet_stream.rate.regularity
 
         model_results = []
         evaluated_timesteps = []
@@ -76,11 +73,9 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             pump = self._temporal_model.get_model(timestep)
             operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
             evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
-            model_result = pump.evaluate_rate_ps_pd_density(
-                rate=np.asarray(total_requested_inlet_stream.rate.values),
-                suction_pressures=np.asarray(total_requested_inlet_stream.pressure.values),
-                discharge_pressures=np.asarray(operational_settings_for_timestep.outlet_stream.pressure.values),
-                fluid_density=np.asarray(total_requested_inlet_stream.fluid_density.values),
+            model_result = pump.evaluate_streams(
+                inlet_streams=operational_settings.inlet_streams,
+                outlet_stream=operational_settings.outlet_stream,
             )
             model_results.append(model_result)
 
@@ -90,6 +85,10 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 aggregated_result = model_result
             else:
                 aggregated_result.extend(model_result)
+
+        # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
+        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
+        regularity = total_requested_inlet_stream.rate.regularity
 
         component_result = core_results.PumpResult(
             timesteps=evaluated_timesteps,

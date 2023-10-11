@@ -5,6 +5,7 @@ import numpy as np
 from libecalc import dto
 from libecalc.common.feature_flags import Feature
 from libecalc.common.logger import logger
+from libecalc.common.stream import Stream
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
@@ -136,6 +137,27 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
             failure_status=[t.failure_status for t in train_results],
+        )
+
+    def evaluate_streams(
+        self,
+        inlet_streams: List[Stream],
+        outlet_stream: Stream,
+    ) -> CompressorTrainResult:
+        """
+        Evaluate model based on inlet streams and the expected outlet stream.
+        Args:
+            inlet_streams:
+            outlet_stream:
+
+        Returns:
+
+        """
+        mixed_inlet_stream = Stream.mix_all(inlet_streams)
+        return self.evaluate_rate_ps_pd(
+            rate=np.asarray(mixed_inlet_stream.rate.values),
+            suction_pressure=np.asarray(mixed_inlet_stream.pressure.values),
+            discharge_pressure=np.asarray(outlet_stream.pressure.values),
         )
 
     @Feature.experimental(
