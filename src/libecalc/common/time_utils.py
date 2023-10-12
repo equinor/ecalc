@@ -10,30 +10,58 @@ import pandas as pd
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.units import UnitConstants
 from numpy.typing import ArrayLike, NDArray
+from pydantic import BaseModel, root_validator
 
 
 def calculate_delta_days(time_vector: ArrayLike) -> NDArray[np.float64]:
     return np.array([x.total_seconds() / UnitConstants.SECONDS_IN_A_DAY for x in np.diff(time_vector)])
 
 
-@dataclass
-class Period:
+class Period(BaseModel):
     start: datetime = datetime.min
     end: datetime = datetime.max
+
+    @root_validator(pre=True)
+    def check_difference(cls, values):
+        if values["start"] == values["end"]:
+            raise ProgrammingError("Start and end in a period cannot be the same date")
+
+        return values
 
     def __str__(self) -> str:
         return f"{self.start}:{self.end}"
 
     def __contains__(self, time: datetime) -> bool:
+        """
+        A period of time is defined as [start, end>,
+        ie inclusive start and exclusive end.
+
+        Args:
+            time:
+
+        Returns:
+
+        """
         return self.start <= time < self.end
 
     @staticmethod
     def intersects(first: Period, second: Period) -> bool:
+        """
+        TODO: Add tests
+        Args:
+            first:
+            second:
+
+        Returns:
+
+        """
         return first.start in second or second.start in first
 
     def get_timestep_indices(self, timesteps: List[datetime]) -> Tuple[int, int]:
         try:
-            start_index = timesteps.index(max(self.start, timesteps[0]))
+            start_index = timesteps.index(
+                max(self.start, timesteps[0])
+            )  # TODO: Will return first index of that value...and if a period starts and ends at same time, it will return same index twice, hence also incorrectly referring to same value..possibly
             if self.end > timesteps[-1]:
                 end_index = len(timesteps) + 1
             else:

@@ -103,6 +103,7 @@ class GraphResult:
         asset = self.graph.get_component(asset_id)
         installation_results = []
         for installation in asset.installations:
+            # TODO: Not all installations may be defined for all time steps ...
             regularity = TimeSeriesFloat(
                 timesteps=variables_map.time_vector,
                 values=TemporalExpression.evaluate(

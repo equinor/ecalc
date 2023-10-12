@@ -68,7 +68,6 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         """
         Todo:
             Implement Multiple Streams
-            Handle regularity outside
         """
         self._operational_settings = operational_settings
 

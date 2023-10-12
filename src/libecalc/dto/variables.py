@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List
 
 from libecalc.common.time_utils import Period
@@ -33,7 +33,7 @@ class VariablesMap(BaseModel):
     def period(self):
         return Period(
             start=self.time_vector[0],
-            end=self.time_vector[-1] + timedelta(microseconds=1),  # Make sure the last timestep is included
+            end=self.time_vector[-1],  # + timedelta(microseconds=1),  # Make sure the last timestep is included
         )
 
     @property
