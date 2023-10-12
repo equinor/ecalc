@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Literal, Optional
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
-from libecalc.dto.components import SystemComponentConditions
+from libecalc.dto.components import Crossover, SystemComponentConditions
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
@@ -170,15 +170,24 @@ class YamlPumpSystem(YamlConsumerBase):
             for pump in self.consumers
         ]
 
+        pump_name_to_id_map = {pump.name: pump.id for pump in pumps}
+
         if self.component_conditions is not None:
             component_conditions = SystemComponentConditions(
-                crossover=self.component_conditions.crossover
+                crossover=[
+                    Crossover(
+                        from_component_id=pump_name_to_id_map[crossover_stream.from_],
+                        to_component_id=pump_name_to_id_map[crossover_stream.to],
+                        stream_name=crossover_stream.name,
+                    )
+                    for crossover_stream in self.component_conditions.crossover
+                ]
                 if self.component_conditions.crossover is not None
-                else [0] * number_of_pumps,
+                else [],
             )
         else:
             component_conditions = SystemComponentConditions(
-                crossover=[0] * number_of_pumps,
+                crossover=[],
             )
 
         return dto.components.PumpSystem(

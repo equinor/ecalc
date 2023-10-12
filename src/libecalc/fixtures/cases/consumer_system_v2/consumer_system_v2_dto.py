@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
+from libecalc.common.string_utils import generate_id
 from libecalc.dto import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -17,7 +18,7 @@ from libecalc.dto.base import (
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.dto.components import SystemComponentConditions
+from libecalc.dto.components import Crossover, SystemComponentConditions
 from libecalc.dto.types import ConsumptionType, EnergyUsageType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
@@ -196,7 +197,10 @@ compressor_system_v2 = dto.components.CompressorSystem(
     consumes=ConsumptionType.FUEL,
     fuel=fuel,
     component_conditions=SystemComponentConditions(
-        crossover=[0, 1, 1],
+        crossover=[
+            Crossover(from_component_id=generate_id("compressor2"), to_component_id=generate_id("compressor1")),
+            Crossover(from_component_id=generate_id("compressor3"), to_component_id=generate_id("compressor1")),
+        ],
     ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
@@ -231,7 +235,10 @@ compressor_system_v2_with_temporal_model = dto.components.CompressorSystem(
     consumes=ConsumptionType.FUEL,
     fuel=fuel,
     component_conditions=SystemComponentConditions(
-        crossover=[0, 1, 1],
+        crossover=[
+            Crossover(from_component_id=generate_id("compressor2"), to_component_id=generate_id("compressor1")),
+            Crossover(from_component_id=generate_id("compressor3"), to_component_id=generate_id("compressor1")),
+        ],
     ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
@@ -283,7 +290,10 @@ compressor_system_v2_with_overlapping_temporal_models = dto.components.Compresso
     consumes=ConsumptionType.FUEL,
     fuel=fuel,
     component_conditions=SystemComponentConditions(
-        crossover=[0, 1, 1],
+        crossover=[
+            Crossover(from_component_id=generate_id("compressor2"), to_component_id=generate_id("compressor1")),
+            Crossover(from_component_id=generate_id("compressor3"), to_component_id=generate_id("compressor1")),
+        ],
     ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [
@@ -378,7 +388,10 @@ pump_system_v2 = dto.components.PumpSystem(
     regularity=regularity,
     consumes=dto.types.ConsumptionType.ELECTRICITY,
     component_conditions=SystemComponentConditions(
-        crossover=[0, 1, 1],
+        crossover=[
+            Crossover(from_component_id=generate_id("pump2"), to_component_id=generate_id("pump1")),
+            Crossover(from_component_id=generate_id("pump3"), to_component_id=generate_id("pump1")),
+        ],
     ),
     operational_settings={
         datetime(2022, 1, 1, 0, 0): [

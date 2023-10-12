@@ -1,25 +1,53 @@
+from dataclasses import dataclass
+
 import numpy as np
+from libecalc.common.string_utils import generate_id
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     apply_condition,
 )
+from libecalc.dto.components import Crossover
+
+
+@dataclass
+class ConsumerMock:
+    name: str
+
+    @property
+    def id(self):
+        return generate_id(self.name)
 
 
 def test_topologically_sort_consumers_by_crossover():
-    unsorted_consumers = [
+    unsorted_consumer_names = [
         "Consumer 1 with no crossover",
         "Consumer 2 with crossover to consumer 3",
         "Consumer 3 with crossover to consumer 1",
     ]
 
-    sorted_consumers = [
+    sorted_consumer_names = [
         "Consumer 2 with crossover to consumer 3",
         "Consumer 3 with crossover to consumer 1",
         "Consumer 1 with no crossover",
     ]
+
+    unsorted_consumers = [ConsumerMock(name=name) for name in unsorted_consumer_names]
+    sorted_consumers = [ConsumerMock(name=name) for name in sorted_consumer_names]
 
     assert (
-        ConsumerSystem._topologically_sort_consumers_by_crossover(crossover=[0, 3, 1], consumers=unsorted_consumers)
+        ConsumerSystem._topologically_sort_consumers_by_crossover(
+            crossover=[
+                Crossover(
+                    from_component_id=generate_id("Consumer 2 with crossover to consumer 3"),
+                    to_component_id=generate_id("Consumer 3 with crossover to consumer 1"),
+                ),
+                Crossover(
+                    from_component_id=generate_id("Consumer 3 with crossover to consumer 1"),
+                    to_component_id=generate_id("Consumer 1 with no crossover"),
+                ),
+            ],
+            consumers=unsorted_consumers,
+        )
         == sorted_consumers
     )
 

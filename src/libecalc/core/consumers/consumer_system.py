@@ -4,7 +4,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from functools import reduce
-from typing import Dict, List, Protocol, Tuple, TypeVar, Union
+from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
 
 import networkx as nx
 import numpy as np
@@ -47,8 +47,14 @@ class ConsumerOperationalSettings(Protocol):
         ...
 
 
+class Crossover(Protocol):
+    stream_name: Optional[str]
+    from_component_id: str
+    to_component_id: str
+
+
 class SystemComponentConditions(Protocol):
-    crossover: List[int]
+    crossover: List[Crossover]
 
 
 class SystemOperationalSettings(Protocol):
@@ -95,12 +101,11 @@ class ConsumerSystem(BaseConsumer):
         )
         adjusted_operational_settings = []
 
-        crossover_streams_map: Dict[int, List[Stream]] = {
-            consumer_index: [] for consumer_index in range(len(self._consumers))
+        crossover_streams_map: Dict[str, List[Stream]] = {consumer.id: [] for consumer in self._consumers}
+        crossover_definitions_map: Dict[str, Crossover] = {
+            crossover_stream.from_component_id: crossover_stream
+            for crossover_stream in self._component_conditions.crossover
         }
-
-        # Converting from index 1 to index 0.
-        crossover = [crossover_flow_to_index - 1 for crossover_flow_to_index in self._component_conditions.crossover]
 
         for consumer in sorted_consumers:
             consumer_index = self._consumers.index(consumer)
@@ -109,17 +114,15 @@ class ConsumerSystem(BaseConsumer):
             )
             inlet_streams = list(consumer_operational_settings.inlet_streams)
 
-            crossover_to = crossover[consumer_index]
-            has_crossover_out = crossover_to >= 0
+            # Currently only implemented for one crossover out per consumer
+            crossover_stream_definition = crossover_definitions_map.get(consumer.id)
+            has_crossover_out = crossover_stream_definition is not None
             if has_crossover_out:
-                consumer = self._consumers[consumer_index]
                 max_rate = consumer.get_max_rate(consumer_operational_settings)
-
                 crossover_stream, inlet_streams = ConsumerSystem._get_crossover_streams(max_rate, inlet_streams)
+                crossover_streams_map[crossover_stream_definition.to_component_id].append(crossover_stream)
 
-                crossover_streams_map[crossover_to].append(crossover_stream)
-
-            consumer_operational_settings.inlet_streams = [*inlet_streams, *crossover_streams_map[consumer_index]]
+            consumer_operational_settings.inlet_streams = [*inlet_streams, *crossover_streams_map[consumer.id]]
             adjusted_operational_settings.append(consumer_operational_settings)
 
         # This is a hack to return operational settings in the original order of the consumers. This way we can
@@ -256,29 +259,30 @@ class ConsumerSystem(BaseConsumer):
         return list(consumer_results.values())
 
     @staticmethod
-    def _topologically_sort_consumers_by_crossover(crossover: List[int], consumers: List[Consumer]) -> List[Consumer]:
+    def _topologically_sort_consumers_by_crossover(
+        crossover: List[Crossover], consumers: List[Consumer]
+    ) -> List[Consumer]:
         """Topological sort of the graph created by crossover. This makes it possible for us to evaluate each
         consumer with the correct rate directly.
 
         Parameters
         ----------
-        crossover: list of indexes in consumers for crossover. 0 means no cross-over, 1 refers to first consumer etc.
+        crossover: list of crossover stream definitions
         consumers
 
         -------
         List of topological sorted consumers
         """
-        zero_indexed_crossover = [i - 1 for i in crossover]  # Use zero-index
         graph = nx.DiGraph()
-        for consumer_index in range(len(consumers)):
-            graph.add_node(consumer_index)
+        for consumer in consumers:
+            graph.add_node(consumer.id)
 
-        for this, other in enumerate(zero_indexed_crossover):
-            # No crossover (0) => -1 in zero-indexed crossover
-            if other >= 0:
-                graph.add_edge(this, other)
+        for crossover_stream in crossover:
+            graph.add_edge(crossover_stream.from_component_id, crossover_stream.to_component_id)
 
-        return [consumers[consumer_index] for consumer_index in nx.topological_sort(graph)]
+        consumers_by_id = {consumer.id: consumer for consumer in consumers}
+
+        return [consumers_by_id[consumer_id] for consumer_id in nx.topological_sort(graph)]
 
     @staticmethod
     def _get_crossover_streams(max_rate: List[float], inlet_streams: List[Stream]) -> Tuple[Stream, List[Stream]]:
