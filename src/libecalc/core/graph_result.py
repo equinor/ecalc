@@ -184,7 +184,7 @@ class GraphResult:
                     energy_usage=energy_usage,
                     energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                     hydrocarbon_export_rate=hydrocarbon_export_rate,
-                    emissions={},
+                    emissions=self.to_full_result(aggregated_emissions),
                     emission_intensities=self._compute_intensity(
                         hydrocarbon_export_rate=hydrocarbon_export_rate,
                         emissions=aggregated_emissions,
@@ -911,6 +911,7 @@ class GraphResult:
                     )
 
                 sub_components.append(obj)
+                # TODO: Is this skipped?
             # )
 
         for installation in asset.installations:
