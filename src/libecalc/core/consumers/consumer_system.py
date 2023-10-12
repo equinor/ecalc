@@ -9,7 +9,6 @@ from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
 import networkx as nx
 import numpy as np
 from libecalc.common.stream import Stream
-from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -133,7 +132,7 @@ class ConsumerSystem(BaseConsumer):
     def evaluate(
         self,
         variables_map: VariablesMap,
-        temporal_operational_settings: TemporalModel[List[Union[SystemOperationalSettings]]],
+        operational_settings: List[Union[SystemOperationalSettings]],
     ) -> EcalcModelResult:
         """
         Evaluating a consumer system that may be composed of both consumers and other consumer systems. It will default
@@ -149,15 +148,12 @@ class ConsumerSystem(BaseConsumer):
         operational_settings_used = TimeSeriesInt(
             timesteps=variables_map.time_vector, values=[0] * len(variables_map.time_vector), unit=Unit.NONE
         )
-        operational_settings_results: Dict[datetime, Dict[int, Dict[str, EcalcModelResult]]] = defaultdict(
-            dict
-        )  # map operational settings index and consumer id to consumer result.
+        operational_settings_results: Dict[datetime, Dict[int, Dict[str, EcalcModelResult]]] = defaultdict(dict)
 
         for timestep_index, timestep in enumerate(variables_map.time_vector):
             variables_map_for_timestep = variables_map.get_subset_for_timestep(timestep)
             operational_settings_results[timestep] = defaultdict(dict)
 
-            operational_settings = temporal_operational_settings.get_model(timestep)
             for operational_setting_index, operational_setting in enumerate(operational_settings):
                 operational_setting_for_timestep = operational_setting.for_timestep(timestep)
                 adjusted_operational_settings = self._get_operational_settings_adjusted_for_crossover(

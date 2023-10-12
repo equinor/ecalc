@@ -206,7 +206,7 @@ class SystemComponentConditions(EcalcBaseModel):
 class CompressorSystem(BaseConsumer):
     component_type: Literal[ComponentType.COMPRESSOR_SYSTEM_V2] = ComponentType.COMPRESSOR_SYSTEM_V2
     component_conditions: SystemComponentConditions
-    operational_settings: Dict[datetime, List[CompressorSystemOperationalSetting]]
+    operational_settings: List[CompressorSystemOperationalSetting]
     compressors: List[CompressorComponent]
 
     def get_graph(self) -> Graph:
@@ -225,70 +225,60 @@ class CompressorSystem(BaseConsumer):
     def evaluate_operational_settings(
         self,
         variables_map: VariablesMap,
-    ) -> TemporalModel[List[EvaluatedCompressorSystemOperationalSettings]]:
+    ) -> List[EvaluatedCompressorSystemOperationalSettings]:
         """Parameters
         ----------
         variables_map
-        operational_settings
         Returns
         -------
         """
         evaluated_regularity = TemporalExpression.evaluate(
             temporal_expression=TemporalModel(self.regularity), variables_map=variables_map
         )
-        evaluated_temporal_operational_settings: Dict[datetime, List[EvaluatedCompressorSystemOperationalSettings]] = {}
-        for period, operational_settings in TemporalModel(self.operational_settings).items():
-            period_start, period_end = period.get_timestep_indices(variables_map.time_vector)
-            regularity_for_period = evaluated_regularity[period_start:period_end]
-            evaluated_operational_settings: List[EvaluatedCompressorSystemOperationalSettings] = []
-            for operational_setting in operational_settings:
-                rates: List[TimeSeriesRate] = [
-                    TimeSeriesRate(
-                        values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                        timesteps=variables_map.time_vector,
-                        regularity=regularity_for_period,
-                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    )
-                    for rate in operational_setting.rates
-                ]
-
-                inlet_pressure = [
-                    TimeSeriesFloat(
-                        values=list(
-                            pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))
-                        ),
-                        timesteps=variables_map.time_vector,
-                        unit=Unit.BARA,
-                    )
-                    for pressure in operational_setting.inlet_pressures
-                ]
-                outlet_pressure = [
-                    TimeSeriesFloat(
-                        values=list(
-                            pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))
-                        ),
-                        timesteps=variables_map.time_vector,
-                        unit=Unit.BARA,
-                    )
-                    for pressure in operational_setting.outlet_pressures
-                ]
-
-                evaluated_operational_settings.append(
-                    EvaluatedCompressorSystemOperationalSettings(
-                        rates=rates,
-                        inlet_pressures=inlet_pressure,
-                        outlet_pressures=outlet_pressure,
-                    )
+        evaluated_operational_settings: List[EvaluatedCompressorSystemOperationalSettings] = []
+        for operational_setting in self.operational_settings:
+            rates: List[TimeSeriesRate] = [
+                TimeSeriesRate(
+                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                    timesteps=variables_map.time_vector,
+                    regularity=evaluated_regularity,
+                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 )
-            evaluated_temporal_operational_settings[period.start] = evaluated_operational_settings
+                for rate in operational_setting.rates
+            ]
 
-        return TemporalModel(evaluated_temporal_operational_settings)
+            inlet_pressure = [
+                TimeSeriesFloat(
+                    values=list(pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                    timesteps=variables_map.time_vector,
+                    unit=Unit.BARA,
+                )
+                for pressure in operational_setting.inlet_pressures
+            ]
+            outlet_pressure = [
+                TimeSeriesFloat(
+                    values=list(pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                    timesteps=variables_map.time_vector,
+                    unit=Unit.BARA,
+                )
+                for pressure in operational_setting.outlet_pressures
+            ]
+
+            evaluated_operational_settings.append(
+                EvaluatedCompressorSystemOperationalSettings(
+                    rates=rates,
+                    inlet_pressures=inlet_pressure,
+                    outlet_pressures=outlet_pressure,
+                )
+            )
+
+        return evaluated_operational_settings
 
 
 class PumpSystem(BaseConsumer):
     component_type: Literal[ComponentType.PUMP_SYSTEM_V2] = ComponentType.PUMP_SYSTEM_V2
     component_conditions: SystemComponentConditions
-    operational_settings: Dict[datetime, List[PumpSystemOperationalSetting]]
+    operational_settings: List[PumpSystemOperationalSetting]
     pumps: List[PumpComponent]
 
     def get_graph(self) -> Graph:
@@ -307,65 +297,60 @@ class PumpSystem(BaseConsumer):
     def evaluate_operational_settings(
         self,
         variables_map: VariablesMap,
-    ) -> TemporalModel[List[EvaluatedPumpSystemOperationalSettings]]:
+    ) -> List[EvaluatedPumpSystemOperationalSettings]:
         evaluated_regularity = TemporalExpression.evaluate(
             temporal_expression=TemporalModel(self.regularity),
             variables_map=variables_map,
         )
 
-        evaluated_temporal_operational_settings: Dict[datetime, List[EvaluatedPumpSystemOperationalSettings]] = {}
-        for period, operational_settings in TemporalModel(self.operational_settings).items():
-            period_start, period_end = period.get_timestep_indices(variables_map.time_vector)
-            regularity_for_period = evaluated_regularity[period_start:period_end]
-            evaluated_operational_settings: List[EvaluatedPumpSystemOperationalSettings] = []
-            for operational_setting in operational_settings:
-                rates: List[TimeSeriesRate] = [
-                    TimeSeriesRate(
-                        values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                        timesteps=variables_map.time_vector,
-                        regularity=regularity_for_period,
-                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    )
-                    for rate in operational_setting.rates
-                ]
-
-                inlet_pressure = [
-                    TimeSeriesFloat(
-                        values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                        timesteps=variables_map.time_vector,
-                        unit=Unit.BARA,
-                    )
-                    for rate in operational_setting.inlet_pressures
-                ]
-                outlet_pressure = [
-                    TimeSeriesFloat(
-                        values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                        timesteps=variables_map.time_vector,
-                        unit=Unit.BARA,
-                    )
-                    for rate in operational_setting.outlet_pressures
-                ]
-
-                fluid_density = [
-                    TimeSeriesFloat(
-                        values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                        timesteps=variables_map.time_vector,
-                        unit=Unit.KG_SM3,
-                    )
-                    for rate in operational_setting.fluid_density
-                ]
-
-                evaluated_operational_settings.append(
-                    EvaluatedPumpSystemOperationalSettings(
-                        rates=rates,
-                        inlet_pressures=inlet_pressure,
-                        outlet_pressures=outlet_pressure,
-                        fluid_density=fluid_density,
-                    )
+        evaluated_operational_settings: List[EvaluatedPumpSystemOperationalSettings] = []
+        for operational_setting in self.operational_settings:
+            rates: List[TimeSeriesRate] = [
+                TimeSeriesRate(
+                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                    timesteps=variables_map.time_vector,
+                    regularity=evaluated_regularity,
+                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 )
-            evaluated_temporal_operational_settings[period.start] = evaluated_operational_settings
+                for rate in operational_setting.rates
+            ]
 
-        return TemporalModel(evaluated_temporal_operational_settings)
+            inlet_pressure = [
+                TimeSeriesFloat(
+                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                    timesteps=variables_map.time_vector,
+                    unit=Unit.BARA,
+                )
+                for rate in operational_setting.inlet_pressures
+            ]
+            outlet_pressure = [
+                TimeSeriesFloat(
+                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                    timesteps=variables_map.time_vector,
+                    unit=Unit.BARA,
+                )
+                for rate in operational_setting.outlet_pressures
+            ]
+
+            fluid_density = [
+                TimeSeriesFloat(
+                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
+                    timesteps=variables_map.time_vector,
+                    unit=Unit.KG_SM3,
+                )
+                for rate in operational_setting.fluid_density
+            ]
+
+            evaluated_operational_settings.append(
+                EvaluatedPumpSystemOperationalSettings(
+                    rates=rates,
+                    inlet_pressures=inlet_pressure,
+                    outlet_pressures=outlet_pressure,
+                    fluid_density=fluid_density,
+                )
+            )
+
+        return evaluated_operational_settings
 
 
 class GeneratorSet(BaseEquipment):
