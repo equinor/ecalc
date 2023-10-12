@@ -35,10 +35,10 @@ def result(consumer_system_v2: DTOCase) -> EnergyCalculatorResult:
 
 
 parameterized_v2_parameters = [
-    # (
-    #     "consumer_system_v2",
-    #     consumer_system_v2_dto(),
-    # ),
+    (
+        "consumer_system_v2",
+        consumer_system_v2_dto(),
+    ),
     (
         "consumer_system_v2_with_temporal_operational_settings",
         consumer_system_v2_dto_temporal_operational_settings(consumer_system_v2_dto()),
