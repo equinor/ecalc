@@ -15,6 +15,7 @@ class Stream(BaseModel):
         alias_generator = to_camel_case
         allow_population_by_field_name = True
 
+    name: Optional[str]
     rate: TimeSeriesRate
     pressure: TimeSeriesFloat
     fluid_density: Optional[TimeSeriesFloat] = None

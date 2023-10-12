@@ -13,6 +13,7 @@ class FluidStreamObjectForMultipleStreams(BaseModel):
     Outlet stream is what comes out of the compressor.
     """
 
+    name: Optional[str]
     fluid: Optional[FluidStream]
     is_inlet_stream: bool
     connected_to_stage_no: int = 0

@@ -120,6 +120,7 @@ class ConsumerSystem(BaseConsumer):
             if has_crossover_out:
                 max_rate = consumer.get_max_rate(consumer_operational_settings)
                 crossover_stream, inlet_streams = ConsumerSystem._get_crossover_streams(max_rate, inlet_streams)
+                crossover_stream.name = crossover_stream_definition.stream_name
                 crossover_streams_map[crossover_stream_definition.to_component_id].append(crossover_stream)
 
             consumer_operational_settings.inlet_streams = [*inlet_streams, *crossover_streams_map[consumer.id]]
