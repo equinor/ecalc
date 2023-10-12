@@ -385,7 +385,7 @@ class LTPConfig(ResultConfig):
                         installation_category="FIXED",
                         fuel_type_category="FUEL-GAS",
                         consumer_categories=["BOILER"],
-                        emission_type="nox",
+                        emission_type="nmvoc",
                     ),
                 ),
                 Applier(
@@ -396,7 +396,7 @@ class LTPConfig(ResultConfig):
                         installation_category="FIXED",
                         fuel_type_category="DIESEL",
                         consumer_categories=["BOILER"],
-                        emission_type="nox",
+                        emission_type="nmvoc",
                     ),
                 ),
                 Applier(
@@ -407,7 +407,7 @@ class LTPConfig(ResultConfig):
                         installation_category="FIXED",
                         fuel_type_category="FUEL-GAS",
                         consumer_categories=["HEATER"],
-                        emission_type="nox",
+                        emission_type="nmvoc",
                     ),
                 ),
                 Applier(
@@ -418,7 +418,7 @@ class LTPConfig(ResultConfig):
                         installation_category="FIXED",
                         fuel_type_category="DIESEL",
                         consumer_categories=["HEATER"],
-                        emission_type="nox",
+                        emission_type="nmvoc",
                     ),
                 ),
                 Applier(
