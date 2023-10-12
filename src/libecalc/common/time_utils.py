@@ -10,23 +10,23 @@ import pandas as pd
 from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.units import UnitConstants
 from numpy.typing import ArrayLike, NDArray
-from pydantic import BaseModel, root_validator
 
 
 def calculate_delta_days(time_vector: ArrayLike) -> NDArray[np.float64]:
     return np.array([x.total_seconds() / UnitConstants.SECONDS_IN_A_DAY for x in np.diff(time_vector)])
 
 
-class Period(BaseModel):
+@dataclass
+class Period:
     start: datetime = datetime.min
     end: datetime = datetime.max
 
-    @root_validator(pre=True)
-    def check_difference(cls, values):
-        if values["start"] == values["end"]:
-            raise ProgrammingError("Start and end in a period cannot be the same date")
-
-        return values
+    # @root_validator
+    # def check_difference(cls, values):
+    #     if values.get("start") == values.get("end"):
+    #         raise ProgrammingError("Start and end in a period cannot be the same date")
+    #
+    #     return values
 
     def __str__(self) -> str:
         return f"{self.start}:{self.end}"
