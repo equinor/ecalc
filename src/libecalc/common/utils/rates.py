@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from typing import (
+    Any,
     DefaultDict,
     Generic,
     Iterable,
@@ -28,7 +29,7 @@ from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
 from numpy.typing import NDArray
-from pydantic import Extra, root_validator, validator
+from pydantic import Extra, validator
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
 from typing_extensions import Self
@@ -705,16 +706,16 @@ class TimeSeriesRate(TimeSeries[float]):
     rate_type: RateType
     regularity: List[float]
 
-    @root_validator
-    def check_regularity_length(cls, values):
-        regularity_length = len(values["regularity"])
-        timesteps_length = len(values["timesteps"])
+    @validator("regularity")
+    def check_regularity_length(cls, regularity: List[float], values: Any) -> List[float]:
+        regularity_length = len(regularity)
+        timesteps_length = len(values.get("timesteps", []))
         if regularity_length != timesteps_length:
             raise ProgrammingError(
                 f"Regularity must correspond to nr of timesteps. Length of timesteps ({timesteps_length}) !=  length of regularity ({regularity_length})."
             )
 
-        return values
+        return regularity
 
     def __add__(self, other: TimeSeriesRate) -> TimeSeriesRate:
         # Check for same unit

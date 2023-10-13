@@ -28,11 +28,15 @@ from libecalc.dto.graph import Graph
 from libecalc.dto.models.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto.result.emission import EmissionIntensityResult, PartialEmissionResult
 from libecalc.dto.result.results import (
+    AssetResult,
     CompressorModelResult,
     CompressorModelStageResult,
+    CompressorResult,
     CompressorStreamConditionResult,
     GeneratorSetResult,
+    InstallationResult,
     PumpModelResult,
+    PumpResult,
     TurbineModelResult,
 )
 from libecalc.dto.types import RateType
@@ -871,47 +875,82 @@ class GraphResult:
                     ]
                 )
 
-                obj = parse_obj_as(
-                    libecalc.dto.result.ComponentResult,
-                    {
-                        **consumer_result.component_result.dict(exclude={"power_capacity_margin"}),
-                        "name": consumer_node_info.name,
-                        "parent": self.graph.get_predecessor(consumer_id),
-                        "component_level": consumer_node_info.component_level,
-                        "componentType": consumer_node_info.component_type,
-                        "emissions": self._parse_emissions(self.emission_results[consumer_id], regularity)
-                        if consumer_id in self.emission_results
-                        else [],
-                        "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
-                            consumer_result.component_result.energy_usage, regularity=regularity
-                        )
-                        .to_volumes()
-                        .cumulative()
-                        .dict(),
-                        "power_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
-                            consumer_result.component_result.power, regularity=regularity
-                        )
-                        .to_volumes()
-                        .to_unit(Unit.GIGA_WATT_HOURS)
-                        .cumulative()
-                        .dict()
-                        if consumer_result.component_result.power is not None
-                        else None,
-                        "power": TimeSeriesRate.from_timeseries_stream_day_rate(
-                            consumer_result.component_result.power, regularity=regularity
-                        ),
-                        "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
-                            consumer_result.component_result.energy_usage, regularity=regularity
-                        ),
-                    },
-                )
-                if isinstance(obj, GeneratorSetResult):
-                    obj.power_capacity_margin = TimeSeriesRate.from_timeseries_stream_day_rate(
-                        consumer_result.component_result.power_capacity_margin, regularity=regularity
+            obj = parse_obj_as(
+                libecalc.dto.result.ComponentResult,
+                {
+                    **consumer_result.component_result.dict(
+                        exclude={
+                            "power_capacity_margin",
+                            "inlet_liquid_rate_m3_per_day",
+                            "inlet_pressure_bar",
+                            "outlet_pressure_bar",
+                            "operational_head",
+                            "recirculation_loss",
+                            "rate_exceeds_maximum",
+                            "outlet_pressure_before_choking",
+                            "hydrocarbon_export_rate",
+                            "emission_intensities",
+                            "regularity",
+                        }
+                    ),
+                    "name": consumer_node_info.name,
+                    "parent": self.graph.get_predecessor(consumer_id),
+                    "component_level": consumer_node_info.component_level,
+                    "componentType": consumer_node_info.component_type,
+                    "emissions": self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else [],
+                    "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
                     )
+                    .to_volumes()
+                    .cumulative()
+                    .dict(),
+                    "power_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    )
+                    .to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative()
+                    .dict()
+                    if consumer_result.component_result.power is not None
+                    else None,
+                    "power": TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    ),
+                    "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ),
+                },
+            )
+            if isinstance(obj, GeneratorSetResult):
+                obj.power_capacity_margin = TimeSeriesRate.from_timeseries_stream_day_rate(
+                    consumer_result.component_result.power_capacity_margin, regularity=regularity
+                )
+            elif isinstance(obj, PumpResult):
+                obj.inlet_liquid_rate_m3_per_day = TimeSeriesRate.from_timeseries_stream_day_rate(
+                    consumer_result.component_result.inlet_liquid_rate_m3_per_day, regularity=regularity
+                )
+                obj.inlet_pressure_bar = consumer_result.component_result.inlet_pressure_bar
+                obj.outlet_pressure_bar = consumer_result.component_result.outlet_pressure_bar
+                obj.operational_head = consumer_result.component_result.operational_head
 
-                sub_components.append(obj)
-                # TODO: Is this skipped?
+            elif isinstance(obj, CompressorResult):
+                obj.recirculation_loss = TimeSeriesRate.from_timeseries_stream_day_rate(
+                    consumer_result.component_result.recirculation_loss, regularity=regularity
+                )
+                obj.rate_exceeds_maximum = consumer_result.component_result.rate_exceeds_maximum
+                obj.outlet_pressure_before_choking = consumer_result.component_result.outlet_pressure_before_choking
+            elif isinstance(obj, AssetResult):
+                obj.hydrocarbon_export_rate = TimeSeriesRate.from_timeseries_stream_day_rate(
+                    consumer_result.component_result.hydrocarbon_export_rate, regularity=regularity
+                )
+                obj.emission_intensities = consumer_result.component_result.emission_intensities
+            elif isinstance(obj, InstallationResult):
+                obj.regularity = consumer_result.component_result.regularity
+
+            sub_components.append(obj)
+            # TODO: Is this skipped?
             # )
 
         for installation in asset.installations:
