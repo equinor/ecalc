@@ -17,7 +17,7 @@ sidebar_position: 1
 
 
 ## Fixes
-
+- `nmvoc` emissions were incorrectly reported for the ltp categories `HEATER` and `BOILER`: The emission query filters included `nox`, and are now corrected to `nmvoc`.
 
 ## Breaking changes
 
