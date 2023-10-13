@@ -40,7 +40,7 @@ class Genset:
         """
         logger.debug(f"Evaluating Genset: {self.data_transfer_object.name}")
 
-        regularity = TemporalExpression.evaluate(
+        TemporalExpression.evaluate(
             temporal_expression=TemporalModel(self.data_transfer_object.regularity),
             variables_map=variables_map,
         )
@@ -53,7 +53,8 @@ class Genset:
         power_capacity_margin = self.evaluate_power_capacity_margin(power_requirement, variables_map=variables_map)
 
         # Convert fuel_rate to calendar day rate
-        fuel_rate = Rates.to_calendar_day(stream_day_rates=fuel_rate, regularity=regularity)
+        # fuel_rate = Rates.to_calendar_day(stream_day_rates=fuel_rate, regularity=regularity)
+        # TODO: Ok to not convert to calendar day here? Seems that all legacy stuff needs to be dealt with anyways...
 
         # Check for extrapolations (in el-to-fuel, powers are checked in consumers)
         valid_timesteps = np.logical_and(~np.isnan(fuel_rate), power_capacity_margin >= 0)
