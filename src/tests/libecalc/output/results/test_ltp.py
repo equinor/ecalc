@@ -19,6 +19,8 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_gas_turbine_compressor_el_consumption,
     expected_gas_turbine_el_generated,
     expected_heater_fuel_consumption,
+    expected_nmvoc_from_diesel,
+    expected_nox_from_diesel,
     expected_offshore_wind_el_consumption,
     expected_pfs_el_consumption,
     installation_boiler_heater_dto,
@@ -69,7 +71,7 @@ def get_sum_ltp_column(ltp_result, installation_nr, ltp_column_nr) -> float:
     return ltp_sum
 
 
-def test_ch4_diesel_fixed_and_mobile():
+def test_emissions_diesel_fixed_and_mobile():
     """Test reporting of CH4 from diesel in LTP."""
     installation_fixed = installation_diesel_fixed_dto()
     installation_mobile = installation_diesel_mobile_dto()
@@ -86,9 +88,24 @@ def test_ch4_diesel_fixed_and_mobile():
 
     ltp_result = get_consumption(installation=asset, variables=variables)
 
-    ch4_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
-    ch4_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=2)
+    co2_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
+    co2_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=1)
 
+    nox_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
+    nox_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=2)
+
+    nmvoc_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
+    nmvoc_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=3)
+
+    ch4_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=4)
+    ch4_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=4)
+
+    assert co2_from_diesel_fixed == expected_co2_from_diesel()
+    assert co2_from_diesel_mobile == expected_co2_from_diesel()
+    assert nox_from_diesel_fixed == expected_nox_from_diesel()
+    assert nox_from_diesel_mobile == expected_nox_from_diesel()
+    assert nmvoc_from_diesel_fixed == expected_nmvoc_from_diesel()
+    assert nmvoc_from_diesel_mobile == expected_nmvoc_from_diesel()
     assert ch4_from_diesel_fixed == expected_ch4_from_diesel()
     assert ch4_from_diesel_mobile == expected_ch4_from_diesel()
 
