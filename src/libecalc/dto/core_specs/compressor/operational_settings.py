@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List
 
 from libecalc.common.time_utils import Period
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.dto.core_specs.base.operational_settings import OperationalSettings
 from typing_extensions import Self
 
@@ -12,7 +12,7 @@ from typing_extensions import Self
 class CompressorOperationalSettings(OperationalSettings):
     """Todo: Create abstract baseclass: OperationalSettingsBase handling CONDITION, POWERLOSSFACTOR, etc."""
 
-    stream_day_rates: List[TimeSeriesRate]
+    stream_day_rates: List[TimeSeriesStreamDayRate]
     inlet_pressure: TimeSeriesFloat
     outlet_pressure: TimeSeriesFloat
     timesteps: List[datetime]

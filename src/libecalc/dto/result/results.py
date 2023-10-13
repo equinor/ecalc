@@ -66,21 +66,24 @@ class AssetResult(ComponentResultBase):
     """The aggregated eCalc model result."""
 
     componentType: Literal[ComponentType.ASSET]
-    hydrocarbon_export_rate: TimeSeriesRate
-    emission_intensities: List[EmissionIntensityResult]
+    hydrocarbon_export_rate: Optional[TimeSeriesRate]
+    emission_intensities: Optional[List[EmissionIntensityResult]]
 
 
 class InstallationResult(AssetResult):
     """The installation result component."""
 
     componentType: Literal[ComponentType.INSTALLATION]
+    regularity: Optional[
+        TimeSeriesFloat
+    ]  # Regularity is currently set at per installation, send through. Possibly skip in output if confusing
 
 
 class GeneratorSetResult(EquipmentResultBase):
     """The Generator set result component."""
 
     componentType: Literal[ComponentType.GENERATOR_SET]
-    power_capacity_margin: TimeSeriesRate
+    power_capacity_margin: Optional[TimeSeriesRate]
 
 
 class ConsumerSystemResult(EquipmentResultBase):
@@ -105,19 +108,19 @@ class GenericConsumerResult(EquipmentResultBase):
 
 class PumpResult(EquipmentResultBase):
     componentType: Literal[ComponentType.PUMP]
-    inlet_liquid_rate_m3_per_day: TimeSeriesRate
-    inlet_pressure_bar: TimeSeriesFloat
-    outlet_pressure_bar: TimeSeriesFloat
-    operational_head: TimeSeriesFloat
+    inlet_liquid_rate_m3_per_day: Optional[TimeSeriesRate]
+    inlet_pressure_bar: Optional[TimeSeriesFloat]
+    outlet_pressure_bar: Optional[TimeSeriesFloat]
+    operational_head: Optional[TimeSeriesFloat]
 
     stages: List[Stage] = None  # Optional because only in v2
 
 
 class CompressorResult(EquipmentResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
-    recirculation_loss: TimeSeriesRate
-    rate_exceeds_maximum: TimeSeriesBoolean
-    outlet_pressure_before_choking: TimeSeriesFloat
+    recirculation_loss: Optional[TimeSeriesRate]
+    rate_exceeds_maximum: Optional[TimeSeriesBoolean]
+    outlet_pressure_before_choking: Optional[TimeSeriesFloat]
 
     stages: List[Stage] = None  # Optional because only in v2
 

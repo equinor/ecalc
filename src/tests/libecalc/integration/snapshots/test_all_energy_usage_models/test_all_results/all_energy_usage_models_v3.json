@@ -3,13 +3,6 @@
         "0483da6ec3712906c43a86dc07ba7750": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -56,13 +49,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -93,13 +79,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -125,13 +104,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -176,13 +148,6 @@
                     ],
                     "name": "simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -970,13 +935,6 @@
         "09c1b79cf6cf1ef0773a194679246a4a": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1008,13 +966,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1030,13 +981,6 @@
                     ]
                 },
                 "power_capacity_margin": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1064,13 +1008,6 @@
         "16cc71fd6280071169c79bac6b315727": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1117,13 +1054,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1154,13 +1084,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1186,13 +1109,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -1237,13 +1153,6 @@
                     ],
                     "name": "single_speed_compressor_train_asv_pressure_control",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -1759,13 +1668,6 @@
         "1a38d89e991650e59d64af81ba93203a": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1812,13 +1714,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1849,13 +1744,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -1881,13 +1769,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -1932,13 +1813,6 @@
                     ],
                     "name": "simplified_variable_speed_compressor_train_known_stages_consumer",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -2726,13 +2600,6 @@
         "2525d41304f16da944f36a122c9b907e": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -2779,13 +2646,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -2816,13 +2676,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -2848,13 +2701,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -2899,13 +2745,6 @@
                     ],
                     "name": "variable_speed_compressor_train_predefined_charts",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -3693,13 +3532,6 @@
         "3a6cd9ab6a28c10ad38e93b46963ed3a": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -3734,13 +3566,6 @@
                     "1": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -3785,13 +3610,6 @@
                             ],
                             "name": "simplified_train1",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -4575,13 +4393,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -4626,13 +4437,6 @@
                             ],
                             "name": "simplified_train2",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -5432,13 +5236,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -5463,13 +5260,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -5514,13 +5304,6 @@
                     ],
                     "name": "simplified_train1",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -6304,13 +6087,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -6355,13 +6131,6 @@
                     ],
                     "name": "simplified_train2",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -7149,13 +6918,6 @@
         "411f7ef502a8522a87e596f57650e3b6": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -7202,13 +6964,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -7239,13 +6994,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -7271,13 +7019,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -7322,13 +7063,6 @@
                     ],
                     "name": "generic_from_design_point_compressor_train_consumer",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -7906,13 +7640,6 @@
         "660efc4b0fee948b3c8ae93e48b9e3bd": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -7929,13 +7656,6 @@
                 },
                 "id": "660efc4b0fee948b3c8ae93e48b9e3bd",
                 "inlet_liquid_rate_m3_per_day": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8011,13 +7731,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8043,13 +7756,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8105,13 +7811,6 @@
                         20.0
                     ],
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8139,13 +7838,6 @@
         "6661da8a3a8ab9009bcf9d80af31ac66": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8192,13 +7884,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8229,13 +7914,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8261,13 +7939,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8307,13 +7978,6 @@
                     "max_standard_rate": null,
                     "name": "single_1d_compressor_sampled",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8448,13 +8112,6 @@
         "6b902f3d8a99f9b2b6a772de06365413": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8486,13 +8143,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8517,12 +8167,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00",
                             "2019-01-01 00:00:00",
@@ -8550,12 +8194,6 @@
                     },
                     "name": "late_start_consumer_evolving_type",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00",
                             "2019-01-01 00:00:00",
@@ -8580,13 +8218,6 @@
         "75e47fc1f0b50c9faa627e944c2e6c29": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8618,13 +8249,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8649,13 +8273,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8687,13 +8304,6 @@
                     },
                     "name": "salt_water_injection_tabular",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8721,13 +8331,6 @@
         "85018f936c624deebda36140d657320e": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8744,13 +8347,6 @@
                 },
                 "id": "85018f936c624deebda36140d657320e",
                 "inlet_liquid_rate_m3_per_day": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8826,13 +8422,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -8858,13 +8447,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8920,13 +8502,6 @@
                         200.0
                     ],
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -8954,13 +8529,6 @@
         "9373ec3ca83df3daafd79ef08aad83bf": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -9007,13 +8575,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -9044,13 +8605,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -9076,13 +8630,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -9127,13 +8674,6 @@
                     ],
                     "name": "single_speed_compressor_train_downstream_choke_pressure_control",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -9649,13 +9189,6 @@
         "95b05fbb1aa74c04ca2e937d43a05f6f": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -9667,7 +9200,7 @@
                         10000.0,
                         10000.0,
                         14000.0,
-                        0.0
+                        14000.0
                     ]
                 },
                 "id": "95b05fbb1aa74c04ca2e937d43a05f6f",
@@ -9697,13 +9230,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -9748,13 +9274,6 @@
         "97c4f13fc5be30c816dba44919774c8f": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -9789,10 +9308,6 @@
                     "1": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
@@ -9819,10 +9334,6 @@
                             ],
                             "name": "train1",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
@@ -10429,10 +9940,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
@@ -10459,10 +9966,6 @@
                             ],
                             "name": "train2",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
@@ -11069,10 +10572,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
@@ -11099,10 +10598,6 @@
                             ],
                             "name": "train3",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2018-01-01 00:00:00"
                                 ],
@@ -11709,11 +11204,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
@@ -11746,11 +11236,6 @@
                             ],
                             "name": "train1_upgraded",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
@@ -12429,11 +11914,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
@@ -12466,11 +11946,6 @@
                             ],
                             "name": "train2_upgraded",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2019-01-01 00:00:00",
                                     "2020-01-01 00:00:00"
@@ -13165,13 +12640,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -13196,10 +12664,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
@@ -13226,10 +12690,6 @@
                     ],
                     "name": "train1",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
@@ -13836,10 +13296,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
@@ -13866,10 +13322,6 @@
                     ],
                     "name": "train2",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
@@ -14476,10 +13928,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
@@ -14506,10 +13954,6 @@
                     ],
                     "name": "train3",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00"
                         ],
@@ -15116,11 +14560,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
@@ -15153,11 +14592,6 @@
                     ],
                     "name": "train1_upgraded",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
@@ -15836,11 +15270,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
@@ -15873,11 +15302,6 @@
                     ],
                     "name": "train2_upgraded",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2019-01-01 00:00:00",
                             "2020-01-01 00:00:00"
@@ -16560,13 +15984,6 @@
         "a6047a2739f3f210157a465655cb5f47": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -16613,13 +16030,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -16650,13 +16060,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -16682,13 +16085,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -16733,13 +16129,6 @@
                     ],
                     "name": "single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -17255,13 +16644,6 @@
         "a9f3690992156d894330001b08856c80": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -17308,13 +16690,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -17345,13 +16720,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -17377,13 +16745,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -17423,13 +16784,6 @@
                     "max_standard_rate": null,
                     "name": "variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -19362,13 +18716,6 @@
         "c516c0cfec912e94f1dc2a840d1828ef": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -19403,13 +18750,6 @@
                     "1": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -19449,13 +18789,6 @@
                             "max_standard_rate": null,
                             "name": "sampled_train1",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -19586,13 +18919,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -19632,13 +18958,6 @@
                             "max_standard_rate": null,
                             "name": "sampled_train2",
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -19785,13 +19104,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -19816,13 +19128,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -19862,13 +19167,6 @@
                     "max_standard_rate": null,
                     "name": "sampled_train1",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -19999,13 +19297,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -20045,13 +19336,6 @@
                     "max_standard_rate": null,
                     "name": "sampled_train2",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -20186,13 +19470,6 @@
         "ca0daca5e5588cdb5d4c28679d12fc43": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -20239,13 +19516,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -20276,13 +19546,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -20308,13 +19571,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -20359,13 +19615,6 @@
                     ],
                     "name": "turbine_driven_compressor_train",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -21192,13 +20441,6 @@
         "cb52faa26d48a2b1eb53a125f5fad3c3": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "CALENDAR_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -21210,7 +20452,7 @@
                         3035.2425,
                         3035.2425,
                         3035.2425,
-                        0.0
+                        3035.2425
                     ]
                 },
                 "id": "cb52faa26d48a2b1eb53a125f5fad3c3",
@@ -21240,13 +20482,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -21291,13 +20526,6 @@
         "d464e63df76695dda685e43c7acf2dbb": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -21344,13 +20572,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -21381,13 +20602,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -21413,13 +20627,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -21464,13 +20671,6 @@
                     ],
                     "name": "simplified_variable_speed_compressor_train_unknown_stages_consumer",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -22048,13 +21248,6 @@
         "d750abf749618fbe4373515716ded093": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -22086,13 +21279,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -22117,13 +21303,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -22155,13 +21334,6 @@
                     },
                     "name": "deh",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -22189,13 +21361,6 @@
         "dbd79a28f238ca6caaeb4e7b08aeeb80": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -22227,13 +21392,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -22258,12 +21416,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00",
                             "2019-01-01 00:00:00",
@@ -22291,12 +21443,6 @@
                     },
                     "name": "late_start_consumer",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2018-01-01 00:00:00",
                             "2019-01-01 00:00:00",
@@ -22321,13 +21467,6 @@
         "e9493e3d0f8696ed78b96bef050376c3": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -22362,13 +21501,6 @@
                     "1": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22424,13 +21556,6 @@
                                 200.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22454,13 +21579,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22516,13 +21634,6 @@
                                 200.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22548,13 +21659,6 @@
                     "2": [
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22610,13 +21714,6 @@
                                 200.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22640,13 +21737,6 @@
                         },
                         {
                             "energy_usage": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22702,13 +21792,6 @@
                                 200.0
                             ],
                             "power": {
-                                "rate_type": "STREAM_DAY",
-                                "regularity": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
                                 "timesteps": [
                                     "2017-01-01 00:00:00",
                                     "2018-01-01 00:00:00",
@@ -22748,13 +21831,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -22779,13 +21855,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -22841,13 +21910,6 @@
                         200.0
                     ],
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -22871,13 +21933,6 @@
                 },
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -22933,13 +21988,6 @@
                         200.0
                     ],
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -22967,13 +22015,6 @@
         "ec9874c7d040fe21bdac26d41ee1a9b5": {
             "component_result": {
                 "energy_usage": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23020,13 +22061,6 @@
                     ]
                 },
                 "power": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        0.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23057,13 +22091,6 @@
                     ]
                 },
                 "recirculation_loss": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23089,13 +22116,6 @@
             "models": [
                 {
                     "energy_usage": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -23140,13 +22160,6 @@
                     ],
                     "name": "single_speed_compressor_train_upstream_choke_pressure_control",
                     "power": {
-                        "rate_type": "STREAM_DAY",
-                        "regularity": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                        ],
                         "timesteps": [
                             "2017-01-01 00:00:00",
                             "2018-01-01 00:00:00",
@@ -23665,13 +22678,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23687,13 +22693,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23709,13 +22708,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23742,13 +22734,6 @@
             "ch4": {
                 "name": "ch4",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23764,13 +22749,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23786,13 +22764,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23819,13 +22790,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23841,13 +22805,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23863,13 +22820,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23896,13 +22846,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23918,13 +22861,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23936,17 +22872,10 @@
                         22.0,
                         22.0,
                         30.8,
-                        0.0
+                        30.8
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23958,7 +22887,7 @@
                         15100.0,
                         15100.0,
                         21140.0,
-                        0.0
+                        21140.0
                     ]
                 },
                 "timesteps": [
@@ -23973,13 +22902,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -23995,13 +22917,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24017,13 +22932,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24050,13 +22958,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24072,13 +22973,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24094,13 +22988,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24127,13 +23014,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24149,13 +23029,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24171,13 +23044,6 @@
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24204,13 +23070,6 @@
             "co2": {
                 "name": "co2",
                 "quota": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24226,13 +23085,6 @@
                     ]
                 },
                 "rate": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24244,17 +23096,10 @@
                         6.6775335,
                         6.6775335,
                         6.6775335,
-                        0.0
+                        6.6775335
                     ]
                 },
                 "tax": {
-                    "rate_type": "STREAM_DAY",
-                    "regularity": [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                    ],
                     "timesteps": [
                         "2017-01-01 00:00:00",
                         "2018-01-01 00:00:00",
@@ -24266,7 +23111,7 @@
                         4583.21617,
                         4583.21617,
                         4583.21617,
-                        0.0
+                        4583.21617
                     ]
                 },
                 "timesteps": [
