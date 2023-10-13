@@ -15,9 +15,10 @@ sidebar_position: 1
 - Added chart area flag NO_FLOW_RATE to the possible statuses for an operational point in a variable speed compressor chart. The chart area flags can currently only be found in the json result file, but we will also try to find a way of displaying this information in the WebApp as well.
 - Whenever there is a variable speed compressor only recirculation fluid (can happen in a multiple streams and pressures compressor train) a warning will be logged.
 
-
 ## Fixes
 - `nmvoc` emissions were incorrectly reported for the ltp categories `HEATER` and `BOILER`: The emission query filters included `nox`, and are now corrected to `nmvoc`.
+- Instead of applying the surge control margin to the average of the minimum flow rate for all speed curves in the compressor chart, a more robust calculation is implemented for variable speed compressors: The updated minimum flow is calculated individually for each speed, using the control margin as the increase in minimum flow, in percentage or fraction of the rate difference between minimum- and maximum flow, for the given speed. This solves the problem of eCalc failing when the new calculated minimum rate was outside the compressor chart for a given speed.
+
 
 ## Breaking changes
 
