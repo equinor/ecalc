@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Dict
 
+import numpy as np
 from libecalc import dto
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
@@ -20,15 +21,17 @@ fuel_rate = 67000
 diesel_rate = 120000
 co2_factor = 1
 ch4_factor = 0.1
+nox_factor = 0.5
+nmvoc_factor = 0
 
 regularity_temporal_installation = {datetime(1900, 1, 1): Expression.setup_from_expression(regularity_installation)}
 regularity_temporal_consumer = {datetime(1900, 1, 1): Expression.setup_from_expression(regularity_consumer)}
 
-days1_first_half = calculate_delta_days([datetime(2027, 1, 1), datetime(2027, 4, 10)])
-days2_first_half = calculate_delta_days([datetime(2028, 1, 1), datetime(2028, 4, 10)])
+days1_first_half = calculate_delta_days(np.array([datetime(2027, 1, 1), datetime(2027, 4, 10)]))
+days2_first_half = calculate_delta_days(np.array([datetime(2028, 1, 1), datetime(2028, 4, 10)]))
 
-days1_second_half = calculate_delta_days([datetime(2027, 4, 10), datetime(2028, 1, 1)])
-days2_second_half = calculate_delta_days([datetime(2028, 4, 10), datetime(2029, 1, 1)])
+days1_second_half = calculate_delta_days(np.array([datetime(2027, 4, 10), datetime(2028, 1, 1)]))
+days2_second_half = calculate_delta_days(np.array([datetime(2028, 4, 10), datetime(2029, 1, 1)]))
 
 
 def fuel_turbine() -> dto.types.FuelType:
@@ -61,7 +64,7 @@ def diesel_turbine() -> dto.types.FuelType:
     )
 
 
-def diesel_turbine_ch4() -> dto.types.FuelType:
+def diesel_turbine_multi() -> dto.types.FuelType:
     return dto.types.FuelType(
         name="diesel",
         price=Expression.setup_from_expression(value=10000),
@@ -74,6 +77,16 @@ def diesel_turbine_ch4() -> dto.types.FuelType:
             dto.Emission(
                 name="ch4",
                 factor=Expression.setup_from_expression(value=ch4_factor),
+                tax=Expression.setup_from_expression(value=1),
+            ),
+            dto.Emission(
+                name="nox",
+                factor=Expression.setup_from_expression(value=nox_factor),
+                tax=Expression.setup_from_expression(value=1),
+            ),
+            dto.Emission(
+                name="nmvoc",
+                factor=Expression.setup_from_expression(value=nmvoc_factor),
                 tax=Expression.setup_from_expression(value=1),
             ),
         ],
@@ -109,13 +122,13 @@ def fuel_dict() -> Dict[datetime, dto.types.FuelType]:
     }
 
 
-def fuel_dict_ch4() -> Dict[datetime, dto.types.FuelType]:
+def fuel_dict_multi() -> Dict[datetime, dto.types.FuelType]:
     return {
-        datetime(2027, 1, 1): diesel_turbine_ch4(),
+        datetime(2027, 1, 1): diesel_turbine_multi(),
         datetime(2027, 4, 10): fuel_turbine(),
-        datetime(2028, 1, 1): diesel_turbine_ch4(),
+        datetime(2028, 1, 1): diesel_turbine_multi(),
         datetime(2028, 4, 10): fuel_turbine(),
-        datetime(2029, 1, 1): diesel_turbine_ch4(),
+        datetime(2029, 1, 1): diesel_turbine_multi(),
     }
 
 
@@ -241,7 +254,7 @@ def boiler_heater() -> dto.FuelConsumer:
         regularity=regularity_temporal_consumer,
         energy_usage_model={
             datetime(1900, 1, 1): dto.DirectConsumerFunction(
-                fuel_rate=fuel_rate,
+                fuel_rate=Expression.setup_from_expression(value=fuel_rate),
                 energy_usage_type=dto.types.EnergyUsageType.FUEL,
             )
         },
@@ -306,22 +319,22 @@ def generator_set_compressor_temporal_model() -> dto.GeneratorSet:
     )
 
 
-def generator_set_fixed_ch4_diesel() -> dto.GeneratorSet:
+def generator_set_fixed_diesel() -> dto.GeneratorSet:
     return dto.GeneratorSet(
         name="genset_fixed",
         user_defined_category=category_dict(),
-        fuel=fuel_dict_ch4(),
+        fuel=fuel_dict_multi(),
         generator_set_model=generator_set_dict(),
         consumers=[simple_direct_el_consumer()],
         regularity=regularity_temporal_consumer,
     )
 
 
-def generator_set_mobile_ch4_diesel() -> dto.GeneratorSet:
+def generator_set_mobile_diesel() -> dto.GeneratorSet:
     return dto.GeneratorSet(
         name="genset_mobile",
         user_defined_category=category_dict(),
-        fuel=fuel_dict_ch4(),
+        fuel=fuel_dict_multi(),
         generator_set_model=generator_set_dict(),
         consumers=[simple_direct_el_consumer_mobile()],
         regularity=regularity_temporal_consumer,
@@ -368,6 +381,20 @@ def expected_co2_from_diesel():
 
 def expected_ch4_from_diesel():
     emission_kg_per_day = float(diesel_rate * ch4_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    emission_tons = float(emission_tons_per_day * (days1_first_half + days2_first_half) * regularity_consumer)
+    return emission_tons
+
+
+def expected_nox_from_diesel():
+    emission_kg_per_day = float(diesel_rate * nox_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    emission_tons = float(emission_tons_per_day * (days1_first_half + days2_first_half) * regularity_consumer)
+    return emission_tons
+
+
+def expected_nmvoc_from_diesel():
+    emission_kg_per_day = float(diesel_rate * nmvoc_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
     emission_tons = float(emission_tons_per_day * (days1_first_half + days2_first_half) * regularity_consumer)
     return emission_tons
@@ -447,7 +474,7 @@ def installation_diesel_fixed_dto() -> dto.Installation:
         name="INSTALLATION_FIXED",
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
-        fuel_consumers=[generator_set_fixed_ch4_diesel()],
+        fuel_consumers=[generator_set_fixed_diesel()],
         user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
     )
 
@@ -457,7 +484,7 @@ def installation_diesel_mobile_dto() -> dto.Installation:
         name="INSTALLATION_MOBILE",
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
-        fuel_consumers=[generator_set_mobile_ch4_diesel()],
+        fuel_consumers=[generator_set_mobile_diesel()],
         user_defined_category=dto.base.InstallationUserDefinedCategoryType.MOBILE,
     )
 
