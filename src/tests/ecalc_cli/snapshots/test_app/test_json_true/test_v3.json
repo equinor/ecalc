@@ -396,7 +396,7 @@
       }
     },
     "energy_usage": {
-      "rate_type": "STREAM_DAY",
+      "rate_type": "CALENDAR_DAY",
       "regularity": [
         1.0,
         1.0,
@@ -4808,7 +4808,7 @@
         }
       },
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
+        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -5341,7 +5341,7 @@
         }
       },
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
+        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -5843,7 +5843,7 @@
         }
       },
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
+        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,
@@ -7198,7 +7198,7 @@
         }
       },
       "energy_usage": {
-        "rate_type": "STREAM_DAY",
+        "rate_type": "CALENDAR_DAY",
         "regularity": [
           1.0,
           1.0,

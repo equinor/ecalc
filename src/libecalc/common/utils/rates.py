@@ -685,6 +685,7 @@ class TimeSeriesStreamDayRate(TimeSeriesFloat):
 class TimeSeriesCalendarDayRate(TimeSeriesFloat):
     """
     Application layer only - only calendar day rate/used for reporting
+    Probably not needed, as we want to provide info on regularity etc for the fixed calendar rate data too
     """
 
     ...

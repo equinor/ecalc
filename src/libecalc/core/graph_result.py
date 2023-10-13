@@ -185,7 +185,9 @@ class GraphResult:
                     ),
                     power=power,
                     power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
-                    energy_usage=energy_usage,
+                    energy_usage=energy_usage.to_calendar_day()
+                    if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else energy_usage.to_stream_day(),
                     energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                     hydrocarbon_export_rate=hydrocarbon_export_rate,
                     emissions=self.to_full_result(aggregated_emissions),
@@ -920,7 +922,11 @@ class GraphResult:
                     ),
                     "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage, regularity=regularity
-                    ),
+                    ).to_calendar_day()
+                    if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_stream_day(),
                 },
             )
             if isinstance(obj, GeneratorSetResult):

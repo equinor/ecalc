@@ -42,6 +42,6 @@ def test_asset_with_multiple_installations(asset_with_two_installations):
         values=[150, 150, 150],
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         timesteps=timesteps,
-        rate_type=RateType.STREAM_DAY,
+        rate_type=RateType.CALENDAR_DAY,
         regularity=[1.0, 1.0, 1.0],
     )
