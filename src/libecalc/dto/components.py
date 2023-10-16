@@ -507,7 +507,20 @@ class Asset(Component):
                 names.append(fuel_consumer.name)
                 if isinstance(fuel_consumer, GeneratorSet):
                     for electricity_consumer in fuel_consumer.consumers:
-                        names.append(electricity_consumer.name)
+                        if isinstance(electricity_consumer, (CompressorSystem, PumpSystem)):
+                            if isinstance(electricity_consumer, CompressorSystem):
+                                consumers = electricity_consumer.compressors
+                            else:
+                                consumers = electricity_consumer.pumps
+                            for consumer in consumers:
+                                names.append(consumer.name)
+                elif isinstance(fuel_consumer, (CompressorSystem, PumpSystem)):
+                    if isinstance(fuel_consumer, CompressorSystem):
+                        consumers = fuel_consumer.compressors
+                    else:
+                        consumers = fuel_consumer.pumps
+                    for consumer in consumers:
+                        names.append(consumer.name)
                 if fuel_consumer.fuel is not None:
                     for fuel_type in fuel_consumer.fuel.values():
                         # Need to verify that it is a different fuel
@@ -520,8 +533,8 @@ class Asset(Component):
 
         if len(duplicated_names) > 0:
             raise ValueError(
-                "Component names must be unique. Components include asset/ecalc-model, installations,"
-                " generator sets, electricity consumers, fuel consumers and direct emitters."
+                "Component names must be unique. Components include the main model, installations,"
+                " generator sets, electricity consumers, fuel consumers, systems and its consumers and direct emitters."
                 f" Duplicated names are: {', '.join(duplicated_names)}"
             )
 
