@@ -159,7 +159,7 @@ In the `INSTALLATIONS` section, the previously defined models and facility input
 INSTALLATIONS:
   - NAME: drogon_installation
     CATEGORY: FIXED
-    HCEXPORT: SIM1;FOPR {+} SIM1;FGPR {/} 1000
+    HCEXPORT: SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000
     FUEL: fuel_gas
 ~~~~~~~~
 
@@ -224,7 +224,7 @@ Here, 13 bar and 421 bar is specified for the suction and discharge pressure res
               COMPRESSORS:
                 - NAME: train1_2
                   COMPRESSOR_MODEL: simplified_compressor_train_model
-              TOTAL_SYSTEM_RATE: SIM1;FGPR
+              TOTAL_SYSTEM_RATE: SIM1;GAS_PROD
               OPERATIONAL_SETTINGS:
                 - RATE_FRACTIONS:
                     - 1
@@ -351,7 +351,7 @@ INSTALLATIONS:
               COMPRESSORS:
                 - NAME: train1_2
                   COMPRESSOR_MODEL: simplified_compressor_train_model
-              TOTAL_SYSTEM_RATE: SIM1;FGPR
+              TOTAL_SYSTEM_RATE: SIM1;GAS_PROD
               OPERATIONAL_SETTINGS:
                 - RATE_FRACTIONS:
                     - 1
@@ -414,7 +414,7 @@ RATE,HEAD,EFFICIENCY,SPEED
 ### Timeseries resources
 
 ~~~~~~~~text title="drogon_mean.csv"
-DATE,FGPR,FOPR,FWIR
+DATE,GAS_PROD,OIL_PROD,FWIR
 01.01.2020,329327.76,2301.9189,3796.9621
 01.01.2021,533620.39,3699.8435,8533.0322
 01.01.2022,416004.76,2837.5915,9434.1385
