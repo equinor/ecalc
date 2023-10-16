@@ -136,7 +136,7 @@ For our model, we specify the following variables:
 VARIABLES:
   hydrocarbon_export_sm3_per_day:
     VALUE: SIM;OIL_PROD {+} SIM;GAS_PROD {/} 1000  # divide the gas rate by 1000 to get oil equivalent
-  salt_water_injection_rate_m3_per_day:
+  sea_water_injection_rate_m3_per_day:
     VALUE: SIM;WATER_INJ {-} SIM;WATER_PROD {+} SIM;WATER_PROD {*} (SIM;WATER_PROD < 1500) {+} (SIM;WATER_PROD {-} 17000) {*} (SIM;WATER_PROD > 17000) {*} (SIM;WATER_PROD < 18500)
   gas_export_rate_sm3_per_day:
     VALUE: SIM;GAS_PROD
@@ -366,7 +366,7 @@ FUEL_TYPES:
 VARIABLES:
   hydrocarbon_export_sm3_per_day:
     VALUE: SIM;OIL_PROD {+} SIM;GAS_PROD {/} 1000  # divide the gas rate by 1000 to get oil equivalent
-  salt_water_injection_rate_m3_per_day:
+  sea_water_injection_rate_m3_per_day:
     VALUE: SIM;WATER_INJ {-} SIM;WATER_PROD {+} SIM;WATER_PROD {*} (SIM;WATER_PROD < 1500) {+} (SIM;WATER_PROD {-} 17000) {*} (SIM;WATER_PROD > 17000) {*} (SIM;WATER_PROD < 18500)
   gas_export_rate_sm3_per_day:
     VALUE: SIM;GAS_PROD
