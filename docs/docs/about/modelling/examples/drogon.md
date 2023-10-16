@@ -195,7 +195,7 @@ A fluid density of 1025 kg/m<sup>3</sup> is used, with a suction and discharge p
                   CHART: wi_200
                 - NAME: pump_b_lp
                   CHART: wi_200
-              TOTAL_SYSTEM_RATE: SIM1;FWIR
+              TOTAL_SYSTEM_RATE: SIM1;WATER_INJ
               FLUID_DENSITY: 1025
               OPERATIONAL_SETTINGS:
                 - RATE_FRACTIONS:
@@ -414,7 +414,7 @@ RATE,HEAD,EFFICIENCY,SPEED
 ### Timeseries resources
 
 ~~~~~~~~text title="drogon_mean.csv"
-DATE,GAS_PROD,OIL_PROD,FWIR
+DATE,GAS_PROD,OIL_PROD,WATER_INJ
 01.01.2020,329327.76,2301.9189,3796.9621
 01.01.2021,533620.39,3699.8435,8533.0322
 01.01.2022,416004.76,2837.5915,9434.1385
