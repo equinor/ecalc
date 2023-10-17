@@ -207,13 +207,14 @@
         },
         {
           "type": "object",
-          "properties": {
-            "SPEED": { "type": "number" },
-            "RATE": { "type": "array", "items": { "type": "number" } },
-            "HEAD": { "type": "array", "items": { "type": "number" } },
-            "EFFICIENCY": { "type": "array", "items": { "type": "number" } }
+            "properties": {
+              "SPEED": { "type": "number" },
+              "RATE": { "type": "array", "items": { "type": "number" } },
+              "HEAD": { "type": "array", "items": { "type": "number" } },
+              "EFFICIENCY": { "type": "array", "items": { "type": "number" } }
+            },
+            "additionalProperties": false
           }
-        }
       ]
     },
     "DESIGN_RATE": {

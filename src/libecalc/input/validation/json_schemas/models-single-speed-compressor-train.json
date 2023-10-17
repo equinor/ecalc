@@ -101,8 +101,7 @@
         "NAME",
         "TYPE",
         "FLUID_MODEL",
-        "COMPRESSOR_TRAIN",
-        "PRESSURE_CONTROL"
+        "COMPRESSOR_TRAIN"
       ]
     },
     "INLET_TEMPERATURE": {
