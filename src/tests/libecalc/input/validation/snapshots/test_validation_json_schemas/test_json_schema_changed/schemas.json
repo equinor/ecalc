@@ -652,9 +652,15 @@
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
-                            "allOf": [
+                            "anyOf": [
                                 {
                                     "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                    },
+                                    "type": "object"
                                 }
                             ],
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
@@ -834,7 +840,7 @@
                                             "type": "number"
                                         },
                                         {
-                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                             "type": "string"
                                         }
                                     ],
@@ -854,7 +860,7 @@
                                                 "type": "number"
                                             },
                                             {
-                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                                 "type": "string"
                                             }
                                         ],
@@ -886,7 +892,7 @@
                                             "type": "number"
                                         },
                                         {
-                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                             "type": "string"
                                         }
                                     ],
@@ -906,7 +912,7 @@
                                                 "type": "number"
                                             },
                                             {
-                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                                 "type": "string"
                                             }
                                         ],
@@ -1370,7 +1376,7 @@
                                     "type": "number"
                                 },
                                 {
-                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /]+$",
+                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                     "type": "string"
                                 }
                             ],
@@ -2816,6 +2822,7 @@
                             "type": "object"
                         },
                         {
+                            "additionalProperties": false,
                             "properties": {
                                 "EFFICIENCY": {
                                     "items": {
@@ -3477,8 +3484,7 @@
                         "NAME",
                         "TYPE",
                         "FLUID_MODEL",
-                        "COMPRESSOR_TRAIN",
-                        "PRESSURE_CONTROL"
+                        "COMPRESSOR_TRAIN"
                     ],
                     "then": {
                         "unevaluatedProperties": {

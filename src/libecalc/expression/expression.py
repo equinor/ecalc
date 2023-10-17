@@ -114,7 +114,7 @@ class Expression:
                 {"type": "number"},
                 {
                     "type": "string",
-                    "pattern": r"^[\w * ^ . : ; () {} = > < + \- /]+$",
+                    "pattern": r"^[\w * ^ . : ; () {} = > < + \- /$]+$",
                 },
             ],
             examples=["SIM1;OIL_PROD {+} 1000", 5],
