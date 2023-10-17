@@ -35,7 +35,7 @@ class YamlGeneratorSet(YamlBase):
         title="NAME",
         description="Name of the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
     )
-    category: ConsumerUserDefinedCategoryType = CategoryField(...)
+    category: YamlTemporalModel[ConsumerUserDefinedCategoryType] = CategoryField(...)
     fuel: YamlTemporalModel[str] = Field(
         None,
         title="FUEL",
