@@ -190,8 +190,17 @@ class PumpSystemOperationalSetting(EcalcBaseModel):
     outlet_pressures: List[Expression]
 
 
+class Crossover(EcalcBaseModel):
+    class Config:
+        allow_population_by_field_name = True
+
+    stream_name: Optional[str] = Field(None)
+    from_component_id: str
+    to_component_id: str
+
+
 class SystemComponentConditions(EcalcBaseModel):
-    crossover: List[int]
+    crossover: List[Crossover]
 
 
 class CompressorSystem(BaseConsumer):
