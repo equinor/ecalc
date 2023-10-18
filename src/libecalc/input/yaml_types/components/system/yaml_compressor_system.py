@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Literal, Optional
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
-from libecalc.dto.components import SystemComponentConditions
+from libecalc.dto.components import Crossover, SystemComponentConditions
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
@@ -140,15 +140,24 @@ class YamlCompressorSystem(YamlConsumerBase):
             for compressor in self.consumers
         ]
 
+        compressor_name_to_id_map = {compressor.name: compressor.id for compressor in compressors}
+
         if self.component_conditions is not None:
             component_conditions = SystemComponentConditions(
-                crossover=self.component_conditions.crossover
+                crossover=[
+                    Crossover(
+                        from_component_id=compressor_name_to_id_map[crossover_stream.from_],
+                        to_component_id=compressor_name_to_id_map[crossover_stream.to],
+                        stream_name=crossover_stream.name,
+                    )
+                    for crossover_stream in self.component_conditions.crossover
+                ]
                 if self.component_conditions.crossover is not None
-                else [0] * number_of_compressors,
+                else [],
             )
         else:
             component_conditions = SystemComponentConditions(
-                crossover=[0] * number_of_compressors,
+                crossover=[],
             )
 
         return dto.components.CompressorSystem(

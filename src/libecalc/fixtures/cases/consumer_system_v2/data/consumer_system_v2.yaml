@@ -80,7 +80,11 @@ INSTALLATIONS:
               - NAME: pump3
                 ENERGY_USAGE_MODEL: pump_single_speed
             COMPONENT_CONDITIONS:
-              CROSSOVER: [ 0, 1, 1 ]
+              CROSSOVER:
+                - FROM: pump2
+                  TO: pump1
+                - FROM: pump3
+                  TO: pump1
             OPERATIONAL_SETTINGS:
               - RATES: [ 4000000, 5000000, 6000000 ]
                 INLET_PRESSURE: 50
@@ -126,7 +130,11 @@ INSTALLATIONS:
           - NAME: compressor3
             ENERGY_USAGE_MODEL: compressor_sampled_1d
         COMPONENT_CONDITIONS:
-          CROSSOVER: [ 0, 1, 1 ]
+          CROSSOVER:
+            - FROM: compressor2
+              TO: compressor1
+            - FROM: compressor3
+              TO: compressor1
         OPERATIONAL_SETTINGS:
           - RATES: [ 1000000, 6000000, 6000000 ]
             INLET_PRESSURE: 50
