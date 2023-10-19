@@ -320,7 +320,7 @@ The model is specified:
       - NAME: Gas export compressor
         CATEGORY: COMPRESSOR
         ENERGY_USAGE_MODEL:
-          TYPE: COMPRESSOR
+          TYPE: GAS-DRIVEN-COMPRESSOR
           ENERGYFUNCTION: compressor_with_turbine_sampled
           RATE: $var.gas_export_rate_sm3_per_day
           SUCTION_PRESSURE: 50 #not used but a number is needed for eCalc
@@ -431,7 +431,7 @@ INSTALLATIONS:
       - NAME: Gas export compressor
         CATEGORY: COMPRESSOR
         ENERGY_USAGE_MODEL:
-          TYPE: COMPRESSOR
+          TYPE: GAS-DRIVEN-COMPRESSOR
           ENERGYFUNCTION: compressor_with_turbine_sampled
           RATE: $var.gas_export_rate_sm3_per_day
           SUCTION_PRESSURE: 50 #not used but a number is needed for eCalc

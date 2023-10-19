@@ -312,7 +312,7 @@ FUEL_TYPES:
         FACTOR: 2.416
         TAX: 1.71
 INSTALLATIONS:
-  - NAME: drogon
+  - NAME: drogon_installation
     CATEGORY: FIXED
     HCEXPORT: SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000
     FUEL: fuel_gas
