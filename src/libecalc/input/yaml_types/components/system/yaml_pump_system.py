@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -18,7 +18,6 @@ from libecalc.input.yaml_types.components.yaml_base import (
     YamlConsumerSystemOperationalConditionBase,
 )
 from libecalc.input.yaml_types.components.yaml_pump import YamlPump
-from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
 from pydantic import Field, root_validator, validator
 
 opt_expr_list = Optional[List[ExpressionType]]
@@ -59,7 +58,7 @@ class YamlPumpSystem(YamlConsumerBase):
         description="Contains conditions for the component, in this case the system.",
     )
 
-    operational_settings: YamlTemporalModel[List[YamlPumpSystemOperationalSettings]]
+    operational_settings: List[YamlPumpSystemOperationalSettings]
 
     consumers: List[YamlPump]
 
@@ -70,14 +69,7 @@ class YamlPumpSystem(YamlConsumerBase):
         if operational_settings is None:
             return values
 
-        if isinstance(operational_settings, dict):
-            flattened_operational_settings = []
-            for operational_setting in operational_settings.values():
-                flattened_operational_settings.extend(operational_setting)
-        else:
-            flattened_operational_settings = operational_settings
-
-        for operational_setting in flattened_operational_settings:
+        for operational_setting in operational_settings:
             # Validate pressures
             inlet_pressures = operational_setting.inlet_pressures
             inlet_pressure = operational_setting.inlet_pressure
@@ -112,41 +104,35 @@ class YamlPumpSystem(YamlConsumerBase):
     ) -> dto.components.PumpSystem:
         number_of_pumps = len(self.consumers)
 
-        parsed_operational_settings: Dict[datetime, Any] = {}
-        temporal_operational_settings = define_time_model_for_period(
-            time_model_data=self.operational_settings, target_period=target_period
-        )
+        parsed_operational_settings: List[dto.components.PumpSystemOperationalSetting] = []
+        for operational_setting in self.operational_settings:
+            inlet_pressures = (
+                operational_setting.inlet_pressures
+                if operational_setting.inlet_pressures is not None
+                else [operational_setting.inlet_pressure] * number_of_pumps
+            )
+            outlet_pressures = (
+                operational_setting.outlet_pressures
+                if operational_setting.outlet_pressures is not None
+                else [operational_setting.outlet_pressure] * number_of_pumps
+            )
+            rates = [Expression.setup_from_expression(rate) for rate in operational_setting.rates]
 
-        for timestep, operational_settings in temporal_operational_settings.items():
-            parsed_operational_settings[timestep] = []
-            for operational_setting in operational_settings:
-                inlet_pressures = (
-                    operational_setting.inlet_pressures
-                    if operational_setting.inlet_pressures is not None
-                    else [operational_setting.inlet_pressure] * number_of_pumps
+            fluid_densities = (
+                operational_setting.fluid_densities
+                if operational_setting.fluid_densities is not None
+                else [operational_setting.fluid_density] * number_of_pumps
+            )
+            parsed_operational_settings.append(
+                dto.components.PumpSystemOperationalSetting(
+                    rates=rates,
+                    inlet_pressures=[Expression.setup_from_expression(pressure) for pressure in inlet_pressures],
+                    outlet_pressures=[Expression.setup_from_expression(pressure) for pressure in outlet_pressures],
+                    fluid_density=[
+                        Expression.setup_from_expression(fluid_density) for fluid_density in fluid_densities
+                    ],
                 )
-                outlet_pressures = (
-                    operational_setting.outlet_pressures
-                    if operational_setting.outlet_pressures is not None
-                    else [operational_setting.outlet_pressure] * number_of_pumps
-                )
-                rates = [Expression.setup_from_expression(rate) for rate in operational_setting.rates]
-
-                fluid_densities = (
-                    operational_setting.fluid_densities
-                    if operational_setting.fluid_densities is not None
-                    else [operational_setting.fluid_density] * number_of_pumps
-                )
-                parsed_operational_settings[timestep].append(
-                    dto.components.PumpSystemOperationalSetting(
-                        rates=rates,
-                        inlet_pressures=[Expression.setup_from_expression(pressure) for pressure in inlet_pressures],
-                        outlet_pressures=[Expression.setup_from_expression(pressure) for pressure in outlet_pressures],
-                        fluid_density=[
-                            Expression.setup_from_expression(fluid_density) for fluid_density in fluid_densities
-                        ],
-                    )
-                )
+            )
 
         pumps: List[dto.components.PumpComponent] = [
             dto.components.PumpComponent(

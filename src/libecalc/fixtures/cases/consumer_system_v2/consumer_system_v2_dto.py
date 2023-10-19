@@ -1,4 +1,3 @@
-from copy import deepcopy
 from datetime import datetime
 
 import pytest
@@ -202,139 +201,27 @@ compressor_system_v2 = dto.components.CompressorSystem(
             Crossover(from_component_id=generate_id("compressor3"), to_component_id=generate_id("compressor1")),
         ],
     ),
-    operational_settings={
-        datetime(2022, 1, 1, 0, 0): [
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-            ),  # Invalid operational setting, should not be valid for any timesteps
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Valid for first timestep
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-        ]
-    },
+    operational_settings=[
+        dto.components.CompressorSystemOperationalSetting(
+            rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
+            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+            outlet_pressures=[Expression.setup_from_expression("250")] * 3,
+        ),  # Invalid operational setting, should not be valid for any timesteps
+        dto.components.CompressorSystemOperationalSetting(
+            rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
+            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+            outlet_pressures=[Expression.setup_from_expression("125")] * 3,
+        ),  # Valid for first timestep
+        dto.components.CompressorSystemOperationalSetting(
+            rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
+            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+            outlet_pressures=[Expression.setup_from_expression("125")] * 3,
+        ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
+    ],
     compressors=[
         compressor1,  # Max rate of 4000000
         compressor2,  # Max rate of 4000000
         compressor3,  # Max rate of 4000000
-    ],
-)
-
-compressor_system_v2_with_temporal_model = dto.components.CompressorSystem(
-    name="compressor_system_v2",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-    regularity=regularity,
-    consumes=ConsumptionType.FUEL,
-    fuel=fuel,
-    component_conditions=SystemComponentConditions(
-        crossover=[
-            Crossover(from_component_id=generate_id("compressor2"), to_component_id=generate_id("compressor1")),
-            Crossover(from_component_id=generate_id("compressor3"), to_component_id=generate_id("compressor1")),
-        ],
-    ),
-    operational_settings={
-        datetime(2022, 1, 1, 0, 0): [
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-            ),  # Invalid operational setting, should not be valid for any timesteps
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Valid for first timestep
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-        ],
-        datetime(2024, 1, 1, 0, 0): [
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-            ),  # Invalid operational setting, should not be valid for any timesteps
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Valid for first timestep
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-        ],
-    },
-    compressors=[
-        compressor1,  # Max rate of 4000000
-        compressor2,  # Max rate of 4000000
-        compressor3,  # Max rate of 4000000
-    ],
-)
-
-compressor_system_v2_with_overlapping_temporal_models = dto.components.CompressorSystem(
-    name="compressor_system_v2",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-    regularity=regularity,
-    consumes=ConsumptionType.FUEL,
-    fuel=fuel,
-    component_conditions=SystemComponentConditions(
-        crossover=[
-            Crossover(from_component_id=generate_id("compressor2"), to_component_id=generate_id("compressor1")),
-            Crossover(from_component_id=generate_id("compressor3"), to_component_id=generate_id("compressor1")),
-        ],
-    ),
-    operational_settings={
-        datetime(2022, 1, 1, 0, 0): [
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-            ),  # Invalid operational setting, should not be valid for any timesteps
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Valid for first timestep
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-        ],
-        datetime(2025, 1, 1, 0, 0): [
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-            ),  # Invalid operational setting, should not be valid for any timesteps
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Valid for first timestep
-            dto.components.CompressorSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-        ],
-    },
-    compressors=[
-        compressor1,  # Max rate of 4000000
-        compressor2,  # Max rate of 4000000
-        compressor5_with_overlapping_temporal_model,  # Max rate of 4000000
     ],
 )
 
@@ -393,22 +280,20 @@ pump_system_v2 = dto.components.PumpSystem(
             Crossover(from_component_id=generate_id("pump3"), to_component_id=generate_id("pump1")),
         ],
     ),
-    operational_settings={
-        datetime(2022, 1, 1, 0, 0): [
-            dto.components.PumpSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-                fluid_density=[Expression.setup_from_expression("2")] * 3,
-            ),
-            dto.components.PumpSystemOperationalSetting(
-                rates=[Expression.setup_from_expression(x) for x in [2000000, 2500000, 3000000]],
-                inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-                outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-                fluid_density=[Expression.setup_from_expression("2")] * 3,
-            ),
-        ]
-    },
+    operational_settings=[
+        dto.components.PumpSystemOperationalSetting(
+            rates=[Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]],
+            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+            outlet_pressures=[Expression.setup_from_expression("250")] * 3,
+            fluid_density=[Expression.setup_from_expression("2")] * 3,
+        ),
+        dto.components.PumpSystemOperationalSetting(
+            rates=[Expression.setup_from_expression(x) for x in [2000000, 2500000, 3000000]],
+            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
+            outlet_pressures=[Expression.setup_from_expression("125")] * 3,
+            fluid_density=[Expression.setup_from_expression("2")] * 3,
+        ),
+    ],
     pumps=[pump1, pump2, pump3],
 )
 
@@ -476,69 +361,3 @@ def consumer_system_v2_dto() -> DTOCase:
             },
         ),
     )
-
-
-def consumer_system_v2_dto_temporal_operational_settings(consumer_system_v2_dto: DTOCase) -> DTOCase:
-    """
-    Consumer System v2 - temporal operational settings
-    :param consumer_system_v2_dto:
-    :return:
-    """
-    consumer_system_v2_dto_2 = deepcopy(consumer_system_v2_dto)
-    for fuel_consumer in consumer_system_v2_dto_2.ecalc_model.installations[0].fuel_consumers:
-        if fuel_consumer.name == "compressor_system_v2":
-            consumer_system_v2_dto_2.ecalc_model.installations[0].fuel_consumers.remove(fuel_consumer)
-
-    consumer_system_v2_dto_2.ecalc_model.installations[0].fuel_consumers.append(
-        compressor_system_v2_with_temporal_model
-    )
-
-    return consumer_system_v2_dto_2
-
-
-def consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models(
-    consumer_system_v2_dto: DTOCase,
-) -> DTOCase:
-    """
-    Consumer System v2 - temporal operational settings AND temporal models - no overlap/matching timesteps
-    :param consumer_system_v2_dto:
-    :return:
-    """
-    consumer_system_v2_dto_3 = deepcopy(consumer_system_v2_dto)
-    for fuel_consumer in consumer_system_v2_dto_3.ecalc_model.installations[0].fuel_consumers:
-        if fuel_consumer.name == "compressor_system_v2":
-            consumer_system_v2_dto_3.ecalc_model.installations[0].fuel_consumers.remove(fuel_consumer)
-
-    consumer_system_v2_dto_3.ecalc_model.installations[0].fuel_consumers.append(
-        compressor_system_v2_with_temporal_model
-    )
-
-    compressor_system_v2_with_temporal_model_2 = deepcopy(compressor_system_v2_with_temporal_model)
-
-    for compressor in compressor_system_v2_with_temporal_model_2.compressors:
-        if compressor.name == "compressor3":
-            compressor_system_v2_with_temporal_model_2.compressors.remove(compressor)
-
-    compressor_system_v2_with_temporal_model_2.compressors.append(compressor4_temporal_model)
-
-    return consumer_system_v2_dto_3
-
-
-def consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models(
-    consumer_system_v2_dto: DTOCase,
-) -> DTOCase:
-    """
-    Consumer System v2 - temporal operational settings AND temporal models - overlap and mismatching timesteps
-    :param consumer_system_v2_dto:
-    :return:
-    """
-    consumer_system_v2_dto_3 = deepcopy(consumer_system_v2_dto)
-    for fuel_consumer in consumer_system_v2_dto_3.ecalc_model.installations[0].fuel_consumers:
-        if fuel_consumer.name == "compressor_system_v2":
-            consumer_system_v2_dto_3.ecalc_model.installations[0].fuel_consumers.remove(fuel_consumer)
-
-    consumer_system_v2_dto_3.ecalc_model.installations[0].fuel_consumers.append(
-        compressor_system_v2_with_overlapping_temporal_models
-    )
-
-    return consumer_system_v2_dto_3

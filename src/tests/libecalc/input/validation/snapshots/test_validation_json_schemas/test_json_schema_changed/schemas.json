@@ -112,24 +112,11 @@
                             "type": "string"
                         },
                         "OPERATIONAL_SETTINGS": {
-                            "anyOf": [
-                                {
-                                    "items": {
-                                        "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
-                                    },
-                                    "type": "array"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "items": {
-                                            "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "title": "Operational Settings"
+                            "items": {
+                                "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
+                            },
+                            "title": "Operational Settings",
+                            "type": "array"
                         },
                         "TYPE": {
                             "default": "COMPRESSOR_SYSTEM@v2",
@@ -1227,24 +1214,11 @@
                             "type": "string"
                         },
                         "OPERATIONAL_SETTINGS": {
-                            "anyOf": [
-                                {
-                                    "items": {
-                                        "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
-                                    },
-                                    "type": "array"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "items": {
-                                            "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "title": "Operational Settings"
+                            "items": {
+                                "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
+                            },
+                            "title": "Operational Settings",
+                            "type": "array"
                         },
                         "TYPE": {
                             "default": "PUMP_SYSTEM@v2",
