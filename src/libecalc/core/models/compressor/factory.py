@@ -34,6 +34,7 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures_strea
 ) -> FluidStreamObjectForMultipleStreams:
     is_inlet_stream = stream_data.typ == dto.types.FluidStreamType.INGOING
     return FluidStreamObjectForMultipleStreams(
+        name=stream_data.name,
         fluid=FluidStream(fluid_model=stream_data.fluid_model) if stream_data.fluid_model else None,
         is_inlet_stream=is_inlet_stream,
         connected_to_stage_no=stream_references[stream_data.name],
