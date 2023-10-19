@@ -7,7 +7,7 @@ from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesRate
+from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.core.result.emission import EmissionResult
 from libecalc.expression import Expression
 from numpy.typing import NDArray
@@ -94,17 +94,17 @@ class FuelModel:
                     result = EmissionResult(
                         name=emission.name,
                         timesteps=variables_map_this_period.time_vector,
-                        rate=TimeSeriesRate(
+                        rate=TimeSeriesStreamDayRate(
                             timesteps=variables_map_this_period.time_vector,
                             values=emission_rate_tons_per_day.tolist(),
                             unit=Unit.TONS_PER_DAY,
                         ),
-                        tax=TimeSeriesRate(
+                        tax=TimeSeriesStreamDayRate(
                             timesteps=variables_map_this_period.time_vector,
                             values=(fuel_rate_this_period * tax).tolist(),
                             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
                         ),
-                        quota=TimeSeriesRate(
+                        quota=TimeSeriesStreamDayRate(
                             timesteps=variables_map_this_period.time_vector,
                             values=quota.tolist(),
                             unit=Unit.NORWEGIAN_KRONER_PER_DAY,

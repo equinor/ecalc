@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 from libecalc import dto
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesRate
+from libecalc.common.utils.rates import (
+    TimeSeriesBoolean,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.result.results import GenericComponentResult
-from libecalc.dto.types import RateType
 
 
 def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
@@ -28,10 +30,9 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
 
     # Note that this discrepancy between power rate and fuel rate will normally not happen, since the el-consumer
     # will also interpolate the same way as the genset does.
-    assert generator_set_result.power == TimeSeriesRate(
+    assert generator_set_result.power == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[1, 2, 10, 0, 0, 0],
-        regularity=[1] * 6,
         unit=Unit.MEGA_WATT,
     )
     assert generator_set_result.is_valid == TimeSeriesBoolean(
@@ -61,16 +62,13 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     # The Genset is not supposed to handle NaN-values from the el-consumers.
     np.testing.assert_equal(results.power.values, [np.nan, np.nan, 0.5, 0.5, np.nan, np.nan])
     assert results.power.unit == Unit.MEGA_WATT
-    assert results.power.regularity == [1] * 6
     assert results.power.timesteps == time_vector
 
     # The resulting fuel rate will be zero and the result is invalid for the NaN-timesteps.
-    assert results.energy_usage == TimeSeriesRate(
+    assert results.energy_usage == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[0, 0, 0.6, 0.6, 0.0, 0.0],
-        regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        rate_type=RateType.CALENDAR_DAY,
     )
     assert results.is_valid == TimeSeriesBoolean(
         timesteps=time_vector,
@@ -90,20 +88,17 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     )
 
     # The genset will still report power rate
-    assert results.power == TimeSeriesRate(
+    assert results.power == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[1, 2, 3, 4, 5, 6],
-        regularity=[1] * 6,
         unit=Unit.MEGA_WATT,
     )
 
     # But the fuel rate will only be valid for the first step. The rest is extrapolated.
-    assert results.energy_usage == TimeSeriesRate(
+    assert results.energy_usage == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[1, 2, 2, 2, 2, 2],
-        regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        rate_type=RateType.CALENDAR_DAY,
     )
     assert results.is_valid == TimeSeriesBoolean(
         timesteps=time_vector,
@@ -125,21 +120,18 @@ def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto):
         for successor in graph.get_successors(genset_1000mw_late_startup_dto.id)
     ]
 
-    assert generator_set_result.power == TimeSeriesRate(
+    assert generator_set_result.power == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[1.0, 2.0, 10.0, 0.0, 0.0, 0.0],
-        regularity=[1] * 6,
         unit=Unit.MEGA_WATT,
     )
 
     # Note that the genset is not able to deliver the power rate demanded by the el-consumer(s) for the two
     # first time-steps before the genset is activated in 2022.
-    assert generator_set_result.energy_usage == TimeSeriesRate(
+    assert generator_set_result.energy_usage == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[0.0, 0.0, 10.0, 0.0, 0.0, 0.0],
-        regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        rate_type=RateType.CALENDAR_DAY,
     )
     assert generator_set_result.is_valid == TimeSeriesBoolean(
         timesteps=time_vector,

@@ -95,6 +95,8 @@ def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, re
     compressor_system_v2_component_result = compressor_system_v2_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
+
+    # assert actual expected
     assert compressor_system_component_result.power.unit == compressor_system_v2_component_result.power.unit
     assert isinstance(compressor_system_component_result.power, type(compressor_system_v2_component_result.power))
 

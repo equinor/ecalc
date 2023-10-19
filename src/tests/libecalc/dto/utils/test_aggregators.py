@@ -4,10 +4,14 @@ from typing import List
 import pandas as pd
 from libecalc import dto
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesRate
+from libecalc.common.utils.rates import (
+    TimeSeriesFloat,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.dto.result.emission import PartialEmissionResult
 from libecalc.dto.utils.aggregators import aggregate_emissions
 from libecalc.expression import Expression
 
@@ -92,19 +96,19 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
 def get_emission_with_only_rate(rates: List[float], name: str):
     timesteps = list(pd.date_range(start="2020-01-01", freq="Y", periods=len(rates)))
     return EmissionResult(
-        rate=TimeSeriesRate(
+        rate=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=rates,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         ),
         timesteps=timesteps,
         name=name,
-        tax=TimeSeriesRate(
+        tax=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=[0] * len(rates),
             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
         ),
-        quota=TimeSeriesRate(
+        quota=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=[0] * len(rates),
             unit=Unit.NORWEGIAN_KRONER_PER_DAY,
@@ -115,13 +119,26 @@ def get_emission_with_only_rate(rates: List[float], name: str):
 class TestAggregateEmissions:
     def test_aggregate_emissions(self):
         """Test that emissions are aggregated correctly and that order is preserved."""
+        timesteps = list(pd.date_range(start="2020-01-01", freq="Y", periods=3))
         emissions1 = {
-            "CO2": get_emission_with_only_rate([1, 2, 3], name="CO2"),
-            "CH4": get_emission_with_only_rate([2, 3, 4], name="CH4"),
+            "CO2": PartialEmissionResult.from_emission_core_result(
+                get_emission_with_only_rate([1, 2, 3], name="CO2"),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+            ),
+            "CH4": PartialEmissionResult.from_emission_core_result(
+                get_emission_with_only_rate([2, 3, 4], name="CH4"),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+            ),
         }
         emissions2 = {
-            "CO2:": get_emission_with_only_rate([3, 6, 9], name="CO2"),
-            "CH4": get_emission_with_only_rate([4, 8, 12], name="CH4"),
+            "CO2:": PartialEmissionResult.from_emission_core_result(
+                get_emission_with_only_rate([3, 6, 9], name="CO2"),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+            ),
+            "CH4": PartialEmissionResult.from_emission_core_result(
+                get_emission_with_only_rate([4, 8, 12], name="CH4"),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+            ),
         }
         aggregated = aggregate_emissions(
             emissions_lists=[emissions1, emissions2],
@@ -182,14 +199,37 @@ class TestAggregateEmissions:
         for installation in asset.installations:
             aggregated_emissions_correct = aggregate_emissions(
                 [
-                    graph_result.emission_results[fuel_consumer_id]
-                    for fuel_consumer_id in graph_result.graph.get_successors(installation.id)
+                    {
+                        emission_name: PartialEmissionResult.from_emission_core_result(
+                            emission,
+                            regularity=TimeSeriesFloat(
+                                values=[1.0] * len(emission.timesteps), timesteps=emission.timesteps, unit=Unit.NONE
+                            ),
+                        )
+                        for fuel_consumer_id in graph_result.graph.get_successors(installation.id)
+                        for emission_name, emission in graph_result.emission_results[fuel_consumer_id].items()
+                    }
                 ]
             )
 
             # The method below aggregates all installations for each installation, which is wrong.
             # It was not captured in any test previously.
-            aggregated_emissions_wrong = aggregate_emissions(list(graph_result.emission_results.values()))
+            aggregated_emissions_wrong = aggregate_emissions(
+                [
+                    {
+                        emission_name: PartialEmissionResult.from_emission_core_result(
+                            emission_result=emission_result,
+                            regularity=TimeSeriesFloat(
+                                values=[1.0] * len(emission_result.timesteps),
+                                timesteps=emission_result.timesteps,
+                                unit=Unit.NONE,
+                            ),
+                        )
+                        for emission_name, emission_result in emission_results.items()
+                    }
+                    for consumer_name, emission_results in graph_result.emission_results.items()
+                ]
+            )
 
             installation_results_correct.append(aggregated_emissions_correct["co2"].rate.values)
             installation_results_wrong.append(aggregated_emissions_wrong["co2"].rate.values)

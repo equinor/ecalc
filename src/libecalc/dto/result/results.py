@@ -74,6 +74,7 @@ class InstallationResult(AssetResult):
     """The installation result component."""
 
     componentType: Literal[ComponentType.INSTALLATION]
+    regularity: TimeSeriesFloat  # Regularity is currently set at per installation, send through. Possibly skip in output if confusing
 
 
 class GeneratorSetResult(EquipmentResultBase):

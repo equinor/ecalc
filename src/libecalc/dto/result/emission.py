@@ -5,12 +5,15 @@ from typing import List
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    TimeSeriesFloat,
     TimeSeriesIntensity,
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
+from libecalc.core.result.emission import EmissionResult as EmissionCoreResult
 from libecalc.dto.result.simple import SimpleEmissionResult
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
+from typing_extensions import Self
 
 
 class EmissionResult(TabularTimeSeries):
@@ -29,6 +32,15 @@ class EmissionResult(TabularTimeSeries):
 
     @classmethod
     def create_empty(cls, name: str, timesteps: List[datetime]):
+        """Empty placeholder for emissions, when needed
+
+        Args:
+            name:
+            timesteps:
+
+        Returns:
+
+        """
         return cls(
             name=name,
             timesteps=timesteps,
@@ -62,6 +74,25 @@ class EmissionResult(TabularTimeSeries):
                 values=[0] * len(timesteps),
                 unit=Unit.NORWEGIAN_KRONER,
             ),
+        )
+
+
+class PartialEmissionResult(TabularTimeSeries):
+    """The partial emissions - a direct translation from the core emission results"""
+
+    name: str
+    rate: TimeSeriesRate
+    tax: TimeSeriesRate
+    quota: TimeSeriesRate
+
+    @classmethod
+    def from_emission_core_result(cls, emission_result: EmissionCoreResult, regularity: TimeSeriesFloat) -> Self:
+        return PartialEmissionResult(
+            name=emission_result.name,
+            timesteps=emission_result.timesteps,
+            rate=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.rate, regularity),
+            tax=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.tax, regularity),
+            quota=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.quota, regularity),
         )
 
 
