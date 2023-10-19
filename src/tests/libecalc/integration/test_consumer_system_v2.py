@@ -6,11 +6,6 @@ import pytest
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import EnergyCalculatorResult, GraphResult
 from libecalc.fixtures import DTOCase, consumer_system_v2_dto
-from libecalc.fixtures.cases.consumer_system_v2.consumer_system_v2_dto import (
-    consumer_system_v2_dto_temporal_operational_settings,
-    consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models,
-    consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models,
-)
 
 
 def result(consumer_system_v2: DTOCase) -> EnergyCalculatorResult:
@@ -38,20 +33,6 @@ parameterized_v2_parameters = [
     (
         "consumer_system_v2",
         consumer_system_v2_dto(),
-    ),
-    (
-        "consumer_system_v2_with_temporal_operational_settings",
-        consumer_system_v2_dto_temporal_operational_settings(consumer_system_v2_dto()),
-    ),
-    (
-        "consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models",
-        consumer_system_v2_dto_temporal_operational_settings_and_temporal_compressor_models(consumer_system_v2_dto()),
-    ),
-    (
-        "consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models",
-        consumer_system_v2_dto_with_overlapping_temporal_operational_settings_and_temporal_compressor_models(
-            consumer_system_v2_dto()
-        ),
     ),
 ]
 

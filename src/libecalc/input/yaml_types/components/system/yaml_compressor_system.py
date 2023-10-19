@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -18,7 +18,6 @@ from libecalc.input.yaml_types.components.yaml_base import (
     YamlConsumerSystemOperationalConditionBase,
 )
 from libecalc.input.yaml_types.components.yaml_compressor import YamlCompressor
-from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
 from pydantic import Field, root_validator
 
 opt_expr_list = Optional[List[ExpressionType]]
@@ -46,7 +45,7 @@ class YamlCompressorSystem(YamlConsumerBase):
         description="Contains conditions for the component, in this case the system.",
     )
 
-    operational_settings: YamlTemporalModel[List[YamlCompressorSystemOperationalSettings]]
+    operational_settings: List[YamlCompressorSystemOperationalSettings]
     consumers: List[YamlCompressor]
 
     @root_validator
@@ -56,14 +55,7 @@ class YamlCompressorSystem(YamlConsumerBase):
         if operational_settings is None:
             return values
 
-        if isinstance(operational_settings, dict):
-            flattened_operational_settings = []
-            for operational_setting in operational_settings.values():
-                flattened_operational_settings.extend(operational_setting)
-        else:
-            flattened_operational_settings = operational_settings
-
-        for operational_setting in flattened_operational_settings:
+        for operational_setting in operational_settings:
             # Validate pressures
             inlet_pressures = operational_setting.inlet_pressures
             inlet_pressure = operational_setting.inlet_pressure
@@ -91,32 +83,27 @@ class YamlCompressorSystem(YamlConsumerBase):
     ) -> dto.components.CompressorSystem:
         number_of_compressors = len(self.consumers)
 
-        parsed_operational_settings: Dict[datetime, Any] = {}
-        temporal_operational_settings = define_time_model_for_period(
-            self.operational_settings, target_period=target_period
-        )
-        for timestep, operational_settings in temporal_operational_settings.items():
-            parsed_operational_settings[timestep] = []
-            for operational_setting in operational_settings:
-                inlet_pressures = (
-                    operational_setting.inlet_pressures
-                    if operational_setting.inlet_pressures is not None
-                    else [operational_setting.inlet_pressure] * number_of_compressors
-                )
-                outlet_pressures = (
-                    operational_setting.outlet_pressures
-                    if operational_setting.outlet_pressures is not None
-                    else [operational_setting.outlet_pressure] * number_of_compressors
-                )
-                rates = [Expression.setup_from_expression(rate) for rate in operational_setting.rates]
+        parsed_operational_settings: List[dto.components.CompressorSystemOperationalSetting] = []
+        for operational_setting in self.operational_settings:
+            inlet_pressures = (
+                operational_setting.inlet_pressures
+                if operational_setting.inlet_pressures is not None
+                else [operational_setting.inlet_pressure] * number_of_compressors
+            )
+            outlet_pressures = (
+                operational_setting.outlet_pressures
+                if operational_setting.outlet_pressures is not None
+                else [operational_setting.outlet_pressure] * number_of_compressors
+            )
+            rates = [Expression.setup_from_expression(rate) for rate in operational_setting.rates]
 
-                parsed_operational_settings[timestep].append(
-                    dto.components.CompressorSystemOperationalSetting(
-                        rates=rates,
-                        inlet_pressures=[Expression.setup_from_expression(pressure) for pressure in inlet_pressures],
-                        outlet_pressures=[Expression.setup_from_expression(pressure) for pressure in outlet_pressures],
-                    )
+            parsed_operational_settings.append(
+                dto.components.CompressorSystemOperationalSetting(
+                    rates=rates,
+                    inlet_pressures=[Expression.setup_from_expression(pressure) for pressure in inlet_pressures],
+                    outlet_pressures=[Expression.setup_from_expression(pressure) for pressure in outlet_pressures],
                 )
+            )
 
         compressors: List[dto.components.CompressorComponent] = [
             dto.components.CompressorComponent(
