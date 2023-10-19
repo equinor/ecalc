@@ -6,6 +6,7 @@ import numpy as np
 from libecalc import dto
 from libecalc.common.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
+from libecalc.common.stream import Stream
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.base import CompressorTrainModel
@@ -94,6 +95,54 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         # in rare cases we can end up with trying to mix two streams with zero mass rate, and need the fluid from the
         # previous time step to recirculate. This will take care of that.
         self.fluid_to_recirculate_in_stage_when_inlet_rate_is_zero = [None] * len(self.stages)
+
+    def evaluate_streams(
+        self,
+        inlet_streams: List[Stream],
+        outlet_stream: Stream,
+    ) -> CompressorTrainResult:
+        """
+        Evaluate model based on inlet streams and the expected outlet stream.
+        Args:
+            inlet_streams:
+            outlet_stream:
+
+        Returns:
+
+        """
+
+        if len(inlet_streams) != len(self.streams):
+            named_streams = [inlet_stream.name for inlet_stream in inlet_streams if inlet_stream.name]
+            raise EcalcError(
+                title="Validation error",
+                message=f"Mismatch in streams. "
+                f'Required streams are {", ".join(stream.name for stream in self.streams)}. '
+                f'Received named streams are {", ".join(named_streams) if len(named_streams) > 0 else "none"}'
+                f" + {len(inlet_streams) - len(named_streams)} unnamed stream(s).",
+            )
+
+        # Order streams either based on name or use index
+        stream_index_counter = 0
+        ordered_streams: List[Stream] = []
+        for stream_definition in self.streams:
+            try:
+                inlet_stream = next(
+                    inlet_stream for inlet_stream in inlet_streams if inlet_stream.name == stream_definition.name
+                )
+                ordered_streams.append(inlet_stream)
+            except StopIteration:
+                ordered_streams.append(inlet_streams[stream_index_counter])
+                stream_index_counter += 1
+
+        # Currently ignoring pressures in intermediate streams
+
+        return self.evaluate_rate_ps_pd(
+            rate=np.asarray(
+                [inlet_stream.rate.values for inlet_stream in ordered_streams]
+            ),  # TODO: This can also contain rates defined as outlet streams
+            suction_pressure=np.asarray(inlet_streams[0].pressure.values),
+            discharge_pressure=np.asarray(outlet_stream.pressure.values),
+        )
 
     @staticmethod
     def _check_intermediate_pressure_stage_number_is_valid(
