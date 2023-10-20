@@ -1,17 +1,15 @@
 import itertools
 import operator
 from abc import abstractmethod
-from collections import defaultdict
 from datetime import datetime
 from functools import reduce
 from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
 
 import networkx as nx
 import numpy as np
+from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
 from libecalc.common.stream import Stream
-from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
-    TimeSeriesBoolean,
     TimeSeriesInt,
 )
 from libecalc.core.consumers.base import BaseConsumer
@@ -132,7 +130,7 @@ class ConsumerSystem(BaseConsumer):
     def evaluate(
         self,
         variables_map: VariablesMap,
-        operational_settings: List[Union[SystemOperationalSettings]],
+        operational_setting_priorities: List[SystemOperationalSettings],
     ) -> EcalcModelResult:
         """
         Evaluating a consumer system that may be composed of both consumers and other consumer systems. It will default
@@ -142,69 +140,48 @@ class ConsumerSystem(BaseConsumer):
             - We use 1-indexed operational settings output. We should consider changing this to default 0-index, and
                 only convert when presenting results to the end-user.
         """
-        is_valid = TimeSeriesBoolean(
-            timesteps=variables_map.time_vector, values=[False] * len(variables_map.time_vector), unit=Unit.NONE
-        )
-        operational_settings_used = TimeSeriesInt(
-            timesteps=variables_map.time_vector, values=[0] * len(variables_map.time_vector), unit=Unit.NONE
-        )
-        operational_settings_results: Dict[datetime, Dict[int, Dict[str, EcalcModelResult]]] = defaultdict(dict)
 
-        for timestep_index, timestep in enumerate(variables_map.time_vector):
-            variables_map_for_timestep = variables_map.get_subset_for_timestep(timestep)
-            operational_settings_results[timestep] = defaultdict(dict)
+        optimizer = PriorityOptimizer()
 
-            for operational_setting_index, operational_setting in enumerate(operational_settings):
-                operational_setting_for_timestep = operational_setting.for_timestep(timestep)
-                adjusted_operational_settings = self._get_operational_settings_adjusted_for_crossover(
-                    operational_setting=operational_setting_for_timestep,
-                    variables_map=variables_map_for_timestep,
+        def evaluator(timestep: datetime, operational_setting: SystemOperationalSettings) -> List[EvaluatorResult]:
+            operational_setting_for_timestep = operational_setting.for_timestep(timestep)
+            adjusted_operational_settings = self._get_operational_settings_adjusted_for_crossover(
+                operational_setting=operational_setting_for_timestep,
+                variables_map=variables_map.get_subset_for_timestep(timestep),
+            )
+            consumer_results_for_priority = [
+                consumer.evaluate(adjusted_operational_setting)
+                for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings)
+            ]
+            return [
+                EvaluatorResult(
+                    id=consumer_result_for_priority.component_result.id,
+                    result=consumer_result_for_priority,
+                    is_valid=consumer_result_for_priority.component_result.is_valid,
                 )
+                for consumer_result_for_priority in consumer_results_for_priority
+            ]
 
-                for consumer, adjusted_operational_setting in zip(self._consumers, adjusted_operational_settings):
-                    consumer_result = consumer.evaluate(adjusted_operational_setting)
-                    operational_settings_results[timestep][operational_setting_index][consumer.id] = consumer_result
+        optimizer_result = optimizer.optimize(
+            timesteps=variables_map.time_vector, priorities=operational_setting_priorities, evaluator=evaluator
+        )
 
-                consumer_results = operational_settings_results[timestep][operational_setting_index].values()
+        consumer_results = self.collect_consumer_results(
+            operational_settings_used=optimizer_result.priorities_used,
+            operational_settings_results=optimizer_result.priority_results,
+        )
 
-                # Check if consumers are valid for this operational setting, should be valid for all consumers
-                all_consumer_results_valid = reduce(
-                    operator.mul, [consumer_result.component_result.is_valid for consumer_result in consumer_results]
-                )
-                all_consumer_results_valid_indices = np.nonzero(all_consumer_results_valid.values)[0]
-                all_consumer_results_valid_indices_period_shifted = [
-                    axis_indices + timestep_index for axis_indices in all_consumer_results_valid_indices
-                ]
-
-                # Remove already valid indices, so we don't overwrite operational setting used with the latest valid
-                new_valid_indices = [
-                    i for i in all_consumer_results_valid_indices_period_shifted if not is_valid.values[i]
-                ]
-
-                # Register the valid timesteps as valid and keep track of the operational setting used
-                is_valid[new_valid_indices] = True
-                operational_settings_used[new_valid_indices] = operational_setting_index
-
-                if all(is_valid.values):
-                    # quit as soon as all time-steps are valid. This means that we do not need to test all settings.
-                    break
-                elif operational_setting_index + 1 == len(operational_settings):
-                    # If we are at the last operational_setting and not all indices are valid
-                    invalid_indices = [i for i, x in enumerate(is_valid.values) if not x]
-                    operational_settings_used[invalid_indices] = [operational_setting_index for _ in invalid_indices]
-
-        # Avoid mistakes after this point by not using defaultdict
-        operational_settings_results = dict(operational_settings_results)
-
-        consumer_results = self.collect_consumer_results(operational_settings_used, operational_settings_results)
-
+        operational_settings_used = optimizer_result.priorities_used.copy()
         # Change to 1-index operational_settings_used
         for index, value in enumerate(operational_settings_used.values):
             operational_settings_used[index] = value + 1
 
         consumer_system_result = ConsumerSystemResult(
             id=self.id,
-            is_valid=is_valid,
+            is_valid=reduce(
+                operator.mul,
+                [consumer_result.is_valid for consumer_result in consumer_results],
+            ),
             timesteps=sorted({*itertools.chain(*(consumer_result.timesteps for consumer_result in consumer_results))}),
             energy_usage=reduce(
                 operator.add,
