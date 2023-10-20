@@ -25,10 +25,28 @@ class Period:
         return f"{self.start}:{self.end}"
 
     def __contains__(self, time: datetime) -> bool:
+        """
+        A period of time is defined as [start, end>,
+        ie inclusive start and exclusive end.
+
+        Args:
+            time:
+
+        Returns:
+
+        """
         return self.start <= time < self.end
 
     @staticmethod
     def intersects(first: Period, second: Period) -> bool:
+        """
+        Args:
+            first:
+            second:
+
+        Returns:
+
+        """
         return first.start in second or second.start in first
 
     def get_timestep_indices(self, timesteps: List[datetime]) -> Tuple[int, int]:

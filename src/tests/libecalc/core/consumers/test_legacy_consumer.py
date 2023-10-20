@@ -5,7 +5,11 @@ import numpy as np
 import pandas as pd
 from libecalc import dto
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesRate
+from libecalc.common.utils.rates import (
+    TimeSeriesBoolean,
+    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
@@ -75,10 +79,9 @@ def test_electricity_consumer(direct_el_consumer):
 
     assert isinstance(result, EcalcModelResult)
     consumer_result = result.component_result
-    assert consumer_result.power == TimeSeriesRate(
+    assert consumer_result.power == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[1, 2, 10, 0, 0, 0],
-        regularity=[1] * 6,
         unit=Unit.MEGA_WATT,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(
@@ -101,10 +104,9 @@ def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
 
     # The consumer itself should however return a proper result object matching the input time_vector.
     assert consumer_result.timesteps == time_vector
-    assert consumer_result.power == TimeSeriesRate(
+    assert consumer_result.power == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[0] * len(time_vector),
-        regularity=[1] * 6,
         unit=Unit.MEGA_WATT,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(
@@ -141,10 +143,9 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
     )
     consumer_result = result.component_result
 
-    assert consumer_result.power == TimeSeriesRate(
+    assert consumer_result.power == TimeSeriesStreamDayRate(
         timesteps=time_vector,
         values=[0, 0, 1, 1, 1, 1],
-        regularity=[1] * 6,
         unit=Unit.MEGA_WATT,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(

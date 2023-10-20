@@ -34,6 +34,7 @@ class VariablesMap(BaseModel):
         return Period(
             start=self.time_vector[0],
             end=self.time_vector[-1] + timedelta(microseconds=1),  # Make sure the last timestep is included
+            # TODO: Change this? Need to change where stuff depends on this ...
         )
 
     @property
