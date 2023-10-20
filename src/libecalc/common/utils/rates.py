@@ -30,7 +30,7 @@ from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
 from numpy.typing import NDArray
-from pydantic import Extra, validator
+from pydantic import Extra, root_validator, validator
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
 from typing_extensions import Self
@@ -152,10 +152,26 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         extra = Extra.forbid
 
     @validator("values", each_item=True, pre=True)
-    def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
+    def convert_none_to_nan(cls, v: float, values, field: ModelField) -> TimeSeriesValue:
         if field.outer_type_ is float and v is None:
             return math.nan
         return v
+
+    @root_validator(pre=True)
+    def timesteps_values_one_to_one(cls, field_values):
+        nr_timesteps = len(field_values["timesteps"])
+        nr_values = len(field_values["values"])
+
+        if not cls.__name__ == TimeSeriesVolumes.__name__:
+            if nr_timesteps != nr_values:
+                if all(math.isnan(i) for i in field_values["values"]):
+                    field_values["values"] == [math.nan] * len(field_values["timesteps"])
+                else:
+                    raise ProgrammingError(
+                        "Time series: number of timesteps do not match number " "of values. Most likely a bug."
+                    )
+
+        return field_values
 
     def __len__(self) -> int:
         return len(self.values)
