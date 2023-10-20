@@ -5,7 +5,7 @@ import numpy as np
 from libecalc.common.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesRate
+from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate
 from libecalc.core import result as core_results
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
@@ -133,7 +133,7 @@ def map_energy_function_results(
     energy_function_results = []
     if isinstance(result, CompressorTrainResult):
         power = (
-            TimeSeriesRate(
+            TimeSeriesStreamDayRate(
                 timesteps=time_vector,
                 values=result.power,
                 unit=result.power_unit,
@@ -141,7 +141,7 @@ def map_energy_function_results(
             if result.power is not None
             else None
         )
-        energy_usage = TimeSeriesRate(
+        energy_usage = TimeSeriesStreamDayRate(
             timesteps=time_vector,
             values=result.energy_usage,
             unit=result.energy_usage_unit,
@@ -174,14 +174,14 @@ def map_energy_function_results(
                     values=result.is_valid,
                     unit=Unit.NONE,
                 ),
-                power=TimeSeriesRate(
+                power=TimeSeriesStreamDayRate(
                     timesteps=time_vector,
                     values=result.power,
                     unit=result.power_unit,
                 )
                 if result.power is not None
                 else None,
-                energy_usage=TimeSeriesRate(
+                energy_usage=TimeSeriesStreamDayRate(
                     timesteps=time_vector,
                     values=result.energy_usage,
                     unit=result.energy_usage_unit,
@@ -202,14 +202,14 @@ def map_energy_function_results(
                     values=result.is_valid,
                     unit=Unit.NONE,
                 ),
-                power=TimeSeriesRate(
+                power=TimeSeriesStreamDayRate(
                     timesteps=time_vector,
                     values=result.power,
                     unit=result.power_unit,
                 )
                 if result.power is not None
                 else None,
-                energy_usage=TimeSeriesRate(
+                energy_usage=TimeSeriesStreamDayRate(
                     timesteps=time_vector,
                     values=result.energy_usage,
                     unit=result.energy_usage_unit,

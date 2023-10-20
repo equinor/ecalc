@@ -8,7 +8,6 @@ from datetime import datetime
 from typing import (
     Any,
     DefaultDict,
-    Dict,
     Generic,
     Iterable,
     Iterator,
@@ -260,6 +259,22 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             unit=self.unit,
         )
 
+    def for_timesteps(self, timesteps: List[datetime]) -> Self:
+        """For a given list of datetime, return corresponding values
+
+        Args:
+            timesteps:
+
+        Returns:
+
+        """
+        values: List[TimeSeriesValue] = []
+        for timestep in timesteps:
+            timestep_index = self.timesteps.index(timestep)
+            values.append(self.values[timestep_index])
+
+        return self.__class__(timesteps=timesteps, values=values, unit=self.unit)
+
     def to_unit(self, unit: Unit) -> Self:
         if unit == self.unit:
             return self.copy()
@@ -493,7 +508,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def __truediv__(self, other: object) -> TimeSeriesRate:
+    def __truediv__(self, other: object) -> TimeSeriesCalendarDayRate:
         if not isinstance(other, TimeSeriesVolumesCumulative):
             raise TypeError(f"Dividing TimeSeriesVolumesCumulative by '{str(other.__class__)}' is not supported.")
 
@@ -503,7 +518,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
             raise ProgrammingError(
                 f"Unable to divide unit '{self.unit}' by unit '{other.unit}'. Please add unit conversion."
             )
-        return TimeSeriesRate(
+        return TimeSeriesCalendarDayRate(
             timesteps=self.timesteps,
             values=list(
                 np.divide(
@@ -514,7 +529,6 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
                 )
             ),
             unit=unit,
-            rate_type=RateType.CALENDAR_DAY,
         )
 
     def to_volumes(self) -> TimeSeriesVolumes:
@@ -605,11 +619,12 @@ class TimeSeriesVolumes(TimeSeries[float]):
             delta_days = calculate_delta_days(self.timesteps).tolist()
             average_rates = [volume / days for volume, days in zip(self.values, delta_days)]
 
-            if regularity and len(regularity) == len(self.timesteps) - 1:
+            if regularity is not None and isinstance(regularity, list) and len(regularity) == len(self.timesteps) - 1:
                 regularity.append(0.0)
             average_rates.append(0.0)
         else:
             average_rates = self.values
+            regularity = [1.0] * len(self.timesteps)
 
         return TimeSeriesRate(
             timesteps=self.timesteps,
@@ -649,6 +664,50 @@ class TimeSeriesIntensity(TimeSeries[float]):
         )
 
 
+class TimeSeriesStreamDayRate(TimeSeriesFloat):
+    """
+    Domain/core layer only.
+
+    Explicit class for only internal core usage. Makes it easy to catch that the
+    type of data is rate, and has been converted to Stream Day for internal usage.
+
+    When used internally, rate is handled as a "point in time float". It is only needed to
+    be handled specifically when reporting, e.g. converting to calendar day rate, if needed.
+    """
+
+    def __add__(self, other: TimeSeriesStreamDayRate) -> TimeSeriesStreamDayRate:
+        """
+        Args:
+            other:
+
+        Returns:
+
+        """
+        # Check for same unit
+        if not self.unit == other.unit:
+            raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")
+
+        if isinstance(other, TimeSeriesStreamDayRate):
+            return TimeSeriesStreamDayRate(
+                timesteps=self.timesteps,
+                values=list(elementwise_sum(self.values, other.values)),
+                unit=self.unit,
+            )
+        else:
+            raise TypeError(
+                f"TimeSeriesRate can only be added to another TimeSeriesRate. Received type '{str(other.__class__)}'."
+            )
+
+
+class TimeSeriesCalendarDayRate(TimeSeriesFloat):
+    """
+    Application layer only - only calendar day rate/used for reporting
+    Probably not needed, as we want to provide info on regularity etc for the fixed calendar rate data too
+    """
+
+    ...
+
+
 class TimeSeriesRate(TimeSeries[float]):
     """A rate time series with can be either in RateType.STREAM_DAY (default) or RateType.CALENDAR_DAY.
 
@@ -662,20 +721,19 @@ class TimeSeriesRate(TimeSeries[float]):
     Stream day rates are not relevant for fuel consumption, tax and emissions.
     """
 
-    rate_type: Optional[RateType] = RateType.STREAM_DAY
-    regularity: Optional[List[float]]  # TODO: Consider to set explicitly as a fallback to 1 may easily lead to errors
+    rate_type: RateType
+    regularity: List[float]
 
-    @validator("regularity", pre=True, always=True)
-    def set_regularity(cls, regularity: Optional[List[float]], values: Dict[str, Any]) -> List[float]:
-        if (
-            regularity is not None and regularity != []
-        ):  # TODO: Current workaround. To be handled when regularity is handled correctly
-            return regularity
-        try:
-            return [1] * len(values["values"])
-        except KeyError:
-            # 'Values' of timeseries is not defined. Not this validators responsibility.
-            return []
+    @validator("regularity")
+    def check_regularity_length(cls, regularity: List[float], values: Any) -> List[float]:
+        regularity_length = len(regularity)
+        timesteps_length = len(values.get("timesteps", []))
+        if regularity_length != timesteps_length:
+            raise ProgrammingError(
+                f"Regularity must correspond to nr of timesteps. Length of timesteps ({timesteps_length}) !=  length of regularity ({regularity_length})."
+            )
+
+        return regularity
 
     def __add__(self, other: TimeSeriesRate) -> TimeSeriesRate:
         # Check for same unit
@@ -728,7 +786,7 @@ class TimeSeriesRate(TimeSeries[float]):
             timesteps=self.timesteps + other.timesteps,
             values=self.values + other.values,
             unit=self.unit,
-            regularity=self.regularity + other.regularity,  # type: ignore
+            regularity=self.regularity + other.regularity,
             rate_type=self.rate_type,
         )
 
@@ -790,7 +848,7 @@ class TimeSeriesRate(TimeSeries[float]):
         return self.__class__(
             timesteps=self.timesteps[start_index:end_index],
             values=self.values[start_index:end_index],
-            regularity=self.regularity[start_index:end_index],  # type: ignore
+            regularity=self.regularity[start_index:end_index],
             unit=self.unit,
             rate_type=self.rate_type,
         )
@@ -805,7 +863,7 @@ class TimeSeriesRate(TimeSeries[float]):
         return self.__class__(
             timesteps=self.timesteps[timestep_index : timestep_index + 1],
             values=self.values[timestep_index : timestep_index + 1],
-            regularity=self.regularity[timestep_index : timestep_index + 1],  # type: ignore
+            regularity=self.regularity[timestep_index : timestep_index + 1],
             unit=self.unit,
             rate_type=self.rate_type,
         )
@@ -818,7 +876,7 @@ class TimeSeriesRate(TimeSeries[float]):
         calendar_day_rates = list(
             Rates.to_calendar_day(
                 stream_day_rates=np.asarray(self.values),
-                regularity=self.regularity,  # type: ignore[arg-type]
+                regularity=self.regularity,
             ),
         )
         return self.__class__(
@@ -837,7 +895,7 @@ class TimeSeriesRate(TimeSeries[float]):
         stream_day_rates = list(
             Rates.to_stream_day(
                 calendar_day_rates=np.asarray(self.values),
-                regularity=self.regularity,  # type: ignore[arg-type]
+                regularity=self.regularity,
             ),
         )
         return self.__class__(
@@ -931,7 +989,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 timesteps=self.timesteps[indices],
                 values=self.values[indices],
-                regularity=self.regularity[indices],  # type: ignore
+                regularity=self.regularity[indices],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -939,7 +997,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 timesteps=[self.timesteps[indices]],
                 values=[self.values[indices]],
-                regularity=[self.regularity[indices]],  # type: ignore
+                regularity=[self.regularity[indices]],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -948,7 +1006,7 @@ class TimeSeriesRate(TimeSeries[float]):
             return self.__class__(
                 timesteps=[self.timesteps[i] for i in indices],
                 values=[self.values[i] for i in indices],
-                regularity=[self.regularity[i] for i in indices],  # type: ignore
+                regularity=[self.regularity[i] for i in indices],
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
@@ -974,5 +1032,33 @@ class TimeSeriesRate(TimeSeries[float]):
         """
         reindex_values = self.reindex_time_vector(new_time_vector)
         return TimeSeriesRate(
-            timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit, regularity=self.regularity
+            timesteps=new_time_vector,
+            values=reindex_values.tolist(),
+            unit=self.unit,
+            regularity=self.regularity,
+            rate_type=self.rate_type,
+        )
+
+    @classmethod
+    def from_timeseries_stream_day_rate(
+        cls, time_series_stream_day_rate: TimeSeriesStreamDayRate, regularity: TimeSeriesFloat
+    ) -> Self:
+        if time_series_stream_day_rate is None:
+            return None
+
+        regularity = regularity.for_timesteps(time_series_stream_day_rate.timesteps)
+
+        return cls(
+            timesteps=time_series_stream_day_rate.timesteps,
+            values=time_series_stream_day_rate.values,
+            unit=time_series_stream_day_rate.unit,
+            rate_type=RateType.STREAM_DAY,
+            regularity=regularity.values,
+        )
+
+    def to_stream_day_timeseries(self) -> TimeSeriesStreamDayRate:
+        """Convert to fixed stream day rate timeseries"""
+        stream_day_rate = self.to_stream_day()
+        return TimeSeriesStreamDayRate(
+            timesteps=stream_day_rate.timesteps, values=stream_day_rate.values, unit=stream_day_rate.unit
         )

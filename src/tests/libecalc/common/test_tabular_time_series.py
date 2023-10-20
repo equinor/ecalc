@@ -5,8 +5,10 @@ import pytest
 from libecalc.common.stream import Stage, Stream
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
-from libecalc.dto.types import RateType
+from libecalc.common.utils.rates import (
+    TimeSeriesFloat,
+    TimeSeriesStreamDayRate,
+)
 from pydantic import BaseModel
 
 
@@ -16,9 +18,9 @@ class MergeableObject(BaseModel):
     float_test: float
     list_of_float_test: List[float]
     time_series_float: TimeSeriesFloat
-    time_series_rate: TimeSeriesRate
+    time_series_rate: TimeSeriesStreamDayRate
     time_series_float_list_test: List[TimeSeriesFloat]
-    time_series_rate_list_test: List[TimeSeriesRate]
+    time_series_rate_list_test: List[TimeSeriesStreamDayRate]
     stage_list: List[Stage]
 
 
@@ -30,12 +32,10 @@ class TestMerge:
             int_test=15,
             float_test=1.0,
             list_of_float_test=[11, 12, 13, 14, 15],
-            time_series_rate=TimeSeriesRate(
+            time_series_rate=TimeSeriesStreamDayRate(
                 timesteps=first_timesteps,
                 values=[11, 12],
                 unit=Unit.NORWEGIAN_KRONER,
-                regularity=[11, 12],
-                rate_type=RateType.CALENDAR_DAY,
             ),
             time_series_float=TimeSeriesFloat(
                 timesteps=first_timesteps,
@@ -55,31 +55,25 @@ class TestMerge:
                 ),
             ],
             time_series_rate_list_test=[
-                TimeSeriesRate(
+                TimeSeriesStreamDayRate(
                     timesteps=first_timesteps,
                     values=[111, 112],
                     unit=Unit.NORWEGIAN_KRONER,
-                    regularity=[111, 112],
-                    rate_type=RateType.CALENDAR_DAY,
                 ),
-                TimeSeriesRate(
+                TimeSeriesStreamDayRate(
                     timesteps=first_timesteps,
                     values=[-121, -122],
                     unit=Unit.NORWEGIAN_KRONER,
-                    regularity=[121, 122],
-                    rate_type=RateType.CALENDAR_DAY,
                 ),
             ],
             stage_list=[
                 Stage(
                     name="inlet",
                     stream=Stream(
-                        rate=TimeSeriesRate(
+                        rate=TimeSeriesStreamDayRate(
                             timesteps=first_timesteps,
                             values=[-111, -112],
                             unit=Unit.NORWEGIAN_KRONER,
-                            regularity=[111, 112],
-                            rate_type=RateType.CALENDAR_DAY,
                         ),
                         pressure=TimeSeriesFloat(
                             timesteps=first_timesteps,
@@ -91,12 +85,10 @@ class TestMerge:
                 Stage(
                     name="outlet",
                     stream=Stream(
-                        rate=TimeSeriesRate(
+                        rate=TimeSeriesStreamDayRate(
                             timesteps=first_timesteps,
                             values=[-121, -122],
                             unit=Unit.NORWEGIAN_KRONER,
-                            regularity=[121, 122],
-                            rate_type=RateType.CALENDAR_DAY,
                         ),
                         pressure=TimeSeriesFloat(
                             timesteps=first_timesteps,
@@ -119,12 +111,10 @@ class TestMerge:
                 values=[21, 22],
                 unit=Unit.NORWEGIAN_KRONER,
             ),
-            time_series_rate=TimeSeriesRate(
+            time_series_rate=TimeSeriesStreamDayRate(
                 timesteps=second_timesteps,
                 values=[21, 22],
                 unit=Unit.NORWEGIAN_KRONER,
-                regularity=[21, 22],
-                rate_type=RateType.CALENDAR_DAY,
             ),
             time_series_float_list_test=[
                 TimeSeriesFloat(
@@ -139,31 +129,25 @@ class TestMerge:
                 ),
             ],
             time_series_rate_list_test=[
-                TimeSeriesRate(
+                TimeSeriesStreamDayRate(
                     timesteps=second_timesteps,
                     values=[211, 212],
                     unit=Unit.NORWEGIAN_KRONER,
-                    regularity=[211, 212],
-                    rate_type=RateType.CALENDAR_DAY,
                 ),
-                TimeSeriesRate(
+                TimeSeriesStreamDayRate(
                     timesteps=second_timesteps,
                     values=[-221, -222],
                     unit=Unit.NORWEGIAN_KRONER,
-                    regularity=[221, 222],
-                    rate_type=RateType.CALENDAR_DAY,
                 ),
             ],
             stage_list=[
                 Stage(
                     name="inlet",
                     stream=Stream(
-                        rate=TimeSeriesRate(
+                        rate=TimeSeriesStreamDayRate(
                             timesteps=second_timesteps,
                             values=[-211, -212],
                             unit=Unit.NORWEGIAN_KRONER,
-                            regularity=[211, 212],
-                            rate_type=RateType.CALENDAR_DAY,
                         ),
                         pressure=TimeSeriesFloat(
                             timesteps=second_timesteps,
@@ -175,12 +159,10 @@ class TestMerge:
                 Stage(
                     name="outlet",
                     stream=Stream(
-                        rate=TimeSeriesRate(
+                        rate=TimeSeriesStreamDayRate(
                             timesteps=second_timesteps,
                             values=[-221, -222],
                             unit=Unit.NORWEGIAN_KRONER,
-                            regularity=[221, 222],
-                            rate_type=RateType.CALENDAR_DAY,
                         ),
                         pressure=TimeSeriesFloat(
                             timesteps=second_timesteps,
@@ -208,12 +190,10 @@ class TestMerge:
                     values=[11, 21, 12, 22],
                     unit=Unit.NORWEGIAN_KRONER,
                 ),
-                time_series_rate=TimeSeriesRate(
+                time_series_rate=TimeSeriesStreamDayRate(
                     timesteps=expected_timesteps,
                     values=[11, 21, 12, 22],
                     unit=Unit.NORWEGIAN_KRONER,
-                    regularity=[11, 21, 12, 22],
-                    rate_type=RateType.CALENDAR_DAY,
                 ),
                 time_series_float_list_test=[
                     TimeSeriesFloat(
@@ -228,31 +208,25 @@ class TestMerge:
                     ),
                 ],
                 time_series_rate_list_test=[
-                    TimeSeriesRate(
+                    TimeSeriesStreamDayRate(
                         timesteps=expected_timesteps,
                         values=[111, 211, 112, 212],
                         unit=Unit.NORWEGIAN_KRONER,
-                        regularity=[111, 211, 112, 212],
-                        rate_type=RateType.CALENDAR_DAY,
                     ),
-                    TimeSeriesRate(
+                    TimeSeriesStreamDayRate(
                         timesteps=expected_timesteps,
                         values=[-121, -221, -122, -222],
                         unit=Unit.NORWEGIAN_KRONER,
-                        regularity=[121, 221, 122, 222],
-                        rate_type=RateType.CALENDAR_DAY,
                     ),
                 ],
                 stage_list=[
                     Stage(
                         name="inlet",
                         stream=Stream(
-                            rate=TimeSeriesRate(
+                            rate=TimeSeriesStreamDayRate(
                                 timesteps=expected_timesteps,
                                 values=[-111, -211, -112, -212],
                                 unit=Unit.NORWEGIAN_KRONER,
-                                regularity=[111, 211, 112, 212],
-                                rate_type=RateType.CALENDAR_DAY,
                             ),
                             pressure=TimeSeriesFloat(
                                 timesteps=expected_timesteps,
@@ -264,12 +238,10 @@ class TestMerge:
                     Stage(
                         name="outlet",
                         stream=Stream(
-                            rate=TimeSeriesRate(
+                            rate=TimeSeriesStreamDayRate(
                                 timesteps=expected_timesteps,
                                 values=[-121, -221, -122, -222],
                                 unit=Unit.NORWEGIAN_KRONER,
-                                regularity=[121, 221, 122, 222],
-                                rate_type=RateType.CALENDAR_DAY,
                             ),
                             pressure=TimeSeriesFloat(
                                 timesteps=expected_timesteps,

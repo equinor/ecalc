@@ -1,8 +1,9 @@
 import math
 import operator
+from collections import defaultdict
 from datetime import datetime
 from functools import reduce
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import libecalc
 from libecalc import dto
@@ -27,7 +28,7 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.base import ComponentType
 from libecalc.dto.graph import Graph
 from libecalc.dto.models.consumer_system import CompressorSystemConsumerFunction
-from libecalc.dto.result.emission import EmissionIntensityResult
+from libecalc.dto.result.emission import EmissionIntensityResult, PartialEmissionResult
 from libecalc.dto.result.results import (
     CompressorModelResult,
     CompressorModelStageResult,
@@ -63,8 +64,8 @@ class GraphResult:
     @staticmethod
     def _compute_intensity(
         hydrocarbon_export_rate: TimeSeriesRate,
-        emissions: Dict[str, EmissionResult],
-    ):
+        emissions: Dict[str, PartialEmissionResult],
+    ) -> List[EmissionIntensityResult]:
         hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
         emission_intensities = []
         for key in emissions:
@@ -78,26 +79,35 @@ class GraphResult:
                 EmissionIntensityResult(
                     name=emissions[key].name,
                     timesteps=emissions[key].timesteps,
-                    intensity_sm3=intensity_sm3.dict(exclude={"rate_type": True, "regularity": True}),
-                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE).dict(
-                        exclude={"rate_type": True, "regularity": True}
-                    ),
-                    intensity_yearly_sm3=intensity_yearly_sm3.dict(exclude={"rate_type": True, "regularity": True}),
-                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE).dict(
-                        exclude={"rate_type": True, "regularity": True}
-                    ),
+                    intensity_sm3=intensity_sm3,
+                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
+                    intensity_yearly_sm3=intensity_yearly_sm3,
+                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
                 )
             )
         return emission_intensities
 
     def _evaluate_installations(self, variables_map: dto.VariablesMap) -> List[libecalc.dto.result.InstallationResult]:
+        """
+        All subcomponents have already been evaluated, here we basically collect and aggregate the results
+
+        Args:
+            variables_map:
+
+        Returns:
+
+        """
         asset_id = self.graph.root
         asset = self.graph.get_component(asset_id)
         installation_results = []
         for installation in asset.installations:
-            regularity = TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation.regularity),
-                variables_map=variables_map,
+            regularity = TimeSeriesFloat(
+                timesteps=variables_map.time_vector,
+                values=TemporalExpression.evaluate(
+                    temporal_expression=TemporalModel(installation.regularity),
+                    variables_map=variables_map,
+                ),
+                unit=Unit.NONE,
             )
             hydrocarbon_export_rate = TemporalExpression.evaluate(
                 temporal_expression=TemporalModel(installation.hydrocarbon_export),
@@ -107,8 +117,8 @@ class GraphResult:
                 timesteps=variables_map.time_vector,
                 values=hydrocarbon_export_rate,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                regularity=regularity,
                 rate_type=RateType.CALENDAR_DAY,
+                regularity=regularity.values,
             )
 
             sub_components = [
@@ -121,7 +131,7 @@ class GraphResult:
             power = reduce(
                 operator.add,
                 [
-                    component.power
+                    TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
                     for component in sub_components
                     if self.graph.get_node_info(component.id).component_type == ComponentType.GENERATOR_SET
                 ],
@@ -129,22 +139,24 @@ class GraphResult:
                     values=[0.0] * self.variables_map.length,
                     timesteps=self.variables_map.time_vector,
                     unit=Unit.MEGA_WATT,
-                    regularity=regularity,
+                    rate_type=RateType.STREAM_DAY,
+                    regularity=regularity.values,
                 ),  # Initial value, handle no power output from components
             )
 
             energy_usage = reduce(
                 operator.add,
                 [
-                    component.energy_usage
+                    TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
                     for component in sub_components
                     if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
                 ],
             )
 
+            emission_dto_results = self.convert_to_timeseries(self.emission_results, regularity)
             aggregated_emissions = aggregate_emissions(
                 [
-                    self.emission_results[fuel_consumer_id]
+                    emission_dto_results[fuel_consumer_id]
                     for fuel_consumer_id in self.graph.get_successors(installation.id)
                 ]
             )
@@ -164,13 +176,20 @@ class GraphResult:
                     ),
                     power=power,
                     power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
-                    energy_usage=energy_usage,
+                    energy_usage=energy_usage.to_calendar_day()
+                    if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else energy_usage.to_stream_day(),
                     energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                     hydrocarbon_export_rate=hydrocarbon_export_rate,
-                    emissions=self._parse_emissions(aggregated_emissions),
+                    emissions=self.to_full_result(aggregated_emissions),
                     emission_intensities=self._compute_intensity(
                         hydrocarbon_export_rate=hydrocarbon_export_rate,
                         emissions=aggregated_emissions,
+                    ),
+                    regularity=TimeSeriesFloat(
+                        timesteps=variables_map.time_vector,
+                        values=regularity.values,
+                        unit=Unit.NONE,
                     ),
                 )
             )
@@ -202,7 +221,53 @@ class GraphResult:
         return self.variables_map.time_vector
 
     @staticmethod
-    def _parse_emissions(emissions: Dict[str, EmissionResult]) -> Dict[str, libecalc.dto.result.EmissionResult]:
+    def _parse_emissions(
+        emissions: Dict[str, EmissionResult], regularity: TimeSeriesFloat
+    ) -> Dict[str, libecalc.dto.result.EmissionResult]:
+        """
+        Convert emissions from core result format to dto result format.
+
+        Given that core result does NOT have regularity, that needs to be added
+        Args:
+            emissions:
+            regularity:
+
+        Returns:
+
+        """
+        return {
+            key: libecalc.dto.result.EmissionResult(
+                name=key,
+                timesteps=emissions[key].timesteps,
+                rate=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity),
+                quota=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].quota, regularity=regularity),
+                tax=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].tax, regularity=regularity),
+                cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity)
+                .to_volumes()
+                .cumulative(),
+                quota_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                    emissions[key].quota, regularity=regularity
+                )
+                .to_volumes()
+                .cumulative(),
+                tax_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].tax, regularity=regularity)
+                .to_volumes()
+                .cumulative(),
+            )
+            for key in emissions
+        }
+
+    def to_full_result(
+        self, emissions: Dict[str, PartialEmissionResult]
+    ) -> Dict[str, libecalc.dto.result.EmissionResult]:
+        """
+        From the partial result, generate cumulatives for the full emissions result per installation
+        Args:
+            emissions:
+
+        Returns:
+
+        """
         return {
             key: libecalc.dto.result.EmissionResult(
                 name=key,
@@ -315,11 +380,18 @@ class GraphResult:
 
         installation_results = self._evaluate_installations(variables_map=self.variables_map)
 
+        regularities: Dict[str, TimeSeriesFloat] = {
+            installation.id: installation.regularity for installation in installation_results
+        }
+
         models = []
         sub_components = [*installation_results]
         for consumer_result in self.consumer_results.values():
             consumer_id = consumer_result.component_result.id
             consumer_node_info = self.graph.get_node_info(consumer_id)
+
+            parent_installation_id = self.graph.get_parent_installation_id(consumer_id)
+            regularity: TimeSeriesFloat = regularities[parent_installation_id]
 
             if consumer_node_info.component_type in [ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_SYSTEM]:
                 component = self.graph.get_component(consumer_id)
@@ -371,11 +443,12 @@ class GraphResult:
                             fluid_composition=stage_result.fluid_composition,
                             asv_recirculation_loss_mw=TimeSeriesRate(
                                 timesteps=model.timesteps,
+                                rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                                 values=stage_result.asv_recirculation_loss_mw
                                 if stage_result.asv_recirculation_loss_mw is not None
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.MEGA_WATT,
-                                rate_type=RateType.STREAM_DAY,
                             ),
                             head_exceeds_maximum=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
@@ -426,6 +499,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=stage_result.energy_usage_unit,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             mass_rate_kg_per_hr=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -434,6 +508,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.KILO_PER_HOUR,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             mass_rate_before_asv_kg_per_hr=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -442,6 +517,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.KILO_PER_HOUR,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             power=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -450,6 +526,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=stage_result.power_unit,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             pressure_is_choked=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
@@ -487,6 +564,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 actual_rate_before_asv_m3_per_hr=TimeSeriesRate(
                                     timesteps=model.timesteps,
@@ -495,6 +573,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 kappa=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -510,6 +589,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.KG_M3,
                                     rate_type=RateType.STREAM_DAY,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 pressure=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -548,6 +628,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 actual_rate_before_asv_m3_per_hr=TimeSeriesRate(
                                     timesteps=model.timesteps,
@@ -556,6 +637,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                                     rate_type=RateType.STREAM_DAY,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 kappa=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -571,6 +653,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.KG_M3,
                                     rate_type=RateType.STREAM_DAY,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 pressure=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -623,6 +706,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=model.turbine_result.energy_usage_unit,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             exceeds_maximum_load=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
@@ -638,6 +722,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             is_valid=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
@@ -653,6 +738,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=model.turbine_result.energy_usage_unit,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             power=TimeSeriesRate(
                                 timesteps=model.timesteps,
@@ -661,6 +747,7 @@ class GraphResult:
                                 else [math.nan] * len(model.timesteps),
                                 unit=model.turbine_result.power_unit,
                                 rate_type=RateType.STREAM_DAY,
+                                regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                         )
                         if model.turbine_result is not None
@@ -676,6 +763,7 @@ class GraphResult:
                             values=model.rate_sm3_day[0],
                             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                             rate_type=RateType.STREAM_DAY,
+                            regularity=regularity.for_timesteps(model.timesteps).values,
                         )
                     else:
                         rate = TimeSeriesRate(
@@ -683,6 +771,7 @@ class GraphResult:
                             values=model.rate_sm3_day,
                             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                             rate_type=RateType.STREAM_DAY,
+                            regularity=regularity.for_timesteps(model.timesteps).values,
                         )
 
                     models.extend(
@@ -692,7 +781,9 @@ class GraphResult:
                                 name=model.name,
                                 componentType=model.component_type,
                                 component_level=ComponentLevel.MODEL,
-                                energy_usage=model.energy_usage,
+                                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity
+                                ),
                                 energy_usage_unit=model.energy_usage_unit,
                                 requested_inlet_pressure=requested_inlet_pressure,
                                 requested_outlet_pressure=requested_outlet_pressure,
@@ -703,13 +794,22 @@ class GraphResult:
                                 is_valid=TimeSeriesBoolean(
                                     timesteps=model.timesteps, values=model.is_valid, unit=Unit.NONE
                                 ),
-                                energy_usage_cumulative=model.energy_usage.to_volumes().cumulative(),
+                                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity
+                                )
+                                .to_volumes()
+                                .cumulative(),
                                 power_cumulative=(
-                                    model.power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
+                                    .to_volumes()
+                                    .to_unit(Unit.GIGA_WATT_HOURS)
+                                    .cumulative()
                                     if model.power is not None
                                     else None
                                 ),
-                                power=model.power,
+                                power=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
+                                if model.power is not None
+                                else None,
                                 power_unit=model.power_unit,
                                 turbine_result=turbine_result,
                             )
@@ -725,16 +825,27 @@ class GraphResult:
                                 name=model.name,
                                 componentType=model.component_type,
                                 component_level=ComponentLevel.MODEL,
-                                energy_usage=model.energy_usage,
+                                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity
+                                ),
                                 is_valid=model.is_valid,
-                                energy_usage_cumulative=model.energy_usage.to_volumes().cumulative(),
+                                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity
+                                )
+                                .to_volumes()
+                                .cumulative(),
                                 timesteps=model.timesteps,
                                 power_cumulative=(
-                                    model.power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
+                                    .to_volumes()
+                                    .to_unit(Unit.GIGA_WATT_HOURS)
+                                    .cumulative()
                                     if model.power is not None
                                     else None
                                 ),
-                                power=model.power,
+                                power=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
+                                if model.power is not None
+                                else None,
                                 inlet_liquid_rate_m3_per_day=TimeSeriesRate(
                                     timesteps=model.timesteps,
                                     values=model.inlet_liquid_rate_m3_per_day
@@ -742,6 +853,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                     rate_type=RateType.STREAM_DAY,
+                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 inlet_pressure_bar=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -778,11 +890,26 @@ class GraphResult:
                                 "parent": consumer_id,
                                 "componentType": model.component_type,
                                 "component_level": ComponentLevel.MODEL,
-                                "energy_usage_cumulative": model.energy_usage.to_volumes().cumulative().dict(),
+                                "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity
+                                )
+                                .to_volumes()
+                                .cumulative()
+                                .dict(),
                                 "power_cumulative": (
-                                    model.power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative().dict()
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
+                                    .to_volumes()
+                                    .to_unit(Unit.GIGA_WATT_HOURS)
+                                    .cumulative()
+                                    .dict()
                                     if model.power is not None
                                     else None
+                                ),
+                                "power": TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.power, regularity=regularity
+                                ),
+                                "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    model.energy_usage, regularity=regularity
                                 ),
                             },
                         )
@@ -790,8 +917,208 @@ class GraphResult:
                     ]
                 )
 
-            sub_components.append(
-                parse_obj_as(
+            obj: libecalc.dto.result.ComponentResult
+            if consumer_node_info.component_type == ComponentType.GENERATOR_SET:
+                obj = dto.result.results.GeneratorSetResult(
+                    name=consumer_node_info.name,
+                    parent=self.graph.get_predecessor(consumer_id),
+                    component_level=consumer_node_info.component_level,
+                    componentType=consumer_node_info.component_type,
+                    emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else [],
+                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    )
+                    .to_volumes()
+                    .cumulative(),
+                    power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    )
+                    .to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative()
+                    if consumer_result.component_result.power is not None
+                    else None,
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    ),
+                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_calendar_day()
+                    if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_stream_day(),
+                    power_capacity_margin=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power_capacity_margin, regularity=regularity
+                    ),
+                    timesteps=consumer_result.component_result.timesteps,
+                    id=consumer_result.component_result.id,
+                    is_valid=consumer_result.component_result.is_valid,
+                )
+            elif consumer_node_info.component_type == ComponentType.PUMP:
+                obj = dto.result.results.PumpResult(
+                    name=consumer_node_info.name,
+                    parent=self.graph.get_predecessor(consumer_id),
+                    component_level=consumer_node_info.component_level,
+                    componentType=consumer_node_info.component_type,
+                    emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else [],
+                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    )
+                    .to_volumes()
+                    .cumulative(),
+                    power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    )
+                    .to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative()
+                    if consumer_result.component_result.power is not None
+                    else None,
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    ),
+                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_calendar_day()
+                    if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_stream_day(),
+                    inlet_liquid_rate_m3_per_day=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.inlet_liquid_rate_m3_per_day, regularity=regularity
+                    ),
+                    inlet_pressure_bar=consumer_result.component_result.inlet_pressure_bar,
+                    outlet_pressure_bar=consumer_result.component_result.outlet_pressure_bar,
+                    operational_head=consumer_result.component_result.operational_head,
+                    timesteps=consumer_result.component_result.timesteps,
+                    id=consumer_result.component_result.id,
+                    is_valid=consumer_result.component_result.is_valid,
+                )
+            elif consumer_node_info.component_type == ComponentType.COMPRESSOR:
+                obj = dto.result.results.CompressorResult(
+                    name=consumer_node_info.name,
+                    parent=self.graph.get_predecessor(consumer_id),
+                    component_level=consumer_node_info.component_level,
+                    componentType=consumer_node_info.component_type,
+                    emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else [],
+                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    )
+                    .to_volumes()
+                    .cumulative(),
+                    power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    )
+                    .to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative()
+                    if consumer_result.component_result.power is not None
+                    else None,
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    ),
+                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_calendar_day()
+                    if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_stream_day(),
+                    recirculation_loss=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.recirculation_loss, regularity=regularity
+                    ),
+                    rate_exceeds_maximum=consumer_result.component_result.rate_exceeds_maximum,
+                    outlet_pressure_before_choking=consumer_result.component_result.outlet_pressure_before_choking,
+                    timesteps=consumer_result.component_result.timesteps,
+                    id=consumer_result.component_result.id,
+                    is_valid=consumer_result.component_result.is_valid,
+                )
+            elif consumer_node_info.component_type == ComponentType.ASSET:
+                obj = dto.result.results.AssetResult(
+                    name=consumer_node_info.name,
+                    parent=self.graph.get_predecessor(consumer_id),
+                    component_level=consumer_node_info.component_level,
+                    componentType=consumer_node_info.component_type,
+                    emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else [],
+                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    )
+                    .to_volumes()
+                    .cumulative(),
+                    power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    )
+                    .to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative()
+                    if consumer_result.component_result.power is not None
+                    else None,
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    ),
+                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_calendar_day()
+                    if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_stream_day(),
+                    hydrocarbon_export_rate=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.hydrocarbon_export_rate, regularity=regularity
+                    ),
+                    emission_intensities=consumer_result.component_result.emission_intensities,
+                    timesteps=consumer_result.component_result.timesteps,
+                    id=consumer_result.component_result.id,
+                    is_valid=consumer_result.component_result.is_valid,
+                )
+            elif consumer_node_info.component_type == ComponentType.INSTALLATION:
+                obj = dto.result.results.InstallationResult(
+                    name=consumer_node_info.name,
+                    parent=self.graph.get_predecessor(consumer_id),
+                    component_level=consumer_node_info.component_level,
+                    componentType=consumer_node_info.component_type,
+                    emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else [],
+                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    )
+                    .to_volumes()
+                    .cumulative(),
+                    power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    )
+                    .to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative()
+                    if consumer_result.component_result.power is not None
+                    else None,
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    ),
+                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_calendar_day()
+                    if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_stream_day(),
+                    regularity=consumer_result.component_result.regularity,
+                    timesteps=consumer_result.component_result.timesteps,
+                    id=consumer_result.component_result.id,
+                    is_valid=consumer_result.component_result.is_valid,
+                )
+            else:  # COMPRESSOR_SYSTEM_V2, COMPRESSOR_SYSTEM, PUMP_SYSTEM_V2, PUMP_SYSTEM, GENERIC, TURBINE, DIRECT_EMITTER
+                obj = parse_obj_as(
                     libecalc.dto.result.ComponentResult,
                     {
                         **consumer_result.component_result.dict(),
@@ -799,29 +1126,48 @@ class GraphResult:
                         "parent": self.graph.get_predecessor(consumer_id),
                         "component_level": consumer_node_info.component_level,
                         "componentType": consumer_node_info.component_type,
-                        "emissions": self._parse_emissions(self.emission_results[consumer_id])
+                        "emissions": self._parse_emissions(self.emission_results[consumer_id], regularity)
                         if consumer_id in self.emission_results
                         else [],
-                        "energy_usage_cumulative": consumer_result.component_result.energy_usage.to_volumes()
+                        "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.energy_usage, regularity=regularity
+                        )
+                        .to_volumes()
                         .cumulative()
                         .dict(),
-                        "power_cumulative": consumer_result.component_result.power.to_volumes()
+                        "power_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.power, regularity=regularity
+                        )
+                        .to_volumes()
                         .to_unit(Unit.GIGA_WATT_HOURS)
                         .cumulative()
                         .dict()
                         if consumer_result.component_result.power is not None
                         else None,
+                        "power": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.power, regularity=regularity
+                        ),
+                        "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.energy_usage, regularity=regularity
+                        ).to_calendar_day()
+                        if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                        else TimeSeriesRate.from_timeseries_stream_day_rate(
+                            consumer_result.component_result.energy_usage, regularity=regularity
+                        ).to_stream_day(),
                     },
                 )
-            )
+
+            sub_components.append(obj)
 
         for installation in asset.installations:
+            regularity = regularities[installation.id]  # Already evaluated regularities
             for direct_emitter in installation.direct_emitters:
                 energy_usage = TimeSeriesRate(
                     timesteps=self.variables_map.time_vector,
                     values=[0.0] * self.variables_map.length,
-                    regularity=[1] * self.variables_map.length,
+                    regularity=[1] * self.variables_map.length,  # Dummy. Has no effect since value is 0
                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    rate_type=RateType.CALENDAR_DAY,
                 )
                 sub_components.append(
                     libecalc.dto.result.DirectEmitterResult(
@@ -830,7 +1176,7 @@ class GraphResult:
                         componentType=direct_emitter.component_type,
                         component_level=ComponentLevel.CONSUMER,
                         parent=installation.id,
-                        emissions=self._parse_emissions(self.emission_results[direct_emitter.id]),
+                        emissions=self._parse_emissions(self.emission_results[direct_emitter.id], regularity),
                         timesteps=self.variables_map.time_vector,
                         is_valid=TimeSeriesBoolean(
                             timesteps=self.variables_map.time_vector,
@@ -848,7 +1194,11 @@ class GraphResult:
             [installation.hydrocarbon_export_rate for installation in installation_results],
         )
 
-        asset_aggregated_emissions = aggregate_emissions(self.emission_results.values())
+        emission_dto_results = self.convert_to_timeseries(
+            self.emission_results,
+            regularities,
+        )
+        asset_aggregated_emissions = aggregate_emissions(list(emission_dto_results.values()))
 
         asset_power_core = reduce(
             operator.add,
@@ -881,7 +1231,7 @@ class GraphResult:
             energy_usage=asset_energy_usage_core,
             energy_usage_cumulative=asset_energy_usage_cumulative,
             hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
-            emissions=self._parse_emissions(asset_aggregated_emissions),
+            emissions=self.to_full_result(asset_aggregated_emissions),
             emission_intensities=self._compute_intensity(
                 hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
                 emissions=asset_aggregated_emissions,
@@ -903,3 +1253,35 @@ class GraphResult:
             emission_results=self.emission_results,
             variables_map=self.variables_map,
         )
+
+    def convert_to_timeseries(
+        self,
+        emission_core_results: Dict[str, Dict[str, EmissionResult]],
+        regularities: Union[TimeSeriesFloat, Dict[str, TimeSeriesFloat]],
+    ) -> Dict[str, Dict[str, PartialEmissionResult]]:
+        """
+        Emissions by consumer id and emission name
+        Args:
+            emission_core_results:
+            regularities:
+
+        Returns:
+
+        """
+        dto_result: Dict[str, Dict[str, PartialEmissionResult]] = {}
+
+        for consumer_id, emissions in emission_core_results.items():
+            installation_id = self.graph.get_parent_installation_id(consumer_id)
+            dto_result[consumer_id] = defaultdict()
+
+            if isinstance(regularities, Dict):
+                regularity = regularities[installation_id]
+            else:
+                regularity = regularities
+
+            for emission_name, emission_result in emissions.items():
+                dto_result[consumer_id][emission_name] = PartialEmissionResult.from_emission_core_result(
+                    emission_result, regularity=regularity
+                )
+
+        return dto_result

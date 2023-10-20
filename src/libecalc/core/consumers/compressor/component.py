@@ -12,7 +12,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
-    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.base import BaseConsumerWithoutOperationalSettings
 from libecalc.core.models.compressor import create_compressor_model
@@ -65,7 +65,6 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         """
         Todo:
             Implement Multiple Streams
-            Handle regularity outside
         """
         self._operational_settings = operational_settings
 
@@ -91,17 +90,12 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
 
         # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
         total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
-        evaluated_regularity = total_requested_inlet_stream.rate.regularity
 
-        energy_usage = TimeSeriesRate(
+        energy_usage = TimeSeriesStreamDayRate(
             values=aggregated_result.energy_usage,
             timesteps=evaluated_timesteps,
             unit=aggregated_result.energy_usage_unit,
-            regularity=evaluated_regularity,
         )
-
-        if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY:
-            energy_usage = energy_usage.to_calendar_day()  # provide fuel usage in calendar day, same as legacy consumer
 
         outlet_pressure_before_choke = TimeSeriesFloat(
             values=aggregated_result.outlet_pressure_before_choking
@@ -113,22 +107,20 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
 
         component_result = core_results.CompressorResult(
             timesteps=evaluated_timesteps,
-            power=TimeSeriesRate(
+            power=TimeSeriesStreamDayRate(
                 values=aggregated_result.power,
                 timesteps=evaluated_timesteps,
                 unit=aggregated_result.power_unit,
-                regularity=evaluated_regularity,
             ).fill_nan(0.0),
             energy_usage=energy_usage.fill_nan(0.0),
             is_valid=TimeSeriesBoolean(
                 values=aggregated_result.is_valid, timesteps=evaluated_timesteps, unit=Unit.NONE
             ),
             id=self.id,
-            recirculation_loss=TimeSeriesRate(
+            recirculation_loss=TimeSeriesStreamDayRate(
                 values=aggregated_result.recirculation_loss,
                 timesteps=evaluated_timesteps,
                 unit=Unit.MEGA_WATT,
-                regularity=evaluated_regularity,
             ),
             rate_exceeds_maximum=TimeSeriesBoolean(
                 values=aggregated_result.rate_exceeds_maximum,
@@ -167,19 +159,17 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                         values=aggregated_result.is_valid,
                         unit=Unit.NONE,
                     ),
-                    power=TimeSeriesRate(
+                    power=TimeSeriesStreamDayRate(
                         timesteps=evaluated_timesteps,
                         values=aggregated_result.power,
                         unit=aggregated_result.power_unit,
-                        regularity=evaluated_regularity,
                     )
                     if aggregated_result.power is not None
                     else None,
-                    energy_usage=TimeSeriesRate(
+                    energy_usage=TimeSeriesStreamDayRate(
                         timesteps=evaluated_timesteps,
                         values=aggregated_result.energy_usage,
                         unit=aggregated_result.energy_usage_unit,
-                        regularity=evaluated_regularity,
                     ),
                     energy_usage_unit=aggregated_result.energy_usage_unit,
                     rate_sm3_day=aggregated_result.rate_sm3_day,

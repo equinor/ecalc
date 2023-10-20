@@ -5,10 +5,14 @@ from typing import DefaultDict, Dict, List, Optional
 
 import libecalc.dto
 from libecalc.common.feature_flags import Feature
-from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Frequency, resample_time_steps
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesVolumes
+from libecalc.common.utils.rates import (
+    TimeSeriesFloat,
+    TimeSeriesRate,
+    TimeSeriesVolumes,
+)
 from libecalc.core.graph_result import GraphResult
 from libecalc.core.result import GeneratorSetResult
 
@@ -70,6 +74,15 @@ class FuelQuery(Query):
             time_steps=installation_time_steps,
         )
 
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
         aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
         aggregated_result_volume = {}
 
@@ -79,7 +92,13 @@ class FuelQuery(Query):
                 for period, category in temporal_category.items():
                     if self.consumer_categories is None or category in self.consumer_categories:
                         fuel_consumer_result = installation_graph.get_energy_result(fuel_consumer.id)
-                        fuel_volumes = fuel_consumer_result.energy_usage.for_period(period).to_volumes()
+                        fuel_volumes = (
+                            TimeSeriesRate.from_timeseries_stream_day_rate(
+                                fuel_consumer_result.energy_usage, regularity=regularity
+                            )
+                            .for_period(period)
+                            .to_volumes()
+                        )
 
                         fuel_temporal_model = TemporalModel(fuel_consumer.fuel)
                         for timestep, fuel_volume in fuel_volumes.datapoints():
@@ -135,6 +154,15 @@ class EmissionQuery(Query):
             time_steps=installation_time_steps,
         )
 
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
         aggregated_result_volume = {}
         aggregated_result: Dict[datetime, float] = defaultdict(float)
         unit_in = None
@@ -149,7 +177,11 @@ class EmissionQuery(Query):
                         emissions = installation_graph.get_emissions(fuel_consumer.id)
 
                         for emission in emissions.values():
-                            emission_volumes = emission.rate.for_period(period).to_volumes()
+                            emission_volumes = (
+                                TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, regularity=regularity)
+                                .for_period(period)
+                                .to_volumes()
+                            )
                             unit_in = emission_volumes.unit
                             for timestep, emission_volume in emission_volumes.datapoints():
                                 fuel_model = fuel_temporal_model.get_model(timestep)
@@ -200,6 +232,15 @@ class ElectricityGeneratedQuery(Query):
             time_steps=installation_time_steps,
         )
 
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
         aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
         aggregated_result_volume = {}
         unit_in = None
@@ -214,7 +255,13 @@ class ElectricityGeneratedQuery(Query):
                                 fuel_consumer.id
                             )
 
-                            cumulative_volumes_gwh = fuel_consumer_result.power.for_period(period).to_volumes()
+                            cumulative_volumes_gwh = (
+                                TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    fuel_consumer_result.power, regularity=regularity
+                                )
+                                .for_period(period)
+                                .to_volumes()
+                            )
 
                             unit_in = cumulative_volumes_gwh.unit
 
@@ -257,6 +304,16 @@ class FuelConsumerPowerConsumptionQuery(Query):
             frequency=frequency,
             time_steps=installation_time_steps,
         )
+
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
         fuel_consumers = installation_dto.fuel_consumers
         fuel_consumers = [
             fuel_consumer
@@ -284,7 +341,11 @@ class FuelConsumerPowerConsumptionQuery(Query):
                             and 0 < len(shaft_power) == len(time_vector)
                             and len(fuel_consumer_result.timesteps) == len(installation_graph.timesteps)
                         ):
-                            cumulative_volumes_gwh = shaft_power.for_period(period).to_volumes()
+                            cumulative_volumes_gwh = (
+                                TimeSeriesRate.from_timeseries_stream_day_rate(shaft_power, regularity=regularity)
+                                .for_period(period)
+                                .to_volumes()
+                            )
                             unit_in = cumulative_volumes_gwh.unit
 
                             for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
@@ -335,6 +396,15 @@ class ElConsumerPowerConsumptionQuery(Query):
             time_steps=installation_time_steps,
         )
 
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
         aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
         aggregated_result_volume = {}
         unit_in = None
@@ -351,7 +421,11 @@ class ElConsumerPowerConsumptionQuery(Query):
                                 )
                                 power = electrical_consumer_result.power
                                 if power is not None:
-                                    cumulative_volumes_gwh = power.for_period(period).to_volumes()
+                                    cumulative_volumes_gwh = (
+                                        TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=regularity)
+                                        .for_period(period)
+                                        .to_volumes()
+                                    )
                                     unit_in = cumulative_volumes_gwh.unit
 
                                     for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
