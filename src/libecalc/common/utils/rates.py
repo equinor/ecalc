@@ -165,6 +165,7 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         if not cls.__name__ == TimeSeriesVolumes.__name__:
             if nr_timesteps != nr_values:
                 if all(math.isnan(i) for i in field_values["values"]):
+                    # TODO: This should be solved another place. Temporary solution to make things run
                     field_values["values"] == [math.nan] * len(field_values["timesteps"])
                 else:
                     raise ProgrammingError(
