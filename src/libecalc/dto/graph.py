@@ -27,17 +27,36 @@ class Graph:
         else:
             return self.graph.successors(component_id)
 
-    def get_predecessor(self, component_id) -> str:
+    def get_predecessor(self, component_id: str) -> str:
         predecessors = list(self.graph.predecessors(component_id))
         if len(predecessors) > 1:
             raise ValueError("Component with several parents encountered.")
         return predecessors[0]
 
+    def get_parent_installation_id(self, component_id: str) -> str:
+        """
+        Simple helper function to get the installation of any component with id
+
+        Args:
+            component_id:
+
+        Returns:
+
+        """
+
+        # stop as soon as we get an installation. Ie. an installation of an installation, is itself...
+        node_info = self.get_node_info(component_id)
+        if node_info.component_level == ComponentLevel.INSTALLATION:
+            return component_id
+
+        parent_id = self.get_predecessor(component_id)
+        return self.get_parent_installation_id(parent_id)
+
     @property
     def root(self) -> str:
         return list(nx.topological_sort(self.graph))[0]
 
-    def get_node_info(self, component_id) -> NodeInfo:
+    def get_node_info(self, component_id: str) -> NodeInfo:
         component_dto = self.components[component_id]
         if isinstance(component_dto, dto.Asset):
             component_level = ComponentLevel.ASSET
@@ -62,7 +81,7 @@ class Graph:
             component_level=component_level,
         )
 
-    def get_component(self, component_id: str):
+    def get_component(self, component_id: str) -> ComponentDTO:
         return self.components[component_id]
 
     def get_component_id_by_name(self, name: str) -> str:

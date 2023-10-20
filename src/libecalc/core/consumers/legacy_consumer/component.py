@@ -14,7 +14,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
-    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
@@ -119,25 +119,22 @@ class Consumer(BaseConsumer):
                     time_vector=consumer_function_result.time_vector,
                     new_time_vector=variables_map.time_vector,
                 )
-                power_time_series = TimeSeriesRate(
+                power_time_series = TimeSeriesStreamDayRate(
                     timesteps=variables_map.time_vector,
                     values=list(power),
                     unit=Unit.MEGA_WATT,
-                    regularity=regularity,
                 )
-            energy_usage_time_series = TimeSeriesRate(
+            energy_usage_time_series = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
                 values=list(energy_usage),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                regularity=regularity,
-            ).to_calendar_day()
+            )
 
         elif self._consumer_dto.consumes == ConsumptionType.ELECTRICITY:
-            energy_usage_time_series = TimeSeriesRate(
+            energy_usage_time_series = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
                 values=list(energy_usage),
                 unit=Unit.MEGA_WATT,
-                regularity=regularity,
             )
 
             power_time_series = energy_usage_time_series.copy()
@@ -189,11 +186,10 @@ class Consumer(BaseConsumer):
         elif self._consumer_dto.component_type == ComponentType.PUMP:
             # Using generic consumer result as pump has no specific results currently
 
-            inlet_rate_time_series = TimeSeriesRate(
+            inlet_rate_time_series = TimeSeriesStreamDayRate(
                 timesteps=consumer_function_result.time_vector.tolist(),
                 values=list(consumer_function_result.energy_function_result.rate),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                regularity=regularity,
             ).reindex(new_time_vector=variables_map.time_vector)
 
             inlet_pressure_time_series = TimeSeriesFloat(
@@ -273,7 +269,7 @@ class Consumer(BaseConsumer):
                 is_valid=is_valid,
                 energy_usage=energy_usage_time_series,
                 power=power_time_series,
-                recirculation_loss=TimeSeriesRate(
+                recirculation_loss=TimeSeriesStreamDayRate(
                     timesteps=variables_map.time_vector,
                     values=recirculation_loss,
                     unit=Unit.MEGA_WATT,

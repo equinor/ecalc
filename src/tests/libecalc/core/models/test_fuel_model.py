@@ -6,6 +6,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.core.models.fuel import FuelModel
 from libecalc.dto import VariablesMap
+from libecalc.dto.types import RateType
 from libecalc.expression import Expression
 
 
@@ -39,16 +40,22 @@ def test_fuel_model():
         timesteps=timesteps,
         values=[0.001, 0.002, 0.003],
         unit=Unit.TONS_PER_DAY,
+        rate_type=RateType.CALENDAR_DAY,
+        regularity=[1.0, 1.0, 1.0],
     )
     assert emission_result.tax == TimeSeriesRate(
         timesteps=timesteps,
         values=[1.0, 2.0, 3.0],
         unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+        rate_type=RateType.CALENDAR_DAY,
+        regularity=[1.0, 1.0, 1.0],
     )
     assert emission_result.quota == TimeSeriesRate(
         timesteps=timesteps,
         values=[0.0] * 3,
         unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+        rate_type=RateType.CALENDAR_DAY,
+        regularity=[1.0, 1.0, 1.0],
     )
 
 

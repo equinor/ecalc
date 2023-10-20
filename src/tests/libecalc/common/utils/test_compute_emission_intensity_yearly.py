@@ -9,6 +9,7 @@ from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_yearly,
 )
 from libecalc.common.utils.rates import Rates, TimeSeriesRate, TimeSeriesVolumes
+from libecalc.dto.types import RateType
 
 
 def _setup_intensity_testcase(
@@ -22,9 +23,21 @@ def _setup_intensity_testcase(
     hcexport_cumulative = Rates.compute_cumulative_volumes_from_daily_rates(rates=hcexport_rate, time_steps=time_vector)
 
     return (
-        TimeSeriesRate(values=list(emission_rate), timesteps=time_vector, unit=Unit.KILO_PER_DAY),
+        TimeSeriesRate(
+            values=list(emission_rate),
+            timesteps=time_vector,
+            unit=Unit.KILO_PER_DAY,
+            rate_type=RateType.STREAM_DAY,
+            regularity=[1.0] * len(time_vector),
+        ),
         TimeSeriesVolumes(values=list(emission_cumulative), timesteps=time_vector, unit=Unit.KILO),
-        TimeSeriesRate(values=list(hcexport_rate), timesteps=time_vector, unit=Unit.STANDARD_CUBIC_METER_PER_DAY),
+        TimeSeriesRate(
+            values=list(hcexport_rate),
+            timesteps=time_vector,
+            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            rate_type=RateType.STREAM_DAY,
+            regularity=[1.0] * len(time_vector),
+        ),
         TimeSeriesVolumes(values=list(hcexport_cumulative), timesteps=time_vector, unit=Unit.STANDARD_CUBIC_METER),
     )
 

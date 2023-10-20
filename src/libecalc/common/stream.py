@@ -4,7 +4,7 @@ from typing import List, Literal, Optional
 
 from libecalc.common.logger import logger
 from libecalc.common.string_utils import to_camel_case
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from pydantic import BaseModel, Extra
 from typing_extensions import Self
 
@@ -16,7 +16,7 @@ class Stream(BaseModel):
         allow_population_by_field_name = True
 
     name: Optional[str]
-    rate: TimeSeriesRate
+    rate: TimeSeriesStreamDayRate
     pressure: TimeSeriesFloat
     fluid_density: Optional[TimeSeriesFloat] = None
 

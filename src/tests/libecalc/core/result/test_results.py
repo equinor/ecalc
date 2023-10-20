@@ -4,10 +4,9 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
-    TimeSeriesRate,
+    TimeSeriesStreamDayRate,
 )
 from libecalc.core.result import CompressorResult
-from libecalc.dto.types import RateType
 
 
 class TestMerge:
@@ -20,31 +19,25 @@ class TestMerge:
         ]
         compressor_result = CompressorResult(
             timesteps=timesteps,
-            energy_usage=TimeSeriesRate(
+            energy_usage=TimeSeriesStreamDayRate(
                 timesteps=timesteps,
                 values=[1, 2, 3, 4],
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                rate_type=RateType.STREAM_DAY,
-                regularity=[1, 1, 1, 1],
             ),
-            power=TimeSeriesRate(
+            power=TimeSeriesStreamDayRate(
                 timesteps=timesteps,
                 values=[1, 2, 3, 4],
                 unit=Unit.MEGA_WATT,
-                rate_type=RateType.STREAM_DAY,
-                regularity=[1, 1, 1, 1],
             ),
             is_valid=TimeSeriesBoolean(
                 timesteps=timesteps,
                 values=[True, True, True, True],
                 unit=Unit.NONE,
             ),
-            recirculation_loss=TimeSeriesRate(
+            recirculation_loss=TimeSeriesStreamDayRate(
                 timesteps=timesteps,
                 values=[0.1, 0.2, 0.3, 0.4],
                 unit=Unit.MEGA_WATT,
-                rate_type=RateType.STREAM_DAY,
-                regularity=[1, 1, 1, 1],
             ),
             rate_exceeds_maximum=TimeSeriesBoolean(
                 timesteps=timesteps,

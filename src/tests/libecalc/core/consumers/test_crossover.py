@@ -5,14 +5,17 @@ import numpy as np
 import pytest
 from libecalc.common.stream import Stream
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesRate
+from libecalc.common.utils.rates import (
+    TimeSeriesFloat,
+    TimeSeriesStreamDayRate,
+)
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 
 
 def create_stream_from_rate(rate: List[float]) -> Stream:
     timesteps = [datetime(2020, 1, i + 1) for i in range(len(rate))]
     return Stream(
-        rate=TimeSeriesRate(
+        rate=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=rate,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
