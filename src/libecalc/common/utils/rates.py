@@ -29,7 +29,7 @@ from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.dto.types import RateType
 from numpy.typing import NDArray
-from pydantic import Extra, root_validator, validator
+from pydantic import Extra, validator
 from pydantic.fields import ModelField
 from pydantic.generics import GenericModel
 from typing_extensions import Self
@@ -156,22 +156,22 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             return math.nan
         return v
 
-    @root_validator(pre=True)
-    def timesteps_values_one_to_one(cls, field_values):
-        nr_timesteps = len(field_values["timesteps"])
-        nr_values = len(field_values["values"])
+    @validator("values", pre=True)
+    def timesteps_values_one_to_one(cls, v: list, values, field: ModelField):
+        nr_timesteps = len(values["timesteps"])
+        nr_values = len(v)
 
         if not cls.__name__ == TimeSeriesVolumes.__name__:
             if nr_timesteps != nr_values:
-                if all(math.isnan(i) for i in field_values["values"]):
-                    # TODO: This should be solved another place. Temporary solution to make things run
-                    field_values["values"] == [math.nan] * len(field_values["timesteps"])
+                if all(math.isnan(i) for i in v):
+                    # TODO: This should probably be solved another place. Temporary solution to make things run
+                    return [math.nan] * len(values["timesteps"])
                 else:
                     raise ProgrammingError(
-                        "Time series: number of timesteps do not match number " "of values. Most likely a bug."
+                        "Time series: number of timesteps do not match number "
+                        "of values. Most likely a bug, report to eCalc Dev Team."
                     )
-
-        return field_values
+        return v
 
     def __len__(self) -> int:
         return len(self.values)
