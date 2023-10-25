@@ -368,10 +368,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         if self.stages is None:
             raise ValueError("Can't calculate max pressure when compressor stages are not defined.")
 
-        valid_idx = np.where(np.logical_and(suction_pressures > 0, discharge_pressures > 0), 1, 0)
-        suction_pressures = np.where(valid_idx, suction_pressures, 1)
-        discharge_pressures = np.where(valid_idx, discharge_pressures, 1)
-
         use_stage_for_maximum_rate_calculation = np.asarray([stage.compressor_chart for stage in self.stages])
         if not use_stage_for_maximum_rate_calculation.any():
             msg = "Calculating maximum rate is not possible for when all compressor charts are generic from data"
@@ -421,7 +417,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
             axis=0,
         )
 
-        return np.where(valid_idx, maximum_rates, np.nan)
+        return maximum_rates
 
     @staticmethod
     def _calulate_inlet_pressure_stages(
