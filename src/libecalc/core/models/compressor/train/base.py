@@ -7,6 +7,7 @@ from libecalc.common.feature_flags import Feature
 from libecalc.common.logger import logger
 from libecalc.common.stream import Stream
 from libecalc.common.units import Unit
+from libecalc.core.models import ModelInputFailureStatus, validate_model_input
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -84,7 +85,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         """
         logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
 
-        rate, suction_pressure, discharge_pressure, _, input_failure_status = self.validate_operational_conditions(
+        rate, suction_pressure, discharge_pressure, _, input_failure_status = validate_model_input(
             rate=rate,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
@@ -125,7 +126,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         )
 
         for i, train_result in enumerate(train_results):
-            if input_failure_status[i]:
+            if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE:
                 train_result.failure_status = input_failure_status[i]
 
         return CompressorTrainResult(
