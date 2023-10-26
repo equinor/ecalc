@@ -13,9 +13,23 @@ if TYPE_CHECKING:
 
 
 class Graph:
-    def __init__(self, graph: nx.DiGraph, components: Dict[str, ComponentDTO]):
-        self.graph = graph
-        self.components = components
+    def __init__(self):
+        self.graph = nx.DiGraph()
+        self.components: Dict[str, ComponentDTO] = {}
+
+    def add_node(self, component: ComponentDTO):
+        self.graph.add_node(component.id)
+        self.components[component.id] = component
+
+    def add_edge(self, from_id: str, to_id: str):
+        if from_id not in self.components or to_id not in self.components:
+            raise ValueError("Add node before adding edges")
+
+        self.graph.add_edge(from_id, to_id)
+
+    def add_subgraph(self, subgraph: Graph):
+        self.components.update(subgraph.components)
+        self.graph = nx.compose(self.graph, subgraph.graph)
 
     def get_successors(self, component_id: str, recursively=False) -> List[str]:
         if recursively:
