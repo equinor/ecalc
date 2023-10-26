@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import List
 
-import numpy as np
 import pytest
 from libecalc.common.stream import Stream
 from libecalc.common.units import Unit
@@ -12,9 +11,10 @@ from libecalc.common.utils.rates import (
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 
 
-def create_stream_from_rate(rate: List[float]) -> Stream:
+def create_stream_from_rate(rate: List[float], name: str = "inlet") -> Stream:
     timesteps = [datetime(2020, 1, i + 1) for i in range(len(rate))]
     return Stream(
+        name=name,
         rate=TimeSeriesStreamDayRate(
             timesteps=timesteps,
             values=rate,
@@ -33,19 +33,19 @@ class TestCrossover:
         (
             [4, 4],
             [create_stream_from_rate([2, 2]), create_stream_from_rate([2, 2])],
-            create_stream_from_rate([0, 0]),
+            create_stream_from_rate([0, 0], name="test-stream-please-ignore"),
             [create_stream_from_rate([2, 2]), create_stream_from_rate([2, 2])],
         ),  # All rates within capacity
         (
             [4, 4],
             [create_stream_from_rate([3, 3]), create_stream_from_rate([1, 1])],
-            create_stream_from_rate([0, 0]),
+            create_stream_from_rate([0, 0], name="test-stream-please-ignore"),
             [create_stream_from_rate([3, 3]), create_stream_from_rate([1, 1])],
         ),  # All rates within capacity
         (  # Exceeds capacity, cross over required
             [4, 4],  # 4 for both timesteps
             [create_stream_from_rate([4, 4]), create_stream_from_rate([1, 1])],  # 4 in rate + 1 crossover, 1 exceeding
-            create_stream_from_rate([1, 1]),  # 1 exceeding
+            create_stream_from_rate([1, 1], name="test-stream-please-ignore"),  # 1 exceeding
             [
                 create_stream_from_rate([4, 4]),
                 create_stream_from_rate([0, 0]),
@@ -54,31 +54,31 @@ class TestCrossover:
         (  # Exceeds capacity, cross over required
             [4, 4],  # 4 for both timesteps
             [create_stream_from_rate([5, 5])],  # 4 in rate
-            create_stream_from_rate([1, 1]),  # 1 exceeding
+            create_stream_from_rate([1, 1], name="test-stream-please-ignore"),  # 1 exceeding
             [create_stream_from_rate([4, 4])],
         ),
         (  # Exceeds capacity two times, cross over required
             [4, 4],  # 4 for both timesteps
             [create_stream_from_rate([5, 5]), create_stream_from_rate([2, 2])],  # 4 in rate
-            create_stream_from_rate([3, 3]),  # 1 exceeding
+            create_stream_from_rate([3, 3], name="test-stream-please-ignore"),  # 1 exceeding
             [create_stream_from_rate([4, 4]), create_stream_from_rate([0, 0])],
         ),
         (  # Exceeds capacity two times, cross over required
             [4, 4],  # 4 for both timesteps
             [create_stream_from_rate([5, 5]), create_stream_from_rate([0, 0])],  # 4 in rate
-            create_stream_from_rate([1, 1]),  # 1 exceeding
+            create_stream_from_rate([1, 1], name="test-stream-please-ignore"),  # 1 exceeding
             [create_stream_from_rate([4, 4]), create_stream_from_rate([0, 0])],
         ),
         (  # Exceeds capacity three times, cross over required
             [2, 2],  # 4 for both timesteps
             [create_stream_from_rate([3, 3]), create_stream_from_rate([1, 1]), create_stream_from_rate([1, 1])],
-            create_stream_from_rate([3, 3]),  # 1 exceeding
+            create_stream_from_rate([3, 3], name="test-stream-please-ignore"),  # 1 exceeding
             [create_stream_from_rate([2, 2]), create_stream_from_rate([0, 0]), create_stream_from_rate([0, 0])],
         ),
         (  # Under capacity
             [4, 4],  # 4 for both timesteps
             [create_stream_from_rate([2, 2]), create_stream_from_rate([1, 1])],  # 3 in rate, below 4
-            create_stream_from_rate([0, 0]),
+            create_stream_from_rate([0, 0], name="test-stream-please-ignore"),
             [create_stream_from_rate([2, 2]), create_stream_from_rate([1, 1])],
         ),
     ]
@@ -98,6 +98,10 @@ class TestCrossover:
         Test different realistic setups for crossover.
         Skipping test of edge-case where there are no streams, as that should be handled before this method.
         """
-        crossover_stream, streams_within_capacity = ConsumerSystem._get_crossover_streams(max_rate, streams)
-        assert np.array_equal(crossover_stream, expected_crossover_stream)
-        assert np.array_equal(streams_within_capacity, expected_streams_within_capacity)
+        crossover_stream, streams_within_capacity = ConsumerSystem._get_crossover_stream(
+            max_rate,
+            streams,
+            crossover_stream_name="test-stream-please-ignore",
+        )
+        assert crossover_stream == expected_crossover_stream
+        assert streams_within_capacity == expected_streams_within_capacity

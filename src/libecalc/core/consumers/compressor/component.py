@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from libecalc import dto
-from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.stream import Stage, Stream
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
@@ -33,52 +32,48 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
 
         self._operational_settings: Optional[CompressorOperationalSettings] = None
 
-    def get_max_rate(self, operational_settings: CompressorOperationalSettings) -> List[float]:
+    def get_max_rate(self, inlet_stream: Stream, target_pressure: TimeSeriesFloat) -> List[float]:
         """
-        For each timestep, get the maximum rate that this compressor can handle, given
-        the operational settings given, such as in -and outlet pressures (current conditions)
-        :param operational_settings:
-        :return:
+        For each timestep, get the maximum rate that this compressor can handle, given in -and outlet pressures.
+
+        Args:
+            inlet_stream: the inlet stream
+            target_pressure: the target pressure
         """
         results = []
-        for timestep in operational_settings.timesteps:
+        for timestep in inlet_stream.pressure.timesteps:
             compressor = self._temporal_model.get_model(timestep)
-            operational_settings_this_timestep = operational_settings.get_subset_for_timestep(timestep)
             results.extend(
                 compressor.get_max_standard_rate(
-                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_streams[0].pressure.values),
-                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_stream.pressure.values),
+                    suction_pressures=np.asarray(inlet_stream.pressure.values),
+                    discharge_pressures=np.asarray(target_pressure.values),
                 ).tolist()
             )
         return results
 
-    @property
-    def operational_settings(self) -> CompressorOperationalSettings:
-        if self._operational_settings is None:
-            raise ProgrammingError("Operational settings has not been set. Need to call evaluate first.")
-        return self._operational_settings
-
     def evaluate(
         self,
-        operational_settings: CompressorOperationalSettings,
+        streams: List[Stream],
     ) -> EcalcModelResult:
-        """
-        Todo:
-            Implement Multiple Streams
-        """
-        self._operational_settings = operational_settings
-
         model_results = []
         evaluated_timesteps = []
 
-        for timestep in operational_settings.timesteps:
+        timesteps = streams[0].rate.timesteps  # TODO: which timesteps should we useeeee
+        inlet_streams = streams[:-1]
+        outlet_stream = streams[-1]
+
+        for timestep in timesteps:
             compressor = self._temporal_model.get_model(timestep)
-            operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
-            evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
+            stream_conditions_for_timestep = [
+                stream_condition.get_subset_for_timestep(timestep) for stream_condition in streams
+            ]
+            inlet_streams_for_timestep = streams[:-1]
+            outlet_stream_for_timestep = streams[-1]
             model_result = compressor.evaluate_streams(
-                inlet_streams=operational_settings.inlet_streams,
-                outlet_stream=operational_settings.outlet_stream,
+                inlet_streams=inlet_streams_for_timestep,
+                outlet_stream=outlet_stream_for_timestep,
             )
+            evaluated_timesteps.extend(stream_conditions_for_timestep[0].rate.timesteps)
             model_results.append(model_result)
 
         aggregated_result: Optional[CompressorTrainResult] = None
@@ -89,7 +84,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 aggregated_result.extend(model_result)
 
         # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
-        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
+        total_requested_inlet_stream = Stream.mix_all(inlet_streams)
 
         energy_usage = TimeSeriesStreamDayRate(
             values=aggregated_result.energy_usage,
@@ -133,6 +128,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 Stage(
                     name="before_choke",
                     stream=Stream(
+                        name="before_choke",
                         rate=total_requested_inlet_stream.rate,
                         pressure=outlet_pressure_before_choke,
                     ),
@@ -140,8 +136,9 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 Stage(
                     name="outlet",
                     stream=Stream(
+                        name="outlet",
                         rate=total_requested_inlet_stream.rate,  # Actual, not requested, different because of crossover
-                        pressure=operational_settings.outlet_stream.pressure,
+                        pressure=outlet_stream.pressure,
                     ),
                 ),
             ],

@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from libecalc.expression.expression import ExpressionType
 from libecalc.input.yaml_types import YamlBase
-from pydantic import Field, validator
+from pydantic import Field
 
 
 class YamlConsumerBase(YamlBase):
@@ -44,41 +44,3 @@ power_requirement = power_before_loss / (1 - power_loss_factor)
 
 
 opt_expr_list = Optional[List[ExpressionType]]
-
-
-class YamlConsumerSystemOperationalConditionBase(YamlBase):
-    rates: List[ExpressionType] = Field(
-        None,
-        title="Rates",
-        description="Rates [Sm3/day] as a list of expressions",
-    )
-    inlet_pressure: Optional[ExpressionType] = Field(
-        None,
-        title="Inlet pressure",
-        description="Inlet pressure [bara] as a single expression"
-        " This inlet pressure will be the same for all components in the consumer system.",
-    )
-    inlet_pressures: opt_expr_list = Field(
-        None, title="Inlet pressures", description="Inlet pressures [bara] as a list of expressions."
-    )
-    outlet_pressure: Optional[ExpressionType] = Field(
-        None,
-        title="Outlet pressure",
-        description="Outlet pressure [bara] as a single expression"
-        " This outlet pressure will be the same for all components in the consumer system.",
-    )
-    outlet_pressures: opt_expr_list = Field(
-        None, title="Outlet pressures", description="Outlet pressures [bara] as a list of expressions."
-    )
-
-    @validator("inlet_pressure", always=True)
-    def mutually_exclusive_inlet_pressure(cls, v, values):
-        if values.get("inlet_pressures") is not None and v:
-            raise ValueError("'INLET_PRESSURE' and 'INLET_PRESSURES' are mutually exclusive.")
-        return v
-
-    @validator("outlet_pressure", always=True)
-    def mutually_exclusive_outlet_pressure(cls, v, values):
-        if values.get("outlet_pressures") is not None and v:
-            raise ValueError("'OUTLET_PRESSURE' and 'OUTLET_PRESSURES' are mutually exclusive.")
-        return v

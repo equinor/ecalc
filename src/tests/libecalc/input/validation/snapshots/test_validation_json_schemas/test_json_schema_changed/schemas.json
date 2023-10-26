@@ -47,6 +47,45 @@
                     "title": "InstallationUserDefinedCategoryType",
                     "type": "string"
                 },
+                "Unit": {
+                    "description": "A very simple unit registry to convert between common eCalc units.",
+                    "enum": [
+                        "N/A",
+                        "kg/BOE",
+                        "kg/Sm3",
+                        "kg/m3",
+                        "Sm3",
+                        "BOE",
+                        "t/d",
+                        "t",
+                        "kg/d",
+                        "kg/h",
+                        "kg",
+                        "L/d",
+                        "L",
+                        "MWd",
+                        "GWh",
+                        "MW",
+                        "Y",
+                        "bara",
+                        "kPa",
+                        "Pa",
+                        "C",
+                        "K",
+                        "frac",
+                        "%",
+                        "kJ/kg",
+                        "J/kg",
+                        "N.m/kg",
+                        "Am3/h",
+                        "Sm3/d",
+                        "NOK/d",
+                        "NOK",
+                        "RPM"
+                    ],
+                    "title": "Unit",
+                    "type": "string"
+                },
                 "YamlCompressor": {
                     "additionalProperties": false,
                     "properties": {
@@ -111,12 +150,19 @@
                             "title": "NAME",
                             "type": "string"
                         },
-                        "OPERATIONAL_SETTINGS": {
-                            "items": {
-                                "$ref": "#/definitions/YamlCompressorSystemOperationalSettings"
+                        "STREAM_CONDITIONS_PRIORITIES": {
+                            "additionalProperties": {
+                                "additionalProperties": {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/YamlStream"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "object"
                             },
-                            "title": "Operational Settings",
-                            "type": "array"
+                            "description": "A list of prioritised stream conditions per consumer.",
+                            "title": "Stream conditions priorities",
+                            "type": "object"
                         },
                         "TYPE": {
                             "default": "COMPRESSOR_SYSTEM@v2",
@@ -131,101 +177,10 @@
                     "required": [
                         "NAME",
                         "CATEGORY",
-                        "OPERATIONAL_SETTINGS",
+                        "STREAM_CONDITIONS_PRIORITIES",
                         "CONSUMERS"
                     ],
                     "title": "CompressorSystem",
-                    "type": "object"
-                },
-                "YamlCompressorSystemOperationalSettings": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "INLET_PRESSURE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ],
-                            "description": "Inlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
-                            "title": "Inlet pressure"
-                        },
-                        "INLET_PRESSURES": {
-                            "description": "Inlet pressures [bara] as a list of expressions.",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "Inlet pressures",
-                            "type": "array"
-                        },
-                        "OUTLET_PRESSURE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ],
-                            "description": "Outlet pressure [bara] as a single expression This outlet pressure will be the same for all components in the consumer system.",
-                            "title": "Outlet pressure"
-                        },
-                        "OUTLET_PRESSURES": {
-                            "description": "Outlet pressures [bara] as a list of expressions.",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "Outlet pressures",
-                            "type": "array"
-                        },
-                        "RATES": {
-                            "description": "Rates [Sm3/day] as a list of expressions",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "Rates",
-                            "type": "array"
-                        }
-                    },
-                    "title": "CompressorSystemOperationalSettings",
                     "type": "object"
                 },
                 "YamlCompressorTabularModel": {
@@ -336,6 +291,38 @@
                         "TYPE"
                     ],
                     "title": "TimeSeries",
+                    "type": "object"
+                },
+                "YamlDensity": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "UNIT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/Unit"
+                                }
+                            ],
+                            "default": "kg/Sm3"
+                        },
+                        "VALUE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "title": "Value"
+                        }
+                    },
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "Density",
                     "type": "object"
                 },
                 "YamlDirectEmitter": {
@@ -1002,6 +989,38 @@
                     "title": "TimeSeries",
                     "type": "object"
                 },
+                "YamlPressure": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "UNIT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/Unit"
+                                }
+                            ],
+                            "default": "bara"
+                        },
+                        "VALUE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "title": "Value"
+                        }
+                    },
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "Pressure",
+                    "type": "object"
+                },
                 "YamlPump": {
                     "additionalProperties": false,
                     "properties": {
@@ -1213,12 +1232,19 @@
                             "title": "NAME",
                             "type": "string"
                         },
-                        "OPERATIONAL_SETTINGS": {
-                            "items": {
-                                "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
+                        "STREAM_CONDITIONS_PRIORITIES": {
+                            "additionalProperties": {
+                                "additionalProperties": {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/YamlStream"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "object"
                             },
-                            "title": "Operational Settings",
-                            "type": "array"
+                            "description": "A list of prioritised stream conditions per consumer.",
+                            "title": "Stream conditions priorities",
+                            "type": "object"
                         },
                         "TYPE": {
                             "default": "PUMP_SYSTEM@v2",
@@ -1233,134 +1259,42 @@
                     "required": [
                         "NAME",
                         "CATEGORY",
-                        "OPERATIONAL_SETTINGS",
+                        "STREAM_CONDITIONS_PRIORITIES",
                         "CONSUMERS"
                     ],
                     "title": "PumpSystem",
                     "type": "object"
                 },
-                "YamlPumpSystemOperationalSettings": {
+                "YamlRate": {
                     "additionalProperties": false,
                     "properties": {
-                        "FLUID_DENSITIES": {
-                            "description": "The fluid density [kg/m3] as a list of expressions.",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "FluidStream densities",
-                            "type": "array"
+                        "UNIT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/Unit"
+                                }
+                            ],
+                            "default": "Sm3/d"
                         },
-                        "FLUID_DENSITY": {
+                        "VALUE": {
                             "anyOf": [
                                 {
                                     "type": "string"
                                 },
                                 {
-                                    "type": "integer"
-                                },
-                                {
                                     "type": "number"
-                                }
-                            ],
-                            "description": "The fluid density [kg/m3] as a single expression.",
-                            "title": "FluidStream density"
-                        },
-                        "INLET_PRESSURE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
                                 },
                                 {
                                     "type": "integer"
-                                },
-                                {
-                                    "type": "number"
                                 }
                             ],
-                            "description": "Inlet pressure [bara] as a single expression This inlet pressure will be the same for all components in the consumer system.",
-                            "title": "Inlet pressure"
-                        },
-                        "INLET_PRESSURES": {
-                            "description": "Inlet pressures [bara] as a list of expressions.",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "Inlet pressures",
-                            "type": "array"
-                        },
-                        "OUTLET_PRESSURE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ],
-                            "description": "Outlet pressure [bara] as a single expression This outlet pressure will be the same for all components in the consumer system.",
-                            "title": "Outlet pressure"
-                        },
-                        "OUTLET_PRESSURES": {
-                            "description": "Outlet pressures [bara] as a list of expressions.",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "Outlet pressures",
-                            "type": "array"
-                        },
-                        "RATES": {
-                            "description": "Rates [Sm3/day] as a list of expressions",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "Rates",
-                            "type": "array"
+                            "title": "Value"
                         }
                     },
-                    "title": "PumpSystemOperationalSettings",
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "Rate",
                     "type": "object"
                 },
                 "YamlSingleVariable": {
@@ -1391,6 +1325,49 @@
                         "VALUE"
                     ],
                     "title": "YamlSingleVariable",
+                    "type": "object"
+                },
+                "YamlStream": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "FLUID_DENSITY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlDensity"
+                                }
+                            ],
+                            "description": "The fluid density...",
+                            "title": "Fluid density"
+                        },
+                        "PRESSURE": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlPressure"
+                                }
+                            ],
+                            "description": "Pressure..",
+                            "title": "Pressure"
+                        },
+                        "RATE": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlRate"
+                                }
+                            ],
+                            "description": "Rate...",
+                            "title": "Rate"
+                        },
+                        "TEMPERATURE": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlTemperature"
+                                }
+                            ],
+                            "description": "Temperature...",
+                            "title": "Temperature"
+                        }
+                    },
+                    "title": "Stream",
                     "type": "object"
                 },
                 "YamlSystemComponentConditions": {
@@ -1445,6 +1422,38 @@
                         "TYPE"
                     ],
                     "title": "YamlTabularModel",
+                    "type": "object"
+                },
+                "YamlTemperature": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "UNIT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/Unit"
+                                }
+                            ],
+                            "default": "K"
+                        },
+                        "VALUE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "title": "Value"
+                        }
+                    },
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "Temperature",
                     "type": "object"
                 }
             },

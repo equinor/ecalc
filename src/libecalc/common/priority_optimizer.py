@@ -7,8 +7,12 @@ from functools import reduce
 from typing import Dict, Generic, List, TypeVar
 
 import numpy as np
+from libecalc.common.priorities import Priorities, PriorityID
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesInt
+from libecalc.common.utils.rates import (
+    TimeSeriesBoolean,
+    TimeSeriesString,
+)
 
 TResult = TypeVar("TResult")
 TPriority = TypeVar("TPriority")
@@ -16,8 +20,8 @@ TPriority = TypeVar("TPriority")
 
 @dataclass
 class PriorityOptimizerResult(Generic[TResult]):
-    priorities_used: TimeSeriesInt
-    priority_results: Dict[datetime, Dict[int, Dict[str, TResult]]]
+    priorities_used: TimeSeriesString
+    priority_results: Dict[datetime, Dict[PriorityID, Dict[str, TResult]]]
 
 
 @dataclass
@@ -31,7 +35,7 @@ class PriorityOptimizer(Generic[TResult, TPriority]):
     def optimize(
         self,
         timesteps: List[datetime],
-        priorities: List[TPriority],
+        priorities: Priorities[TPriority],
         evaluator: typing.Callable[[datetime, TPriority], List[EvaluatorResult[TResult]]],
     ) -> PriorityOptimizerResult:
         """
@@ -42,7 +46,7 @@ class PriorityOptimizer(Generic[TResult, TPriority]):
 
         Args:
             timesteps: The timesteps that we want to figure out which priority to use for.
-            priorities: List of priorities, index is used to identify the priority in the results.
+            priorities: Dict of priorities, key is used to identify the priority in the results.
             evaluator: The evaluator function gives a list of results back, each result with its own unique id.
 
         Returns:
@@ -50,19 +54,20 @@ class PriorityOptimizer(Generic[TResult, TPriority]):
                 the results map are the timestep used, the priority index and the id of the result.
 
         """
-        """
-
-        """
         is_valid = TimeSeriesBoolean(timesteps=timesteps, values=[False] * len(timesteps), unit=Unit.NONE)
-        priorities_used = TimeSeriesInt(timesteps=timesteps, values=[0] * len(timesteps), unit=Unit.NONE)
-        priority_results: Dict[datetime, Dict[int, Dict[str, TResult]]] = defaultdict(dict)
+        priorities_used = TimeSeriesString(
+            timesteps=timesteps,
+            values=[list(priorities.keys())[-1]] * len(timesteps),
+            unit=Unit.NONE,
+        )
+        priority_results: Dict[datetime, Dict[PriorityID, Dict[str, TResult]]] = defaultdict(dict)
 
         for timestep_index, timestep in enumerate(timesteps):
             priority_results[timestep] = defaultdict(dict)
-            for priority_index, priority_value in enumerate(priorities):
+            for priority_name, priority_value in priorities.items():
                 evaluator_results = evaluator(timestep, priority_value)
                 for evaluator_result in evaluator_results:
-                    priority_results[timestep][priority_index][evaluator_result.id] = evaluator_result.result
+                    priority_results[timestep][priority_name][evaluator_result.id] = evaluator_result.result
 
                 # Check if consumers are valid for this operational setting, should be valid for all consumers
                 all_evaluator_results_valid = reduce(
@@ -80,15 +85,11 @@ class PriorityOptimizer(Generic[TResult, TPriority]):
 
                 # Register the valid timesteps as valid and keep track of the operational setting used
                 is_valid[new_valid_indices] = True
-                priorities_used[new_valid_indices] = priority_index
+                priorities_used[new_valid_indices] = priority_name
 
                 if all(is_valid.values):
                     # quit as soon as all time-steps are valid. This means that we do not need to test all settings.
                     break
-                elif priority_index + 1 == len(priorities):
-                    # If we are at the last operational_setting and not all indices are valid
-                    invalid_indices = [i for i, x in enumerate(is_valid.values) if not x]
-                    priorities_used[invalid_indices] = [priority_index for _ in invalid_indices]
         return PriorityOptimizerResult(
             priorities_used=priorities_used,
             priority_results=dict(priority_results),

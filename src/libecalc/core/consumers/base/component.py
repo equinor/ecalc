@@ -1,12 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import List
 
+from libecalc.common.stream import Stream
+from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.core.result import EcalcModelResult
 from libecalc.dto import VariablesMap
-from libecalc.dto.core_specs.compressor.operational_settings import (
-    CompressorOperationalSettings,
-)
-from libecalc.dto.core_specs.pump.operational_settings import PumpOperationalSettings
 
 
 class BaseConsumer(ABC):
@@ -22,15 +20,8 @@ class BaseConsumer(ABC):
 class BaseConsumerWithoutOperationalSettings(ABC):
     id: str
 
-    @property
     @abstractmethod
-    def operational_settings(self):
-        ...
-
-    @abstractmethod
-    def get_max_rate(
-        self, operational_settings: Union[CompressorOperationalSettings, PumpOperationalSettings]
-    ) -> List[float]:
+    def get_max_rate(self, inlet_stream: Stream, target_pressure: TimeSeriesFloat) -> List[float]:
         ...
 
     @abstractmethod

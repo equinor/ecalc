@@ -346,6 +346,33 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         )
 
 
+class TimeSeriesString(TimeSeries[str]):
+    def resample(self, freq: Frequency) -> Self:
+        """
+        Resample using forward-fill This means that a value is assumed to be the same until the next observation,
+        e.g. covering the whole period interval.
+
+        Args:
+            freq: The frequency the time series should be resampled to
+
+        Returns:
+            TimeSeriesString resampled to the given frequency
+        """
+        if freq is Frequency.NONE:
+            return self.copy()
+
+        ds = pd.Series(index=self.timesteps, data=self.values)
+
+        # New resampled pd.Series
+        ds_resampled = ds.resample(freq).ffill()
+
+        return TimeSeriesString(
+            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            values=list(ds_resampled.values.tolist()),
+            unit=self.unit,
+        )
+
+
 class TimeSeriesInt(TimeSeries[int]):
     def resample(self, freq: Frequency) -> Self:
         """
