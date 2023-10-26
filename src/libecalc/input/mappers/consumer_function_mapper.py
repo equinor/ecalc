@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Set, Union
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.common.utils.rates import RateType
 from libecalc.dto import (
     CompressorWithTurbine,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
@@ -195,7 +196,7 @@ def _direct_mapper(energy_usage_model: Dict, references: References = None) -> d
         condition=_map_condition(energy_usage_model),
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         consumption_rate_type=energy_usage_model.get(EcalcYamlKeywords.direct_consumer_consumption_rate_type)
-        or dto.types.RateType.STREAM_DAY,
+        or RateType.STREAM_DAY,
     )
 
 

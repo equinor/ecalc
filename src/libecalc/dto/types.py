@@ -18,11 +18,6 @@ class EnergyUsageType(str, Enum):
     POWER = "POWER"
 
 
-class RateType(str, Enum):
-    STREAM_DAY = "STREAM_DAY"
-    CALENDAR_DAY = "CALENDAR_DAY"
-
-
 class ConsumerType(str, Enum):
     DIRECT = "DIRECT"
     COMPRESSOR = "COMPRESSOR"

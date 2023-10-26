@@ -3,10 +3,9 @@ from datetime import datetime
 import numpy as np
 from libecalc import dto
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesRate
+from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.core.models.fuel import FuelModel
 from libecalc.dto import VariablesMap
-from libecalc.dto.types import RateType
 from libecalc.expression import Expression
 
 

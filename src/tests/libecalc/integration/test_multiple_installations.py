@@ -3,10 +3,9 @@ from datetime import datetime
 import pytest
 from libecalc import dto
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesRate
+from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
-from libecalc.dto.types import RateType
 
 
 @pytest.fixture

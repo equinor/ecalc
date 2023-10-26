@@ -8,8 +8,12 @@ from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,
     compute_emission_intensity_yearly,
 )
-from libecalc.common.utils.rates import Rates, TimeSeriesRate, TimeSeriesVolumes
-from libecalc.dto.types import RateType
+from libecalc.common.utils.rates import (
+    Rates,
+    RateType,
+    TimeSeriesRate,
+    TimeSeriesVolumes,
+)
 
 
 def _setup_intensity_testcase(

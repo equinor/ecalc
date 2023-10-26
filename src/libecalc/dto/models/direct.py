@@ -1,7 +1,8 @@
 from typing import Any, Dict, Literal, Optional
 
+from libecalc.common.utils.rates import RateType
 from libecalc.dto.models.base import ConsumerFunction
-from libecalc.dto.types import ConsumerType, RateType
+from libecalc.dto.types import ConsumerType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from pydantic import root_validator, validator
