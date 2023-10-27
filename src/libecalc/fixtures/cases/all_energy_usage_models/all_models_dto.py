@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
+from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import (
     ComponentType,
     ConsumerUserDefinedCategoryType,
@@ -527,7 +528,7 @@ def deh(regularity) -> dto.ElectricityConsumer:
                 condition=Expression.setup_from_expression(value="SIM1;GAS_LIFT > 0"),
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
-                consumption_rate_type=dto.types.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
     )
@@ -996,7 +997,7 @@ def flare(fuel_gas, regularity) -> dto.FuelConsumer:
             datetime(1900, 1, 1): dto.DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value="FLARE;FLARE_RATE"),
                 energy_usage_type=dto.types.EnergyUsageType.FUEL,
-                consumption_rate_type=dto.types.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             )
         },
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FLARE},

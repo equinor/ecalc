@@ -18,6 +18,7 @@ from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,
 )
 from libecalc.common.utils.rates import (
+    RateType,
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesInt,
@@ -36,7 +37,6 @@ from libecalc.dto.result.results import (
     PumpModelResult,
     TurbineModelResult,
 )
-from libecalc.dto.types import RateType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.expression import Expression
 from pydantic import BaseModel, parse_obj_as

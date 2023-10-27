@@ -7,6 +7,7 @@ from libecalc.common.string_utils import generate_id, get_duplicates
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    RateType,
     TimeSeriesFloat,
     TimeSeriesRate,
     TimeSeriesStreamDayRate,
@@ -31,7 +32,7 @@ from libecalc.dto.models import (
 )
 from libecalc.dto.models.compressor import CompressorModel
 from libecalc.dto.models.pump import PumpModel
-from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType, RateType
+from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
     EmissionNameStr,

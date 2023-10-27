@@ -5,6 +5,7 @@ import math
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
+from enum import Enum
 from typing import (
     Any,
     DefaultDict,
@@ -27,7 +28,6 @@ from libecalc.common.logger import logger
 from libecalc.common.string_utils import to_camel_case
 from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
-from libecalc.dto.types import RateType
 from numpy.typing import NDArray
 from pydantic import Extra, validator
 from pydantic.fields import ModelField
@@ -35,6 +35,11 @@ from pydantic.generics import GenericModel
 from typing_extensions import Self
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
+
+
+class RateType(str, Enum):
+    STREAM_DAY = "STREAM_DAY"
+    CALENDAR_DAY = "CALENDAR_DAY"
 
 
 class Rates:

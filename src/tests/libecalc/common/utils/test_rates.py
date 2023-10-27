@@ -6,13 +6,13 @@ from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
+    RateType,
     TimeSeriesBoolean,
     TimeSeriesFloat,
     TimeSeriesRate,
     TimeSeriesVolumes,
     TimeSeriesVolumesCumulative,
 )
-from libecalc.dto.types import RateType
 
 
 def test_compute_stream_day_rate():
