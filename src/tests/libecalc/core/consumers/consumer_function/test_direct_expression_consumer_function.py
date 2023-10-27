@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import libecalc.common.utils.rates
 import numpy as np
 import pytest
 from libecalc import dto
@@ -190,7 +191,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     stream_day_function = DirectExpressionConsumerFunction(
         dto.DirectConsumerFunction(
             load=Expression.setup_from_expression(stream_day_consumption),
-            consumption_rate_type=dto.types.RateType.STREAM_DAY,
+            consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
             energy_usage_type=dto.types.EnergyUsageType.POWER,
         ),
     )
@@ -199,7 +200,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     calendar_day_function = DirectExpressionConsumerFunction(
         dto.DirectConsumerFunction(
             load=Expression.setup_from_expression(calendar_day_consumption),
-            consumption_rate_type=dto.types.RateType.CALENDAR_DAY,
+            consumption_rate_type=libecalc.common.utils.rates.RateType.CALENDAR_DAY,
             energy_usage_type=dto.types.EnergyUsageType.POWER,
         )
     )

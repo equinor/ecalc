@@ -5,6 +5,7 @@ import numpy as np
 from libecalc import dto
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
 )
@@ -214,7 +215,7 @@ def simple_direct_el_consumer() -> dto.ElectricityConsumer:
             date1: dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
-                consumption_rate_type=dto.types.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
         regularity=regularity_temporal_consumer,
@@ -230,7 +231,7 @@ def simple_direct_el_consumer_mobile() -> dto.ElectricityConsumer:
             date1: dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
-                consumption_rate_type=dto.types.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
         regularity=regularity_temporal_consumer,

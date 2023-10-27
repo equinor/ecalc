@@ -1,6 +1,7 @@
 import io
 from datetime import datetime
 
+import libecalc.common.utils.rates
 import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Period
@@ -134,7 +135,7 @@ CONDITION: SIM2;GAS_LIFT > 0
         load=Expression.setup_from_expression(value="4.1"),
         condition=Expression.setup_from_expression(value="SIM2;GAS_LIFT > 0"),
         energy_usage_type=dto.types.EnergyUsageType.POWER,
-        consumption_rate_type=dto.types.RateType.STREAM_DAY,
+        consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
     ),
     None,
 )

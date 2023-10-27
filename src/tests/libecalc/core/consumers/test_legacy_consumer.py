@@ -6,6 +6,7 @@ import pandas as pd
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    RateType,
     TimeSeriesBoolean,
     TimeSeriesRate,
     TimeSeriesStreamDayRate,
@@ -15,7 +16,6 @@ from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
 from libecalc.core.result import EcalcModelResult
-from libecalc.dto.types import RateType
 
 
 def test_compute_consumer_rate():
