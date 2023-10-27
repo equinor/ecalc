@@ -8,6 +8,7 @@ from libecalc.common.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.stream import Stream
 from libecalc.common.units import Unit, UnitConstants
+from libecalc.core.models import ModelInputFailureStatus, validate_model_input
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.base import CompressorTrainModel
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -774,7 +775,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             discharge_pressure,
             intermediate_pressure,
             input_failure_status,
-        ) = self.validate_operational_conditions(
+        ) = validate_model_input(
             rate=rate,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
@@ -825,7 +826,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         )
 
         for i, train_result in enumerate(train_results):
-            if input_failure_status[i]:
+            if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE:
                 train_result.failure_status = input_failure_status[i]
 
         return CompressorTrainResult(
