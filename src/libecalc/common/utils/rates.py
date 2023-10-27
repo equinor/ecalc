@@ -580,6 +580,18 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
 
 class TimeSeriesVolumes(TimeSeries[float]):
+    @validator("values", pre=True)
+    def check_length_timestep_values(cls, v: list, values, field: ModelField):
+        # Initially timesteps for volumes contains one more item than values
+        # After reindex number of timesteps equals number of values
+        # TODO: Ensure periodical volumes are handled in a consistent way. Why different after reindex?
+        if len(v) not in [len(values["timesteps"]), len(values["timesteps"]) - 1]:
+            raise ProgrammingError(
+                "Time series: number of timesteps do not match number "
+                "of values. Most likely a bug, report to eCalc Dev Team."
+            )
+        return v
+
     def resample(self, freq: Frequency):
         msg = (
             f"{self.__repr_name__()} does not have an resample method."
