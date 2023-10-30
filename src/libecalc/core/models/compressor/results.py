@@ -137,15 +137,31 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
         number_of_stages = max([len(t.stage_results) for t in result_list])
         return [
             CompressorStageResult(
-                energy_usage=[result_list[t].stage_results[i].power_megawatt for t in range(len(result_list))],
+                energy_usage=[
+                    result_list[t].stage_results[i].power_megawatt
+                    if result_list[t].stage_results[i].power_megawatt is not None
+                    else np.nan
+                    for t in range(len(result_list))
+                ],
                 energy_usage_unit=Unit.MEGA_WATT,
-                power=[result_list[t].stage_results[i].power_megawatt for t in range(len(result_list))],
+                power=[
+                    result_list[t].stage_results[i].power_megawatt
+                    if result_list[t].stage_results[i].power_megawatt is not None
+                    else np.nan
+                    for t in range(len(result_list))
+                ],
                 power_unit=Unit.MEGA_WATT,
                 mass_rate_kg_per_hr=[
-                    result_list[t].stage_results[i].mass_rate_asv_corrected_kg_per_hour for t in range(len(result_list))
+                    result_list[t].stage_results[i].mass_rate_asv_corrected_kg_per_hour
+                    if result_list[t].stage_results[i].mass_rate_asv_corrected_kg_per_hour is not None
+                    else np.nan
+                    for t in range(len(result_list))
                 ],
                 mass_rate_before_asv_kg_per_hr=[
-                    result_list[t].stage_results[i].mass_rate_kg_per_hour for t in range(len(result_list))
+                    result_list[t].stage_results[i].mass_rate_kg_per_hour
+                    if result_list[t].stage_results[i].mass_rate_kg_per_hour is not None
+                    else np.nan
+                    for t in range(len(result_list))
                 ],
                 inlet_stream_condition=CompressorStreamCondition(
                     pressure=[
@@ -155,15 +171,23 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                         for t in range(len(result_list))
                     ],
                     pressure_before_choking=[
-                        result_list[t].stage_results[i].inlet_pressure_before_choking for t in range(len(result_list))
+                        result_list[t].stage_results[i].inlet_pressure_before_choking
+                        if result_list[t].stage_results[i].inlet_pressure_before_choking is not None
+                        else np.nan
+                        for t in range(len(result_list))
                     ],
                     # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
                     actual_rate_m3_per_hr=[
                         result_list[t].stage_results[i].inlet_actual_rate_asv_corrected_m3_per_hour
+                        if result_list[t].stage_results[i].inlet_actual_rate_asv_corrected_m3_per_hour is not None
+                        else np.nan
                         for t in range(len(result_list))
                     ],
                     actual_rate_before_asv_m3_per_hr=[
-                        result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour for t in range(len(result_list))
+                        result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour
+                        if result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour is not None
+                        else np.nan
+                        for t in range(len(result_list))
                     ],
                     density_kg_per_m3=[
                         result_list[t].stage_results[i].inlet_stream.density_kg_per_m3
@@ -198,12 +222,18 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                         for t in range(len(result_list))
                     ],
                     pressure_before_choking=[
-                        result_list[t].stage_results[i].outlet_pressure_before_choking for t in range(len(result_list))
+                        result_list[t].stage_results[i].outlet_pressure_before_choking
+                        if result_list[t].stage_results[i].outlet_pressure_before_choking is not None
+                        else np.nan
+                        for t in range(len(result_list))
                     ],
                     actual_rate_m3_per_hr=[
-                        result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour for t in range(len(result_list))
+                        result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour
+                        if result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour is not None
+                        else np.nan
+                        for t in range(len(result_list))
                     ],
-                    actual_rate_before_asv_m3_per_hr=None,  # Todo: Add me
+                    actual_rate_before_asv_m3_per_hr=[np.nan] * len(result_list),
                     density_kg_per_m3=[
                         result_list[t].stage_results[i].outlet_stream.density_kg_per_m3
                         if result_list[t].stage_results[i].outlet_stream is not None
@@ -231,21 +261,34 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                 ),
                 polytropic_enthalpy_change_kJ_per_kg=[
                     result_list[t].stage_results[i].polytropic_enthalpy_change_kJ_per_kg
+                    if result_list[t].stage_results[i].polytropic_enthalpy_change_kJ_per_kg is not None
+                    else np.nan
                     for t in range(len(result_list))
                 ],
                 polytropic_head_kJ_per_kg=[
-                    result_list[t].stage_results[i].polytropic_head_kJ_per_kg for t in range(len(result_list))
+                    result_list[t].stage_results[i].polytropic_head_kJ_per_kg
+                    if result_list[t].stage_results[i].polytropic_head_kJ_per_kg is not None
+                    else np.nan
+                    for t in range(len(result_list))
                 ],
                 polytropic_efficiency=[
-                    result_list[t].stage_results[i].polytropic_efficiency for t in range(len(result_list))
+                    result_list[t].stage_results[i].polytropic_efficiency
+                    if result_list[t].stage_results[i].polytropic_efficiency is not None
+                    else np.nan
+                    for t in range(len(result_list))
                 ],
                 polytropic_enthalpy_change_before_choke_kJ_per_kg=[
                     result_list[t].stage_results[i].polytropic_enthalpy_change_before_choke_kJ_per_kg
+                    if result_list[t].stage_results[i].polytropic_enthalpy_change_before_choke_kJ_per_kg is not None
+                    else np.nan
                     for t in range(len(result_list))
                 ],
                 speed=[result.speed for result in result_list],
                 asv_recirculation_loss_mw=[
-                    result_list[t].stage_results[i].asv_recirculation_loss_mw for t in range(len(result_list))
+                    result_list[t].stage_results[i].asv_recirculation_loss_mw
+                    if result_list[t].stage_results[i].asv_recirculation_loss_mw is not None
+                    else np.nan
+                    for t in range(len(result_list))
                 ],
                 # Validity flags
                 is_valid=[result_list[t].stage_results[i].is_valid for t in range(len(result_list))],
