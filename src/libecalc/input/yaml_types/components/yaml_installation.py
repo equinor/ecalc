@@ -28,7 +28,7 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
     )
     category: InstallationUserDefinedCategoryType = CategoryField(None)
     hcexport: YamlTemporalModel[Expression] = Field(
-        ...,
+        None,
         title="HCEXPORT",
         description="Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/HCEXPORT",
     )
