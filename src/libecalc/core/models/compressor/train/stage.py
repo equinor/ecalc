@@ -140,7 +140,7 @@ class CompressorTrainStage(BaseModel):
         chart_area_flag = compressor_chart_head_and_efficiency_result.chart_area_flag
 
         if polytropic_efficiency == 0.0:
-            raise ValueError("Division by zero error. Polytropic efficiency from compressor chart is 0.")
+            raise ValueError("Division by zero error. Efficiency from compressor chart is 0.")
 
         # Enthalpy change
         enthalpy_change_J_per_kg = polytropic_head_J_per_kg / polytropic_efficiency
