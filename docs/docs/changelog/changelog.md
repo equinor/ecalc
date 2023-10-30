@@ -1,5 +1,77 @@
 # Changelog
 
+## [8.5.0](https://github.com/equinor/ecalc/compare/v8.4.0...v8.5.0) (2023-10-30)
+
+
+### Features
+
+* add pump results to system v2 ([8cf9e1b](https://github.com/equinor/ecalc/commit/8cf9e1b0d3ab8438291303663fc83092de1c808a))
+* add stream conditions to compressor v2 ([#194](https://github.com/equinor/ecalc/issues/194)) ([232f83b](https://github.com/equinor/ecalc/commit/232f83bf91044b706ba4c7715ceddf71f9456644))
+* multiple streams in system ([#242](https://github.com/equinor/ecalc/issues/242)) ([419c2e9](https://github.com/equinor/ecalc/commit/419c2e9cef6f6bb768b5e140a5092650cacd245b))
+* support name for crossover streams ([#236](https://github.com/equinor/ecalc/issues/236)) ([c801f3f](https://github.com/equinor/ecalc/commit/c801f3f0fa4b967c15c5122ac8997695f38bae12))
+
+
+### Bug Fixes
+
+* don't require HCEXPORT in editor ([#254](https://github.com/equinor/ecalc/issues/254)) ([e497245](https://github.com/equinor/ecalc/commit/e497245c9ec4e6d10e9def5999d24c5e0ba58134))
+* ensure unique names in system v2 ([#238](https://github.com/equinor/ecalc/issues/238)) ([3634a9e](https://github.com/equinor/ecalc/commit/3634a9e1a4f2a4181ea1679fa1edcce0bb57a06e))
+* rate when multiple streams model ([#214](https://github.com/equinor/ecalc/issues/214)) ([892720e](https://github.com/equinor/ecalc/commit/892720e781978be0210b7488ad6c68466db51700))
+* set_regularity fixture ([#213](https://github.com/equinor/ecalc/issues/213)) ([e9ea04f](https://github.com/equinor/ecalc/commit/e9ea04f74c2262343fbde5d5aed46ffc15404e29))
+* update ecalc validation for yaml file in web ([#243](https://github.com/equinor/ecalc/issues/243)) ([2981f2c](https://github.com/equinor/ecalc/commit/2981f2c71b7aba0271f72c8ec5f1d764a0d36387))
+* use file reference instead of urls in docs ([#216](https://github.com/equinor/ecalc/issues/216)) ([35c4f68](https://github.com/equinor/ecalc/commit/35c4f6853c9452d1963daf321cce3e2ebe087f9e))
+* wrong data for boilers and heaters in ltp-results ([#237](https://github.com/equinor/ecalc/issues/237)) ([851e831](https://github.com/equinor/ecalc/commit/851e83141c1971a8fc1fdec47e05b4e5a26d0861))
+
+
+### Documentation
+
+* add missing keywords surge control margin ([#239](https://github.com/equinor/ecalc/issues/239)) ([8b97673](https://github.com/equinor/ecalc/commit/8b97673b001231b6960bda817d50241135df65df))
+* update changelog for upcoming release v8.4 ([#203](https://github.com/equinor/ecalc/issues/203)) ([66671e0](https://github.com/equinor/ecalc/commit/66671e07ce678f4444f6428b776b60c607d35957))
+
+
+### Miscellaneous Chores
+
+* add __init__ file to ecalc_cli ([af6bee9](https://github.com/equinor/ecalc/commit/af6bee96ae3ac69137f38117013a305f474acd87))
+* add chart area flag to test of full recirculation ([0c45251](https://github.com/equinor/ecalc/commit/0c452515226beec76a4db3c674d4fa102771dbe7))
+* add check for zero efficiency in stage ([3ea3035](https://github.com/equinor/ecalc/commit/3ea3035c659ee922a41c70b157f9d6a1a1f8214d))
+* add dependabot actions monitoring ([#219](https://github.com/equinor/ecalc/issues/219)) ([d5f5dfd](https://github.com/equinor/ecalc/commit/d5f5dfd12103fb60104057fd2f3b5ce4484e3494))
+* add ModelInputFailureStatus ([6b0c728](https://github.com/equinor/ecalc/commit/6b0c72875e667ca1abce5b9b1f2ef4a9548d0d1e))
+* add NO_FLOW ChartAreaFlag ([0c45251](https://github.com/equinor/ecalc/commit/0c452515226beec76a4db3c674d4fa102771dbe7))
+* add rate type to pump model result ([#209](https://github.com/equinor/ecalc/issues/209)) ([21deeb7](https://github.com/equinor/ecalc/commit/21deeb7a70cd64f47db87494314a0119ee4598d5))
+* **cli:** add all energy usage models load_results test ([#220](https://github.com/equinor/ecalc/issues/220)) ([e09febb](https://github.com/equinor/ecalc/commit/e09febb517a62d27e2d794946d016f1ba0af8fd1))
+* **deps:** bump actions/cache from 3.0.11 to 3.3.2 ([#223](https://github.com/equinor/ecalc/issues/223)) ([087867c](https://github.com/equinor/ecalc/commit/087867c19fc087702ae7829b3d6cddfc1ac62f9d))
+* **deps:** bump actions/checkout from 2 to 4 ([#221](https://github.com/equinor/ecalc/issues/221)) ([bcc2f81](https://github.com/equinor/ecalc/commit/bcc2f81d9eed20f3021c1e13fead3f8c8d009267))
+* **deps:** bump actions/setup-node from 3 to 4 ([cb7e816](https://github.com/equinor/ecalc/commit/cb7e816932e73d091cfa4211abe086620ab320fd))
+* **deps:** bump snok/install-poetry from 1.3.3 to 1.3.4 ([#222](https://github.com/equinor/ecalc/issues/222)) ([80dab72](https://github.com/equinor/ecalc/commit/80dab720f352995121a1cd470e14eef9779a45fb))
+* fix tests ([6b0c728](https://github.com/equinor/ecalc/commit/6b0c72875e667ca1abce5b9b1f2ef4a9548d0d1e))
+* handle requested pressures correct for compressors without system ([#233](https://github.com/equinor/ecalc/issues/233)) ([445fc9d](https://github.com/equinor/ecalc/commit/445fc9d856db729181e48f04d58cf05d324a8c50))
+* handle requested pressures for compressor systems ([#215](https://github.com/equinor/ecalc/issues/215)) ([6b05439](https://github.com/equinor/ecalc/commit/6b054390fe86fe5067a908854f0dd6d48ba114ff))
+* more robust surge control margin calculation ([#229](https://github.com/equinor/ecalc/issues/229)) ([74b4e59](https://github.com/equinor/ecalc/commit/74b4e599ff2336567e7a86e57bb4287030ccea08))
+* move feature experimental to main method for requested pressures ([#230](https://github.com/equinor/ecalc/issues/230)) ([00ad854](https://github.com/equinor/ecalc/commit/00ad854cc23822690e662338f6592142344a59f3))
+* pre-commit ([a310df2](https://github.com/equinor/ecalc/commit/a310df21ebb9dc27e9999b577cc7ae7a106aa68c))
+* show correct version ([#211](https://github.com/equinor/ecalc/issues/211)) ([f8de992](https://github.com/equinor/ecalc/commit/f8de992b6d2621a604f9b31b6eea0ff644df30dd))
+* update dependencies ([#212](https://github.com/equinor/ecalc/issues/212)) ([c9b8506](https://github.com/equinor/ecalc/commit/c9b850672357fd48a0b1f40f5b429ae615fbd914))
+* update dependencies ([#259](https://github.com/equinor/ecalc/issues/259)) ([e7f031f](https://github.com/equinor/ecalc/commit/e7f031f73dc3320352cd6087e32b281dbf01e6bc))
+* update python deps ([#247](https://github.com/equinor/ecalc/issues/247)) ([514da16](https://github.com/equinor/ecalc/commit/514da161158200bc18a8963cb10be141c9847fb8))
+* update system v2 tests to only use one crossover ([#205](https://github.com/equinor/ecalc/issues/205)) ([aa65163](https://github.com/equinor/ecalc/commit/aa6516367fd217b3868af2c1b56119ec548c77ad))
+* update zero efficiency error message ([#258](https://github.com/equinor/ecalc/issues/258)) ([5be6fe4](https://github.com/equinor/ecalc/commit/5be6fe433791bee1f25dfcc265ffb94c87633836))
+* upgrade packages ([#255](https://github.com/equinor/ecalc/issues/255)) ([035aad1](https://github.com/equinor/ecalc/commit/035aad15b41bb16676ec33d33dcb78d139e2bc6c))
+* version must be updated in version.py ([63eb672](https://github.com/equinor/ecalc/commit/63eb672ff5a28c5c4b14294c8d9dcc38a3481089))
+* warn user about full recirculation of fluids in a compressor stage in a multiple streams and pressures compressor train ([#196](https://github.com/equinor/ecalc/issues/196)) ([0c45251](https://github.com/equinor/ecalc/commit/0c452515226beec76a4db3c674d4fa102771dbe7))
+
+
+### Code Refactoring
+
+* implement evaluate streams in models ([#232](https://github.com/equinor/ecalc/issues/232)) ([df6b6b0](https://github.com/equinor/ecalc/commit/df6b6b01099fe87738594544512c28d0bceb0d07))
+* **libecalc.core:** stream as input ([#224](https://github.com/equinor/ecalc/issues/224)) ([e06f970](https://github.com/equinor/ecalc/commit/e06f970147e5539fa2c8db0ca53675d24c56ae33))
+* move crossover to component_conditions for system v2 ([#204](https://github.com/equinor/ecalc/issues/204)) ([018b472](https://github.com/equinor/ecalc/commit/018b47291cbfd5b8b92bbff9c79846b32696d316))
+* move RateType into common module ([#253](https://github.com/equinor/ecalc/issues/253)) ([c7f5a99](https://github.com/equinor/ecalc/commit/c7f5a9955c55fdc970f60b6aade8a0793acab27a))
+* move validate operational conditions from compressor train, rename to validate model input ([#256](https://github.com/equinor/ecalc/issues/256)) ([6b0c728](https://github.com/equinor/ecalc/commit/6b0c72875e667ca1abce5b9b1f2ef4a9548d0d1e))
+* remove regularity our of core/domain ([#246](https://github.com/equinor/ecalc/issues/246)) ([714888b](https://github.com/equinor/ecalc/commit/714888bfa69460174c1b3917470018e8e688b3e1))
+* remove temporal operational settings system v2 ([#244](https://github.com/equinor/ecalc/issues/244)) ([a1d2ce6](https://github.com/equinor/ecalc/commit/a1d2ce62c4cfde50665bd1fdfa41402a64548672))
+* rename streamCondition to stream ([32885b5](https://github.com/equinor/ecalc/commit/32885b5b054008cbfb682454daaa29d443fd561f))
+* separate optimization from system ([#245](https://github.com/equinor/ecalc/issues/245)) ([b580e3d](https://github.com/equinor/ecalc/commit/b580e3d80ab5392410c438f6ff355fdf1326f121))
+* use Graph object to build graph ([#250](https://github.com/equinor/ecalc/issues/250)) ([ce65dba](https://github.com/equinor/ecalc/commit/ce65dbad024fc9afae74a2c533767152ce2efa20))
+
 ## [8.4.0](https://github.com/equinor/ecalc/compare/v8.3.0...v8.4.0) (2023-09-25)
 
 
