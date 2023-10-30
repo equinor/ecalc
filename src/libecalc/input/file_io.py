@@ -408,10 +408,11 @@ def _validate_not_nan(columns: List[List]):
                 )
 
 
-def _dataframe_to_resource(df: pd.DataFrame) -> Resource:
+def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> Resource:
     headers = df.columns.tolist()
     headers = [header.strip() for header in headers]
-    _validate_headers(headers)
+    if validate_headers:
+        _validate_headers(headers)
     df.columns = df.columns.str.strip()
     columns = [df[header].tolist() for header in headers]
     return Resource(
@@ -439,11 +440,12 @@ def read_csv(csv_data: Union[str, TextIO, BytesIO]) -> pandas.DataFrame:
     return pd.read_csv(stream, comment="#", float_precision="round_trip", skipinitialspace=True, thousands=" ")
 
 
-def read_resource_from_string(resource_string: str) -> Resource:
+def read_resource_from_string(resource_string: str, validate_headers: bool = True) -> Resource:
     """Read resource from stream without validation."""
     resource_df = read_csv(resource_string)
 
-    return _dataframe_to_resource(resource_df.replace(np.nan, ""))
+    resource = _dataframe_to_resource(resource_df.replace(np.nan, ""), validate_headers=validate_headers)
+    return resource
 
 
 def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> Resource:
