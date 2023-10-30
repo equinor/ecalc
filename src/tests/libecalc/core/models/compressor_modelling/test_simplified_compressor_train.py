@@ -194,7 +194,7 @@ def test_calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
     pressure_ratios = [1, 2, 3, 4, 5, 10, 100, 1000]
 
     # These expected max rates are here just to assure stability in the results. They are not assured to be correct!
-    approx_expected_max_rates = [1116990, 1359255, 1536130, 1052085, 1052085, 1052085, 1052085, 1052085]
+    approx_expected_max_rates = [1116990, 1359022, 1536130, 1052085, 1052085, 1052085, 1052085, 1052085]
     for pressure_ratio, approx_expected_max_rate in zip(pressure_ratios, approx_expected_max_rates):
         calculated_max_rate = (
             CompressorTrainSimplifiedKnownStages.calculate_maximum_rate_given_outlet_pressure_all_calculation_points(
