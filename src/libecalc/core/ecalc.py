@@ -57,11 +57,11 @@ class EnergyCalculator:
                     consumers=component_dto.pumps,
                     component_conditions=component_dto.component_conditions,
                 )
-                evaluated_operational_settings = component_dto.evaluate_operational_settings(
+                evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
                     variables_map=variables_map,
                 )
                 system_result = pump_system.evaluate(
-                    variables_map=variables_map, operational_setting_priorities=evaluated_operational_settings
+                    variables_map=variables_map, system_stream_conditions_priorities=evaluated_stream_conditions
                 )
                 consumer_results[component_dto.id] = system_result
                 for consumer_result in system_result.sub_components:
@@ -76,11 +76,11 @@ class EnergyCalculator:
                     consumers=component_dto.compressors,
                     component_conditions=component_dto.component_conditions,
                 )
-                evaluated_operational_settings = component_dto.evaluate_operational_settings(
+                evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
                     variables_map=variables_map,
                 )
                 system_result = compressor_system.evaluate(
-                    variables_map=variables_map, operational_setting_priorities=evaluated_operational_settings
+                    variables_map=variables_map, system_stream_conditions_priorities=evaluated_stream_conditions
                 )
                 consumer_results[component_dto.id] = system_result
                 for consumer_result in system_result.sub_components:

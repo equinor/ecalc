@@ -85,15 +85,75 @@ INSTALLATIONS:
                   TO: pump1
                 - FROM: pump3
                   TO: pump1
-            OPERATIONAL_SETTINGS:
-              - RATES: [ 4000000, 5000000, 6000000 ]
-                INLET_PRESSURE: 50
-                OUTLET_PRESSURE: 250
-                FLUID_DENSITY: 2
-              - RATES: [ 2000000, 2500000, 3000000 ]
-                INLET_PRESSURE: 50
-                OUTLET_PRESSURE: 125
-                FLUID_DENSITY: 2
+            STREAM_CONDITIONS_PRIORITIES:
+              pri1:
+                pump1:
+                  inlet:
+                    RATE:
+                      VALUE: 4000000
+                    PRESSURE:
+                      VALUE: 50
+                    FLUID_DENSITY:
+                      VALUE: 2
+                  outlet:
+                    PRESSURE:
+                      VALUE: 250
+                pump2:
+                  inlet:
+                    RATE:
+                      VALUE: 5000000
+                    PRESSURE:
+                      VALUE: 50
+                    FLUID_DENSITY:
+                      VALUE: 2
+                  outlet:
+                    PRESSURE:
+                      VALUE: 250
+                pump3:
+                  inlet:
+                    RATE:
+                      VALUE: 6000000
+                    PRESSURE:
+                      VALUE: 50
+                    FLUID_DENSITY:
+                      VALUE: 2
+                  outlet:
+                    PRESSURE:
+                      VALUE: 250
+              pri2:
+                pump1:
+                  inlet:
+                    RATE:
+                      VALUE: 2000000
+                    PRESSURE:
+                      VALUE: 50
+                    FLUID_DENSITY:
+                      VALUE: 2
+                  outlet:
+                    PRESSURE:
+                      VALUE: 125
+                pump2:
+                  inlet:
+                    RATE:
+                      VALUE: 2500000
+                    PRESSURE:
+                      VALUE: 50
+                    FLUID_DENSITY:
+                      VALUE: 2
+                  outlet:
+                    PRESSURE:
+                      VALUE: 125
+                pump3:
+                  inlet:
+                    RATE:
+                      VALUE: 3000000
+                    PRESSURE:
+                      VALUE: 50
+                    FLUID_DENSITY:
+                      VALUE: 2
+                  outlet:
+                    PRESSURE:
+                      VALUE: 125
     FUELCONSUMERS:
       - NAME: compressor_system
         CATEGORY: COMPRESSOR
@@ -135,13 +195,88 @@ INSTALLATIONS:
               TO: compressor1
             - FROM: compressor3
               TO: compressor1
-        OPERATIONAL_SETTINGS:
-          - RATES: [ 1000000, 6000000, 6000000 ]
-            INLET_PRESSURE: 50
-            OUTLET_PRESSURE: 250
-          - RATES: [ "$var.compressor1", 5000000, 5000000 ]
-            INLET_PRESSURE: 50
-            OUTLET_PRESSURE: 125
-          - RATES: [ 1000000, 5000000, 5000000 ]
-            INLET_PRESSURE: 50
-            OUTLET_PRESSURE: 125
+        STREAM_CONDITIONS_PRIORITIES:
+          pri1:
+            compressor1:
+              inlet:
+                RATE:
+                  VALUE: 1000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 250
+            compressor2:
+              inlet:
+                RATE:
+                  VALUE: 6000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 250
+            compressor3:
+              inlet:
+                RATE:
+                  VALUE: 6000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 250
+          pri2:
+            compressor1:
+              inlet:
+                RATE:
+                  VALUE: "$var.compressor1"
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor2:
+              inlet:
+                RATE:
+                   VALUE: 5000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor3:
+              inlet:
+                RATE:
+                  VALUE: 5000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+          pri3:
+            compressor1:
+              inlet:
+                RATE:
+                  VALUE: 1000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor2:
+              inlet:
+                RATE:
+                  VALUE: 5000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor3:
+              inlet:
+                RATE:
+                  VALUE: 5000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125

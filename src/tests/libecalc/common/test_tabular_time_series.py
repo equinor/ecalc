@@ -70,6 +70,7 @@ class TestMerge:
                 Stage(
                     name="inlet",
                     stream=Stream(
+                        name="inlet",
                         rate=TimeSeriesStreamDayRate(
                             timesteps=first_timesteps,
                             values=[-111, -112],
@@ -85,6 +86,7 @@ class TestMerge:
                 Stage(
                     name="outlet",
                     stream=Stream(
+                        name="outlet",
                         rate=TimeSeriesStreamDayRate(
                             timesteps=first_timesteps,
                             values=[-121, -122],
@@ -144,6 +146,7 @@ class TestMerge:
                 Stage(
                     name="inlet",
                     stream=Stream(
+                        name="inlet",
                         rate=TimeSeriesStreamDayRate(
                             timesteps=second_timesteps,
                             values=[-211, -212],
@@ -159,6 +162,7 @@ class TestMerge:
                 Stage(
                     name="outlet",
                     stream=Stream(
+                        name="outlet",
                         rate=TimeSeriesStreamDayRate(
                             timesteps=second_timesteps,
                             values=[-221, -222],
@@ -223,6 +227,7 @@ class TestMerge:
                     Stage(
                         name="inlet",
                         stream=Stream(
+                            name="inlet",
                             rate=TimeSeriesStreamDayRate(
                                 timesteps=expected_timesteps,
                                 values=[-111, -211, -112, -212],
@@ -238,6 +243,7 @@ class TestMerge:
                     Stage(
                         name="outlet",
                         stream=Stream(
+                            name="outlet",
                             rate=TimeSeriesStreamDayRate(
                                 timesteps=expected_timesteps,
                                 values=[-121, -221, -122, -222],
