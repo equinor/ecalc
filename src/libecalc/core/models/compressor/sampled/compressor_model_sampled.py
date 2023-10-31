@@ -208,7 +208,7 @@ class CompressorModelSampled(CompressorModel):
 
         turbine = self.Turbine(self.fuel_values_adjusted, self.power_interpolation_values_adjusted)
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
-        turbine_power = turbine_result.load if turbine_result is not None else None
+        turbine_power = turbine_result.load if turbine_result is not None else [np.nan] * number_of_data_points
 
         energy_usage = turbine_result.energy_usage if turbine_result is not None else list(interpolated_consumer_values)
 
@@ -222,6 +222,32 @@ class CompressorModelSampled(CompressorModel):
             list(discharge_pressure) if discharge_pressure is not None else [np.nan] * number_of_data_points
         )
 
+        compressor_stage_result = CompressorStageResult.create_empty(number_of_timesteps=number_of_data_points)
+        if energy_usage is not None:
+            compressor_stage_result.energy_usage = energy_usage
+        compressor_stage_result.energy_usage_unit = (
+            Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY
+        )
+        compressor_stage_result.power = (
+            list(interpolated_consumer_values) if self.function_values_are_power else turbine_power
+        )
+        compressor_stage_result.power_unit = Unit.MEGA_WATT
+        compressor_stage_result.inlet_stream_condition = inlet_stream_condition
+        compressor_stage_result.outlet_stream_condition = outlet_stream_condition
+        compressor_stage_result.fluid_composition = {}
+        compressor_stage_result.chart = None
+        compressor_stage_result.is_valid = list(
+            np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)
+            if turbine_result is not None
+            else ~np.isnan(energy_usage)
+        )
+        compressor_stage_result.chart_area_flags = [ChartAreaFlag.NOT_CALCULATED] * len(energy_usage)
+        compressor_stage_result.rate_has_recirculation = [False] * len(energy_usage)
+        compressor_stage_result.rate_exceeds_maximum = [False] * len(energy_usage)
+        compressor_stage_result.pressure_is_choked = [False] * len(energy_usage)
+        compressor_stage_result.head_exceeds_maximum = [False] * len(energy_usage)
+        compressor_stage_result.asv_recirculation_loss_mw = [0.0] * len(energy_usage)
+
         # Returning a result as if the sampled compressor is a train with a single stage.
         # Note that actual rates are not available since it is not possible to convert from standard rates to
         # actual rates when information about fluid composition (density in particular) is not available
@@ -230,31 +256,7 @@ class CompressorModelSampled(CompressorModel):
             energy_usage_unit=Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY,
             power=list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
             power_unit=Unit.MEGA_WATT,
-            stage_results=[
-                CompressorStageResult(
-                    energy_usage=energy_usage,
-                    energy_usage_unit=Unit.MEGA_WATT
-                    if self.function_values_are_power
-                    else Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    power=list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
-                    power_unit=Unit.MEGA_WATT,
-                    inlet_stream_condition=inlet_stream_condition,
-                    outlet_stream_condition=outlet_stream_condition,
-                    fluid_composition={},
-                    chart=None,
-                    is_valid=list(
-                        np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)
-                        if turbine_result is not None
-                        else ~np.isnan(energy_usage)
-                    ),
-                    chart_area_flags=[ChartAreaFlag.NOT_CALCULATED] * len(energy_usage),
-                    rate_has_recirculation=[False] * len(energy_usage),
-                    rate_exceeds_maximum=[False] * len(energy_usage),
-                    pressure_is_choked=[False] * len(energy_usage),
-                    head_exceeds_maximum=[False] * len(energy_usage),
-                    asv_recirculation_loss_mw=[0.0] * len(energy_usage),
-                )
-            ],
+            stage_results=[compressor_stage_result],
             failure_status=[None] * len(energy_usage),
             rate_sm3_day=list(rate) if rate is not None else [np.nan] * len(energy_usage),
         )
