@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from libecalc import dto
-from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.stream import Stage, Stream
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
@@ -31,52 +30,50 @@ class Pump(BaseConsumerWithoutOperationalSettings):
 
         self._operational_settings: Optional[PumpOperationalSettings] = None
 
-    def get_max_rate(self, operational_settings: PumpOperationalSettings) -> List[float]:
+    def get_max_rate(self, inlet_stream: Stream, target_pressure: TimeSeriesFloat) -> List[float]:
         """
         For each timestep, get the maximum rate that this pump can handle, given
         the operational settings given, such as in -and outlet pressures and fluid density (current conditions)
-        :param operational_settings:
-        :return:
+
+        Args:
+            inlet_stream: the inlet stream
+            target_pressure: the target pressure
         """
         results = []
-        for timestep in operational_settings.timesteps:
+        for timestep in inlet_stream.pressure.timesteps:
             pump = self._temporal_model.get_model(timestep)
-            operational_settings_this_timestep = operational_settings.get_subset_for_timestep(timestep)
             results.extend(
                 pump.get_max_standard_rate(
-                    suction_pressures=np.asarray(operational_settings_this_timestep.inlet_streams[0].pressure.values),
-                    discharge_pressures=np.asarray(operational_settings_this_timestep.outlet_stream.pressure.values),
-                    fluid_density=np.asarray(operational_settings_this_timestep.inlet_streams[0].fluid_density.values),
+                    suction_pressures=np.asarray(inlet_stream.pressure.values),
+                    discharge_pressures=np.asarray(target_pressure.values),
+                    fluid_density=np.asarray(inlet_stream.fluid_density.values),
                 ).tolist()
             )
         return results
 
-    @property
-    def operational_settings(self) -> PumpOperationalSettings:
-        if self._operational_settings is None:
-            raise ProgrammingError("Operational settings has not been set. Need to call evaluate first.")
-        return self._operational_settings
-
     def evaluate(
         self,
-        operational_settings: PumpOperationalSettings,
+        streams: List[Stream],
     ) -> EcalcModelResult:
-        """
-        Todo:
-            Handle regularity outside
-        """
-        self._operational_settings = operational_settings
-
         model_results = []
         evaluated_timesteps = []
-        for timestep in operational_settings.timesteps:
+
+        timesteps = streams[0].rate.timesteps  # TODO: which timesteps should we useeeee
+        inlet_streams = streams[:-1]
+        outlet_stream = streams[-1]
+
+        for timestep in timesteps:
             pump = self._temporal_model.get_model(timestep)
-            operational_settings_for_timestep = operational_settings.get_subset_for_timestep(timestep)
-            evaluated_timesteps.extend(operational_settings_for_timestep.timesteps)
+            stream_conditions_for_timestep = [
+                stream_condition.get_subset_for_timestep(timestep) for stream_condition in streams
+            ]
+            inlet_streams_for_timestep = streams[:-1]
+            outlet_stream_for_timestep = streams[-1]
             model_result = pump.evaluate_streams(
-                inlet_streams=operational_settings.inlet_streams,
-                outlet_stream=operational_settings.outlet_stream,
+                inlet_streams=inlet_streams_for_timestep,
+                outlet_stream=outlet_stream_for_timestep,
             )
+            evaluated_timesteps.extend(stream_conditions_for_timestep[0].rate.timesteps)
             model_results.append(model_result)
 
         aggregated_result: Optional[PumpModelResult] = None
@@ -87,7 +84,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 aggregated_result.extend(model_result)
 
         # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
-        total_requested_inlet_stream = Stream.mix_all(operational_settings.inlet_streams)
+        total_requested_inlet_stream = Stream.mix_all(inlet_streams)
 
         component_result = core_results.PumpResult(
             timesteps=evaluated_timesteps,
@@ -133,9 +130,10 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 Stage(
                     name="outlet",
                     stream=Stream(
+                        name="outlet",
                         rate=total_requested_inlet_stream.rate,  # Actual, not requested, different because of crossover
-                        pressure=operational_settings.outlet_stream.pressure,
-                        fluid_density=operational_settings.outlet_stream.fluid_density,
+                        pressure=outlet_stream.pressure,
+                        fluid_density=total_requested_inlet_stream.fluid_density,
                     ),
                 ),
             ],

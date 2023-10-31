@@ -15,17 +15,21 @@ from libecalc.input.yaml_types.components.system.yaml_system_component_condition
 )
 from libecalc.input.yaml_types.components.yaml_base import (
     YamlConsumerBase,
-    YamlConsumerSystemOperationalConditionBase,
 )
 from libecalc.input.yaml_types.components.yaml_compressor import YamlCompressor
-from pydantic import Field, root_validator
+from libecalc.input.yaml_types.yaml_stream import YamlStream
+from pydantic import Field
 
 opt_expr_list = Optional[List[ExpressionType]]
 
 
-class YamlCompressorSystemOperationalSettings(YamlConsumerSystemOperationalConditionBase):
-    class Config:
-        title = "CompressorSystemOperationalSettings"
+PriorityID = str
+StreamID = str
+ConsumerID = str
+
+YamlConsumerStreamConditions = Dict[StreamID, YamlStream]
+YamlConsumerStreamConditionsMap = Dict[ConsumerID, YamlConsumerStreamConditions]
+YamlPriorities = Dict[PriorityID, YamlConsumerStreamConditionsMap]
 
 
 class YamlCompressorSystem(YamlConsumerBase):
@@ -45,33 +49,13 @@ class YamlCompressorSystem(YamlConsumerBase):
         description="Contains conditions for the component, in this case the system.",
     )
 
-    operational_settings: List[YamlCompressorSystemOperationalSettings]
+    stream_conditions_priorities: YamlPriorities = Field(
+        ...,
+        title="Stream conditions priorities",
+        description="A list of prioritised stream conditions per consumer.",
+    )
+
     consumers: List[YamlCompressor]
-
-    @root_validator
-    def validate_operational_settings(cls, values):
-        operational_settings = values.get("operational_settings")
-
-        if operational_settings is None:
-            return values
-
-        for operational_setting in operational_settings:
-            # Validate pressures
-            inlet_pressures = operational_setting.inlet_pressures
-            inlet_pressure = operational_setting.inlet_pressure
-            if inlet_pressures is None and inlet_pressure is None:
-                raise ValueError("Either INLET_PRESSURE or INLET_PRESSURES should be specified.")
-            elif inlet_pressures is not None and inlet_pressure is not None:
-                raise ValueError("Either INLET_PRESSURE or INLET_PRESSURES should be specified, not both.")
-
-            outlet_pressures = operational_setting.outlet_pressures
-            outlet_pressure = operational_setting.outlet_pressure
-            if outlet_pressures is None and outlet_pressure is None:
-                raise ValueError("Either OUTLET_PRESSURE or OUTLET_PRESSURES should be specified.")
-            elif outlet_pressures is not None and outlet_pressure is not None:
-                raise ValueError("Either OUTLET_PRESSURE or OUTLET_PRESSURES should be specified, not both.")
-
-        return values
 
     def to_dto(
         self,
@@ -81,30 +65,6 @@ class YamlCompressorSystem(YamlConsumerBase):
         target_period: Period,
         fuel: Optional[Dict[datetime, dto.types.FuelType]] = None,
     ) -> dto.components.CompressorSystem:
-        number_of_compressors = len(self.consumers)
-
-        parsed_operational_settings: List[dto.components.CompressorSystemOperationalSetting] = []
-        for operational_setting in self.operational_settings:
-            inlet_pressures = (
-                operational_setting.inlet_pressures
-                if operational_setting.inlet_pressures is not None
-                else [operational_setting.inlet_pressure] * number_of_compressors
-            )
-            outlet_pressures = (
-                operational_setting.outlet_pressures
-                if operational_setting.outlet_pressures is not None
-                else [operational_setting.outlet_pressure] * number_of_compressors
-            )
-            rates = [Expression.setup_from_expression(rate) for rate in operational_setting.rates]
-
-            parsed_operational_settings.append(
-                dto.components.CompressorSystemOperationalSetting(
-                    rates=rates,
-                    inlet_pressures=[Expression.setup_from_expression(pressure) for pressure in inlet_pressures],
-                    outlet_pressures=[Expression.setup_from_expression(pressure) for pressure in outlet_pressures],
-                )
-            )
-
         compressors: List[dto.components.CompressorComponent] = [
             dto.components.CompressorComponent(
                 consumes=consumes,
@@ -153,7 +113,7 @@ class YamlCompressorSystem(YamlConsumerBase):
             regularity=regularity,
             consumes=consumes,
             component_conditions=component_conditions,
-            operational_settings=parsed_operational_settings,
+            stream_conditions_priorities=self.stream_conditions_priorities,
             compressors=compressors,
             fuel=fuel,
         )

@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from libecalc import dto
 from libecalc.common.string_utils import generate_id
+from libecalc.common.units import Unit
 from libecalc.dto import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -17,7 +18,12 @@ from libecalc.dto.base import (
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.dto.components import Crossover, SystemComponentConditions
+from libecalc.dto.components import (
+    Crossover,
+    ExpressionStream,
+    ExpressionTimeSeries,
+    SystemComponentConditions,
+)
 from libecalc.dto.types import ConsumptionType, EnergyUsageType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
@@ -201,23 +207,176 @@ compressor_system_v2 = dto.components.CompressorSystem(
             Crossover(from_component_id=generate_id("compressor3"), to_component_id=generate_id("compressor1")),
         ],
     ),
-    operational_settings=[
-        dto.components.CompressorSystemOperationalSetting(
-            rates=[Expression.setup_from_expression(x) for x in [1000000, 6000000, 6000000]],
-            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-            outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-        ),  # Invalid operational setting, should not be valid for any timesteps
-        dto.components.CompressorSystemOperationalSetting(
-            rates=[Expression.setup_from_expression(x) for x in ["$var.compressor1", 5000000, 5000000]],
-            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-            outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-        ),  # Valid for first timestep
-        dto.components.CompressorSystemOperationalSetting(
-            rates=[Expression.setup_from_expression(x) for x in [1000000, 5000000, 5000000]],
-            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-            outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-        ),  # Crossover makes this valid. 1 mill from consumer 2 and 3 sent to 1.
-    ],
+    stream_conditions_priorities={
+        "pri1": {
+            "compressor1": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=1000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=250,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "compressor2": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=6000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=250,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "compressor3": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=6000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=250,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+        },
+        "pri2": {
+            "compressor1": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value="$var.compressor1",
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "compressor2": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=5000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "compressor3": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=5000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+        },
+        "pri3": {
+            "compressor1": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=1000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "compressor2": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=5000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "compressor3": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=5000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+        },
+    },
     compressors=[
         compressor1,  # Max rate of 4000000
         compressor2,  # Max rate of 4000000
@@ -280,20 +439,144 @@ pump_system_v2 = dto.components.PumpSystem(
             Crossover(from_component_id=generate_id("pump3"), to_component_id=generate_id("pump1")),
         ],
     ),
-    operational_settings=[
-        dto.components.PumpSystemOperationalSetting(
-            rates=[Expression.setup_from_expression(x) for x in [4000000, 5000000, 6000000]],
-            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-            outlet_pressures=[Expression.setup_from_expression("250")] * 3,
-            fluid_density=[Expression.setup_from_expression("2")] * 3,
-        ),
-        dto.components.PumpSystemOperationalSetting(
-            rates=[Expression.setup_from_expression(x) for x in [2000000, 2500000, 3000000]],
-            inlet_pressures=[Expression.setup_from_expression("50")] * 3,
-            outlet_pressures=[Expression.setup_from_expression("125")] * 3,
-            fluid_density=[Expression.setup_from_expression("2")] * 3,
-        ),
-    ],
+    stream_conditions_priorities={
+        "pri1": {
+            "pump1": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=4000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                    fluid_density=ExpressionTimeSeries(
+                        value=2,
+                        unit=Unit.KG_SM3,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=250,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "pump2": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=5000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                    fluid_density=ExpressionTimeSeries(
+                        value=2,
+                        unit=Unit.KG_SM3,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=250,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "pump3": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=6000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                    fluid_density=ExpressionTimeSeries(
+                        value=2,
+                        unit=Unit.KG_SM3,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=250,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+        },
+        "pri2": {
+            "pump1": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=2000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                    fluid_density=ExpressionTimeSeries(
+                        value=2,
+                        unit=Unit.KG_SM3,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "pump2": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=2500000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                    fluid_density=ExpressionTimeSeries(
+                        value=2,
+                        unit=Unit.KG_SM3,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+            "pump3": {
+                "inlet": ExpressionStream(
+                    rate=ExpressionTimeSeries(
+                        value=3000000,
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    ),
+                    pressure=ExpressionTimeSeries(
+                        value=50,
+                        unit=Unit.BARA,
+                    ),
+                    fluid_density=ExpressionTimeSeries(
+                        value=2,
+                        unit=Unit.KG_SM3,
+                    ),
+                ),
+                "outlet": ExpressionStream(
+                    pressure=ExpressionTimeSeries(
+                        value=125,
+                        unit=Unit.BARA,
+                    ),
+                ),
+            },
+        },
+    },
     pumps=[pump1, pump2, pump3],
 )
 

@@ -1,15 +1,15 @@
 from abc import ABC
+from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
 
 from libecalc import dto
+from libecalc.common.priorities import Priorities
+from libecalc.common.stream import Stream
 from libecalc.common.string_utils import generate_id, get_duplicates
-from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
-    RateType,
     TimeSeriesFloat,
-    TimeSeriesRate,
     TimeSeriesStreamDayRate,
 )
 from libecalc.dto.base import (
@@ -18,10 +18,6 @@ from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
     EcalcBaseModel,
     InstallationUserDefinedCategoryType,
-)
-from libecalc.dto.core_specs.system.operational_settings import (
-    EvaluatedCompressorSystemOperationalSettings,
-    EvaluatedPumpSystemOperationalSettings,
 )
 from libecalc.dto.graph import Graph
 from libecalc.dto.models import (
@@ -36,6 +32,7 @@ from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
     EmissionNameStr,
+    ExpressionType,
     convert_expression,
     validate_temporal_model,
 )
@@ -181,17 +178,23 @@ class PumpComponent(BaseConsumer):
 ConsumerComponent = TypeVar("ConsumerComponent", bound=Union[CompressorComponent, PumpComponent])
 
 
-class CompressorSystemOperationalSetting(EcalcBaseModel):
-    rates: List[Expression]
-    inlet_pressures: List[Expression]
-    outlet_pressures: List[Expression]
+class ExpressionTimeSeries(EcalcBaseModel):
+    value: ExpressionType
+    unit: Unit
 
 
-class PumpSystemOperationalSetting(EcalcBaseModel):
-    fluid_density: List[Expression]
-    rates: List[Expression]
-    inlet_pressures: List[Expression]
-    outlet_pressures: List[Expression]
+class ExpressionStream(EcalcBaseModel):
+    rate: Optional[ExpressionTimeSeries] = None
+    pressure: Optional[ExpressionTimeSeries] = None
+    temperature: Optional[ExpressionTimeSeries] = None
+    fluid_density: Optional[ExpressionTimeSeries] = None
+
+
+ConsumerID = str
+PriorityID = str
+StreamID = str
+
+SystemStreamConditions = Dict[ConsumerID, Dict[StreamID, ExpressionStream]]
 
 
 class Crossover(EcalcBaseModel):
@@ -210,7 +213,7 @@ class SystemComponentConditions(EcalcBaseModel):
 class CompressorSystem(BaseConsumer):
     component_type: Literal[ComponentType.COMPRESSOR_SYSTEM_V2] = ComponentType.COMPRESSOR_SYSTEM_V2
     component_conditions: SystemComponentConditions
-    operational_settings: List[CompressorSystemOperationalSetting]
+    stream_conditions_priorities: Priorities[SystemStreamConditions]
     compressors: List[CompressorComponent]
 
     def get_graph(self) -> Graph:
@@ -221,64 +224,56 @@ class CompressorSystem(BaseConsumer):
             graph.add_edge(self.id, compressor.id)
         return graph
 
-    def evaluate_operational_settings(
-        self,
-        variables_map: VariablesMap,
-    ) -> List[EvaluatedCompressorSystemOperationalSettings]:
-        """Parameters
-        ----------
-        variables_map
-        Returns
-        -------
-        """
-        evaluated_regularity = TemporalExpression.evaluate(
-            temporal_expression=TemporalModel(self.regularity), variables_map=variables_map
-        )
-        evaluated_operational_settings: List[EvaluatedCompressorSystemOperationalSettings] = []
-        for operational_setting in self.operational_settings:
-            rates: List[TimeSeriesStreamDayRate] = [
-                TimeSeriesRate(
-                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                    timesteps=variables_map.time_vector,
-                    regularity=evaluated_regularity,
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    rate_type=RateType.STREAM_DAY,
-                ).to_stream_day_timeseries()
-                for rate in operational_setting.rates
-            ]
-
-            inlet_pressure = [
-                TimeSeriesFloat(
-                    values=list(pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                    timesteps=variables_map.time_vector,
-                    unit=Unit.BARA,
-                )
-                for pressure in operational_setting.inlet_pressures
-            ]
-            outlet_pressure = [
-                TimeSeriesFloat(
-                    values=list(pressure.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                    timesteps=variables_map.time_vector,
-                    unit=Unit.BARA,
-                )
-                for pressure in operational_setting.outlet_pressures
-            ]
-
-            evaluated_operational_settings.append(
-                EvaluatedCompressorSystemOperationalSettings(
-                    rates=rates,
-                    inlet_pressures=inlet_pressure,
-                    outlet_pressures=outlet_pressure,
-                )
-            )
-
-        return evaluated_operational_settings
+    def evaluate_stream_conditions(self, variables_map: VariablesMap) -> Priorities[Dict[ConsumerID, List[Stream]]]:
+        parsed_priorities: Priorities[Dict[ConsumerID, List[Stream]]] = defaultdict(dict)
+        for priority_name, priority in self.stream_conditions_priorities.items():
+            for consumer_name, streams_conditions in priority.items():
+                parsed_priorities[priority_name][generate_id(consumer_name)] = [
+                    Stream(
+                        name=stream_name,
+                        rate=TimeSeriesStreamDayRate(
+                            timesteps=variables_map.time_vector,
+                            values=list(
+                                Expression.setup_from_expression(stream_conditions.rate.value).evaluate(
+                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                )
+                            ),
+                            unit=stream_conditions.rate.unit,
+                        )
+                        if stream_conditions.rate is not None
+                        else None,
+                        pressure=TimeSeriesFloat(
+                            timesteps=variables_map.time_vector,
+                            values=list(
+                                Expression.setup_from_expression(stream_conditions.pressure.value).evaluate(
+                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                )
+                            ),
+                            unit=stream_conditions.pressure.unit,
+                        )
+                        if stream_conditions.pressure is not None
+                        else None,
+                        fluid_density=TimeSeriesFloat(
+                            timesteps=variables_map.time_vector,
+                            values=list(
+                                Expression.setup_from_expression(stream_conditions.fluid_density.value).evaluate(
+                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                )
+                            ),
+                            unit=stream_conditions.fluid_density.unit,
+                        )
+                        if stream_conditions.fluid_density is not None
+                        else None,
+                    )
+                    for stream_name, stream_conditions in streams_conditions.items()
+                ]
+        return dict(parsed_priorities)
 
 
 class PumpSystem(BaseConsumer):
     component_type: Literal[ComponentType.PUMP_SYSTEM_V2] = ComponentType.PUMP_SYSTEM_V2
     component_conditions: SystemComponentConditions
-    operational_settings: List[PumpSystemOperationalSetting]
+    stream_conditions_priorities: Priorities[SystemStreamConditions]
     pumps: List[PumpComponent]
 
     def get_graph(self) -> Graph:
@@ -289,64 +284,50 @@ class PumpSystem(BaseConsumer):
             graph.add_edge(self.id, pump.id)
         return graph
 
-    def evaluate_operational_settings(
-        self,
-        variables_map: VariablesMap,
-    ) -> List[EvaluatedPumpSystemOperationalSettings]:
-        evaluated_regularity = TemporalExpression.evaluate(
-            temporal_expression=TemporalModel(self.regularity),
-            variables_map=variables_map,
-        )
-
-        evaluated_operational_settings: List[EvaluatedPumpSystemOperationalSettings] = []
-        for operational_setting in self.operational_settings:
-            rates: List[TimeSeriesStreamDayRate] = [
-                TimeSeriesRate(
-                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                    timesteps=variables_map.time_vector,
-                    regularity=evaluated_regularity,
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    rate_type=RateType.STREAM_DAY,
-                ).to_stream_day_timeseries()
-                for rate in operational_setting.rates
-            ]
-
-            inlet_pressure = [
-                TimeSeriesFloat(
-                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                    timesteps=variables_map.time_vector,
-                    unit=Unit.BARA,
-                )
-                for rate in operational_setting.inlet_pressures
-            ]
-            outlet_pressure = [
-                TimeSeriesFloat(
-                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                    timesteps=variables_map.time_vector,
-                    unit=Unit.BARA,
-                )
-                for rate in operational_setting.outlet_pressures
-            ]
-
-            fluid_density = [
-                TimeSeriesFloat(
-                    values=list(rate.evaluate(variables_map.variables, fill_length=len(variables_map.time_vector))),
-                    timesteps=variables_map.time_vector,
-                    unit=Unit.KG_SM3,
-                )
-                for rate in operational_setting.fluid_density
-            ]
-
-            evaluated_operational_settings.append(
-                EvaluatedPumpSystemOperationalSettings(
-                    rates=rates,
-                    inlet_pressures=inlet_pressure,
-                    outlet_pressures=outlet_pressure,
-                    fluid_density=fluid_density,
-                )
-            )
-
-        return evaluated_operational_settings
+    def evaluate_stream_conditions(self, variables_map: VariablesMap) -> Priorities[Dict[ConsumerID, List[Stream]]]:
+        parsed_priorities: Priorities[Dict[ConsumerID, List[Stream]]] = defaultdict(dict)
+        for priority_name, priority in self.stream_conditions_priorities.items():
+            for consumer_name, streams_conditions in priority.items():
+                parsed_priorities[priority_name][generate_id(consumer_name)] = [
+                    Stream(
+                        name=stream_name,
+                        rate=TimeSeriesStreamDayRate(
+                            timesteps=variables_map.time_vector,
+                            values=list(
+                                Expression.setup_from_expression(stream_conditions.rate.value).evaluate(
+                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                )
+                            ),
+                            unit=stream_conditions.rate.unit,
+                        )
+                        if stream_conditions.rate is not None
+                        else None,
+                        pressure=TimeSeriesFloat(
+                            timesteps=variables_map.time_vector,
+                            values=list(
+                                Expression.setup_from_expression(stream_conditions.pressure.value).evaluate(
+                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                )
+                            ),
+                            unit=stream_conditions.pressure.unit,
+                        )
+                        if stream_conditions.pressure is not None
+                        else None,
+                        fluid_density=TimeSeriesFloat(
+                            timesteps=variables_map.time_vector,
+                            values=list(
+                                Expression.setup_from_expression(stream_conditions.fluid_density.value).evaluate(
+                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                )
+                            ),
+                            unit=stream_conditions.fluid_density.unit,
+                        )
+                        if stream_conditions.fluid_density is not None
+                        else None,
+                    )
+                    for stream_name, stream_conditions in streams_conditions.items()
+                ]
+        return dict(parsed_priorities)
 
 
 class GeneratorSet(BaseEquipment):

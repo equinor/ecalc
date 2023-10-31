@@ -108,13 +108,88 @@ INSTALLATIONS:
             - NAME: in_stream_crossover_from_3
               FROM: compressor3
               TO: compressor1
-        OPERATIONAL_SETTINGS:
-          - RATES: [ 1000000, 6000000, 7000000 ]
-            INLET_PRESSURE: 50
-            OUTLET_PRESSURE: 250
-          - RATES: [ "$var.compressor1", 6000000, 7000000 ]
-            INLET_PRESSURE: 50
-            OUTLET_PRESSURE: 125
-          - RATES: [ 1000000, 6000000, 7000000 ]
-            INLET_PRESSURE: 50
-            OUTLET_PRESSURE: 125
+        STREAM_CONDITIONS_PRIORITIES:
+          pri1:
+            compressor1:
+              inlet:
+                RATE:
+                  VALUE: 1000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 250
+            compressor2:
+              inlet:
+                RATE:
+                  VALUE: 6000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 250
+            compressor3:
+              inlet:
+                RATE:
+                  VALUE: 7000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 250
+          pri2:
+            compressor1:
+              inlet:
+                RATE:
+                  VALUE: "$var.compressor1"
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor2:
+              inlet:
+                RATE:
+                  VALUE: 6000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor3:
+              inlet:
+                RATE:
+                  VALUE: 7000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+          pri3:
+            compressor1:
+              inlet:
+                RATE:
+                  VALUE: 1000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor2:
+              inlet:
+                RATE:
+                  VALUE: 6000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
+            compressor3:
+              inlet:
+                RATE:
+                  VALUE: 7000000
+                PRESSURE:
+                  VALUE: 50
+              outlet:
+                PRESSURE:
+                  VALUE: 125
