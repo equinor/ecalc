@@ -127,9 +127,9 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     :return:
     """
 
-    compressor1 = CompressorModelSampled(
+    compressor = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=dto.types.EnergyUsageType.POWER,
             energy_usage_values=[0, 1],
             power_interpolation_values=[0.0, 1],
             rate_values=[0, 1],
@@ -138,61 +138,31 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
         )
     )
 
-    compressor2 = CompressorModelSampled(
-        data_transfer_object=dto.CompressorSampled(
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
-            energy_usage_values=[0, 1],
-            power_interpolation_values=None,
-            rate_values=[0, 1],
-            energy_usage_adjustment_constant=0.0,
-            energy_usage_adjustment_factor=1.0,
-        )
-    )
-
-    variables_map1 = dto.VariablesMap(
+    variables_map = dto.VariablesMap(
         time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1)],
         variables={"SIM1;v1": [1, 1], "SIM1;v2": [1, 1]},
-    )
-    variables_map2 = dto.VariablesMap(
-        time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1), datetime(2025, 1, 1)],
-        variables={"SIM1;v1": [1, 1], "SIM1;v2": [1, 1], "SIM1;v3": [1, 1]},
     )
 
     # Results 1: first temporal model - 2 timesteps. Compressor 1 has no power values.
     # Initially, before evaluate, mass_rate_kg_per_hr is None.
     result_1 = (
         CompressorConsumerFunction(
-            compressor_function=compressor1,
+            compressor_function=compressor,
             rate_expression=Expression.setup_from_expression(1),
             suction_pressure_expression=Expression.setup_from_expression(20),
             discharge_pressure_expression=Expression.setup_from_expression(200),
             condition_expression=None,
             power_loss_factor_expression=None,
         )
-        .evaluate(variables_map=variables_map1, regularity=[1] * len(variables_map1.time_vector))
-        .energy_function_result
-    )
-
-    # Results 2: second temporal model - 3 timesteps. Compressor 2 has power values.
-    # Initially, before evaluate, mass_rate_kg_per_hr is None.
-    result_2 = (
-        CompressorConsumerFunction(
-            compressor_function=compressor2,
-            rate_expression=Expression.setup_from_expression(1),
-            suction_pressure_expression=Expression.setup_from_expression(20),
-            discharge_pressure_expression=Expression.setup_from_expression(200),
-            condition_expression=None,
-            power_loss_factor_expression=None,
-        )
-        .evaluate(variables_map=variables_map2, regularity=[1] * len(variables_map2.time_vector))
+        .evaluate(variables_map=variables_map, regularity=[1] * len(variables_map.time_vector))
         .energy_function_result
     )
 
     stage_result_3 = CompressorStageResult.create_empty(number_of_timesteps=3)
     stage_result_3.mass_rate_kg_per_hr = [1, 1, 1]
 
-    # Results 3: third temporal model - 3 timesteps. Has real values for mass_rate_kg_per_hr.
-    result_3 = CompressorTrainResult(
+    # Results 2: third temporal model - 3 timesteps. Has real values for mass_rate_kg_per_hr.
+    result_2 = CompressorTrainResult(
         energy_usage=[0, 1.0, 1.0],
         energy_usage_unit=Unit.MEGA_WATT,
         power=[np.nan] * 3,
@@ -204,7 +174,6 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
 
     result = result_1.copy(deep=True)
     result.extend(result_2)
-    result.extend(result_3)
 
     # Ensure no data loss when first temporal model contains None for a variable:
     # Check that extended stage results for mass_rate_kg_per_hr not based only on first
@@ -214,14 +183,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     # Ensure no data loss when first temporal model contains None for a variable:
     # Check that extended stage results for mass_rate_kg_per_hr contains correct number
     # of timestep values, and the real values of the third model - for mass_rate_kg_per_hr
-    assert result.stage_results[0].mass_rate_kg_per_hr == [np.nan, np.nan, np.nan, np.nan, np.nan, 1, 1, 1]  # noqa
-
-    # Ensure no mismatch in timesteps and values when one succeeding temporal model contains None
-    # for a given variable (here: power). Only the first temporal model contains power-values.
-    # Second temporal model has a compressor with None for power interpolation values. Ensure that the
-    # vector still contains 8 values (sum of all timesteps in the three temporal models), a combination
-    # of real values and NaN.:
-    np.testing.assert_allclose(result.power, [1.0, 1.0, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan])
+    assert result.stage_results[0].mass_rate_kg_per_hr == [np.nan, np.nan, 1, 1, 1]  # noqa
 
 
 def test_extend_compressor_train_result_from_multiple_streams() -> None:

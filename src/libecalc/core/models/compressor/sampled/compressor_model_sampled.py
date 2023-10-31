@@ -208,7 +208,7 @@ class CompressorModelSampled(CompressorModel):
 
         turbine = self.Turbine(self.fuel_values_adjusted, self.power_interpolation_values_adjusted)
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
-        turbine_power = turbine_result.load if turbine_result is not None else [np.nan] * number_of_data_points
+        turbine_power = turbine_result.load if turbine_result is not None else None
 
         energy_usage = turbine_result.energy_usage if turbine_result is not None else list(interpolated_consumer_values)
 
