@@ -746,17 +746,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             4.92003682,
@@ -881,7 +871,17 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             2.70498586,
                                             2.70498586,
@@ -1016,39 +1016,9 @@
                                         0.9703303
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -1137,17 +1107,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             2.01041917,
@@ -1272,7 +1232,17 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.18928647,
                                             1.18928647,
@@ -1407,39 +1377,9 @@
                                         2.37465941
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -1790,7 +1730,17 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -2181,7 +2131,17 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -2588,19 +2548,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             4.92003682,
@@ -2747,7 +2695,19 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             2.70498586,
                                             2.70498586,
@@ -2906,45 +2866,9 @@
                                         0.9703303
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -3041,19 +2965,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             2.01041917,
@@ -3200,7 +3112,19 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.18928647,
                                             1.18928647,
@@ -3359,45 +3283,9 @@
                                         2.37465941
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -3800,7 +3688,19 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -4253,7 +4153,19 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -4672,17 +4584,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             2.46001841,
@@ -4807,7 +4709,17 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -4942,39 +4854,9 @@
                                         0.9703303
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -5063,17 +4945,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             1.00520958,
@@ -5198,7 +5070,17 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -5333,39 +5215,9 @@
                                         2.37465941
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -5581,17 +5433,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             2.46001841,
@@ -5716,7 +5558,17 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -5851,39 +5703,9 @@
                                         0.9703303
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -5972,17 +5794,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             1.00520958,
@@ -6107,7 +5919,17 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -6242,39 +6064,9 @@
                                         2.37465941
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -6514,19 +6306,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             2.46001841,
@@ -6673,7 +6453,19 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -6832,45 +6624,9 @@
                                         0.9703303
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -6967,19 +6723,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             1.00520958,
@@ -7126,7 +6870,19 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -7285,45 +7041,9 @@
                                         2.37465941
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -7567,19 +7287,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             2.46001841,
@@ -7726,7 +7434,19 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -7885,45 +7605,9 @@
                                         0.9703303
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -8020,19 +7704,7 @@
                                     ],
                                     "energy_usage_unit": "MW",
                                     "fluid_composition": {},
-                                    "head_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "head_exceeds_maximum": [],
                                     "inlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
                                             1.00520958,
@@ -8179,7 +7851,19 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -8338,45 +8022,9 @@
                                         2.37465941
                                     ],
                                     "power_unit": "MW",
-                                    "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_exceeds_maximum": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
-                                    "rate_has_recirculation": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
-                                    ],
+                                    "pressure_is_choked": [],
+                                    "rate_exceeds_maximum": [],
+                                    "rate_has_recirculation": [],
                                     "speed": [
                                         NaN,
                                         NaN,
@@ -8716,17 +8364,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     4.92003682,
@@ -8851,7 +8489,17 @@
                                 34931.8908
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.70498586,
                                     2.70498586,
@@ -8986,39 +8634,9 @@
                                 0.9703303
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
@@ -9107,17 +8725,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     2.01041917,
@@ -9242,7 +8850,17 @@
                                 85487.7389
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1.18928647,
                                     1.18928647,
@@ -9377,39 +8995,9 @@
                                 2.37465941
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
@@ -9760,7 +9348,17 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -10151,7 +9749,17 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -10558,19 +10166,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     4.92003682,
@@ -10717,7 +10313,19 @@
                                 34931.8908
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.70498586,
                                     2.70498586,
@@ -10876,45 +10484,9 @@
                                 0.9703303
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
@@ -11011,19 +10583,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     2.01041917,
@@ -11170,7 +10730,19 @@
                                 85487.7389
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1.18928647,
                                     1.18928647,
@@ -11329,45 +10901,9 @@
                                 2.37465941
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
@@ -11770,7 +11306,19 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -12223,7 +11771,19 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -13751,21 +13311,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     10.6131436,
@@ -13934,7 +13480,21 @@
                                 16193.7117
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     5.86391331,
                                     5.86391331,
@@ -14117,51 +13677,9 @@
                                 0.44982533
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
@@ -14266,21 +13784,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     4.73114341,
@@ -14449,7 +13953,21 @@
                                 36326.565
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.60244818,
                                     2.60244818,
@@ -14632,51 +14150,9 @@
                                 1.00907125
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
@@ -15285,14 +14761,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     10.6131436,
@@ -15384,7 +14853,14 @@
                                 16193.7117
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     5.86391331,
                                     5.86391331,
@@ -15483,30 +14959,9 @@
                                 0.44982533
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
@@ -15583,14 +15038,7 @@
                             ],
                             "energy_usage_unit": "MW",
                             "fluid_composition": {},
-                            "head_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "head_exceeds_maximum": [],
                             "inlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
                                     4.73114341,
@@ -15682,7 +15130,14 @@
                                 36326.565
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.60244818,
                                     2.60244818,
@@ -15781,30 +15236,9 @@
                                 1.00907125
                             ],
                             "power_unit": "MW",
-                            "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_exceeds_maximum": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
-                            "rate_has_recirculation": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
-                            ],
+                            "pressure_is_choked": [],
+                            "rate_exceeds_maximum": [],
+                            "rate_has_recirculation": [],
                             "speed": [
                                 NaN,
                                 NaN,
