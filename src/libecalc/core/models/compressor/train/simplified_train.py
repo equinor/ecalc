@@ -560,11 +560,6 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
                     " This should normally not happen. Please contact eCalc support."
                 )
 
-        maximum_actual_volume_rate = maximum_rate_function(
-            heads=polytropic_head,
-            extrapolate_heads_below_minimum=False,
-        )
-
         return maximum_actual_volume_rate
 
 
