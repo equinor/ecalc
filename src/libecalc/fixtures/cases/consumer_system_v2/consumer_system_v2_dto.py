@@ -195,7 +195,8 @@ compressor_system = dto.FuelConsumer(
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
 )
 
-compressor_system_v2 = dto.components.CompressorSystem(
+compressor_system_v2 = dto.components.ConsumerSystem(
+    component_type=ComponentType.COMPRESSOR_SYSTEM_V2,
     name="compressor_system_v2",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     regularity=regularity,
@@ -377,7 +378,7 @@ compressor_system_v2 = dto.components.CompressorSystem(
             },
         },
     },
-    compressors=[
+    consumers=[
         compressor1,  # Max rate of 4000000
         compressor2,  # Max rate of 4000000
         compressor3,  # Max rate of 4000000
@@ -428,8 +429,9 @@ pump_system = dto.ElectricityConsumer(
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
 )
 
-pump_system_v2 = dto.components.PumpSystem(
+pump_system_v2 = dto.components.ConsumerSystem(
     name="pump_system_v2",
+    component_type=ComponentType.PUMP_SYSTEM_V2,
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=dto.types.ConsumptionType.ELECTRICITY,
@@ -577,7 +579,7 @@ pump_system_v2 = dto.components.PumpSystem(
             },
         },
     },
-    pumps=[pump1, pump2, pump3],
+    consumers=[pump1, pump2, pump3],
 )
 
 

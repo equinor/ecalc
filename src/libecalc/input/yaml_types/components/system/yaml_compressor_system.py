@@ -64,7 +64,7 @@ class YamlCompressorSystem(YamlConsumerBase):
         references: References,
         target_period: Period,
         fuel: Optional[Dict[datetime, dto.types.FuelType]] = None,
-    ) -> dto.components.CompressorSystem:
+    ) -> dto.components.ConsumerSystem:
         compressors: List[dto.components.CompressorComponent] = [
             dto.components.CompressorComponent(
                 consumes=consumes,
@@ -107,13 +107,14 @@ class YamlCompressorSystem(YamlConsumerBase):
                 crossover=[],
             )
 
-        return dto.components.CompressorSystem(
+        return dto.components.ConsumerSystem(
+            component_type=ComponentType.COMPRESSOR_SYSTEM_V2,
             name=self.name,
             user_defined_category=define_time_model_for_period(self.category, target_period=target_period),
             regularity=regularity,
             consumes=consumes,
             component_conditions=component_conditions,
             stream_conditions_priorities=self.stream_conditions_priorities,
-            compressors=compressors,
+            consumers=compressors,
             fuel=fuel,
         )
