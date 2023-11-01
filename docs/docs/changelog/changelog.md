@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.5.1](https://github.com/equinor/ecalc/compare/v8.5.0...v8.5.1) (2023-11-01)
+
+
+### Bug Fixes
+
+* make iteration loops for simplified train consistent ([#265](https://github.com/equinor/ecalc/issues/265)) ([baeee5c](https://github.com/equinor/ecalc/commit/baeee5c57d0c1faf9cb22d9b0c820fd4db3ce932))
+
+
+### Code Refactoring
+
+* add option to skip header validation on resource files ([#260](https://github.com/equinor/ecalc/issues/260)) ([8105e3b](https://github.com/equinor/ecalc/commit/8105e3bf421ec74a3b3403b4419b35317d01fcaa))
+
 ## [8.5.0](https://github.com/equinor/ecalc/compare/v8.4.0...v8.5.0) (2023-10-30)
 
 
