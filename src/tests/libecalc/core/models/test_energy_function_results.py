@@ -143,7 +143,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
         variables={"SIM1;v1": [1, 1], "SIM1;v2": [1, 1]},
     )
 
-    # Results 1: first temporal model - 2 timesteps. Compressor 1 has no power values.
+    # Results 1: first temporal model - 2 timesteps.
     # Initially, before evaluate, mass_rate_kg_per_hr is None.
     result_1 = (
         CompressorConsumerFunction(
@@ -161,7 +161,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     stage_result_3 = CompressorStageResult.create_empty(number_of_timesteps=3)
     stage_result_3.mass_rate_kg_per_hr = [1, 1, 1]
 
-    # Results 2: third temporal model - 3 timesteps. Has real values for mass_rate_kg_per_hr.
+    # Results 2: second temporal model - 3 timesteps. Has real values for mass_rate_kg_per_hr.
     result_2 = CompressorTrainResult(
         energy_usage=[0, 1.0, 1.0],
         energy_usage_unit=Unit.MEGA_WATT,
