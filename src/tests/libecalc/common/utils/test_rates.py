@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy as np
 import pytest
+from libecalc.common.exceptions import ProgrammingError
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -292,6 +293,27 @@ class TestTimeSeriesRate:
 
         assert sum_of_rates.values == expected_values
         assert sum_of_rates.regularity == expected_regularity
+
+    def test_mismatch_timesteps_values(self):
+        with pytest.raises(ProgrammingError) as exc_info:
+            TimeSeriesRate(
+                timesteps=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 1, 4),
+                    datetime(2023, 1, 7),
+                    datetime(2023, 1, 9),
+                ],
+                values=[10] * 3,
+                regularity=[1, 1, 1, 1],
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                rate_type=RateType.STREAM_DAY,
+            )
+
+        assert str(exc_info.value) == (
+            "Violation of programming rules: Time series: "
+            "number of timesteps do not match number of values. "
+            "Most likely a bug, report to eCalc Dev Team."
+        )
 
 
 class TestTimeseriesRateToVolumes:
