@@ -316,22 +316,22 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             compressor_stage_result[i].rate_has_recirculation = [
                 bool(result_list[t].stage_results[i].rate_has_recirculation)
                 for t in range(len(result_list))
-                if result_list[t].stage_results[i].rate_has_recirculation is not None
+                if bool(result_list[t].stage_results[i].rate_has_recirculation) is not None
             ]
             compressor_stage_result[i].rate_exceeds_maximum = [
                 bool(result_list[t].stage_results[i].rate_exceeds_maximum)
                 for t in range(len(result_list))
-                if result_list[t].stage_results[i].rate_exceeds_maximum is not None
+                if bool(result_list[t].stage_results[i].rate_exceeds_maximum) is not None
             ]
             compressor_stage_result[i].pressure_is_choked = [
                 bool(result_list[t].stage_results[i].pressure_is_choked)
                 for t in range(len(result_list))
-                if result_list[t].stage_results[i].pressure_is_choked is not None
+                if bool(result_list[t].stage_results[i].pressure_is_choked) is not None
             ]
             compressor_stage_result[i].head_exceeds_maximum = [
                 bool(result_list[t].stage_results[i].head_exceeds_maximum)
                 for t in range(len(result_list))
-                if result_list[t].stage_results[i].head_exceeds_maximum is not None
+                if bool(result_list[t].stage_results[i].head_exceeds_maximum) is not None
             ]
             compressor_stage_result[i].fluid_composition = {}
             compressor_stage_result[i].chart = compressor_charts[i] if compressor_charts is not None else None
