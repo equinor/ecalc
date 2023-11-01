@@ -9,6 +9,7 @@ from enum import Enum
 from typing import (
     Any,
     DefaultDict,
+    Dict,
     Generic,
     Iterable,
     Iterator,
@@ -159,6 +160,23 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
     def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
         if field.outer_type_ is float and v is None:
             return math.nan
+        return v
+
+    @validator("values", pre=True)
+    def timesteps_values_one_to_one(cls, v: List[Any], values: Dict[str, Any]):
+        nr_timesteps = len(values["timesteps"])
+        nr_values = len(v)
+
+        if not cls.__name__ == TimeSeriesVolumes.__name__:
+            if nr_timesteps != nr_values:
+                if all(math.isnan(i) for i in v):
+                    # TODO: This should probably be solved another place. Temporary solution to make things run
+                    return [math.nan] * len(values["timesteps"])
+                else:
+                    raise ProgrammingError(
+                        "Time series: number of timesteps do not match number "
+                        "of values. Most likely a bug, report to eCalc Dev Team."
+                    )
         return v
 
     def __len__(self) -> int:
@@ -563,6 +581,18 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
 
 class TimeSeriesVolumes(TimeSeries[float]):
+    @validator("values", pre=True)
+    def check_length_timestep_values(cls, v: List[Any], values: Dict[str, Any]):
+        # Initially timesteps for volumes contains one more item than values
+        # After reindex number of timesteps equals number of values
+        # TODO: Ensure periodical volumes are handled in a consistent way. Why different after reindex?
+        if len(v) not in [len(values["timesteps"]), len(values["timesteps"]) - 1]:
+            raise ProgrammingError(
+                "Time series: number of timesteps do not match number "
+                "of values. Most likely a bug, report to eCalc Dev Team."
+            )
+        return v
+
     def resample(self, freq: Frequency):
         msg = (
             f"{self.__repr_name__()} does not have an resample method."
