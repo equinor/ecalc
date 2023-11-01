@@ -9,6 +9,7 @@ from enum import Enum
 from typing import (
     Any,
     DefaultDict,
+    Dict,
     Generic,
     Iterable,
     Iterator,
@@ -162,7 +163,7 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         return v
 
     @validator("values", pre=True)
-    def timesteps_values_one_to_one(cls, v: list, values, field: ModelField):
+    def timesteps_values_one_to_one(cls, v: List[Any], values: Dict[str, Any]):
         nr_timesteps = len(values["timesteps"])
         nr_values = len(v)
 
@@ -581,7 +582,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
 class TimeSeriesVolumes(TimeSeries[float]):
     @validator("values", pre=True)
-    def check_length_timestep_values(cls, v: list, values, field: ModelField):
+    def check_length_timestep_values(cls, v: List[Any], values: Dict[str, Any]):
         # Initially timesteps for volumes contains one more item than values
         # After reindex number of timesteps equals number of values
         # TODO: Ensure periodical volumes are handled in a consistent way. Why different after reindex?
