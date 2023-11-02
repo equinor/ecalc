@@ -348,6 +348,24 @@ def test_calculate_single_speed_train(single_speed_compressor_train):
     assert result.stage_results[1].chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
 
 
+def test_calculate_evaluate_rate_ps_pd_single_speed_train_with_max_rate(single_speed_compressor_train):
+    rate = [300000, 300000]
+    suction_pressure = [10, 0]
+    discharge_pressure = [40, 40]
+
+    compressor_train = SingleSpeedCompressorTrainCommonShaft(
+        data_transfer_object=single_speed_compressor_train,
+    )
+    result = compressor_train.evaluate_rate_ps_pd(
+        rate=np.asarray(rate),
+        suction_pressure=np.asarray(suction_pressure),
+        discharge_pressure=np.asarray(discharge_pressure),
+    )
+
+    assert np.isnan(result.max_standard_rate[1])
+    assert result.max_standard_rate[0] == pytest.approx(407354, rel=0.001)
+
+
 def test_calculate_single_speed_train_zero_mass_rate(medium_fluid, single_speed_compressor_train):
     """We want to get a result object when rate is zero regardless of invalid/zero pressures. To ensure
     this we set pressure -> 1 when both rate and pressure is zero. This may happen when pressure is a function

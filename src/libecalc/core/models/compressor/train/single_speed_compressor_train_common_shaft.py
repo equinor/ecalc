@@ -806,9 +806,6 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         discharge_pressures: NDArray[np.float64],
     ) -> NDArray[np.float64]:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at."""
-        valid_idx = np.where(suction_pressures > 0, 1, 0)
-        suction_pressures = np.where(valid_idx, suction_pressures, 1)
-
         inlet_streams = self.fluid.get_fluid_streams(
             pressure_bara=suction_pressures,
             temperature_kelvin=np.full_like(suction_pressures, fill_value=self.stages[0].inlet_temperature_kelvin),
@@ -827,11 +824,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
             max_mass_rates.append(max_mass_rate)
 
-        return np.array(
-            self.fluid.mass_rate_to_standard_rate(
-                mass_rate_kg_per_hour=np.where(valid_idx, np.array(max_mass_rates), np.nan)
-            )
-        )
+        return np.array(self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=np.array(max_mass_rates)))
 
     def _get_max_mass_rate_single_timestep(
         self,
