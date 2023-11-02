@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Literal, Optional
 
+from libecalc.dto.base import ComponentType
 from libecalc.expression import Expression
 from libecalc.input.yaml_types.components.yaml_base import (
     YamlConsumerBase,
@@ -22,6 +23,13 @@ class YamlPumpOperationalSettings(YamlOperationalConditionBase):
 class YamlPump(YamlConsumerBase):
     class Config:
         title = "Pump"
+
+    component_type: Literal[ComponentType.PUMP] = Field(
+        ...,
+        title="TYPE",
+        description="The type of the component",
+        alias="TYPE",
+    )
 
     category: Optional[str] = Field(
         None,
