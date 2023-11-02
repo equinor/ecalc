@@ -112,75 +112,22 @@
                             "description": "Consumer name",
                             "title": "NAME",
                             "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "The type of the component",
+                            "enum": [
+                                "COMPRESSOR"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "NAME",
+                        "TYPE",
                         "ENERGY_USAGE_MODEL"
                     ],
                     "title": "Compressor",
-                    "type": "object"
-                },
-                "YamlCompressorSystem": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
-                        },
-                        "COMPONENT_CONDITIONS": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/YamlSystemComponentConditions"
-                                }
-                            ],
-                            "description": "Contains conditions for the component, in this case the system.",
-                            "title": "System component conditions"
-                        },
-                        "CONSUMERS": {
-                            "items": {
-                                "$ref": "#/definitions/YamlCompressor"
-                            },
-                            "title": "Consumers",
-                            "type": "array"
-                        },
-                        "NAME": {
-                            "description": "Consumer name",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "STREAM_CONDITIONS_PRIORITIES": {
-                            "additionalProperties": {
-                                "additionalProperties": {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/YamlStream"
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "object"
-                            },
-                            "description": "A list of prioritised stream conditions per consumer.",
-                            "title": "Stream conditions priorities",
-                            "type": "object"
-                        },
-                        "TYPE": {
-                            "default": "COMPRESSOR_SYSTEM@v2",
-                            "description": "The type of the component",
-                            "enum": [
-                                "COMPRESSOR_SYSTEM@v2"
-                            ],
-                            "title": "Type",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CATEGORY",
-                        "STREAM_CONDITIONS_PRIORITIES",
-                        "CONSUMERS"
-                    ],
-                    "title": "CompressorSystem",
                     "type": "object"
                 },
                 "YamlCompressorTabularModel": {
@@ -220,6 +167,76 @@
                         "TYPE"
                     ],
                     "title": "YamlCompressorTabularModel",
+                    "type": "object"
+                },
+                "YamlConsumerSystem": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "COMPONENT_CONDITIONS": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlSystemComponentConditions"
+                                }
+                            ],
+                            "description": "Contains conditions for the component, in this case the system.",
+                            "title": "System component conditions"
+                        },
+                        "CONSUMERS": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/YamlCompressor"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlPump"
+                                    }
+                                ]
+                            },
+                            "title": "Consumers",
+                            "type": "array"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "STREAM_CONDITIONS_PRIORITIES": {
+                            "additionalProperties": {
+                                "additionalProperties": {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/YamlStream"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "object"
+                            },
+                            "description": "A list of prioritised stream conditions per consumer.",
+                            "title": "Stream conditions priorities",
+                            "type": "object"
+                        },
+                        "TYPE": {
+                            "description": "The type of the component",
+                            "enum": [
+                                "COMPRESSOR_SYSTEM@v2",
+                                "PUMP_SYSTEM@v2"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "TYPE",
+                        "STREAM_CONDITIONS_PRIORITIES",
+                        "CONSUMERS"
+                    ],
+                    "title": "ConsumerSystem",
                     "type": "object"
                 },
                 "YamlCrossover": {
@@ -674,10 +691,7 @@
                                         "$ref": "#/definitions/YamlElectricityConsumer"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlCompressorSystem"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/YamlPumpSystem"
+                                        "$ref": "#/definitions/YamlConsumerSystem"
                                     }
                                 ]
                             },
@@ -811,10 +825,7 @@
                                         "$ref": "#/definitions/YamlFuelConsumer"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlCompressorSystem"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/YamlPumpSystem"
+                                        "$ref": "#/definitions/YamlConsumerSystem"
                                     }
                                 ]
                             },
@@ -1046,10 +1057,19 @@
                             "description": "Consumer name",
                             "title": "NAME",
                             "type": "string"
+                        },
+                        "TYPE": {
+                            "description": "The type of the component",
+                            "enum": [
+                                "PUMP"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "NAME",
+                        "TYPE",
                         "ENERGY_USAGE_MODEL"
                     ],
                     "title": "Pump",
@@ -1200,68 +1220,6 @@
                         "TYPE"
                     ],
                     "title": "YamlPumpChartVariableSpeed",
-                    "type": "object"
-                },
-                "YamlPumpSystem": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
-                        },
-                        "COMPONENT_CONDITIONS": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/YamlSystemComponentConditions"
-                                }
-                            ],
-                            "description": "Contains conditions for the component, in this case the system.",
-                            "title": "System component conditions"
-                        },
-                        "CONSUMERS": {
-                            "items": {
-                                "$ref": "#/definitions/YamlPump"
-                            },
-                            "title": "Consumers",
-                            "type": "array"
-                        },
-                        "NAME": {
-                            "description": "Consumer name",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "STREAM_CONDITIONS_PRIORITIES": {
-                            "additionalProperties": {
-                                "additionalProperties": {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/YamlStream"
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "object"
-                            },
-                            "description": "A list of prioritised stream conditions per consumer.",
-                            "title": "Stream conditions priorities",
-                            "type": "object"
-                        },
-                        "TYPE": {
-                            "default": "PUMP_SYSTEM@v2",
-                            "description": "The type of the component",
-                            "enum": [
-                                "PUMP_SYSTEM@v2"
-                            ],
-                            "title": "Type",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CATEGORY",
-                        "STREAM_CONDITIONS_PRIORITIES",
-                        "CONSUMERS"
-                    ],
-                    "title": "PumpSystem",
                     "type": "object"
                 },
                 "YamlRate": {

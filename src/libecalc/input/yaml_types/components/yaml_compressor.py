@@ -1,5 +1,6 @@
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
+from libecalc.dto.base import ComponentType
 from libecalc.expression import Expression
 from libecalc.input.yaml_types.components.yaml_base import (
     YamlConsumerBase,
@@ -24,6 +25,13 @@ class YamlCompressorOperationalSettings(YamlOperationalConditionBase):
 class YamlCompressor(YamlConsumerBase):
     class Config:
         title = "Compressor"
+
+    component_type: Literal[ComponentType.COMPRESSOR] = Field(
+        ...,
+        title="TYPE",
+        description="The type of the component",
+        alias="TYPE",
+    )
 
     category: Optional[str] = Field(
         None,
