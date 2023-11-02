@@ -14,11 +14,8 @@ from libecalc.input.validation_errors import DataValidationError, DtoValidationE
 from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.input.yaml_entities import References
 from libecalc.input.yaml_keywords import EcalcYamlKeywords
-from libecalc.input.yaml_types.components.system.yaml_compressor_system import (
-    YamlCompressorSystem as YamlCompressorSystem,
-)
-from libecalc.input.yaml_types.components.system.yaml_pump_system import (
-    YamlPumpSystem as YamlPumpSystem,
+from libecalc.input.yaml_types.components.system.yaml_consumer_system import (
+    YamlConsumerSystem,
 )
 from pydantic import ValidationError
 
@@ -107,22 +104,10 @@ class ConsumerMapper:
                 ) from e
 
         if EcalcYamlKeywords.type in data:
-            if data[EcalcYamlKeywords.type] == ComponentType.COMPRESSOR_SYSTEM_V2:
+            if data[EcalcYamlKeywords.type] in [ComponentType.COMPRESSOR_SYSTEM_V2, ComponentType.PUMP_SYSTEM_V2]:
                 try:
-                    compressor_system_yaml = YamlCompressorSystem(**data)
+                    compressor_system_yaml = YamlConsumerSystem(**data)
                     return compressor_system_yaml.to_dto(
-                        consumes=consumes,
-                        regularity=regularity,
-                        references=self.__references,
-                        target_period=self._target_period,
-                        fuel=fuel,
-                    )
-                except ValidationError as e:
-                    raise DtoValidationError(data=data, validation_error=e) from e
-            if data[EcalcYamlKeywords.type] == ComponentType.PUMP_SYSTEM_V2:
-                try:
-                    pump_system_yaml = YamlPumpSystem(**data)
-                    return pump_system_yaml.to_dto(
                         consumes=consumes,
                         regularity=regularity,
                         references=self.__references,
