@@ -12,6 +12,7 @@ from libecalc.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.dto.base import ComponentType
 from libecalc.dto.models.compressor import CompressorWithTurbine
 from libecalc.dto.types import ConsumerType
 from libecalc.output.flow_diagram.fde_models import (
@@ -129,49 +130,24 @@ def _create_legacy_compressor_system_diagram(
     return flow_diagrams
 
 
-def _create_compressor_system_diagram(
-    compressor_system: dto.components.CompressorSystem,
+def _create_system_diagram(
+    system: dto.components.ConsumerSystem,
     global_end_date: datetime,
 ) -> List[FlowDiagram]:
-    timesteps = _get_timesteps(compressor_system.compressors)
+    timesteps = _get_timesteps(system.consumers)
     return [
         FlowDiagram(
-            id=compressor_system.id,
-            title=compressor_system.name,
+            id=system.id,
+            title=system.name,
             start_date=min(timesteps),
             end_date=max([*timesteps, global_end_date]),
             nodes=[
                 Node(
-                    id=compressor.name,
-                    title=compressor.name,
-                    type=NodeType.COMPRESSOR,
+                    id=consumer.name,
+                    title=consumer.name,
+                    type=NodeType.COMPRESSOR if consumer.component_type == ComponentType.COMPRESSOR else NodeType.PUMP,
                 )
-                for compressor in compressor_system.compressors
-            ],
-            edges=[],
-            flows=[],
-        )
-    ]
-
-
-def _create_pump_system_diagram(
-    pump_system: dto.components.PumpSystem,
-    global_end_date: datetime,
-) -> List[FlowDiagram]:
-    timesteps = _get_timesteps(pump_system.pumps)
-    return [
-        FlowDiagram(
-            id=pump_system.id,
-            title=pump_system.name,
-            start_date=min(timesteps),
-            end_date=max([*timesteps, global_end_date]),
-            nodes=[
-                Node(
-                    id=compressor.name,
-                    title=compressor.name,
-                    type=NodeType.COMPRESSOR,
-                )
-                for compressor in pump_system.pumps
+                for consumer in system.consumers
             ],
             edges=[],
             flows=[],
@@ -275,9 +251,7 @@ def _is_compressor_with_turbine(
 
 
 def _create_consumer_node(
-    consumer: Union[
-        dto.FuelConsumer, dto.ElectricityConsumer, dto.components.PumpSystem, dto.components.CompressorSystem
-    ],
+    consumer: Union[dto.FuelConsumer, dto.ElectricityConsumer, dto.components.ConsumerSystem],
     installation_name: str,
     global_end_date: datetime,
 ) -> Node:
@@ -310,19 +284,14 @@ def _create_consumer_node(
             type=fde_type,
             subdiagram=subdiagram,
         )
-    elif isinstance(consumer, dto.components.PumpSystem):
+    elif isinstance(consumer, dto.components.ConsumerSystem):
         return Node(
             id=consumer.id,
             title=consumer.name,
-            type=NodeType.PUMP_SYSTEM,
-            subdiagram=_create_pump_system_diagram(consumer, global_end_date=global_end_date),
-        )
-    elif isinstance(consumer, dto.components.CompressorSystem):
-        return Node(
-            id=consumer.id,
-            title=consumer.name,
-            type=NodeType.PUMP_SYSTEM,
-            subdiagram=_create_compressor_system_diagram(consumer, global_end_date=global_end_date),
+            type=NodeType.PUMP_SYSTEM
+            if consumer.consumers[0].component_type == ComponentType.PUMP
+            else NodeType.COMPRESSOR_SYSTEM,
+            subdiagram=_create_system_diagram(consumer, global_end_date=global_end_date),
         )
     else:
         raise ValueError(
@@ -392,10 +361,8 @@ def _get_timesteps(
             ),
         ):
             timesteps = timesteps.union(set(component.energy_usage_model.keys()))
-        elif isinstance(component, dto.components.PumpSystem):
-            timesteps = timesteps.union(_get_timesteps(component.pumps, shallow=shallow))
-        elif isinstance(component, dto.components.CompressorSystem):
-            timesteps = timesteps.union(_get_timesteps(component.compressors, shallow=shallow))
+        elif isinstance(component, dto.components.ConsumerSystem):
+            timesteps = timesteps.union(_get_timesteps(component.consumers, shallow=shallow))
         else:
             raise ValueError(
                 f"Unknown consumer of type '{getattr(component, 'component_type', 'unknown')}' with name '{getattr(component, 'name', 'unknown')}'"

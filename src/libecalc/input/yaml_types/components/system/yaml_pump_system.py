@@ -57,7 +57,7 @@ class YamlPumpSystem(YamlConsumerBase):
         references: References,
         target_period: Period,
         fuel: Optional[Dict[datetime, dto.types.FuelType]] = None,
-    ) -> dto.components.PumpSystem:
+    ) -> dto.components.ConsumerSystem:
         pumps: List[dto.components.PumpComponent] = [
             dto.components.PumpComponent(
                 consumes=consumes,
@@ -100,13 +100,14 @@ class YamlPumpSystem(YamlConsumerBase):
                 crossover=[],
             )
 
-        return dto.components.PumpSystem(
+        return dto.components.ConsumerSystem(
+            component_type=ComponentType.PUMP_SYSTEM_V2,
             name=self.name,
             user_defined_category=define_time_model_for_period(self.category, target_period=target_period),
             regularity=regularity,
             consumes=consumes,
             component_conditions=component_conditions,
             stream_conditions_priorities=self.stream_conditions_priorities,
-            pumps=pumps,
+            consumers=pumps,
             fuel=fuel,
         )
