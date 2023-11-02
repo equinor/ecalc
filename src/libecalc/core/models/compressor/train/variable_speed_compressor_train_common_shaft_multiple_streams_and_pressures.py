@@ -364,9 +364,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         given in rates_per_stream. This means that changing the rates for more than one stream to the max available
         rate will not be meaningful.
         """
-        valid_idx = np.where(suction_pressures > 0, 1, 0)
-        suction_pressures = np.where(valid_idx, suction_pressures, 1)
-
         max_std_rate_per_stream = []
         for stream_index, _ in enumerate(self.streams):
             max_std_rates = []

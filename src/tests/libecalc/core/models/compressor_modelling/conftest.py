@@ -123,6 +123,7 @@ def single_speed_compressor_train(medium_fluid_dto, single_speed_chart_dto) -> d
         maximum_discharge_pressure=None,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
+        calculate_max_rate=True,
     )
 
 

@@ -7,7 +7,11 @@ from libecalc.common.feature_flags import Feature
 from libecalc.common.logger import logger
 from libecalc.common.stream import Stream
 from libecalc.common.units import Unit
-from libecalc.core.models import ModelInputFailureStatus, validate_model_input
+from libecalc.core.models import (
+    INVALID_INPUT,
+    ModelInputFailureStatus,
+    validate_model_input,
+)
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -23,6 +27,7 @@ from libecalc.dto.models.compressor.train import (
 from numpy.typing import NDArray
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
+INVALID_MAX_RATE = INVALID_INPUT
 
 
 class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
@@ -101,20 +106,27 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             power_mw > 0, power_mw + self.data_transfer_object.energy_usage_adjustment_constant, power_mw
         )
 
+        max_standard_rate = np.full_like(rate, fill_value=INVALID_MAX_RATE, dtype=float)
         if self.data_transfer_object.calculate_max_rate:
+            # calculate max standard rate for time steps with valid input
+            valid_indices = [
+                i
+                for (i, failure_status) in enumerate(input_failure_status)
+                if failure_status == ModelInputFailureStatus.NO_FAILURE
+            ]
             if isinstance(self.data_transfer_object, dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures):
-                max_standard_rate = self.get_max_standard_rate_per_stream(
-                    suction_pressures=suction_pressure,
-                    discharge_pressures=discharge_pressure,
-                    rates_per_stream=rate,
+                max_standard_rate_for_valid_indices = self.get_max_standard_rate_per_stream(
+                    suction_pressures=suction_pressure[valid_indices],
+                    discharge_pressures=discharge_pressure[valid_indices],
+                    rates_per_stream=rate[:, valid_indices],
                 )
+                max_standard_rate[:, valid_indices] = max_standard_rate_for_valid_indices
             else:
-                max_standard_rate = self.get_max_standard_rate(
-                    suction_pressures=suction_pressure,
-                    discharge_pressures=discharge_pressure,
+                max_standard_rate_for_valid_indices = self.get_max_standard_rate(
+                    suction_pressures=suction_pressure[valid_indices],
+                    discharge_pressures=discharge_pressure[valid_indices],
                 )
-        else:
-            max_standard_rate = np.full_like(rate, fill_value=np.nan, dtype=float)
+                max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
 
         stage_results = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,

@@ -5,6 +5,8 @@ import numpy as np
 from libecalc.common.logger import logger
 from numpy.typing import NDArray
 
+INVALID_INPUT = np.nan
+
 
 class ModelInputFailureStatus(str, Enum):
     INVALID_RATE_INPUT = "INVALID_RATE_INPUT"
