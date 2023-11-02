@@ -210,78 +210,18 @@ class SystemComponentConditions(EcalcBaseModel):
     crossover: List[Crossover]
 
 
-class CompressorSystem(BaseConsumer):
-    component_type: Literal[ComponentType.COMPRESSOR_SYSTEM_V2] = ComponentType.COMPRESSOR_SYSTEM_V2
+class ConsumerSystem(BaseConsumer):
+    component_type: Literal[ComponentType.COMPRESSOR_SYSTEM_V2, ComponentType.PUMP_SYSTEM_V2]
     component_conditions: SystemComponentConditions
     stream_conditions_priorities: Priorities[SystemStreamConditions]
-    compressors: List[CompressorComponent]
+    consumers: List[Union[CompressorComponent, PumpComponent]]
 
     def get_graph(self) -> Graph:
         graph = Graph()
         graph.add_node(self)
-        for compressor in self.compressors:
-            graph.add_node(compressor)
-            graph.add_edge(self.id, compressor.id)
-        return graph
-
-    def evaluate_stream_conditions(self, variables_map: VariablesMap) -> Priorities[Dict[ConsumerID, List[Stream]]]:
-        parsed_priorities: Priorities[Dict[ConsumerID, List[Stream]]] = defaultdict(dict)
-        for priority_name, priority in self.stream_conditions_priorities.items():
-            for consumer_name, streams_conditions in priority.items():
-                parsed_priorities[priority_name][generate_id(consumer_name)] = [
-                    Stream(
-                        name=stream_name,
-                        rate=TimeSeriesStreamDayRate(
-                            timesteps=variables_map.time_vector,
-                            values=list(
-                                Expression.setup_from_expression(stream_conditions.rate.value).evaluate(
-                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-                                )
-                            ),
-                            unit=stream_conditions.rate.unit,
-                        )
-                        if stream_conditions.rate is not None
-                        else None,
-                        pressure=TimeSeriesFloat(
-                            timesteps=variables_map.time_vector,
-                            values=list(
-                                Expression.setup_from_expression(stream_conditions.pressure.value).evaluate(
-                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-                                )
-                            ),
-                            unit=stream_conditions.pressure.unit,
-                        )
-                        if stream_conditions.pressure is not None
-                        else None,
-                        fluid_density=TimeSeriesFloat(
-                            timesteps=variables_map.time_vector,
-                            values=list(
-                                Expression.setup_from_expression(stream_conditions.fluid_density.value).evaluate(
-                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-                                )
-                            ),
-                            unit=stream_conditions.fluid_density.unit,
-                        )
-                        if stream_conditions.fluid_density is not None
-                        else None,
-                    )
-                    for stream_name, stream_conditions in streams_conditions.items()
-                ]
-        return dict(parsed_priorities)
-
-
-class PumpSystem(BaseConsumer):
-    component_type: Literal[ComponentType.PUMP_SYSTEM_V2] = ComponentType.PUMP_SYSTEM_V2
-    component_conditions: SystemComponentConditions
-    stream_conditions_priorities: Priorities[SystemStreamConditions]
-    pumps: List[PumpComponent]
-
-    def get_graph(self) -> Graph:
-        graph = Graph()
-        graph.add_node(self)
-        for pump in self.pumps:
-            graph.add_node(pump)
-            graph.add_edge(self.id, pump.id)
+        for consumer in self.consumers:
+            graph.add_node(consumer)
+            graph.add_edge(self.id, consumer.id)
         return graph
 
     def evaluate_stream_conditions(self, variables_map: VariablesMap) -> Priorities[Dict[ConsumerID, List[Stream]]]:
@@ -334,7 +274,7 @@ class GeneratorSet(BaseEquipment):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
     fuel: Dict[datetime, FuelType]
     generator_set_model: Dict[datetime, GeneratorSetSampled]
-    consumers: List[Union[ElectricityConsumer, CompressorSystem, PumpSystem]] = Field(default_factory=list)
+    consumers: List[Union[ElectricityConsumer, ConsumerSystem]] = Field(default_factory=list)
     _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
         validate_temporal_model
     )
@@ -367,7 +307,7 @@ class Installation(BaseComponent):
     component_type = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
     hydrocarbon_export: Dict[datetime, Expression]
-    fuel_consumers: List[Union[GeneratorSet, FuelConsumer, CompressorSystem, PumpSystem]] = Field(default_factory=list)
+    fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
     direct_emitters: List[DirectEmitter] = Field(default_factory=list)
 
     @property
@@ -455,19 +395,11 @@ class Asset(Component):
                 names.append(fuel_consumer.name)
                 if isinstance(fuel_consumer, GeneratorSet):
                     for electricity_consumer in fuel_consumer.consumers:
-                        if isinstance(electricity_consumer, (CompressorSystem, PumpSystem)):
-                            if isinstance(electricity_consumer, CompressorSystem):
-                                consumers = electricity_consumer.compressors
-                            else:
-                                consumers = electricity_consumer.pumps
-                            for consumer in consumers:
+                        if isinstance(electricity_consumer, ConsumerSystem):
+                            for consumer in electricity_consumer.consumers:
                                 names.append(consumer.name)
-                elif isinstance(fuel_consumer, (CompressorSystem, PumpSystem)):
-                    if isinstance(fuel_consumer, CompressorSystem):
-                        consumers = fuel_consumer.compressors
-                    else:
-                        consumers = fuel_consumer.pumps
-                    for consumer in consumers:
+                elif isinstance(fuel_consumer, ConsumerSystem):
+                    for consumer in fuel_consumer.consumers:
                         names.append(consumer.name)
                 if fuel_consumer.fuel is not None:
                     for fuel_type in fuel_consumer.fuel.values():
@@ -509,8 +441,7 @@ ComponentDTO = Union[
     GeneratorSet,
     FuelConsumer,
     ElectricityConsumer,
-    PumpSystem,
-    CompressorSystem,
+    ConsumerSystem,
     CompressorComponent,
     PumpComponent,
 ]

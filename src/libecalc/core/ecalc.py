@@ -51,35 +51,16 @@ class EnergyCalculator:
                     models=[],
                     sub_components=[],
                 )
-            elif isinstance(component_dto, libecalc.dto.components.PumpSystem):
-                pump_system = ConsumerSystem(
+            elif isinstance(component_dto, libecalc.dto.components.ConsumerSystem):
+                consumer_system = ConsumerSystem(
                     id=component_dto.id,
-                    consumers=component_dto.pumps,
+                    consumers=component_dto.consumers,
                     component_conditions=component_dto.component_conditions,
                 )
                 evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
                     variables_map=variables_map,
                 )
-                system_result = pump_system.evaluate(
-                    variables_map=variables_map, system_stream_conditions_priorities=evaluated_stream_conditions
-                )
-                consumer_results[component_dto.id] = system_result
-                for consumer_result in system_result.sub_components:
-                    consumer_results[consumer_result.id] = EcalcModelResult(
-                        component_result=consumer_result,
-                        sub_components=[],
-                        models=[],
-                    )
-            elif isinstance(component_dto, libecalc.dto.components.CompressorSystem):
-                compressor_system = ConsumerSystem(
-                    id=component_dto.id,
-                    consumers=component_dto.compressors,
-                    component_conditions=component_dto.component_conditions,
-                )
-                evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
-                    variables_map=variables_map,
-                )
-                system_result = compressor_system.evaluate(
+                system_result = consumer_system.evaluate(
                     variables_map=variables_map, system_stream_conditions_priorities=evaluated_stream_conditions
                 )
                 consumer_results[component_dto.id] = system_result
@@ -113,7 +94,7 @@ class EnergyCalculator:
                     variables_map=variables_map,
                     fuel_rate=np.asarray(energy_usage.values),
                 )
-            elif isinstance(consumer_dto, (dto.components.CompressorSystem, dto.components.PumpSystem)):
+            elif isinstance(consumer_dto, dto.components.ConsumerSystem):
                 if consumer_dto.consumes == ConsumptionType.FUEL:
                     fuel_model = FuelModel(consumer_dto.fuel)
                     energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
