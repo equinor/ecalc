@@ -24,7 +24,7 @@ class YamlPump(YamlConsumerBase):
     class Config:
         title = "Pump"
 
-    component_type: Literal[ComponentType.PUMP] = Field(
+    component_type: Literal[ComponentType.PUMP_V2] = Field(
         ...,
         title="TYPE",
         description="The type of the component",

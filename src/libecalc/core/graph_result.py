@@ -1117,7 +1117,46 @@ class GraphResult:
                     id=consumer_result.component_result.id,
                     is_valid=consumer_result.component_result.is_valid,
                 )
-            else:  # COMPRESSOR_SYSTEM_V2, COMPRESSOR_SYSTEM, PUMP_SYSTEM_V2, PUMP_SYSTEM, GENERIC, TURBINE, DIRECT_EMITTER
+            elif consumer_node_info.component_type == ComponentType.CONSUMER_SYSTEM_V2:
+                obj = dto.result.ConsumerSystemResult(
+                    id=consumer_result.component_result.id,
+                    is_valid=consumer_result.component_result.is_valid,
+                    timesteps=consumer_result.component_result.timesteps,
+                    name=consumer_node_info.name,
+                    parent=self.graph.get_predecessor(consumer_id),
+                    component_level=consumer_node_info.component_level,
+                    componentType=consumer_node_info.component_type,
+                    consumer_type=self.graph.get_node_info(self.graph.get_successors(consumer_id)[0]).component_type,
+                    emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else [],
+                    energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage,
+                        regularity=regularity,
+                    )
+                    .to_volumes()
+                    .cumulative(),
+                    power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power,
+                        regularity=regularity,
+                    )
+                    .to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative()
+                    if consumer_result.component_result.power is not None
+                    else None,
+                    power=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.power, regularity=regularity
+                    ),
+                    energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_calendar_day()
+                    if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    else TimeSeriesRate.from_timeseries_stream_day_rate(
+                        consumer_result.component_result.energy_usage, regularity=regularity
+                    ).to_stream_day(),
+                )
+            else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, DIRECT_EMITTER
                 obj = parse_obj_as(
                     libecalc.dto.result.ComponentResult,
                     {

@@ -10,7 +10,9 @@ from libecalc.input.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
 from libecalc.input.yaml_types.components.yaml_category_field import CategoryField
+from libecalc.input.yaml_types.components.yaml_compressor import YamlCompressor
 from libecalc.input.yaml_types.components.yaml_generator_set import YamlGeneratorSet
+from libecalc.input.yaml_types.components.yaml_pump import YamlPump
 from libecalc.input.yaml_types.emitters.yaml_direct_emitter import YamlDirectEmitter
 from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
 from pydantic import Field
@@ -46,7 +48,9 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="GENERATORSETS",
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
     )
-    fuelconsumers: List[Union[YamlFuelConsumer, YamlConsumerSystem]] = Field(
+    fuelconsumers: List[
+        Union[YamlFuelConsumer, YamlConsumerSystem[YamlCompressor], YamlConsumerSystem[YamlPump]]
+    ] = Field(
         None,
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",

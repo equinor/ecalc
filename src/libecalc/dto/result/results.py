@@ -88,9 +88,24 @@ class ConsumerSystemResult(EquipmentResultBase):
     componentType: Literal[
         ComponentType.PUMP_SYSTEM,
         ComponentType.COMPRESSOR_SYSTEM,
-        ComponentType.COMPRESSOR_SYSTEM_V2,
-        ComponentType.PUMP_SYSTEM_V2,
+        ComponentType.CONSUMER_SYSTEM_V2,
     ]
+
+    consumer_type: Literal[ComponentType.COMPRESSOR, ComponentType.PUMP] = None
+
+    @validator("consumer_type", pre=True)
+    def set_consumer_type_based_on_component_type_if_possible(cls, consumer_type, values):
+        """
+        Set consumer type for legacy system where component type contains the same information.
+        """
+        component_type = values.get("componentType")
+        if consumer_type is None:
+            if component_type == ComponentType.PUMP_SYSTEM:
+                return ComponentType.PUMP
+            elif component_type == ComponentType.COMPRESSOR_SYSTEM:
+                return ComponentType.COMPRESSOR
+
+        return consumer_type
 
     operational_settings_used: Optional[TimeSeriesInt] = Field(
         None,
