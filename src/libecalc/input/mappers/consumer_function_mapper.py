@@ -337,8 +337,12 @@ class ConsumerFunctionMapper:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
         return model_creator(model, references)
 
-    def from_yaml_to_dto(self, data: Dict) -> Dict[datetime, dto.ConsumerFunction]:
+    def from_yaml_to_dto(self, data: Dict) -> Optional[Dict[datetime, dto.ConsumerFunction]]:
+        if data is None:
+            return None
+
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
+
         return {
             start_date: ConsumerFunctionMapper.create_model(model, self.__references)
             for start_date, model in time_adjusted_model.items()

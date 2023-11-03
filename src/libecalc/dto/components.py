@@ -211,7 +211,12 @@ class SystemComponentConditions(EcalcBaseModel):
 
 
 class ConsumerSystem(BaseConsumer):
-    component_type: Literal[ComponentType.COMPRESSOR_SYSTEM_V2, ComponentType.PUMP_SYSTEM_V2]
+    component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(
+        ComponentType.CONSUMER_SYSTEM_V2,
+        title="TYPE",
+        description="The type of the component",
+        alias="TYPE",
+    )
     component_conditions: SystemComponentConditions
     stream_conditions_priorities: Priorities[SystemStreamConditions]
     consumers: List[Union[CompressorComponent, PumpComponent]]

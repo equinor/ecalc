@@ -39,7 +39,7 @@ class Graph:
                 if successor_id != component_id
             ]
         else:
-            return self.graph.successors(component_id)
+            return list(self.graph.successors(component_id))
 
     def get_predecessor(self, component_id: str) -> str:
         predecessors = list(self.graph.predecessors(component_id))
@@ -79,10 +79,9 @@ class Graph:
         elif isinstance(component_dto, dto.GeneratorSet):
             component_level = ComponentLevel.GENERATOR_SET
         elif component_dto.component_type in [
-            ComponentType.COMPRESSOR_SYSTEM_V2,
             ComponentType.COMPRESSOR_SYSTEM,
             ComponentType.PUMP_SYSTEM,
-            ComponentType.PUMP_SYSTEM_V2,
+            ComponentType.CONSUMER_SYSTEM_V2,
         ]:
             component_level = ComponentLevel.SYSTEM
         else:

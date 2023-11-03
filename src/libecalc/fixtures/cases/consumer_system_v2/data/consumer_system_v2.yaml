@@ -71,13 +71,16 @@ INSTALLATIONS:
                   CROSSOVER: [ 0, 1, 1 ]
           - NAME: pump_system_v2
             CATEGORY: PUMP
-            TYPE: PUMP_SYSTEM@v2
+            TYPE: CONSUMER_SYSTEM@v2
             CONSUMERS:
               - NAME: pump1
+                TYPE: PUMP@v2
                 ENERGY_USAGE_MODEL: pump_single_speed
               - NAME: pump2
+                TYPE: PUMP@v2
                 ENERGY_USAGE_MODEL: pump_single_speed
               - NAME: pump3
+                TYPE: PUMP@v2
                 ENERGY_USAGE_MODEL: pump_single_speed
             COMPONENT_CONDITIONS:
               CROSSOVER:
@@ -181,13 +184,16 @@ INSTALLATIONS:
               CROSSOVER: [ 0, 1, 1 ]
       - NAME: compressor_system_v2
         CATEGORY: COMPRESSOR
-        TYPE: COMPRESSOR_SYSTEM@v2
+        TYPE: CONSUMER_SYSTEM@v2
         CONSUMERS:
           - NAME: compressor1
+            TYPE: COMPRESSOR@v2
             ENERGY_USAGE_MODEL: compressor_sampled_1d
           - NAME: compressor2
+            TYPE: COMPRESSOR@v2
             ENERGY_USAGE_MODEL: compressor_sampled_1d
           - NAME: compressor3
+            TYPE: COMPRESSOR@v2
             ENERGY_USAGE_MODEL: compressor_sampled_1d
         COMPONENT_CONDITIONS:
           CROSSOVER:

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, Union
+from typing import Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -20,6 +20,7 @@ from libecalc.input.yaml_types.components.yaml_compressor import YamlCompressor
 from libecalc.input.yaml_types.components.yaml_pump import YamlPump
 from libecalc.input.yaml_types.yaml_stream import YamlStream
 from pydantic import Field
+from pydantic.generics import GenericModel
 
 opt_expr_list = Optional[List[ExpressionType]]
 
@@ -41,7 +42,11 @@ def map_consumer(
     references: References,
     fuel: Optional[Dict[datetime, dto.types.FuelType]],
 ):
-    if consumer.component_type == ComponentType.COMPRESSOR:
+    """
+    Consumer mapper, should probably call ConsumerMapper, but need to figure out differences between consumer in system
+    and not in system. i.e. with or without stream conditions.
+    """
+    if consumer.component_type == ComponentType.COMPRESSOR_V2:
         return dto.components.CompressorComponent(
             consumes=consumes,
             regularity=regularity,
@@ -60,7 +65,7 @@ def map_consumer(
                 ).items()
             },
         )
-    elif consumer.component_type == ComponentType.PUMP:
+    elif consumer.component_type == ComponentType.PUMP_V2:
         return dto.components.PumpComponent(
             consumes=consumes,
             regularity=regularity,
@@ -83,11 +88,14 @@ def map_consumer(
         raise ValueError("Unknown consumer type")
 
 
-class YamlConsumerSystem(YamlConsumerBase):
+TYamlConsumer = TypeVar("TYamlConsumer", bound=Union[YamlCompressor, YamlPump])
+
+
+class YamlConsumerSystem(YamlConsumerBase, GenericModel, Generic[TYamlConsumer]):
     class Config:
         title = "ConsumerSystem"
 
-    component_type: Literal[ComponentType.COMPRESSOR_SYSTEM_V2, ComponentType.PUMP_SYSTEM_V2] = Field(
+    component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(
         ...,
         title="Type",
         description="The type of the component",
@@ -106,7 +114,7 @@ class YamlConsumerSystem(YamlConsumerBase):
         description="A list of prioritised stream conditions per consumer.",
     )
 
-    consumers: List[Union[YamlCompressor, YamlPump]]
+    consumers: List[TYamlConsumer]
 
     def to_dto(
         self,

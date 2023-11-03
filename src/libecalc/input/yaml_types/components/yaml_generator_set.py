@@ -9,6 +9,8 @@ from libecalc.input.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
 from libecalc.input.yaml_types.components.yaml_category_field import CategoryField
+from libecalc.input.yaml_types.components.yaml_compressor import YamlCompressor
+from libecalc.input.yaml_types.components.yaml_pump import YamlPump
 from libecalc.input.yaml_types.yaml_placeholder_type import YamlPlaceholderType
 from libecalc.input.yaml_types.yaml_schema_helpers import (
     replace_temporal_placeholder_property_with_legacy_ref,
@@ -46,7 +48,9 @@ class YamlGeneratorSet(YamlBase):
         description="Specifies the correlation between the electric power delivered and the fuel burned by a "
         "generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/ELECTRICITY2FUEL",
     )
-    consumers: List[Union[YamlElectricityConsumer, YamlConsumerSystem]] = Field(
+    consumers: List[
+        Union[YamlElectricityConsumer, YamlConsumerSystem[YamlCompressor], YamlConsumerSystem[YamlPump]]
+    ] = Field(
         ...,
         title="CONSUMERS",
         description="Consumers getting electrical power from the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",

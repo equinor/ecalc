@@ -26,7 +26,7 @@ class YamlCompressor(YamlConsumerBase):
     class Config:
         title = "Compressor"
 
-    component_type: Literal[ComponentType.COMPRESSOR] = Field(
+    component_type: Literal[ComponentType.COMPRESSOR_V2] = Field(
         ...,
         title="TYPE",
         description="The type of the component",
