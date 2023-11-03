@@ -196,7 +196,6 @@ compressor_system = dto.FuelConsumer(
 )
 
 compressor_system_v2 = dto.components.ConsumerSystem(
-    component_type=ComponentType.COMPRESSOR_SYSTEM_V2,
     name="compressor_system_v2",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     regularity=regularity,
@@ -431,7 +430,6 @@ pump_system = dto.ElectricityConsumer(
 
 pump_system_v2 = dto.components.ConsumerSystem(
     name="pump_system_v2",
-    component_type=ComponentType.PUMP_SYSTEM_V2,
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=dto.types.ConsumptionType.ELECTRICITY,
