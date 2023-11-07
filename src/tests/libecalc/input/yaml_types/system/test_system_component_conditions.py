@@ -1,5 +1,5 @@
 import pytest
-from libecalc.input.yaml_types.components.system.yaml_system_component_conditions import (
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
     YamlCrossover,
     YamlSystemComponentConditions,
 )

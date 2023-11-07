@@ -1,6 +1,9 @@
 from typing import List
 
 import numpy as np
+from scipy.interpolate import interp1d
+from shapely.geometry import LineString, Point
+
 from libecalc import dto
 from libecalc.core.models.compressor.train.chart import VariableSpeedCompressorChart
 from libecalc.core.models.compressor.train.chart.generic_chart_data import (
@@ -12,8 +15,6 @@ from libecalc.core.models.compressor.train.chart.generic_chart_data import (
 from libecalc.core.models.compressor.train.chart.variable_speed_compressor_chart import (
     logger,
 )
-from scipy.interpolate import interp1d
-from shapely.geometry import LineString, Point
 
 
 class CompressorChartCreator:

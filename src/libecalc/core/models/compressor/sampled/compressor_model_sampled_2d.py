@@ -2,6 +2,10 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
+from scipy.interpolate import LinearNDInterpolator, interp1d
+from scipy.spatial import ConvexHull
+
 from libecalc.core.models.compressor.sampled.constants import (
     PD_NAME,
     PS_NAME,
@@ -11,9 +15,6 @@ from libecalc.core.models.compressor.sampled.convex_hull_common import (
     get_lower_upper_qhull,
     sort_ndarray_by_column,
 )
-from numpy.typing import NDArray
-from scipy.interpolate import LinearNDInterpolator, interp1d
-from scipy.spatial import ConvexHull
 
 
 class CompressorModelSampled2DRatePd:

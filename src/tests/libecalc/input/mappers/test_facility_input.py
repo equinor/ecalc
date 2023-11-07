@@ -3,10 +3,10 @@ from typing import Dict
 import pytest
 from libecalc import dto
 from libecalc.dto.types import EnergyModelType
-from libecalc.input.mappers.facility_input import FacilityInputMapper
-from libecalc.input.validation_errors import DtoValidationError
-from libecalc.input.yaml_entities import Resource
-from libecalc.input.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
+from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.yaml_entities import Resource
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 def _create_facility_input_data(typ: str, file: str, name: str) -> Dict:

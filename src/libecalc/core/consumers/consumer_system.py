@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
 
 import networkx as nx
 import numpy as np
+
 from libecalc.common.priorities import Priorities
 from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
 from libecalc.common.stream import Stream

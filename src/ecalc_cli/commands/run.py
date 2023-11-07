@@ -7,8 +7,8 @@ import typer
 from libecalc.common.run_info import RunInfo
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
-from libecalc.input.model import YamlModel
-from libecalc.output.utils.file_utils import OutputFormat, get_result_output
+from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
+from libecalc.presentation.yaml.model import YamlModel
 
 from ecalc_cli.errors import EcalcCLIError
 from ecalc_cli.io.cache import Cache

@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Dict, List, Union
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc.common.logger import logger
 from libecalc.expression.expression_evaluator import (
     Operators,
@@ -11,7 +13,6 @@ from libecalc.expression.expression_evaluator import (
     eval_tokens,
     lexer,
 )
-from numpy.typing import NDArray
 
 LEFT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.left_parenthesis.value)
 RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_parenthesis.value)

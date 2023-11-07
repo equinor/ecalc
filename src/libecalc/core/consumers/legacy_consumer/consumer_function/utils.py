@@ -2,12 +2,13 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
     ConditionsAndPowerLossResult,
 )
 from libecalc.dto import VariablesMap
 from libecalc.expression import Expression
-from numpy.typing import NDArray
 
 
 def calculate_energy_usage_with_conditions_and_power_loss(

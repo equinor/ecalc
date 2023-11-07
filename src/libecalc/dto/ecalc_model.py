@@ -1,7 +1,8 @@
 from typing import List
 
-from libecalc.dto.base import EcalcBaseModel
 from pydantic import Field
+
+from libecalc.dto.base import EcalcBaseModel
 
 
 class SchemaSettings(EcalcBaseModel):

@@ -3,6 +3,8 @@ from functools import partial
 from typing import List, Optional
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
@@ -31,7 +33,6 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto.types import FixedSpeedPressureControl
-from numpy.typing import NDArray
 
 EPSILON = 1e-5
 

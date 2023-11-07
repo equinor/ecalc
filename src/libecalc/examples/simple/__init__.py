@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.case_utils import YamlCaseLoader
 

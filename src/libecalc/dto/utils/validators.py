@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from typing import Dict, List, Optional, TypeVar, Union
 
+from pydantic import constr
+
 from libecalc.common.time_utils import is_temporal_model
 from libecalc.expression import Expression
-from pydantic import constr
 
 EmissionNameStr = constr(regex=r"^\w*$")
 COMPONENT_NAME_ALLOWED_CHARS = "A-ZÆØÅa-zæøå\\d_/\\- "

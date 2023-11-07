@@ -1,8 +1,8 @@
 from libecalc import dto
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
-from libecalc.input.mappers.fuel_and_emission_mapper import FuelMapper
-from libecalc.input.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 class TestMapFuelType:

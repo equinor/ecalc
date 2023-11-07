@@ -1,13 +1,13 @@
 from libecalc.common.units import Unit
-from libecalc.input.mappers.consumer_function_mapper import _map_condition
-from libecalc.input.mappers.utils import (
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
+from libecalc.presentation.yaml.mappers.utils import (
     convert_efficiency_to_fraction,
     convert_head_to_joule_per_kg,
     convert_head_to_meter_liquid_column,
     convert_rate_to_am3_per_hour,
     convert_temperature_to_kelvin,
 )
-from libecalc.input.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 class TestMapCondition:

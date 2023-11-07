@@ -7,6 +7,7 @@ from functools import reduce
 from typing import Dict, Generic, List, TypeVar
 
 import numpy as np
+
 from libecalc.common.priorities import Priorities, PriorityID
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (

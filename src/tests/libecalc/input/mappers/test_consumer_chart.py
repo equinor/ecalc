@@ -1,13 +1,17 @@
 import pytest
 from libecalc import dto
 from libecalc.common.units import Unit
-from libecalc.input.mappers.facility_input import (
+
+# from libecalc.presentation.yaml.mappers import _single_speed_compressor_chart_mapper
+from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
-from libecalc.input.mappers.model import _single_speed_compressor_chart_mapper
-from libecalc.input.validation_errors import ResourceValidationError
-from libecalc.input.yaml_entities import Resource
-from libecalc.input.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.mappers.model import (
+    _single_speed_compressor_chart_mapper,
+)
+from libecalc.presentation.yaml.validation_errors import ResourceValidationError
+from libecalc.presentation.yaml.yaml_entities import Resource
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 @pytest.fixture

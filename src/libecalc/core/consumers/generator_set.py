@@ -1,4 +1,6 @@
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.list_utils import array_to_list
 from libecalc.common.logger import logger
@@ -13,7 +15,6 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
 from libecalc.dto.variables import VariablesMap
-from numpy.typing import NDArray
 
 
 class Genset:

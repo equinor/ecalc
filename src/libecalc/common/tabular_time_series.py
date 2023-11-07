@@ -1,10 +1,11 @@
 import itertools
 from typing import Protocol, TypeVar
 
-from libecalc.common.list_utils import transpose
-from libecalc.common.utils.rates import TimeSeries
 from pydantic import BaseModel
 from typing_extensions import Self
+
+from libecalc.common.list_utils import transpose
+from libecalc.common.utils.rates import TimeSeries
 
 
 class TabularTimeSeries(Protocol):

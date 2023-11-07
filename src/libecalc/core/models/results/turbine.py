@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 import numpy as np
+
 from libecalc.common.units import Unit
 from libecalc.core.models.results import EnergyFunctionResult
 

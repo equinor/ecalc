@@ -1,10 +1,11 @@
 from typing import List, Optional, Tuple
 
 import numpy as np
-from libecalc import dto
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
+
+from libecalc import dto
 
 
 class ChartCurve:

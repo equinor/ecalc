@@ -3,12 +3,13 @@ from __future__ import annotations
 from typing import Optional
 
 import numpy as np
+from numpy.typing import NDArray
+from scipy.interpolate import interp1d
+
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results import TurbineResult
-from numpy.typing import NDArray
-from scipy.interpolate import interp1d
 
 SECONDS_PER_DAY = 86400
 

@@ -5,15 +5,15 @@ from typing import Dict, Optional
 import pytest
 from libecalc.dto import TimeSeriesType
 from libecalc.dto.types import InterpolationType
-from libecalc.input.mappers.variables_mapper.time_series_collection import (
+from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection import (
     MiscellaneousTimeSeriesCollection,
 )
-from libecalc.input.mappers.variables_mapper.time_series_collection_mapper import (
+from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection_mapper import (
     TimeSeriesCollectionMapper,
 )
-from libecalc.input.validation_errors import DtoValidationError
-from libecalc.input.yaml_entities import Resource
-from libecalc.input.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.yaml_entities import Resource
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 def _create_timeseries_data(

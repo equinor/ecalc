@@ -1,6 +1,6 @@
 from libecalc.common.time_utils import Frequency
 from libecalc.fixtures import YamlCase
-from libecalc.input import YamlModel
+from libecalc.presentation.yaml.model import YamlModel
 
 
 class TestModel:

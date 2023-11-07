@@ -3,6 +3,10 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
 
+from pydantic import Field, root_validator
+from pydantic.class_validators import validator
+from typing_extensions import Annotated
+
 from libecalc import dto
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream import Stream
@@ -38,9 +42,6 @@ from libecalc.dto.utils.validators import (
 )
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
-from pydantic import Field, root_validator
-from pydantic.class_validators import validator
-from typing_extensions import Annotated
 
 
 def check_model_energy_usage_type(model_data: Dict[datetime, ConsumerFunction], energy_type: EnergyUsageType):

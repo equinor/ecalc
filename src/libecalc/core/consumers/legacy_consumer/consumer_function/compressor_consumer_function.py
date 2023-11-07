@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 import numpy as np
+
 from libecalc.common.utils.rates import Rates
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,

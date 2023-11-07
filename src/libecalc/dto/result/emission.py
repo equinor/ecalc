@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
+from typing_extensions import Self
+
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -13,7 +15,6 @@ from libecalc.common.utils.rates import (
 from libecalc.core.result.emission import EmissionResult as EmissionCoreResult
 from libecalc.dto.result.simple import SimpleEmissionResult
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
-from typing_extensions import Self
 
 
 class EmissionResult(TabularTimeSeries):

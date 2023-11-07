@@ -1,4 +1,5 @@
 import numpy as np
+
 from libecalc.core.models.chart.base import ChartCurve
 from libecalc.dto.types import ChartAreaFlag
 

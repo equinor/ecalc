@@ -1,9 +1,10 @@
 from typing import Optional
 
+from pydantic import validator
+
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.utils.validators import EmissionNameStr, convert_expression
 from libecalc.expression import Expression
-from pydantic import validator
 
 
 class Emission(EcalcBaseModel):

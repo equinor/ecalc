@@ -1,11 +1,12 @@
 from enum import Enum
 from typing import List, Optional
 
+from pydantic import Field, validator
+
 from libecalc.dto.base import EcalcBaseModel, FuelTypeUserDefinedCategoryType
 from libecalc.dto.emission import Emission
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
-from pydantic import Field, validator
 
 
 class ConsumptionType(str, Enum):

@@ -8,9 +8,10 @@ from numbers import Number
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-from libecalc.common.logger import logger
 from numpy.typing import NDArray
 from pydantic import BaseModel
+
+from libecalc.common.logger import logger
 
 """
 Module for expression parsing used in Energy/CO2/emissions calculator

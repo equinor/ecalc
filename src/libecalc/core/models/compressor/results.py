@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import List, Optional, Union
 
 import numpy as np
+from pydantic import BaseModel, Extra, validator
+
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.core.models.results.compressor import (
@@ -11,7 +13,6 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto.types import ChartAreaFlag
-from pydantic import BaseModel, Extra, validator
 
 
 class CompressorTrainStageResultSingleTimeStep(BaseModel):

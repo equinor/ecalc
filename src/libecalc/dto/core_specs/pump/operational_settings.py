@@ -3,9 +3,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
+from typing_extensions import Self
+
 from libecalc.common.stream import Stream
 from libecalc.dto.core_specs.base.operational_settings import OperationalSettings
-from typing_extensions import Self
 
 
 class PumpOperationalSettings(OperationalSettings):

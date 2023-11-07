@@ -3,6 +3,8 @@ from abc import abstractmethod
 from typing import List, Union
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.exceptions import IllegalStateException
 from libecalc.common.logger import logger
@@ -27,7 +29,6 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.dto.types import ChartAreaFlag
-from numpy.typing import NDArray
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

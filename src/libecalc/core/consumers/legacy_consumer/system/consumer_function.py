@@ -3,6 +3,8 @@ from copy import deepcopy
 from typing import List, Optional
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc.common.exceptions import IncompatibleDataError
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
@@ -34,7 +36,6 @@ from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.pump import PumpModel
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
-from numpy.typing import NDArray
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):

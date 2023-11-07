@@ -5,9 +5,10 @@ from pathlib import Path
 from typing import IO
 
 import pytest
-from libecalc.input import file_io, yaml_entities
-from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.input.yaml_entities import YamlTimeseriesType
+from libecalc.infrastructure import file_io
+from libecalc.presentation.yaml import yaml_entities
+from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
 @pytest.fixture

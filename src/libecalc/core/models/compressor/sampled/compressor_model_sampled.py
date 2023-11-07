@@ -3,6 +3,9 @@ from typing import Dict, List, Optional, Type, Union
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
+from scipy.interpolate import interp1d
+
 from libecalc import dto
 from libecalc.common.feature_flags import Feature
 from libecalc.common.logger import logger
@@ -36,8 +39,6 @@ from libecalc.core.models.results import (
 )
 from libecalc.dto.models.compressor import CompressorSampled
 from libecalc.dto.types import ChartAreaFlag
-from numpy.typing import NDArray
-from scipy.interpolate import interp1d
 
 
 class CompressorModelSampled(CompressorModel):

@@ -2,10 +2,11 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy as np
-from libecalc.common.logger import logger
 from numpy.typing import NDArray
 from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import ConvexHull
+
+from libecalc.common.logger import logger
 
 
 def sort_ndarray_by_column(arr: NDArray[np.float64], column_index: NDArray[np.float64]) -> NDArray[np.float64]:

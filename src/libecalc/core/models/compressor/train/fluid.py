@@ -5,9 +5,10 @@ from typing import List, Optional, Union
 import numpy as np
 from ecalc_neqsim_wrapper import NeqsimFluid
 from ecalc_neqsim_wrapper.thermo import mix_neqsim_streams
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.units import UnitConstants
-from numpy.typing import NDArray
 
 
 class FluidStream:

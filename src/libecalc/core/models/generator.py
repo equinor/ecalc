@@ -1,7 +1,8 @@
 import numpy as np
-from libecalc import dto
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
+
+from libecalc import dto
 
 
 class GeneratorModelSampled:
