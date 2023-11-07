@@ -10,8 +10,9 @@ from libecalc.presentation.yaml.validation import json_schemas
 # This just needs to be a unique ID, it is required, but we do not need to have anything at that URI
 # since we are embedding everything within one file
 # Do not change this URI, since it has already been used in all json schemas
-from libecalc.presentation.yaml.yaml_types import YamlTurbine
+# from libecalc.presentation.yaml.yaml_types import YamlTurbine
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.models.yaml_turbine import YamlTurbine
 
 BASE_URI = "$SERVER_NAME/api/v1/schema-validation"
 JSON_SCHEMA_PATH = Path(json_schemas.__file__).resolve().parent

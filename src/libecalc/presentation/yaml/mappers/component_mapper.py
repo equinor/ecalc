@@ -21,7 +21,7 @@ from libecalc.presentation.yaml.validation_errors import (
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_types import (
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
 

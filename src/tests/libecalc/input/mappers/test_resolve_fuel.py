@@ -4,7 +4,9 @@ import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Period
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.mappers import _resolve_fuel
+from libecalc.presentation.yaml.mappers.component_mapper import _resolve_fuel
+
+# from libecalc.presentation.yaml.mappers import _resolve_fuel
 from libecalc.presentation.yaml.yaml_entities import References
 
 

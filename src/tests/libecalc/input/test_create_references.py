@@ -1,4 +1,4 @@
-from libecalc.presentation.yaml.mappers import _sort_models
+from libecalc.presentation.yaml.mappers.create_references import _sort_models
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 

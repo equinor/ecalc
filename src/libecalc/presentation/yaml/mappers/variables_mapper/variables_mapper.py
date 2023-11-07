@@ -15,7 +15,10 @@ from libecalc.presentation.yaml.mappers.variables_mapper.timeseries_utils import
 )
 from libecalc.presentation.yaml.yaml_entities import Resources
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_types import YamlSingleVariable, YamlVariable
+from libecalc.presentation.yaml.yaml_types.yaml_variable import (
+    YamlSingleVariable,
+    YamlVariable,
+)
 
 
 @dataclass
