@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Optional
 
+from pydantic import Field, root_validator
+
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import EoSModel, FluidStreamType
-from pydantic import Field, root_validator
 
 
 class FluidComposition(EcalcBaseModel):

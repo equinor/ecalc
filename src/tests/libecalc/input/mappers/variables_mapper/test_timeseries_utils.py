@@ -4,10 +4,10 @@ import libecalc.common.time_utils
 import pytest
 from libecalc.common.time_utils import Frequency
 from libecalc.dto.types import InterpolationType
-from libecalc.input.mappers.variables_mapper.time_series_collection import (
+from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection import (
     MiscellaneousTimeSeriesCollection,
 )
-from libecalc.input.mappers.variables_mapper.timeseries_utils import (
+from libecalc.presentation.yaml.mappers.variables_mapper.timeseries_utils import (
     _get_end_boundary,
     fit_time_series_to_time_vector,
     get_global_time_vector,

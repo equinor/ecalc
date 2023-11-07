@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy
+
 from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
     TabulatedConsumerFunction,

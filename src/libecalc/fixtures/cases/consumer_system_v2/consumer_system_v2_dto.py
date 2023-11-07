@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc import dto
 from libecalc.common.string_utils import generate_id
 from libecalc.common.units import Unit

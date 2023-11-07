@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import pytest
 from libecalc import dto
 from libecalc.fixtures import DTOCase
-from libecalc.output.flow_diagram.EcalcModelMapper import (
+from libecalc.presentation.flow_diagram.EcalcModelMapper import (
     EcalcModelMapper,
     FlowDiagram,
     Node,

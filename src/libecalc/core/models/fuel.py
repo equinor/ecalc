@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Dict
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
@@ -10,7 +12,6 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.core.result.emission import EmissionResult
 from libecalc.expression import Expression
-from numpy.typing import NDArray
 
 
 class FuelModel:

@@ -1,5 +1,7 @@
 from typing import List, Literal, Optional
 
+from pydantic import confloat, validator
+
 from libecalc.dto.models.base import EnergyModel
 from libecalc.dto.models.compressor.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.dto.models.compressor.fluid import (
@@ -11,7 +13,6 @@ from libecalc.dto.models.compressor.stage import (
     MultipleStreamsCompressorStage,
 )
 from libecalc.dto.types import EnergyModelType, FixedSpeedPressureControl
-from pydantic import confloat, validator
 
 
 class CompressorTrain(EnergyModel):

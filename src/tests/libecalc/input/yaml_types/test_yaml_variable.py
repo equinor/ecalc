@@ -2,7 +2,12 @@ from datetime import datetime
 
 import pytest
 from libecalc.expression import Expression
-from libecalc.input.yaml_types.yaml_variable import YamlSingleVariable, YamlVariables
+from libecalc.presentation.yaml.yaml_types.yaml_variable import (
+    YamlSingleVariable,
+    YamlVariables,
+)
+
+# from libecalc.presentation.yaml.yaml_types import YamlSingleVariable, YamlVariables
 from pydantic import ValidationError, parse_obj_as
 
 

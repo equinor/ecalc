@@ -1,10 +1,11 @@
 from typing import List, Optional
 
 import numpy as np
-from libecalc import dto
-from libecalc.core.models.chart.base import ChartCurve
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
+
+from libecalc import dto
+from libecalc.core.models.chart.base import ChartCurve
 
 
 class VariableSpeedChart:

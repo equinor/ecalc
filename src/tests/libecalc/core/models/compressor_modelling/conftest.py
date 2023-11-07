@@ -21,7 +21,7 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.dto.types import FixedSpeedPressureControl
-from libecalc.input.mappers.fluid_mapper import (
+from libecalc.presentation.yaml.mappers.fluid_mapper import (
     DRY_MW_18P3,
     MEDIUM_MW_19P4,
     RICH_MW_21P4,

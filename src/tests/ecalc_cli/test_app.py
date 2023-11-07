@@ -16,8 +16,8 @@ from libecalc.common.run_info import RunInfo
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.examples import advanced, simple
 from libecalc.fixtures.cases import ltp_export
-from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.input.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from pydantic import Protocol
 from typer.testing import CliRunner
 

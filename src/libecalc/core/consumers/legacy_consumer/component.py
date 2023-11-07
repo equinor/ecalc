@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import DefaultDict, Iterable, List, Union
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
@@ -41,7 +43,6 @@ from libecalc.core.result.results import (
 from libecalc.dto import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
-from numpy.typing import NDArray
 
 
 def get_operational_settings_used_from_consumer_result(

@@ -1,8 +1,9 @@
 from typing import Union
 
+from pydantic import BaseModel
+
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.pump import PumpModel
-from pydantic import BaseModel
 
 
 class ConsumerSystemComponent(BaseModel):

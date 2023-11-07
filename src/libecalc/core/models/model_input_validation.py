@@ -2,8 +2,9 @@ from enum import Enum
 from typing import List, Optional, Tuple
 
 import numpy as np
-from libecalc.common.logger import logger
 from numpy.typing import NDArray
+
+from libecalc.common.logger import logger
 
 INVALID_INPUT = np.nan
 

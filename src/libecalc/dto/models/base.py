@@ -1,10 +1,11 @@
 from typing import Optional
 
+from pydantic import validator
+
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import ConsumerType, EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
-from pydantic import validator
 
 
 class ConsumerFunction(EcalcBaseModel):

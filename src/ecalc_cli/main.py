@@ -2,7 +2,7 @@ from pathlib import Path
 
 import libecalc.version
 import typer
-from libecalc.input.validation_errors import DataValidationError
+from libecalc.presentation.yaml.validation_errors import DataValidationError
 
 from ecalc_cli.commands import show
 from ecalc_cli.commands.run import run

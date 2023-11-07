@@ -5,6 +5,8 @@ from functools import partial
 from typing import List
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.stream import Stream
@@ -16,7 +18,6 @@ from libecalc.core.models.compressor.train.utils.common import (
 from libecalc.core.models.compressor.train.utils.numeric_methods import find_root
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.models.turbine import TurbineModel
-from numpy.typing import NDArray
 
 
 class CompressorModel(BaseModel):

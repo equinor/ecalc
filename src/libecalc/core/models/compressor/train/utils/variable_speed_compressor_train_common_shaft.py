@@ -1,4 +1,5 @@
 import numpy as np
+
 from libecalc import dto
 from libecalc.core.models.compressor.train.chart import (
     SingleSpeedCompressorChart,

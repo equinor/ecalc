@@ -4,6 +4,9 @@ from enum import Enum
 from typing import List, Literal, Optional, Union
 
 import numpy as np
+from numpy.typing import NDArray
+from pydantic import BaseModel
+
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
@@ -16,8 +19,6 @@ from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
 )
 from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
 from libecalc.core.result.results import ConsumerModelResult
-from numpy.typing import NDArray
-from pydantic import BaseModel
 
 
 class ConsumerSystemComponentResult(BaseModel):

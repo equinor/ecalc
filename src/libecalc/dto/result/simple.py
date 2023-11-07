@@ -2,14 +2,15 @@ import enum
 from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
+from pydantic import Extra, root_validator
+from scipy.interpolate import interp1d
+
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.dto.base import ComponentType
 from libecalc.dto.result.base import EcalcResultBaseModel
 from libecalc.dto.result.types import opt_float
-from pydantic import Extra, root_validator
-from scipy.interpolate import interp1d
 
 
 class SimpleBase(EcalcResultBaseModel):

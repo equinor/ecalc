@@ -2,6 +2,10 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
+from scipy.interpolate import LinearNDInterpolator, interp1d
+from scipy.spatial import ConvexHull, Delaunay
+
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.sampled.constants import (
     EPSILON,
@@ -15,9 +19,6 @@ from libecalc.core.models.compressor.sampled.convex_hull_common import (
     get_lower_upper_qhull,
     sort_ndarray_by_column,
 )
-from numpy.typing import NDArray
-from scipy.interpolate import LinearNDInterpolator, interp1d
-from scipy.spatial import ConvexHull, Delaunay
 
 EPSILON_MAX_RATE = 1e-4
 

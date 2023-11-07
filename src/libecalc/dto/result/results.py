@@ -3,6 +3,9 @@ from __future__ import annotations
 from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
+from pydantic import Field, validator
+from typing_extensions import Annotated
+
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
 from libecalc.common.stream import Stage
@@ -24,8 +27,6 @@ from libecalc.dto.result.base import EcalcResultBaseModel
 from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
 from libecalc.dto.result.simple import SimpleComponentResult, SimpleResultData
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
-from pydantic import Field, validator
-from typing_extensions import Annotated
 
 
 class NodeInfo(EcalcResultBaseModel):

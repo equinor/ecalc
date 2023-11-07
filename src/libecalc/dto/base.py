@@ -4,11 +4,12 @@ from enum import Enum
 from functools import partial
 from typing import Optional
 
-from libecalc.common.string_utils import to_camel_case
-from libecalc.expression import Expression
 from orjson import orjson
 from pydantic import BaseModel, Extra
 from pydantic.json import custom_pydantic_encoder
+
+from libecalc.common.string_utils import to_camel_case
+from libecalc.expression import Expression
 
 
 class ComponentType(str, Enum):

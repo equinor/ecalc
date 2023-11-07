@@ -2,6 +2,8 @@ from collections import defaultdict
 from typing import Dict, List, Union
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc.common.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -15,7 +17,6 @@ from libecalc.core.consumers.legacy_consumer.system.results import (
 )
 from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
 from libecalc.core.models.results.base import EnergyFunctionResult
-from numpy.typing import NDArray
 
 
 def get_single_consumer_models(

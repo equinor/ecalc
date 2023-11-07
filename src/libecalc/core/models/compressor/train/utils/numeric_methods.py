@@ -1,8 +1,9 @@
 from typing import Callable, Union
 
 import numpy as np
-from libecalc.common.logger import logger
 from scipy.optimize import root_scalar
+
+from libecalc.common.logger import logger
 
 CONVERGENCE_TOLERANCE = 1e-5
 MAXIMUM_NUMBER_OF_ITERATIONS = 50

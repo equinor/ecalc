@@ -1,7 +1,8 @@
 from typing import List
 
-from libecalc.dto.types import ChartAreaFlag
 from pydantic import BaseModel, Extra
+
+from libecalc.dto.types import ChartAreaFlag
 
 
 class CompressorChartHeadEfficiencyResultSinglePoint(BaseModel):

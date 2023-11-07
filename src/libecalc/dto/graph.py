@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, List
 
 import networkx as nx
+
 from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.dto.base import ComponentType

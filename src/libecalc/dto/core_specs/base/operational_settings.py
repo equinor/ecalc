@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from libecalc.dto.base import EcalcBaseModel
 from typing_extensions import Self
+
+from libecalc.dto.base import EcalcBaseModel
 
 
 class OperationalSettings(ABC, EcalcBaseModel):

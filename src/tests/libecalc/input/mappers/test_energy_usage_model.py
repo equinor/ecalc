@@ -8,10 +8,12 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.dto.utils.validators import convert_expressions
 from libecalc.expression import Expression
-from libecalc.input.mappers.consumer_function_mapper import ConsumerFunctionMapper
-from libecalc.input.validation_errors import DataValidationError
-from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.input.yaml_entities import References, ResourceStream
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
+    ConsumerFunctionMapper,
+)
+from libecalc.presentation.yaml.validation_errors import DataValidationError
+from libecalc.presentation.yaml.yaml_entities import References, ResourceStream
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 SINGLE_SPEED_PUMP_CHART = dto.PumpModel(
     chart=dto.SingleSpeedChart(

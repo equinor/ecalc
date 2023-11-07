@@ -1,9 +1,9 @@
 from datetime import datetime
 
 import pytest
-from libecalc.input.validation_errors import DataValidationError
-from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.input.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.validation_errors import DataValidationError
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
 class TestYamlConfiguration:

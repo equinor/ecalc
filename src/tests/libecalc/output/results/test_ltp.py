@@ -30,7 +30,7 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
     installation_direct_consumer_dto,
     installation_offshore_wind_dto,
 )
-from libecalc.output.results.configs.configs import LTPConfig
+from libecalc.presentation.exporter.configs.configs import LTPConfig
 
 time_vector_installation = [
     datetime(2027, 1, 1),

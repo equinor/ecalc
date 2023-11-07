@@ -11,10 +11,11 @@ from copy import deepcopy
 from typing import Callable, List, Tuple, Union
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
-from numpy.typing import NDArray
 
 
 def calculate_enthalpy_change_head_iteration(

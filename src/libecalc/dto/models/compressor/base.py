@@ -1,5 +1,7 @@
 from typing import List, Literal, Optional, Union
 
+from pydantic import Field, validator
+
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.compressor.sampled import CompressorSampled
 from libecalc.dto.models.compressor.train import (
@@ -13,7 +15,6 @@ from libecalc.dto.models.turbine import Turbine
 from libecalc.dto.types import ConsumerType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
-from pydantic import Field, validator
 
 
 class CompressorWithTurbine(EnergyModel):

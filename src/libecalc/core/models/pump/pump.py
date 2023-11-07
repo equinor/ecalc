@@ -4,6 +4,9 @@ from abc import abstractmethod
 from typing import List, Union
 
 import numpy as np
+from numpy.typing import NDArray
+from scipy.interpolate import interp1d
+
 from libecalc.common.logger import logger
 from libecalc.common.stream import Stream
 from libecalc.common.units import Unit, UnitConstants
@@ -11,8 +14,6 @@ from libecalc.common.utils.adjustment import transform_linear
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.results import PumpModelResult
-from numpy.typing import NDArray
-from scipy.interpolate import interp1d
 
 EPSILON = 1e-15
 

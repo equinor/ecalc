@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Dict, NamedTuple, TextIO
 
 from libecalc import dto
-from libecalc.input.yaml_entities import Resource
+from libecalc.presentation.yaml.yaml_entities import Resource
 
 
 @dataclass

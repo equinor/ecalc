@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Literal
 
-from libecalc.dto.types import EnergyModelType
 from pydantic import confloat, root_validator
+
+from libecalc.dto.types import EnergyModelType
 
 from .base import EnergyModel
 
