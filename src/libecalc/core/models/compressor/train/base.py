@@ -68,7 +68,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]] = None,
     ) -> CompressorTrainResult:
         """Evaluate compressor train total power given rate, suction pressure and discharge pressure.
 

@@ -51,7 +51,7 @@ class CompressorModel(BaseModel):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]] = None,
     ) -> CompressorTrainResult:
         """Evaluate the compressor model and get rate, suction pressure and discharge pressure.
 
@@ -87,7 +87,7 @@ class CompressorWithTurbineModel(CompressorModel):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]] = None,
     ) -> CompressorTrainResult:
         return self.evaluate_turbine_based_on_compressor_model_result(
             compressor_energy_function_result=self.compressor_model.evaluate_rate_ps_pd(
@@ -115,7 +115,7 @@ class CompressorWithTurbineModel(CompressorModel):
         suction_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-        pressure_drop_ahead_of_stage: List[NDArray[np.float64]],
+        pressure_drop_ahead_of_stage: List[NDArray[np.float64]] = None,
     ) -> CompressorTrainResult:
         return self.evaluate_turbine_based_on_compressor_model_result(
             compressor_energy_function_result=self.compressor_model.evaluate_rate_ps_pint_pd(
@@ -159,7 +159,6 @@ class CompressorWithTurbineModel(CompressorModel):
             rate=np.asarray([standard_rate]),
             suction_pressure=np.asarray([suction_pressure]),
             discharge_pressure=np.asarray([discharge_pressure]),
-            pressure_drop_ahead_of_stage=None,
         ).power[0] - (max_power - POWER_CALCULATION_TOLERANCE)
 
     def get_max_standard_rate(
