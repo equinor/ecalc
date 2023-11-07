@@ -1,4 +1,4 @@
-from libecalc.input.yaml_types.yaml_temporal_model import YamlTemporalModel
+from libecalc.presentation.yaml.yaml_types import YamlTemporalModel
 from pydantic import schema_of
 
 

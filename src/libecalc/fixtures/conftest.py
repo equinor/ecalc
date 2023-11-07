@@ -2,10 +2,11 @@ from datetime import datetime
 from typing import Dict
 
 import pytest
+
 from libecalc import dto
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
-from libecalc.input.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4
 
 
 @pytest.fixture

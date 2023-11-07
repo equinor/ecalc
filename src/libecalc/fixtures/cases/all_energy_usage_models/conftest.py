@@ -2,10 +2,11 @@ from datetime import datetime
 from typing import Dict
 
 import pytest
+
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.expression import Expression
-from libecalc.input.mappers.fluid_mapper import MEDIUM_MW_19P4
+from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 
 @pytest.fixture

@@ -5,12 +5,14 @@ from typing import Any, Dict
 import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Period
-from libecalc.input.mappers.component_mapper import EcalcModelMapper
-from libecalc.input.mappers.create_references import create_references
-from libecalc.input.mappers.model import ModelMapper
-from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.input.yaml_entities import Resource, ResourceStream
-from libecalc.input.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.mappers import (
+    EcalcModelMapper,
+    ModelMapper,
+    create_references,
+)
+from libecalc.presentation.yaml.yaml_entities import Resource, ResourceStream
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
 class TestModelMapper:

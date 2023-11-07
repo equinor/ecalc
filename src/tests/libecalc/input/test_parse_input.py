@@ -4,10 +4,10 @@ from typing import Optional
 from libecalc import dto
 from libecalc.dto import VariablesMap
 from libecalc.fixtures import DTOCase, YamlCase
-from libecalc.input.mappers import map_yaml_to_variables
-from libecalc.input.parse_input import map_yaml_to_dto
-from libecalc.input.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.input.yaml_entities import Resources, ResourceStream
+from libecalc.presentation.yaml.mappers import map_yaml_to_variables
+from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
+from libecalc.presentation.yaml.yaml_entities import Resources, ResourceStream
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
 def parse_input(

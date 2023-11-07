@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Dict, List
 
 from libecalc.fixtures import YamlCase
-from libecalc.input.file_io import read_resource_from_filepath
-from libecalc.input.yaml_entities import Resource
+from libecalc.infrastructure.file_io import read_resource_from_filepath
+from libecalc.presentation.yaml.yaml_entities import Resource
 
 
 def _read_main_file(main_file_path: Path) -> io.StringIO:

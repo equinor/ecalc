@@ -3,11 +3,11 @@ from datetime import datetime
 import pytest
 from libecalc.dto import VariablesMap
 from libecalc.expression import Expression
-from libecalc.input.mappers.variables_mapper.variables_mapper import (
+from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import (
     VariableProcessor,
     _evaluate_variables,
 )
-from libecalc.input.yaml_types.yaml_variable import YamlSingleVariable
+from libecalc.presentation.yaml.yaml_types import YamlSingleVariable
 
 
 class TestEvaluateVariables:

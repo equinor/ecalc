@@ -2,7 +2,9 @@ import json
 
 import pytest
 from jsonschema import Draft7Validator
-from libecalc.input.validation.generate_json_schema import generate_json_schemas
+from libecalc.presentation.yaml.validation.generate_json_schema import (
+    generate_json_schemas,
+)
 
 
 class TestSchemas:
