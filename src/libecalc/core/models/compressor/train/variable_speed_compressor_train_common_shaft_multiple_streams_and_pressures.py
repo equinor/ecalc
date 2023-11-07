@@ -179,6 +179,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
     ) -> List[CompressorTrainResultSingleTimeStep]:
         # Iterate over input points, calculate one by one
         train_results = []
+        if not pressure_drop_ahead_of_stage:
+            pressure_drop_ahead_of_stage = [np.asarray(0)] * len(self.stages)
+
         for time_step, (
             suction_pressure_this_time_step,
             discharge_pressure_this_time_step,
@@ -894,6 +897,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         """
         stage_results = []
+        if not pressure_drop_ahead_of_stage:
+            pressure_drop_ahead_of_stage = [0.0] * len(self.stages)
+
         inlet_stream = self.streams[0].fluid.get_fluid_stream(
             pressure_bara=inlet_pressure_bara,
             temperature_kelvin=self.stages[0].inlet_temperature_kelvin,

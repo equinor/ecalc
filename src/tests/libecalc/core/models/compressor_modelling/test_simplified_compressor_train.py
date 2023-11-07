@@ -37,6 +37,11 @@ def discharge_pressures():
 
 
 @pytest.fixture
+def pressure_drop_ahead_of_stage():
+    return [np.asarray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), np.asarray([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])]
+
+
+@pytest.fixture
 def simplified_compressor_train_unknown_stages_dto(
     rich_fluid, variable_speed_compressor_chart_dto
 ) -> dto.CompressorTrainSimplifiedWithUnknownStages:
@@ -130,7 +135,11 @@ def simplified_compressor_train_with_known_stages_dto(medium_fluid_dto) -> dto.C
 
 
 def test_simplified_compressor_train_known_stages(
-    simplified_compressor_train_with_known_stages_dto, rates, suction_pressures, discharge_pressures
+    simplified_compressor_train_with_known_stages_dto,
+    rates,
+    suction_pressures,
+    discharge_pressures,
+    pressure_drop_ahead_of_stage,
 ):
     compressor_train = CompressorTrainSimplifiedKnownStages(
         data_transfer_object=simplified_compressor_train_with_known_stages_dto,
@@ -139,6 +148,7 @@ def test_simplified_compressor_train_known_stages(
         rate=rates,
         suction_pressure=suction_pressures,
         discharge_pressure=discharge_pressures,
+        pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
     )
 
 

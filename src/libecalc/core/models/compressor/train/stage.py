@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from libecalc import dto
 from libecalc.common.exceptions import IllegalStateException
@@ -16,6 +16,7 @@ from libecalc.core.models.compressor.train.utils.common import (
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
 )
+from libecalc.expression import Expression
 from pydantic import BaseModel, confloat, root_validator
 
 
@@ -28,7 +29,7 @@ class CompressorTrainStage(BaseModel):
     compressor_chart: Union[SingleSpeedCompressorChart, VariableSpeedCompressorChart]
     inlet_temperature_kelvin: float
     remove_liquid_after_cooling: bool
-    # pressure_drop_before_stage: Optional[Union[float, Expression, List[Expression]]] = None
+    pressure_drop_ahead_of_stage: Optional[Union[float, Expression, List[Expression]]] = None
     variables_map: Optional[dto.variables.VariablesMap] = None
 
     class Config:
