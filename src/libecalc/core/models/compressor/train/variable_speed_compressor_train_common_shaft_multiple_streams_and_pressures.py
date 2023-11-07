@@ -179,8 +179,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
     ) -> List[CompressorTrainResultSingleTimeStep]:
         # Iterate over input points, calculate one by one
         train_results = []
-        if not pressure_drop_ahead_of_stage:
-            pressure_drop_ahead_of_stage = [np.asarray(0)] * len(self.stages)
+        if pressure_drop_ahead_of_stage is None:
+            pressure_drop_ahead_of_stage = np.asarray([[np.asarray(0.0)] * len(suction_pressure)] * len(self.stages))
 
         for time_step, (
             suction_pressure_this_time_step,
@@ -777,6 +777,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         :param discharge_pressure: discharge pressure in bara at outlet of last compressor in train
         :param pressure_drop_ahead_of_stage: pressure drop for each stage in bara
         """
+        if pressure_drop_ahead_of_stage is None:
+            pressure_drop_ahead_of_stage = np.asarray([[np.asarray(0.0)] * len(suction_pressure)] * len(self.stages))
+
         self._check_intermediate_pressure_stage_number_is_valid(
             _stage_number_intermediate_pressure=self.data_transfer_object.stage_number_interstage_pressure,
             number_of_stages=len(self.stages),
@@ -897,7 +900,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         """
         stage_results = []
-        if not pressure_drop_ahead_of_stage:
+        if pressure_drop_ahead_of_stage is None:
             pressure_drop_ahead_of_stage = [0.0] * len(self.stages)
 
         inlet_stream = self.streams[0].fluid.get_fluid_stream(

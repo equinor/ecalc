@@ -236,6 +236,7 @@ def test_calculate_compressor_train_given_speed_invalid(variable_speed_compresso
             speed=1,
             mass_rate_kg_per_hour=6000000.0,
             inlet_pressure_bara=50,
+            pressure_drop_ahead_of_stage=None,
         )
 
 
@@ -269,6 +270,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         suction_pressure=20,
         target_discharge_pressure=400,
+        pressure_drop_ahead_of_stage=None,
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
 
@@ -277,6 +279,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         suction_pressure=20,
         target_discharge_pressure=1000,
+        pressure_drop_ahead_of_stage=None,
     )
     assert result.failure_status == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
 
@@ -285,6 +288,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         suction_pressure=20,
         target_discharge_pressure=1,
+        pressure_drop_ahead_of_stage=None,
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
     assert result.discharge_pressure == 1
@@ -296,6 +300,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         suction_pressure=20,
         target_discharge_pressure=600,
+        pressure_drop_ahead_of_stage=None,
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
 
@@ -304,6 +309,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         mass_rate_kg_per_hour=1,
         suction_pressure=20,
         target_discharge_pressure=400,
+        pressure_drop_ahead_of_stage=None,
     )
     # Check that actual rate is equal to minimum rate for the speed
     assert result.stage_results[0].inlet_actual_rate_asv_corrected_m3_per_hour == pytest.approx(

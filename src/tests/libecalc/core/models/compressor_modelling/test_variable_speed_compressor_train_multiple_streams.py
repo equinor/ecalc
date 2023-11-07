@@ -84,7 +84,7 @@ def mock_variable_speed_compressor_train_multiple_streams_and_pressures(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
+        pressure_drop_before_stage=0.0,
         control_margin=0,
     )
     return dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
@@ -266,14 +266,14 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
+        pressure_drop_before_stage=0.0,
         control_margin=0,
     )
     stage2 = dto.MultipleStreamsCompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
+        pressure_drop_before_stage=0.0,
         control_margin=0,
         interstage_pressure_control=InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,

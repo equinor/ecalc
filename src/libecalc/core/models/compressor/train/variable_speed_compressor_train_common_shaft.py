@@ -84,7 +84,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         # Iterate over input points, calculate one by one
         train_results: List[CompressorTrainResultSingleTimeStep] = []
         if pressure_drop_ahead_of_stage is None:
-            pressure_drop_ahead_of_stage = [np.asarray(None)] * len(suction_pressure)
+            pressure_drop_ahead_of_stage = [np.asarray(0.0)] * len(suction_pressure)
 
         for (
             mass_rate_kg_per_hour_this_time_step,
@@ -210,8 +210,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             results including conditions and calculations for each stage and power.
 
         """
-        if not pressure_drop_ahead_of_stage:
-            pressure_drop_ahead_of_stage = [np.asarray(0)] * len(self.stages)
+        if pressure_drop_ahead_of_stage is None or not isinstance(pressure_drop_ahead_of_stage, np.ndarray):
+            pressure_drop_ahead_of_stage = [np.asarray(0.0)] * len(self.stages)
         # Initialize stream at inlet of first compressor stage using fluid properties and inlet conditions
         train_inlet_stream = self.fluid.get_fluid_streams(
             pressure_bara=np.asarray([inlet_pressure_bara - pressure_drop_ahead_of_stage[0]]),

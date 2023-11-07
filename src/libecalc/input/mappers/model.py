@@ -548,7 +548,7 @@ def _simplified_variable_speed_compressor_train_mapper(
                     compressor_chart=input_models.get(
                         stage.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
                     ),
-                    pressure_drop_before_stage=0,
+                    pressure_drop_before_stage=0.0,
                     control_margin=0,
                     remove_liquid_after_cooling=True,
                 )
@@ -570,7 +570,7 @@ def _simplified_variable_speed_compressor_train_mapper(
                     [train_spec.get(EcalcYamlKeywords.models_type_compressor_train_inlet_temperature)],
                     input_unit=Unit.CELSIUS,
                 )[0],
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=0.0,
                 remove_liquid_after_cooling=True,
             ),
             energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),

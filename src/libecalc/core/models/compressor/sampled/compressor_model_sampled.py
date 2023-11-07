@@ -154,6 +154,7 @@ class CompressorModelSampled(CompressorModel):
         rate: Optional[NDArray[np.float64]],
         suction_pressure: Optional[NDArray[np.float64]],
         discharge_pressure: Optional[NDArray[np.float64]],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]] = None,
     ) -> CompressorTrainResult:
         """:param rate: Rate in standard m3/hour [Sm3/h]
         :param suction_pressure: Suction pressure [bar]

@@ -130,7 +130,7 @@ def test_simplified_compressor_train_compressor_stage_work(
                         design_polytropic_head_J_per_kg=1,  # Dummy value
                         design_rate_actual_m3_per_hour=1,  # Dummy value
                     ),
-                    pressure_drop_before_stage=0,
+                    pressure_drop_before_stage=0.0,
                     remove_liquid_after_cooling=True,
                     control_margin=0,
                 )
