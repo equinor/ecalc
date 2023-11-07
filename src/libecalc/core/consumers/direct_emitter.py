@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Dict, List
 
 import numpy as np
+
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel

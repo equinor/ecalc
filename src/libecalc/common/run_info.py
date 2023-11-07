@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from libecalc.common.version import Version
 from pydantic import BaseModel
+
+from libecalc.common.version import Version
 
 
 class RunInfo(BaseModel):

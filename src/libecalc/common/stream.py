@@ -3,10 +3,11 @@ from datetime import datetime
 from functools import reduce
 from typing import List, Literal, Optional
 
-from libecalc.common.string_utils import to_camel_case
-from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from pydantic import BaseModel, Extra
 from typing_extensions import Self
+
+from libecalc.common.string_utils import to_camel_case
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 
 
 class Stream(BaseModel):

@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
+from typing_extensions import Self
+
 from libecalc.common.stream import Stage
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.utils.rates import (
@@ -15,7 +17,6 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.result.base import EcalcResultBaseModel
 from libecalc.dto.base import ComponentType
-from typing_extensions import Self
 
 
 class CommonResultBase(EcalcResultBaseModel):

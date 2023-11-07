@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc import dto
 from libecalc.dto.base import (
     ComponentType,

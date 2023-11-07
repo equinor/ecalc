@@ -4,6 +4,9 @@ from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
+from numpy.typing import NDArray
+from scipy.interpolate import interp1d
+
 from libecalc import dto
 from libecalc.common.exceptions import IllegalStateException
 from libecalc.common.logger import logger
@@ -13,8 +16,6 @@ from libecalc.core.models.compressor.train.chart.types import (
     CompressorChartResult,
 )
 from libecalc.dto.types import ChartAreaFlag
-from numpy.typing import NDArray
-from scipy.interpolate import interp1d
 
 NUMERICAL_TOLERANCE = 1e-7
 

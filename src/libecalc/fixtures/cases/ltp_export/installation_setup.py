@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Dict
 
 import numpy as np
+
 from libecalc import dto
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit

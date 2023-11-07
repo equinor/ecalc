@@ -5,13 +5,14 @@ from enum import Enum
 from typing import List, Literal, NamedTuple, Optional, Union
 
 import numpy as np
+from numpy.typing import NDArray
+from pydantic import BaseModel
+
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
 from libecalc.core.models.results.base import EnergyFunctionResult
-from numpy.typing import NDArray
-from pydantic import BaseModel
 
 
 class ConditionsAndPowerLossResult(NamedTuple):

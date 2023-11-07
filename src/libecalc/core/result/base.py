@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from enum import Enum
 
+from typing_extensions import Self
+
 from libecalc.common.logger import logger
 from libecalc.common.utils.rates import TimeSeries
 from libecalc.dto import SingleSpeedChart, VariableSpeedChart
 from libecalc.dto.base import EcalcBaseModel
-from typing_extensions import Self
 
 
 class EcalcResultBaseModel(EcalcBaseModel):

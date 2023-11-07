@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import numpy as np
+
 from libecalc import dto
 from libecalc.common.stream import Stage, Stream
 from libecalc.common.temporal_model import TemporalModel

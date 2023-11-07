@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import numpy as np
+
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType

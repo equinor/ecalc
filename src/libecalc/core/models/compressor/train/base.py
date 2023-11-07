@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Generic, List, Optional, TypeVar, Union, cast
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.feature_flags import Feature
 from libecalc.common.logger import logger
@@ -24,7 +26,6 @@ from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTr
 from libecalc.dto.models.compressor.train import (
     SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
 )
-from numpy.typing import NDArray
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT

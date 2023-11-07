@@ -1,5 +1,7 @@
 from typing import Dict, Optional, Union
 
+from pydantic import BaseModel, confloat, root_validator
+
 from libecalc import dto
 from libecalc.common.exceptions import IllegalStateException
 from libecalc.common.logger import logger
@@ -16,7 +18,6 @@ from libecalc.core.models.compressor.train.utils.common import (
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
 )
-from pydantic import BaseModel, confloat, root_validator
 
 
 class CompressorTrainStage(BaseModel):

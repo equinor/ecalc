@@ -6,6 +6,7 @@ from math import isnan
 from typing import Dict, List, Optional, Union
 
 import numpy as np
+
 from libecalc import dto
 from libecalc.common.list_utils import elementwise_sum
 from libecalc.common.logger import logger

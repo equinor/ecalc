@@ -1,9 +1,10 @@
 from typing import List, Optional
 
+from pydantic import confloat
+
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.compressor.chart import CompressorChart, VariableSpeedChart
 from libecalc.dto.types import FixedSpeedPressureControl
-from pydantic import confloat
 
 
 class CompressorStage(EcalcBaseModel):

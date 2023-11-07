@@ -1,6 +1,8 @@
 from typing import List
 
 import numpy as np
+from numpy.typing import NDArray
+
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
@@ -8,7 +10,6 @@ from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
 from libecalc.core.consumers.legacy_consumer.system.results import (
     ConsumerSystemOperationalSettingResult,
 )
-from numpy.typing import NDArray
 
 
 def get_operational_settings_number_used_from_model_results(

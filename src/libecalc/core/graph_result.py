@@ -5,6 +5,8 @@ from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
+from pydantic import BaseModel, parse_obj_as
+
 import libecalc
 from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
@@ -39,7 +41,6 @@ from libecalc.dto.result.results import (
 )
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.expression import Expression
-from pydantic import BaseModel, parse_obj_as
 
 
 class EnergyCalculatorResult(BaseModel):

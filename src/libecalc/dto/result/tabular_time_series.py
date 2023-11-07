@@ -3,10 +3,11 @@ from datetime import datetime
 from typing import List, Optional
 
 import pandas as pd
+from typing_extensions import Self
+
 from libecalc.common.time_utils import Frequency
 from libecalc.common.utils.rates import TimeSeries, TimeSeriesBoolean
 from libecalc.dto.result.base import EcalcResultBaseModel
-from typing_extensions import Self
 
 
 class TabularTimeSeries(ABC, EcalcResultBaseModel):

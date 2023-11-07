@@ -1,5 +1,7 @@
 from typing import List, Literal, Optional
 
+from pydantic import Field, validator
+
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.base import ConsumerFunction
@@ -12,7 +14,6 @@ from libecalc.dto.models.pump import PumpModel
 from libecalc.dto.types import ChartType, ConsumerType, EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
-from pydantic import Field, validator
 
 
 class CompressorSystemCompressor(EcalcBaseModel):

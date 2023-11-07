@@ -3,6 +3,10 @@ from __future__ import annotations
 from typing import List
 
 import numpy as np
+from numpy.typing import NDArray
+from pydantic import BaseModel as PydanticBaseModel
+from scipy.interpolate import LinearNDInterpolator, interp1d
+
 from libecalc.common.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -11,9 +15,6 @@ from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
-from numpy.typing import NDArray
-from pydantic import BaseModel as PydanticBaseModel
-from scipy.interpolate import LinearNDInterpolator, interp1d
 
 
 class ConsumerTabularEnergyFunction(BaseModel):
