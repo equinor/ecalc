@@ -171,14 +171,21 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             raise IllegalStateException(msg)
 
     def _evaluate_rate_ps_pd(
-        self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
+        self,
+        rate: NDArray[np.float64],
+        suction_pressure: NDArray[np.float64],
+        discharge_pressure: NDArray[np.float64],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]] = None,
     ) -> List[CompressorTrainResultSingleTimeStep]:
         # Iterate over input points, calculate one by one
         train_results = []
         for time_step, (
             suction_pressure_this_time_step,
             discharge_pressure_this_time_step,
-        ) in enumerate(zip(suction_pressure, discharge_pressure)):
+            pressure_drop_ahead_of_stage_this_time_step,
+        ) in enumerate(
+            zip(suction_pressure, discharge_pressure, np.transpose(np.asarray(pressure_drop_ahead_of_stage)))
+        ):
             std_rates_std_m3_per_day_per_stream_this_time_step = (
                 self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate[:, time_step])
             )
@@ -198,6 +205,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_this_time_step,
                     suction_pressure=suction_pressure_this_time_step,
                     target_discharge_pressure=discharge_pressure_this_time_step,
+                    pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage_this_time_step,
                 )
                 train_results.append(compressor_train_result)
 
@@ -278,6 +286,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
         suction_pressure: float,
         target_discharge_pressure: float,
+        pressure_drop_ahead_of_stage: List[float],
         lower_bound_for_speed: Optional[float] = None,
         upper_bound_for_speed: Optional[float] = None,
     ) -> CompressorTrainResultSingleTimeStep:
@@ -304,6 +313,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=suction_pressure,
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                 speed=_speed,
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
             )
 
         train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
@@ -745,6 +755,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         suction_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]] = None,
     ) -> CompressorTrainResult:
         """Train where some intermediate pressure is also met in addition to discharge pressure
         First, the train is split into two models, one before the intermediate and one after and the speed required for
@@ -761,6 +772,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         :param suction_pressure: suction pressure in bara at inlet of first compressor in train
         :param intermediate_pressure: pressure at intermediate stage in bara
         :param discharge_pressure: discharge pressure in bara at outlet of last compressor in train
+        :param pressure_drop_ahead_of_stage: pressure drop for each stage in bara
         """
         self._check_intermediate_pressure_stage_number_is_valid(
             _stage_number_intermediate_pressure=self.data_transfer_object.stage_number_interstage_pressure,
@@ -790,8 +802,16 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 suction_pressure_this_time_step,
                 intermediate_pressure_this_time_step,
                 discharge_pressure_this_time_step,
+                pressure_drop_ahead_of_stage_this_time_step,
             ),
-        ) in enumerate(zip(suction_pressure, intermediate_pressure, discharge_pressure)):
+        ) in enumerate(
+            zip(
+                suction_pressure,
+                intermediate_pressure,
+                discharge_pressure,
+                np.transpose(np.asarray(pressure_drop_ahead_of_stage)),
+            )
+        ):
             std_rates_std_m3_per_day_per_stream_this_time_step = (
                 self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate[:, time_step])
             )
@@ -812,6 +832,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     suction_pressure=suction_pressure_this_time_step,
                     intermediate_pressure_target=intermediate_pressure_this_time_step,
                     discharge_pressure_target=discharge_pressure_this_time_step,
+                    pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage_this_time_step,
                     pressure_control_first_part=self.data_transfer_object.pressure_control_first_part,
                     pressure_control_last_part=self.data_transfer_object.pressure_control_last_part,
                 )
@@ -844,6 +865,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
         inlet_pressure_bara: float,
         speed: float,
+        pressure_drop_ahead_of_stage: Optional[List[float]] = None,
         asv_rate_fraction: float = 0.0,
         asv_additional_mass_rate: float = 0.0,
     ) -> CompressorTrainResultSingleTimeStep:
@@ -937,6 +959,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 speed=speed,
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
+                pressure_drop_before_stage=pressure_drop_ahead_of_stage[stage_number]
+                if pressure_drop_ahead_of_stage is not None
+                else None,
             )
             stage_results.append(stage_result)
 
@@ -1232,6 +1257,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         suction_pressure: float,
         intermediate_pressure_target: float,
         discharge_pressure_target: float,
+        pressure_drop_ahead_of_stage: List[float],
         pressure_control_first_part: FixedSpeedPressureControl,
         pressure_control_last_part: FixedSpeedPressureControl,
     ) -> CompressorTrainResultSingleTimeStep:
@@ -1270,6 +1296,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 target_discharge_pressure=outlet_pressure_first_part,
                 lower_bound_for_speed=self.minimum_speed,  # Only search for a solution within the bounds of the
                 upper_bound_for_speed=self.maximum_speed,  # original, complete compressor train
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
             )
         )
 
@@ -1305,6 +1332,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 target_discharge_pressure=outlet_pressure_last_part,
                 lower_bound_for_speed=self.minimum_speed,
                 upper_bound_for_speed=self.maximum_speed,
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
             )
         )
 

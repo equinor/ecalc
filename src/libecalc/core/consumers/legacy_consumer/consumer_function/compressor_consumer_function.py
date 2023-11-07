@@ -12,7 +12,11 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.core.models.compressor.base import CompressorModel
+from libecalc.core.models.compressor.base import (
+    CompressorModel,
+    CompressorWithTurbineModel,
+)
+from libecalc.core.models.compressor.sampled import CompressorModelSampled
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
@@ -111,6 +115,26 @@ class CompressorConsumerFunction(ConsumerFunction):
             else None
         )
 
+        all_stages: [] = None
+
+        if not isinstance(self._compressor_function, CompressorModelSampled):
+            if not isinstance(self._compressor_function, CompressorWithTurbineModel):
+                all_stages = self._compressor_function.data_transfer_object.stages
+            elif not isinstance(self._compressor_function.compressor_model, CompressorModelSampled):
+                all_stages = self._compressor_function.data_transfer_object.compressor_train.stages
+
+        if not isinstance(self._compressor_function, CompressorModelSampled) and all_stages:
+            pressure_drop_ahead_of_stage = [
+                Expression.setup_from_expression(stage.pressure_drop_before_stage).evaluate(
+                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                )
+                if stage.pressure_drop_before_stage is not None
+                else None
+                for stage in all_stages
+            ]
+        else:
+            pressure_drop_ahead_of_stage = None
+
         # Do conditioning first - set rates to zero if conditions are not met
         condition = get_condition_from_expression(
             variables_map=variables_map,
@@ -130,12 +154,14 @@ class CompressorConsumerFunction(ConsumerFunction):
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
                 intermediate_pressure=intermediate_pressure,
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
             )
         else:
             compressor_train_result = self._compressor_function.evaluate_rate_ps_pd(
                 rate=stream_day_rate_after_condition,
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
+                pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
             )
 
         power_loss_factor = get_power_loss_factor_from_expression(

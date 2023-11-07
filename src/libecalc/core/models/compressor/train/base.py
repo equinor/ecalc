@@ -68,6 +68,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]],
     ) -> CompressorTrainResult:
         """Evaluate compressor train total power given rate, suction pressure and discharge pressure.
 
@@ -87,6 +88,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             Will be only 1 stream for all models except the multiple streams model.
         :param suction_pressure: Suction pressure in [bara]
         :param discharge_pressure: Discharge pressure in [bara]
+        :param pressure_drop_ahead_of_stage: Pressure drop before each stage [bara]
         """
         logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
 
@@ -99,6 +101,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             rate=rate,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
+            pressure_drop_ahead_of_stage=pressure_drop_ahead_of_stage,
         )
 
         power_mw = np.array([result.power_megawatt for result in train_results])
@@ -171,6 +174,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             rate=np.asarray(mixed_inlet_stream.rate.values),
             suction_pressure=np.asarray(mixed_inlet_stream.pressure.values),
             discharge_pressure=np.asarray(outlet_stream.pressure.values),
+            pressure_drop_ahead_of_stage=None,
         )
 
     @Feature.experimental(
@@ -191,10 +195,12 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """:param rate: Rate in [Sm3/day]
         :param suction_pressure: Suction pressure in [bara]
         :param discharge_pressure: Discharge pressure in [bara]
+        :param pressure_drop_ahead_of_stage: Pressure drop before each stage [bara]
         """
         ...
 

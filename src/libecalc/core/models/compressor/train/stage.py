@@ -28,7 +28,8 @@ class CompressorTrainStage(BaseModel):
     compressor_chart: Union[SingleSpeedCompressorChart, VariableSpeedCompressorChart]
     inlet_temperature_kelvin: float
     remove_liquid_after_cooling: bool
-    pressure_drop_ahead_of_stage: Optional[float] = None
+    # pressure_drop_before_stage: Optional[Union[float, Expression, List[Expression]]] = None
+    variables_map: Optional[dto.variables.VariablesMap] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -42,6 +43,7 @@ class CompressorTrainStage(BaseModel):
         asv_additional_mass_rate: Optional[float] = 0.0,
         increase_rate_left_of_minimum_flow_assuming_asv: Optional[bool] = True,
         increase_speed_below_assuming_choke: Optional[bool] = False,
+        pressure_drop_before_stage: Optional[float] = None,
     ) -> CompressorTrainStageResultSingleTimeStep:
         """Evaluates a compressor train stage given the conditions and rate of the inlet stream, and the speed
         of the shaft driving the compressor if given.
@@ -84,8 +86,8 @@ class CompressorTrainStage(BaseModel):
                 logger.exception(msg)
                 raise IllegalStateException(msg)
 
-        if self.pressure_drop_ahead_of_stage:
-            inlet_pressure_stage = inlet_stream_stage.pressure_bara - self.pressure_drop_ahead_of_stage
+        if pressure_drop_before_stage is not None:
+            inlet_pressure_stage = inlet_stream_stage.pressure_bara - pressure_drop_before_stage
         else:
             inlet_pressure_stage = inlet_stream_stage.pressure_bara
 

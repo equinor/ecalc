@@ -1,6 +1,6 @@
 import math
 from abc import abstractmethod
-from typing import List, Union
+from typing import List, Optional, Union
 
 import numpy as np
 from libecalc import dto
@@ -97,6 +97,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        pressure_drop_ahead_of_stage: Optional[List[NDArray[np.float64]]] = None,
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Calculate pressure ratios, find maximum pressure ratio, number of compressors in
         train and pressure ratio per stage Calculate fluid mass rate per hour
@@ -126,8 +127,11 @@ class CompressorTrainSimplified(CompressorTrainModel):
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         compressor_stages_result_per_time_step = []
         inlet_pressure = suction_pressure.copy()
-        for stage in self.stages:
+        for stage_number, stage in enumerate(self.stages):
             inlet_temperatures_kelvin = np.full_like(rate, fill_value=stage.inlet_temperature_kelvin, dtype=float)
+            if pressure_drop_ahead_of_stage is not None:
+                pressure_drop_ahead_of_current_stage = pressure_drop_ahead_of_stage[stage_number]
+                inlet_pressure = inlet_pressure - pressure_drop_ahead_of_current_stage
             compressor_result = self.calculate_compressor_stage_work_given_outlet_pressure(
                 inlet_pressure=inlet_pressure,
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
