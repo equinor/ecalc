@@ -4,29 +4,7 @@ from pydantic import Field, validator
 
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
-
-
-class YamlCrossover(YamlBase):
-    class Config:
-        allow_population_by_field_name = True
-
-    name: str = Field(
-        None,
-        title="NAME",
-        description="The name of the stream. "
-        "Can be used to identify the crossover stream in multiple streams compressor train",
-    )
-    from_: str = Field(
-        ...,
-        title="FROM",
-        description="Target component for crossover",
-        alias="FROM",
-    )
-    to: str = Field(
-        ...,
-        title="TO",
-        description="Target component for crossover",
-    )
+from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlCrossover
 
 
 class YamlSystemComponentConditions(YamlBase):
@@ -69,8 +47,8 @@ class YamlSystemComponentConditions(YamlBase):
         unique_crossover_out = set(crossover_out)
         if len(unique_crossover_out) != len(crossover_out):
             raise ValueError(
-                f"Only one crossover per consumer is currently supported. Component(s) with several crossover streams "
-                f"are {', '.join(sorted(get_duplicates(crossover_out)))}"
+                f"Only one crossover out per consumer is currently supported. Component(s) with several crossover "
+                f"streams are {', '.join(sorted(get_duplicates(crossover_out)))}"
             )
 
         return crossover

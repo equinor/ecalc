@@ -11,6 +11,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer 
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
+from libecalc.presentation.yaml.yaml_types.components.train.yaml_train import YamlTrain
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
@@ -58,7 +59,12 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
     )
     fuelconsumers: List[
-        Union[YamlFuelConsumer, YamlConsumerSystem[YamlCompressor], YamlConsumerSystem[YamlPump]]
+        Union[
+            YamlFuelConsumer,
+            YamlConsumerSystem[YamlCompressor],
+            YamlConsumerSystem[YamlPump],
+            YamlConsumerSystem[YamlTrain[YamlCompressor]],
+        ]
     ] = Field(
         None,
         title="FUELCONSUMERS",

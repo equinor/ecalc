@@ -11,11 +11,11 @@ from libecalc.dto.components import Crossover, SystemComponentConditions
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
-from libecalc.presentation.yaml.mappers.utils import resolve_and_validate_reference
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
     YamlSystemComponentConditions,
 )
+from libecalc.presentation.yaml.yaml_types.components.train.yaml_train import YamlTrain
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
@@ -37,63 +37,7 @@ YamlConsumerStreamConditions = Dict[StreamID, YamlStreamConditions]
 YamlConsumerStreamConditionsMap = Dict[ConsumerID, YamlConsumerStreamConditions]
 YamlPriorities = Dict[PriorityID, YamlConsumerStreamConditionsMap]
 
-
-def map_consumer(
-    consumer: Union[YamlPump, YamlCompressor],
-    consumes: ConsumptionType,
-    regularity: Dict[datetime, Expression],
-    category: str,
-    target_period: Period,
-    references: References,
-    fuel: Optional[Dict[datetime, dto.types.FuelType]],
-):
-    """
-    Consumer mapper, should probably call ConsumerMapper, but need to figure out differences between consumer in system
-    and not in system. i.e. with or without stream conditions.
-    """
-    if consumer.component_type == ComponentType.COMPRESSOR_V2:
-        return dto.components.CompressorComponent(
-            consumes=consumes,
-            regularity=regularity,
-            name=consumer.name,
-            user_defined_category=define_time_model_for_period(
-                consumer.category or category, target_period=target_period
-            ),
-            fuel=fuel,
-            energy_usage_model={
-                timestep: resolve_and_validate_reference(
-                    value=reference,
-                    references=references.models,
-                )
-                for timestep, reference in define_time_model_for_period(
-                    consumer.energy_usage_model, target_period=target_period
-                ).items()
-            },
-        )
-    elif consumer.component_type == ComponentType.PUMP_V2:
-        return dto.components.PumpComponent(
-            consumes=consumes,
-            regularity=regularity,
-            name=consumer.name,
-            user_defined_category=define_time_model_for_period(
-                consumer.category or category, target_period=target_period
-            ),
-            fuel=fuel,
-            energy_usage_model={
-                timestep: resolve_and_validate_reference(
-                    value=reference,
-                    references=references.models,
-                )
-                for timestep, reference in define_time_model_for_period(
-                    consumer.energy_usage_model, target_period=target_period
-                ).items()
-            },
-        )
-    else:
-        raise ValueError("Unknown consumer type")
-
-
-TYamlConsumer = TypeVar("TYamlConsumer", bound=Union[YamlCompressor, YamlPump])
+TYamlConsumer = TypeVar("TYamlConsumer", bound=Union[YamlCompressor, YamlPump, YamlTrain[YamlCompressor]])
 
 
 class YamlConsumerSystem(YamlConsumerBase, GenericModel, Generic[TYamlConsumer]):
@@ -130,8 +74,7 @@ class YamlConsumerSystem(YamlConsumerBase, GenericModel, Generic[TYamlConsumer])
         fuel: Optional[Dict[datetime, dto.types.FuelType]] = None,
     ) -> dto.components.ConsumerSystem:
         consumers = [
-            map_consumer(
-                consumer,
+            consumer.to_dto(
                 references=references,
                 consumes=consumes,
                 regularity=regularity,

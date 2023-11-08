@@ -1,26 +1,23 @@
-from typing import Literal, Optional, Union
+from datetime import datetime
+from typing import Dict, Literal, Optional, Union
 
 from pydantic import Field
 
+from libecalc import dto
+from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
+from libecalc.dto.components import CompressorComponent
+from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.mappers.utils import resolve_and_validate_reference
+from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
-    YamlOperationalConditionBase,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 CompressorModel = Union[YamlCompressorWithTurbine]
-
-
-class YamlCompressorOperationalSettings(YamlOperationalConditionBase):
-    class Config:
-        title = "CompressorOperationalSettings"
-
-    rate: Optional[Expression]
-    inlet_pressure: Optional[Expression]
-    outlet_pressure: Optional[Expression]
 
 
 class YamlCompressor(YamlConsumerBase):
@@ -34,17 +31,30 @@ class YamlCompressor(YamlConsumerBase):
         alias="TYPE",
     )
 
-    category: Optional[str] = Field(
-        None,
-        title="CATEGORY",
-        description="User defined category",
-    )
     energy_usage_model: YamlTemporalModel[str]
 
-
-class YamlCompressorStage(YamlCompressor):
-    class Config:
-        title = "CompressorStage"
-
-    user_defined_category: str
-    operational_settings: YamlCompressorOperationalSettings
+    def to_dto(
+        self,
+        consumes: ConsumptionType,
+        regularity: Dict[datetime, Expression],
+        target_period: Period,
+        references: References,
+        category: str,
+        fuel: Optional[Dict[datetime, dto.types.FuelType]],
+    ):
+        return CompressorComponent(
+            consumes=consumes,
+            regularity=regularity,
+            name=self.name,
+            user_defined_category=define_time_model_for_period(self.category or category, target_period=target_period),
+            fuel=fuel,
+            energy_usage_model={
+                timestep: resolve_and_validate_reference(
+                    value=reference,
+                    references=references.models,
+                )
+                for timestep, reference in define_time_model_for_period(
+                    self.energy_usage_model, target_period=target_period
+                ).items()
+            },
+        )
