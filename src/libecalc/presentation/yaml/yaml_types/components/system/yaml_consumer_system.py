@@ -23,7 +23,9 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
     YamlCompressor,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
-from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlStream
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlStreamConditions,
+)
 
 opt_expr_list = Optional[List[ExpressionType]]
 
@@ -31,7 +33,7 @@ PriorityID = str
 StreamID = str
 ConsumerID = str
 
-YamlConsumerStreamConditions = Dict[StreamID, YamlStream]
+YamlConsumerStreamConditions = Dict[StreamID, YamlStreamConditions]
 YamlConsumerStreamConditionsMap = Dict[ConsumerID, YamlConsumerStreamConditions]
 YamlPriorities = Dict[PriorityID, YamlConsumerStreamConditionsMap]
 

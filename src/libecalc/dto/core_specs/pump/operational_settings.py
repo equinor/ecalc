@@ -5,13 +5,13 @@ from typing import List
 
 from typing_extensions import Self
 
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.dto.core_specs.base.operational_settings import OperationalSettings
 
 
 class PumpOperationalSettings(OperationalSettings):
-    inlet_streams: List[Stream]
-    outlet_stream: Stream
+    inlet_streams: List[StreamConditions]
+    outlet_stream: StreamConditions
 
     timesteps: List[datetime]
 

@@ -9,7 +9,7 @@ import numpy as np
 
 from libecalc.common.priorities import Priorities
 from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesString,
@@ -56,8 +56,8 @@ class ConsumerSystem(BaseConsumer):
 
     def _get_stream_conditions_adjusted_for_crossover(
         self,
-        stream_conditions: Dict[str, List[Stream]],
-    ) -> Dict[str, List[Stream]]:
+        stream_conditions: Dict[str, List[StreamConditions]],
+    ) -> Dict[str, List[StreamConditions]]:
         """
         Calculate stream conditions for the current consumer, accounting for potential crossover from previous
         consumers.
@@ -66,9 +66,9 @@ class ConsumerSystem(BaseConsumer):
             crossover=self._component_conditions.crossover,
             consumers=self._consumers,
         )
-        adjusted_stream_conditions: Dict[str, List[Stream]] = {}
+        adjusted_stream_conditions: Dict[str, List[StreamConditions]] = {}
 
-        crossover_streams_map: Dict[str, List[Stream]] = {consumer.id: [] for consumer in self._consumers}
+        crossover_streams_map: Dict[str, List[StreamConditions]] = {consumer.id: [] for consumer in self._consumers}
         crossover_definitions_map: Dict[str, Crossover] = {
             crossover_stream.from_component_id: crossover_stream
             for crossover_stream in self._component_conditions.crossover
@@ -109,7 +109,7 @@ class ConsumerSystem(BaseConsumer):
     def evaluate(
         self,
         variables_map: VariablesMap,
-        system_stream_conditions_priorities: Priorities[Dict[str, List[Stream]]],
+        system_stream_conditions_priorities: Priorities[Dict[str, List[StreamConditions]]],
     ) -> EcalcModelResult:
         """
         Evaluating a consumer system that may be composed of both consumers and other consumer systems. It will default
@@ -122,7 +122,9 @@ class ConsumerSystem(BaseConsumer):
 
         optimizer = PriorityOptimizer()
 
-        def evaluator(timestep: datetime, system_stream_condition: Dict[str, List[Stream]]) -> List[EvaluatorResult]:
+        def evaluator(
+            timestep: datetime, system_stream_condition: Dict[str, List[StreamConditions]]
+        ) -> List[EvaluatorResult]:
             stream_conditions_for_timestep = {
                 component_id: [
                     stream_condition.get_subset_for_timestep(timestep) for stream_condition in stream_conditions
@@ -245,8 +247,8 @@ class ConsumerSystem(BaseConsumer):
 
     @staticmethod
     def _get_crossover_stream(
-        max_rate: List[float], inlet_streams: List[Stream], crossover_stream_name: str
-    ) -> Tuple[Stream, List[Stream]]:
+        max_rate: List[float], inlet_streams: List[StreamConditions], crossover_stream_name: str
+    ) -> Tuple[StreamConditions, List[StreamConditions]]:
         """
         This function is run over a single consumer only, and is normally run in a for loop
         across all "dependent" consumers in the consumer system, such as here, in a consumer system.
@@ -263,7 +265,7 @@ class ConsumerSystem(BaseConsumer):
                     2. the streams within capacity of the given consumer
         """
         # Get total rate across all input rates for this consumer (incl already crossovers from other consumers, if any)
-        total_stream = Stream.mix_all(inlet_streams)
+        total_stream = StreamConditions.mix_all(inlet_streams)
 
         # If we exceed total rate, we need to calculate exceeding rate, and return that as (potential) crossover rate to
         # another consumer

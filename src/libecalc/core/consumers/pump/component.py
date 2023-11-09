@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from libecalc import dto
-from libecalc.common.stream import Stage, Stream
+from libecalc.common.stream_conditions import Stage, StreamConditions
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -31,7 +31,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
 
         self._operational_settings: Optional[PumpOperationalSettings] = None
 
-    def get_max_rate(self, inlet_stream: Stream, target_pressure: TimeSeriesFloat) -> List[float]:
+    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: TimeSeriesFloat) -> List[float]:
         """
         For each timestep, get the maximum rate that this pump can handle, given
         the operational settings given, such as in -and outlet pressures and fluid density (current conditions)
@@ -54,7 +54,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
 
     def evaluate(
         self,
-        streams: List[Stream],
+        streams: List[StreamConditions],
     ) -> EcalcModelResult:
         model_results = []
         evaluated_timesteps = []
@@ -85,7 +85,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 aggregated_result.extend(model_result)
 
         # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
-        total_requested_inlet_stream = Stream.mix_all(inlet_streams)
+        total_requested_inlet_stream = StreamConditions.mix_all(inlet_streams)
 
         component_result = core_results.PumpResult(
             timesteps=evaluated_timesteps,
@@ -130,7 +130,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
                 ),
                 Stage(
                     name="outlet",
-                    stream=Stream(
+                    stream=StreamConditions(
                         name="outlet",
                         rate=total_requested_inlet_stream.rate,  # Actual, not requested, different because of crossover
                         pressure=outlet_stream.pressure,
