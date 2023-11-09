@@ -12,14 +12,14 @@ from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.dto.graph import Graph
+from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
 
 
 class EnergyCalculator:
     def __init__(
         self,
-        graph: Graph,
+        graph: ComponentGraph,
     ):
         self._graph = graph
 

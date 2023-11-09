@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 NodeID = str
 
 
-class Graph:
+class ComponentGraph:
     def __init__(self):
         self.graph = nx.DiGraph()
         self.nodes: Dict[NodeID, ComponentDTO] = {}
@@ -30,7 +30,7 @@ class Graph:
 
         self.graph.add_edge(from_id, to_id)
 
-    def add_subgraph(self, subgraph: Graph):
+    def add_subgraph(self, subgraph: ComponentGraph):
         self.nodes.update(subgraph.nodes)
         self.graph = nx.compose(self.graph, subgraph.graph)
 

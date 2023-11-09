@@ -6,7 +6,7 @@ from libecalc.common.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
 from libecalc.dto import ResultOptions, VariablesMap
-from libecalc.dto.graph import Graph
+from libecalc.dto.component_graph import ComponentGraph
 from libecalc.infrastructure.file_io import (
     read_facility_resource,
     read_timeseries_resource,
@@ -51,7 +51,7 @@ class YamlModel:
         )
 
     @property
-    def graph(self) -> Graph:
+    def graph(self) -> ComponentGraph:
         return self.dto.get_graph()
 
     @staticmethod

@@ -23,7 +23,7 @@ from libecalc.dto.base import (
     EcalcBaseModel,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.dto.graph import Graph
+from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.models import (
     ConsumerFunction,
     ElectricEnergyUsageModel,
@@ -222,8 +222,8 @@ class ConsumerSystem(BaseConsumer):
     stream_conditions_priorities: Priorities[SystemStreamConditions]
     consumers: List[Union[CompressorComponent, PumpComponent]]
 
-    def get_graph(self) -> Graph:
-        graph = Graph()
+    def get_graph(self) -> ComponentGraph:
+        graph = ComponentGraph()
         graph.add_node(self)
         for consumer in self.consumers:
             graph.add_node(consumer)
@@ -295,8 +295,8 @@ class GeneratorSet(BaseEquipment):
 
         return user_defined_category
 
-    def get_graph(self) -> Graph:
-        graph = Graph()
+    def get_graph(self) -> ComponentGraph:
+        graph = ComponentGraph()
         graph.add_node(self)
         for electricity_consumer in self.consumers:
             if hasattr(electricity_consumer, "get_graph"):
@@ -341,8 +341,8 @@ class Installation(BaseComponent):
 
         return user_defined_category
 
-    def get_graph(self) -> Graph:
-        graph = Graph()
+    def get_graph(self) -> ComponentGraph:
+        graph = ComponentGraph()
         graph.add_node(self)
         for component in [*self.fuel_consumers, *self.direct_emitters]:
             if hasattr(component, "get_graph"):
@@ -431,8 +431,8 @@ class Asset(Component):
             )
         return values
 
-    def get_graph(self) -> Graph:
-        graph = Graph()
+    def get_graph(self) -> ComponentGraph:
+        graph = ComponentGraph()
         graph.add_node(self)
         for installation in self.installations:
             graph.add_subgraph(installation.get_graph())

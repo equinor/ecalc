@@ -29,7 +29,7 @@ from libecalc.common.utils.rates import (
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.base import ComponentType
-from libecalc.dto.graph import Graph
+from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.models.consumer_system import CompressorSystemConsumerFunction
 from libecalc.dto.result.emission import EmissionIntensityResult, PartialEmissionResult
 from libecalc.dto.result.results import (
@@ -52,7 +52,7 @@ class EnergyCalculatorResult(BaseModel):
 class GraphResult:
     def __init__(
         self,
-        graph: Graph,
+        graph: ComponentGraph,
         consumer_results: Dict[str, EcalcModelResult],
         emission_results: Dict[str, Dict[str, EmissionResult]],
         variables_map: dto.VariablesMap,
