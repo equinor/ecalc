@@ -14,7 +14,9 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.models.results import CompressorTrainResult
+from libecalc.core.models.results import (
+    CompressorTrainResult as CompressorTrainModelResult,
+)
 from libecalc.core.result.base import EcalcResultBaseModel
 from libecalc.dto.base import ComponentType
 
@@ -58,6 +60,10 @@ class GeneratorSetResult(GenericComponentResult):
 class ConsumerSystemResult(GenericComponentResult):
     operational_settings_used: TimeSeriesInt
     operational_settings_results: Optional[Dict[int, List[Any]]]
+
+
+class TrainResult(GenericComponentResult):
+    streams: List[TimeSeriesStreamConditions]
 
 
 class CompressorResult(GenericComponentResult):
@@ -125,7 +131,7 @@ class PumpModelResult(ConsumerModelResultBase):
         return ComponentType.PUMP
 
 
-class CompressorModelResult(ConsumerModelResultBase, CompressorTrainResult):
+class CompressorModelResult(ConsumerModelResultBase, CompressorTrainModelResult):
     @property
     def component_type(self):
         return ComponentType.COMPRESSOR

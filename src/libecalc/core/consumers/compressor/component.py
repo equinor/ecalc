@@ -40,6 +40,12 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             discharge_pressures=np.asarray([target_pressure.value]),
         ).tolist()[0]
 
+    def get_supported_speeds(self) -> List[int]:
+        raise NotImplementedError
+
+    def evaluate_with_speed(self, inlet_streams: List[StreamConditions], speed: int) -> EcalcModelResult:
+        raise NotImplementedError
+
     def evaluate(
         self,
         streams: List[StreamConditions],

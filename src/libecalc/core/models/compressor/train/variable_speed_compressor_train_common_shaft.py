@@ -544,7 +544,6 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         outlet_pressure: float,
         mass_rate_kg_per_hour: float,
     ) -> CompressorTrainResultSingleTimeStep:
-        # if full recirculation gives low enough pressure, iterate on asv_rate_fraction to reach the target
         def _calculate_train_result_given_rate_ps_speed_asv_rate_fraction(
             asv_rate_fraction: float,
         ) -> CompressorTrainResultSingleTimeStep:
@@ -622,6 +621,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 logger.debug(msg)
                 return train_result_max_recirculation
 
+            # if full recirculation gives low enough pressure, iterate on asv_rate_fraction to reach the target
             result_asv_rate_margin = find_root(
                 lower_bound=0.0,
                 upper_bound=1.0,
