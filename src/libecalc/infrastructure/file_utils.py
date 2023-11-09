@@ -4,7 +4,7 @@ from typing import Callable, Optional, Union
 
 import pandas as pd
 
-from libecalc.common.io.utils import DateTimeFormats
+from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
 from libecalc.dto.result import ComponentResult, EcalcModelResult
 

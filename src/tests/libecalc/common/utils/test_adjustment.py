@@ -1,5 +1,5 @@
 import numpy as np
-from libecalc.common.utils.adjustment import transform_linear
+from libecalc.common.list.adjustment import transform_linear
 
 
 def test_linear_transform():

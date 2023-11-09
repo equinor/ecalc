@@ -4,7 +4,7 @@ import numpy as np
 from pydantic import Field, confloat, root_validator, validator
 
 from libecalc.common.logger import logger
-from libecalc.common.numbers import Numbers
+from libecalc.common.math.numbers import Numbers
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import ChartType
 

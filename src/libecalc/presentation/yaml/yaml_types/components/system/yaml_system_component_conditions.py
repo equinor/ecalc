@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import Field, validator
 
-from libecalc.common.string_utils import get_duplicates
+from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 
 

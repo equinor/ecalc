@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import validator
 
-from libecalc.common.numbers import Numbers
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.utils.rates import TimeSeries, TimeSeriesInt
 from libecalc.dto.base import EcalcBaseModel
 

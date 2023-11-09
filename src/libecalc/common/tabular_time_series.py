@@ -4,7 +4,7 @@ from typing import Protocol, TypeVar
 from pydantic import BaseModel
 from typing_extensions import Self
 
-from libecalc.common.list_utils import transpose
+from libecalc.common.list.list_utils import transpose
 from libecalc.common.utils.rates import TimeSeries
 
 

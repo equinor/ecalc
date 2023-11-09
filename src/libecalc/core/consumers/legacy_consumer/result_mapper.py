@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.list_utils import array_to_list
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate

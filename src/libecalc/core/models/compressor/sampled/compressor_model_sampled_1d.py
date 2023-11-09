@@ -6,7 +6,7 @@ import pandas as pd
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc.common.exceptions import IllegalStateException
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.sampled.constants import (
     PD_NAME,

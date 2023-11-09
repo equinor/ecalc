@@ -1,4 +1,4 @@
-from libecalc.common.feature_flags import FeatureToggle
+from libecalc.common.decorators.feature_flags import FeatureToggle
 
 
 def old_method(test: str) -> str:

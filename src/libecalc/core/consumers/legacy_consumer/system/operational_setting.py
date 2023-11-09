@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, root_validator
 
-from libecalc.common.exceptions import EcalcError, IncompatibleDataError
+from libecalc.common.errors.exceptions import EcalcError, IncompatibleDataError
 from libecalc.common.logger import logger
 from libecalc.common.utils.rates import Rates
 from libecalc.expression import Expression

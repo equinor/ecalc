@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
-from libecalc.common.exceptions import EcalcError, IllegalStateException
+from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.results import (

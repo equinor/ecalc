@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
-from libecalc.common.list_utils import array_to_list
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period

@@ -2,7 +2,7 @@ import json
 from typing import Dict
 
 import pytest
-from libecalc.common.numbers import Numbers
+from libecalc.common.math.numbers import Numbers
 
 
 def _round_floats(obj):

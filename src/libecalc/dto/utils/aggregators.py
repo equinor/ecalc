@@ -2,7 +2,7 @@ import operator
 from functools import reduce
 from typing import Dict, List, Protocol
 
-from libecalc.common.list_utils import transpose
+from libecalc.common.list.list_utils import transpose
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
 )

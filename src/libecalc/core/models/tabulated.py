@@ -7,10 +7,10 @@ from numpy.typing import NDArray
 from pydantic import BaseModel as PydanticBaseModel
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
-from libecalc.common.exceptions import IllegalStateException
+from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.common.utils.adjustment import transform_linear
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.dto.types import EnergyUsageType

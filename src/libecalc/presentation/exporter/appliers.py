@@ -2,7 +2,7 @@ import abc
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from libecalc.common.numbers import Numbers
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.core.graph_result import GraphResult

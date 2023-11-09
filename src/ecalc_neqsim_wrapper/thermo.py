@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from libecalc import dto
-from libecalc.common.capturer import Capturer
+from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.logger import logger
 from libecalc.dto import FluidComposition
 from libecalc.dto.types import EoSModel

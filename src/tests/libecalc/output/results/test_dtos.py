@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pytest
-from libecalc.common.exceptions import IncompatibleDataError
+from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.presentation.exporter.dto.dtos import (

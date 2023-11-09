@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import Dict, Optional, Tuple, Type, TypeVar
 
 import pytest
-from libecalc.common.exceptions import (
+from libecalc.common.errors.exceptions import (
     DifferentLengthsError,
     EcalcError,
     IncompatibleDataError,
     MissingKeyError,
 )
-from libecalc.common.utils.math_utils import MathUtil
+from libecalc.common.math.math_utils import MathUtil
 
 T = TypeVar("T")
 
