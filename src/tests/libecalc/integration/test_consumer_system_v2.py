@@ -74,10 +74,10 @@ def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, re
     ecalc_result = result(consumer_system_v2)
 
     asset_graph = consumer_system_v2.ecalc_model.get_graph()
-    pump_system_id = asset_graph.get_component_id_by_name("pump_system")
-    pump_system_v2_id = asset_graph.get_component_id_by_name("pump_system_v2")
-    compressor_system_id = asset_graph.get_component_id_by_name("compressor_system")
-    compressor_system_v2_id = asset_graph.get_component_id_by_name("compressor_system_v2")
+    pump_system_id = asset_graph.get_node_id_by_name("pump_system")
+    pump_system_v2_id = asset_graph.get_node_id_by_name("pump_system_v2")
+    compressor_system_id = asset_graph.get_node_id_by_name("compressor_system")
+    compressor_system_v2_id = asset_graph.get_node_id_by_name("compressor_system_v2")
 
     pump_system_result = ecalc_result.consumer_results[pump_system_id]
     pump_system_component_result = pump_system_result.component_result.copy(

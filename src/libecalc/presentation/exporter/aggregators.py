@@ -71,7 +71,7 @@ class InstallationAggregator(Aggregator):
         :return:
         """
         aggregated_installation_results: List[GroupedQueryResult] = []
-        for installation_id in energy_calculator_result.graph.get_nodes(ComponentType.INSTALLATION):
+        for installation_id in energy_calculator_result.graph.get_nodes_of_type(ComponentType.INSTALLATION):
             installation_graph = energy_calculator_result.get_subgraph(installation_id)
             installation_name = installation_graph.graph.get_node_info(installation_graph.graph.root).name
             single_results: List[QueryResult] = []
