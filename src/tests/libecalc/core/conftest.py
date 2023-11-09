@@ -229,7 +229,7 @@ def variable_speed_compressor_train_dto(
                 compressor_chart=variable_speed_compressor_chart_dto,
                 inlet_temperature_kelvin=303.15,
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=[0],
                 control_margin=0,
             )
         ],
@@ -250,7 +250,7 @@ def variable_speed_compressor_train_two_stages_dto(
                 compressor_chart=variable_speed_compressor_chart_dto,
                 inlet_temperature_kelvin=303.15,
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=[0],
                 control_margin=0,
             )
         ]

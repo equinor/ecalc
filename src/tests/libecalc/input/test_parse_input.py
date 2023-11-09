@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -27,7 +28,12 @@ def parse_input(
     :return:
     """
     configuration: PyYamlYamlModel = PyYamlYamlModel.read(main_yaml=main_yaml, enable_include=True, base_dir=base_dir)
-    model_dto = map_yaml_to_dto(configuration, resources, name=Path(main_yaml.name).stem)
+    model_dto = map_yaml_to_dto(
+        configuration,
+        resources,
+        name=Path(main_yaml.name).stem,
+        variables_map=dto.VariablesMap(time_vector=[datetime(1900, 1, 1)], variables={}),
+    )
 
     variables = map_yaml_to_variables(configuration, resources, result_options=dto.ResultOptions())
 

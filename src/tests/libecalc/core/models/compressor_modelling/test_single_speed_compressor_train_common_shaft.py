@@ -287,6 +287,7 @@ class TestCalculateSingleSpeedCompressorStage:
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
             mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+            time_step=0,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(1148.7960837804026)
@@ -310,6 +311,7 @@ class TestCalculateSingleSpeedCompressorStage:
         result = single_speed_compressor_train_stage.evaluate(
             inlet_stream_stage=inlet_stream,
             mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+            time_step=0,
         )
         # Stability check
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(2687.242301240708)
@@ -337,6 +339,7 @@ def test_calculate_single_speed_train(single_speed_compressor_train):
     result = compressor_train.calculate_single_speed_train(
         train_inlet_stream=inlet_streams[0],
         mass_rate_kg_per_hour_per_stage=[mass_rate_kg_per_hour] * compressor_train.number_of_compressor_stages,
+        time_step=0,
     )
 
     # Stability tests
@@ -435,6 +438,7 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
         outlet_pressure_stage_bara=target_outlet_pressure,
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         stage=stage,
+        time_step=0,
     )
     np.testing.assert_allclose(result.outlet_stream.pressure_bara, target_outlet_pressure, rtol=0.01)
 
