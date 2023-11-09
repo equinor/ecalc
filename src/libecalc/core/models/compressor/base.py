@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 
 from libecalc import dto
 from libecalc.common.logger import logger
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.compressor.train.utils.common import (
@@ -41,8 +41,8 @@ class CompressorModel(BaseModel):
     @abstractmethod
     def get_max_standard_rate_from_streams(
         self,
-        inlet_streams: List[Stream],
-        outlet_stream: Stream,
+        inlet_streams: List[StreamConditions],
+        outlet_stream: StreamConditions,
     ):
         raise NotImplementedError
 
@@ -64,8 +64,8 @@ class CompressorModel(BaseModel):
     @abstractmethod
     def evaluate_streams(
         self,
-        inlet_streams: List[Stream],
-        outlet_stream: Stream,
+        inlet_streams: List[StreamConditions],
+        outlet_stream: StreamConditions,
     ):
         raise NotImplementedError
 
@@ -97,8 +97,8 @@ class CompressorWithTurbineModel(CompressorModel):
 
     def evaluate_streams(
         self,
-        inlet_streams: List[Stream],
-        outlet_stream: Stream,
+        inlet_streams: List[StreamConditions],
+        outlet_stream: StreamConditions,
     ) -> CompressorTrainResult:
         return self.evaluate_turbine_based_on_compressor_model_result(
             compressor_energy_function_result=self.compressor_model.evaluate_streams(

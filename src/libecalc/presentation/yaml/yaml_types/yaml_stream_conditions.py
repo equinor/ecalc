@@ -40,7 +40,7 @@ class YamlDensity(YamlTimeSeries):
     unit: Unit = Unit.KG_SM3
 
 
-class YamlStream(YamlBase):
+class YamlStreamConditions(YamlBase):
     class Config:
         title = "Stream"
 

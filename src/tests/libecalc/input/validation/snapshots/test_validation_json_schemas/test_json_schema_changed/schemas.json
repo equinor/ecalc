@@ -202,7 +202,7 @@
                             "additionalProperties": {
                                 "additionalProperties": {
                                     "additionalProperties": {
-                                        "$ref": "#/definitions/YamlStream"
+                                        "$ref": "#/definitions/YamlStreamConditions"
                                     },
                                     "type": "object"
                                 },
@@ -264,7 +264,7 @@
                             "additionalProperties": {
                                 "additionalProperties": {
                                     "additionalProperties": {
-                                        "$ref": "#/definitions/YamlStream"
+                                        "$ref": "#/definitions/YamlStreamConditions"
                                     },
                                     "type": "object"
                                 },
@@ -1344,7 +1344,7 @@
                     "title": "YamlSingleVariable",
                     "type": "object"
                 },
-                "YamlStream": {
+                "YamlStreamConditions": {
                     "additionalProperties": false,
                     "properties": {
                         "FLUID_DENSITY": {

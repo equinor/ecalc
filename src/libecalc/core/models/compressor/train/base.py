@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from libecalc import dto
 from libecalc.common.feature_flags import Feature
 from libecalc.common.logger import logger
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
 from libecalc.core.models import (
     INVALID_INPUT,
@@ -155,8 +155,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def evaluate_streams(
         self,
-        inlet_streams: List[Stream],
-        outlet_stream: Stream,
+        inlet_streams: List[StreamConditions],
+        outlet_stream: StreamConditions,
     ) -> CompressorTrainResult:
         """
         Evaluate model based on inlet streams and the expected outlet stream.
@@ -167,7 +167,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         Returns:
 
         """
-        mixed_inlet_stream = Stream.mix_all(inlet_streams)
+        mixed_inlet_stream = StreamConditions.mix_all(inlet_streams)
         return self.evaluate_rate_ps_pd(
             rate=np.asarray(mixed_inlet_stream.rate.values),
             suction_pressure=np.asarray(mixed_inlet_stream.pressure.values),

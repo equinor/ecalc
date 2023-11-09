@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 from libecalc import dto
 from libecalc.common.priorities import Priorities
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.string_utils import generate_id, get_duplicates
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -184,7 +184,7 @@ class ExpressionTimeSeries(EcalcBaseModel):
     unit: Unit
 
 
-class ExpressionStream(EcalcBaseModel):
+class ExpressionStreamConditions(EcalcBaseModel):
     rate: Optional[ExpressionTimeSeries] = None
     pressure: Optional[ExpressionTimeSeries] = None
     temperature: Optional[ExpressionTimeSeries] = None
@@ -195,7 +195,7 @@ ConsumerID = str
 PriorityID = str
 StreamID = str
 
-SystemStreamConditions = Dict[ConsumerID, Dict[StreamID, ExpressionStream]]
+SystemStreamConditions = Dict[ConsumerID, Dict[StreamID, ExpressionStreamConditions]]
 
 
 class Crossover(EcalcBaseModel):
@@ -230,12 +230,14 @@ class ConsumerSystem(BaseConsumer):
             graph.add_edge(self.id, consumer.id)
         return graph
 
-    def evaluate_stream_conditions(self, variables_map: VariablesMap) -> Priorities[Dict[ConsumerID, List[Stream]]]:
-        parsed_priorities: Priorities[Dict[ConsumerID, List[Stream]]] = defaultdict(dict)
+    def evaluate_stream_conditions(
+        self, variables_map: VariablesMap
+    ) -> Priorities[Dict[ConsumerID, List[StreamConditions]]]:
+        parsed_priorities: Priorities[Dict[ConsumerID, List[StreamConditions]]] = defaultdict(dict)
         for priority_name, priority in self.stream_conditions_priorities.items():
             for consumer_name, streams_conditions in priority.items():
                 parsed_priorities[priority_name][generate_id(consumer_name)] = [
-                    Stream(
+                    StreamConditions(
                         name=stream_name,
                         rate=TimeSeriesStreamDayRate(
                             timesteps=variables_map.time_vector,

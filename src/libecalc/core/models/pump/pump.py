@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc.common.logger import logger
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.common.utils.adjustment import transform_linear
 from libecalc.core.models.base import BaseModel
@@ -56,8 +56,8 @@ class PumpModel(BaseModel):
     @abstractmethod
     def evaluate_streams(
         self,
-        inlet_streams: List[Stream],
-        outlet_stream: Stream,
+        inlet_streams: List[StreamConditions],
+        outlet_stream: StreamConditions,
     ) -> PumpModelResult:
         pass
 
@@ -222,8 +222,8 @@ class PumpVariableSpeed(PumpModel):
         return pump_result
 
 
-def evaluate_streams(self, inlet_streams: List[Stream], outlet_stream: Stream) -> PumpModelResult:
-    total_requested_stream = Stream.mix_all(inlet_streams)
+def evaluate_streams(self, inlet_streams: List[StreamConditions], outlet_stream: StreamConditions) -> PumpModelResult:
+    total_requested_stream = StreamConditions.mix_all(inlet_streams)
     return self.evaluate_rate_ps_pd_density(
         rate=np.asarray(total_requested_stream.rate.values),
         suction_pressures=np.asarray(total_requested_stream.pressure.values),
@@ -339,8 +339,10 @@ class PumpSingleSpeed(PumpModel):
 
         return pump_result
 
-    def evaluate_streams(self, inlet_streams: List[Stream], outlet_stream: Stream) -> PumpModelResult:
-        total_requested_stream = Stream.mix_all(inlet_streams)
+    def evaluate_streams(
+        self, inlet_streams: List[StreamConditions], outlet_stream: StreamConditions
+    ) -> PumpModelResult:
+        total_requested_stream = StreamConditions.mix_all(inlet_streams)
         return self.evaluate_rate_ps_pd_density(
             rate=np.asarray(total_requested_stream.rate.values),
             suction_pressures=np.asarray(total_requested_stream.pressure.values),

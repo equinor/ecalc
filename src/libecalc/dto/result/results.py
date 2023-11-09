@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
-from libecalc.common.stream import Stage
+from libecalc.common.stream_conditions import Stage
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
