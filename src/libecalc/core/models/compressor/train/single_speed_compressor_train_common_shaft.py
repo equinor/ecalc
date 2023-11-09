@@ -256,7 +256,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             else:
                 # Set inlet_pressure_before_choking
                 train_result.stage_results[0].inlet_pressure_before_choking = (
-                    suction_pressure[i] - self.stages[0].pressure_drop_ahead_of_stage
+                    suction_pressure[i] - self.stages[0].pressure_drop_ahead_of_stage[i]
                 )
 
         return train_results_per_time_step
@@ -316,10 +316,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         pressure ratios (discharge pressure / suction pressure=) is equal over all compressors in the compressor train.
         """
         results_per_time_step = []
-        for suction_pressure, discharge_pressure, mass_rate_kg_per_hour in zip(
-            suction_pressures,
-            discharge_pressures,
-            mass_rates_kg_per_hour,
+        for time_step, (suction_pressure, discharge_pressure, mass_rate_kg_per_hour) in enumerate(
+            zip(
+                suction_pressures,
+                discharge_pressures,
+                mass_rates_kg_per_hour,
+            )
         ):
             failure_status_this_time_step = None
             if mass_rate_kg_per_hour > 0:
@@ -343,6 +345,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                         inlet_stream_stage=inlet_stream_stage,
                         stage=stage,
+                        time_step=time_step,
                     )
                     outlet_stream_stage = inlet_stream_stage.set_new_pressure_and_temperature(
                         new_pressure_bara=stage_result.outlet_stream.pressure_bara,
@@ -424,8 +427,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         :return: A list of results per compressor stage
         """
         train_result_per_time_step = []
-        for mass_rate_kg_per_hour_this_time_step, inlet_pressure_train_bara in zip(
-            mass_rates_kg_per_hour, inlet_pressures_train_bara
+        for time_step, (mass_rate_kg_per_hour_this_time_step, inlet_pressure_train_bara) in enumerate(
+            zip(mass_rates_kg_per_hour, inlet_pressures_train_bara)
         ):
             if mass_rate_kg_per_hour_this_time_step > 0:
                 mass_rates_for_stages_this_time_step = self.number_of_compressor_stages * [
@@ -438,6 +441,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 train_result_this_time_step = self.calculate_single_speed_train(
                     train_inlet_stream=train_inlet_stream,
                     mass_rate_kg_per_hour_per_stage=mass_rates_for_stages_this_time_step,
+                    time_step=time_step,
                 )
                 train_result_per_time_step.append(train_result_this_time_step)
             else:
@@ -461,8 +465,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         :return: A list of results per compressor stage and a list of failure status per compressor stage
         """
         train_result_per_time_step = []
-        for mass_rate_kg_per_hour_this_time_step, outlet_pressure_train_bara in zip(
-            mass_rates_kg_per_hour, outlet_pressures_train_bara
+        for time_step, (mass_rate_kg_per_hour_this_time_step, outlet_pressure_train_bara) in enumerate(
+            zip(mass_rates_kg_per_hour, outlet_pressures_train_bara)
         ):
             if mass_rate_kg_per_hour_this_time_step > 0:
                 mass_rates_for_stages_this_time_step = self.number_of_compressor_stages * [
@@ -482,11 +486,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     train_results_this_time_step = self.calculate_single_speed_train(
                         train_inlet_stream=train_inlet_stream,
                         mass_rate_kg_per_hour_per_stage=mass_rates_for_stages_this_time_step,
+                        time_step=time_step,
                     )
                     return train_results_this_time_step
 
                 result_inlet_pressure = find_root(
-                    lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,
+                    lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage[time_step],
                     upper_bound=outlet_pressure_train_bara,
                     func=lambda x: _calculate_train_result_given_inlet_pressure(inlet_pressure=x).discharge_pressure
                     - outlet_pressure_train_bara,
@@ -527,10 +532,19 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """
         # Iterate on rate until pressures are met
         train_result_per_time_step = []
-        for inlet_pressure_train_bara, outlet_pressure_train_bara, minimum_mass_rate_kg_per_hour in zip(
-            inlet_pressures_train_bara,
-            outlet_pressures_train_bara,
-            minimum_mass_rates_kg_per_hour,
+        for (
+            time_step,
+            (
+                inlet_pressure_train_bara,
+                outlet_pressure_train_bara,
+                minimum_mass_rate_kg_per_hour,
+            ),
+        ) in enumerate(
+            zip(
+                inlet_pressures_train_bara,
+                outlet_pressures_train_bara,
+                minimum_mass_rates_kg_per_hour,
+            )
         ):
             if minimum_mass_rate_kg_per_hour > 0:
                 train_inlet_stream = self.fluid.get_fluid_streams(
@@ -547,6 +561,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         mass_rate_kg_per_hour_per_stage=[minimum_mass_rate_kg_per_hour]
                         * self.number_of_compressor_stages,
                         asv_rate_fraction=asv_rate_fraction,
+                        time_step=time_step,
                     )
                     return train_results_this_time_step
 
@@ -607,10 +622,16 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """
         # Iterate on rate until pressures are met
         results_per_time_step = []
-        for inlet_pressure_train_bara, outlet_pressure_train_bara, minimum_mass_rate_kg_per_hour in zip(
-            inlet_pressures_train_bara,
-            outlet_pressures_train_bara,
-            minimum_mass_rates_kg_per_hour,
+        for time_step, (
+            inlet_pressure_train_bara,
+            outlet_pressure_train_bara,
+            minimum_mass_rate_kg_per_hour,
+        ) in enumerate(
+            zip(
+                inlet_pressures_train_bara,
+                outlet_pressures_train_bara,
+                minimum_mass_rates_kg_per_hour,
+            )
         ):
             if minimum_mass_rate_kg_per_hour > 0:
                 train_inlet_stream = self.fluid.get_fluid_streams(
@@ -624,6 +645,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     stage_results_this_time_step = self.calculate_single_speed_train(
                         train_inlet_stream=train_inlet_stream,
                         mass_rate_kg_per_hour_per_stage=[mass_rate_kg_per_hour] * self.number_of_compressor_stages,
+                        time_step=time_step,
                     )
                     return stage_results_this_time_step
 
@@ -636,6 +658,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         * self.number_of_compressor_stages,
                         asv_additional_mass_rate=additional_mass_rate_kg_per_hour,
                         target_discharge_pressure=outlet_pressure_train_bara,
+                        time_step=time_step,
                     )
                     return stage_results_this_time_step
 
@@ -766,6 +789,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self,
         train_inlet_stream: FluidStream,
         mass_rate_kg_per_hour_per_stage: List[float],
+        time_step: int,
         asv_rate_fraction: float = 0.0,
         asv_additional_mass_rate: float = 0.0,
         target_discharge_pressure: Optional[float] = None,
@@ -783,6 +807,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
+                time_step=time_step,
             )
             stage_results.append(stage_result)
 
@@ -813,11 +838,12 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         max_mass_rates = []
-        for discharge_pressure, inlet_stream in zip(discharge_pressures, inlet_streams):
+        for time_step, (discharge_pressure, inlet_stream) in enumerate(zip(discharge_pressures, inlet_streams)):
             try:
                 max_mass_rate = self._get_max_mass_rate_single_timestep(
                     target_discharge_pressure=discharge_pressure,
                     inlet_stream=inlet_stream,  # inlet stream contains suction pressure
+                    time_step=time_step,
                 )
             except EcalcError as e:
                 logger.exception(e)
@@ -831,6 +857,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         self,
         target_discharge_pressure: float,
         inlet_stream: FluidStream,  # inlet stream contains suction pressure
+        time_step: int,
         allow_asv: bool = False,
     ) -> float:
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at for a single time step.
@@ -867,6 +894,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             return self.calculate_single_speed_train(
                 train_inlet_stream=inlet_stream,
                 mass_rate_kg_per_hour_per_stage=[mass_rate] * self.number_of_compressor_stages,
+                time_step=time_step,
             )
 
         # Using first stage as absolute (initial) bounds on min and max rate at max speed. Checking validity later.
@@ -966,11 +994,13 @@ def calculate_single_speed_compressor_stage_given_target_discharge_pressure(
     inlet_stream_stage: FluidStream,
     mass_rate_kg_per_hour: float,
     outlet_pressure_stage_bara: float,
+    time_step: int,
 ) -> Tuple[CompressorTrainStageResultSingleTimeStep, Optional[CompressorTrainCommonShaftFailureStatus]]:
     result_no_recirculation = stage.evaluate(
         inlet_stream_stage=inlet_stream_stage,
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         asv_additional_mass_rate=0,
+        time_step=time_step,
     )
     # result_no_recirculation.inlet_stream.density_kg_per_m3 will have correct pressure and temperature
     # to find max mass rate, inlet_stream_stage will not
@@ -984,6 +1014,7 @@ def calculate_single_speed_compressor_stage_given_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         asv_additional_mass_rate=max_recirculation,
+        time_step=time_step,
     )
     if result_no_recirculation.discharge_pressure < outlet_pressure_stage_bara:
         return result_no_recirculation, CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
@@ -997,6 +1028,7 @@ def calculate_single_speed_compressor_stage_given_target_discharge_pressure(
             inlet_stream_stage=inlet_stream_stage,
             mass_rate_kg_per_hour=mass_rate_kg_per_hour,
             asv_additional_mass_rate=additional_mass_rate,
+            time_step=time_step,
         )
 
     result_mass_rate = find_root(

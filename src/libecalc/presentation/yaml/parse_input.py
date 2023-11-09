@@ -10,8 +10,10 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
 
-def map_yaml_to_dto(configuration: PyYamlYamlModel, resources: Resources, name: str) -> dto.Asset:
-    references = create_references(configuration, resources)
+def map_yaml_to_dto(
+    configuration: PyYamlYamlModel, resources: Resources, name: str, variables_map: dto.VariablesMap
+) -> dto.Asset:
+    references = create_references(configuration, resources, variables_map=variables_map)
     target_period = Period(
         start=configuration.start or DEFAULT_START_TIME,
         end=configuration.end or datetime.max,

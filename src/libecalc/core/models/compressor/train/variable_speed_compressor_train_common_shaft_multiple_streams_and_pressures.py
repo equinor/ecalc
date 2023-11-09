@@ -199,6 +199,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_this_time_step,
                     suction_pressure=suction_pressure_this_time_step,
                     target_discharge_pressure=discharge_pressure_this_time_step,
+                    time_step=time_step,
                 )
                 train_results.append(compressor_train_result)
 
@@ -279,6 +280,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
         suction_pressure: float,
         target_discharge_pressure: float,
+        time_step: int,
         lower_bound_for_speed: Optional[float] = None,
         upper_bound_for_speed: Optional[float] = None,
     ) -> CompressorTrainResultSingleTimeStep:
@@ -305,6 +307,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=suction_pressure,
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                 speed=_speed,
+                time_step=time_step,
             )
 
         train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
@@ -332,6 +335,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                     inlet_pressure=suction_pressure,
                     outlet_pressure=target_discharge_pressure,
+                    time_step=time_step,
                 )
             else:
                 train_result_for_minimum_speed.failure_status = (
@@ -378,6 +382,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         target_discharge_pressure=discharge_pressure,
                         rate_per_stream=np.array([stream_rate[time_step] for stream_rate in rates_per_stream]),
                         stream_to_maximize=stream_index,
+                        time_step=time_step,
                     )
                 except EcalcError as e:
                     logger.exception(e)
@@ -395,6 +400,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         target_discharge_pressure: float,
         rate_per_stream: NDArray[np.float64],
         stream_to_maximize: int,
+        time_step: int,
         allow_asv: bool = False,
     ) -> float:
         """NB: Constraining to calculating maximum_rate for ingoing streams for now - the need is to figure out how much rate
@@ -419,6 +425,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=suction_pressure,
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                 speed=speed,
+                time_step=time_step,
             )
 
         def _calculate_train_first_part_result(speed: float) -> CompressorTrainResultSingleTimeStep:
@@ -427,6 +434,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=suction_pressure,
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_first_part,
                 speed=speed,
+                time_step=time_step,
             )
 
         def _calculate_train_result_given_speed_at_stone_wall(
@@ -441,7 +449,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     self.streams[stream_to_maximize]
                     .fluid.get_fluid_stream(
                         pressure_bara=train_first_part_result.discharge_pressure
-                        - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
+                        - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage[time_step],
                         temperature_kelvin=self.stages[
                             stream_to_maximize_connected_to_stage_no
                         ].inlet_temperature_kelvin,
@@ -500,6 +508,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     inlet_pressure_bara=suction_pressure,
                     std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                     speed=speed,
+                    time_step=time_step,
                 ),
             )
 
@@ -536,7 +545,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 self.streams[stream_to_maximize]
                 .fluid.get_fluid_stream(
                     pressure_bara=train_first_part_result_at_min_speed.discharge_pressure
-                    - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
+                    - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage[time_step],
                     temperature_kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
                 )
                 .density
@@ -552,7 +561,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 self.streams[stream_to_maximize]
                 .fluid.get_fluid_stream(
                     pressure_bara=train_first_part_result_at_max_speed.discharge_pressure
-                    - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
+                    - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage[time_step],
                     temperature_kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
                 )
                 .density
@@ -693,6 +702,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure=suction_pressure,
                 outlet_pressure=target_discharge_pressure,
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
+                time_step=time_step,
             ).is_valid:
                 return max_std_rate_m3_per_day_at_max_speed
 
@@ -815,6 +825,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     discharge_pressure_target=discharge_pressure_this_time_step,
                     pressure_control_first_part=self.data_transfer_object.pressure_control_first_part,
                     pressure_control_last_part=self.data_transfer_object.pressure_control_last_part,
+                    time_step=time_step,
                 )
                 train_results.append(compressor_train_result)
 
@@ -843,6 +854,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
     def calculate_compressor_train_given_rate_ps_speed(
         self,
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        time_step: int,
         inlet_pressure_bara: float,
         speed: float,
         asv_rate_fraction: float = 0.0,
@@ -938,6 +950,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 speed=speed,
                 asv_rate_fraction=asv_rate_fraction,
                 asv_additional_mass_rate=asv_additional_mass_rate,
+                time_step=time_step,
             )
             stage_results.append(stage_result)
 
@@ -961,6 +974,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         speed: float,
         outlet_pressure: float,
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        time_step: int,
         upper_bound_for_inlet_pressure: Optional[float] = None,
     ) -> CompressorTrainResultSingleTimeStep:
         if not upper_bound_for_inlet_pressure:
@@ -973,11 +987,12 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=_inlet_pressure,
                 std_rates_std_m3_per_day_per_stream=np.asarray(std_rates_std_m3_per_day_per_stream),
                 speed=speed,
+                time_step=time_step,
             )
 
         choked_inlet_pressure = find_root(
             lower_bound=UnitConstants.STANDARD_PRESSURE_BARA
-            + self.stages[0].pressure_drop_ahead_of_stage,  # Fixme: What is a sensible value here?
+            + self.stages[0].pressure_drop_ahead_of_stage[time_step],  # Fixme: What is a sensible value here?
             upper_bound=upper_bound_for_inlet_pressure,
             func=lambda x: _calculate_train_result_given_rate_ps_speed(_inlet_pressure=x).discharge_pressure
             - outlet_pressure,
@@ -986,6 +1001,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             speed=speed,
             std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
             inlet_pressure_bara=choked_inlet_pressure,
+            time_step=time_step,
         )
 
         return compressor_train_result
@@ -996,6 +1012,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         inlet_pressure: float,
         outlet_pressure: float,
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
+        time_step: int,
     ) -> CompressorTrainResultSingleTimeStep:
         # if full recirculation gives low enough pressure, iterate on asv_rate_fraction to reach the target
         def _calculate_train_result_given_rate_ps_speed_asv_rate_fraction(
@@ -1007,6 +1024,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=inlet_pressure,
                 speed=speed,
                 asv_rate_fraction=asv_rate_fraction,
+                time_step=time_step,
             )
             return train_results_this_time_step
 
@@ -1020,6 +1038,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                 inlet_pressure_bara=inlet_pressure,
                 speed=speed,
+                time_step=time_step,
             )
             if train_results.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < outlet_pressure:
                 # Should probably never end up here. This is just in case we do.
@@ -1032,10 +1051,11 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     outlet_pressure=outlet_pressure,
                     speed=speed,
                     upper_bound_for_inlet_pressure=inlet_pressure,
+                    time_step=time_step,
                 )
                 # Set pressure before upstream choking to the given inlet pressure
                 train_results.stage_results[0].inlet_pressure_before_choking = (
-                    inlet_pressure - self.stages[0].pressure_drop_ahead_of_stage
+                    inlet_pressure - self.stages[0].pressure_drop_ahead_of_stage[time_step]
                 )
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
@@ -1059,6 +1079,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=inlet_pressure,
                 speed=speed,
                 asv_rate_fraction=1.0,
+                time_step=time_step,
             )
             if not train_result_max_recirculation.discharge_pressure < outlet_pressure:
                 train_result_max_recirculation.failure_status = (
@@ -1085,6 +1106,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 inlet_pressure_bara=inlet_pressure,
                 speed=speed,
                 asv_rate_fraction=result_asv_rate_margin,
+                time_step=time_step,
             )
         # For INDIVIDUAL_ASV_PRESSURE and COMMON_ASV current solution is making a single speed equivalent train
         # Hence, there is no possibility for multiple streams entering/leaving the compressor train (when this option
@@ -1235,6 +1257,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         discharge_pressure_target: float,
         pressure_control_first_part: FixedSpeedPressureControl,
         pressure_control_last_part: FixedSpeedPressureControl,
+        time_step: int,
     ) -> CompressorTrainResultSingleTimeStep:
         """Compressor train has two pressure targets, one interstage target at which typically a stream is going out of or
         into the train, and one pressure target for the final discharge pressure after the last stage.
@@ -1271,6 +1294,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 target_discharge_pressure=outlet_pressure_first_part,
                 lower_bound_for_speed=self.minimum_speed,  # Only search for a solution within the bounds of the
                 upper_bound_for_speed=self.maximum_speed,  # original, complete compressor train
+                time_step=time_step,
             )
         )
 
@@ -1281,6 +1305,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     target_discharge_pressure=outlet_pressure_first_part,
                     rate_per_stream=std_rates_first_part,
                     stream_to_maximize=stream_index,
+                    time_step=time_step,
                 )
                 for stream_index, _ in enumerate(compressor_train_first_part.streams)
             ]
@@ -1306,6 +1331,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 target_discharge_pressure=outlet_pressure_last_part,
                 lower_bound_for_speed=self.minimum_speed,
                 upper_bound_for_speed=self.maximum_speed,
+                time_step=time_step,
             )
         )
 
@@ -1318,6 +1344,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                             target_discharge_pressure=outlet_pressure_last_part,
                             rate_per_stream=std_rates_last_part,
                             stream_to_maximize=stream_index,
+                            time_step=time_step,
                         )
                     )
         else:
@@ -1338,6 +1365,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     speed=speed,
                     inlet_pressure=inlet_pressure_last_part,
                     outlet_pressure=outlet_pressure_last_part,
+                    time_step=time_step,
                 )
             )
             compressor_train_results_to_return_first_part = (
@@ -1353,6 +1381,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     speed=speed,
                     inlet_pressure=inlet_pressure_first_part,
                     outlet_pressure=outlet_pressure_first_part,
+                    time_step=time_step,
                 )
             )
             compressor_train_results_to_return_first_part = compressor_train_results_first_part_with_pressure_control

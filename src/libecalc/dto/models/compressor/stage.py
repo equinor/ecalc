@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import confloat
 
@@ -10,7 +10,7 @@ from libecalc.dto.types import FixedSpeedPressureControl
 class CompressorStage(EcalcBaseModel):
     compressor_chart: CompressorChart
     inlet_temperature_kelvin: confloat(ge=0)
-    pressure_drop_before_stage: confloat(ge=0)
+    pressure_drop_before_stage: Union[confloat(ge=0), str, List[float]]
     remove_liquid_after_cooling: bool
     control_margin: confloat(ge=0, le=1) = 0.0  # Todo: this probably belong to the chart, not the stage.
 

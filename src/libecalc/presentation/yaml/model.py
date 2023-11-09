@@ -26,7 +26,12 @@ class YamlModel:
         self._output_frequency = output_frequency
         self._yaml_configuration = YamlModel._create_yaml_configuration(path)
         self.resources = YamlModel._read_resources(self._yaml_configuration, working_directory=path.parent)
-        self.dto = map_yaml_to_dto(configuration=self._yaml_configuration, resources=self.resources, name=path.stem)
+        self.dto = map_yaml_to_dto(
+            configuration=self._yaml_configuration,
+            resources=self.resources,
+            name=path.stem,
+            variables_map=self.variables,
+        )
 
     @property
     def start(self) -> datetime:

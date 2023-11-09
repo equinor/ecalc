@@ -6,6 +6,9 @@ from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
+from libecalc.expression import Expression
+from libecalc.input.mappers.fluid_mapper import fluid_model_mapper
+from libecalc.input.mappers.utils import (
     YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
     convert_control_margin_to_fraction,
@@ -292,6 +295,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
     stage_config: Dict,
     stream_references: List[str],
     input_models: Dict[str, Any],
+    variables_map: dto.VariablesMap,
 ) -> dto.MultipleStreamsCompressorStage:
     compressor_chart_reference = stage_config.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
     compressor_chart = resolve_reference_and_raise_error_if_not_found(
@@ -304,6 +308,13 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
     pressure_drop_before_stage = stage_config.get(
         EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0
     )
+
+    pressure_drop_before_stage = (
+        Expression.setup_from_expression(pressure_drop_before_stage)
+        .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+        .tolist()
+    )
+
     control_margin = stage_config.get(EcalcYamlKeywords.models_type_compressor_train_stage_control_margin, 0.0)
     control_margin_unit = stage_config.get(
         EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit,
@@ -349,6 +360,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
+    variables_map: dto.VariablesMap,
 ) -> dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures:
     streams_config = model_config.get(EcalcYamlKeywords.models_type_compressor_train_streams)
     streams = [
@@ -360,7 +372,10 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     stages_config = model_config.get(EcalcYamlKeywords.models_type_compressor_train_stages)
     stages = [
         _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper(
-            stage_config, stream_references=[stream.name for stream in streams], input_models=input_models
+            stage_config,
+            stream_references=[stream.name for stream in streams],
+            input_models=input_models,
+            variables_map=variables_map,
         )
         for stage_config in stages_config
     ]
@@ -391,6 +406,7 @@ def _single_speed_compressor_train_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
+    variables_map: dto.VariablesMap,
 ) -> dto.SingleSpeedCompressorTrain:
     fluid_model_reference: str = model_config.get(EcalcYamlKeywords.models_type_fluid_model)
     fluid_model = input_models.get(fluid_model_reference)
@@ -424,9 +440,11 @@ def _single_speed_compressor_train_mapper(
                 input_unit=Unit.CELSIUS,
             )[0],
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=stage.get(
-                EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0
-            ),
+            pressure_drop_before_stage=Expression.setup_from_expression(
+                stage.get(EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0)
+            )
+            .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+            .tolist(),
             control_margin=0,
         )
         for stage in stages_data
@@ -456,6 +474,7 @@ def _variable_speed_compressor_train_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
+    variables_map: dto.VariablesMap,
 ) -> dto.VariableSpeedCompressorTrain:
     fluid_model_reference: str = model_config.get(EcalcYamlKeywords.models_type_fluid_model)
     fluid_model = input_models.get(fluid_model_reference)
@@ -504,9 +523,11 @@ def _variable_speed_compressor_train_mapper(
                     input_unit=Unit.CELSIUS,
                 )[0],
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=stage.get(
-                    EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0
-                ),
+                pressure_drop_before_stage=Expression.setup_from_expression(
+                    stage.get(EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0)
+                )
+                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+                .tolist(),
                 control_margin=control_margin,
             )
         )
@@ -527,6 +548,7 @@ def _simplified_variable_speed_compressor_train_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
+    variables_map: dto.VariablesMap,
 ) -> Union[dto.CompressorTrainSimplifiedWithKnownStages, dto.CompressorTrainSimplifiedWithUnknownStages,]:
     fluid_model_reference: str = model_config.get(EcalcYamlKeywords.models_type_fluid_model)
     fluid_model = input_models.get(fluid_model_reference)
@@ -549,7 +571,11 @@ def _simplified_variable_speed_compressor_train_mapper(
                     compressor_chart=input_models.get(
                         stage.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
                     ),
-                    pressure_drop_before_stage=0,
+                    pressure_drop_before_stage=Expression.setup_from_expression(
+                        stage.get(EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0)
+                    )
+                    .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+                    .tolist(),
                     control_margin=0,
                     remove_liquid_after_cooling=True,
                 )
@@ -571,7 +597,11 @@ def _simplified_variable_speed_compressor_train_mapper(
                     [train_spec.get(EcalcYamlKeywords.models_type_compressor_train_inlet_temperature)],
                     input_unit=Unit.CELSIUS,
                 )[0],
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=Expression.setup_from_expression(
+                    model_config.get(EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0)
+                )
+                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+                .tolist(),
                 remove_liquid_after_cooling=True,
             ),
             energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
@@ -644,16 +674,31 @@ class ModelMapper:
         self.__resources = resources
 
     @staticmethod
-    def create_model(model: Dict, input_models: Dict[str, Any], resources: Resources):
+    def create_model(model: Dict, input_models: Dict[str, Any], resources: Resources, variables_map: dto.VariablesMap):
         model_creator = _model_mapper.get(model.get(EcalcYamlKeywords.type))
         if model_creator is None:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
-        return model_creator(model_config=model, input_models=input_models, resources=resources)
+        if model[EcalcYamlKeywords.type] in [
+            EcalcYamlKeywords.models_type_compressor_train_single_speed,
+            EcalcYamlKeywords.models_type_compressor_train_simplified,
+            EcalcYamlKeywords.models_type_compressor_train_variable_speed_multiple_streams_and_pressures,
+            EcalcYamlKeywords.models_type_compressor_train_variable_speed,
+        ]:
+            return model_creator(
+                model_config=model, input_models=input_models, resources=resources, variables_map=variables_map
+            )
+        else:
+            return model_creator(model_config=model, input_models=input_models, resources=resources)
 
-    def from_yaml_to_dto(self, model_config: Dict, input_models: Dict[str, Any]) -> dto.EnergyModel:
+    def from_yaml_to_dto(
+        self, model_config: Dict, input_models: Dict[str, Any], variables_map: dto.VariablesMap
+    ) -> dto.EnergyModel:
         try:
             model_data = ModelMapper.create_model(
-                model=model_config, input_models=input_models, resources=self.__resources
+                model=model_config,
+                input_models=input_models,
+                resources=self.__resources,
+                variables_map=variables_map,
             )
             return model_data
         except ValidationError as ve:
