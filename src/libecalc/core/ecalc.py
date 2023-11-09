@@ -24,8 +24,8 @@ class EnergyCalculator:
         self._graph = graph
 
     def evaluate_energy_usage(self, variables_map: dto.VariablesMap) -> Dict[str, EcalcModelResult]:
-        component_ids = list(reversed(self._graph.sorted_component_ids))
-        component_dtos = [self._graph.get_component(component_id) for component_id in component_ids]
+        component_ids = list(reversed(self._graph.sorted_node_ids))
+        component_dtos = [self._graph.get_node(component_id) for component_id in component_ids]
 
         consumer_results: Dict[str, EcalcModelResult] = {}
 
@@ -87,7 +87,7 @@ class EnergyCalculator:
         Returns: a mapping from consumer_id to emissions
         """
         emission_results: Dict[str, Dict[str, EmissionResult]] = {}
-        for consumer_dto in self._graph.components.values():
+        for consumer_dto in self._graph.nodes.values():
             if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)):
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage

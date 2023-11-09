@@ -66,7 +66,7 @@ class FuelQuery(Query):
         unit: Unit,
         frequency: Frequency,
     ) -> Optional[Dict[datetime, float]]:
-        installation_dto = installation_graph.graph.get_component(installation_graph.graph.root)
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
         time_steps = resample_time_steps(
@@ -146,7 +146,7 @@ class EmissionQuery(Query):
         unit: Unit,
         frequency: Frequency,
     ) -> Optional[Dict[datetime, float]]:
-        installation_dto = installation_graph.graph.get_component(installation_graph.graph.root)
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
         time_steps = resample_time_steps(
@@ -224,7 +224,7 @@ class ElectricityGeneratedQuery(Query):
         unit: Unit,
         frequency: Frequency,
     ) -> Optional[Dict[datetime, float]]:
-        installation_dto = installation_graph.graph.get_component(installation_graph.graph.root)
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
         time_steps = resample_time_steps(
@@ -297,7 +297,7 @@ class FuelConsumerPowerConsumptionQuery(Query):
         unit: Unit,
         frequency: Frequency,
     ) -> Optional[Dict[datetime, float]]:
-        installation_dto = installation_graph.graph.get_component(installation_graph.graph.root)
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
         time_steps = resample_time_steps(
@@ -388,7 +388,7 @@ class ElConsumerPowerConsumptionQuery(Query):
         unit: Unit,
         frequency: Frequency,
     ) -> Optional[Dict[datetime, float]]:
-        installation_dto = installation_graph.graph.get_component(installation_graph.graph.root)
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
         time_steps = resample_time_steps(
