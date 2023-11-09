@@ -99,7 +99,7 @@ class GraphResult:
 
         """
         asset_id = self.graph.root
-        asset = self.graph.get_component(asset_id)
+        asset = self.graph.get_node(asset_id)
         installation_results = []
         for installation in asset.installations:
             regularity = TimeSeriesFloat(
@@ -197,7 +197,7 @@ class GraphResult:
         return installation_results
 
     def get_subgraph(self, node_id: str) -> "GraphResult":
-        subgraph = self.graph.get_component(node_id).get_graph()
+        subgraph = self.graph.get_node(node_id).get_graph()
 
         return GraphResult(
             graph=subgraph,
@@ -374,7 +374,7 @@ class GraphResult:
 
     def get_asset_result(self) -> libecalc.dto.result.EcalcModelResult:
         asset_id = self.graph.root
-        asset = self.graph.get_component(asset_id)
+        asset = self.graph.get_node(asset_id)
 
         if not isinstance(asset, dto.Asset):
             raise ProgrammingError("Need an asset graph to get asset result")
@@ -395,7 +395,7 @@ class GraphResult:
             regularity: TimeSeriesFloat = regularities[parent_installation_id]
 
             if consumer_node_info.component_type in [ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_SYSTEM]:
-                component = self.graph.get_component(consumer_id)
+                component = self.graph.get_node(consumer_id)
 
                 for model in consumer_result.models:
                     period = Period(model.timesteps[0], model.timesteps[-1])
@@ -817,7 +817,7 @@ class GraphResult:
                         ]
                     )
             elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
-                component = self.graph.get_component(consumer_id)
+                component = self.graph.get_node(consumer_id)
                 for model in consumer_result.models:
                     models.extend(
                         [
