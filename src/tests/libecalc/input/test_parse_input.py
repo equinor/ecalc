@@ -32,7 +32,7 @@ def parse_input(
         configuration,
         resources,
         name=Path(main_yaml.name).stem,
-        variables_map=dto.VariablesMap(time_vector=[datetime(1900, 1, 1)], variables={}),
+        variables_map=dto.VariablesMap(time_vector=[datetime(1900, 1, 1)] * 4, variables={}),
     )
 
     variables = map_yaml_to_variables(configuration, resources, result_options=dto.ResultOptions())
