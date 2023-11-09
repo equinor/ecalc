@@ -4,11 +4,9 @@ from pydantic import ValidationError
 
 from libecalc import dto
 from libecalc.common.units import Unit
+from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
-from libecalc.expression import Expression
-from libecalc.input.mappers.fluid_mapper import fluid_model_mapper
-from libecalc.input.mappers.utils import (
     YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
     convert_control_margin_to_fraction,
