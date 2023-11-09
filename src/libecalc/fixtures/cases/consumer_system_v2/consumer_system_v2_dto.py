@@ -21,7 +21,7 @@ from libecalc.dto.base import (
 )
 from libecalc.dto.components import (
     Crossover,
-    ExpressionStream,
+    ExpressionStreamConditions,
     ExpressionTimeSeries,
     SystemComponentConditions,
 )
@@ -211,7 +211,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
     stream_conditions_priorities={
         "pri1": {
             "compressor1": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=1000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -221,7 +221,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=250,
                         unit=Unit.BARA,
@@ -229,7 +229,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "compressor2": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=6000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -239,7 +239,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=250,
                         unit=Unit.BARA,
@@ -247,7 +247,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "compressor3": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=6000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -257,7 +257,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=250,
                         unit=Unit.BARA,
@@ -267,7 +267,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
         },
         "pri2": {
             "compressor1": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value="$var.compressor1",
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -277,7 +277,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -285,7 +285,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "compressor2": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -295,7 +295,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -303,7 +303,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "compressor3": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -313,7 +313,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -323,7 +323,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
         },
         "pri3": {
             "compressor1": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=1000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -333,7 +333,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -341,7 +341,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "compressor2": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -351,7 +351,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -359,7 +359,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "compressor3": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -369,7 +369,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.BARA,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -443,7 +443,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
     stream_conditions_priorities={
         "pri1": {
             "pump1": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=4000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -457,7 +457,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.KG_SM3,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=250,
                         unit=Unit.BARA,
@@ -465,7 +465,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "pump2": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -479,7 +479,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.KG_SM3,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=250,
                         unit=Unit.BARA,
@@ -487,7 +487,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "pump3": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=6000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -501,7 +501,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.KG_SM3,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=250,
                         unit=Unit.BARA,
@@ -511,7 +511,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
         },
         "pri2": {
             "pump1": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=2000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -525,7 +525,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.KG_SM3,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -533,7 +533,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "pump2": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=2500000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -547,7 +547,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.KG_SM3,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,
@@ -555,7 +555,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                 ),
             },
             "pump3": {
-                "inlet": ExpressionStream(
+                "inlet": ExpressionStreamConditions(
                     rate=ExpressionTimeSeries(
                         value=3000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -569,7 +569,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                         unit=Unit.KG_SM3,
                     ),
                 ),
-                "outlet": ExpressionStream(
+                "outlet": ExpressionStreamConditions(
                     pressure=ExpressionTimeSeries(
                         value=125,
                         unit=Unit.BARA,

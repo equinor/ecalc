@@ -10,7 +10,7 @@ from libecalc.common.string_utils import to_camel_case
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 
 
-class Stream(BaseModel):
+class StreamConditions(BaseModel):
     class Config:
         extra = Extra.forbid
         alias_generator = to_camel_case
@@ -21,7 +21,7 @@ class Stream(BaseModel):
     pressure: Optional[TimeSeriesFloat]
     fluid_density: Optional[TimeSeriesFloat] = None
 
-    def mix(self, *other_streams: "Stream") -> "Stream":
+    def mix(self, *other_streams: "StreamConditions") -> "StreamConditions":
         """
         Mix two streams. This needs to be expanded to handle fluids (density, composition, etc.).
 
@@ -50,7 +50,7 @@ class Stream(BaseModel):
             # TODO: return a warning object with the specific timesteps?
             raise ValueError("Increasing pressure when mixing streams. That should not happen.")
 
-        return Stream(
+        return StreamConditions(
             name=f"Mixed-{'-'.join(stream.name for stream in streams)}",
             rate=reduce(operator.add, [stream.rate for stream in streams]),
             pressure=target_pressure,
@@ -67,7 +67,7 @@ class Stream(BaseModel):
         Returns: the stream that is relevant for the given timestep.
 
         """
-        return Stream(
+        return StreamConditions(
             name=self.name,
             rate=self.rate.for_timestep(current_timestep) if self.rate is not None else None,
             pressure=self.pressure.for_timestep(current_timestep) if self.pressure is not None else None,
@@ -75,7 +75,7 @@ class Stream(BaseModel):
         )
 
     @classmethod
-    def mix_all(cls, streams: List["Stream"]) -> "Stream":
+    def mix_all(cls, streams: List["StreamConditions"]) -> "StreamConditions":
         if len(streams) == 0:
             raise ValueError("No streams to mix")
         if len(streams) == 1:
@@ -92,4 +92,4 @@ class Stage(BaseModel):
         allow_population_by_field_name = True
 
     name: Literal["inlet", "before_choke", "outlet"]
-    stream: Stream
+    stream: StreamConditions

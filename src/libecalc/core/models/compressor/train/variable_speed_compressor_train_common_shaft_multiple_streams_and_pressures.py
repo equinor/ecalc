@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from libecalc import dto
 from libecalc.common.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.core.models import ModelInputFailureStatus, validate_model_input
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
@@ -100,8 +100,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def evaluate_streams(
         self,
-        inlet_streams: List[Stream],
-        outlet_stream: Stream,
+        inlet_streams: List[StreamConditions],
+        outlet_stream: StreamConditions,
     ) -> CompressorTrainResult:
         """
         Evaluate model based on inlet streams and the expected outlet stream.
@@ -125,7 +125,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         # Order streams either based on name or use index
         stream_index_counter = 0
-        ordered_streams: List[Stream] = []
+        ordered_streams: List[StreamConditions] = []
         for stream_definition in self.streams:
             try:
                 inlet_stream = next(

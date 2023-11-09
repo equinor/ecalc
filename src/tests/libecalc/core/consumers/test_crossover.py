@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 import pytest
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -11,9 +11,9 @@ from libecalc.common.utils.rates import (
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 
 
-def create_stream_from_rate(rate: List[float], name: str = "inlet") -> Stream:
+def create_stream_from_rate(rate: List[float], name: str = "inlet") -> StreamConditions:
     timesteps = [datetime(2020, 1, i + 1) for i in range(len(rate))]
-    return Stream(
+    return StreamConditions(
         name=name,
         rate=TimeSeriesStreamDayRate(
             timesteps=timesteps,

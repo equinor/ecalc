@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from libecalc.common.stream import Stream
+from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.core.result import EcalcModelResult
 from libecalc.dto import VariablesMap
@@ -21,7 +21,7 @@ class BaseConsumerWithoutOperationalSettings(ABC):
     id: str
 
     @abstractmethod
-    def get_max_rate(self, inlet_stream: Stream, target_pressure: TimeSeriesFloat) -> List[float]:
+    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: TimeSeriesFloat) -> List[float]:
         ...
 
     @abstractmethod
