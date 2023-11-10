@@ -62,7 +62,7 @@ class EnergyCalculator:
                     variables_map=variables_map,
                 )
                 system_result = consumer_system.evaluate(
-                    variables_map=variables_map, system_stream_conditions_priorities=evaluated_stream_conditions
+                    timesteps=variables_map.time_vector, system_stream_conditions_priorities=evaluated_stream_conditions
                 )
                 consumer_results[component_dto.id] = system_result
                 for consumer_result in system_result.sub_components:

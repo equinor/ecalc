@@ -12,18 +12,12 @@ from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimize
 from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
-    TimeSeriesString,
 )
 from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.compressor import Compressor
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.result import ConsumerSystemResult, EcalcModelResult
-from libecalc.core.result.results import (
-    CompressorResult,
-    PumpResult,
-)
-from libecalc.dto import VariablesMap
 from libecalc.dto.components import ConsumerComponent
 
 Consumer = TypeVar("Consumer", bound=Union[Compressor, Pump])
@@ -108,7 +102,7 @@ class ConsumerSystem(BaseConsumer):
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        timesteps: List[datetime],
         system_stream_conditions_priorities: Priorities[Dict[str, List[StreamConditions]]],
     ) -> EcalcModelResult:
         """
@@ -147,13 +141,10 @@ class ConsumerSystem(BaseConsumer):
             ]
 
         optimizer_result = optimizer.optimize(
-            timesteps=variables_map.time_vector, priorities=system_stream_conditions_priorities, evaluator=evaluator
+            timesteps=timesteps, priorities=system_stream_conditions_priorities, evaluator=evaluator
         )
 
-        consumer_results = self.collect_consumer_results(
-            priorities_used=optimizer_result.priorities_used,
-            priority_results=optimizer_result.priority_results,
-        )
+        consumer_results = optimizer_result.priority_results
 
         # Convert to legacy compatible operational_settings_used
         priorities_to_int_map = {
@@ -189,35 +180,6 @@ class ConsumerSystem(BaseConsumer):
             sub_components=consumer_results,
             models=[],
         )
-
-    def collect_consumer_results(
-        self,
-        priorities_used: TimeSeriesString,
-        priority_results: Dict[datetime, Dict[str, Dict[str, EcalcModelResult]]],
-    ) -> List[Union[CompressorResult, PumpResult]]:
-        """
-        Merge consumer results into a single result per consumer based on the operational settings used. I.e. pick results
-        from the correct operational setting result and merge into a single result per consumer.
-        Args:
-            priorities_used:
-            priority_results:
-
-        Returns:
-
-        """
-        consumer_results: Dict[str, Union[CompressorResult, PumpResult]] = {}
-        for consumer in self._consumers:
-            for timestep_index, timestep in enumerate(priorities_used.timesteps):
-                priority_used = priorities_used.values[timestep_index]
-                prev_result = consumer_results.get(consumer.id)
-                consumer_result_subset = priority_results[timestep][priority_used][consumer.id].component_result
-
-                if prev_result is None:
-                    consumer_results[consumer.id] = consumer_result_subset
-                else:
-                    consumer_results[consumer.id] = prev_result.merge(consumer_result_subset)
-
-        return list(consumer_results.values())
 
     @staticmethod
     def _topologically_sort_consumers_by_crossover(
