@@ -1,6 +1,6 @@
 from typing import Dict, TypeVar
 
-from libecalc.common.exceptions import (
+from libecalc.common.errors.exceptions import (
     DifferentLengthsError,
     IncompatibleDataError,
     MissingKeyError,

@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, Dict
 
-from libecalc.common.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
 from libecalc.dto import ResultOptions, VariablesMap

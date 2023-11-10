@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc import dto
-from libecalc.common.exceptions import IllegalStateException
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.core.models.chart import ChartCurve, VariableSpeedChart
 from libecalc.core.models.compressor.train.chart.types import (

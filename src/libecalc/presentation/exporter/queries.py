@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import DefaultDict, Dict, List, Optional
 
 import libecalc.dto
-from libecalc.common.feature_flags import Feature
+from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Frequency, resample_time_steps
 from libecalc.common.units import Unit

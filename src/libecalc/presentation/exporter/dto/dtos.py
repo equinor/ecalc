@@ -6,14 +6,14 @@ from typing import Dict, List, Type, Union
 import pandas as pd
 from pydantic import Field, root_validator
 
-from libecalc.common.exceptions import (
+from libecalc.common.errors.exceptions import (
     DifferentLengthsError,
     IncompatibleDataError,
     MissingKeyError,
 )
+from libecalc.common.math.math_utils import MathUtil
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
-from libecalc.common.utils.math_utils import MathUtil
 from libecalc.dto.result.base import EcalcResultBaseModel
 
 

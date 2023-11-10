@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from pydantic.json import custom_pydantic_encoder
 
 from libecalc.common.logger import logger
-from libecalc.common.string_utils import to_camel_case
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.units import Unit
 from libecalc.dto import SingleSpeedChart, VariableSpeedChart
 

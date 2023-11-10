@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
 
-from libecalc.common.exceptions import ProgrammingError
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.units import UnitConstants
 
 

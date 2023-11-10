@@ -5,7 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
-from libecalc.common.feature_flags import Feature
+from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.logger import logger
 from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit

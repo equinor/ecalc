@@ -1,5 +1,5 @@
 import pytest
-from libecalc.common.numbers import Numbers
+from libecalc.common.math.numbers import Numbers
 
 data = [
     # negative integers

@@ -8,7 +8,7 @@ from orjson import orjson
 from pydantic import BaseModel, Extra
 from pydantic.json import custom_pydantic_encoder
 
-from libecalc.common.string_utils import to_camel_case
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.expression import Expression
 
 

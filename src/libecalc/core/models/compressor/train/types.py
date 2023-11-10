@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, root_validator
 
-from libecalc.common.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.train.fluid import FluidStream
 

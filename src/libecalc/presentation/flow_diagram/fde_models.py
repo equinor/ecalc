@@ -5,7 +5,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from libecalc.common.string_utils import to_camel_case
+from libecalc.common.string.string_utils import to_camel_case
 
 
 class NodeType:

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from libecalc import dto
-from libecalc.common.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.core.consumers.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )

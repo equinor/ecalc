@@ -3,7 +3,7 @@ from typing import Dict, Optional, Union
 from pydantic import BaseModel, confloat, root_validator
 
 from libecalc import dto
-from libecalc.common.exceptions import IllegalStateException
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.results import (
     CompressorTrainStageResultSingleTimeStep,

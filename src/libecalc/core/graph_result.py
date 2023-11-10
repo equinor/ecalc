@@ -11,8 +11,8 @@ import libecalc
 from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureType
-from libecalc.common.exceptions import ProgrammingError
-from libecalc.common.feature_flags import Feature
+from libecalc.common.decorators.feature_flags import Feature
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit

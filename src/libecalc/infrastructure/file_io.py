@@ -15,7 +15,7 @@ import numpy as np
 import pandas
 import pandas as pd
 
-from libecalc.common.exceptions import EcalcError, EcalcErrorType
+from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import Resource, YamlTimeseriesType
 
