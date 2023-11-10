@@ -7,11 +7,11 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc import dto
-from libecalc.common.feature_flags import Feature
+from libecalc.common.decorators.feature_flags import Feature
+from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
-from libecalc.common.utils.adjustment import transform_linear
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.sampled.compressor_model_sampled_1d import (
     CompressorModelSampled1D,

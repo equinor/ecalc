@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from libecalc.common.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
     ConsumerSystemOperationalSettingExpressions,

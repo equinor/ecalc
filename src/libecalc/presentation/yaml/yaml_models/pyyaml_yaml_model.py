@@ -6,7 +6,7 @@ import pydantic
 import yaml
 from yaml import SafeLoader
 
-from libecalc.common.exceptions import EcalcError, ProgrammingError
+from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS, ComponentNameStr
 from libecalc.presentation.yaml.validation_errors import (

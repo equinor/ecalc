@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
-from libecalc.common.exceptions import EcalcError, IllegalStateException
+from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit, UnitConstants

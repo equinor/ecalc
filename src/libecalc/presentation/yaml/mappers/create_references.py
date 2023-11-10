@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from libecalc.common.logger import logger
-from libecalc.common.string_utils import get_duplicates
+from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper

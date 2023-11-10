@@ -4,7 +4,7 @@ import numpy as np
 
 import libecalc.dto.components
 from libecalc import dto
-from libecalc.common.list_utils import elementwise_sum
+from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.direct_emitter import DirectEmitter
 from libecalc.core.consumers.generator_set import Genset

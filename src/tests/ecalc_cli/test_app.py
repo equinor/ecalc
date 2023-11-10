@@ -11,7 +11,7 @@ import pytest
 import yaml
 from ecalc_cli import main
 from ecalc_cli.commands import show
-from libecalc.common.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.examples import advanced, simple

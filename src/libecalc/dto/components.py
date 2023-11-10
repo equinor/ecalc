@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 from libecalc import dto
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import StreamConditions
-from libecalc.common.string_utils import generate_id, get_duplicates
+from libecalc.common.string.string_utils import generate_id, get_duplicates
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,

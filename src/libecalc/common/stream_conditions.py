@@ -6,7 +6,7 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Extra
 from typing_extensions import Self
 
-from libecalc.common.string_utils import to_camel_case
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 
 

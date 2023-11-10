@@ -1,5 +1,9 @@
 import pytest
-from libecalc.common.string_utils import generate_id, get_duplicates, to_camel_case
+from libecalc.common.string.string_utils import (
+    generate_id,
+    get_duplicates,
+    to_camel_case,
+)
 
 
 class TestGetDuplicates:

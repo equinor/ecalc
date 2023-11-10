@@ -1,5 +1,5 @@
 import pytest
-from libecalc.common.list_utils import (
+from libecalc.common.list.list_utils import (
     elementwise_multiplication,
     elementwise_sum,
     group_data_by_value_at_index,

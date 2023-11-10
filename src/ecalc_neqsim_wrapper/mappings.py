@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Dict
 
 from libecalc import dto
-from libecalc.common.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.dto.types import EoSModel
 

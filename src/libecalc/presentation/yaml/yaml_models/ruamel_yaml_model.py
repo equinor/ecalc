@@ -4,7 +4,11 @@ from typing import Any, Dict, Optional, TextIO
 
 from ruamel.yaml import YAML
 
-from libecalc.common.exceptions import EcalcError, EcalcErrorType, ProgrammingError
+from libecalc.common.errors.exceptions import (
+    EcalcError,
+    EcalcErrorType,
+    ProgrammingError,
+)
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel
 

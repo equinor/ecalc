@@ -3,7 +3,7 @@ from typing import List, Tuple
 import numpy as np
 import pytest
 from libecalc import dto
-from libecalc.common.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.simplified_train import (
     CompressorTrainSimplifiedKnownStages,
