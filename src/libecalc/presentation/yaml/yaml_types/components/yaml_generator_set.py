@@ -10,6 +10,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_co
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
+from libecalc.presentation.yaml.yaml_types.components.train.yaml_train import YamlTrain
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
@@ -56,7 +57,12 @@ class YamlGeneratorSet(YamlBase):
         "generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/ELECTRICITY2FUEL",
     )
     consumers: List[
-        Union[YamlElectricityConsumer, YamlConsumerSystem[YamlCompressor], YamlConsumerSystem[YamlPump]]
+        Union[
+            YamlElectricityConsumer,
+            YamlConsumerSystem[YamlCompressor],
+            YamlConsumerSystem[YamlPump],
+            YamlConsumerSystem[YamlTrain[YamlCompressor]],
+        ]
     ] = Field(
         ...,
         title="CONSUMERS",

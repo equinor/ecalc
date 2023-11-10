@@ -1,8 +1,8 @@
 import pytest
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
-    YamlCrossover,
     YamlSystemComponentConditions,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlCrossover
 from pydantic import ValidationError
 
 
@@ -37,7 +37,7 @@ class TestSystemComponentConditions:
         assert str(exc_info.value) == (
             "1 validation error for YamlSystemComponentConditions\n"
             "CROSSOVER\n"
-            "  Only one crossover per consumer is currently supported. Component(s) with "
+            "  Only one crossover out per consumer is currently supported. Component(s) with "
             "several crossover streams are consumer1, consumer2 (type=value_error)"
         )
 
