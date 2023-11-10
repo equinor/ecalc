@@ -223,7 +223,6 @@
                     },
                     "required": [
                         "NAME",
-                        "CATEGORY",
                         "TYPE",
                         "STREAM_CONDITIONS_PRIORITIES",
                         "CONSUMERS"
@@ -285,7 +284,67 @@
                     },
                     "required": [
                         "NAME",
-                        "CATEGORY",
+                        "TYPE",
+                        "STREAM_CONDITIONS_PRIORITIES",
+                        "CONSUMERS"
+                    ],
+                    "title": "ConsumerSystem",
+                    "type": "object"
+                },
+                "YamlConsumerSystem_YamlTrain_YamlCompressor__": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "COMPONENT_CONDITIONS": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlSystemComponentConditions"
+                                }
+                            ],
+                            "description": "Contains conditions for the component, in this case the system.",
+                            "title": "System component conditions"
+                        },
+                        "CONSUMERS": {
+                            "items": {
+                                "$ref": "#/definitions/YamlTrain_YamlCompressor_"
+                            },
+                            "title": "Consumers",
+                            "type": "array"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "STREAM_CONDITIONS_PRIORITIES": {
+                            "additionalProperties": {
+                                "additionalProperties": {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/YamlStreamConditions"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "object"
+                            },
+                            "description": "A list of prioritised stream conditions per consumer.",
+                            "title": "Stream conditions priorities",
+                            "type": "object"
+                        },
+                        "TYPE": {
+                            "description": "The type of the component",
+                            "enum": [
+                                "CONSUMER_SYSTEM@v2"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
                         "TYPE",
                         "STREAM_CONDITIONS_PRIORITIES",
                         "CONSUMERS"
@@ -297,7 +356,7 @@
                     "additionalProperties": false,
                     "properties": {
                         "FROM": {
-                            "description": "Target component for crossover",
+                            "description": "Source component for crossover",
                             "title": "FROM",
                             "type": "string"
                         },
@@ -749,6 +808,9 @@
                                     },
                                     {
                                         "$ref": "#/definitions/YamlConsumerSystem_YamlPump_"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlConsumerSystem_YamlTrain_YamlCompressor__"
                                     }
                                 ]
                             },
@@ -886,6 +948,9 @@
                                     },
                                     {
                                         "$ref": "#/definitions/YamlConsumerSystem_YamlPump_"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlConsumerSystem_YamlTrain_YamlCompressor__"
                                     }
                                 ]
                             },
@@ -1344,6 +1409,32 @@
                     "title": "YamlSingleVariable",
                     "type": "object"
                 },
+                "YamlStream": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "FROM": {
+                            "description": "The component the stream comes from.",
+                            "title": "FROM",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "The name of the stream. ",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "TO": {
+                            "description": "The component the stream goes to.",
+                            "title": "TO",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "FROM",
+                        "TO"
+                    ],
+                    "title": "YamlStream",
+                    "type": "object"
+                },
                 "YamlStreamConditions": {
                     "additionalProperties": false,
                     "properties": {
@@ -1471,6 +1562,51 @@
                         "VALUE"
                     ],
                     "title": "Temperature",
+                    "type": "object"
+                },
+                "YamlTrain_YamlCompressor_": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "description": "User defined category",
+                            "title": "CATEGORY",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Consumer name",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "STAGES": {
+                            "items": {
+                                "$ref": "#/definitions/YamlCompressor"
+                            },
+                            "title": "Stages",
+                            "type": "array"
+                        },
+                        "STREAMS": {
+                            "description": "List of streams",
+                            "items": {
+                                "$ref": "#/definitions/YamlStream"
+                            },
+                            "title": "Streams",
+                            "type": "array"
+                        },
+                        "TYPE": {
+                            "default": "TRAIN@V2",
+                            "description": "The type of the component",
+                            "enum": [
+                                "TRAIN@V2"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "STAGES"
+                    ],
+                    "title": "YamlTrain[YamlCompressor]",
                     "type": "object"
                 }
             },

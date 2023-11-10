@@ -176,7 +176,27 @@ class PumpComponent(BaseConsumer):
     energy_usage_model: Dict[datetime, PumpModel]
 
 
+class Stream(EcalcBaseModel):
+    class Config:
+        allow_population_by_field_name = True
+
+    stream_name: Optional[str] = Field(None)
+    from_component_id: str
+    to_component_id: str
+
+
 ConsumerComponent = TypeVar("ConsumerComponent", bound=Union[CompressorComponent, PumpComponent])
+
+
+class TrainComponent(BaseConsumer):
+    component_type: Literal[ComponentType.TRAIN_V2] = Field(
+        ComponentType.TRAIN_V2,
+        title="TYPE",
+        description="The type of the component",
+        alias="TYPE",
+    )
+    stages: List[ConsumerComponent]
+    streams: List[Stream]
 
 
 class ExpressionTimeSeries(EcalcBaseModel):

@@ -1,24 +1,20 @@
-from typing import Literal, Optional
+from datetime import datetime
+from typing import Dict, Literal, Optional
 
 from pydantic import Field
 
+from libecalc import dto
+from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
+from libecalc.dto.components import PumpComponent
+from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.mappers.utils import resolve_and_validate_reference
+from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
-    YamlOperationalConditionBase,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
-
-
-class YamlPumpOperationalSettings(YamlOperationalConditionBase):
-    class Config:
-        title = "PumpOperationalSettings"
-
-    fluid_density: Optional[Expression]
-    rate: Optional[Expression]
-    inlet_pressure: Optional[Expression]
-    outlet_pressure: Optional[Expression]
 
 
 class YamlPump(YamlConsumerBase):
@@ -32,17 +28,30 @@ class YamlPump(YamlConsumerBase):
         alias="TYPE",
     )
 
-    category: Optional[str] = Field(
-        None,
-        title="CATEGORY",
-        description="User defined category",
-    )
     energy_usage_model: YamlTemporalModel[str]
 
-
-class YamlPumpStage(YamlPump):
-    class Config:
-        title = "PumpStage"
-
-    user_defined_category: str
-    operational_settings: YamlPumpOperationalSettings
+    def to_dto(
+        self,
+        consumes: ConsumptionType,
+        regularity: Dict[datetime, Expression],
+        target_period: Period,
+        references: References,
+        category: str,
+        fuel: Optional[Dict[datetime, dto.types.FuelType]],
+    ):
+        return PumpComponent(
+            consumes=consumes,
+            regularity=regularity,
+            name=self.name,
+            user_defined_category=define_time_model_for_period(self.category or category, target_period=target_period),
+            fuel=fuel,
+            energy_usage_model={
+                timestep: resolve_and_validate_reference(
+                    value=reference,
+                    references=references.models,
+                )
+                for timestep, reference in define_time_model_for_period(
+                    self.energy_usage_model, target_period=target_period
+                ).items()
+            },
+        )
