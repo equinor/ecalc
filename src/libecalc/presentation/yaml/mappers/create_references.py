@@ -1,6 +1,5 @@
 from typing import Dict, List
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
@@ -11,9 +10,7 @@ from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
-def create_references(
-    configuration: PyYamlYamlModel, resources: Resources, variables_map: dto.VariablesMap
-) -> References:
+def create_references(configuration: PyYamlYamlModel, resources: Resources) -> References:
     """Create references-lookup used throughout the yaml.
 
     :param resources: list of resources containing data for the FILE reference in facility input
@@ -29,7 +26,6 @@ def create_references(
         models_yaml_config=configuration.models,
         facility_inputs=facility_inputs_from_files,
         resources=resources,
-        variables_map=variables_map,
     )
 
     duplicated_fuel_names = get_duplicates(
@@ -113,9 +109,7 @@ def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
                 )
 
 
-def create_model_references(
-    models_yaml_config, facility_inputs: Dict, resources: Resources, variables_map: dto.VariablesMap
-):
+def create_model_references(models_yaml_config, facility_inputs: Dict, resources: Resources):
     sorted_models = _sort_models(models_yaml_config)
 
     models_map = facility_inputs
@@ -125,7 +119,7 @@ def create_model_references(
         model_reference = model.get(EcalcYamlKeywords.name)
         if model_reference in models_map:
             raise ValueError("Duplicated references not supported.")
-        models_map[model_reference] = model_mapper.from_yaml_to_dto(model, models_map, variables_map=variables_map)
+        models_map[model_reference] = model_mapper.from_yaml_to_dto(model, models_map)
 
     return models_map
 

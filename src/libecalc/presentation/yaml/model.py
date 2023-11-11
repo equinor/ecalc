@@ -30,7 +30,6 @@ class YamlModel:
             configuration=self._yaml_configuration,
             resources=self.resources,
             name=path.stem,
-            variables_map=self.variables,
         )
 
     @property
