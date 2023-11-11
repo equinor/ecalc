@@ -8,6 +8,7 @@ from libecalc.common.run_info import RunInfo
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
+from libecalc.presentation.evaluators.evaluate_models import EvaluateModels
 from libecalc.presentation.yaml.model import YamlModel
 
 from ecalc_cli.errors import EcalcCLIError
@@ -108,6 +109,9 @@ def run(
     validate_arguments(model_file=model_file, output_folder=output_folder)
 
     model = YamlModel(path=model_file, output_frequency=output_frequency)
+
+    model_evaluator = EvaluateModels(model=model)
+    model_evaluator.evaluate_dto_for_expressions()
 
     if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
         logger.warning(
