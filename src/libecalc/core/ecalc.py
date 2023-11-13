@@ -5,6 +5,8 @@ import numpy as np
 import libecalc.dto.components
 from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
+from libecalc.common.priority_optimizer import PriorityOptimizer
+from libecalc.common.utils.rates import TimeSeriesInt
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.direct_emitter import DirectEmitter
 from libecalc.core.consumers.generator_set import Genset
@@ -58,14 +60,37 @@ class EnergyCalculator:
                     consumers=component_dto.consumers,
                     component_conditions=component_dto.component_conditions,
                 )
+
                 evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
                     variables_map=variables_map,
                 )
-                system_result = consumer_system.evaluate(
-                    timesteps=variables_map.time_vector, system_stream_conditions_priorities=evaluated_stream_conditions
+                optimizer = PriorityOptimizer()
+
+                optimizer_result = optimizer.optimize(
+                    timesteps=variables_map.time_vector,
+                    priorities=evaluated_stream_conditions,
+                    evaluator=consumer_system.evaluator,
+                )
+
+                # Convert to legacy compatible operational_settings_used
+                priorities_to_int_map = {
+                    priority_name: index + 1 for index, priority_name in enumerate(evaluated_stream_conditions.keys())
+                }
+                operational_settings_used = TimeSeriesInt(
+                    timesteps=optimizer_result.priorities_used.timesteps,
+                    values=[
+                        priorities_to_int_map[priority_name]
+                        for priority_name in optimizer_result.priorities_used.values
+                    ],
+                    unit=optimizer_result.priorities_used.unit,
+                )
+
+                system_result = consumer_system.get_system_result(
+                    consumer_results=optimizer_result.priority_results,
+                    operational_settings_used=operational_settings_used,
                 )
                 consumer_results[component_dto.id] = system_result
-                for consumer_result in system_result.sub_components:
+                for consumer_result in optimizer_result.priority_results:
                     consumer_results[consumer_result.id] = EcalcModelResult(
                         component_result=consumer_result,
                         sub_components=[],
