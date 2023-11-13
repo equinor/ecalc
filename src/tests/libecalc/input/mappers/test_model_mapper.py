@@ -186,7 +186,6 @@ class TestModelMapper:
                 "CURVES": {"FILE": "einput/predefined_compressor_chart_curves.csv"},
             },
             input_models={},
-            variables_map={},
         )
         variable_speed_compressor_chart_curves_spec_in_yaml = model_mapper.from_yaml_to_dto(
             model_config={
@@ -240,7 +239,6 @@ class TestModelMapper:
                 ],
             },
             input_models={},
-            variables_map={},
         )
         assert variable_speed_compressor_chart_curves_spec_in_csv == variable_speed_compressor_chart_curves_spec_in_yaml
 
@@ -300,7 +298,7 @@ def parse_model(model_data, start: datetime, end: datetime) -> dto.Asset:
     model_data[EcalcYamlKeywords.end] = period.end
 
     configuration = PyYamlYamlModel(internal_datamodel=model_data, instantiated_through_read=True)
-    references = create_references(configuration, resources={}, variables_map={})
+    references = create_references(configuration, resources={})
     model_mapper = EcalcModelMapper(references=references, target_period=period)
     return model_mapper.from_yaml_to_dto(configuration, name="test")
 

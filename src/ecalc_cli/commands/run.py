@@ -110,8 +110,10 @@ def run(
 
     model = YamlModel(path=model_file, output_frequency=output_frequency)
 
-    model_evaluator = EvaluateModels(model=model)
+    # Modify and update the model object, i.e. evaluate expressions and update selected variables
+    model_evaluator = EvaluateModels(installations=model.dto.installations, variables_map=model.variables)
     model_evaluator.evaluate_dto_for_expressions()
+    # model = model_evaluator._model
 
     if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
         logger.warning(
