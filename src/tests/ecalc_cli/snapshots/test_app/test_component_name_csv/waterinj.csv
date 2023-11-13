@@ -1,4 +1,4 @@
-timesteps,is_valid[N/A],energy_usage[MW],energy_usage_cumulative[MWd],power[MW],power_cumulative[GWh]
+timesteps,is_valid[N/A],energy_usage[MW (sd)],energy_usage_cumulative[MWd (cd)],power[MW (sd)],power_cumulative[GWh (cd)]
 2020-01-01 00:00:00,1,             6.00000,             0.00000,             6.00000,             0.00000
 2021-01-01 00:00:00,1,             5.25000,          2196.00000,             5.25000,            52.70400
 2022-01-01 00:00:00,1,             5.50000,          4112.25000,             5.50000,            98.69400
