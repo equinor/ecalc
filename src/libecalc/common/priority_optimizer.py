@@ -92,14 +92,16 @@ class PriorityOptimizer(Generic[TResult, TPriority]):
 
         We process each timestep separately.
 
+        It will default to the last priority if all settings fails
+
         Args:
             timesteps: The timesteps that we want to figure out which priority to use for.
             priorities: Dict of priorities, key is used to identify the priority in the results.
             evaluator: The evaluator function gives a list of results back, each result with its own unique id.
 
         Returns:
-            PriorityOptimizerResult: result containing priorities used and a map of the calculated results. The keys of
-                the results map are the timestep used, the priority index and the id of the result.
+            PriorityOptimizerResult: result containing priorities used and a list of the results merged on priorities
+            used,
 
         """
         is_valid = TimeSeriesBoolean(timesteps=timesteps, values=[False] * len(timesteps), unit=Unit.NONE)
