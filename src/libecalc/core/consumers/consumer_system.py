@@ -7,17 +7,15 @@ from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
 import networkx as nx
 import numpy as np
 
-from libecalc.common.priorities import Priorities
-from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
+from libecalc.common.priority_optimizer import EvaluatorResult
 from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
 )
-from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.compressor import Compressor
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.pump import Pump
-from libecalc.core.result import ConsumerSystemResult, EcalcModelResult
+from libecalc.core.result import ComponentResult, ConsumerSystemResult, EcalcModelResult
 from libecalc.dto.components import ConsumerComponent
 
 Consumer = TypeVar("Consumer", bound=Union[Compressor, Pump])
@@ -33,7 +31,7 @@ class SystemComponentConditions(Protocol):
     crossover: List[Crossover]
 
 
-class ConsumerSystem(BaseConsumer):
+class ConsumerSystem:
     """
     A system of possibly interdependent consumers and or other consumer systems.
 
@@ -100,61 +98,50 @@ class ConsumerSystem(BaseConsumer):
 
         return adjusted_stream_conditions
 
-    def evaluate(
+    def evaluator(
+        self, timestep: datetime, system_stream_condition: Dict[str, List[StreamConditions]]
+    ) -> List[EvaluatorResult]:
+        """
+        Function to evaluate the consumers in the system given stream conditions
+
+        Args:
+            timestep:
+            system_stream_condition:
+
+        Returns: list of evaluator results
+
+        """
+        stream_conditions_for_timestep = {
+            component_id: [stream_condition.get_subset_for_timestep(timestep) for stream_condition in stream_conditions]
+            for component_id, stream_conditions in system_stream_condition.items()
+        }
+        adjusted_system_stream_conditions = self._get_stream_conditions_adjusted_for_crossover(
+            stream_conditions=stream_conditions_for_timestep,
+        )
+        consumer_results_for_priority = [
+            consumer.evaluate(adjusted_system_stream_conditions[consumer.id]) for consumer in self._consumers
+        ]
+        return [
+            EvaluatorResult(
+                id=consumer_result_for_priority.component_result.id,
+                result=consumer_result_for_priority,
+                is_valid=consumer_result_for_priority.component_result.is_valid,
+            )
+            for consumer_result_for_priority in consumer_results_for_priority
+        ]
+
+    def get_system_result(
         self,
-        timesteps: List[datetime],
-        system_stream_conditions_priorities: Priorities[Dict[str, List[StreamConditions]]],
+        consumer_results: List[ComponentResult],
+        operational_settings_used: TimeSeriesInt,
     ) -> EcalcModelResult:
         """
-        Evaluating a consumer system that may be composed of both consumers and other consumer systems. It will default
-        to the last operational setting if all settings fails.
+        Get system result based on consumer results
 
         Notes:
             - We use 1-indexed operational settings output. We should consider changing this to default 0-index, and
                 only convert when presenting results to the end-user.
         """
-
-        optimizer = PriorityOptimizer()
-
-        def evaluator(
-            timestep: datetime, system_stream_condition: Dict[str, List[StreamConditions]]
-        ) -> List[EvaluatorResult]:
-            stream_conditions_for_timestep = {
-                component_id: [
-                    stream_condition.get_subset_for_timestep(timestep) for stream_condition in stream_conditions
-                ]
-                for component_id, stream_conditions in system_stream_condition.items()
-            }
-            adjusted_system_stream_conditions = self._get_stream_conditions_adjusted_for_crossover(
-                stream_conditions=stream_conditions_for_timestep,
-            )
-            consumer_results_for_priority = [
-                consumer.evaluate(adjusted_system_stream_conditions[consumer.id]) for consumer in self._consumers
-            ]
-            return [
-                EvaluatorResult(
-                    id=consumer_result_for_priority.component_result.id,
-                    result=consumer_result_for_priority,
-                    is_valid=consumer_result_for_priority.component_result.is_valid,
-                )
-                for consumer_result_for_priority in consumer_results_for_priority
-            ]
-
-        optimizer_result = optimizer.optimize(
-            timesteps=timesteps, priorities=system_stream_conditions_priorities, evaluator=evaluator
-        )
-
-        consumer_results = optimizer_result.priority_results
-
-        # Convert to legacy compatible operational_settings_used
-        priorities_to_int_map = {
-            priority_name: index + 1 for index, priority_name in enumerate(system_stream_conditions_priorities.keys())
-        }
-        operational_settings_used = TimeSeriesInt(
-            timesteps=optimizer_result.priorities_used.timesteps,
-            values=[priorities_to_int_map[priority_name] for priority_name in optimizer_result.priorities_used.values],
-            unit=optimizer_result.priorities_used.unit,
-        )
 
         consumer_system_result = ConsumerSystemResult(
             id=self.id,
