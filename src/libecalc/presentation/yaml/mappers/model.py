@@ -360,9 +360,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     stages_config = model_config.get(EcalcYamlKeywords.models_type_compressor_train_stages)
     stages = [
         _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper(
-            stage_config,
-            stream_references=[stream.name for stream in streams],
-            input_models=input_models,
+            stage_config, stream_references=[stream.name for stream in streams], input_models=input_models
         )
         for stage_config in stages_config
     ]
@@ -650,15 +648,12 @@ class ModelMapper:
         model_creator = _model_mapper.get(model.get(EcalcYamlKeywords.type))
         if model_creator is None:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
-
         return model_creator(model_config=model, input_models=input_models, resources=resources)
 
     def from_yaml_to_dto(self, model_config: Dict, input_models: Dict[str, Any]) -> dto.EnergyModel:
         try:
             model_data = ModelMapper.create_model(
-                model=model_config,
-                input_models=input_models,
-                resources=self.__resources,
+                model=model_config, input_models=input_models, resources=self.__resources
             )
             return model_data
         except ValidationError as ve:
