@@ -15,18 +15,18 @@ The following is an example with one installation called `Installation A` and `I
 ```mermaid
 graph TD;
    Asset(Asset) --> A(Installation A);
-   A(Installation A) --> AA(Flare);
-   A --> AC(Gas export compressor);
+   A(Installation A) --> AA(Flare A);
    A --> AD(Generator set A);
    AD --> AE(Base production load A);
-   AD --> AF(Gas injection compressor A);
+   AD --> AF(Gas export compressor A);
    AD --> AG(Produced water reinjection pump A);
    AD --> AH(Sea water injection pump A);
    
    Asset --> B(Installation B);
    B --> BA(Generator set B);
+   B --> BD(Gas export compressor B);
    BA --> BC(Base production load B);
-   B --> BB(Flare A);
+   B --> BB(Flare B);
    style A stroke:red;
    style B stroke:red;
    style BC stroke:blue;
@@ -39,14 +39,13 @@ graph TD;
 The results of a performed characterization of the equipment are listed below:
 
 | Consumer                          |Type                | Description                                                                                                                                              |
-|-----------------------------------|--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-------------------------------------|--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Generator set A                   |Generator set       | Variable fuel consumer with electricity to fuel function                                                                                                 |
 | Base production load A            |Power consumer      | Production base load varying depending on a binary condition                                                                                             |
-| Gas injection compressor A        |Power consumer      | Variable consumption depending on gas injection rate and lift gas rate                                                                                   |
+| Gas export compressor A         |Power consumer      | Variable consumption depending on gas sales rate                                                                                   |
 | Produced water reinjection pump A |Power consumer      | Variable consumption depending on water production rate and water injection rate. The pump suction pressure is 10 bar and discharge pressure is 200 bar. |
 | Sea water injection pump A        |Power consumer      | Variable consumption depending on a complex combination on water injection rate and water production rate                                                |
 | Flare A                           |Direct fuel consumer| Flare A                                                                                                                                                  |
-| Gas export compressor A           |Direct fuel consumer| Variable fuel consumption depending on gas sales rate                                                                                                    |
 | Generator set B                   |Generator set      | Variable fuel consumption with electricity to fuel function                                                                                              |
 | Base production load B            |Power consumer| Production base load at 7.6 MW                                                                                                                           |
 | Gas export compressor B           |Direct fuel consumer| Variable fuel consumption depending on gas sales rate                                                                                                    |
