@@ -6,7 +6,14 @@ import pandas as pd
 from typing_extensions import Self
 
 from libecalc.common.time_utils import Frequency
-from libecalc.common.utils.rates import TimeSeries, TimeSeriesBoolean
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import (
+    RateType,
+    TimeSeries,
+    TimeSeriesBoolean,
+    TimeSeriesRate,
+    TimeSeriesVolumesCumulative,
+)
 from libecalc.dto.result.base import EcalcResultBaseModel
 
 
@@ -23,7 +30,16 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
 
         for attribute_name, attribute_value in self.__dict__.items():
             if isinstance(attribute_value, TimeSeries):
-                column_name = f"{attribute_name}[{attribute_value.unit}]"
+                unit_value = attribute_value.unit
+                if isinstance(attribute_value, TimeSeriesRate):
+                    unit_extension = "sd" if attribute_value.rate_type == RateType.STREAM_DAY else "cd"
+                    if attribute_value.unit == Unit.MEGA_WATT:
+                        unit_value = unit_value.replace(Unit.MEGA_WATT, f"{Unit.MEGA_WATT} ({unit_extension})")
+                    else:
+                        unit_value = unit_value.replace("/d", f"/{unit_extension}")
+                elif isinstance(attribute_value, TimeSeriesVolumesCumulative):
+                    unit_value = unit_value.replace(attribute_value.unit, f"{attribute_value.unit} (cd)")
+                column_name = f"{attribute_name}[{unit_value}]"
 
                 if isinstance(attribute_value, TimeSeriesBoolean):
                     values = [int(v) for v in attribute_value.values]
