@@ -32,19 +32,13 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
             if isinstance(attribute_value, TimeSeries):
                 unit_value = attribute_value.unit
                 if isinstance(attribute_value, TimeSeriesRate):
-                    if attribute_value.rate_type == RateType.STREAM_DAY:
-                        if attribute_value.unit == Unit.MEGA_WATT:
-                            unit_value = unit_value.replace(Unit.MEGA_WATT, f"{Unit.MEGA_WATT} (sd)")
-                        else:
-                            unit_value = unit_value.replace("/d", "/sd")
-                    if attribute_value.rate_type == RateType.CALENDAR_DAY:
-                        if attribute_value.unit == Unit.MEGA_WATT:
-                            unit_value = unit_value.replace(Unit.MEGA_WATT, f"{Unit.MEGA_WATT} (sd)")
-                        else:
-                            unit_value = unit_value.replace("/d", "/cd")
-                else:
-                    if isinstance(attribute_value, TimeSeriesVolumesCumulative):
-                        unit_value = unit_value.replace(attribute_value.unit, f"{attribute_value.unit} (cd)")
+                    unit_extension = "sd" if attribute_value.rate_type == RateType.STREAM_DAY else "cd"
+                    if attribute_value.unit == Unit.MEGA_WATT:
+                        unit_value = unit_value.replace(Unit.MEGA_WATT, f"{Unit.MEGA_WATT} ({unit_extension})")
+                    else:
+                        unit_value = unit_value.replace("/d", f"/{unit_extension}")
+                elif isinstance(attribute_value, TimeSeriesVolumesCumulative):
+                    unit_value = unit_value.replace(attribute_value.unit, f"{attribute_value.unit} (cd)")
                 column_name = f"{attribute_name}[{unit_value}]"
 
                 if isinstance(attribute_value, TimeSeriesBoolean):
