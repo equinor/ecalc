@@ -142,7 +142,6 @@ class EmitterModel(EcalcBaseModel):
     _validate_emitter_model_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
 
     _default_emission_rate = validator("emission_rate", allow_reuse=True, pre=True)(convert_expression)
-    _default_emission_quota = validator("emission_quota", allow_reuse=True, pre=True)(convert_expression)
 
 
 class DirectEmitter(BaseEquipment):

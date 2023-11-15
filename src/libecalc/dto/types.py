@@ -5,8 +5,6 @@ from pydantic import Field, validator
 
 from libecalc.dto.base import EcalcBaseModel, FuelTypeUserDefinedCategoryType
 from libecalc.dto.emission import Emission
-from libecalc.dto.utils.validators import convert_expression
-from libecalc.expression import Expression
 
 
 class ConsumptionType(str, Enum):
@@ -117,16 +115,7 @@ class FuelType(EcalcBaseModel):
 
     name: str
     user_defined_category: Optional[FuelTypeUserDefinedCategoryType] = None
-    price: Optional[Expression]
     emissions: List[Emission] = Field(default_factory=list)
-
-    _convert_expression = validator("price", allow_reuse=True, pre=True)(convert_expression)
-
-    @validator("price", pre=True)
-    def convert_price(cls, price):
-        # NOTE: This is called after validator/converter above, hence wraps value in an Expression
-        # This is needed when price is explicitly set to None, e.g. when parsed in YAML
-        return price if price is not None else Expression.setup_from_expression(value=0.0)
 
     @validator("user_defined_category", pre=True, always=True)
     def check_user_defined_category(cls, user_defined_category, values):

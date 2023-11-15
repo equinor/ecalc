@@ -13,8 +13,6 @@ class EmissionMapper:
         return dto.Emission(
             name=data.get(EcalcYamlKeywords.name),
             factor=data.get(EcalcYamlKeywords.emission_factor),
-            tax=data.get(EcalcYamlKeywords.emission_tax),
-            quota=data.get(EcalcYamlKeywords.emission_quota),
         )
 
 
@@ -25,7 +23,6 @@ class FuelMapper:
             return dto.types.FuelType(
                 name=fuel.get(EcalcYamlKeywords.name),
                 user_defined_category=fuel.get(EcalcYamlKeywords.user_defined_tag),
-                price=fuel.get(EcalcYamlKeywords.fuel_price),
                 emissions=[
                     EmissionMapper.from_yaml_to_dto(emission) for emission in fuel.get(EcalcYamlKeywords.emissions, [])
                 ],

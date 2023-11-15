@@ -35,13 +35,10 @@ class DirectEmitter:
                     # This is the DIRECT-EMITTER CATEGORY which is fed into the fuel modet -> fuel validation error
                     # Commented out, meaning the fuel model has CATEGORY set to None
                     # user_defined_category=direct_emitter_dto.user_defined_category,
-                    price=None,  # See docstring
                     emissions=[
                         Emission(
                             name=direct_emitter_dto.emission_name,
-                            quota=emitter_model.emission_quota,
-                            factor=Expression.setup_from_expression(1),  # See docstring.
-                            tax=None,  # See docstring
+                            factor=Expression.setup_from_expression(1),  # See docstring.  # See docstring
                         )
                     ],
                 )
