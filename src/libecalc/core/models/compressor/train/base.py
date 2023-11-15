@@ -7,7 +7,6 @@ from numpy.typing import NDArray
 from libecalc import dto
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.logger import logger
-from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
 from libecalc.core.models import (
     INVALID_INPUT,
@@ -22,6 +21,7 @@ from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
+from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTrainDTO
 from libecalc.dto.models.compressor.train import (
     SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
@@ -169,9 +169,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         """
         mixed_inlet_stream = StreamConditions.mix_all(inlet_streams)
         return self.evaluate_rate_ps_pd(
-            rate=np.asarray(mixed_inlet_stream.rate.values),
-            suction_pressure=np.asarray(mixed_inlet_stream.pressure.values),
-            discharge_pressure=np.asarray(outlet_stream.pressure.values),
+            rate=np.asarray([mixed_inlet_stream.rate.value]),
+            suction_pressure=np.asarray([mixed_inlet_stream.pressure.value]),
+            discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
 
     @Feature.experimental(

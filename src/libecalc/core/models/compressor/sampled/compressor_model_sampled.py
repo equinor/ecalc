@@ -10,7 +10,6 @@ from libecalc import dto
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
-from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.sampled.compressor_model_sampled_1d import (
@@ -37,6 +36,7 @@ from libecalc.core.models.results import (
     CompressorTrainResult,
     TurbineResult,
 )
+from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor import CompressorSampled
 from libecalc.dto.types import ChartAreaFlag
 
@@ -262,9 +262,9 @@ class CompressorModelSampled(CompressorModel):
     ) -> CompressorTrainResult:
         mixed_input_streams = StreamConditions.mix_all(streams=inlet_streams)
         return self.evaluate_rate_ps_pd(
-            rate=np.asarray(mixed_input_streams.rate.values),
-            suction_pressure=np.asarray(mixed_input_streams.pressure.values),
-            discharge_pressure=np.asarray(outlet_stream.pressure.values),
+            rate=np.asarray([mixed_input_streams.rate.value]),
+            suction_pressure=np.asarray([mixed_input_streams.pressure.value]),
+            discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
 
     @staticmethod

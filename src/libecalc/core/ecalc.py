@@ -1,3 +1,6 @@
+from collections import defaultdict
+from datetime import datetime
+from functools import reduce
 from typing import Dict
 
 import numpy as np
@@ -5,17 +8,24 @@ import numpy as np
 import libecalc.dto.components
 from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
+from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import PriorityOptimizer
-from libecalc.common.utils.rates import TimeSeriesInt
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.direct_emitter import DirectEmitter
+from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.models.fuel import FuelModel
-from libecalc.core.result import EcalcModelResult
+from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
+
+
+def merge_results(results_per_timestep: Dict[datetime, EcalcModelResult]) -> EcalcModelResult:
+    return reduce(lambda acc, x: acc.merge(x), results_per_timestep.values())
 
 
 class EnergyCalculator:
@@ -55,42 +65,74 @@ class EnergyCalculator:
                     sub_components=[],
                 )
             elif isinstance(component_dto, libecalc.dto.components.ConsumerSystem):
-                consumer_system = ConsumerSystem(
-                    id=component_dto.id,
-                    consumers=component_dto.consumers,
-                    component_conditions=component_dto.component_conditions,
-                )
-
                 evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
                     variables_map=variables_map,
                 )
                 optimizer = PriorityOptimizer()
 
-                optimizer_result = optimizer.optimize(
-                    timesteps=variables_map.time_vector,
-                    priorities=evaluated_stream_conditions,
-                    evaluator=consumer_system.evaluator,
+                results_per_timestep: Dict[str, Dict[datetime, ComponentResult]] = defaultdict(dict)
+                priorities_used = TimeSeriesString(
+                    timesteps=[],
+                    values=[],
+                    unit=Unit.NONE,
                 )
+                for timestep in variables_map.time_vector:
+                    consumers_for_timestep = [
+                        create_consumer(
+                            consumer=consumer,
+                            timestep=timestep,
+                        )
+                        for consumer in component_dto.consumers
+                    ]
+
+                    consumer_system = ConsumerSystem(
+                        id=component_dto.id,
+                        consumers=consumers_for_timestep,
+                        component_conditions=component_dto.component_conditions,
+                    )
+
+                    def evaluator(priority: PriorityID):
+                        stream_conditions_for_priority = evaluated_stream_conditions[priority]
+                        stream_conditions_for_timestep = {
+                            component_id: [
+                                stream_condition.for_timestep(timestep) for stream_condition in stream_conditions
+                            ]
+                            for component_id, stream_conditions in stream_conditions_for_priority.items()
+                        }
+                        return consumer_system.evaluate_consumers(stream_conditions_for_timestep)
+
+                    optimizer_result = optimizer.optimize(
+                        priorities=list(evaluated_stream_conditions.keys()),
+                        evaluator=evaluator,
+                    )
+                    priorities_used.append(timestep=timestep, value=optimizer_result.priority_used)
+                    for consumer_result in optimizer_result.priority_results:
+                        results_per_timestep[consumer_result.id][timestep] = consumer_result
+
+                # merge consumer results
+                consumer_ids = [consumer.id for consumer in component_dto.consumers]
+                merged_consumer_results = []
+                for consumer_id in consumer_ids:
+                    first_result, *rest_results = list(results_per_timestep[consumer_id].values())
+                    merged_consumer_results.append(first_result.merge(*rest_results))
 
                 # Convert to legacy compatible operational_settings_used
                 priorities_to_int_map = {
                     priority_name: index + 1 for index, priority_name in enumerate(evaluated_stream_conditions.keys())
                 }
                 operational_settings_used = TimeSeriesInt(
-                    timesteps=optimizer_result.priorities_used.timesteps,
-                    values=[
-                        priorities_to_int_map[priority_name]
-                        for priority_name in optimizer_result.priorities_used.values
-                    ],
-                    unit=optimizer_result.priorities_used.unit,
+                    timesteps=priorities_used.timesteps,
+                    values=[priorities_to_int_map[priority_name] for priority_name in priorities_used.values],
+                    unit=priorities_used.unit,
                 )
 
-                system_result = consumer_system.get_system_result(
-                    consumer_results=optimizer_result.priority_results,
+                system_result = ConsumerSystem.get_system_result(
+                    id=component_dto.id,
+                    consumer_results=merged_consumer_results,
                     operational_settings_used=operational_settings_used,
                 )
                 consumer_results[component_dto.id] = system_result
-                for consumer_result in optimizer_result.priority_results:
+                for consumer_result in merged_consumer_results:
                     consumer_results[consumer_result.id] = EcalcModelResult(
                         component_result=consumer_result,
                         sub_components=[],

@@ -5,13 +5,13 @@ from typing import List
 
 from typing_extensions import Self
 
-from libecalc.common.stream_conditions import StreamConditions
+from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.dto.core_specs.base.operational_settings import OperationalSettings
 
 
 class CompressorOperationalSettings(OperationalSettings):
-    inlet_streams: List[StreamConditions]
-    outlet_stream: StreamConditions
+    inlet_streams: List[TimeSeriesStreamConditions]
+    outlet_stream: TimeSeriesStreamConditions
 
     timesteps: List[datetime]
 
@@ -24,9 +24,7 @@ class CompressorOperationalSettings(OperationalSettings):
         """
 
         return CompressorOperationalSettings(
-            inlet_streams=[
-                stream_condition.get_subset_for_timestep(current_timestep) for stream_condition in self.inlet_streams
-            ],
-            outlet_stream=self.outlet_stream.get_subset_for_timestep(current_timestep),
+            inlet_streams=[stream_condition.for_timestep(current_timestep) for stream_condition in self.inlet_streams],
+            outlet_stream=self.outlet_stream.for_timestep(current_timestep),
             timesteps=[current_timestep],
         )

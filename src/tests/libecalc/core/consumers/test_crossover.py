@@ -1,28 +1,22 @@
 from datetime import datetime
-from typing import List
 
 import pytest
-from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import (
-    TimeSeriesFloat,
-    TimeSeriesStreamDayRate,
-)
 from libecalc.core.consumers.consumer_system import ConsumerSystem
+from libecalc.domain.stream_conditions import Pressure, Rate, StreamConditions
 
 
-def create_stream_from_rate(rate: List[float], name: str = "inlet") -> StreamConditions:
-    timesteps = [datetime(2020, 1, i + 1) for i in range(len(rate))]
+def create_stream_from_rate(rate: float, name: str = "inlet") -> StreamConditions:
     return StreamConditions(
+        id="name",
         name=name,
-        rate=TimeSeriesStreamDayRate(
-            timesteps=timesteps,
-            values=rate,
+        timestep=datetime(2019, 1, 1),
+        rate=Rate(
+            value=rate,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         ),
-        pressure=TimeSeriesFloat(
-            timesteps=timesteps,
-            values=[50] * len(rate),
+        pressure=Pressure(
+            value=50,
             unit=Unit.BARA,
         ),
     )
@@ -31,55 +25,55 @@ def create_stream_from_rate(rate: List[float], name: str = "inlet") -> StreamCon
 class TestCrossover:
     parameterized_crossover_streams = [
         (
-            [4, 4],
-            [create_stream_from_rate([2, 2]), create_stream_from_rate([2, 2])],
-            create_stream_from_rate([0, 0], name="test-stream-please-ignore"),
-            [create_stream_from_rate([2, 2]), create_stream_from_rate([2, 2])],
+            4,
+            [create_stream_from_rate(2), create_stream_from_rate(2)],
+            create_stream_from_rate(0, name="test-stream-please-ignore"),
+            [create_stream_from_rate(2), create_stream_from_rate(2)],
         ),  # All rates within capacity
         (
-            [4, 4],
-            [create_stream_from_rate([3, 3]), create_stream_from_rate([1, 1])],
-            create_stream_from_rate([0, 0], name="test-stream-please-ignore"),
-            [create_stream_from_rate([3, 3]), create_stream_from_rate([1, 1])],
+            4,
+            [create_stream_from_rate(3), create_stream_from_rate(1)],
+            create_stream_from_rate(0, name="test-stream-please-ignore"),
+            [create_stream_from_rate(3), create_stream_from_rate(1)],
         ),  # All rates within capacity
         (  # Exceeds capacity, cross over required
-            [4, 4],  # 4 for both timesteps
-            [create_stream_from_rate([4, 4]), create_stream_from_rate([1, 1])],  # 4 in rate + 1 crossover, 1 exceeding
-            create_stream_from_rate([1, 1], name="test-stream-please-ignore"),  # 1 exceeding
+            4,
+            [create_stream_from_rate(4), create_stream_from_rate(1)],  # 4 in rate + 1 crossover, 1 exceeding
+            create_stream_from_rate(1, name="test-stream-please-ignore"),  # 1 exceeding
             [
-                create_stream_from_rate([4, 4]),
-                create_stream_from_rate([0, 0]),
+                create_stream_from_rate(4),
+                create_stream_from_rate(0),
             ],  # we have capacity for first stream, but not 2nd stream
         ),
         (  # Exceeds capacity, cross over required
-            [4, 4],  # 4 for both timesteps
-            [create_stream_from_rate([5, 5])],  # 4 in rate
-            create_stream_from_rate([1, 1], name="test-stream-please-ignore"),  # 1 exceeding
-            [create_stream_from_rate([4, 4])],
+            4,
+            [create_stream_from_rate(5)],  # 4 in rate
+            create_stream_from_rate(1, name="test-stream-please-ignore"),  # 1 exceeding
+            [create_stream_from_rate(4)],
         ),
         (  # Exceeds capacity two times, cross over required
-            [4, 4],  # 4 for both timesteps
-            [create_stream_from_rate([5, 5]), create_stream_from_rate([2, 2])],  # 4 in rate
-            create_stream_from_rate([3, 3], name="test-stream-please-ignore"),  # 1 exceeding
-            [create_stream_from_rate([4, 4]), create_stream_from_rate([0, 0])],
+            4,
+            [create_stream_from_rate(5), create_stream_from_rate(2)],  # 4 in rate
+            create_stream_from_rate(3, name="test-stream-please-ignore"),  # 1 exceeding
+            [create_stream_from_rate(4), create_stream_from_rate(0)],
         ),
         (  # Exceeds capacity two times, cross over required
-            [4, 4],  # 4 for both timesteps
-            [create_stream_from_rate([5, 5]), create_stream_from_rate([0, 0])],  # 4 in rate
-            create_stream_from_rate([1, 1], name="test-stream-please-ignore"),  # 1 exceeding
-            [create_stream_from_rate([4, 4]), create_stream_from_rate([0, 0])],
+            4,
+            [create_stream_from_rate(5), create_stream_from_rate(0)],  # 4 in rate
+            create_stream_from_rate(1, name="test-stream-please-ignore"),  # 1 exceeding
+            [create_stream_from_rate(4), create_stream_from_rate(0)],
         ),
         (  # Exceeds capacity three times, cross over required
-            [2, 2],  # 4 for both timesteps
-            [create_stream_from_rate([3, 3]), create_stream_from_rate([1, 1]), create_stream_from_rate([1, 1])],
-            create_stream_from_rate([3, 3], name="test-stream-please-ignore"),  # 1 exceeding
-            [create_stream_from_rate([2, 2]), create_stream_from_rate([0, 0]), create_stream_from_rate([0, 0])],
+            2,
+            [create_stream_from_rate(3), create_stream_from_rate(1), create_stream_from_rate(1)],
+            create_stream_from_rate(3, name="test-stream-please-ignore"),  # 1 exceeding
+            [create_stream_from_rate(2), create_stream_from_rate(0), create_stream_from_rate(0)],
         ),
         (  # Under capacity
-            [4, 4],  # 4 for both timesteps
-            [create_stream_from_rate([2, 2]), create_stream_from_rate([1, 1])],  # 3 in rate, below 4
-            create_stream_from_rate([0, 0], name="test-stream-please-ignore"),
-            [create_stream_from_rate([2, 2]), create_stream_from_rate([1, 1])],
+            4,
+            [create_stream_from_rate(2), create_stream_from_rate(1)],  # 3 in rate, below 4
+            create_stream_from_rate(0, name="test-stream-please-ignore"),
+            [create_stream_from_rate(2), create_stream_from_rate(1)],
         ),
     ]
 
@@ -103,5 +97,7 @@ class TestCrossover:
             streams,
             crossover_stream_name="test-stream-please-ignore",
         )
-        assert crossover_stream == expected_crossover_stream
-        assert streams_within_capacity == expected_streams_within_capacity
+        assert crossover_stream.rate == expected_crossover_stream.rate
+        assert [stream_within_capacity.rate for stream_within_capacity in streams_within_capacity] == [
+            expected_stream.rate for expected_stream in expected_streams_within_capacity
+        ]

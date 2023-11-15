@@ -368,6 +368,10 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
             and self.unit == other.unit
         )
 
+    def append(self, timestep: datetime, value: TimeSeriesValue):
+        self.timesteps.append(timestep)
+        self.values.append(value)
+
 
 class TimeSeriesString(TimeSeries[str]):
     def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self:

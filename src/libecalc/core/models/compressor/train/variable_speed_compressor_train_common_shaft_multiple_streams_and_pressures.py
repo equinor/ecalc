@@ -8,7 +8,6 @@ from numpy.typing import NDArray
 from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.core.models import ModelInputFailureStatus, validate_model_input
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
@@ -35,6 +34,7 @@ from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
+from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.types import FixedSpeedPressureControl
 
 EPSILON = 1e-5
@@ -140,10 +140,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         return self.evaluate_rate_ps_pd(
             rate=np.asarray(
-                [inlet_stream.rate.values for inlet_stream in ordered_streams]
+                [[inlet_stream.rate.value] for inlet_stream in ordered_streams]
             ),  # TODO: This can also contain rates defined as outlet streams
-            suction_pressure=np.asarray(inlet_streams[0].pressure.values),
-            discharge_pressure=np.asarray(outlet_stream.pressure.values),
+            suction_pressure=np.asarray([inlet_streams[0].pressure.value]),
+            discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
 
     @staticmethod
