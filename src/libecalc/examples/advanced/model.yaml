@@ -21,25 +21,19 @@ FACILITY_INPUTS:
 
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.20 #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
       - NAME: CH4
         FACTOR: 0.01 #kg/Sm3
-        TAX: 0.9 # NOK/Sm3
   - NAME: bad_fuel_gas
-    PRICE: 0.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 5.0 #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
       - NAME: CH4
         FACTOR: 0.01 #kg/Sm3
-        TAX: 0.9 # NOK/Sm3
 
 MODELS:
   - NAME: generic_from_design_point_compressor_chart

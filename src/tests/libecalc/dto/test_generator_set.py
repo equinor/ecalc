@@ -49,7 +49,6 @@ class TestGeneratorSet:
             fuel={
                 datetime(1900, 1, 1): dto.types.FuelType(
                     name="fuel_gas",
-                    price=Expression.setup_from_expression(value=5),
                     emissions=[],
                 )
             },
@@ -66,7 +65,6 @@ class TestGeneratorSet:
     def test_genset_should_fail_with_fuel_consumer(self):
         fuel = dto.types.FuelType(
             name="fuel",
-            price=Expression.setup_from_expression(value="0"),
             emissions=[],
         )
         fuel_consumer = dto.FuelConsumer(

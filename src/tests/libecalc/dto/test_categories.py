@@ -393,7 +393,6 @@ class TestCategories:
                 fuel={
                     datetime(1900, 1, 1): dto.types.FuelType(
                         name="fuel-gas",
-                        price=Expression.setup_from_expression(value=5),
                         emissions=[],
                     )
                 },
@@ -423,7 +422,6 @@ class TestCategories:
                 fuel={
                     datetime(1900, 1, 1): dto.types.FuelType(
                         name="fuel-gas",
-                        price=Expression.setup_from_expression(value=5),
                         emissions=[],
                     )
                 },
@@ -452,7 +450,6 @@ class TestCategories:
             fuel={
                 datetime(1900, 1, 1): dto.types.FuelType(
                     name="fuel-gas",
-                    price=Expression.setup_from_expression(value=5),
                     emissions=[],
                 )
             },

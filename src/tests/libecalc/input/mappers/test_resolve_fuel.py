@@ -3,7 +3,6 @@ from datetime import datetime
 import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Period
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.component_mapper import _resolve_fuel
 
 # from libecalc.presentation.yaml.mappers import _resolve_fuel
@@ -16,12 +15,10 @@ def references():
         fuel_types={
             "fuel_gas": dto.types.FuelType(
                 name="fuel_gas",
-                price=Expression.setup_from_expression(5),
                 emissions=[],
             ),
             "diesel": dto.types.FuelType(
                 name="diesel",
-                price=Expression.setup_from_expression(5),
                 emissions=[],
             ),
         }
