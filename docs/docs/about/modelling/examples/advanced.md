@@ -15,18 +15,18 @@ The following is an example with one installation called `Installation A` and `I
 ```mermaid
 graph TD;
    Asset(Asset) --> A(Installation A);
-   A(Installation A) --> AA(Flare);
-   A --> AC(Gas export compressor);
+   A(Installation A) --> AA(Flare A);
    A --> AD(Generator set A);
    AD --> AE(Base production load A);
-   AD --> AF(Gas injection compressor A);
+   AD --> AF(Gas export compressor A);
    AD --> AG(Produced water reinjection pump A);
    AD --> AH(Sea water injection pump A);
    
    Asset --> B(Installation B);
    B --> BA(Generator set B);
+   B --> BD(Gas export compressor B);
    BA --> BC(Base production load B);
-   B --> BB(Flare A);
+   B --> BB(Flare B);
    style A stroke:red;
    style B stroke:red;
    style BC stroke:blue;
@@ -39,14 +39,13 @@ graph TD;
 The results of a performed characterization of the equipment are listed below:
 
 | Consumer                          |Type                | Description                                                                                                                                              |
-|-----------------------------------|--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-------------------------------------|--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Generator set A                   |Generator set       | Variable fuel consumer with electricity to fuel function                                                                                                 |
 | Base production load A            |Power consumer      | Production base load varying depending on a binary condition                                                                                             |
-| Gas injection compressor A        |Power consumer      | Variable consumption depending on gas injection rate and lift gas rate                                                                                   |
+| Gas export compressor A         |Power consumer      | Variable consumption depending on gas sales rate                                                                                   |
 | Produced water reinjection pump A |Power consumer      | Variable consumption depending on water production rate and water injection rate. The pump suction pressure is 10 bar and discharge pressure is 200 bar. |
 | Sea water injection pump A        |Power consumer      | Variable consumption depending on a complex combination on water injection rate and water production rate                                                |
 | Flare A                           |Direct fuel consumer| Flare A                                                                                                                                                  |
-| Gas export compressor A           |Direct fuel consumer| Variable fuel consumption depending on gas sales rate                                                                                                    |
 | Generator set B                   |Generator set      | Variable fuel consumption with electricity to fuel function                                                                                              |
 | Base production load B            |Power consumer| Production base load at 7.6 MW                                                                                                                           |
 | Gas export compressor B           |Direct fuel consumer| Variable fuel consumption depending on gas sales rate                                                                                                    |
@@ -781,6 +780,7 @@ DATE,           OIL_PROD,  WATER_PROD,  GAS_PROD,  WATER_INJ,  GAS_LIFT
 01.01.2030,     9000,      20000,       5000000,   21000,      1300000
 01.01.2031,     5000,      20000,       3000000,   22000,      1300000
 01.01.2032,     4000,      22100,       3000000,   23000,      2000000
+01.01.2033,     4000,      22100,       3000000,   23000,      2000000
 01.01.2034,     1200,      25000,       1000000,   21000,      2000000
 01.01.2035,     1100,      25000,       1000000,   20000,      1500000
 01.01.2036,     1000,      22000,       500000,    18000,      1400000
