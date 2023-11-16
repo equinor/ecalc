@@ -19,7 +19,7 @@ class DirectEmitter:
     """A class for direct (not fuel based) emissions."""
 
     def __init__(self, direct_emitter_dto: dto.DirectEmitter):
-        """We model a Direct Emitter as a Fuel Consumer without cost or tax, where the emission rate (kg/day) and
+        """We model a Direct Emitter as a Fuel Consumer, where the emission rate (kg/day) and
         the fuel rate (unit-less) are handled as 1 to 1.
 
         This means that we can simulate a direct emission as a normal fuel consumer the same,

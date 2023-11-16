@@ -110,7 +110,7 @@ class InterpolationType(str, Enum):
 
 class FuelType(EcalcBaseModel):
     """An installation/model/component may change fuel over time, due to setup changes,
-    production, and the cost may also change on different predictive models.
+    production.
     """
 
     name: str

@@ -6,8 +6,6 @@ from libecalc.expression import Expression
 
 
 class Emission(EcalcBaseModel):
-    """As with fuel, the predictive models of cost and fees for emissions will change."""
-
     name: EmissionNameStr
     factor: Expression  # Conversion factor for kg/day, i.e. fuel rate * factor -> kg/day
 

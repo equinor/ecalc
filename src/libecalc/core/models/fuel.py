@@ -29,13 +29,11 @@ class FuelModel:
         """Evaluate fuel related expressions and results for a TimeSeriesCollection and a
         fuel_rate array.
 
-        First the fuel parameters (e.g. fuel cost, emission tax per fuel et.c.) is
-        calculated by evaluating the fuel expressions and the time_series object.
+        First the fuel parameters are calculated by evaluating the fuel expressions and
+        the time_series object.
 
-        Then the fuel related results such as fuel_value and resulting emission volume
-        is calculated based on the fuel parameters and the fuel rate, for example
+        Then the resulting emission volume is calculated based on the fuel rate:
         - emission_rate = emission_factor * fuel_rate
-        - fuel_value = fuel_cost * fuel_rate
 
         This is done per time interval and all fuel related results both in terms of
         fuel types and time intervals, are merged into one common fuel collection results object.
