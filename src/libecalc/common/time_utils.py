@@ -166,30 +166,60 @@ class Frequency(str, enum.Enum):
 def resample_time_steps(
     time_steps: List[datetime],
     frequency: Frequency,
-    remove_last: bool = False,
+    include_start_date: bool = True,
+    include_end_date: bool = True,
 ) -> List[datetime]:
-    """Makes a time vector, based on the first and last date in time_vector and the frequency.
+    """Makes a time vector, based on the first and last date in time_vector and the frequency
 
-    :param time_steps: The original time vector
-    :type time_steps: List[datetime]
-    :param frequency: The reporting frequency
-    :type frequency: Frequency
-    :param remove_last: Decides whether the final date should be returned
-    :type remove_last: bool
-    :return: Time vector with dates according to frequency, start and end date
-    "rtype: List[datetime]
+    Args:
+        time_steps: The original time vector
+        frequency: The reporting frequency
+        include_start_date: Whether to include the start date if it is not part of the requested reporting frequency
+        include_end_date: Whether to include the end date if it is not part of the requested reporting frequency
+
+    Returns: Time vector with dates according to given input
+
     """
     if frequency is not Frequency.NONE:
-        time_step_vector = create_time_steps(start=time_steps[0], end=time_steps[-1], frequency=frequency)
+        time_step_vector = create_time_steps(
+            start=time_steps[0],
+            end=time_steps[-1],
+            frequency=frequency,
+            include_start_date=include_start_date,
+            include_end_date=include_end_date,
+        )
     else:
         time_step_vector = time_steps
 
-    return time_step_vector[:-1] if remove_last else time_step_vector
+    return time_step_vector
 
 
-def create_time_steps(frequency: Frequency, start: datetime, end: datetime) -> List[datetime]:
-    time_steps = pd.date_range(start=start, end=end, freq=frequency.value)
-    return sorted({clear_time(start), *[clear_time(time_step) for time_step in time_steps], clear_time(end)})
+def create_time_steps(
+    frequency: Frequency, start: datetime, end: datetime, include_start_date: bool, include_end_date: bool
+) -> List[datetime]:
+    """
+
+    Args:
+        frequency: The requested frequency
+        start: The start date
+        end: The end date
+        include_start_date: Whether to include the start date if it is not part of the requested frequency
+        include_end_date:  Whether to include the end date if it is not part of the requested frequency
+
+    Returns:
+        A list of dates (and possibly including the start/end dates) between the given start and end dates following
+        the requested frequency
+
+    """
+    date_range = pd.date_range(start=start, end=end, freq=frequency.value)
+
+    time_steps = [clear_time(time_step) for time_step in date_range]
+    if include_start_date:
+        time_steps = [clear_time(start)] + time_steps
+    if include_end_date:
+        time_steps = [clear_time(end)] + time_steps
+
+    return sorted(set(time_steps))
 
 
 def clear_time(d: datetime) -> datetime:
