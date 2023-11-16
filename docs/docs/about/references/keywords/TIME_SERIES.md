@@ -9,7 +9,7 @@ cases, one might have several sources for reservoir and other relevant time seri
 
 For example, a field may have a reservoir simulation model for some areas and decline curves in other area of
 the reservoir. There may also be tie-ins which are affecting the energy/emissions on the field
-installations. Also, there may be time profiles for fuel prices, emission tax, etc.
+installations. Also, there may be time profiles for other variables.
 Therefore, a set of sources may be specified with a name, path to data and type. The name is
 later referred to in the system of energy consumers defined under [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md).
 

@@ -52,7 +52,7 @@ COMPRESSOR|&#9744;|     Stream day      |
 
 ### Reporting
 
-- All fuel rates, tax and emission results are reported in calendar days.
+- All fuel rates are reported in calendar days.
 - All power and volume rates results are reported in stream day rates. Note that the volume rates are only present in the .json file.
 
 The reason for reporting calendar day rate is due to the economic interpretation, or rather the lack of economic

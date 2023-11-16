@@ -5,7 +5,7 @@ description: A simple model with a single installation
 ---
 # Simple model example
 The following is an example with one installation called `Installation A` that exports oil (`OIL_PROD`) and gas (`GAS_PROD`).
-The installation emits CO<sub>2</sub> that is subject to taxation and emission quotas.
+The installation emits CO<sub>2</sub>.
 
 On this installation, the following components are identified:
 
@@ -109,20 +109,15 @@ FACILITY_INPUTS:
 ~~~~~~~~
 
 ## FUEL_TYPES
-In this example there is only one [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) - `fuel_gas`. This has a price/value
-of 1.5 NOK/Sm<sup>3</sup> and the emissions we model with the fuel is CO<sub>2</sub>. The CO<sub>2</sub> factor
-is 2.19 kg CO2 per Sm<sup>3</sup> fuel gas burned. The CO<sub>2</sub> tax is set to 1.5 NOK/Sm<sup>3</sup>
-fuel gas burned, and it has a quota price of 260 NOK/ton.
+In this example there is only one [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) - `fuel_gas`. The emissions we model with the fuel is CO<sub>2</sub>. The CO<sub>2</sub> factor
+is 2.19 kg CO2 per Sm<sup>3</sup> fuel gas burned.
 
 ~~~~~~~~yaml title="model.yaml"
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  #NOK/Sm3
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.19 #CO2/Sm3 fuel gas burned
-        TAX: 1.5 #NOK/Sm3 fuel gas burned
-        QUOTA: 260 #NOK/ton
 ~~~~~~~~
 
 ## VARIABLES
@@ -356,12 +351,9 @@ FACILITY_INPUTS:
 
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.19  # CO2/Sm3 fuel gas burned
-        TAX: 1.5  # NOK/Sm3 fuel gas burned
-        QUOTA: 260  # NOK/ton
 
 VARIABLES:
   hydrocarbon_export_sm3_per_day:
