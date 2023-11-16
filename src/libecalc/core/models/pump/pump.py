@@ -9,11 +9,11 @@ from scipy.interpolate import interp1d
 
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
-from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.results import PumpModelResult
+from libecalc.domain.stream_conditions import StreamConditions
 
 EPSILON = 1e-15
 
@@ -222,13 +222,17 @@ class PumpVariableSpeed(PumpModel):
         return pump_result
 
 
-def evaluate_streams(self, inlet_streams: List[StreamConditions], outlet_stream: StreamConditions) -> PumpModelResult:
+def evaluate_streams(
+    self,
+    inlet_streams: List[StreamConditions],
+    outlet_stream: StreamConditions,
+) -> PumpModelResult:
     total_requested_stream = StreamConditions.mix_all(inlet_streams)
     return self.evaluate_rate_ps_pd_density(
-        rate=np.asarray(total_requested_stream.rate.values),
-        suction_pressures=np.asarray(total_requested_stream.pressure.values),
-        discharge_pressures=np.asarray(outlet_stream.pressure.values),
-        fluid_density=np.asarray(total_requested_stream.fluid_density.values),
+        rate=np.asarray([total_requested_stream.rate.value]),
+        suction_pressures=np.asarray([total_requested_stream.pressure.value]),
+        discharge_pressures=np.asarray([outlet_stream.pressure.value]),
+        fluid_density=np.asarray([total_requested_stream.density.value]),
     )
 
 
@@ -344,8 +348,8 @@ class PumpSingleSpeed(PumpModel):
     ) -> PumpModelResult:
         total_requested_stream = StreamConditions.mix_all(inlet_streams)
         return self.evaluate_rate_ps_pd_density(
-            rate=np.asarray(total_requested_stream.rate.values),
-            suction_pressures=np.asarray(total_requested_stream.pressure.values),
-            discharge_pressures=np.asarray(outlet_stream.pressure.values),
-            fluid_density=np.asarray(total_requested_stream.fluid_density.values),
+            rate=np.asarray([total_requested_stream.rate.value]),
+            suction_pressures=np.asarray([total_requested_stream.pressure.value]),
+            discharge_pressures=np.asarray([outlet_stream.pressure.value]),
+            fluid_density=np.asarray([total_requested_stream.density.value]),
         )
