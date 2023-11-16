@@ -29,18 +29,6 @@ TIME_SERIES:
     EXTRAPOLATION: false
     INFLUENCE_TIME_VECTOR: false
     INTERPOLATION_TYPE: RIGHT
-  - NAME: INPUT_FUEL_PRICE  # changed to misc
-    TYPE: MISCELLANEOUS
-    FILE: 'einput/prices_fuel.csv'
-    EXTRAPOLATION: true
-    INFLUENCE_TIME_VECTOR: false
-    INTERPOLATION_TYPE: RIGHT
-  - NAME: INPUT_CO2_PRICE  # changed to misc
-    TYPE: MISCELLANEOUS
-    FILE: 'einput/prices_co2.csv'
-    EXTRAPOLATION: true
-    INFLUENCE_TIME_VECTOR: false
-    INTERPOLATION_TYPE: RIGHT
 
 FACILITY_INPUTS:
   - NAME: A_genset

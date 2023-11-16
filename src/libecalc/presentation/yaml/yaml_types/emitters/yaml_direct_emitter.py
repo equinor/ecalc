@@ -15,7 +15,6 @@ class YamlEmitterModel(YamlBase):
         title="EMISSION_RATE",
         description="Emission rate expression [kg/day]",
     )
-    quota: ExpressionType = Field(None, title="QUOTA", description="Emission cost per emission [NOK/kg]")
 
 
 class YamlDirectEmitter(YamlBase):

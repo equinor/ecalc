@@ -571,36 +571,6 @@
                             "description": "Name of the emission.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
                             "title": "NAME",
                             "type": "string"
-                        },
-                        "QUOTA": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "integer"
-                                }
-                            ],
-                            "description": "Emission tax per kg emission emitted, i.e. NOK/kg emission. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/QUOTA",
-                            "title": "QUOTA"
-                        },
-                        "TAX": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "integer"
-                                }
-                            ],
-                            "description": "Emission tax per volume fuel burned, i.e. NOK/Sm3 fuel. May be a constant number or an expression using vectors from a time series input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TAX",
-                            "title": "TAX"
                         }
                     },
                     "required": [
@@ -627,21 +597,6 @@
                             ],
                             "description": "Emission rate expression [kg/day]",
                             "title": "EMISSION_RATE"
-                        },
-                        "QUOTA": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "integer"
-                                }
-                            ],
-                            "description": "Emission cost per emission [NOK/kg]",
-                            "title": "QUOTA"
                         }
                     },
                     "required": [
@@ -754,21 +709,6 @@
                             "description": "Name of the fuel.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
                             "title": "NAME",
                             "type": "string"
-                        },
-                        "PRICE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "integer"
-                                }
-                            ],
-                            "description": "Price or sales value of fuel in NOK per Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PRICE",
-                            "title": "PRICE"
                         }
                     },
                     "required": [

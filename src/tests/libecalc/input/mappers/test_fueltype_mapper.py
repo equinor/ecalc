@@ -6,14 +6,8 @@ from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 class TestMapFuelType:
-    def test_valid_implicit_none_price(self):
+    def test_valid_implicit(self):
         fuel_dict = {EcalcYamlKeywords.name: "diesel"}
-        expected_fueltype = dto.types.FuelType(name="diesel", emissions=[])
-
-        assert expected_fueltype == FuelMapper.from_yaml_to_dto(fuel_dict)
-
-    def test_valid_explicit_none_price(self):
-        fuel_dict = {EcalcYamlKeywords.name: "diesel", EcalcYamlKeywords.fuel_price: None}
         expected_fueltype = dto.types.FuelType(name="diesel", emissions=[])
 
         assert expected_fueltype == FuelMapper.from_yaml_to_dto(fuel_dict)
@@ -22,7 +16,6 @@ class TestMapFuelType:
         fuel_dict = {
             EcalcYamlKeywords.name: "diesel",
             EcalcYamlKeywords.user_defined_tag: FuelTypeUserDefinedCategoryType.DIESEL,
-            EcalcYamlKeywords.fuel_price: 1.0,
         }
         expected_fueltype = dto.types.FuelType(
             name="diesel",

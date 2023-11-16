@@ -19,7 +19,6 @@ class TestCategories:
         emitter_model = EmitterModel(
             regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
             emission_rate=Expression.setup_from_expression(4),
-            emission_quota=Expression.setup_from_expression(10),
         )
 
         # Check that illegal category raises error

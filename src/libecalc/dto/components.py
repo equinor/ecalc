@@ -135,7 +135,6 @@ class EmitterModel(EcalcBaseModel):
     name: ComponentNameStr = ""  # This is not mandatory yet.
     user_defined_category: str = ""  # This is not mandatory yet.
     emission_rate: Expression
-    emission_quota: Expression
 
     regularity: Dict[datetime, Expression]
 
