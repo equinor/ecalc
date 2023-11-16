@@ -1,22 +1,18 @@
 import itertools
 import operator
-from datetime import datetime
 from functools import reduce
 from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
 
 import networkx as nx
-import numpy as np
 
 from libecalc.common.priority_optimizer import EvaluatorResult
-from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
 )
 from libecalc.core.consumers.compressor import Compressor
-from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.result import ComponentResult, ConsumerSystemResult, EcalcModelResult
-from libecalc.dto.components import ConsumerComponent
+from libecalc.domain.stream_conditions import Rate, StreamConditions
 
 Consumer = TypeVar("Consumer", bound=Union[Compressor, Pump])
 
@@ -41,9 +37,11 @@ class ConsumerSystem:
     for a period of time -> Turn of compressor #2, and vice versa.
     """
 
-    def __init__(self, id: str, consumers: List[ConsumerComponent], component_conditions: SystemComponentConditions):
+    def __init__(
+        self, id: str, consumers: List[Union[Compressor, Pump]], component_conditions: SystemComponentConditions
+    ):
         self.id = id
-        self._consumers = [create_consumer(consumer) for consumer in consumers]
+        self._consumers = consumers
         self._component_conditions = component_conditions
 
     def _get_stream_conditions_adjusted_for_crossover(
@@ -98,25 +96,18 @@ class ConsumerSystem:
 
         return adjusted_stream_conditions
 
-    def evaluator(
-        self, timestep: datetime, system_stream_condition: Dict[str, List[StreamConditions]]
-    ) -> List[EvaluatorResult]:
+    def evaluate_consumers(self, system_stream_conditions: Dict[str, List[StreamConditions]]) -> List[EvaluatorResult]:
         """
-        Function to evaluate the consumers in the system given stream conditions
+        Function to evaluate the consumers in the system given stream conditions for a single point in time
 
         Args:
-            timestep:
-            system_stream_condition:
+            system_stream_conditions:
 
         Returns: list of evaluator results
 
         """
-        stream_conditions_for_timestep = {
-            component_id: [stream_condition.get_subset_for_timestep(timestep) for stream_condition in stream_conditions]
-            for component_id, stream_conditions in system_stream_condition.items()
-        }
         adjusted_system_stream_conditions = self._get_stream_conditions_adjusted_for_crossover(
-            stream_conditions=stream_conditions_for_timestep,
+            stream_conditions=system_stream_conditions,
         )
         consumer_results_for_priority = [
             consumer.evaluate(adjusted_system_stream_conditions[consumer.id]) for consumer in self._consumers
@@ -125,13 +116,14 @@ class ConsumerSystem:
             EvaluatorResult(
                 id=consumer_result_for_priority.component_result.id,
                 result=consumer_result_for_priority,
-                is_valid=consumer_result_for_priority.component_result.is_valid,
+                is_valid=consumer_result_for_priority.component_result.is_valid.values[0],
             )
             for consumer_result_for_priority in consumer_results_for_priority
         ]
 
+    @staticmethod
     def get_system_result(
-        self,
+        id: str,
         consumer_results: List[ComponentResult],
         operational_settings_used: TimeSeriesInt,
     ) -> EcalcModelResult:
@@ -144,7 +136,7 @@ class ConsumerSystem:
         """
 
         consumer_system_result = ConsumerSystemResult(
-            id=self.id,
+            id=id,
             is_valid=reduce(
                 operator.mul,
                 [consumer_result.is_valid for consumer_result in consumer_results],
@@ -196,7 +188,7 @@ class ConsumerSystem:
 
     @staticmethod
     def _get_crossover_stream(
-        max_rate: List[float], inlet_streams: List[StreamConditions], crossover_stream_name: str
+        max_rate: float, inlet_streams: List[StreamConditions], crossover_stream_name: str
     ) -> Tuple[StreamConditions, List[StreamConditions]]:
         """
         This function is run over a single consumer only, and is normally run in a for loop
@@ -220,14 +212,9 @@ class ConsumerSystem:
         # another consumer
         crossover_stream = total_stream.copy(
             update={
-                "rate": total_stream.rate.copy(
-                    update={
-                        "values": list(
-                            np.where(
-                                total_stream.rate.values > max_rate, np.asarray(total_stream.rate.values) - max_rate, 0
-                            )
-                        ),
-                    }
+                "rate": Rate(
+                    value=total_stream.rate.value - max_rate if total_stream.rate.value > max_rate else 0,
+                    unit=total_stream.rate.unit,
                 ),
                 "name": crossover_stream_name,
             },
@@ -238,17 +225,20 @@ class ConsumerSystem:
         for inlet_stream in reversed(inlet_streams):
             # Inlet streams will have the requested streams first, then crossover streams. By reversing the list we
             # pass through the crossover rates first, then if needed, we reduce the requested inlet streams to capacity.
-            diff = np.subtract(inlet_stream.rate.values, left_over_crossover_stream.rate.values)
+            rate_diff = inlet_stream.rate.value - left_over_crossover_stream.rate.value
+
             left_over_crossover_stream = left_over_crossover_stream.copy(
                 update={
-                    "rate": left_over_crossover_stream.copy(
-                        update={"values": list(np.where(diff < 0, np.absolute(diff), 0))}
-                    )
+                    "rate": Rate(
+                        value=abs(rate_diff) if rate_diff < 0 else 0, unit=left_over_crossover_stream.rate.unit
+                    ),
                 }
             )
             streams_within_capacity.append(
                 inlet_stream.copy(
-                    update={"rate": inlet_stream.rate.copy(update={"values": list(np.where(diff >= 0, diff, 0))})}
+                    update={
+                        "rate": Rate(value=rate_diff if rate_diff >= 0 else 0, unit=inlet_stream.rate.unit),
+                    }
                 )
             )
         return crossover_stream, list(reversed(streams_within_capacity))

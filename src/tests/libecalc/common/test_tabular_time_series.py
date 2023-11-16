@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 import pytest
-from libecalc.common.stream_conditions import Stage, StreamConditions
+from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -21,7 +21,7 @@ class MergeableObject(BaseModel):
     time_series_rate: TimeSeriesStreamDayRate
     time_series_float_list_test: List[TimeSeriesFloat]
     time_series_rate_list_test: List[TimeSeriesStreamDayRate]
-    stage_list: List[Stage]
+    stream_list: List[TimeSeriesStreamConditions]
 
 
 class TestMerge:
@@ -66,37 +66,33 @@ class TestMerge:
                     unit=Unit.NORWEGIAN_KRONER,
                 ),
             ],
-            stage_list=[
-                Stage(
+            stream_list=[
+                TimeSeriesStreamConditions(
+                    id="inlet",
                     name="inlet",
-                    stream=StreamConditions(
-                        name="inlet",
-                        rate=TimeSeriesStreamDayRate(
-                            timesteps=first_timesteps,
-                            values=[-111, -112],
-                            unit=Unit.NORWEGIAN_KRONER,
-                        ),
-                        pressure=TimeSeriesFloat(
-                            timesteps=first_timesteps,
-                            values=[-111, -112],
-                            unit=Unit.BARA,
-                        ),
+                    rate=TimeSeriesStreamDayRate(
+                        timesteps=first_timesteps,
+                        values=[-111, -112],
+                        unit=Unit.NORWEGIAN_KRONER,
+                    ),
+                    pressure=TimeSeriesFloat(
+                        timesteps=first_timesteps,
+                        values=[-111, -112],
+                        unit=Unit.BARA,
                     ),
                 ),
-                Stage(
+                TimeSeriesStreamConditions(
+                    id="outlet",
                     name="outlet",
-                    stream=StreamConditions(
-                        name="outlet",
-                        rate=TimeSeriesStreamDayRate(
-                            timesteps=first_timesteps,
-                            values=[-121, -122],
-                            unit=Unit.NORWEGIAN_KRONER,
-                        ),
-                        pressure=TimeSeriesFloat(
-                            timesteps=first_timesteps,
-                            values=[-121, -122],
-                            unit=Unit.BARA,
-                        ),
+                    rate=TimeSeriesStreamDayRate(
+                        timesteps=first_timesteps,
+                        values=[-121, -122],
+                        unit=Unit.NORWEGIAN_KRONER,
+                    ),
+                    pressure=TimeSeriesFloat(
+                        timesteps=first_timesteps,
+                        values=[-121, -122],
+                        unit=Unit.BARA,
                     ),
                 ),
             ],
@@ -142,37 +138,33 @@ class TestMerge:
                     unit=Unit.NORWEGIAN_KRONER,
                 ),
             ],
-            stage_list=[
-                Stage(
+            stream_list=[
+                TimeSeriesStreamConditions(
+                    id="inlet",
                     name="inlet",
-                    stream=StreamConditions(
-                        name="inlet",
-                        rate=TimeSeriesStreamDayRate(
-                            timesteps=second_timesteps,
-                            values=[-211, -212],
-                            unit=Unit.NORWEGIAN_KRONER,
-                        ),
-                        pressure=TimeSeriesFloat(
-                            timesteps=second_timesteps,
-                            values=[-211, -212],
-                            unit=Unit.BARA,
-                        ),
+                    rate=TimeSeriesStreamDayRate(
+                        timesteps=second_timesteps,
+                        values=[-211, -212],
+                        unit=Unit.NORWEGIAN_KRONER,
+                    ),
+                    pressure=TimeSeriesFloat(
+                        timesteps=second_timesteps,
+                        values=[-211, -212],
+                        unit=Unit.BARA,
                     ),
                 ),
-                Stage(
+                TimeSeriesStreamConditions(
+                    id="outlet",
                     name="outlet",
-                    stream=StreamConditions(
-                        name="outlet",
-                        rate=TimeSeriesStreamDayRate(
-                            timesteps=second_timesteps,
-                            values=[-221, -222],
-                            unit=Unit.NORWEGIAN_KRONER,
-                        ),
-                        pressure=TimeSeriesFloat(
-                            timesteps=second_timesteps,
-                            values=[-221, -222],
-                            unit=Unit.BARA,
-                        ),
+                    rate=TimeSeriesStreamDayRate(
+                        timesteps=second_timesteps,
+                        values=[-221, -222],
+                        unit=Unit.NORWEGIAN_KRONER,
+                    ),
+                    pressure=TimeSeriesFloat(
+                        timesteps=second_timesteps,
+                        values=[-221, -222],
+                        unit=Unit.BARA,
                     ),
                 ),
             ],
@@ -223,37 +215,33 @@ class TestMerge:
                         unit=Unit.NORWEGIAN_KRONER,
                     ),
                 ],
-                stage_list=[
-                    Stage(
+                stream_list=[
+                    TimeSeriesStreamConditions(
+                        id="inlet",
                         name="inlet",
-                        stream=StreamConditions(
-                            name="inlet",
-                            rate=TimeSeriesStreamDayRate(
-                                timesteps=expected_timesteps,
-                                values=[-111, -211, -112, -212],
-                                unit=Unit.NORWEGIAN_KRONER,
-                            ),
-                            pressure=TimeSeriesFloat(
-                                timesteps=expected_timesteps,
-                                values=[-111, -211, -112, -212],
-                                unit=Unit.BARA,
-                            ),
+                        rate=TimeSeriesStreamDayRate(
+                            timesteps=expected_timesteps,
+                            values=[-111, -211, -112, -212],
+                            unit=Unit.NORWEGIAN_KRONER,
+                        ),
+                        pressure=TimeSeriesFloat(
+                            timesteps=expected_timesteps,
+                            values=[-111, -211, -112, -212],
+                            unit=Unit.BARA,
                         ),
                     ),
-                    Stage(
+                    TimeSeriesStreamConditions(
+                        id="outlet",
                         name="outlet",
-                        stream=StreamConditions(
-                            name="outlet",
-                            rate=TimeSeriesStreamDayRate(
-                                timesteps=expected_timesteps,
-                                values=[-121, -221, -122, -222],
-                                unit=Unit.NORWEGIAN_KRONER,
-                            ),
-                            pressure=TimeSeriesFloat(
-                                timesteps=expected_timesteps,
-                                values=[-121, -221, -122, -222],
-                                unit=Unit.BARA,
-                            ),
+                        rate=TimeSeriesStreamDayRate(
+                            timesteps=expected_timesteps,
+                            values=[-121, -221, -122, -222],
+                            unit=Unit.NORWEGIAN_KRONER,
+                        ),
+                        pressure=TimeSeriesFloat(
+                            timesteps=expected_timesteps,
+                            values=[-121, -221, -122, -222],
+                            unit=Unit.BARA,
                         ),
                     ),
                 ],

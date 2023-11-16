@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
-from libecalc.common.stream_conditions import Stage
+from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -127,7 +127,7 @@ class PumpResult(EquipmentResultBase):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    stages: List[Stage] = None  # Optional because only in v2
+    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
 
 
 class CompressorResult(EquipmentResultBase):
@@ -136,7 +136,7 @@ class CompressorResult(EquipmentResultBase):
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
 
-    stages: List[Stage] = None  # Optional because only in v2
+    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
 
 
 class DirectEmitterResult(EquipmentResultBase):

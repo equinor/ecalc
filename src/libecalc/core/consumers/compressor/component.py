@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import numpy as np
 
-from libecalc import dto
-from libecalc.common.stream_conditions import Stage, StreamConditions
-from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -15,133 +12,95 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.base import BaseConsumerWithoutOperationalSettings
-from libecalc.core.models.compressor import create_compressor_model
-from libecalc.core.models.results.compressor import CompressorTrainResult
+from libecalc.core.models.compressor import CompressorModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result import results as core_results
+from libecalc.domain.stream_conditions import Pressure, StreamConditions
 from libecalc.dto.core_specs.compressor.operational_settings import (
     CompressorOperationalSettings,
 )
 
 
 class Compressor(BaseConsumerWithoutOperationalSettings):
-    def __init__(self, id: str, energy_usage_model: Dict[datetime, dto.CompressorModel]):
+    def __init__(self, id: str, compressor_model: CompressorModel):
         self.id = id
-        self._temporal_model = TemporalModel(
-            data={timestep: create_compressor_model(model) for timestep, model in energy_usage_model.items()}
-        )
-
+        self._compressor_model = compressor_model
         self._operational_settings: Optional[CompressorOperationalSettings] = None
 
-    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: TimeSeriesFloat) -> List[float]:
+    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: Pressure) -> float:
         """
-        For each timestep, get the maximum rate that this compressor can handle, given in -and outlet pressures.
+        Get the maximum rate that this compressor can handle, given in -and outlet pressures.
 
         Args:
             inlet_stream: the inlet stream
             target_pressure: the target pressure
         """
-        results = []
-        for timestep in inlet_stream.pressure.timesteps:
-            compressor = self._temporal_model.get_model(timestep)
-            results.extend(
-                compressor.get_max_standard_rate(
-                    suction_pressures=np.asarray(inlet_stream.pressure.values),
-                    discharge_pressures=np.asarray(target_pressure.values),
-                ).tolist()
-            )
-        return results
+        return self._compressor_model.get_max_standard_rate(
+            suction_pressures=np.asarray([inlet_stream.pressure.value]),
+            discharge_pressures=np.asarray([target_pressure.value]),
+        ).tolist()[0]
 
     def evaluate(
         self,
         streams: List[StreamConditions],
     ) -> EcalcModelResult:
-        model_results = []
-        evaluated_timesteps = []
-
-        timesteps = streams[0].rate.timesteps  # TODO: which timesteps should we useeeee
         inlet_streams = streams[:-1]
         outlet_stream = streams[-1]
 
-        for timestep in timesteps:
-            compressor = self._temporal_model.get_model(timestep)
-            stream_conditions_for_timestep = [
-                stream_condition.get_subset_for_timestep(timestep) for stream_condition in streams
-            ]
-            inlet_streams_for_timestep = streams[:-1]
-            outlet_stream_for_timestep = streams[-1]
-            model_result = compressor.evaluate_streams(
-                inlet_streams=inlet_streams_for_timestep,
-                outlet_stream=outlet_stream_for_timestep,
-            )
-            evaluated_timesteps.extend(stream_conditions_for_timestep[0].rate.timesteps)
-            model_results.append(model_result)
-
-        aggregated_result: Optional[CompressorTrainResult] = None
-        for model_result in model_results:
-            if aggregated_result is None:
-                aggregated_result = model_result
-            else:
-                aggregated_result.extend(model_result)
+        model_result = self._compressor_model.evaluate_streams(
+            inlet_streams=inlet_streams,
+            outlet_stream=outlet_stream,
+        )
 
         # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
         total_requested_inlet_stream = StreamConditions.mix_all(inlet_streams)
+        total_requested_inlet_stream.name = "Total inlet"
+        current_timestep = total_requested_inlet_stream.timestep
+
+        outlet_stream.rate = total_requested_inlet_stream.rate
 
         energy_usage = TimeSeriesStreamDayRate(
-            values=aggregated_result.energy_usage,
-            timesteps=evaluated_timesteps,
-            unit=aggregated_result.energy_usage_unit,
+            values=model_result.energy_usage,
+            timesteps=[current_timestep],
+            unit=model_result.energy_usage_unit,
         )
 
         outlet_pressure_before_choke = TimeSeriesFloat(
-            values=aggregated_result.outlet_pressure_before_choking
-            if aggregated_result.outlet_pressure_before_choking
-            else [np.nan for _ in evaluated_timesteps],
-            timesteps=evaluated_timesteps,
+            values=model_result.outlet_pressure_before_choking
+            if model_result.outlet_pressure_before_choking
+            else [np.nan],
+            timesteps=[current_timestep],
             unit=Unit.BARA,
         )
 
         component_result = core_results.CompressorResult(
-            timesteps=evaluated_timesteps,
+            timesteps=[current_timestep],
             power=TimeSeriesStreamDayRate(
-                values=aggregated_result.power,
-                timesteps=evaluated_timesteps,
-                unit=aggregated_result.power_unit,
+                values=model_result.power,
+                timesteps=[current_timestep],
+                unit=model_result.power_unit,
             ).fill_nan(0.0),
             energy_usage=energy_usage.fill_nan(0.0),
-            is_valid=TimeSeriesBoolean(
-                values=aggregated_result.is_valid, timesteps=evaluated_timesteps, unit=Unit.NONE
-            ),
+            is_valid=TimeSeriesBoolean(values=model_result.is_valid, timesteps=[current_timestep], unit=Unit.NONE),
             id=self.id,
             recirculation_loss=TimeSeriesStreamDayRate(
-                values=aggregated_result.recirculation_loss,
-                timesteps=evaluated_timesteps,
+                values=model_result.recirculation_loss,
+                timesteps=[current_timestep],
                 unit=Unit.MEGA_WATT,
             ),
             rate_exceeds_maximum=TimeSeriesBoolean(
-                values=aggregated_result.rate_exceeds_maximum,
-                timesteps=evaluated_timesteps,
+                values=model_result.rate_exceeds_maximum,
+                timesteps=[current_timestep],
                 unit=Unit.NONE,
             ),
             outlet_pressure_before_choking=outlet_pressure_before_choke,
-            stages=[
-                Stage(name="inlet", stream=total_requested_inlet_stream),
-                Stage(
-                    name="before_choke",
-                    stream=StreamConditions(
-                        name="before_choke",
-                        rate=total_requested_inlet_stream.rate,
-                        pressure=outlet_pressure_before_choke,
-                    ),
-                ),
-                Stage(
-                    name="outlet",
-                    stream=StreamConditions(
-                        name="outlet",
-                        rate=total_requested_inlet_stream.rate,  # Actual, not requested, different because of crossover
-                        pressure=outlet_stream.pressure,
-                    ),
-                ),
+            streams=[
+                TimeSeriesStreamConditions.from_stream_condition(total_requested_inlet_stream),
+                *[
+                    TimeSeriesStreamConditions.from_stream_condition(inlet_stream_conditions)
+                    for inlet_stream_conditions in inlet_streams
+                ],
+                TimeSeriesStreamConditions.from_stream_condition(outlet_stream),
             ],
         )
 
@@ -151,28 +110,28 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             models=[
                 core_results.CompressorModelResult(
                     name="N/A",  # No context available to populate model name
-                    timesteps=evaluated_timesteps,
+                    timesteps=[current_timestep],
                     is_valid=TimeSeriesBoolean(
-                        timesteps=evaluated_timesteps,
-                        values=aggregated_result.is_valid,
+                        timesteps=[current_timestep],
+                        values=model_result.is_valid,
                         unit=Unit.NONE,
                     ),
                     power=TimeSeriesStreamDayRate(
-                        timesteps=evaluated_timesteps,
-                        values=aggregated_result.power,
-                        unit=aggregated_result.power_unit,
+                        timesteps=[current_timestep],
+                        values=model_result.power,
+                        unit=model_result.power_unit,
                     )
-                    if aggregated_result.power is not None
+                    if model_result.power is not None
                     else None,
                     energy_usage=TimeSeriesStreamDayRate(
-                        timesteps=evaluated_timesteps,
-                        values=aggregated_result.energy_usage,
-                        unit=aggregated_result.energy_usage_unit,
+                        timesteps=[current_timestep],
+                        values=model_result.energy_usage,
+                        unit=model_result.energy_usage_unit,
                     ),
-                    energy_usage_unit=aggregated_result.energy_usage_unit,
-                    rate_sm3_day=aggregated_result.rate_sm3_day,
-                    stage_results=aggregated_result.stage_results,
-                    failure_status=aggregated_result.failure_status,
+                    energy_usage_unit=model_result.energy_usage_unit,
+                    rate_sm3_day=model_result.rate_sm3_day,
+                    stage_results=model_result.stage_results,
+                    failure_status=model_result.failure_status,
                 )
             ],
         )

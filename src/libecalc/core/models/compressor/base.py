@@ -9,7 +9,6 @@ from numpy.typing import NDArray
 
 from libecalc import dto
 from libecalc.common.logger import logger
-from libecalc.common.stream_conditions import StreamConditions
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.compressor.train.utils.common import (
@@ -18,6 +17,7 @@ from libecalc.core.models.compressor.train.utils.common import (
 from libecalc.core.models.compressor.train.utils.numeric_methods import find_root
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.models.turbine import TurbineModel
+from libecalc.domain.stream_conditions import StreamConditions
 
 
 class CompressorModel(BaseModel):

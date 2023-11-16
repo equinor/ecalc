@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 from libecalc import dto
 from libecalc.common.priorities import Priorities
-from libecalc.common.stream_conditions import StreamConditions
+from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -240,7 +240,7 @@ class ConsumerSystem(BaseConsumer):
     )
     component_conditions: SystemComponentConditions
     stream_conditions_priorities: Priorities[SystemStreamConditions]
-    consumers: List[Union[CompressorComponent, PumpComponent]]
+    consumers: Union[List[CompressorComponent], List[PumpComponent]]
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
@@ -252,12 +252,13 @@ class ConsumerSystem(BaseConsumer):
 
     def evaluate_stream_conditions(
         self, variables_map: VariablesMap
-    ) -> Priorities[Dict[ConsumerID, List[StreamConditions]]]:
-        parsed_priorities: Priorities[Dict[ConsumerID, List[StreamConditions]]] = defaultdict(dict)
+    ) -> Priorities[Dict[ConsumerID, List[TimeSeriesStreamConditions]]]:
+        parsed_priorities: Priorities[Dict[ConsumerID, List[TimeSeriesStreamConditions]]] = defaultdict(dict)
         for priority_name, priority in self.stream_conditions_priorities.items():
             for consumer_name, streams_conditions in priority.items():
                 parsed_priorities[priority_name][generate_id(consumer_name)] = [
-                    StreamConditions(
+                    TimeSeriesStreamConditions(
+                        id=generate_id(consumer_name, stream_name),
                         name=stream_name,
                         rate=TimeSeriesStreamDayRate(
                             timesteps=variables_map.time_vector,

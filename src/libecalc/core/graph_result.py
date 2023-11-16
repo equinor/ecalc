@@ -999,6 +999,7 @@ class GraphResult:
                     timesteps=consumer_result.component_result.timesteps,
                     id=consumer_result.component_result.id,
                     is_valid=consumer_result.component_result.is_valid,
+                    streams=consumer_result.component_result.streams,
                 )
             elif consumer_node_info.component_type == ComponentType.COMPRESSOR:
                 obj = dto.result.results.CompressorResult(
@@ -1040,6 +1041,7 @@ class GraphResult:
                     timesteps=consumer_result.component_result.timesteps,
                     id=consumer_result.component_result.id,
                     is_valid=consumer_result.component_result.is_valid,
+                    streams=consumer_result.component_result.streams,
                 )
             elif consumer_node_info.component_type == ComponentType.ASSET:
                 obj = dto.result.results.AssetResult(
