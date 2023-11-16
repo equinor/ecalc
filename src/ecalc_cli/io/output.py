@@ -146,11 +146,9 @@ def export_tsv(
     Returns:
 
     """
-    resampled_timevector = resample_time_steps(
-        results.timesteps,
-        frequency,
-        remove_last=True,  # last step is always added as a STOP, and does infer the end of the time vector
-    )
+    resampled_timevector = resample_time_steps(results.timesteps, frequency)[
+        :-1
+    ]  # last step is always added as a STOP, and does infer the end of the time vector
 
     prognosis_filter = config.filter(frequency=frequency)
     result = prognosis_filter.filter(results, resampled_timevector)

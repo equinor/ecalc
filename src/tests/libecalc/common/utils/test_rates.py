@@ -72,8 +72,9 @@ class TestBooleanTimeSeries:
     @pytest.fixture
     def boolean_series(self):
         return TimeSeriesBoolean(
-            values=[True, True, False, True],
+            values=[False, True, True, False, True],
             timesteps=[
+                datetime(2019, 7, 1),
                 datetime(2020, 1, 1),
                 datetime(2020, 7, 1),
                 datetime(2021, 1, 1),
@@ -89,7 +90,36 @@ class TestBooleanTimeSeries:
         )
 
     def test_resample_boolean(self, boolean_series):
+        # resample including start and end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR)
+        assert yearly_values.values == [False, True, False, True]
+        assert yearly_values.timesteps == [
+            datetime(2019, 7, 1),
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2021, 7, 1),
+        ]
+
+        # resample including start and without end date
+        yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_end_date=False)
+        assert yearly_values.values == [False, True, False]
+        assert yearly_values.timesteps == [
+            datetime(2019, 7, 1),
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+        ]
+
+        # resample without start and including end date
+        yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False)
+        assert yearly_values.values == [True, False, True]
+        assert yearly_values.timesteps == [
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2021, 7, 1),
+        ]
+
+        # resample without start and end date
+        yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False, include_end_date=False)
         assert yearly_values.values == [True, False]
         assert yearly_values.timesteps == [datetime(2020, 1, 1), datetime(2021, 1, 1)]
 
@@ -166,8 +196,10 @@ class TestTimeSeriesVolumesCumulative:
             values=[1, 2, 3, 4, 5, 6, 7, 8],
             unit=Unit.KILO,
         )
-        rates_yearly = rates.resample(freq=Frequency.YEAR)
+        rates_yearly = rates.resample(freq=Frequency.YEAR, include_end_date=False)
         assert rates_yearly.values == [1, 5]
+        rates_yearly = rates.resample(freq=Frequency.YEAR, include_end_date=True)
+        assert rates_yearly.values == [1, 5, 8]
 
 
 class TestTimeSeriesVolumesReindex:
@@ -365,11 +397,12 @@ class TestTimeseriesRateToVolumes:
 
     def test_resample_down_sampling(self):
         """
-        We do not expect to be able to reproduce the cumulative values when down-sampling, unless the last date
-        coincides with a date with the chosen frequency. This is simply because we lose information.
+        We do not expect to be able to reproduce the cumulative values when down-sampling, unless we include the start
+        and end dates in the resampled time series. If not we are losing information.
         """
         rates = TimeSeriesRate(
             timesteps=[
+                datetime(2022, 10, 1),
                 datetime(2023, 1, 1),
                 datetime(2023, 4, 1),
                 datetime(2023, 7, 1),
@@ -379,22 +412,39 @@ class TestTimeseriesRateToVolumes:
                 datetime(2024, 7, 1),
                 datetime(2024, 10, 1),
             ],
-            values=[1, 2, 3, 4, 5, 6, 7, 8],
+            values=[1, 2, 3, 4, 5, 6, 7, 8, 9],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0] * 8,
+            regularity=[1.0] * 9,
         )
+        rates_yearly_without_start_end = rates.resample(
+            freq=Frequency.YEAR, include_start_date=False, include_end_date=False
+        )
+        rates_yearly_without_start = rates.resample(freq=Frequency.YEAR, include_start_date=False)
+        rates_yearly_without_end = rates.resample(freq=Frequency.YEAR, include_end_date=False)
         rates_yearly = rates.resample(freq=Frequency.YEAR)
+
         # now with average rates in the new sampling period
-        assert np.allclose(rates_yearly.values, [2.509589, 0.0], rtol=1e-6)
+        assert np.allclose(rates_yearly_without_start_end.values, [3.509589, 0.0], rtol=1e-6)
+        assert np.allclose(rates_yearly_without_start.values, [3.509589, 7.003650, 0.0], rtol=1e-6)
+        assert np.allclose(rates_yearly_without_end.values, [1, 3.509589, 0.0], rtol=1e-6)
+        assert np.allclose(rates_yearly.values, [1, 3.509589, 7.003650, 0.0], rtol=1e-6)
 
         cumulative = np.cumsum(rates.to_volumes().values)
+        cumulative_resampled_without_start_end = np.cumsum(rates_yearly_without_start_end.to_volumes().values)
+        cumulative_resampled_without_start = np.cumsum(rates_yearly_without_start.to_volumes().values)
+        cumulative_resampled_without_end = np.cumsum(rates_yearly_without_end.to_volumes().values)
         cumulative_resampled = np.cumsum(rates_yearly.to_volumes().values)
 
-        assert cumulative[-1] != cumulative_resampled[-1]
+        assert cumulative[-1] == cumulative_resampled[-1]
+        assert cumulative[-1] > cumulative_resampled_without_start_end[-1]  # losing volumes at the start and end
+        assert cumulative[-1] > cumulative_resampled_without_start[-1]  # losing volumes at the start
+        assert cumulative[-1] > cumulative_resampled_without_end[-1]  # losing volumes at the end
 
     def test_resample_up_and_down_sampling(self):
-        """ """
+        """If the start and end dates are included, both monthly and yearly resampling should reproduce the cumulative
+        volumes. If the end date is excluded, the yearly resampling should lose more information/volumes than the
+        monthly resampling"""
         rates = TimeSeriesRate(
             timesteps=[
                 datetime(2023, 1, 1),
@@ -412,14 +462,30 @@ class TestTimeseriesRateToVolumes:
         )
         rates_monthly = rates.resample(freq=Frequency.MONTH)
         rates_yearly = rates.resample(freq=Frequency.YEAR)
+        rates_monthly_without_end = rates.resample(freq=Frequency.MONTH, include_end_date=False)
+        rates_yearly_without_end = rates.resample(freq=Frequency.YEAR, include_end_date=False)
         assert np.allclose(
-            rates_monthly.values, [2.387097, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 6.0, 0.0], rtol=1e-6
+            rates_monthly.values,
+            [2.387097, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 6.0, 6.0, 0.0],
+            rtol=1e-6,
         )
-        assert np.allclose(rates_yearly.values, [4.45753424, 0.0])
+        assert np.allclose(rates_yearly.values, [4.45753424, 6.0, 0.0])
         cumulative = np.cumsum(rates.to_volumes().values)
         cumulative_monthly = np.cumsum(rates_monthly.to_volumes().values)
         cumulative_yearly = np.cumsum(rates_yearly.to_volumes().values)
-        assert cumulative[-1] > cumulative_monthly[-1] > cumulative_yearly[-1]
+        assert cumulative[-1] == cumulative_monthly[-1] == cumulative_yearly[-1]
+        assert np.allclose(cumulative_monthly[11], cumulative_yearly[0])
+
+        assert np.allclose(
+            rates_monthly_without_end.values,
+            [2.387097, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 6.0, 0.0],
+            rtol=1e-6,
+        )
+        assert np.allclose(rates_yearly_without_end.values, [4.45753424, 0.0])
+        cumulative_monthly_without_end = np.cumsum(rates_monthly_without_end.to_volumes().values)
+        cumulative_yearly_without_end = np.cumsum(rates_yearly_without_end.to_volumes().values)
+
+        assert cumulative[-1] > cumulative_monthly_without_end[-1] > cumulative_yearly_without_end[-1]
         assert np.allclose(cumulative_monthly[11], cumulative_yearly[0])
 
 
