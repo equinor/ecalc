@@ -529,13 +529,13 @@ class TestTimeSeriesMerge:
         first = TimeSeriesFloat(
             timesteps=[datetime(2021, 1, 1), datetime(2023, 1, 1)],
             values=[11, 12],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         second = TimeSeriesFloat(
             timesteps=[datetime(2020, 1, 1), datetime(2022, 1, 1), datetime(2024, 1, 1), datetime(2030, 1, 1)],
             values=[21, 22, 23, 24],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         assert first.merge(second) == TimeSeriesFloat(
@@ -548,38 +548,38 @@ class TestTimeSeriesMerge:
                 datetime(2030, 1, 1),
             ],
             values=[21, 11, 22, 12, 23, 24],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
     def test_merge_time_series_float_different_unit(self):
         first = TimeSeriesFloat(
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         second = TimeSeriesFloat(
             timesteps=[datetime(2020, 1, 1)],
             values=[21],
-            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+            unit=Unit.TONS_PER_DAY,
         )
 
         with pytest.raises(ValueError) as exc_info:
             first.merge(second)
 
-        assert str(exc_info.value) == "Mismatching units: 'NOK' != 'NOK/d'"
+        assert str(exc_info.value) == "Mismatching units: 't' != 't/d'"
 
     def test_merge_time_series_float_overlapping_timesteps(self):
         first = TimeSeriesFloat(
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         second = TimeSeriesFloat(
             timesteps=[datetime(2020, 1, 1), datetime(2021, 1, 1)],
             values=[21, 22],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         with pytest.raises(ValueError) as exc_info:
@@ -591,13 +591,13 @@ class TestTimeSeriesMerge:
         first = TimeSeriesFloat(
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         second = TimeSeriesBoolean(
             timesteps=[datetime(2020, 1, 1)],
             values=[True],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         with pytest.raises(ValueError) as exc_info:
@@ -616,7 +616,7 @@ class TestTimeSeriesMerge:
         first = TimeSeriesRate(
             timesteps=[datetime(2021, 1, 1), datetime(2023, 1, 1)],
             values=[11, 12],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
             regularity=[11, 12],
             rate_type=RateType.STREAM_DAY,
         )
@@ -624,7 +624,7 @@ class TestTimeSeriesMerge:
         second = TimeSeriesRate(
             timesteps=[datetime(2020, 1, 1), datetime(2022, 1, 1), datetime(2024, 1, 1), datetime(2030, 1, 1)],
             values=[21, 22, 23, 24],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
             regularity=[21, 22, 23, 24],
             rate_type=RateType.STREAM_DAY,
         )
@@ -639,7 +639,7 @@ class TestTimeSeriesMerge:
                 datetime(2030, 1, 1),
             ],
             values=[21, 11, 22, 12, 23, 24],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
             regularity=[21, 11, 22, 12, 23, 24],
             rate_type=RateType.STREAM_DAY,
         )
@@ -648,7 +648,7 @@ class TestTimeSeriesMerge:
         first = TimeSeriesRate(
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
             regularity=[1.0],
         )
@@ -656,7 +656,7 @@ class TestTimeSeriesMerge:
         second = TimeSeriesRate(
             timesteps=[datetime(2020, 1, 1)],
             values=[21],
-            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+            unit=Unit.TONS_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
             regularity=[1.0],
         )
@@ -664,13 +664,13 @@ class TestTimeSeriesMerge:
         with pytest.raises(ValueError) as exc_info:
             first.merge(second)
 
-        assert str(exc_info.value) == "Mismatching units: 'NOK' != 'NOK/d'"
+        assert str(exc_info.value) == "Mismatching units: 't' != 't/d'"
 
     def test_merge_time_series_rate_overlapping_timesteps(self):
         first = TimeSeriesRate(
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
             regularity=[1.0],
         )
@@ -678,7 +678,7 @@ class TestTimeSeriesMerge:
         second = TimeSeriesRate(
             timesteps=[datetime(2020, 1, 1), datetime(2021, 1, 1)],
             values=[21, 22],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
             regularity=[1.0] * 2,
         )
@@ -692,7 +692,7 @@ class TestTimeSeriesMerge:
         first = TimeSeriesRate(
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
             regularity=[1.0],
         )
@@ -700,7 +700,7 @@ class TestTimeSeriesMerge:
         second = TimeSeriesBoolean(
             timesteps=[datetime(2020, 1, 1)],
             values=[True],
-            unit=Unit.NORWEGIAN_KRONER,
+            unit=Unit.TONS,
         )
 
         with pytest.raises(ValueError) as exc_info:
@@ -715,7 +715,7 @@ class TestTimeSeriesMerge:
         first = TimeSeriesRate(
             timesteps=[datetime(2021, 1, 1)],
             values=[11],
-            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+            unit=Unit.TONS_PER_DAY,
             rate_type=RateType.STREAM_DAY,
             regularity=[1.0],
         )
@@ -723,7 +723,7 @@ class TestTimeSeriesMerge:
         second = TimeSeriesRate(
             timesteps=[datetime(2020, 1, 1)],
             values=[21],
-            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
+            unit=Unit.TONS_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
             regularity=[1.0],
         )
