@@ -109,10 +109,6 @@ class InterpolationType(str, Enum):
 
 
 class FuelType(EcalcBaseModel):
-    """An installation/model/component may change fuel over time, due to setup changes,
-    production.
-    """
-
     name: str
     user_defined_category: Optional[FuelTypeUserDefinedCategoryType] = None
     emissions: List[Emission] = Field(default_factory=list)

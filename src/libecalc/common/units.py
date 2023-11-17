@@ -84,9 +84,6 @@ class Unit(str, Enum):
     ACTUAL_VOLUMETRIC_M3_PER_HOUR = "Am3/h"
     STANDARD_CUBIC_METER_PER_DAY = "Sm3/d"
 
-    NORWEGIAN_KRONER_PER_DAY = "NOK/d"
-    NORWEGIAN_KRONER = "NOK"
-
     SPEED_RPM = "RPM"
 
     def __str__(self) -> str:
@@ -199,8 +196,6 @@ class Unit(str, Enum):
             return Unit.MEGA_WATT
         elif self == Unit.TONS:
             return Unit.TONS_PER_DAY
-        elif self == Unit.NORWEGIAN_KRONER:
-            return Unit.NORWEGIAN_KRONER_PER_DAY
         elif self == Unit.KILO:
             return Unit.KILO_PER_DAY
         elif self == Unit.LITRES:
@@ -218,8 +213,6 @@ class Unit(str, Enum):
             return Unit.MEGA_WATT_DAYS
         elif self == Unit.TONS_PER_DAY:
             return Unit.TONS
-        elif self == Unit.NORWEGIAN_KRONER_PER_DAY:
-            return Unit.NORWEGIAN_KRONER
         elif self == Unit.KILO_PER_DAY:
             return Unit.KILO
         elif self == Unit.LITRES_PER_DAY:
