@@ -79,8 +79,6 @@
                         "N.m/kg",
                         "Am3/h",
                         "Sm3/d",
-                        "NOK/d",
-                        "NOK",
                         "RPM"
                     ],
                     "title": "Unit",
