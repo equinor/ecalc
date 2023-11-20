@@ -69,5 +69,18 @@ class Graph(Generic[TNode]):
     def sorted_node_ids(self) -> List[NodeID]:
         return list(nx.topological_sort(self.graph))
 
+    def breadth_first_search_tree(self, source_id: NodeID) -> List[NodeID]:
+        """
+        Create a tree with source as root by searching edges close to the source first. Breadth first orders the nodes
+        that are closer to the source before nodes that are further out.
+
+        Args:
+            source_id:
+
+        Returns:
+
+        """
+        return list(nx.bfs_tree(self.graph, source_id))
+
     def __iter__(self):
         return iter(self.graph)
