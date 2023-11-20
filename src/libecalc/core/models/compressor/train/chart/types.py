@@ -32,3 +32,22 @@ class CompressorChartResult(BaseModel):
 
     class Config:
         extra = Extra.forbid
+
+    @property
+    def any_points_below_stone_wall(self):
+        return any(
+            rate_exceeds_maximum and not_head_exceeds_maximum
+            for (rate_exceeds_maximum, not_head_exceeds_maximum) in zip(
+                self.rate_exceeds_maximum,
+                [not head_exceeds_maximum for head_exceeds_maximum in self.head_exceeds_maximum],
+            )
+        )
+
+    @property
+    def any_points_above_maximum_speed_curve(self):
+        return any(
+            rate_exceeds_maximum and head_exceeds_maximum
+            for (rate_exceeds_maximum, head_exceeds_maximum) in zip(
+                self.rate_exceeds_maximum, self.head_exceeds_maximum
+            )
+        )

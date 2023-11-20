@@ -1,8 +1,6 @@
 from typing import List
 
 import numpy as np
-from scipy.interpolate import interp1d
-from shapely.geometry import LineString, Point
 
 from libecalc import dto
 from libecalc.core.models.compressor.train.chart import VariableSpeedCompressorChart
@@ -12,8 +10,12 @@ from libecalc.core.models.compressor.train.chart.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_HEADS,
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES,
 )
+from libecalc.core.models.compressor.train.chart.types import CompressorChartResult
 from libecalc.core.models.compressor.train.chart.variable_speed_compressor_chart import (
     logger,
+)
+from libecalc.core.models.compressor.train.utils.numeric_methods import (
+    maximize_x_given_boolean_condition_function,
 )
 
 
@@ -31,67 +33,159 @@ class CompressorChartCreator:
         1. Scale the input data with an initial scaling such that for the corresponding unified generic chart maximum
            speed curve the maximum head is equal to maximum head in input data and maximum rate is equal to maximum rate
            in input data.
-        2. Find the points not covered and find the point furthest above the initial chart.
-            - Find the (unified) distance in rate and head directions from the point furthest above and the closest point
-              on the initial chart
-            - Adjust the design point such that the point furthest above will be covered by adding the distance found
-        3. If no points are found above the initial chart, find the point closest to the maximum speed curve
-           inside the chart
-           - Find the (unified) distance in rate and head directions from the input point closest to the
-              maximum speed curve and the closest point on the maximum speed curve on the initial chart
-           - Adjust the design point such that the in put point closest to the maximum speed curve is just covered
-              by subtracting the distance found
+        2. Generate a variable speed compressor chart with design point (1, 1)
+        3. Find the maximum rate of the compressor chart with design point (1, 1) using the scaled heads from the input
+           data
+        4. Check if any of the scaled points from the input data exceeds the capacity in the variable speed compressor
+           chart with design point (1, 1)
+           - If there are points below the stone wall, increase rate until no points are below stone wall. If there
+             are any points above the maximum speed curve, iteratively increase the design rate and find the resulting
+             design head giving no points below the stone wall. Stop when there are no points above maximum speed curve.
+           - Else if there are points above the maximum speed curve, increase design head until one of the input points
+             hits the stone wall. If there are no points above the maximum speed curve, reduce the head until no points
+             are above the maximum speed curve. If there are still points above the maximum speed curve, iteratively
+             increase the design rate and find the resulting design head giving no points below the stone wall.
+             Stop when there are no points above maximum speed curve.
+        5. If none of the scaled points input data exceeds the capacity in the variable speed compressor chart with
+           design point (1, 1), there must be points that recirculate to the minimum rate/maximum head of the compressor
+           chart, and one or more points exactly at the maximum rate/minimum head point of the maximum speed curve. In
+           this (very unlikely) case the chart is perfect - return it.
 
-        :param actual_volume_rates_m3_per_hour: volume rate values [Am3/h]
-        :param heads_joule_per_kg: Head values [J/kg]
-        :param polytropic_efficiency: Polytropic efficiency as a fraction between 0 and 1.
+        Args:
+            actual_volume_rates_m3_per_hour: volume rate values [Am3/h]
+            heads_joule_per_kg: Head values [J/kg]
+            polytropic_efficiency: Polytropic efficiency as a fraction between 0 and 1.
+
+        Returns:
+            The resulting variable speed compressor chart
         """
-        maximum_speed_rates_unif = UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_RATES
-        maximum_speed_heads_unif = UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS
 
-        initial_design_rate_unif = maximum_speed_rates_unif[-1]
-        initial_design_head_unif = maximum_speed_heads_unif[0]
-        initial_head_interp_unif = interp1d(
-            x=maximum_speed_rates_unif,
-            y=maximum_speed_heads_unif,
-            fill_value=np.inf,
-            bounds_error=False,
+        # Maximum values from unified generic chart
+        maximum_rate_on_maximum_speed_curve_unified = UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_RATES[-1]
+        maximum_head_on_maximum_speed_curve_unified = UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS[0]
+        minimum_head_on_maximum_speed_curve_unified = UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS[-1]
+        maximum_rate_on_minimum_speed_curve_unified = UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES[-1]
+        maximum_change_in_rate_unified = (
+            maximum_rate_on_maximum_speed_curve_unified - maximum_rate_on_minimum_speed_curve_unified
         )
+        maximum_change_in_head_unified = (
+            maximum_head_on_maximum_speed_curve_unified - minimum_head_on_maximum_speed_curve_unified
+        )
+
+        # Maximum values from input
         maximum_actual_rate = np.max(actual_volume_rates_m3_per_hour)
         maximum_head_value = np.max(heads_joule_per_kg)
-        initial_scaling_rate = np.divide(maximum_actual_rate, initial_design_rate_unif)
-        initial_scaling_head = np.divide(maximum_head_value, initial_design_head_unif)
 
-        initial_scaled_volume_rate = np.divide(actual_volume_rates_m3_per_hour, initial_scaling_rate)
-        initial_scaled_head = np.divide(heads_joule_per_kg, initial_scaling_head)
-        initial_max_head_for_rates_unif = initial_head_interp_unif(initial_scaled_volume_rate)
-        indices_points_above_maximum = np.argwhere(initial_scaled_head > initial_max_head_for_rates_unif)[:, 0]
+        # Values to scale input with
+        scaling_rate_to_unified = np.divide(maximum_actual_rate, maximum_rate_on_maximum_speed_curve_unified)
+        scaling_head_to_unified = np.divide(maximum_head_value, maximum_head_on_maximum_speed_curve_unified)
 
-        line = LineString(zip(maximum_speed_rates_unif, maximum_speed_heads_unif))
+        initial_design_head_unified = 1
+        initial_design_rate_unified = 1
 
-        if any(indices_points_above_maximum):
-            rates_for_distance_calculations = initial_scaled_volume_rate[indices_points_above_maximum]
-            heads_for_distance_calculations = initial_scaled_head[indices_points_above_maximum]
-        else:
-            rates_for_distance_calculations = initial_scaled_volume_rate
-            heads_for_distance_calculations = initial_scaled_head
+        def _create_compressor_chart_result_from_unified_design_point(
+            unified_rate: float, unified_head: float
+        ) -> CompressorChartResult:
+            return CompressorChartCreator.from_rate_and_head_design_point(
+                design_actual_rate_m3_per_hour=unified_rate * scaling_rate_to_unified,
+                design_head_joule_per_kg=unified_head * scaling_head_to_unified,
+                polytropic_efficiency=polytropic_efficiency,
+            ).evaluate_capacity_and_extrapolate_below_minimum(
+                actual_volume_rates=actual_volume_rates_m3_per_hour,
+                heads=heads_joule_per_kg,
+                extrapolate_heads_below_minimum=False,
+            )
 
-        distances = [
-            line.distance(Point(r, h)) for r, h in zip(rates_for_distance_calculations, heads_for_distance_calculations)
-        ]
-        distance_index = np.argmax(distances) if any(indices_points_above_maximum) else np.argmin(distances)
+        initial_compressor_chart_result = _create_compressor_chart_result_from_unified_design_point(
+            unified_rate=initial_design_rate_unified,
+            unified_head=initial_design_head_unified,
+        )
 
-        max_point_rate = rates_for_distance_calculations[distance_index]
-        max_point_head = heads_for_distance_calculations[distance_index]
+        design_rate_unified = initial_design_rate_unified
+        design_head_unified = initial_design_head_unified
 
-        point_to_just_include = Point(max_point_rate, max_point_head)
-        closest_point = line.interpolate(line.project(point_to_just_include))
+        maximum_design_rate_unified = initial_design_rate_unified + maximum_change_in_rate_unified
+        maximum_design_head_unified = initial_design_head_unified + maximum_change_in_head_unified
 
-        # (1 - (closest_point.x - point_to_just_include.x)) if no points above
-        # but that equals (1 + point_to_just_include.x - closest_point.x)
+        # Scenario 1: Point(s) below stone wall. First increase rate until there are no point(s) below stone wall.
+        #             If there are still points above maximum speed curve, iteratively increase rate slightly and
+        #             find corresponding head that gives no points below stone wall until no points are above
+        #             maximum speed curve.
+        if initial_compressor_chart_result.any_points_below_stone_wall:
+            # Start with high design rate (all points above stone wall),
+            # reduce it until the first point hits the stone wall
+            design_rate_unified = maximum_design_rate_unified - maximize_x_given_boolean_condition_function(
+                x_min=0,
+                x_max=maximum_design_rate_unified - design_rate_unified,
+                bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
+                    unified_rate=maximum_design_rate_unified - x,
+                    unified_head=design_head_unified,
+                ).any_points_below_stone_wall,
+            )
+            while _create_compressor_chart_result_from_unified_design_point(
+                unified_rate=design_rate_unified,
+                unified_head=design_head_unified,
+            ).any_points_above_maximum_speed_curve:
+                # increase rate slightly, find head that gives no points below stone wall
+                # repeat until no points above maximum speed curve
+                design_rate_unified = design_rate_unified + 0.01  # increase rate with 1% of initial rate
+                design_head_unified = maximize_x_given_boolean_condition_function(
+                    x_min=design_head_unified,
+                    x_max=maximum_design_head_unified,
+                    bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
+                        unified_rate=design_rate_unified,
+                        unified_head=x,
+                    ).any_points_below_stone_wall,
+                )
+
+        # Scenario 3: Point(s) above maximum speed curve. Increase head. Points can potentially end up on the stone
+        #             wall. If any points do, both rate and head must be increased according to the slope of the
+        #             stone wall (to stop points from falling under the stone wall)
+        elif initial_compressor_chart_result.any_points_above_maximum_speed_curve:
+            # First increase head until one point hits the stone wall
+            design_head_unified = maximize_x_given_boolean_condition_function(
+                x_min=design_head_unified,
+                x_max=maximum_design_head_unified,
+                bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
+                    unified_rate=design_rate_unified,
+                    unified_head=x,
+                ).any_points_below_stone_wall,
+            )
+            # If no points are above the maximum speed curve, reduce head until one point hits the maximum speed curve
+            if not _create_compressor_chart_result_from_unified_design_point(
+                unified_rate=design_rate_unified,
+                unified_head=design_head_unified,
+            ).any_points_above_maximum_speed_curve:
+                change_in_design_head_unified = maximize_x_given_boolean_condition_function(
+                    x_min=0,
+                    x_max=maximum_change_in_head_unified,
+                    bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
+                        unified_rate=design_rate_unified,
+                        unified_head=design_head_unified - x,
+                    ).any_points_above_maximum_speed_curve,
+                )
+                design_rate_unified = design_rate_unified - change_in_design_head_unified
+            else:
+                0.01 * design_rate_unified
+                while _create_compressor_chart_result_from_unified_design_point(
+                    unified_rate=design_rate_unified,
+                    unified_head=design_head_unified,
+                ).any_points_above_maximum_speed_curve:
+                    # increase rate slightly, find head that gives no points below stone wall
+                    # repeat until no points above maximum speed curve
+                    design_rate_unified = design_rate_unified + 0.01  # increase rate with 1% of initial rate
+                    design_head_unified = maximize_x_given_boolean_condition_function(
+                        x_min=design_head_unified,
+                        x_max=maximum_design_head_unified,
+                        bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
+                            unified_rate=design_rate_unified,
+                            unified_head=x,
+                        ).any_points_below_stone_wall,
+                    )
+
         design_rate, design_head = (
-            (1 + point_to_just_include.x - closest_point.x) * initial_scaling_rate,
-            (1 + point_to_just_include.y - closest_point.y) * initial_scaling_head,
+            design_rate_unified * scaling_rate_to_unified,
+            design_head_unified * scaling_head_to_unified,
         )
 
         return CompressorChartCreator.from_rate_and_head_design_point(
