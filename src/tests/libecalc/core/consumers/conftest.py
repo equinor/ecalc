@@ -30,7 +30,6 @@ def variables_map(methane_values):
 def emitter_model_1_dto():
     return dto.EmitterModel(
         emission_rate=Expression.setup_from_expression(value="TSC1;Methane_rate {*} 1.02"),
-        emission_quota=Expression.setup_from_expression(value=10.0),
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
     )
 
@@ -39,7 +38,6 @@ def emitter_model_1_dto():
 def emitter_model_2_dto():
     return dto.EmitterModel(
         emission_rate=Expression.setup_from_expression(value="TSC1;Methane_rate {*} 1.1"),
-        emission_quota=Expression.setup_from_expression(value=5.0),
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
     )
 

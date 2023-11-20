@@ -21,7 +21,6 @@ class EcalcYamlKeywords:
     )
     fuel = "FUEL"
     fuel_types = "FUEL_TYPES"
-    fuel_price = "PRICE"
     fuel_lower_heating_value = "LOWER_HEATING_VALUE"
 
     consumer_system_total_system_rate = "TOTAL_SYSTEM_RATE"
@@ -62,8 +61,6 @@ class EcalcYamlKeywords:
     el2fuel = "ELECTRICITY2FUEL"
     emission_factor = "FACTOR"
     emissions = "EMISSIONS"
-    emission_tax = "TAX"
-    emission_quota = "QUOTA"
     energy_model = "ENERGYFUNCTION"
     facility_inputs = "FACILITY_INPUTS"
     fuel_consumers = "FUELCONSUMERS"

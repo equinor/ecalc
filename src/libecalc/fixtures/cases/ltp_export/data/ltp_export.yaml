@@ -29,18 +29,6 @@ TIME_SERIES:
     EXTRAPOLATION: false
     INFLUENCE_TIME_VECTOR: false
     INTERPOLATION_TYPE: RIGHT
-  - NAME: INPUT_FUEL_PRICE  # changed to misc
-    TYPE: MISCELLANEOUS
-    FILE: 'einput/prices_fuel.csv'
-    EXTRAPOLATION: true
-    INFLUENCE_TIME_VECTOR: false
-    INTERPOLATION_TYPE: RIGHT
-  - NAME: INPUT_CO2_PRICE  # changed to misc
-    TYPE: MISCELLANEOUS
-    FILE: 'einput/prices_co2.csv'
-    EXTRAPOLATION: true
-    INFLUENCE_TIME_VECTOR: false
-    INTERPOLATION_TYPE: RIGHT
 
 FACILITY_INPUTS:
   - NAME: A_genset
@@ -66,12 +54,10 @@ FACILITY_INPUTS:
 FUEL_TYPES:
   - NAME: fuel_gas_sac
     # This fuel type is to be used for power generators, need to split due to NOx emissions
-    PRICE: INPUT_FUEL_PRICE;FUELPRICE
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: co2
         FACTOR: 2.11 #kg/Sm3
-        TAX: INPUT_CO2_PRICE;TAX
       - NAME: ch4
         FACTOR: 0.00091 #kg/Sm3
       - NAME: nox
@@ -80,12 +66,10 @@ FUEL_TYPES:
         FACTOR: 0.00024 #kg/Sm3
   - NAME: fuel_gas_dle
     # This fuel type is to be used for gas compressors, need to split due to NOx emissions
-    PRICE: INPUT_FUEL_PRICE;FUELPRICE
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: co2
         FACTOR: 2.11 #kg/Sm3
-        TAX: INPUT_CO2_PRICE;TAX
       - NAME: ch4
         FACTOR: 0.00091 #kg/Sm3
       - NAME: nox
@@ -93,11 +77,9 @@ FUEL_TYPES:
       - NAME: nmvoc
         FACTOR: 0.00024 #kg/Sm3
   - NAME: flare_gas
-    PRICE: INPUT_FUEL_PRICE;FUELPRICE
     EMISSIONS:
       - NAME: co2
         FACTOR: 2.60 #kg/Sm3
-        TAX: INPUT_CO2_PRICE;TAX
       - NAME: ch4
         FACTOR: 0.00024 #kg/Sm3
       - NAME: nox
@@ -105,7 +87,6 @@ FUEL_TYPES:
       - NAME: nmvoc
         FACTOR: "0.00006" #kg/Sm3 (quotes needed, due to eCalc bug for values < 1E-04)
   - NAME: diesel_fixed
-    PRICE: 9000 #NOK/m3
     CATEGORY: DIESEL
     EMISSIONS:
       - NAME: co2
@@ -118,7 +99,6 @@ FUEL_TYPES:
         FACTOR: 0.00222 #kg/l, covers both diesel usage in turbines and motors
   - NAME: cold_venting_fugitives_methane_direct
     # This is a 'dummy' fuel type, to ensure that input emission rates are passed through eCalc
-    PRICE: 0 #NOK/m3
     EMISSIONS:
       - NAME: co2
         FACTOR: 0 #kg/kg
@@ -130,7 +110,6 @@ FUEL_TYPES:
         FACTOR: 0 #kg/kg
   - NAME: cold_venting_fugitives_nmvoc_direct
     # This is a 'dummy' fuel type, to ensure that input emission rates are passed through eCalc
-    PRICE: 0 #NOK/m3
     EMISSIONS:
       - NAME: co2
         FACTOR: 0 #kg/kg
@@ -141,7 +120,6 @@ FUEL_TYPES:
       - NAME: nmvoc
         FACTOR: 1 #kg/kg - input emissions directly in kg/d
   - NAME: loading_ch4_nmvoc
-    PRICE: 0 #NOK/m3
     EMISSIONS:
       - NAME: co2
         FACTOR: 0 #kg/Sm3
@@ -152,7 +130,6 @@ FUEL_TYPES:
       - NAME: nmvoc
         FACTOR: 0.21 #kg/Sm3
   - NAME: storage_ch4_nmvoc
-    PRICE: 0 #NOK/m3
     EMISSIONS:
       - NAME: co2
         FACTOR: 0 #kg/Sm3
@@ -163,7 +140,6 @@ FUEL_TYPES:
       - NAME: nmvoc
         FACTOR: 0 #kg/Sm3 (not applicable)
   - NAME: diesel_mobile
-    PRICE: 0 #NOK/m3
     CATEGORY: DIESEL
     EMISSIONS:
       - NAME: co2

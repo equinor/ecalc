@@ -8,7 +8,7 @@ This is a model very similar to [Simple example](/about/modelling/examples/simpl
 energy usage models and consumer systems, and the addition of a second installation.
 
 Both installations exports oil (`OIL_PROD`) and gas (`GAS_PROD`).
-The installations emits CO<sub>2</sub> and CH<sub>4</sub> that is subject to taxation and emission quotas.
+The installations emits CO<sub>2</sub> and CH<sub>4</sub>.
 
 The following is an example with one installation called `Installation A` and `Installation B`.
 
@@ -116,31 +116,24 @@ FACILITY_INPUTS:
 ## FUEL_TYPES
 In this example there are two [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) - `fuel_gas` and `bad_fuel_gas`.
 These are used for Installation A and Installation B respectively.
-Here we also define emissions in CO<sub>2</sub> and CH<sub>4</sub>. Note that the two fuels have different prices,
-emissions factors and the same taxes and are defined:
+Here we also define emissions in CO<sub>2</sub> and CH<sub>4</sub>:
 
 ~~~~~~~~yaml title="model.yaml"
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.20 #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
       - NAME: CH4
         FACTOR: 0.01 #kg/Sm3
-        TAX: 0.9 # NOK/Sm3
   - NAME: bad_fuel_gas
-    PRICE: 0.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 5.0 #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
       - NAME: CH4
         FACTOR: 0.01 #kg/Sm3
-        TAX: 0.9 # NOK/Sm3
 ~~~~~~~~
 
 ## MODELS
@@ -520,25 +513,19 @@ FACILITY_INPUTS:
 
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.20 #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
       - NAME: CH4
         FACTOR: 0.01 #kg/Sm3
-        TAX: 0.9 # NOK/Sm3
   - NAME: bad_fuel_gas
-    PRICE: 0.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 5.0 #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
       - NAME: CH4
         FACTOR: 0.01 #kg/Sm3
-        TAX: 0.9 # NOK/Sm3
 
 MODELS:
   - NAME: generic_from_design_point_compressor_chart

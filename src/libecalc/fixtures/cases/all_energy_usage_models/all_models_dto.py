@@ -980,7 +980,6 @@ def methane_direct(regularity) -> dto.DirectEmitter:
         emitter_model={
             datetime(1900, 1, 1): dto.EmitterModel(
                 emission_rate=Expression.setup_from_expression(value="FLARE;METHANE_RATE"),
-                emission_quota=Expression.setup_from_expression(value=1),
                 regularity=regularity,
             ),
         },

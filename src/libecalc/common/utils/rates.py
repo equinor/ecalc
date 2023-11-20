@@ -777,7 +777,6 @@ class TimeSeriesRate(TimeSeries[float]):
     The regularity will be defaulted to 1 if not provided.
 
     Stream day rates are relevant for quantities where capacity is important (volumes and power).
-    Stream day rates are not relevant for fuel consumption, tax and emissions.
     """
 
     rate_type: RateType

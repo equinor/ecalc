@@ -54,12 +54,10 @@ def fuel(name: str, co2_factor: float) -> dto.types.FuelType:
 
     return dto.types.FuelType(
         name=name,
-        price=Expression.setup_from_expression(value=10),
         emissions=[
             dto.Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
-                tax=Expression.setup_from_expression(value=1),
             )
         ],
         user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
@@ -103,16 +101,6 @@ def get_emission_with_only_rate(rates: List[float], name: str):
         ),
         timesteps=timesteps,
         name=name,
-        tax=TimeSeriesStreamDayRate(
-            timesteps=timesteps,
-            values=[0] * len(rates),
-            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
-        ),
-        quota=TimeSeriesStreamDayRate(
-            timesteps=timesteps,
-            values=[0] * len(rates),
-            unit=Unit.NORWEGIAN_KRONER_PER_DAY,
-        ),
     )
 
 

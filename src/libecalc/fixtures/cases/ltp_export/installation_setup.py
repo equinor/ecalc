@@ -45,12 +45,10 @@ days_year2_second_half = calculate_delta_days(np.array([date4, date5]))
 def fuel_turbine() -> dto.types.FuelType:
     return dto.types.FuelType(
         name="fuel_gas",
-        price=Expression.setup_from_expression(value=10),
         emissions=[
             dto.Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
-                tax=Expression.setup_from_expression(value=1),
             )
         ],
         user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
@@ -60,12 +58,10 @@ def fuel_turbine() -> dto.types.FuelType:
 def diesel_turbine() -> dto.types.FuelType:
     return dto.types.FuelType(
         name="diesel",
-        price=Expression.setup_from_expression(value=10000),
         emissions=[
             dto.Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
-                tax=Expression.setup_from_expression(value=1),
             )
         ],
         user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.DIESEL,
@@ -75,27 +71,22 @@ def diesel_turbine() -> dto.types.FuelType:
 def diesel_turbine_multi() -> dto.types.FuelType:
     return dto.types.FuelType(
         name="diesel",
-        price=Expression.setup_from_expression(value=10000),
         emissions=[
             dto.Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
-                tax=Expression.setup_from_expression(value=1),
             ),
             dto.Emission(
                 name="ch4",
                 factor=Expression.setup_from_expression(value=ch4_factor),
-                tax=Expression.setup_from_expression(value=1),
             ),
             dto.Emission(
                 name="nox",
                 factor=Expression.setup_from_expression(value=nox_factor),
-                tax=Expression.setup_from_expression(value=1),
             ),
             dto.Emission(
                 name="nmvoc",
                 factor=Expression.setup_from_expression(value=nmvoc_factor),
-                tax=Expression.setup_from_expression(value=1),
             ),
         ],
         user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.DIESEL,

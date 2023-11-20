@@ -252,12 +252,10 @@ FACILITY_INPUTS: []
 
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: co2
         FACTOR: "2.20" #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
 
 INSTALLATIONS:
   - NAME: dated

@@ -19,7 +19,7 @@ class DirectEmitter:
     """A class for direct (not fuel based) emissions."""
 
     def __init__(self, direct_emitter_dto: dto.DirectEmitter):
-        """We model a Direct Emitter as a Fuel Consumer without cost or tax, where the emission rate (kg/day) and
+        """We model a Direct Emitter as a Fuel Consumer, where the emission rate (kg/day) and
         the fuel rate (unit-less) are handled as 1 to 1.
 
         This means that we can simulate a direct emission as a normal fuel consumer the same,
@@ -35,13 +35,10 @@ class DirectEmitter:
                     # This is the DIRECT-EMITTER CATEGORY which is fed into the fuel modet -> fuel validation error
                     # Commented out, meaning the fuel model has CATEGORY set to None
                     # user_defined_category=direct_emitter_dto.user_defined_category,
-                    price=None,  # See docstring
                     emissions=[
                         Emission(
                             name=direct_emitter_dto.emission_name,
-                            quota=emitter_model.emission_quota,
-                            factor=Expression.setup_from_expression(1),  # See docstring.
-                            tax=None,  # See docstring
+                            factor=Expression.setup_from_expression(1),  # See docstring.  # See docstring
                         )
                     ],
                 )

@@ -241,17 +241,7 @@ class GraphResult:
                 name=key,
                 timesteps=emissions[key].timesteps,
                 rate=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity),
-                quota=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].quota, regularity=regularity),
-                tax=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].tax, regularity=regularity),
                 cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity)
-                .to_volumes()
-                .cumulative(),
-                quota_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    emissions[key].quota, regularity=regularity
-                )
-                .to_volumes()
-                .cumulative(),
-                tax_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].tax, regularity=regularity)
                 .to_volumes()
                 .cumulative(),
             )
@@ -274,11 +264,7 @@ class GraphResult:
                 name=key,
                 timesteps=emissions[key].timesteps,
                 rate=emissions[key].rate,
-                quota=emissions[key].quota,
-                tax=emissions[key].tax,
                 cumulative=emissions[key].rate.to_volumes().cumulative(),
-                quota_cumulative=emissions[key].quota.to_volumes().cumulative(),
-                tax_cumulative=emissions[key].tax.to_volumes().cumulative(),
             )
             for key in emissions
         }

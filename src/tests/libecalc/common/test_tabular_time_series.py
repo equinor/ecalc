@@ -35,35 +35,35 @@ class TestMerge:
             time_series_rate=TimeSeriesStreamDayRate(
                 timesteps=first_timesteps,
                 values=[11, 12],
-                unit=Unit.NORWEGIAN_KRONER,
+                unit=Unit.TONS,
             ),
             time_series_float=TimeSeriesFloat(
                 timesteps=first_timesteps,
                 values=[11, 12],
-                unit=Unit.NORWEGIAN_KRONER,
+                unit=Unit.TONS,
             ),
             time_series_float_list_test=[
                 TimeSeriesFloat(
                     timesteps=first_timesteps,
                     values=[111, 112],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
                 TimeSeriesFloat(
                     timesteps=first_timesteps,
                     values=[-121, -122],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
             ],
             time_series_rate_list_test=[
                 TimeSeriesStreamDayRate(
                     timesteps=first_timesteps,
                     values=[111, 112],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
                 TimeSeriesStreamDayRate(
                     timesteps=first_timesteps,
                     values=[-121, -122],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
             ],
             stream_list=[
@@ -73,7 +73,7 @@ class TestMerge:
                     rate=TimeSeriesStreamDayRate(
                         timesteps=first_timesteps,
                         values=[-111, -112],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
                         timesteps=first_timesteps,
@@ -87,7 +87,7 @@ class TestMerge:
                     rate=TimeSeriesStreamDayRate(
                         timesteps=first_timesteps,
                         values=[-121, -122],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
                         timesteps=first_timesteps,
@@ -107,35 +107,35 @@ class TestMerge:
             time_series_float=TimeSeriesFloat(
                 timesteps=second_timesteps,
                 values=[21, 22],
-                unit=Unit.NORWEGIAN_KRONER,
+                unit=Unit.TONS,
             ),
             time_series_rate=TimeSeriesStreamDayRate(
                 timesteps=second_timesteps,
                 values=[21, 22],
-                unit=Unit.NORWEGIAN_KRONER,
+                unit=Unit.TONS,
             ),
             time_series_float_list_test=[
                 TimeSeriesFloat(
                     timesteps=second_timesteps,
                     values=[211, 212],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
                 TimeSeriesFloat(
                     timesteps=second_timesteps,
                     values=[-221, -222],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
             ],
             time_series_rate_list_test=[
                 TimeSeriesStreamDayRate(
                     timesteps=second_timesteps,
                     values=[211, 212],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
                 TimeSeriesStreamDayRate(
                     timesteps=second_timesteps,
                     values=[-221, -222],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
             ],
             stream_list=[
@@ -145,7 +145,7 @@ class TestMerge:
                     rate=TimeSeriesStreamDayRate(
                         timesteps=second_timesteps,
                         values=[-211, -212],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
                         timesteps=second_timesteps,
@@ -159,7 +159,7 @@ class TestMerge:
                     rate=TimeSeriesStreamDayRate(
                         timesteps=second_timesteps,
                         values=[-221, -222],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
                         timesteps=second_timesteps,
@@ -184,35 +184,35 @@ class TestMerge:
                 time_series_float=TimeSeriesFloat(
                     timesteps=expected_timesteps,
                     values=[11, 21, 12, 22],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
                 time_series_rate=TimeSeriesStreamDayRate(
                     timesteps=expected_timesteps,
                     values=[11, 21, 12, 22],
-                    unit=Unit.NORWEGIAN_KRONER,
+                    unit=Unit.TONS,
                 ),
                 time_series_float_list_test=[
                     TimeSeriesFloat(
                         timesteps=expected_timesteps,
                         values=[111, 211, 112, 212],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                     TimeSeriesFloat(
                         timesteps=expected_timesteps,
                         values=[-121, -221, -122, -222],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                 ],
                 time_series_rate_list_test=[
                     TimeSeriesStreamDayRate(
                         timesteps=expected_timesteps,
                         values=[111, 211, 112, 212],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                     TimeSeriesStreamDayRate(
                         timesteps=expected_timesteps,
                         values=[-121, -221, -122, -222],
-                        unit=Unit.NORWEGIAN_KRONER,
+                        unit=Unit.TONS,
                     ),
                 ],
                 stream_list=[
@@ -222,7 +222,7 @@ class TestMerge:
                         rate=TimeSeriesStreamDayRate(
                             timesteps=expected_timesteps,
                             values=[-111, -211, -112, -212],
-                            unit=Unit.NORWEGIAN_KRONER,
+                            unit=Unit.TONS,
                         ),
                         pressure=TimeSeriesFloat(
                             timesteps=expected_timesteps,
@@ -236,7 +236,7 @@ class TestMerge:
                         rate=TimeSeriesStreamDayRate(
                             timesteps=expected_timesteps,
                             values=[-121, -221, -122, -222],
-                            unit=Unit.NORWEGIAN_KRONER,
+                            unit=Unit.TONS,
                         ),
                         pressure=TimeSeriesFloat(
                             timesteps=expected_timesteps,

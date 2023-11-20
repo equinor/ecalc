@@ -3,7 +3,6 @@ from typing import List
 from pydantic import Field
 
 from libecalc.dto.base import FuelTypeUserDefinedCategoryType
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
@@ -19,11 +18,6 @@ class YamlFuelType(YamlBase):
         ...,
         title="NAME",
         description="Name of the fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
-    )
-    price: ExpressionType = Field(
-        None,
-        title="PRICE",
-        description="Price or sales value of fuel in NOK per Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/PRICE",
     )
     category: FuelTypeUserDefinedCategoryType = CategoryField(
         None,

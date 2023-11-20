@@ -330,12 +330,10 @@ MODELS:
 
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: co2
         FACTOR: "2.20" # kg/Sm3
-        TAX: 1.51 # NOK/Sm3
 
 INSTALLATIONS:
   - NAME: MAIN_INSTALLATION
@@ -621,4 +619,3 @@ INSTALLATIONS:
         CATEGORY: COLD-VENTING-FUGITIVE
         EMITTER_MODEL:
           EMISSION_RATE: FLARE;METHANE_RATE
-          QUOTA: 1 # TAX per emission volume, NOK/emission rate unit as given in EMISSION_RATE

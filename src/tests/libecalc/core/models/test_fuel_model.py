@@ -14,13 +14,10 @@ def test_fuel_model():
         {
             datetime(2000, 1, 1): dto.FuelType(
                 name="fuel_gas",
-                price=Expression.setup_from_expression(10.0),
                 emissions=[
                     dto.Emission(
                         name="CO2",
                         factor=Expression.setup_from_expression(1.0),
-                        tax=Expression.setup_from_expression(1.0),
-                        quota=Expression.setup_from_expression(0.0),
                     )
                 ],
             )
@@ -42,20 +39,6 @@ def test_fuel_model():
         rate_type=RateType.CALENDAR_DAY,
         regularity=[1.0, 1.0, 1.0],
     )
-    assert emission_result.tax == TimeSeriesRate(
-        timesteps=timesteps,
-        values=[1.0, 2.0, 3.0],
-        unit=Unit.NORWEGIAN_KRONER_PER_DAY,
-        rate_type=RateType.CALENDAR_DAY,
-        regularity=[1.0, 1.0, 1.0],
-    )
-    assert emission_result.quota == TimeSeriesRate(
-        timesteps=timesteps,
-        values=[0.0] * 3,
-        unit=Unit.NORWEGIAN_KRONER_PER_DAY,
-        rate_type=RateType.CALENDAR_DAY,
-        regularity=[1.0, 1.0, 1.0],
-    )
 
 
 def test_temporal_fuel_model():
@@ -64,25 +47,19 @@ def test_temporal_fuel_model():
         {
             datetime(2000, 1, 1): dto.FuelType(
                 name="fuel_gas",
-                price=Expression.setup_from_expression(1.0),
                 emissions=[
                     dto.Emission(
                         name="CO2",
                         factor=Expression.setup_from_expression(1.0),
-                        tax=Expression.setup_from_expression(1.0),
-                        quota=Expression.setup_from_expression(1.0),
                     ),
                 ],
             ),
             datetime(2001, 1, 1): dto.FuelType(
                 name="fuel_gas",
-                price=Expression.setup_from_expression(2.0),
                 emissions=[
                     dto.Emission(
                         name="CH4",
                         factor=Expression.setup_from_expression(2.0),
-                        tax=Expression.setup_from_expression(2.0),
-                        quota=Expression.setup_from_expression(2.0),
                     ),
                 ],
             ),

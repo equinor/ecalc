@@ -23,10 +23,6 @@ class EmissionResult(TabularTimeSeries):
     name: str
     rate: TimeSeriesRate
     cumulative: TimeSeriesVolumesCumulative
-    tax: TimeSeriesRate
-    tax_cumulative: TimeSeriesVolumesCumulative
-    quota: TimeSeriesRate
-    quota_cumulative: TimeSeriesVolumesCumulative
 
     def simple_result(self):
         return SimpleEmissionResult(**self.dict())
@@ -55,26 +51,6 @@ class EmissionResult(TabularTimeSeries):
                 values=[0] * len(timesteps),
                 unit=Unit.TONS,
             ),
-            tax=TimeSeriesRate(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
-                unit=Unit.NORWEGIAN_KRONER_PER_DAY,
-            ),
-            tax_cumulative=TimeSeriesVolumesCumulative(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
-                unit=Unit.NORWEGIAN_KRONER,
-            ),
-            quota=TimeSeriesRate(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
-                unit=Unit.NORWEGIAN_KRONER_PER_DAY,
-            ),
-            quota_cumulative=TimeSeriesVolumesCumulative(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
-                unit=Unit.NORWEGIAN_KRONER,
-            ),
         )
 
 
@@ -83,8 +59,6 @@ class PartialEmissionResult(TabularTimeSeries):
 
     name: str
     rate: TimeSeriesRate
-    tax: TimeSeriesRate
-    quota: TimeSeriesRate
 
     @classmethod
     def from_emission_core_result(cls, emission_result: EmissionCoreResult, regularity: TimeSeriesFloat) -> Self:
@@ -92,8 +66,6 @@ class PartialEmissionResult(TabularTimeSeries):
             name=emission_result.name,
             timesteps=emission_result.timesteps,
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.rate, regularity),
-            tax=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.tax, regularity),
-            quota=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.quota, regularity),
         )
 
 

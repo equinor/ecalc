@@ -143,12 +143,10 @@ In this case, the installation uses a single fuel gas with a value of 1.23 NOK/S
 ~~~~~~~~yaml
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.23
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.416  #CO2/Sm3 fuel gas burned
-        TAX: 1.71 #NOK/Sm3 fuel gas burned
 ~~~~~~~~
 
 ## INSTALLATIONS
@@ -300,12 +298,10 @@ MODELS:
       INLET_TEMPERATURE: 19.3
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.23
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: co2_fuel_gas
         FACTOR: 2.416
-        TAX: 1.71
 INSTALLATIONS:
   - NAME: drogon
     CATEGORY: FIXED

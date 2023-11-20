@@ -76,7 +76,7 @@ class TestTimeSeries:
         timeseries_model = timeseries_mapper.from_yaml_to_dto(
             _create_timeseries_data(
                 typ=typ_string,
-                name="fuel_price",
+                name="OIL_PROD",
                 file=filename,
                 extrapolate_outside=extrapolate,
                 interpolation_type=interpolation_type,
@@ -221,7 +221,7 @@ class TestTimeSeries:
             timeseries_mapper.from_yaml_to_dto(
                 _create_timeseries_data(
                     typ=TimeSeriesType.MISCELLANEOUS,
-                    name="fuel_price",
+                    name="OIL_PROD",
                     file=filename,
                     extrapolate_outside=True,
                     interpolation_type=InterpolationType.LINEAR,

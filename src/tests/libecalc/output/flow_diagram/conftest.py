@@ -44,12 +44,10 @@ def compressor_system_compressor_fd(name: str) -> dto.CompressorSystemCompressor
 def fuel_type_fd() -> dto.types.FuelType:
     return dto.types.FuelType(
         name="fuel_gas",
-        price=Expression.setup_from_expression(value="1.5"),
         emissions=[
             dto.Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value="2.20"),
-                tax=Expression.setup_from_expression(value="1.51"),
             )
         ],
     )

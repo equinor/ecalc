@@ -11,13 +11,12 @@ from pydantic import ValidationError
 regularity = {datetime(2000, 1, 1): Expression.setup_from_expression(1)}
 
 
-def get_fuel(fuel_name: str, price: float, emission_name: str) -> Dict[datetime, dto.types.FuelType]:
+def get_fuel(fuel_name: str, emission_name: str) -> Dict[datetime, dto.types.FuelType]:
     """
     Generates a fuel type dto for use in testing
 
     Args:
         fuel_name: name of fuel
-        price: cost of fuel
         emission_name: name of emission, e.g. co2
 
     Returns:
@@ -26,12 +25,10 @@ def get_fuel(fuel_name: str, price: float, emission_name: str) -> Dict[datetime,
     return {
         datetime(2000, 1, 1): dto.types.FuelType(
             name=fuel_name,
-            price=Expression.setup_from_expression(value=price),
             emissions=[
                 dto.Emission(
                     name=emission_name,
                     factor=Expression.setup_from_expression(value=1),
-                    tax=Expression.setup_from_expression(value=1),
                 ),
             ],
             user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
@@ -119,13 +116,13 @@ class TestFuelConsumer:
         """
         fuel_consumer1 = get_fuel_consumer(
             consumer_name="flare",
-            fuel_type=get_fuel("fuel1", price=100, emission_name="co2"),
+            fuel_type=get_fuel("fuel1", emission_name="co2"),
             category={datetime(2000, 1, 1): dto.base.ConsumerUserDefinedCategoryType.FLARE},
         )
 
         fuel_consumer2 = get_fuel_consumer(
             consumer_name="boiler",
-            fuel_type=get_fuel("fuel1", price=1000, emission_name="ch4"),
+            fuel_type=get_fuel("fuel1", emission_name="ch4"),
             category={datetime(2000, 1, 1): dto.base.ConsumerUserDefinedCategoryType.BOILER},
         )
 
@@ -155,13 +152,13 @@ class TestFuelConsumer:
 
         fuel_consumer1 = get_fuel_consumer(
             consumer_name="flare",
-            fuel_type=get_fuel("fuel1", price=100, emission_name="co2"),
+            fuel_type=get_fuel("fuel1", emission_name="co2"),
             category={datetime(2000, 1, 1): dto.base.ConsumerUserDefinedCategoryType.FLARE},
         )
 
         fuel_consumer2 = get_fuel_consumer(
             consumer_name="boiler",
-            fuel_type=get_fuel("fuel1", price=100, emission_name="co2"),
+            fuel_type=get_fuel("fuel1", emission_name="co2"),
             category={datetime(2000, 1, 1): dto.base.ConsumerUserDefinedCategoryType.BOILER},
         )
 
