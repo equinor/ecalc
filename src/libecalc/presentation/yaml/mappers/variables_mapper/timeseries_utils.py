@@ -10,6 +10,7 @@ from libecalc.presentation.yaml.mappers.variables_mapper.time_series import Time
 from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection import (
     TimeSeriesCollection,
 )
+from libecalc.presentation.yaml.validation_errors import ValidationError
 
 
 def _split_time_vector(
@@ -130,7 +131,7 @@ def get_global_time_vector(
     has_end = end is not None
     has_frequency = frequency != libecalc.common.time_utils.Frequency.NONE
     if not (has_time_vector or (has_start and has_end) or (has_start and has_frequency)):
-        raise ValueError("No time series found, please provide one or specify a start and end (or frequency).")
+        raise ValidationError("No time series found, please provide one or specify a start and end (or frequency).")
 
     # Store start, end before adding dates from yaml. This is to make sure dates in yaml are trimmed.
     start = start or min(time_vector)

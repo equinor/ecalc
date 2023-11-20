@@ -13,6 +13,7 @@ from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
     DumpFlowStyle,
+    ValidationError,
 )
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
@@ -23,7 +24,10 @@ from libecalc.presentation.yaml.yaml_entities import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlValidator
-from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
+from libecalc.presentation.yaml.yaml_types.yaml_variable import (
+    YamlVariableReferenceId,
+    YamlVariables,
+)
 
 
 class PyYamlYamlModel(YamlValidator, YamlModel):
@@ -234,11 +238,21 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
 
     @property
     def variables(self) -> YamlVariables:
+        if not isinstance(self._internal_datamodel, dict):
+            raise ValidationError("Yaml model is invalid.")
+
         variables = self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
         try:
             return pydantic.parse_obj_as(YamlVariables, variables)
         except pydantic.ValidationError as e:
             raise DtoValidationError(data=variables, validation_error=e) from e
+
+    @property
+    def yaml_variables(self) -> Dict[YamlVariableReferenceId, dict]:
+        if not isinstance(self._internal_datamodel, dict):
+            return {}
+
+        return self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
 
     @property
     def facility_inputs(self):
