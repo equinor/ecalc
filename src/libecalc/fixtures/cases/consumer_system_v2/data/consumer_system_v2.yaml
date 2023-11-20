@@ -3,12 +3,10 @@ END: 2026-01-01
 
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     CATEGORY: FUEL-GAS
     EMISSIONS:
       - NAME: co2
         FACTOR: "2.20" #kg/Sm3
-        TAX: 1.51 # NOK/Sm3
 
 FACILITY_INPUTS:
   - NAME: genset

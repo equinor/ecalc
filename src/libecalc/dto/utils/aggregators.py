@@ -49,8 +49,6 @@ def aggregate_emissions(
             name=emission_name,
             timesteps=emissions[0].timesteps,
             rate=reduce(operator.add, [emission.rate for emission in emissions]),
-            tax=reduce(operator.add, [emission.tax for emission in emissions]),
-            quota=reduce(operator.add, [emission.quota for emission in emissions]),
         )
 
     return emissions_aggregated

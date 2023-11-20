@@ -23,8 +23,6 @@ def ltp_export_yaml() -> YamlCase:
             "einput/gascompression.csv",
             "einput/gascompression_zero_power.csv",
             "einput/genset_17MW.csv",
-            "einput/prices_co2.csv",
-            "einput/prices_fuel.csv",
             "einput/pumpchart_water_inj.csv",
             "sim/flare_diesel_cold_venting_fugitives.csv",
             "sim/mobile_installations_host_field.csv",

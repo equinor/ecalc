@@ -35,14 +35,11 @@ regularity = {
 fuel = {
     datetime(2022, 1, 1, 0, 0): dto.FuelType(
         name="fuel_gas",
-        price=Expression.setup_from_expression(1.5),
         user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
         emissions=[
             dto.Emission(
                 factor=Expression.setup_from_expression(2.2),
                 name="co2",
-                quota=None,
-                tax=Expression.setup_from_expression(1.51),
             )
         ],
     )

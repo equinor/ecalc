@@ -33,12 +33,10 @@ def dry_fluid() -> dto.FluidModel:
 def fuel_dto() -> dto.types.FuelType:
     return dto.types.FuelType(
         name="fuel_gas",
-        price=Expression.setup_from_expression(value=10),
         emissions=[
             dto.Emission(
                 name="CO2",
                 factor=Expression.setup_from_expression(value=1),
-                tax=Expression.setup_from_expression(value=1),
             )
         ],
     )

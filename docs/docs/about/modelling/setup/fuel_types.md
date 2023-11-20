@@ -12,9 +12,7 @@ This part of the setup specifies the various fuel types and associated emissions
 used in the model. Each fuel type is specified in a list and the defined fuels can later be referred to the 
 [INSTALLATIONS](/about/modelling/setup/installations/index.md) part of the setup by its name.
 
-A fuel type can have a fuel-cost [PRICE](/about/references/keywords/PRICE.md) associated with
-its use. The use of fuel can lead to one or more emission types, specified in [EMISSIONS](/about/references/keywords/EMISSIONS.md),
-which in turn can have associated costs.
+The use of fuel can lead to one or more emission types, specified in [EMISSIONS](/about/references/keywords/EMISSIONS.md).
 
 You can optionally specify a [CATEGORY](/about/references/keywords/CATEGORY.md).
 
@@ -23,11 +21,9 @@ You can optionally specify a [CATEGORY](/about/references/keywords/CATEGORY.md).
 FUEL_TYPES:
   - NAME: <name_1>
     CATEGORY: <category_1>
-    PRICE: <fuel price>
     EMISSIONS: <emissions data>
   - NAME: <name_2>
     CATEGORY: <category_2>
-    PRICE: <fuel price>
     EMISSIONS: <emissions data>
 ~~~~~~~~
 
@@ -38,26 +34,20 @@ fuels defined that can be used in your [INSTALLATIONS](/about/modelling/setup/in
 ~~~~~~~~yaml
 FUEL_TYPES:
   - NAME: fuel_gas # Name of this fuel, use this when referencing this fuel in the FUEL specification in the INSTALLATIONS part
-    PRICE: 1.5     # The price or sales value of the fuel
     EMISSIONS:
       - NAME: CO2  # Name of the emission type
         FACTOR: 2.15 # kg/Sm3
-        TAX: 1.51  # NOK/Sm3
-        QUOTA: 280 # NOK/ton
-     - NAME: CH4
-       FACTOR: 0.00091 # kg/Sm3
+      - NAME: CH4
+        FACTOR: 0.00091 # kg/Sm3
   - NAME: flare_gas
-    PRICE: 1.5
     CATEGORY: FUEL_GAS
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.73
-        TAX: 1.51
       - NAME: CH4
         FACTOR: 0.00024
   - NAME: diesel
     CATEGORY: DIESEL
-    PRICE: 9000  # NOK/m3
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.7085 # kg/l - input diesel usage in l/d

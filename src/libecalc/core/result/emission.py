@@ -14,8 +14,6 @@ class EmissionResult(EcalcResultBaseModel):
     name: str
     timesteps: List[datetime]
     rate: TimeSeriesStreamDayRate  # ton/day
-    tax: TimeSeriesStreamDayRate  # cost/day
-    quota: TimeSeriesStreamDayRate  # cost/day
 
     @classmethod
     def create_empty(cls, name: str, timesteps: List[datetime]):
@@ -26,15 +24,5 @@ class EmissionResult(EcalcResultBaseModel):
                 timesteps=timesteps,
                 values=[0] * len(timesteps),
                 unit=Unit.TONS_PER_DAY,
-            ),
-            tax=TimeSeriesStreamDayRate(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
-                unit=Unit.NORWEGIAN_KRONER_PER_DAY,
-            ),
-            quota=TimeSeriesStreamDayRate(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
-                unit=Unit.NORWEGIAN_KRONER_PER_DAY,
             ),
         )

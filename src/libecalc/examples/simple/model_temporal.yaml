@@ -25,12 +25,9 @@ FACILITY_INPUTS:
 
 FUEL_TYPES:
   - NAME: fuel_gas
-    PRICE: 1.5  # NOK/Sm3
     EMISSIONS:
       - NAME: CO2
         FACTOR: 2.19  # CO2/Sm3 fuel gas burned
-        TAX: 1.5  # NOK/Sm3 fuel gas burned
-        QUOTA: 260  # NOK/ton
 
 VARIABLES:
   hydrocarbon_export_sm3_per_day:

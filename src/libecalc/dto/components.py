@@ -135,14 +135,12 @@ class EmitterModel(EcalcBaseModel):
     name: ComponentNameStr = ""  # This is not mandatory yet.
     user_defined_category: str = ""  # This is not mandatory yet.
     emission_rate: Expression
-    emission_quota: Expression
 
     regularity: Dict[datetime, Expression]
 
     _validate_emitter_model_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
 
     _default_emission_rate = validator("emission_rate", allow_reuse=True, pre=True)(convert_expression)
-    _default_emission_quota = validator("emission_quota", allow_reuse=True, pre=True)(convert_expression)
 
 
 class DirectEmitter(BaseEquipment):

@@ -25,12 +25,10 @@ def fuel_gas() -> Dict[datetime, dto.types.FuelType]:
         datetime(1900, 1, 1): dto.types.FuelType(
             name="fuel_gas",
             user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
-            price=Expression.setup_from_expression(value="1.5"),
             emissions=[
                 dto.Emission(
                     name="co2",
                     factor=Expression.setup_from_expression(value="2.20"),
-                    tax=Expression.setup_from_expression(value="1.51"),
                 )
             ],
         )

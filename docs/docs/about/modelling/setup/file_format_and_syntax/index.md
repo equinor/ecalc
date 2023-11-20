@@ -21,9 +21,6 @@ Documentation about how to set up each of these fields are found here, respectiv
   reservoir variables.
 - [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md): List of input files from facility characterization. Typically, this can be
   characteristics for an element in a consumer system or characteristics for a generator set.
-  Also, if fuel price or/and CO<sub>2</sub> tax is of type `VARIABLE_FUEL_PRICE` or
-  `VARIABLE_EMISSION_TAX`, these files should also be put here. These are later used as input
-  to the energy functions for each consumer. Some may also be used as energy functions directly.
 - [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md): Defining the fuel types being used in the model and the corresponding
   emissions.
 - [MODELS](/about/references/keywords/MODELS.md): Used for multi-level models, one model may refer to other models from either

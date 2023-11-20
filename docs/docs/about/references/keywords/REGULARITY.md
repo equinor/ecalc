@@ -52,12 +52,10 @@ COMPRESSOR|&#9744;|     Stream day      |
 
 ### Reporting
 
-- All fuel rates, tax and emission results are reported in calendar days.
+- All fuel rates are reported in calendar days.
 - All power and volume rates results are reported in stream day rates. Note that the volume rates are only present in the .json file.
 
-The reason for reporting calendar day rate is due to the economic interpretation, or rather the lack of economic
-interpretation when using fuel stream day rates. If we used stream day rates, we would in essence evaluate the process
-unit as if it was running all the time. Typically all process units have some down time, and regularity is
+The reason for reporting calendar day rate is to account for potential downtime for process units, i.e. some units may not run all the time throughout a year due to different reasons. Typically all process units have some downtime, and regularity is
 on average something closer to 0.99 over a longer period such as a year.
 
 ## Format

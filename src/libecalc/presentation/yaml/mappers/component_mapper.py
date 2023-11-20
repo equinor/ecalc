@@ -244,14 +244,12 @@ class EmitterModelMapper:
         name = model.get(EcalcYamlKeywords.name, "")
         user_defined_category = model.get(EcalcYamlKeywords.user_defined_tag, "")
         emission_rate = model.get(EcalcYamlKeywords.installation_direct_emitter_emission_rate)
-        emission_quota = model.get(EcalcYamlKeywords.emission_quota)
 
         try:
             return dto.EmitterModel(
                 name=name,
                 user_defined_category=user_defined_category,
                 emission_rate=emission_rate,
-                emission_quota=emission_quota,
                 regularity=regularity,
             )
         except ValidationError as e:
