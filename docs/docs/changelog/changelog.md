@@ -1,5 +1,65 @@
 # Changelog
 
+## [8.6.0](https://github.com/equinor/ecalc/compare/v8.5.0...v8.6.0) (2023-11-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove economy from ecalc ([#282](https://github.com/equinor/ecalc/issues/282))
+* graph.components and graph.get_component renamed to nodes and get_node
+* add type to consumers in system
+
+### Features
+
+* expose yaml variables ([1fe9dd0](https://github.com/equinor/ecalc/commit/1fe9dd0e3ceae658afaba24a2b18b91b3a11da43))
+* include rate type in header for csv export ([#279](https://github.com/equinor/ecalc/issues/279)) ([5edd0cc](https://github.com/equinor/ecalc/commit/5edd0ccff2b2f1dbfe746a666266b59c714a5eef))
+* support bfs_tree in graph ([a4fff16](https://github.com/equinor/ecalc/commit/a4fff168dfa32d04588bb7e3b71de8c12e9dd6d0))
+* train v2 yaml and dto ([#272](https://github.com/equinor/ecalc/issues/272)) ([b0e3466](https://github.com/equinor/ecalc/commit/b0e346618bb3b39a186eb814dd40be2f7d905122))
+
+
+### Bug Fixes
+
+* ensure that start date in global time vector is consistent with the requested output frequency ([#269](https://github.com/equinor/ecalc/issues/269)) ([e8ef9b9](https://github.com/equinor/ecalc/commit/e8ef9b98901603c0a9e328c2c8923c5facca962c))
+* make iteration loops for simplified train consistent ([#263](https://github.com/equinor/ecalc/issues/263)) ([b066c74](https://github.com/equinor/ecalc/commit/b066c74e41fcbb6c32e51781c0225490f61e9690))
+* wrong handling of values and timesteps in temporal models ([#261](https://github.com/equinor/ecalc/issues/261)) ([4e20264](https://github.com/equinor/ecalc/commit/4e202648e6288508d67fee52c651d125166e68e7))
+
+
+### Documentation
+
+* update changelog ([#264](https://github.com/equinor/ecalc/issues/264)) ([22ef8f7](https://github.com/equinor/ecalc/commit/22ef8f7ca2a1e1800050c8f55624677a2f282e43))
+
+
+### Miscellaneous Chores
+
+* add INVALID_INPUT and INVALID_MAX_RATE ([d651ed6](https://github.com/equinor/ecalc/commit/d651ed6822ba180ba4a490e1245a0f406cc64e43))
+* add test of get_max_standard_rate for single speed compressor train ([d651ed6](https://github.com/equinor/ecalc/commit/d651ed6822ba180ba4a490e1245a0f406cc64e43))
+* clean up common module ([#277](https://github.com/equinor/ecalc/issues/277)) ([e1959ab](https://github.com/equinor/ecalc/commit/e1959aba2a91c4abec2d820b6cb9378ac1dea281))
+* extend tests of time series resampling ([e8ef9b9](https://github.com/equinor/ecalc/commit/e8ef9b98901603c0a9e328c2c8923c5facca962c))
+* improve algorithm to generate generic variable speed compressor charts from input points ([#276](https://github.com/equinor/ecalc/issues/276)) ([b257567](https://github.com/equinor/ecalc/commit/b257567230000a92b5fcca8f8becdbcc4c880092))
+* make sure no mismatch between timestemps and time series values ([#251](https://github.com/equinor/ecalc/issues/251)) ([ae6ade9](https://github.com/equinor/ecalc/commit/ae6ade9fafb9b0ccf2afec5e633c2190a2f1009b))
+* only calculate max standard rate for time steps with valid model input ([#252](https://github.com/equinor/ecalc/issues/252)) ([d651ed6](https://github.com/equinor/ecalc/commit/d651ed6822ba180ba4a490e1245a0f406cc64e43))
+* possibility to include start and end date in resampling ([e8ef9b9](https://github.com/equinor/ecalc/commit/e8ef9b98901603c0a9e328c2c8923c5facca962c))
+* update changelog for v8.6 release ([#288](https://github.com/equinor/ecalc/issues/288)) ([af32274](https://github.com/equinor/ecalc/commit/af32274c17cb8a84895bf85c7b83360cd76bc533))
+* update dependencies for new v8.6 release ([#289](https://github.com/equinor/ecalc/issues/289)) ([5a245a3](https://github.com/equinor/ecalc/commit/5a245a397761ed69c2ffab151a7a33567f3c7282))
+
+
+### Code Refactoring
+
+* add option to skip header validation on resource files ([#260](https://github.com/equinor/ecalc/issues/260)) ([883b7e6](https://github.com/equinor/ecalc/commit/883b7e6888d5ff4ddca41cbeac0f7c7dd96e60a6))
+* calculate timesteps separately ([#284](https://github.com/equinor/ecalc/issues/284)) ([bd9d684](https://github.com/equinor/ecalc/commit/bd9d684467698edbd88d7a089846310b3cea5ea4))
+* collect results in priority optimizer ([16b9ccc](https://github.com/equinor/ecalc/commit/16b9ccc3687a6f2910c1df5602c82dd75706089b))
+* common consumer system type ([fe09263](https://github.com/equinor/ecalc/commit/fe09263acaf8d3ea8518759e695d6f368dfb214a))
+* common yaml system v2 class ([98198fc](https://github.com/equinor/ecalc/commit/98198fc7a19575f6b949527993999ae929a7590c))
+* consistent naming of nodes in graph ([676c7b8](https://github.com/equinor/ecalc/commit/676c7b84f99e1ca79446321ab06eba43df36abef))
+* generic graph class ([6f63e40](https://github.com/equinor/ecalc/commit/6f63e40af1b2f57380852ef6403b6f4ac2474d50))
+* move into presentation layer ([#271](https://github.com/equinor/ecalc/issues/271)) ([52530e0](https://github.com/equinor/ecalc/commit/52530e0b72aa0f07de93b6c231798dd5c9a20eb4))
+* remove economy from ecalc ([#282](https://github.com/equinor/ecalc/issues/282)) ([a50148c](https://github.com/equinor/ecalc/commit/a50148c8bce3bfdb491dbab65620ac964a80e65c))
+* rename Stream to StreamConditions ([cf908ec](https://github.com/equinor/ecalc/commit/cf908ece731c6dcd2755ed6b08b8748cff5ac508))
+* rename to component graph ([9629f22](https://github.com/equinor/ecalc/commit/9629f221a0370559a7b89bbede0b5576eb916c20))
+* system v2 stream conditions format ([#257](https://github.com/equinor/ecalc/issues/257)) ([e228e8b](https://github.com/equinor/ecalc/commit/e228e8b1180a3dd22a408fa199e52797aef43fc6))
+* use common consumer system dto class ([#267](https://github.com/equinor/ecalc/issues/267)) ([3c58b53](https://github.com/equinor/ecalc/commit/3c58b53e0731cbae9219bfb6eef96e5e5d4ea144))
+* use PriorityOptimizer outside ConsumerSystem ([f1af9e6](https://github.com/equinor/ecalc/commit/f1af9e6c701d8899450aacaa94ba02071b032dc6))
+
 ## [8.5.0](https://github.com/equinor/ecalc/compare/v8.4.0...v8.5.0) (2023-10-30)
 
 
