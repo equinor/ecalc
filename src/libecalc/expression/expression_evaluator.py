@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 
@@ -405,5 +405,4 @@ class Token(BaseModel):
     def __str__(self):
         return str(self.value)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

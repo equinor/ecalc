@@ -2,7 +2,7 @@ from datetime import datetime
 from math import isnan
 from typing import List, Literal, Optional, Tuple, Union
 
-from pydantic import Field, root_validator, validator
+from pydantic import ConfigDict, Field, field_validator, model_validator, validator
 
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
@@ -27,10 +27,10 @@ def _sort_time_series_data(
 
 class TimeSeriesCollection(EcalcBaseModel):
     typ: TimeSeriesType
-    name: str = Field(regex=r"^[A-Za-z][A-Za-z0-9_]*$")
+    name: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_]*$")
 
     headers: List[str] = Field(
-        regex=r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", default_factory=list
+        pattern=r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", default_factory=list
     )  # Does not include date header
     columns: List[List[float]] = Field(default_factory=list)
     time_vector: List[datetime] = Field(default_factory=list)
@@ -38,20 +38,22 @@ class TimeSeriesCollection(EcalcBaseModel):
     influence_time_vector: Optional[bool] = True
     extrapolate_outside_defined_time_interval: Optional[bool] = None
     interpolation_type: InterpolationType = None
+    # TODO[pydantic]: The following keys were removed: `allow_mutation`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(allow_mutation=False, validate_default=True)
 
-    class Config:
-        allow_mutation = False
-        validate_all = True
-
-    @validator("influence_time_vector")
+    @field_validator("influence_time_vector")
+    @classmethod
     def set_influence_time_vector_default(cls, value):
         return value if value is not None else True
 
-    @validator("extrapolate_outside_defined_time_interval")
+    @field_validator("extrapolate_outside_defined_time_interval")
+    @classmethod
     def set_extrapolate_outside_defined_time_interval_default(cls, value):
         return value if value is not None else False
 
-    @validator("time_vector")
+    @field_validator("time_vector")
+    @classmethod
     def check_that_dates_are_ok(cls, dates):
         if len(dates) == 0:
             raise ValueError("Time vectors must have at least one record")
@@ -59,7 +61,8 @@ class TimeSeriesCollection(EcalcBaseModel):
             raise ValueError("The list of dates have duplicates. Duplicated dates are currently not supported.")
         return dates
 
-    @root_validator()
+    @model_validator()
+    @classmethod
     def check_that_lists_match(cls, values):
         headers = values.get("headers")
         columns = values.get("columns")
@@ -103,6 +106,8 @@ class TimeSeriesCollection(EcalcBaseModel):
         values["columns"] = sorted_columns
         return values
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("columns")
     def check_that_columns_are_ok(cls, columns, values):
         headers = values.get("headers")
@@ -136,6 +141,8 @@ class TimeSeriesCollection(EcalcBaseModel):
 class MiscellaneousTimeSeriesCollection(TimeSeriesCollection):
     typ: Literal[TimeSeriesType.MISCELLANEOUS] = TimeSeriesType.MISCELLANEOUS
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("interpolation_type", pre=True, always=True)
     def interpolation_is_required(cls, value):
         if value is None:
@@ -146,6 +153,8 @@ class MiscellaneousTimeSeriesCollection(TimeSeriesCollection):
 class DefaultTimeSeriesCollection(TimeSeriesCollection):
     typ: Literal[TimeSeriesType.DEFAULT] = TimeSeriesType.DEFAULT
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("extrapolate_outside_defined_time_interval", pre=True, always=True)
     def extrapolate_outside_defined_time_interval_cannot_be_set(cls, value):
         if value is not None:
@@ -156,6 +165,8 @@ class DefaultTimeSeriesCollection(TimeSeriesCollection):
 
         return value
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("interpolation_type", pre=True, always=True)
     def set_default_interpolation_type(cls, value):
         if value is not None:

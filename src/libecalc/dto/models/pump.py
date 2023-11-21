@@ -18,7 +18,7 @@ class PumpModel(EnergyModel):
 class PumpConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.PUMP] = ConsumerType.PUMP
     energy_usage_type = EnergyUsageType.POWER
-    power_loss_factor: Optional[Expression]
+    power_loss_factor: Optional[Expression] = None
     model: PumpModel
     rate_standard_m3_day: Expression
     suction_pressure: Expression

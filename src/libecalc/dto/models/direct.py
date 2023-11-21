@@ -11,8 +11,8 @@ from libecalc.expression import Expression
 
 class DirectConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.DIRECT] = ConsumerType.DIRECT
-    fuel_rate: Optional[Expression]
-    load: Optional[Expression]
+    fuel_rate: Optional[Expression] = None
+    load: Optional[Expression] = None
     power_loss_factor: Optional[Expression] = None
     consumption_rate_type: RateType = RateType.STREAM_DAY
 

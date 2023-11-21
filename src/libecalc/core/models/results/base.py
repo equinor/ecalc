@@ -6,7 +6,7 @@ from functools import partial
 from typing import List, Optional
 
 import numpy as np
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pydantic.json import custom_pydantic_encoder
 
 from libecalc.common.logger import logger
@@ -16,10 +16,13 @@ from libecalc.dto import SingleSpeedChart, VariableSpeedChart
 
 
 class EnergyModelBaseResult(BaseModel):
-    class Config:
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
-        json_encoders = {datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%SZ")}
+    # TODO[pydantic]: The following keys were removed: `json_encoders`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+        json_encoders={datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%SZ")},
+    )
 
     def json(self, date_format: Optional[str] = None, **kwargs) -> str:
         if date_format is None:
@@ -81,7 +84,7 @@ class EnergyFunctionResult(EnergyModelBaseResult):
 
     energy_usage: List[Optional[float]]
     energy_usage_unit: Unit
-    power: Optional[List[Optional[float]]]
+    power: Optional[List[Optional[float]]] = None
     power_unit: Optional[Unit] = Unit.MEGA_WATT
 
     @property

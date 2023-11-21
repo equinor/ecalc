@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, Extra, validator
+from pydantic import BaseModel, ConfigDict, validator
 
 from libecalc import dto
 from libecalc.common.units import Unit
@@ -25,8 +25,8 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     power [MW]
     """
 
-    inlet_stream: Optional[dto.FluidStream]
-    outlet_stream: Optional[dto.FluidStream]
+    inlet_stream: Optional[dto.FluidStream] = None
+    outlet_stream: Optional[dto.FluidStream] = None
 
     # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
     inlet_actual_rate_m3_per_hour: float
@@ -47,18 +47,16 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
 
     chart_area_flag: ChartAreaFlag
 
-    rate_has_recirculation: Optional[bool]
-    rate_exceeds_maximum: Optional[bool]
-    pressure_is_choked: Optional[bool]
-    head_exceeds_maximum: Optional[bool]
+    rate_has_recirculation: Optional[bool] = None
+    rate_exceeds_maximum: Optional[bool] = None
+    pressure_is_choked: Optional[bool] = None
+    head_exceeds_maximum: Optional[bool] = None
 
     inlet_pressure_before_choking: float
     outlet_pressure_before_choking: float
 
     point_is_valid: bool
-
-    class Config:
-        extra = Extra.forbid
+    model_config = ConfigDict(extra="forbid")
 
     @classmethod
     def create_empty(cls) -> CompressorTrainStageResultSingleTimeStep:
@@ -127,7 +125,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     stage_results: List[CompressorTrainStageResultSingleTimeStep]
 
     # Used to override failure status is some cases.
-    failure_status: Optional[CompressorTrainCommonShaftFailureStatus]
+    failure_status: Optional[CompressorTrainCommonShaftFailureStatus] = None
 
     @staticmethod
     def from_result_list_to_dto(
@@ -337,9 +335,10 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             compressor_stage_result[i].chart = compressor_charts[i] if compressor_charts is not None else None
         return compressor_stage_result
 
-    class Config:
-        extra = Extra.forbid
+    model_config = ConfigDict(extra="forbid")
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("failure_status", always=True)
     def set_failure_status(cls, v, values):
         stage_results = values.get("stage_results")

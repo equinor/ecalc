@@ -1,13 +1,12 @@
 from typing import Literal, Union
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 
 
 class YamlTimeSeriesCollectionBase(YamlBase):
-    class Config:
-        title = "TimeSeries"
+    model_config = ConfigDict(title="TimeSeries")
 
     name: str = Field(
         ...,
@@ -32,10 +31,13 @@ class YamlTimeSeriesCollectionBase(YamlBase):
 
 
 class YamlDefaultTimeSeriesCollection(YamlTimeSeriesCollectionBase):
-    class Config:
-        fields = {
+    # TODO[pydantic]: The following keys were removed: `fields`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(
+        fields={
             "interpolation_type": {"exclude": True},
         }
+    )
 
     type: Literal["DEFAULT"] = Field(
         ...,

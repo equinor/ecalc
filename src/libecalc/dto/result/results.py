@@ -3,7 +3,7 @@ from __future__ import annotations
 from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator, validator
 from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
@@ -32,7 +32,7 @@ from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 class NodeInfo(EcalcResultBaseModel):
     componentType: ComponentType
     component_level: ComponentLevel
-    parent: Optional[str]  # reference parent id
+    parent: Optional[str] = None  # reference parent id
     name: str
 
 
@@ -94,6 +94,8 @@ class ConsumerSystemResult(EquipmentResultBase):
 
     consumer_type: Literal[ComponentType.COMPRESSOR, ComponentType.PUMP] = None
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("consumer_type", pre=True)
     def set_consumer_type_based_on_component_type_if_possible(cls, consumer_type, values):
         """
@@ -113,7 +115,7 @@ class ConsumerSystemResult(EquipmentResultBase):
         description="The operational settings used for this system. "
         "0 indicates that no valid operational setting was found.",
     )
-    operational_settings_results: Optional[Dict[int, List[Any]]]
+    operational_settings_results: Optional[Dict[int, List[Any]]] = None
 
 
 class GenericConsumerResult(EquipmentResultBase):
@@ -153,10 +155,10 @@ class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
     componentType: Literal[ComponentType.PUMP]
-    inlet_liquid_rate_m3_per_day: Optional[TimeSeriesRate]
-    inlet_pressure_bar: Optional[TimeSeriesFloat]
-    outlet_pressure_bar: Optional[TimeSeriesFloat]
-    operational_head: Optional[TimeSeriesFloat]
+    inlet_liquid_rate_m3_per_day: Optional[TimeSeriesRate] = None
+    inlet_pressure_bar: Optional[TimeSeriesFloat] = None
+    outlet_pressure_bar: Optional[TimeSeriesFloat] = None
+    operational_head: Optional[TimeSeriesFloat] = None
     is_valid: TimeSeriesBoolean
 
 
@@ -184,7 +186,7 @@ class CompressorStreamConditionResult(EcalcResultBaseModel):
 
 
 class CompressorModelStageResult(EcalcResultBaseModel):
-    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]]
+    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]] = None
     chart_area_flags: List[str]
     energy_usage_unit: Unit
     power_unit: Unit
@@ -257,14 +259,16 @@ class EcalcModelResult(EcalcResultBaseModel):
     component_result: ComponentResult
     # Setting min and max items to be able to generate OpenAPI:
     # Ref. https://github.com/developmentseed/geojson-pydantic/issues/42
-    sub_components: Annotated[List[ComponentResult], Field(min_items=0, max_items=10000)]
-    models: Annotated[List[ConsumerModelResult], Field(min_items=0, max_items=10000)]
+    sub_components: Annotated[List[ComponentResult], Field(min_length=0, max_length=10000)]
+    models: Annotated[List[ConsumerModelResult], Field(min_length=0, max_length=10000)]
 
-    @validator("sub_components")
+    @field_validator("sub_components")
+    @classmethod
     def sort_sub_components(cls, sub_components):
         return sorted(sub_components, key=attrgetter("componentType", "name"))
 
-    @validator("models")
+    @field_validator("models")
+    @classmethod
     def sort_models(cls, models):
         return sorted(models, key=attrgetter("componentType", "name"))
 

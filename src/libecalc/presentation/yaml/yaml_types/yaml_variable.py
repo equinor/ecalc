@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Dict, Union
 
-from pydantic import DateError, constr
+from pydantic import DateError, StringConstraints
 from pydantic.datetime_parse import parse_date, parse_datetime
+from typing_extensions import Annotated
 
 from libecalc.common.time_utils import convert_date_to_datetime
 from libecalc.expression import Expression
@@ -29,6 +30,8 @@ class YamlDefaultDatetime(datetime):
     """
 
     @classmethod
+    # TODO[pydantic]: We couldn't refactor `__get_validators__`, please create the `__get_pydantic_core_schema__` manually.
+    # Check https://docs.pydantic.dev/latest/migration/#defining-custom-types for more information.
     def __get_validators__(cls):
         yield cls.date_to_datetime
 
@@ -51,6 +54,6 @@ YamlTimeVariable = Dict[YamlDefaultDatetime, YamlSingleVariable]
 
 YamlVariable = Union[YamlSingleVariable, YamlTimeVariable]
 
-YamlVariableReferenceId = constr(regex=r"^[A-Za-z][A-Za-z0-9_]*$")
+YamlVariableReferenceId = Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9_]*$")]
 
 YamlVariables = Dict[YamlVariableReferenceId, YamlVariable]

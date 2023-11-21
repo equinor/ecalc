@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from pydantic import validator
+from pydantic import field_validator, validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.base import ConsumerFunction
@@ -13,7 +13,8 @@ from libecalc.expression import Expression
 class TabulatedData(EnergyModelSampled):
     typ: Literal[EnergyModelType.TABULATED] = EnergyModelType.TABULATED
 
-    @validator("headers")
+    @field_validator("headers")
+    @classmethod
     def validate_headers(cls, headers: List[str]) -> List[str]:
         is_valid_headers = len(headers) > 0 and "FUEL" in headers or "POWER" in headers
         if not is_valid_headers:
@@ -30,7 +31,7 @@ class Variables(EcalcBaseModel):
 
 class TabulatedConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.TABULATED] = ConsumerType.TABULATED
-    power_loss_factor: Optional[Expression]
+    power_loss_factor: Optional[Expression] = None
     model: TabulatedData
     variables: List[Variables]
 

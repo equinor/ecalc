@@ -50,7 +50,7 @@ class FluidStream(FluidModel):
 class MultipleStreamsAndPressureStream(EcalcBaseModel):
     name: str
     typ: FluidStreamType
-    fluid_model: Optional[FluidModel]
+    fluid_model: Optional[FluidModel] = None
 
     @root_validator
     def validate_stream(cls, values):

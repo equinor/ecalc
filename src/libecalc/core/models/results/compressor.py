@@ -34,14 +34,14 @@ class CompressorTrainCommonShaftFailureStatus(str, Enum):
 
 
 class CompressorStreamCondition(EnergyModelBaseResult):
-    pressure: Optional[List[Optional[float]]]
-    pressure_before_choking: Optional[List[Optional[float]]]
-    actual_rate_m3_per_hr: Optional[List[Optional[float]]]
-    actual_rate_before_asv_m3_per_hr: Optional[List[Optional[float]]]
-    density_kg_per_m3: Optional[List[Optional[float]]]
-    kappa: Optional[List[Optional[float]]]
-    z: Optional[List[Optional[float]]]
-    temperature_kelvin: Optional[List[Optional[float]]]
+    pressure: Optional[List[Optional[float]]] = None
+    pressure_before_choking: Optional[List[Optional[float]]] = None
+    actual_rate_m3_per_hr: Optional[List[Optional[float]]] = None
+    actual_rate_before_asv_m3_per_hr: Optional[List[Optional[float]]] = None
+    density_kg_per_m3: Optional[List[Optional[float]]] = None
+    kappa: Optional[List[Optional[float]]] = None
+    z: Optional[List[Optional[float]]] = None
+    temperature_kelvin: Optional[List[Optional[float]]] = None
 
     @classmethod
     def create_empty(cls, number_of_timesteps) -> CompressorStreamCondition:
@@ -61,21 +61,25 @@ class CompressorStreamCondition(EnergyModelBaseResult):
 class CompressorStageResult(EnergyModelBaseResult):
     energy_usage: List[Optional[float]]
     energy_usage_unit: Unit
-    power: Optional[List[Optional[float]]]
-    power_unit: Optional[Unit]
+    power: Optional[List[Optional[float]]] = None
+    power_unit: Optional[Unit] = None
 
-    mass_rate_kg_per_hr: Optional[List[Optional[float]]]  # The gross mass rate passing through a compressor stage
-    mass_rate_before_asv_kg_per_hr: Optional[List[Optional[float]]]  # The net mass rate through a compressor stage
+    mass_rate_kg_per_hr: Optional[
+        List[Optional[float]]
+    ] = None  # The gross mass rate passing through a compressor stage
+    mass_rate_before_asv_kg_per_hr: Optional[
+        List[Optional[float]]
+    ] = None  # The net mass rate through a compressor stage
 
     inlet_stream_condition: CompressorStreamCondition
     outlet_stream_condition: CompressorStreamCondition
 
-    polytropic_enthalpy_change_kJ_per_kg: Optional[List[Optional[float]]]
-    polytropic_head_kJ_per_kg: Optional[List[Optional[float]]]
-    polytropic_efficiency: Optional[List[Optional[float]]]
-    polytropic_enthalpy_change_before_choke_kJ_per_kg: Optional[List[Optional[float]]]
+    polytropic_enthalpy_change_kJ_per_kg: Optional[List[Optional[float]]] = None
+    polytropic_head_kJ_per_kg: Optional[List[Optional[float]]] = None
+    polytropic_efficiency: Optional[List[Optional[float]]] = None
+    polytropic_enthalpy_change_before_choke_kJ_per_kg: Optional[List[Optional[float]]] = None
 
-    speed: Optional[List[Optional[float]]]
+    speed: Optional[List[Optional[float]]] = None
     asv_recirculation_loss_mw: List[Optional[float]]
     fluid_composition: Dict[str, Optional[float]]
 
@@ -87,7 +91,7 @@ class CompressorStageResult(EnergyModelBaseResult):
     pressure_is_choked: List[bool]
     head_exceeds_maximum: List[bool]
 
-    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]]
+    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]] = None
 
     @classmethod
     def create_empty(cls, number_of_timesteps: int) -> CompressorStageResult:
@@ -123,7 +127,7 @@ class CompressorTrainResult(EnergyFunctionResult):
     """The compressor train result component."""
 
     rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]]]
-    max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]]
+    max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]] = None
 
     stage_results: List[CompressorStageResult]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]

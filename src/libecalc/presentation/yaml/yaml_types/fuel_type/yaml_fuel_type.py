@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import FuelTypeUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -11,8 +11,7 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEm
 
 
 class YamlFuelType(YamlBase):
-    class Config:
-        title = "FuelType"
+    model_config = ConfigDict(title="FuelType")
 
     name: str = Field(
         ...,

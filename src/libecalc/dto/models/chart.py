@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Literal, Optional
 
 import numpy as np
-from pydantic import Field, confloat, root_validator, validator
+from pydantic import Field, field_validator, model_validator, validator
+from typing_extensions import Annotated
 
 from libecalc.common.logger import logger
 from libecalc.common.math.numbers import Numbers
@@ -11,10 +12,12 @@ from libecalc.dto.types import ChartType
 
 class ChartCurve(EcalcBaseModel):
     speed_rpm: float = Field(..., ge=0)
-    rate_actual_m3_hour: List[confloat(ge=0)]  # type: ignore
-    polytropic_head_joule_per_kg: List[confloat(ge=0)]  # type: ignore
-    efficiency_fraction: List[confloat(ge=0, le=1)]  # type: ignore
+    rate_actual_m3_hour: List[Annotated[float, Field(ge=0)]]  # type: ignore
+    polytropic_head_joule_per_kg: List[Annotated[float, Field(ge=0)]]  # type: ignore
+    efficiency_fraction: List[Annotated[float, Field(ge=0, le=1)]]  # type: ignore
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("*", pre=True, each_item=True)
     def control_maximum_decimals(cls, v: float) -> float:
         """Control maximum number of decimals and convert null-floats to NaN."""
@@ -26,7 +29,8 @@ class ChartCurve(EcalcBaseModel):
 
         return v
 
-    @root_validator(skip_on_failure=True)
+    @model_validator(skip_on_failure=True)
+    @classmethod
     def validate_equal_lengths_and_sort(cls, v: Dict[str, Any]) -> Any:
         rate = v["rate_actual_m3_hour"]
         head = v["polytropic_head_joule_per_kg"]
@@ -86,10 +90,12 @@ class SingleSpeedChart(ChartCurve):
 class VariableSpeedChart(EcalcBaseModel):
     typ: Literal[ChartType.VARIABLE_SPEED] = ChartType.VARIABLE_SPEED
     curves: List[ChartCurve]
-    control_margin: Optional[float]  # Todo: Raise warning if this is used in an un-supported model.
+    control_margin: Optional[float] = None  # Todo: Raise warning if this is used in an un-supported model.
     design_rate: Optional[float] = Field(None, ge=0)
     design_head: Optional[float] = Field(None, ge=0)
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("*", pre=True, each_item=True)
     def control_maximum_decimals(cls, v: float) -> float:
         """Control maximum number of decimals and convert null-floats to NaN."""
@@ -101,7 +107,8 @@ class VariableSpeedChart(EcalcBaseModel):
 
         return v
 
-    @validator("curves", pre=False)
+    @field_validator("curves")
+    @classmethod
     def sort_chart_curves_by_speed(cls, curves: List[ChartCurve]) -> List[ChartCurve]:
         """Note: It is essential that the sort the curves by speed in order to set up the interpolations correctly."""
         return sorted(curves, key=lambda x: x.speed)

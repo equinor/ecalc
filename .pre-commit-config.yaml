@@ -33,7 +33,7 @@ repos:
         args: ['--config-file=./pyproject.toml']
         additional_dependencies:
           - types-PyYAML
-          - pydantic==1.10.9
+          - pydantic
           - numpy
           - types-requests
           - pandas-stubs

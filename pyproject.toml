@@ -41,7 +41,7 @@ ecalc = 'ecalc_cli.main:main'
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-pydantic = "^1.10"
+pydantic = "^2.5.1"
 PyYAML = "^6.0"
 numpy = "~1.24.0"
 pandas = "^1" # due to Komodo compatibility
@@ -64,6 +64,7 @@ coverage = {version="^7.2.5", extras=["toml"]}
 pdoc = "^13.1.1"
 nbconvert = "^7.4.0"
 pytest-xdist = "^3.3.0"
+bump-pydantic = "^0.7.0"
 
 [tool.poetry.extras]
 notebooks = ["jupyter", "matplotlib"]

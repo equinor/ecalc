@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from pydantic import confloat
+from pydantic import Field
+from typing_extensions import Annotated
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.compressor.chart import CompressorChart, VariableSpeedChart
@@ -9,10 +10,10 @@ from libecalc.dto.types import FixedSpeedPressureControl
 
 class CompressorStage(EcalcBaseModel):
     compressor_chart: CompressorChart
-    inlet_temperature_kelvin: confloat(ge=0)
-    pressure_drop_before_stage: confloat(ge=0)
+    inlet_temperature_kelvin: Annotated[float, Field(ge=0)]
+    pressure_drop_before_stage: Annotated[float, Field(ge=0)]
     remove_liquid_after_cooling: bool
-    control_margin: confloat(ge=0, le=1) = 0.0  # Todo: this probably belong to the chart, not the stage.
+    control_margin: Annotated[float, Field(ge=0, le=1)] = 0.0  # Todo: this probably belong to the chart, not the stage.
 
 
 class InterstagePressureControl(EcalcBaseModel):
@@ -24,8 +25,8 @@ class MultipleStreamsCompressorStage(CompressorStage):
     """Special case for multiple streams model."""
 
     compressor_chart: VariableSpeedChart
-    stream_reference: Optional[List[str]]
-    interstage_pressure_control: Optional[InterstagePressureControl]
+    stream_reference: Optional[List[str]] = None
+    interstage_pressure_control: Optional[InterstagePressureControl] = None
 
     @property
     def has_control_pressure(self):

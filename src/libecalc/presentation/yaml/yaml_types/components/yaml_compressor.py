@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, Literal, Optional, Union
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -21,8 +21,7 @@ CompressorModel = Union[YamlCompressorWithTurbine]
 
 
 class YamlCompressor(YamlConsumerBase):
-    class Config:
-        title = "Compressor"
+    model_config = ConfigDict(title="Compressor")
 
     component_type: Literal[ComponentType.COMPRESSOR_V2] = Field(
         ...,

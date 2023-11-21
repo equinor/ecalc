@@ -35,9 +35,8 @@ from libecalc.common.time_utils import (
 )
 from libecalc.common.units import Unit
 from numpy.typing import NDArray
-from pydantic import Extra, validator
+from pydantic import BaseModel, ConfigDict, validator
 from pydantic.fields import ModelField
-from pydantic.generics import GenericModel
 from typing_extensions import Self
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
@@ -150,23 +149,24 @@ class Rates:
         return Rates.compute_cumulative(volumes)
 
 
-class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
+class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     timesteps: List[datetime]
     values: List[TimeSeriesValue]
     unit: Unit
+    model_config = ConfigDict(
+        use_enum_values=True, alias_generator=to_camel_case, populate_by_name=True, extra="forbid"
+    )
 
-    class Config:
-        use_enum_values = True
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
-        extra = Extra.forbid
-
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("values", each_item=True, pre=True)
     def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
         if field.outer_type_ is float and v is None:
             return math.nan
         return v
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("values", pre=True)
     def timesteps_values_one_to_one(cls, v: List[Any], values: Dict[str, Any]):
         nr_timesteps = len(values["timesteps"])
@@ -591,6 +591,8 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
 
 class TimeSeriesVolumes(TimeSeries[float]):
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("values", pre=True)
     def check_length_timestep_values(cls, v: List[Any], values: Dict[str, Any]):
         # Initially timesteps for volumes contains one more item than values
@@ -782,6 +784,8 @@ class TimeSeriesRate(TimeSeries[float]):
     rate_type: RateType
     regularity: List[float]
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("regularity")
     def check_regularity_length(cls, regularity: List[float], values: Any) -> List[float]:
         regularity_length = len(regularity)

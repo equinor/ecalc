@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
 
-from pydantic import Field, root_validator
+from pydantic import ConfigDict, Field, model_validator
 from pydantic.class_validators import validator
 from typing_extensions import Annotated
 
@@ -66,6 +66,8 @@ class BaseEquipment(BaseComponent, ABC):
     def id(self) -> str:
         return generate_id(self.name)
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("user_defined_category", pre=True, always=True)
     def check_user_defined_category(cls, user_defined_category, values):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
@@ -87,8 +89,10 @@ class BaseConsumer(BaseEquipment, ABC):
     """Base class for all consumers."""
 
     consumes: ConsumptionType
-    fuel: Optional[Dict[datetime, FuelType]]
+    fuel: Optional[Dict[datetime, FuelType]] = None
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("fuel")
     def validate_fuel_exist(cls, fuel, values):
         """
@@ -175,8 +179,7 @@ class PumpComponent(BaseConsumer):
 
 
 class Stream(EcalcBaseModel):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     stream_name: Optional[str] = Field(None)
     from_component_id: str
@@ -217,8 +220,7 @@ SystemStreamConditions = Dict[ConsumerID, Dict[StreamID, ExpressionStreamConditi
 
 
 class Crossover(EcalcBaseModel):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     stream_name: Optional[str] = Field(None)
     from_component_id: str
@@ -306,6 +308,8 @@ class GeneratorSet(BaseEquipment):
         validate_temporal_model
     )
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("user_defined_category", pre=True, always=True)
     def check_mandatory_category_for_generator_set(cls, user_defined_category):
         """This could be handled automatically with Pydantic, but I want to inform the users in a better way, in
@@ -347,6 +351,8 @@ class Installation(BaseComponent):
         convert_expression
     )
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("user_defined_category", pre=True, always=True)
     def check_user_defined_category(cls, user_defined_category, values):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
@@ -406,7 +412,8 @@ class Asset(Component):
     def get_installation(self, installation_id: str) -> Installation:
         return next(installation for installation in self.installations if installation.id == installation_id)
 
-    @root_validator(skip_on_failure=True)
+    @model_validator(skip_on_failure=True)
+    @classmethod
     def validate_unique_names(cls, values):
         """Ensure unique component names within installation."""
         names = [values["name"]]

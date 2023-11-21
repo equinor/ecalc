@@ -113,6 +113,8 @@ class FuelType(EcalcBaseModel):
     user_defined_category: Optional[FuelTypeUserDefinedCategoryType] = None
     emissions: List[Emission] = Field(default_factory=list)
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("user_defined_category", pre=True, always=True)
     def check_user_defined_category(cls, user_defined_category, values):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""

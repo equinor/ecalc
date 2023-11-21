@@ -1,6 +1,6 @@
 from typing import List, Literal
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
@@ -41,8 +41,8 @@ class YamlTurbine(YamlBase):
     def to_dto(self):
         raise NotImplementedError
 
-    class Config:
-        schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "examples": [
                 {
                     "NAME": "compressor_train_turbine",
@@ -54,3 +54,4 @@ class YamlTurbine(YamlBase):
                 }
             ],
         }
+    )

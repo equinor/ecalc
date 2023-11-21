@@ -25,6 +25,8 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 class YamlAsset(YamlBase):
     """An eCalc™ yaml file"""
 
+    # TODO[pydantic]: We couldn't refactor this class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config:
         title = "Asset"
 

@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -29,8 +29,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 
 class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelconsumers or gensets
-    class Config:
-        title = "Installation"
+    model_config = ConfigDict(title="Installation")
 
     name: str = Field(
         ...,

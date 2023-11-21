@@ -1,12 +1,11 @@
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 
 
 class YamlEmission(YamlBase):
-    class Config:
-        title = "Emission"
+    model_config = ConfigDict(title="Emission")
 
     name: str = Field(
         ...,

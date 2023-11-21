@@ -5,7 +5,7 @@ from functools import partial
 from typing import Optional
 
 from orjson import orjson
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 from pydantic.json import custom_pydantic_encoder
 
 from libecalc.common.string.string_utils import to_camel_case
@@ -89,16 +89,19 @@ def orjson_dumps(v, *, default, indent: bool = False):
 
 
 class EcalcBaseModel(BaseModel):
-    class Config:
-        extra = Extra.forbid
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
-        json_dumps = orjson_dumps
-        json_encoders = {
+    # TODO[pydantic]: The following keys were removed: `json_dumps`, `json_encoders`, `copy_on_model_validation`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+        json_dumps=orjson_dumps,
+        json_encoders={
             datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%S"),
             Expression: lambda e: str(e),
-        }
-        copy_on_model_validation = "deep"
+        },
+        copy_on_model_validation="deep",
+    )
 
     def json(self, date_format: Optional[str] = None, **kwargs) -> str:
         if date_format is None:

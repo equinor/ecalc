@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Literal
 
-from pydantic import confloat, root_validator
+from pydantic import Field, root_validator
+from typing_extensions import Annotated
 
 from libecalc.dto.types import EnergyModelType
 
@@ -9,8 +10,8 @@ from .base import EnergyModel
 
 class Turbine(EnergyModel):
     typ: Literal[EnergyModelType.TURBINE] = EnergyModelType.TURBINE  # type: ignore
-    lower_heating_value: confloat(ge=0)  # type: ignore
-    turbine_loads: List[confloat(ge=0)]  # type: ignore
+    lower_heating_value: Annotated[float, Field(ge=0)]  # type: ignore
+    turbine_loads: List[Annotated[float, Field(ge=0)]]  # type: ignore
     turbine_efficiency_fractions: List[float]
 
     @root_validator

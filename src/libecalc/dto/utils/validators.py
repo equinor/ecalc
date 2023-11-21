@@ -1,14 +1,17 @@
 from datetime import date, datetime
 from typing import Dict, List, Optional, TypeVar, Union
 
-from pydantic import constr
+from pydantic import StringConstraints
+from typing_extensions import Annotated
 
 from libecalc.common.time_utils import is_temporal_model
 from libecalc.expression import Expression
 
-EmissionNameStr = constr(regex=r"^\w*$")
+EmissionNameStr = Annotated[str, StringConstraints(pattern=r"^\w*$")]
 COMPONENT_NAME_ALLOWED_CHARS = "A-ZÆØÅa-zæøå\\d_/\\- "
-ComponentNameStr = constr(regex=r"^[" + COMPONENT_NAME_ALLOWED_CHARS + "]*$")  # synced with valid regexp in BE4FE
+ComponentNameStr = Annotated[
+    str, StringConstraints(pattern=r"^[" + COMPONENT_NAME_ALLOWED_CHARS + "]*$")
+]  # synced with valid regexp in BE4FE
 
 ExpressionType = Union[str, int, float, Expression]
 

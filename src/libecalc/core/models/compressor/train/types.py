@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, ConfigDict, root_validator
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
@@ -14,13 +14,11 @@ class FluidStreamObjectForMultipleStreams(BaseModel):
     Outlet stream is what comes out of the compressor.
     """
 
-    name: Optional[str]
-    fluid: Optional[FluidStream]
+    name: Optional[str] = None
+    fluid: Optional[FluidStream] = None
     is_inlet_stream: bool
     connected_to_stage_no: int = 0
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @root_validator
     def check_valid_input(cls, values):

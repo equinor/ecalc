@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
-from pydantic import Extra, root_validator
+from pydantic import ConfigDict, model_validator
 from scipy.interpolate import interp1d
 
 from libecalc.common.component_info.component_level import ComponentLevel
@@ -14,8 +14,7 @@ from libecalc.dto.result.types import opt_float
 
 
 class SimpleBase(EcalcResultBaseModel):
-    class Config:
-        extra = Extra.ignore
+    model_config = ConfigDict(extra="ignore")
 
     def dict(self, exclude_none=True, **kwargs):
         return super().dict(exclude_none=exclude_none, **kwargs)
@@ -28,7 +27,8 @@ class SimpleEmissionResult(SimpleBase):
     name: str
     rate: List[opt_float]
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def convert_time_series(cls, values):
         rate = values.get("rate")
 
@@ -123,7 +123,7 @@ def _interpolate_list(
 class SimpleComponentResult(SimpleBase):
     componentType: ComponentType
     component_level: ComponentLevel
-    parent: Optional[str]
+    parent: Optional[str] = None
     name: str
     timesteps: List[datetime]
     is_valid: List[int]
@@ -131,9 +131,10 @@ class SimpleComponentResult(SimpleBase):
 
     energy_usage: List[opt_float]
     energy_usage_unit: Unit
-    power: Optional[List[opt_float]]
+    power: Optional[List[opt_float]] = None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def convert_time_series(cls, values):
         energy_usage = values.get("energy_usage")
         is_valid = values.get("is_valid")

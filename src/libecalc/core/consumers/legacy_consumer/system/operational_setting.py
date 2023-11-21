@@ -5,7 +5,7 @@ from typing import List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, ConfigDict, root_validator
 
 from libecalc.common.errors.exceptions import EcalcError, IncompatibleDataError
 from libecalc.common.logger import logger
@@ -32,9 +32,7 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
     discharge_pressures: List[Expression]
     cross_overs: Optional[List[int]] = None
     fluid_densities: Optional[List[Expression]] = None
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def number_of_consumers(self):
@@ -80,12 +78,11 @@ class ConsumerSystemOperationalSetting(BaseModel):
     rates: List[NDArray[np.float64]]
     suction_pressures: List[NDArray[np.float64]]
     discharge_pressures: List[NDArray[np.float64]]
-    cross_overs: Optional[List[int]]
-    fluid_densities: Optional[List[NDArray[np.float64]]]
-
-    class Config:
-        arbitrary_types_allowed = True
-        allow_mutation = False
+    cross_overs: Optional[List[int]] = None
+    fluid_densities: Optional[List[NDArray[np.float64]]] = None
+    # TODO[pydantic]: The following keys were removed: `allow_mutation`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(arbitrary_types_allowed=True, allow_mutation=False)
 
     @root_validator
     def check_list_length(cls, values):

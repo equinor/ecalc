@@ -96,6 +96,8 @@ class Unit(str, Enum):
         return unit
 
     @classmethod
+    # TODO[pydantic]: We couldn't refactor `__get_validators__`, please create the `__get_pydantic_core_schema__` manually.
+    # Check https://docs.pydantic.dev/latest/migration/#defining-custom-types for more information.
     def __get_validators__(cls):
         # convert list to tuple before using default enum validator. Fixes problem with this unit being read as
         # list from json

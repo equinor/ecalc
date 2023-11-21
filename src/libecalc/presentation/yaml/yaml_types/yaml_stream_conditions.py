@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.common.units import Unit
 from libecalc.expression.expression import ExpressionType
@@ -13,36 +13,31 @@ class YamlTimeSeries(YamlBase):
 
 
 class YamlRate(YamlTimeSeries):
-    class Config:
-        title = "Rate"
+    model_config = ConfigDict(title="Rate")
 
     unit: Unit = Unit.STANDARD_CUBIC_METER_PER_DAY
 
 
 class YamlPressure(YamlTimeSeries):
-    class Config:
-        title = "Pressure"
+    model_config = ConfigDict(title="Pressure")
 
     unit: Unit = Unit.BARA
 
 
 class YamlTemperature(YamlTimeSeries):
-    class Config:
-        title = "Temperature"
+    model_config = ConfigDict(title="Temperature")
 
     unit: Unit = Unit.KELVIN
 
 
 class YamlDensity(YamlTimeSeries):
-    class Config:
-        title = "Density"
+    model_config = ConfigDict(title="Density")
 
     unit: Unit = Unit.KG_SM3
 
 
 class YamlStreamConditions(YamlBase):
-    class Config:
-        title = "Stream"
+    model_config = ConfigDict(title="Stream")
 
     rate: Optional[YamlRate] = Field(
         None,
