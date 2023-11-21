@@ -2781,19 +2781,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         false,
@@ -2801,27 +2836,92 @@
                                         false,
                                         false
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             250.0,
                                             250.0,
                                             250.0,
                                             250.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         NaN,
                                         NaN,
@@ -2847,7 +2947,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -2950,19 +3055,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -2970,27 +3110,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             250.0,
                                             250.0,
                                             250.0,
                                             250.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         4.0,
                                         4.0,
@@ -3016,7 +3221,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -3119,19 +3329,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -3139,27 +3384,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             250.0,
                                             250.0,
                                             250.0,
                                             250.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         4.0,
                                         4.0,
@@ -3185,7 +3495,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -3290,19 +3605,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -3310,27 +3660,92 @@
                                         true,
                                         false
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             125.0,
                                             125.0,
                                             125.0,
                                             125.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         2.0,
                                         2.0,
@@ -3356,7 +3771,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -3459,19 +3879,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -3479,27 +3934,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             125.0,
                                             125.0,
                                             125.0,
                                             125.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         4.0,
                                         4.0,
@@ -3525,7 +4045,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -3628,19 +4153,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -3648,27 +4208,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             125.0,
                                             125.0,
                                             125.0,
                                             125.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         4.0,
                                         4.0,
@@ -3694,7 +4319,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -3799,19 +4429,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -3819,27 +4484,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             125.0,
                                             125.0,
                                             125.0,
                                             125.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         3.0,
                                         3.0,
@@ -3865,7 +4595,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -3968,19 +4703,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -3988,27 +4758,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             125.0,
                                             125.0,
                                             125.0,
                                             125.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         4.0,
                                         4.0,
@@ -4034,7 +4869,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -4137,19 +4977,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             50.0,
                                             50.0,
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -4157,27 +5032,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             125.0,
                                             125.0,
                                             125.0,
                                             125.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         4.0,
                                         4.0,
@@ -4203,7 +5143,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -4346,19 +5291,54 @@
                                 false
                             ],
                             "inlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     50.0,
                                     50.0,
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
                             "is_valid": [
                                 true,
@@ -4366,27 +5346,92 @@
                                 true,
                                 true
                             ],
-                            "mass_rate_before_asv_kg_per_hr": null,
-                            "mass_rate_kg_per_hr": null,
+                            "mass_rate_before_asv_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "mass_rate_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     125.0,
                                     125.0,
                                     125.0,
                                     125.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
-                            "polytropic_efficiency": null,
-                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                            "polytropic_enthalpy_change_kJ_per_kg": null,
-                            "polytropic_head_kJ_per_kg": null,
+                            "polytropic_efficiency": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_head_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "power": [
                                 2.0,
                                 2.0,
@@ -4412,7 +5457,12 @@
                                 false,
                                 false
                             ],
-                            "speed": null
+                            "speed": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ]
                         }
                     ],
                     "timesteps": [
@@ -4515,19 +5565,54 @@
                                 false
                             ],
                             "inlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     50.0,
                                     50.0,
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
                             "is_valid": [
                                 true,
@@ -4535,27 +5620,92 @@
                                 true,
                                 true
                             ],
-                            "mass_rate_before_asv_kg_per_hr": null,
-                            "mass_rate_kg_per_hr": null,
+                            "mass_rate_before_asv_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "mass_rate_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     125.0,
                                     125.0,
                                     125.0,
                                     125.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
-                            "polytropic_efficiency": null,
-                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                            "polytropic_enthalpy_change_kJ_per_kg": null,
-                            "polytropic_head_kJ_per_kg": null,
+                            "polytropic_efficiency": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_head_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "power": [
                                 4.0,
                                 4.0,
@@ -4581,7 +5731,12 @@
                                 false,
                                 false
                             ],
-                            "speed": null
+                            "speed": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ]
                         }
                     ],
                     "timesteps": [
@@ -4684,19 +5839,54 @@
                                 false
                             ],
                             "inlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     50.0,
                                     50.0,
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
                             "is_valid": [
                                 true,
@@ -4704,27 +5894,92 @@
                                 true,
                                 true
                             ],
-                            "mass_rate_before_asv_kg_per_hr": null,
-                            "mass_rate_kg_per_hr": null,
+                            "mass_rate_before_asv_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "mass_rate_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     125.0,
                                     125.0,
                                     125.0,
                                     125.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
-                            "polytropic_efficiency": null,
-                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                            "polytropic_enthalpy_change_kJ_per_kg": null,
-                            "polytropic_head_kJ_per_kg": null,
+                            "polytropic_efficiency": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_head_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "power": [
                                 4.0,
                                 4.0,
@@ -4750,7 +6005,12 @@
                                 false,
                                 false
                             ],
-                            "speed": null
+                            "speed": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ]
                         }
                     ],
                     "timesteps": [

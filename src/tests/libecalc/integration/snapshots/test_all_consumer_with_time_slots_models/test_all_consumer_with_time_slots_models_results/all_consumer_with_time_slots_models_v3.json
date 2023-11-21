@@ -881,7 +881,17 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             2.70498586,
                                             2.70498586,
@@ -1272,7 +1282,17 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.18928647,
                                             1.18928647,
@@ -1790,7 +1810,17 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -2181,7 +2211,17 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -2747,7 +2787,19 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             2.70498586,
                                             2.70498586,
@@ -3200,7 +3252,19 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.18928647,
                                             1.18928647,
@@ -3800,7 +3864,19 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -4253,7 +4329,19 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
                                             0.0,
@@ -4807,7 +4895,17 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -5198,7 +5296,17 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -5716,7 +5824,17 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -6107,7 +6225,17 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -6673,7 +6801,19 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -7126,7 +7266,19 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -7726,7 +7878,19 @@
                                         34931.8908
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1.35249293,
                                             1.35249293,
@@ -8179,7 +8343,19 @@
                                         85487.7389
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             0.59464323,
                                             0.59464323,
@@ -8851,7 +9027,17 @@
                                 34931.8908
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.70498586,
                                     2.70498586,
@@ -9242,7 +9428,17 @@
                                 85487.7389
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1.18928647,
                                     1.18928647,
@@ -9760,7 +9956,17 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -10151,7 +10357,17 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -10717,7 +10933,19 @@
                                 34931.8908
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.70498586,
                                     2.70498586,
@@ -11170,7 +11398,19 @@
                                 85487.7389
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1.18928647,
                                     1.18928647,
@@ -11770,7 +12010,19 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -12223,7 +12475,19 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
                                     0.0,
@@ -13934,7 +14198,21 @@
                                 16193.7117
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     5.86391331,
                                     5.86391331,
@@ -14449,7 +14727,21 @@
                                 36326.565
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.60244818,
                                     2.60244818,
@@ -15384,7 +15676,14 @@
                                 16193.7117
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     5.86391331,
                                     5.86391331,
@@ -15682,7 +15981,14 @@
                                 36326.565
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2.60244818,
                                     2.60244818,
