@@ -12,6 +12,7 @@ from libecalc.presentation.yaml.mappers.variables_mapper.timeseries_utils import
     fit_time_series_to_time_vector,
     get_global_time_vector,
 )
+from libecalc.presentation.yaml.validation_errors import ValidationError
 
 
 @pytest.fixture
@@ -204,27 +205,27 @@ class TestGetGlobalTimeVector:
         ) == [datetime(2020, 1, 1), datetime(2020, 1, 2)]
 
     def test_only_start(self):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             get_global_time_vector(time_series_collections=[], start=datetime(2020, 1, 1))
         assert "No time series found" in str(exc_info.value)
 
     def test_only_end(self):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             get_global_time_vector(time_series_collections=[], end=datetime(2020, 1, 1))
         assert "No time series found" in str(exc_info.value)
 
     def test_only_freq(self):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             get_global_time_vector(time_series_collections=[], frequency=Frequency.YEAR)
         assert "No time series found" in str(exc_info.value)
 
     def test_only_freq_and_end(self):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             get_global_time_vector(time_series_collections=[], frequency=Frequency.YEAR, end=datetime(2020, 1, 1))
         assert "No time series found" in str(exc_info.value)
 
     def test_only_empty_time_series(self):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             get_global_time_vector(time_series_collections=[])
         assert "No time series found" in str(exc_info.value)
 

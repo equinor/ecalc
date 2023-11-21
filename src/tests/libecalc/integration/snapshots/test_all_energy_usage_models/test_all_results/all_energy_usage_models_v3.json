@@ -445,7 +445,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2273.19945,
                                     2273.19945,
@@ -820,7 +825,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1018.66935,
                                     1018.66935,
@@ -1314,7 +1324,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1952.49442,
                                     1952.49442,
@@ -1553,7 +1568,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1029.23822,
                                     1029.23822,
@@ -2110,7 +2130,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2304.73524,
                                     2304.73524,
@@ -2485,7 +2510,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1046.25843,
                                     1046.25843,
@@ -3042,7 +3072,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2358.4753,
                                     2358.4753,
@@ -3417,7 +3452,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1062.073,
                                     1062.073,
@@ -3907,7 +3947,12 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             4831.22062,
                                             3497.58438,
@@ -4282,7 +4327,12 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             2538.79861,
                                             1987.00433,
@@ -4734,7 +4784,12 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             4831.22062,
                                             3497.58438,
@@ -5109,7 +5164,12 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             2538.79861,
                                             1987.00433,
@@ -5601,7 +5661,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     4831.22062,
                                     3497.58438,
@@ -5976,7 +6041,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2538.79861,
                                     1987.00433,
@@ -6428,7 +6498,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     4831.22062,
                                     3497.58438,
@@ -6803,7 +6878,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2538.79861,
                                     1987.00433,
@@ -7255,7 +7335,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2299.69522,
                                     2299.69522,
@@ -7525,7 +7610,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1038.89912,
                                     1038.89912,
@@ -8029,19 +8119,54 @@
                                 false
                             ],
                             "inlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     200.0,
                                     200.0,
                                     200.0,
                                     200.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
                             "is_valid": [
                                 true,
@@ -8049,27 +8174,92 @@
                                 true,
                                 true
                             ],
-                            "mass_rate_before_asv_kg_per_hr": null,
-                            "mass_rate_kg_per_hr": null,
+                            "mass_rate_before_asv_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "mass_rate_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     400.0,
                                     400.0,
                                     400.0,
                                     400.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
-                            "polytropic_efficiency": null,
-                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                            "polytropic_enthalpy_change_kJ_per_kg": null,
-                            "polytropic_head_kJ_per_kg": null,
+                            "polytropic_efficiency": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_head_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "power": [
                                 3.0352425,
                                 2.372352,
@@ -8095,7 +8285,12 @@
                                 false,
                                 false
                             ],
-                            "speed": null
+                            "speed": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ]
                         }
                     ],
                     "timesteps": [
@@ -8835,7 +9030,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1928.90205,
                                     1928.90205,
@@ -9074,7 +9274,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1015.26913,
                                     1015.26913,
@@ -9577,7 +9782,9 @@
                                         139780.823
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1113.49205
                                         ],
@@ -9859,7 +10066,9 @@
                                         344347.191
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             500.279242
                                         ],
@@ -10209,7 +10418,9 @@
                                         139780.823
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1113.49205
                                         ],
@@ -10491,7 +10702,9 @@
                                         344347.191
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             500.279242
                                         ],
@@ -10841,7 +11054,9 @@
                                         139780.823
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1113.49205
                                         ],
@@ -11123,7 +11338,9 @@
                                         344347.191
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             500.279242
                                         ],
@@ -11497,7 +11714,10 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1251.95268,
                                             0.0
@@ -11810,7 +12030,10 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             562.488023,
                                             0.0
@@ -12207,7 +12430,10 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             1251.95268,
                                             0.0
@@ -12520,7 +12746,10 @@
                                         0.0
                                     ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN
+                                        ],
                                         "actual_rate_m3_per_hr": [
                                             562.488023,
                                             0.0
@@ -12933,7 +13162,9 @@
                                 139780.823
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1113.49205
                                 ],
@@ -13215,7 +13446,9 @@
                                 344347.191
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     500.279242
                                 ],
@@ -13565,7 +13798,9 @@
                                 139780.823
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1113.49205
                                 ],
@@ -13847,7 +14082,9 @@
                                 344347.191
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     500.279242
                                 ],
@@ -14197,7 +14434,9 @@
                                 139780.823
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1113.49205
                                 ],
@@ -14479,7 +14718,9 @@
                                 344347.191
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     500.279242
                                 ],
@@ -14853,7 +15094,10 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1251.95268,
                                     0.0
@@ -15166,7 +15410,10 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     562.488023,
                                     0.0
@@ -15563,7 +15810,10 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1251.95268,
                                     0.0
@@ -15876,7 +16126,10 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     562.488023,
                                     0.0
@@ -16290,7 +16543,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     310.226436,
                                     310.226436,
@@ -16529,7 +16787,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     156.641844,
                                     156.641844,
@@ -17101,7 +17364,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     3266.79404,
                                     3343.08867,
@@ -17476,7 +17744,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2174.74202,
                                     2207.42425,
@@ -17851,7 +18124,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     841.568005,
                                     848.845492,
@@ -18226,7 +18504,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     87.7997353,
                                     89.1719489,
@@ -18601,7 +18884,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     46.271731,
                                     46.4273668,
@@ -18840,19 +19128,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             200.0,
                                             200.0,
                                             200.0,
                                             200.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -18860,27 +19183,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             400.0,
                                             400.0,
                                             400.0,
                                             400.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         3.0352425,
                                         2.372352,
@@ -18906,7 +19294,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -19009,19 +19402,54 @@
                                         false
                                     ],
                                     "inlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             200.0,
                                             200.0,
                                             200.0,
                                             200.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
                                     "is_valid": [
                                         true,
@@ -19029,27 +19457,92 @@
                                         true,
                                         true
                                     ],
-                                    "mass_rate_before_asv_kg_per_hr": null,
-                                    "mass_rate_kg_per_hr": null,
+                                    "mass_rate_before_asv_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "mass_rate_kg_per_hr": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "outlet_stream_condition": {
-                                        "actual_rate_before_asv_m3_per_hr": null,
-                                        "actual_rate_m3_per_hr": null,
-                                        "density_kg_per_m3": null,
-                                        "kappa": null,
+                                        "actual_rate_before_asv_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "actual_rate_m3_per_hr": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "density_kg_per_m3": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "kappa": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
                                         "pressure": [
                                             400.0,
                                             400.0,
                                             400.0,
                                             400.0
                                         ],
-                                        "pressure_before_choking": null,
-                                        "temperature_kelvin": null,
-                                        "z": null
+                                        "pressure_before_choking": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "temperature_kelvin": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ],
+                                        "z": [
+                                            NaN,
+                                            NaN,
+                                            NaN,
+                                            NaN
+                                        ]
                                     },
-                                    "polytropic_efficiency": null,
-                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                                    "polytropic_enthalpy_change_kJ_per_kg": null,
-                                    "polytropic_head_kJ_per_kg": null,
+                                    "polytropic_efficiency": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_enthalpy_change_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
+                                    "polytropic_head_kJ_per_kg": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ],
                                     "power": [
                                         3.0352425,
                                         2.372352,
@@ -19075,7 +19568,12 @@
                                         false,
                                         false
                                     ],
-                                    "speed": null
+                                    "speed": [
+                                        NaN,
+                                        NaN,
+                                        NaN,
+                                        NaN
+                                    ]
                                 }
                             ],
                             "timesteps": [
@@ -19218,19 +19716,54 @@
                                 false
                             ],
                             "inlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     200.0,
                                     200.0,
                                     200.0,
                                     200.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
                             "is_valid": [
                                 true,
@@ -19238,27 +19771,92 @@
                                 true,
                                 true
                             ],
-                            "mass_rate_before_asv_kg_per_hr": null,
-                            "mass_rate_kg_per_hr": null,
+                            "mass_rate_before_asv_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "mass_rate_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     400.0,
                                     400.0,
                                     400.0,
                                     400.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
-                            "polytropic_efficiency": null,
-                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                            "polytropic_enthalpy_change_kJ_per_kg": null,
-                            "polytropic_head_kJ_per_kg": null,
+                            "polytropic_efficiency": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_head_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "power": [
                                 3.0352425,
                                 2.372352,
@@ -19284,7 +19882,12 @@
                                 false,
                                 false
                             ],
-                            "speed": null
+                            "speed": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ]
                         }
                     ],
                     "timesteps": [
@@ -19387,19 +19990,54 @@
                                 false
                             ],
                             "inlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     200.0,
                                     200.0,
                                     200.0,
                                     200.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
                             "is_valid": [
                                 true,
@@ -19407,27 +20045,92 @@
                                 true,
                                 true
                             ],
-                            "mass_rate_before_asv_kg_per_hr": null,
-                            "mass_rate_kg_per_hr": null,
+                            "mass_rate_before_asv_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "mass_rate_kg_per_hr": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
-                                "actual_rate_m3_per_hr": null,
-                                "density_kg_per_m3": null,
-                                "kappa": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "pressure": [
                                     400.0,
                                     400.0,
                                     400.0,
                                     400.0
                                 ],
-                                "pressure_before_choking": null,
-                                "temperature_kelvin": null,
-                                "z": null
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
                             },
-                            "polytropic_efficiency": null,
-                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": null,
-                            "polytropic_enthalpy_change_kJ_per_kg": null,
-                            "polytropic_head_kJ_per_kg": null,
+                            "polytropic_efficiency": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_before_choke_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_enthalpy_change_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
+                            "polytropic_head_kJ_per_kg": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ],
                             "power": [
                                 3.0352425,
                                 2.372352,
@@ -19453,7 +20156,12 @@
                                 false,
                                 false
                             ],
-                            "speed": null
+                            "speed": [
+                                NaN,
+                                NaN,
+                                NaN,
+                                NaN
+                            ]
                         }
                     ],
                     "timesteps": [
@@ -19912,7 +20620,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     3608.52723,
                                     3608.52723,
@@ -20287,7 +21000,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1368.10868,
                                     1368.10868,
@@ -20863,7 +21581,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     2299.69522,
                                     2299.69522,
@@ -21133,7 +21856,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1038.89912,
                                     1038.89912,
@@ -22321,7 +23049,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1958.12678,
                                     1958.12678,
@@ -22560,7 +23293,12 @@
                                 0.0
                             ],
                             "outlet_stream_condition": {
-                                "actual_rate_before_asv_m3_per_hr": null,
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
                                 "actual_rate_m3_per_hr": [
                                     1029.23775,
                                     1029.23775,
