@@ -13,7 +13,10 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.core.models.compressor.base import CompressorModel
+from libecalc.core.models.compressor.base import (
+    CompressorModel,
+    CompressorWithTurbineModel,
+)
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
@@ -74,8 +77,13 @@ class CompressorConsumerFunction(ConsumerFunction):
             ]
         )
         # Squeeze to remove axes of length one -> non-multiple streams will be 1d and not 2d.
-        # But we don't want to squeeze multiple streams model with only one date
-        if isinstance(self._compressor_function, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
+        # But we don't want to squeeze multiple streams model with only one date.
+        # That goes for CompressorWithTurbineModel with a MultipleStreamsAndPressures-train as well
+        if isinstance(self._compressor_function, CompressorWithTurbineModel):
+            compressor_model = self._compressor_function.compressor_model
+        else:
+            compressor_model = self._compressor_function
+        if isinstance(compressor_model, VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures):
             stream_day_rate = Rates.to_stream_day(
                 calendar_day_rates=calendar_day_rates,
                 regularity=regularity,
