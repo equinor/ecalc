@@ -93,5 +93,5 @@ For example, combining a calendar day rate (`SIM2;GAS_PROD_A`) with stream day r
 (`SIM1;GAS_PROD_B`) on an installation with a fixed regularity of 0.95 can be done like:
 
 ~~~~~~~~yaml
-RATE: SIM2:GAS_PROD_A {+} SIM1;GAS_PROD_B {/} 0.95
+RATE: SIM2:GAS_PROD_A {+} SIM1;GAS_PROD_B {*} 0.95
 ~~~~~~~~
