@@ -1,10 +1,6 @@
-from typing import List, Optional
-
-from pydantic import confloat
-from pydantic.class_validators import root_validator
+from typing import List
 
 from libecalc.dto.models.base import EnergyModel
-from libecalc.dto.types import EnergyUsageType
 
 
 class EnergyModelSampled(EnergyModel):
