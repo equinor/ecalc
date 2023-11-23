@@ -8,12 +8,16 @@ from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import GeneratorSetSampled, TabulatedData
 from libecalc.dto.types import ChartType, EnergyModelType, EnergyUsageType
 from libecalc.presentation.yaml.mappers.utils import (
+    YAML_UNIT_MAPPING_GENERAL_FACILITY_INPUTS as yaml_unit_map,
+)
+from libecalc.presentation.yaml.mappers.utils import (
     chart_curves_as_resource_to_dto_format,
     convert_efficiency_to_fraction,
     convert_head_to_joule_per_kg,
     convert_rate_to_am3_per_hour,
     get_single_speed_chart_data,
     get_units_from_chart_config,
+    get_units_from_general_facility_inputs,
 )
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
@@ -22,7 +26,7 @@ from libecalc.presentation.yaml.validation_errors import (
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_entities import Resource, Resources
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_keywords import DefaultWorkUnits, EcalcYamlKeywords
 
 # Used here to make pydantic understand which object to instantiate.
 EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrainSampledDTO]
@@ -51,6 +55,18 @@ def _create_compressor_train_sampled_dto_model_data(
 ) -> CompressorTrainSampledDTO:
     # kwargs just to allow this to be used with _default_facility_to_dto_model_data which needs type until we have
     # replaced _default_facility_to_dto_model_data and have separate functions for all types
+    possible_parameters = [
+        EcalcYamlKeywords.consumer_tabular_fuel,
+        EcalcYamlKeywords.consumer_tabular_power,
+        EcalcYamlKeywords.consumer_function_rate,
+        EcalcYamlKeywords.consumer_function_suction_pressure,
+        EcalcYamlKeywords.consumer_function_discharge_pressure,
+    ]
+    units = get_units_from_general_facility_inputs(
+        facility_data=facility_data,
+        parameters=resource.headers,
+        possible_parameters=possible_parameters,
+    )
     rate_header = EcalcYamlKeywords.consumer_function_rate
     suction_pressure_header = EcalcYamlKeywords.consumer_function_suction_pressure
     discharge_pressure_header = EcalcYamlKeywords.consumer_function_discharge_pressure
@@ -75,7 +91,34 @@ def _create_compressor_train_sampled_dto_model_data(
     )
     energy_usage_values = list(columns[energy_usage_index])
 
-    # In case of a fuel-driver compressor, the user may provide power interpolation data to emulate turbine power usage in results
+    # Ensure default work units - convert if input is not default work unit:
+    rate_values = (
+        units.get(rate_header).to(yaml_unit_map[DefaultWorkUnits.RATE])(rate_values)
+        if rate_values is not None
+        else None
+    )
+
+    suction_pressure_values = (
+        units.get(suction_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(suction_pressure_values)
+        if suction_pressure_values is not None
+        else None
+    )
+
+    discharge_pressure_values = (
+        units.get(discharge_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(discharge_pressure_values)
+        if discharge_pressure_values is not None
+        else None
+    )
+
+    if energy_usage_header == fuel_header and energy_usage_values is not None:
+        energy_usage_values = units.get(fuel_header).to(yaml_unit_map[DefaultWorkUnits.FUEL])(energy_usage_values)
+    elif energy_usage_header == power_header and energy_usage_values is not None:
+        energy_usage_values = units.get(power_header).to(yaml_unit_map[DefaultWorkUnits.POWER])(energy_usage_values)
+    else:
+        energy_usage_values = None
+
+    # In case of a fuel-driver compressor, the user may provide power interpolation
+    # data to emulate turbine power usage in results
     power_interpolation_values = None
     if fuel_header in resource.headers:
         power_interpolation_header = power_header if power_header in resource.headers else None
@@ -93,6 +136,134 @@ def _create_compressor_train_sampled_dto_model_data(
         energy_usage_adjustment_factor=_get_adjustment_factor(data=facility_data),
         power_interpolation_values=power_interpolation_values,
     )
+
+
+def _create_generator_set_sampled_dto_model_data(resource: Resource, facility_data, **kwargs) -> GeneratorSetSampled:
+    # kwargs just to allow this to be used with _default_facility_to_dto_model_data which needs type until we have
+    # replaced _default_facility_to_dto_model_data and have separate functions for all types
+    units = get_units_from_general_facility_inputs(
+        facility_data=facility_data,
+        parameters=resource.headers,
+        possible_parameters=[EcalcYamlKeywords.consumer_tabular_power, EcalcYamlKeywords.consumer_tabular_fuel],
+    )
+
+    power_header = EcalcYamlKeywords.consumer_tabular_power
+    fuel_header = EcalcYamlKeywords.consumer_tabular_fuel
+    power_index = resource.headers.index(power_header)
+    fuel_index = resource.headers.index(fuel_header)
+
+    columns = resource.data
+    power_values = list(columns[power_index]) if power_index is not None else None
+    fuel_values = list(columns[fuel_index]) if fuel_index is not None else None
+
+    # Ensure correct work units - convert if not
+    power_values = (
+        units.get(power_header).to(yaml_unit_map[DefaultWorkUnits.POWER])(power_values)
+        if power_values is not None
+        else None
+    )
+
+    fuel_values = (
+        units.get(fuel_header).to(yaml_unit_map[DefaultWorkUnits.FUEL])(fuel_values)
+        if fuel_values is not None
+        else None
+    )
+
+    data: List[List[float]] = [[0.0], [0.0]]
+    data[power_index] = power_values
+    data[fuel_index] = fuel_values
+
+    energy_adjustment_constant = _get_adjustment_constant(data=facility_data)
+    energy_adjustment_factor = _get_adjustment_factor(data=facility_data)
+
+    return GeneratorSetSampled(
+        data=data,
+        headers=resource.headers,
+        energy_usage_adjustment_constant=energy_adjustment_constant,
+        energy_usage_adjustment_factor=energy_adjustment_factor,
+    )
+
+
+def _create_tabulated_data_dto_model_data(resource: Resource, facility_data, **kwargs) -> TabulatedData:
+    # kwargs just to allow this to be used with _default_facility_to_dto_model_data which needs type until we have
+    # replaced _default_facility_to_dto_model_data and have separate functions for all types
+
+    possible_parameters = [
+        EcalcYamlKeywords.consumer_tabular_fuel,
+        EcalcYamlKeywords.consumer_tabular_power,
+        EcalcYamlKeywords.consumer_function_rate,
+        EcalcYamlKeywords.consumer_function_suction_pressure,
+        EcalcYamlKeywords.consumer_function_discharge_pressure,
+    ]
+
+    units = get_units_from_general_facility_inputs(
+        facility_data=facility_data,
+        parameters=resource.headers,
+        possible_parameters=possible_parameters,
+    )
+
+    rate_header = EcalcYamlKeywords.consumer_function_rate
+    suction_pressure_header = EcalcYamlKeywords.consumer_function_suction_pressure
+    discharge_pressure_header = EcalcYamlKeywords.consumer_function_discharge_pressure
+    power_header = EcalcYamlKeywords.consumer_tabular_power
+    fuel_header = EcalcYamlKeywords.consumer_tabular_fuel
+
+    energy_usage_header = fuel_header if fuel_header in resource.headers else power_header
+    energy_usage_index = resource.headers.index(energy_usage_header)
+    energy_default_work_unit = DefaultWorkUnits.FUEL if fuel_header in resource.headers else DefaultWorkUnits.POWER
+    rate_index = resource.headers.index(rate_header) if rate_header in resource.headers else None
+    suction_pressure_index = (
+        resource.headers.index(suction_pressure_header) if suction_pressure_header in resource.headers else None
+    )
+    discharge_pressure_index = (
+        resource.headers.index(discharge_pressure_header) if discharge_pressure_header in resource.headers else None
+    )
+
+    columns = resource.data
+    rate_values = list(columns[rate_index]) if rate_index is not None else None
+    suction_pressure_values = list(columns[suction_pressure_index]) if suction_pressure_index is not None else None
+    discharge_pressure_values = (
+        list(columns[discharge_pressure_index]) if discharge_pressure_index is not None else None
+    )
+    energy_usage_values = list(columns[energy_usage_index])
+
+    # Ensure default work units - convert if input is not default work unit:
+    data = []
+    headers = []
+
+    if rate_values is not None:
+        rate_values = units.get(rate_header).to(yaml_unit_map[DefaultWorkUnits.RATE])(rate_values)
+        data.append(rate_values)
+        headers.append(rate_header)
+
+    if suction_pressure_values is not None:
+        suction_pressure_values = units.get(suction_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(
+            suction_pressure_values
+        )
+        data.append(suction_pressure_values)
+        headers.append(suction_pressure_header)
+
+    if discharge_pressure_values is not None:
+        discharge_pressure_values = units.get(discharge_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(
+            discharge_pressure_values
+        )
+        data.append(discharge_pressure_values)
+        headers.append(discharge_pressure_header)
+
+    if energy_usage_values is not None:
+        energy_usage_values = units.get(energy_usage_header).to(yaml_unit_map[energy_default_work_unit])(
+            energy_usage_values
+        )
+        data.append(energy_usage_values)
+        headers.append(energy_usage_header)
+
+    tabulated_data = TabulatedData(
+        energy_usage_adjustment_factor=_get_adjustment_factor(data=facility_data),
+        energy_usage_adjustment_constant=_get_adjustment_constant(data=facility_data),
+        headers=headers,
+        data=data,
+    )
+    return tabulated_data
 
 
 def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_data, **kwargs) -> dto.PumpModel:
@@ -168,7 +339,7 @@ def _default_facility_to_dto_model_data(
         "energy_usage_adjustment_constant": _get_adjustment_constant(data=facility_data),
         "energy_usage_adjustment_factor": _get_adjustment_factor(data=facility_data),
     }
-
+    facility_data.get(EcalcYamlKeywords.facility_adjustment, {}).get(EcalcYamlKeywords.facility_adjustment_constant)
     return pydantic.parse_obj_as(EnergyModelUnionType, model_data)  # type: ignore[arg-type]
 
 
@@ -176,6 +347,8 @@ facility_input_to_dto_map = {
     EnergyModelType.COMPRESSOR_SAMPLED: _create_compressor_train_sampled_dto_model_data,
     ChartType.SINGLE_SPEED: _create_pump_model_single_speed_dto_model_data,
     ChartType.VARIABLE_SPEED: _create_pump_chart_variable_speed_dto_model_data,
+    EnergyModelType.GENERATOR_SET_SAMPLED: _create_generator_set_sampled_dto_model_data,
+    EnergyModelType.TABULATED: _create_tabulated_data_dto_model_data,
 }
 
 

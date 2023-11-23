@@ -1,3 +1,5 @@
+from enum import Enum
+
 """Module for all input keys."""
 
 
@@ -45,7 +47,23 @@ class EcalcYamlKeywords:
     consumer_function_rate = "RATE"
     consumer_function_suction_pressure = "SUCTION_PRESSURE"
     consumer_function_discharge_pressure = "DISCHARGE_PRESSURE"
+    consumer_function_rate_unit_sm3_per_day = "SM3_PER_DAY"
+    consumer_function_rate_unit_litres_per_day = "LITRES_PER_DAY"
+    consumer_function_suction_pressure_unit_bar = "BAR"
+    consumer_function_discharge_pressure_unit_bar = "BAR"
+    consumer_function_fuel_unit_sm3_per_day = "SM3_PER_DAY"
+    consumer_function_fuel_unit_litres_per_day = "LITRES_PER_DAY"
     pump_function_fluid_density = "FLUID_DENSITY"
+
+    consumer_rate_unit = "UNIT"
+
+    facility_units = "UNITS"
+    pressure_unit_bar = "BAR"
+    rate_unit_sm3_per_day = "SM3_PER_DAY"
+    rate_unit_litres_per_day = "LITRES_PER_DAY"
+    power_unit_mw = "MW"
+    fuel_unit_sm3_per_day = "SM3_PER_DAY"
+    fuel_unit_litres_per_day = "LITRES_PER_DAY"
 
     variable_expression = "EXPRESSION"
     user_defined_tag = "CATEGORY"
@@ -76,7 +94,10 @@ class EcalcYamlKeywords:
     power_loss_factor = "POWERLOSSFACTOR"
 
     consumer_tabular_power = "POWER"
+    consumer_tabular_power_unit_MW = "MW"
     consumer_tabular_fuel = "FUEL"
+    consumer_tabular_fuel_unit_SM3_PER_DAY = "SM3_PER_DAY"
+    consumer_tabular_fuel_unit_LITRES_PER_DAY = "LITRES_PER_DAY"
     regularity = "REGULARITY"
     variables = "VARIABLES"
     facility_type_tabular = "TABULAR"
@@ -184,3 +205,10 @@ class EcalcYamlKeywords:
     start = "START"
     end = "END"
     date = "DATE"
+
+
+class DefaultWorkUnits(str, Enum):
+    RATE = EcalcYamlKeywords.rate_unit_sm3_per_day
+    FUEL = EcalcYamlKeywords.fuel_unit_sm3_per_day
+    POWER = EcalcYamlKeywords.power_unit_mw
+    PRESSURE = EcalcYamlKeywords.pressure_unit_bar

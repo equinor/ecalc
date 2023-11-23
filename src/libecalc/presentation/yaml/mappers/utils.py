@@ -10,13 +10,24 @@ from libecalc.dto.types import (
     ChartEfficiencyUnit,
     ChartPolytropicHeadUnit,
     ChartRateUnit,
+    SupportedFuelUnits,
+    SupportedPowerUnits,
+    SupportedPressureUnits,
+    SupportedRateUnits,
 )
 from libecalc.presentation.yaml.validation_errors import (
     ResourceValidationError,
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_entities import Resource
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_keywords import DefaultWorkUnits, EcalcYamlKeywords
+
+SUPPORTED_CHART_EFFICIENCY_UNITS = [efficiency_unit.value for efficiency_unit in ChartEfficiencyUnit]
+SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHeadUnit]
+SUPPORTED_FACILITY_POWER_UNITS = [power_unit.value for power_unit in SupportedPowerUnits]
+SUPPORTED_FACILITY_RATE_UNITS = [rate_unit.value for rate_unit in SupportedRateUnits]
+SUPPORTED_FACILITY_FUEL_UNITS = [fuel_unit.value for fuel_unit in SupportedFuelUnits]
+SUPPORTED_FACILITY_PRESSURE_UNITS = [pressure_unit.value for pressure_unit in SupportedPressureUnits]
 
 YAML_UNIT_MAPPING: Dict[str, Unit] = {
     EcalcYamlKeywords.consumer_chart_efficiency_unit_factor: Unit.FRACTION,
@@ -25,8 +36,31 @@ YAML_UNIT_MAPPING: Dict[str, Unit] = {
     EcalcYamlKeywords.consumer_chart_head_unit_joule_per_kg: Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
     EcalcYamlKeywords.consumer_chart_head_unit_m: Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN,
     EcalcYamlKeywords.consumer_chart_rate_unit_actual_volume_rate: Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
-    EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit_factor: Unit.FRACTION,
-    EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit_percentage: Unit.PERCENTAGE,
+}
+
+YAML_UNIT_MAPPING_GENERAL_FACILITY_INPUTS: Dict[str, Unit] = {
+    EcalcYamlKeywords.rate_unit_sm3_per_day: Unit.STANDARD_CUBIC_METER_PER_DAY,
+    EcalcYamlKeywords.rate_unit_litres_per_day: Unit.LITRES_PER_DAY,
+    EcalcYamlKeywords.pressure_unit_bar: Unit.BARA,
+    EcalcYamlKeywords.power_unit_mw: Unit.MEGA_WATT,
+    EcalcYamlKeywords.fuel_unit_sm3_per_day: Unit.STANDARD_CUBIC_METER_PER_DAY,
+    EcalcYamlKeywords.fuel_unit_litres_per_day: Unit.LITRES_PER_DAY,
+}
+
+DEFAULT_UNIT_MAPPING: Dict[str, DefaultWorkUnits] = {
+    EcalcYamlKeywords.consumer_tabular_fuel: DefaultWorkUnits.FUEL,
+    EcalcYamlKeywords.consumer_tabular_power: DefaultWorkUnits.POWER,
+    EcalcYamlKeywords.consumer_function_rate: DefaultWorkUnits.RATE,
+    EcalcYamlKeywords.consumer_function_suction_pressure: DefaultWorkUnits.PRESSURE,
+    EcalcYamlKeywords.consumer_function_discharge_pressure: DefaultWorkUnits.PRESSURE,
+}
+
+SUPPORTED_UNITS_MAPPING: Dict[str, list[str]] = {
+    EcalcYamlKeywords.consumer_tabular_fuel: SUPPORTED_FACILITY_FUEL_UNITS,
+    EcalcYamlKeywords.consumer_tabular_power: SUPPORTED_FACILITY_POWER_UNITS,
+    EcalcYamlKeywords.consumer_function_rate: SUPPORTED_FACILITY_RATE_UNITS,
+    EcalcYamlKeywords.consumer_function_suction_pressure: SUPPORTED_FACILITY_PRESSURE_UNITS,
+    EcalcYamlKeywords.consumer_function_discharge_pressure: SUPPORTED_FACILITY_PRESSURE_UNITS,
 }
 
 
@@ -185,11 +219,6 @@ def chart_curves_as_resource_to_dto_format(resource: Resource, resource_name: st
     return curves
 
 
-SUPPORTED_CHART_EFFICIENCY_UNITS = [efficiency_unit.value for efficiency_unit in ChartEfficiencyUnit]
-
-SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHeadUnit]
-
-
 def get_units_from_chart_config(
     chart_config: Dict,
     units_to_include: Sequence[
@@ -257,6 +286,66 @@ def get_units_from_chart_config(
                 )
 
             units[unit] = YAML_UNIT_MAPPING[provided_unit]
+    return units
+
+
+def get_units_from_general_facility_inputs(
+    facility_data: Dict,
+    parameters: List[str],
+    possible_parameters: List[str],
+    # possible_parameters: Sequence[
+    #     Union[
+    #         EcalcYamlKeywords.consumer_tabular_fuel,
+    #         EcalcYamlKeywords.consumer_tabular_power,
+    #         EcalcYamlKeywords.consumer_function_rate,
+    #         EcalcYamlKeywords.consumer_function_suction_pressure,
+    #         EcalcYamlKeywords.consumer_function_discharge_pressure,
+    #     ]
+    # ] = (
+    #         EcalcYamlKeywords.consumer_tabular_fuel,
+    #         EcalcYamlKeywords.consumer_tabular_power,
+    #         EcalcYamlKeywords.consumer_function_rate,
+    #         EcalcYamlKeywords.consumer_function_suction_pressure,
+    #         EcalcYamlKeywords.consumer_function_discharge_pressure,
+    # ),
+) -> Dict[str, Unit]:
+    units_config = facility_data.get(EcalcYamlKeywords.facility_units, {})
+
+    parameter_not_in_parameters_to_include = [
+        unit_key for unit_key in units_config if unit_key not in possible_parameters
+    ]
+
+    file_info = ""
+    file = facility_data.get(EcalcYamlKeywords.file)
+    if file is not None:
+        file_info = f" for the file '{file}' "
+
+    if len(parameter_not_in_parameters_to_include) != 0:
+        error_message = (
+            f"You cannot specify units for: "
+            f"{', '.join(parameter_not_in_parameters_to_include)} in this context. "
+            f"You can only specify units for: {', '.join(possible_parameters)}"
+        )
+        error_message += file_info
+        error_message += f" for '{facility_data.get(EcalcYamlKeywords.name)}'"
+        raise ValidationValueError(error_message)
+
+    units = {}
+
+    for parameter in parameters:
+        provided_unit = units_config.get(parameter)
+
+        if provided_unit is None:
+            provided_unit = DEFAULT_UNIT_MAPPING[parameter]
+        elif provided_unit not in SUPPORTED_UNITS_MAPPING[parameter]:
+            raise ValidationValueError(
+                f"Input unit for {parameter} in '{facility_data.get(EcalcYamlKeywords.name)}' {file_info}"
+                f" must be one of {', '.join(SUPPORTED_UNITS_MAPPING[parameter])}. "
+                f"Given {parameter} was '{provided_unit}.",
+                key=parameter,
+            )
+        units[parameter] = YAML_UNIT_MAPPING_GENERAL_FACILITY_INPUTS[provided_unit]
+
     return units
 
 

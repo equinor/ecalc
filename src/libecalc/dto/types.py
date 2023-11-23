@@ -70,6 +70,24 @@ class ChartControlMarginUnit(str, Enum):
     PERCENTAGE = "PERCENTAGE"
 
 
+class SupportedPowerUnits(str, Enum):
+    MEGA_WATT = "MW"
+
+
+class SupportedFuelUnits(str, Enum):
+    SM3_PER_DAY = "SM3_PER_DAY"
+    LITRES_PER_DAY = "LITRES_PER_DAY"
+
+
+class SupportedRateUnits(str, Enum):
+    SM3_PER_DAY = "SM3_PER_DAY"
+    LITRES_PER_DAY = "LITRES_PER_DAY"
+
+
+class SupportedPressureUnits(str, Enum):
+    BAR = "BAR"
+
+
 class EoSModel(str, Enum):
     SRK = "SRK"
     PR = "PR"

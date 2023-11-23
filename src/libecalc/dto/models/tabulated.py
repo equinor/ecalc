@@ -8,6 +8,7 @@ from libecalc.dto.models.sampled import EnergyModelSampled
 from libecalc.dto.types import ConsumerType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 class TabulatedData(EnergyModelSampled):
@@ -15,9 +16,33 @@ class TabulatedData(EnergyModelSampled):
 
     @validator("headers")
     def validate_headers(cls, headers: List[str]) -> List[str]:
-        is_valid_headers = len(headers) > 0 and "FUEL" in headers or "POWER" in headers
-        if not is_valid_headers:
-            raise ValueError("TABULAR facility input type data must have a 'FUEL' or 'POWER' header")
+        possible_headers = [
+            EcalcYamlKeywords.consumer_tabular_fuel,
+            EcalcYamlKeywords.consumer_tabular_power,
+            EcalcYamlKeywords.consumer_function_rate,
+            EcalcYamlKeywords.consumer_function_suction_pressure,
+            EcalcYamlKeywords.consumer_function_discharge_pressure,
+        ]
+        required_energy_headers = len(headers) > 0 and (
+            EcalcYamlKeywords.consumer_tabular_fuel in headers or EcalcYamlKeywords.consumer_tabular_power in headers
+        )
+        required_rate_header = len(headers) > 0 and EcalcYamlKeywords.consumer_function_rate in headers
+        header_not_allowed = [header for header in headers if header not in possible_headers]
+
+        if len(header_not_allowed) > 0:
+            raise ValueError(
+                f"TABULAR facility input type data does not support {header_not_allowed} as header. "
+                f"Allowed headers are {possible_headers}."
+            )
+        elif not required_energy_headers:
+            raise ValueError(
+                f"TABULAR facility input type data must have a "
+                f"{EcalcYamlKeywords.consumer_tabular_fuel} or {EcalcYamlKeywords.consumer_tabular_power} header"
+            )
+        elif not required_rate_header:
+            raise ValueError(
+                f"TABULAR facility input type data must have a {EcalcYamlKeywords.consumer_function_rate} header"
+            )
         return headers
 
 
