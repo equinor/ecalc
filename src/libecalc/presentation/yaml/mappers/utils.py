@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union
+from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
 
 import pandas as pd
 
@@ -55,12 +55,14 @@ DEFAULT_UNIT_MAPPING: Dict[str, DefaultWorkUnits] = {
     EcalcYamlKeywords.consumer_function_discharge_pressure: DefaultWorkUnits.PRESSURE,
 }
 
-SUPPORTED_UNITS_MAPPING: Dict[str, list[str]] = {
-    EcalcYamlKeywords.consumer_tabular_fuel: SUPPORTED_FACILITY_FUEL_UNITS,
-    EcalcYamlKeywords.consumer_tabular_power: SUPPORTED_FACILITY_POWER_UNITS,
-    EcalcYamlKeywords.consumer_function_rate: SUPPORTED_FACILITY_RATE_UNITS,
-    EcalcYamlKeywords.consumer_function_suction_pressure: SUPPORTED_FACILITY_PRESSURE_UNITS,
-    EcalcYamlKeywords.consumer_function_discharge_pressure: SUPPORTED_FACILITY_PRESSURE_UNITS,
+SUPPORTED_UNITS_MAPPING: Dict[
+    str, Type[Union[SupportedRateUnits, SupportedFuelUnits, SupportedPowerUnits, SupportedPressureUnits]]
+] = {
+    EcalcYamlKeywords.consumer_tabular_fuel: SupportedFuelUnits,
+    EcalcYamlKeywords.consumer_tabular_power: SupportedPowerUnits,
+    EcalcYamlKeywords.consumer_function_rate: SupportedRateUnits,
+    EcalcYamlKeywords.consumer_function_suction_pressure: SupportedPressureUnits,
+    EcalcYamlKeywords.consumer_function_discharge_pressure: SupportedPressureUnits,
 }
 
 
@@ -293,21 +295,6 @@ def get_units_from_general_facility_inputs(
     facility_data: Dict,
     parameters: List[str],
     possible_parameters: List[str],
-    # possible_parameters: Sequence[
-    #     Union[
-    #         EcalcYamlKeywords.consumer_tabular_fuel,
-    #         EcalcYamlKeywords.consumer_tabular_power,
-    #         EcalcYamlKeywords.consumer_function_rate,
-    #         EcalcYamlKeywords.consumer_function_suction_pressure,
-    #         EcalcYamlKeywords.consumer_function_discharge_pressure,
-    #     ]
-    # ] = (
-    #         EcalcYamlKeywords.consumer_tabular_fuel,
-    #         EcalcYamlKeywords.consumer_tabular_power,
-    #         EcalcYamlKeywords.consumer_function_rate,
-    #         EcalcYamlKeywords.consumer_function_suction_pressure,
-    #         EcalcYamlKeywords.consumer_function_discharge_pressure,
-    # ),
 ) -> Dict[str, Unit]:
     units_config = facility_data.get(EcalcYamlKeywords.facility_units, {})
 
@@ -340,7 +327,7 @@ def get_units_from_general_facility_inputs(
         elif provided_unit not in SUPPORTED_UNITS_MAPPING[parameter]:
             raise ValidationValueError(
                 f"Input unit for {parameter} in '{facility_data.get(EcalcYamlKeywords.name)}' {file_info}"
-                f" must be one of {', '.join(SUPPORTED_UNITS_MAPPING[parameter])}. "
+                f" must be one of {SUPPORTED_UNITS_MAPPING[parameter]}. "
                 f"Given {parameter} was '{provided_unit}.",
                 key=parameter,
             )

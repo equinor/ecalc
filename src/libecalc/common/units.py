@@ -116,7 +116,7 @@ class Unit(str, Enum):
         unit_registry[Unit.LITRES][Unit.STANDARD_CUBIC_METER] = lambda a: a / 1000
 
         unit_registry[Unit.STANDARD_CUBIC_METER_PER_DAY][Unit.LITRES_PER_DAY] = lambda a: a * 1000
-        unit_registry[Unit.LITRES_PER_DAY][Unit.STANDARD_CUBIC_METER_PER_DAY] = lambda a: a * 1000
+        unit_registry[Unit.LITRES_PER_DAY][Unit.STANDARD_CUBIC_METER_PER_DAY] = lambda a: a / 1000
 
         # Temperature
         unit_registry[Unit.CELSIUS][Unit.KELVIN] = lambda a: a + 273.15
