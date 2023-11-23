@@ -180,7 +180,7 @@
         },
         "name": "co2",
         "rate": {
-          "rate_type": "STREAM_DAY",
+          "rate_type": "CALENDAR_DAY",
           "regularity": [
             1.0,
             1.0,
@@ -4438,7 +4438,7 @@
           },
           "name": "co2",
           "rate": {
-            "rate_type": "STREAM_DAY",
+            "rate_type": "CALENDAR_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -4817,7 +4817,7 @@
           },
           "name": "co2",
           "rate": {
-            "rate_type": "STREAM_DAY",
+            "rate_type": "CALENDAR_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -5165,7 +5165,7 @@
           },
           "name": "co2",
           "rate": {
-            "rate_type": "STREAM_DAY",
+            "rate_type": "CALENDAR_DAY",
             "regularity": [
               1.0,
               1.0,
@@ -6366,7 +6366,7 @@
           },
           "name": "co2",
           "rate": {
-            "rate_type": "STREAM_DAY",
+            "rate_type": "CALENDAR_DAY",
             "regularity": [
               1.0,
               1.0,
