@@ -36,7 +36,7 @@
 * clean up common module ([#277](https://github.com/equinor/ecalc/issues/277)) ([e1959ab](https://github.com/equinor/ecalc/commit/e1959aba2a91c4abec2d820b6cb9378ac1dea281))
 * extend tests of time series resampling ([e8ef9b9](https://github.com/equinor/ecalc/commit/e8ef9b98901603c0a9e328c2c8923c5facca962c))
 * improve algorithm to generate generic variable speed compressor charts from input points ([#276](https://github.com/equinor/ecalc/issues/276)) ([b257567](https://github.com/equinor/ecalc/commit/b257567230000a92b5fcca8f8becdbcc4c880092))
-* make sure no mismatch between timestemps and time series values ([#251](https://github.com/equinor/ecalc/issues/251)) ([ae6ade9](https://github.com/equinor/ecalc/commit/ae6ade9fafb9b0ccf2afec5e633c2190a2f1009b))
+* make sure no mismatch between timestamps and time series values ([#251](https://github.com/equinor/ecalc/issues/251)) ([ae6ade9](https://github.com/equinor/ecalc/commit/ae6ade9fafb9b0ccf2afec5e633c2190a2f1009b))
 * only calculate max standard rate for time steps with valid model input ([#252](https://github.com/equinor/ecalc/issues/252)) ([d651ed6](https://github.com/equinor/ecalc/commit/d651ed6822ba180ba4a490e1245a0f406cc64e43))
 * possibility to include start and end date in resampling ([e8ef9b9](https://github.com/equinor/ecalc/commit/e8ef9b98901603c0a9e328c2c8923c5facca962c))
 * update changelog for v8.6 release ([#288](https://github.com/equinor/ecalc/issues/288)) ([af32274](https://github.com/equinor/ecalc/commit/af32274c17cb8a84895bf85c7b83360cd76bc533))
