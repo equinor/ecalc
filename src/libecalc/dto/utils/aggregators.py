@@ -48,7 +48,7 @@ def aggregate_emissions(
         emissions_aggregated[emission_name] = PartialEmissionResult(
             name=emission_name,
             timesteps=emissions[0].timesteps,
-            rate=reduce(operator.add, [emission.rate for emission in emissions]),
+            rate=reduce(operator.add, [emission.rate.to_calendar_day() for emission in emissions]),
         )
 
     return emissions_aggregated

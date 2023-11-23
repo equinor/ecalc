@@ -240,7 +240,9 @@ class GraphResult:
             key: libecalc.dto.result.EmissionResult(
                 name=key,
                 timesteps=emissions[key].timesteps,
-                rate=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity),
+                rate=TimeSeriesRate.from_timeseries_stream_day_rate(
+                    emissions[key].rate, regularity=regularity
+                ).to_calendar_day(),
                 cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(emissions[key].rate, regularity=regularity)
                 .to_volumes()
                 .cumulative(),
