@@ -24,10 +24,6 @@ from libecalc.presentation.yaml.yaml_keywords import DefaultWorkUnits, EcalcYaml
 
 SUPPORTED_CHART_EFFICIENCY_UNITS = [efficiency_unit.value for efficiency_unit in ChartEfficiencyUnit]
 SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHeadUnit]
-SUPPORTED_FACILITY_POWER_UNITS = [power_unit.value for power_unit in SupportedPowerUnits]
-SUPPORTED_FACILITY_RATE_UNITS = [rate_unit.value for rate_unit in SupportedRateUnits]
-SUPPORTED_FACILITY_FUEL_UNITS = [fuel_unit.value for fuel_unit in SupportedFuelUnits]
-SUPPORTED_FACILITY_PRESSURE_UNITS = [pressure_unit.value for pressure_unit in SupportedPressureUnits]
 
 YAML_UNIT_MAPPING: Dict[str, Unit] = {
     EcalcYamlKeywords.consumer_chart_efficiency_unit_factor: Unit.FRACTION,
