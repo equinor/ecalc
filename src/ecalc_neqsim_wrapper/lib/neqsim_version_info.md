@@ -1,4 +1,6 @@
-Current neqsim.jar from latest release of NeqSim (v2.3.0 - https://github.com/equinor/neqsim/releases/tag/v2.3.0)
+Current neqsim.jar from latest release of NeqSim (v2.5.9 - https://github.com/equinor/neqsim/releases/tag/v2.5.9)
+
+NeqSim is currently not considered to be thread-safe. That means that two threads working towards the same gateway, interchangely changing a fluid setting will interfere with each other.
 
 If you need to manually compile a version, do the following:
 
