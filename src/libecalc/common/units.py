@@ -222,3 +222,27 @@ class Unit(str, Enum):
             return Unit.LITRES
         else:
             raise NotImplementedError(f"Unknown unit for rate calculation '{self}'")
+
+
+class DefaultWorkUnits:
+    def __init__(self):
+        self._rate = Unit.STANDARD_CUBIC_METER_PER_DAY
+        self._fuel = Unit.STANDARD_CUBIC_METER_PER_DAY
+        self._power = Unit.MEGA_WATT
+        self._pressure = Unit.BARA
+
+    @property
+    def rate(self) -> Unit:
+        return self._rate
+
+    @property
+    def fuel(self) -> Unit:
+        return self._fuel
+
+    @property
+    def power(self) -> Unit:
+        return self._power
+
+    @property
+    def pressure(self) -> Unit:
+        return self._pressure

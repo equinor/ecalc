@@ -2,6 +2,7 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import Field, validator
 
+from libecalc.common.units import DefaultWorkUnits, Unit
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.compressor.sampled import CompressorSampled
 from libecalc.dto.models.compressor.train import (
@@ -46,6 +47,7 @@ class CompressorConsumerFunction(ConsumerFunction):
     power_loss_factor: Optional[Expression]
     model: CompressorModel = Field(..., discriminator="typ")
     rate_standard_m3_day: Union[Expression, List[Expression]]
+    rate_unit: Optional[Unit] = DefaultWorkUnits().rate
     suction_pressure: Optional[Expression]
     discharge_pressure: Optional[Expression]
     interstage_control_pressure: Optional[Expression]

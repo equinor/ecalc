@@ -12,6 +12,7 @@ from libecalc.dto import (
 from libecalc.dto.types import EnergyModelType, EnergyUsageType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import (
+    get_unit_from_energy_usage_model_inputs,
     resolve_and_validate_reference,
     resolve_reference,
 )
@@ -189,10 +190,16 @@ def _direct_mapper(energy_usage_model: Dict, references: References = None) -> d
     :return:
     """
     is_power_consumer = EcalcYamlKeywords.load in energy_usage_model
+
+    rate_unit = get_unit_from_energy_usage_model_inputs(
+        energy_usage_model=energy_usage_model,
+    )
+
     return dto.DirectConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER if is_power_consumer else EnergyUsageType.FUEL,
         load=energy_usage_model.get(EcalcYamlKeywords.load),
         fuel_rate=energy_usage_model.get(EcalcYamlKeywords.fuel_rate),
+        rate_unit=rate_unit,
         condition=_map_condition(energy_usage_model),
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         consumption_rate_type=energy_usage_model.get(EcalcYamlKeywords.direct_consumer_consumption_rate_type)
@@ -227,10 +234,16 @@ def _pump_mapper(energy_usage_model: Dict, references: References = None) -> dto
         energy_usage_model.get(EcalcYamlKeywords.energy_model),
         references=references.models,
     )
+
+    rate_unit = get_unit_from_energy_usage_model_inputs(
+        energy_usage_model=energy_usage_model,
+    )
+
     return dto.PumpConsumerFunction(
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         condition=_map_condition(energy_usage_model),
         rate_standard_m3_day=energy_usage_model.get(EcalcYamlKeywords.consumer_function_rate),
+        rate_unit=rate_unit,
         suction_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_suction_pressure),
         discharge_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_discharge_pressure),
         fluid_density=energy_usage_model.get(EcalcYamlKeywords.pump_function_fluid_density),
@@ -301,6 +314,10 @@ def _compressor_mapper(energy_usage_model: Dict, references: References = None) 
         references=references.models,
     )
 
+    rate_unit = get_unit_from_energy_usage_model_inputs(
+        energy_usage_model=energy_usage_model,
+    )
+
     compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
 
     return dto.CompressorConsumerFunction(
@@ -308,6 +325,7 @@ def _compressor_mapper(energy_usage_model: Dict, references: References = None) 
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         condition=_map_condition(energy_usage_model),
         rate_standard_m3_day=energy_usage_model.get(EcalcYamlKeywords.consumer_function_rate),
+        rate_unit=rate_unit,
         suction_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_suction_pressure),
         discharge_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_discharge_pressure),
         model=energy_model,

@@ -2,6 +2,7 @@ from typing import Any, Dict, Literal, Optional
 
 from pydantic import root_validator, validator
 
+from libecalc.common.units import DefaultWorkUnits, Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.models.base import ConsumerFunction
 from libecalc.dto.types import ConsumerType
@@ -12,6 +13,7 @@ from libecalc.expression import Expression
 class DirectConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.DIRECT] = ConsumerType.DIRECT
     fuel_rate: Optional[Expression]
+    rate_unit: Optional[Unit] = DefaultWorkUnits().rate
     load: Optional[Expression]
     power_loss_factor: Optional[Expression] = None
     consumption_rate_type: RateType = RateType.STREAM_DAY

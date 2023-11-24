@@ -2,6 +2,7 @@ from typing import Literal, Optional, Union
 
 from pydantic import validator
 
+from libecalc.common.units import DefaultWorkUnits, Unit
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.dto.types import ConsumerType, EnergyModelType, EnergyUsageType
@@ -21,6 +22,7 @@ class PumpConsumerFunction(ConsumerFunction):
     power_loss_factor: Optional[Expression]
     model: PumpModel
     rate_standard_m3_day: Expression
+    rate_unit: Optional[Unit] = DefaultWorkUnits().rate
     suction_pressure: Expression
     discharge_pressure: Expression
     fluid_density: Expression

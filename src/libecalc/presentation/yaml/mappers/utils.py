@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
 
@@ -10,17 +10,17 @@ from libecalc.dto.types import (
     ChartEfficiencyUnit,
     ChartPolytropicHeadUnit,
     ChartRateUnit,
-    SupportedFuelUnits,
-    SupportedPowerUnits,
-    SupportedPressureUnits,
-    SupportedRateUnits,
 )
 from libecalc.presentation.yaml.validation_errors import (
     ResourceValidationError,
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_entities import Resource
-from libecalc.presentation.yaml.yaml_keywords import DefaultWorkUnits, EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_keywords import (
+    DefaultWorkUnitsYaml,
+    EcalcYamlKeywords,
+    SupportedUnitsYaml,
+)
 
 SUPPORTED_CHART_EFFICIENCY_UNITS = [efficiency_unit.value for efficiency_unit in ChartEfficiencyUnit]
 SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHeadUnit]
@@ -43,22 +43,22 @@ YAML_UNIT_MAPPING_GENERAL_FACILITY_INPUTS: Dict[str, Unit] = {
     EcalcYamlKeywords.fuel_unit_litres_per_day: Unit.LITRES_PER_DAY,
 }
 
-DEFAULT_UNIT_MAPPING: Dict[str, DefaultWorkUnits] = {
-    EcalcYamlKeywords.consumer_tabular_fuel: DefaultWorkUnits.FUEL,
-    EcalcYamlKeywords.consumer_tabular_power: DefaultWorkUnits.POWER,
-    EcalcYamlKeywords.consumer_function_rate: DefaultWorkUnits.RATE,
-    EcalcYamlKeywords.consumer_function_suction_pressure: DefaultWorkUnits.PRESSURE,
-    EcalcYamlKeywords.consumer_function_discharge_pressure: DefaultWorkUnits.PRESSURE,
+DEFAULT_UNIT_MAPPING: Dict[str, DefaultWorkUnitsYaml] = {
+    EcalcYamlKeywords.consumer_tabular_fuel: DefaultWorkUnitsYaml.FUEL,
+    EcalcYamlKeywords.consumer_tabular_power: DefaultWorkUnitsYaml.POWER,
+    EcalcYamlKeywords.consumer_function_rate: DefaultWorkUnitsYaml.RATE,
+    EcalcYamlKeywords.energy_usage_model_rate_unit: DefaultWorkUnitsYaml.RATE,
+    EcalcYamlKeywords.consumer_function_suction_pressure: DefaultWorkUnitsYaml.PRESSURE,
+    EcalcYamlKeywords.consumer_function_discharge_pressure: DefaultWorkUnitsYaml.PRESSURE,
 }
 
-SUPPORTED_UNITS_MAPPING: Dict[
-    str, Type[Union[SupportedRateUnits, SupportedFuelUnits, SupportedPowerUnits, SupportedPressureUnits]]
-] = {
-    EcalcYamlKeywords.consumer_tabular_fuel: SupportedFuelUnits,
-    EcalcYamlKeywords.consumer_tabular_power: SupportedPowerUnits,
-    EcalcYamlKeywords.consumer_function_rate: SupportedRateUnits,
-    EcalcYamlKeywords.consumer_function_suction_pressure: SupportedPressureUnits,
-    EcalcYamlKeywords.consumer_function_discharge_pressure: SupportedPressureUnits,
+SUPPORTED_UNITS_MAPPING: Dict[str, List[str]] = {
+    EcalcYamlKeywords.consumer_tabular_fuel: SupportedUnitsYaml.fuel(),
+    EcalcYamlKeywords.consumer_tabular_power: SupportedUnitsYaml.power(),
+    EcalcYamlKeywords.consumer_function_rate: SupportedUnitsYaml.rate(),
+    EcalcYamlKeywords.energy_usage_model_rate_unit: SupportedUnitsYaml.rate(),
+    EcalcYamlKeywords.consumer_function_suction_pressure: SupportedUnitsYaml.pressure(),
+    EcalcYamlKeywords.consumer_function_discharge_pressure: SupportedUnitsYaml.pressure(),
 }
 
 
@@ -294,7 +294,7 @@ def get_units_from_general_facility_inputs(
 ) -> Dict[str, Unit]:
     units_config = facility_data.get(EcalcYamlKeywords.facility_units, {})
 
-    parameter_not_in_parameters_to_include = [
+    parameter_not_in_possible_parameters = [
         unit_key for unit_key in units_config if unit_key not in possible_parameters
     ]
 
@@ -303,10 +303,10 @@ def get_units_from_general_facility_inputs(
     if file is not None:
         file_info = f" for the file '{file}' "
 
-    if len(parameter_not_in_parameters_to_include) != 0:
+    if len(parameter_not_in_possible_parameters) != 0:
         error_message = (
             f"You cannot specify units for: "
-            f"{', '.join(parameter_not_in_parameters_to_include)} in this context. "
+            f"{', '.join(parameter_not_in_possible_parameters)} in this context. "
             f"You can only specify units for: {', '.join(possible_parameters)}"
         )
         error_message += file_info
@@ -324,12 +324,38 @@ def get_units_from_general_facility_inputs(
             raise ValidationValueError(
                 f"Input unit for {parameter} in '{facility_data.get(EcalcYamlKeywords.name)}' {file_info}"
                 f" must be one of {SUPPORTED_UNITS_MAPPING[parameter]}. "
-                f"Given {parameter} was '{provided_unit}.",
+                f"Given unit for {parameter} was '{provided_unit}.",
                 key=parameter,
             )
         units[parameter] = YAML_UNIT_MAPPING_GENERAL_FACILITY_INPUTS[provided_unit]
 
     return units
+
+
+def get_unit_from_energy_usage_model_inputs(
+    energy_usage_model: Dict,
+) -> Unit:
+    unit_config = energy_usage_model.get(EcalcYamlKeywords.energy_usage_model_rate_unit, None)
+
+    file_info = ""
+    file = energy_usage_model.get(EcalcYamlKeywords.file)
+    if file is not None:
+        file_info = f" for the file '{file}' "
+
+    provided_unit = unit_config
+
+    if provided_unit is None:
+        provided_unit = DEFAULT_UNIT_MAPPING[EcalcYamlKeywords.energy_usage_model_rate_unit]
+    elif provided_unit not in SUPPORTED_UNITS_MAPPING[EcalcYamlKeywords.energy_usage_model_rate_unit]:
+        raise ValidationValueError(
+            f"Input unit for {EcalcYamlKeywords.energy_usage_model_rate_unit} in '{energy_usage_model.get(EcalcYamlKeywords.name)}' {file_info}"
+            f" must be one of {SUPPORTED_UNITS_MAPPING[EcalcYamlKeywords.energy_usage_model_rate_unit]}. "
+            f"Given {EcalcYamlKeywords.energy_usage_model_rate_unit} was '{provided_unit}.",
+            key=EcalcYamlKeywords.energy_usage_model_rate_unit,
+        )
+    unit = YAML_UNIT_MAPPING_GENERAL_FACILITY_INPUTS[provided_unit]
+
+    return unit
 
 
 ChartData = namedtuple(

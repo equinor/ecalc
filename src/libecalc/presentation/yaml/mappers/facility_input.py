@@ -4,12 +4,10 @@ import pydantic
 from pydantic import ValidationError
 
 from libecalc import dto
+from libecalc.common.units import DefaultWorkUnits
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import GeneratorSetSampled, TabulatedData
 from libecalc.dto.types import ChartType, EnergyModelType, EnergyUsageType
-from libecalc.presentation.yaml.mappers.utils import (
-    YAML_UNIT_MAPPING_GENERAL_FACILITY_INPUTS as yaml_unit_map,
-)
 from libecalc.presentation.yaml.mappers.utils import (
     chart_curves_as_resource_to_dto_format,
     convert_efficiency_to_fraction,
@@ -26,7 +24,9 @@ from libecalc.presentation.yaml.validation_errors import (
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_entities import Resource, Resources
-from libecalc.presentation.yaml.yaml_keywords import DefaultWorkUnits, EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_keywords import (
+    EcalcYamlKeywords,
+)
 
 # Used here to make pydantic understand which object to instantiate.
 EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrainSampledDTO]
@@ -92,28 +92,24 @@ def _create_compressor_train_sampled_dto_model_data(
     energy_usage_values = list(columns[energy_usage_index])
 
     # Ensure default work units - convert if input is not default work unit:
-    rate_values = (
-        units.get(rate_header).to(yaml_unit_map[DefaultWorkUnits.RATE])(rate_values)
-        if rate_values is not None
-        else None
-    )
+    rate_values = units.get(rate_header).to(DefaultWorkUnits().rate)(rate_values) if rate_values is not None else None
 
     suction_pressure_values = (
-        units.get(suction_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(suction_pressure_values)
+        units.get(suction_pressure_header).to(DefaultWorkUnits().pressure)(suction_pressure_values)
         if suction_pressure_values is not None
         else None
     )
 
     discharge_pressure_values = (
-        units.get(discharge_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(discharge_pressure_values)
+        units.get(discharge_pressure_header).to(DefaultWorkUnits().pressure)(discharge_pressure_values)
         if discharge_pressure_values is not None
         else None
     )
 
     if energy_usage_header == fuel_header and energy_usage_values is not None:
-        energy_usage_values = units.get(fuel_header).to(yaml_unit_map[DefaultWorkUnits.FUEL])(energy_usage_values)
+        energy_usage_values = units.get(fuel_header).to(DefaultWorkUnits().fuel)(energy_usage_values)
     elif energy_usage_header == power_header and energy_usage_values is not None:
-        energy_usage_values = units.get(power_header).to(yaml_unit_map[DefaultWorkUnits.POWER])(energy_usage_values)
+        energy_usage_values = units.get(power_header).to(DefaultWorkUnits().power)(energy_usage_values)
     else:
         energy_usage_values = None
 
@@ -158,16 +154,10 @@ def _create_generator_set_sampled_dto_model_data(resource: Resource, facility_da
 
     # Ensure correct work units - convert if not
     power_values = (
-        units.get(power_header).to(yaml_unit_map[DefaultWorkUnits.POWER])(power_values)
-        if power_values is not None
-        else None
+        units.get(power_header).to(DefaultWorkUnits().power)(power_values) if power_values is not None else None
     )
 
-    fuel_values = (
-        units.get(fuel_header).to(yaml_unit_map[DefaultWorkUnits.FUEL])(fuel_values)
-        if fuel_values is not None
-        else None
-    )
+    fuel_values = units.get(fuel_header).to(DefaultWorkUnits().fuel)(fuel_values) if fuel_values is not None else None
 
     data: List[List[float]] = [[0.0], [0.0]]
     data[power_index] = power_values
@@ -210,7 +200,7 @@ def _create_tabulated_data_dto_model_data(resource: Resource, facility_data, **k
 
     energy_usage_header = fuel_header if fuel_header in resource.headers else power_header
     energy_usage_index = resource.headers.index(energy_usage_header)
-    energy_default_work_unit = DefaultWorkUnits.FUEL if fuel_header in resource.headers else DefaultWorkUnits.POWER
+    energy_default_work_unit = DefaultWorkUnits().fuel if fuel_header in resource.headers else DefaultWorkUnits().power
     rate_index = resource.headers.index(rate_header) if rate_header in resource.headers else None
     suction_pressure_index = (
         resource.headers.index(suction_pressure_header) if suction_pressure_header in resource.headers else None
@@ -232,28 +222,26 @@ def _create_tabulated_data_dto_model_data(resource: Resource, facility_data, **k
     headers = []
 
     if rate_values is not None:
-        rate_values = units.get(rate_header).to(yaml_unit_map[DefaultWorkUnits.RATE])(rate_values)
+        rate_values = units.get(rate_header).to(DefaultWorkUnits().rate)(rate_values)
         data.append(rate_values)
         headers.append(rate_header)
 
     if suction_pressure_values is not None:
-        suction_pressure_values = units.get(suction_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(
+        suction_pressure_values = units.get(suction_pressure_header).to(DefaultWorkUnits().pressure)(
             suction_pressure_values
         )
         data.append(suction_pressure_values)
         headers.append(suction_pressure_header)
 
     if discharge_pressure_values is not None:
-        discharge_pressure_values = units.get(discharge_pressure_header).to(yaml_unit_map[DefaultWorkUnits.PRESSURE])(
+        discharge_pressure_values = units.get(discharge_pressure_header).to(DefaultWorkUnits().pressure)(
             discharge_pressure_values
         )
         data.append(discharge_pressure_values)
         headers.append(discharge_pressure_header)
 
     if energy_usage_values is not None:
-        energy_usage_values = units.get(energy_usage_header).to(yaml_unit_map[energy_default_work_unit])(
-            energy_usage_values
-        )
+        energy_usage_values = units.get(energy_usage_header).to(energy_default_work_unit)(energy_usage_values)
         data.append(energy_usage_values)
         headers.append(energy_usage_header)
 

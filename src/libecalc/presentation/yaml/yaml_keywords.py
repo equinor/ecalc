@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 """Module for all input keys."""
 
@@ -56,6 +57,7 @@ class EcalcYamlKeywords:
     pump_function_fluid_density = "FLUID_DENSITY"
 
     consumer_rate_unit = "UNIT"
+    energy_usage_model_rate_unit = "RATE_UNIT"
 
     facility_units = "UNITS"
     pressure_unit_bar = "BAR"
@@ -207,8 +209,36 @@ class EcalcYamlKeywords:
     date = "DATE"
 
 
-class DefaultWorkUnits(str, Enum):
+class DefaultWorkUnitsYaml(str, Enum):
     RATE = EcalcYamlKeywords.rate_unit_sm3_per_day
     FUEL = EcalcYamlKeywords.fuel_unit_sm3_per_day
     POWER = EcalcYamlKeywords.power_unit_mw
     PRESSURE = EcalcYamlKeywords.pressure_unit_bar
+
+
+class SupportedUnitsYaml:
+    @staticmethod
+    def rate() -> List[str]:
+        return [
+            EcalcYamlKeywords.rate_unit_sm3_per_day,
+            EcalcYamlKeywords.rate_unit_litres_per_day,
+        ]
+
+    @staticmethod
+    def fuel() -> List[str]:
+        return [
+            EcalcYamlKeywords.rate_unit_sm3_per_day,
+            EcalcYamlKeywords.rate_unit_litres_per_day,
+        ]
+
+    @staticmethod
+    def power() -> List[str]:
+        return [
+            EcalcYamlKeywords.power_unit_mw,
+        ]
+
+    @staticmethod
+    def pressure() -> List[str]:
+        return [
+            EcalcYamlKeywords.pressure_unit_bar,
+        ]
