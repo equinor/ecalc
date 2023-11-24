@@ -1,5 +1,22 @@
 # Changelog
 
+## [8.6.1](https://github.com/equinor/ecalc/compare/v8.6.0...v8.6.1) (2023-11-24)
+
+
+### Bug Fixes
+
+* bug in compressor with turbine models with multiple streams and only one date ([#297](https://github.com/equinor/ecalc/issues/297)) ([a1a24f1](https://github.com/equinor/ecalc/commit/a1a24f1ff0a8336d29930ccb0dc78ab0d471299d))
+
+
+### Miscellaneous Chores
+
+* fix typo ([a1a24f1](https://github.com/equinor/ecalc/commit/a1a24f1ff0a8336d29930ccb0dc78ab0d471299d))
+
+
+### Code Refactoring
+
+* change emission rate type to calendar day ([#300](https://github.com/equinor/ecalc/issues/300)) ([#301](https://github.com/equinor/ecalc/issues/301)) ([6465e9d](https://github.com/equinor/ecalc/commit/6465e9d7d25779c37eed93973f02fb5181429953))
+
 ## [8.6.0](https://github.com/equinor/ecalc/compare/v8.5.0...v8.6.0) (2023-11-21)
 
 
