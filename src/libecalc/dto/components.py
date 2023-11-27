@@ -143,8 +143,8 @@ class EmitterModel(EcalcBaseModel):
     _default_emission_rate = validator("emission_rate", allow_reuse=True, pre=True)(convert_expression)
 
 
-class DirectEmitter(BaseEquipment):
-    component_type = ComponentType.DIRECT_EMITTER
+class VentingEmitter(BaseEquipment):
+    component_type = ComponentType.VENTING_EMITTER
     emission_name: EmissionNameStr
     emitter_model: Dict[datetime, EmitterModel]
 
@@ -335,7 +335,7 @@ class Installation(BaseComponent):
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
     hydrocarbon_export: Dict[datetime, Expression]
     fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
-    direct_emitters: List[DirectEmitter] = Field(default_factory=list)
+    venting_emitters: List[VentingEmitter] = Field(default_factory=list)
 
     @property
     def id(self) -> str:
@@ -365,7 +365,7 @@ class Installation(BaseComponent):
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
         graph.add_node(self)
-        for component in [*self.fuel_consumers, *self.direct_emitters]:
+        for component in [*self.fuel_consumers, *self.venting_emitters]:
             if hasattr(component, "get_graph"):
                 graph.add_subgraph(component.get_graph())
             else:
@@ -399,7 +399,7 @@ class Asset(Component):
                 for electricity_consumer in fuel_consumer.consumers:
                     component_ids.append(electricity_consumer.id)
 
-        for emitter in installation.direct_emitters:
+        for emitter in installation.venting_emitters:
             component_ids.append(emitter.id)
         return component_ids
 
@@ -415,9 +415,9 @@ class Asset(Component):
         for installation in values["installations"]:
             names.append(installation.name)
             fuel_consumers = installation.fuel_consumers
-            direct_emitters = installation.direct_emitters
+            venting_emitters = installation.venting_emitters
 
-            names.extend([direct_emitter.name for direct_emitter in direct_emitters])
+            names.extend([venting_emitter.name for venting_emitter in venting_emitters])
             for fuel_consumer in fuel_consumers:
                 names.append(fuel_consumer.name)
                 if isinstance(fuel_consumer, GeneratorSet):

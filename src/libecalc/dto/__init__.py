@@ -1,12 +1,12 @@
 from libecalc.dto.components import (
     Asset,
     BaseConsumer,
-    DirectEmitter,
     ElectricityConsumer,
     EmitterModel,
     FuelConsumer,
     GeneratorSet,
     Installation,
+    VentingEmitter,
 )
 from libecalc.dto.emission import Emission
 from libecalc.dto.models import (
@@ -22,7 +22,6 @@ from libecalc.dto.models import (
     CompressorTrainSimplifiedWithUnknownStages,
     CompressorWithTurbine,
     ConsumerFunction,
-    DirectConsumerFunction,
     ElectricEnergyUsageModel,
     EnergyModel,
     EnergyModelSampled,
@@ -45,6 +44,7 @@ from libecalc.dto.models import (
     Turbine,
     Variables,
     VariableSpeedChart,
+    VentingConsumerFunction,
 )
 from libecalc.dto.models.compressor import (
     CompressorStage,

@@ -13,10 +13,10 @@ from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.core.consumers.consumer_system import ConsumerSystem
-from libecalc.core.consumers.direct_emitter import DirectEmitter
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
+from libecalc.core.consumers.venting_emitter import VentingEmitter
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
@@ -169,6 +169,6 @@ class EnergyCalculator:
                     emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
                         variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
-            elif isinstance(consumer_dto, dto.DirectEmitter):
-                emission_results[consumer_dto.id] = DirectEmitter(consumer_dto).evaluate(variables_map=variables_map)
+            elif isinstance(consumer_dto, dto.VentingEmitter):
+                emission_results[consumer_dto.id] = VentingEmitter(consumer_dto).evaluate(variables_map=variables_map)
         return emission_results

@@ -9,8 +9,8 @@ from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 
 
-class DirectConsumerFunction(ConsumerFunction):
-    typ: Literal[ConsumerType.DIRECT] = ConsumerType.DIRECT
+class VentingConsumerFunction(ConsumerFunction):
+    typ: Literal[ConsumerType.VENTING] = ConsumerType.VENTING
     fuel_rate: Optional[Expression]
     load: Optional[Expression]
     power_loss_factor: Optional[Expression] = None
@@ -23,5 +23,5 @@ class DirectConsumerFunction(ConsumerFunction):
     @root_validator
     def validate_either_load_or_fuel_rate(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if values.get("fuel_rate") is None and values.get("load") is None:
-            raise ValueError(f"Either 'fuel_rate' or 'load' should be specified for '{ConsumerType.DIRECT}' models.")
+            raise ValueError(f"Either 'fuel_rate' or 'load' should be specified for '{ConsumerType.VENTING}' models.")
         return values

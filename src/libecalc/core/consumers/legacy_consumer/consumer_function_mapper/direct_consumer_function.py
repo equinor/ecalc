@@ -4,5 +4,5 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression
 )
 
 
-def create_direct_consumer_function(model_dto: dto.DirectConsumerFunction) -> DirectExpressionConsumerFunction:
+def create_direct_consumer_function(model_dto: dto.VentingConsumerFunction) -> DirectExpressionConsumerFunction:
     return DirectExpressionConsumerFunction(model_dto)

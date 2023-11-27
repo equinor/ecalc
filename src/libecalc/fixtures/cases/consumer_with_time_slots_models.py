@@ -13,8 +13,8 @@ from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 
 
-def direct_consumer(power: float) -> dto.DirectConsumerFunction:
-    return dto.DirectConsumerFunction(
+def direct_consumer(power: float) -> dto.VentingConsumerFunction:
+    return dto.VentingConsumerFunction(
         load=Expression.setup_from_expression(value=power),
         energy_usage_type=dto.types.EnergyUsageType.POWER,
     )
@@ -288,7 +288,7 @@ def consumer_with_time_slots_models_dto(
                         ),
                         tabulated_fuel_consumer_with_time_slots(fuel_gas),
                     ],
-                    direct_emitters=[],
+                    venting_emitters=[],
                 )
             ],
         ),

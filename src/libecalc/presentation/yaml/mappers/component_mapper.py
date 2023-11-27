@@ -243,7 +243,7 @@ class EmitterModelMapper:
     def create_model(model: Dict, regularity: Dict[datetime, Expression]):
         name = model.get(EcalcYamlKeywords.name, "")
         user_defined_category = model.get(EcalcYamlKeywords.user_defined_tag, "")
-        emission_rate = model.get(EcalcYamlKeywords.installation_direct_emitter_emission_rate)
+        emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
 
         try:
             return dto.EmitterModel(
@@ -265,7 +265,7 @@ class EmitterModelMapper:
         }
 
 
-class DirectEmittersMapper:
+class VentingEmittersMapper:
     """Mapping DirectEmitters and the corresponding EmitterModel."""
 
     def __init__(self, references: References, target_period: Period):
@@ -277,19 +277,19 @@ class DirectEmittersMapper:
         self,
         data: Dict[str, Dict],
         regularity: Dict[datetime, Expression],
-    ) -> dto.DirectEmitter:
+    ) -> dto.VentingEmitter:
         emitter_model = self.__emitter_model_mapper.from_yaml_to_dto(
-            data.get(EcalcYamlKeywords.installation_direct_emitter_model),
+            data.get(EcalcYamlKeywords.installation_venting_emitter_model),
             regularity=regularity,
         )
         try:
-            direct_emitter_name = data.get(EcalcYamlKeywords.name)
-            return dto.DirectEmitter(
-                name=direct_emitter_name,
+            venting_emitter_name = data.get(EcalcYamlKeywords.name)
+            return dto.VentingEmitter(
+                name=venting_emitter_name,
                 user_defined_category=define_time_model_for_period(
                     data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
                 ),
-                emission_name=data.get(EcalcYamlKeywords.installation_direct_emitter_emission_name),
+                emission_name=data.get(EcalcYamlKeywords.installation_venting_emitter_emission_name),
                 emitter_model=emitter_model,
                 regularity=regularity,
             )
@@ -303,7 +303,7 @@ class InstallationMapper:
         self._target_period = target_period
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
-        self.__direct_emitters_mapper = DirectEmittersMapper(references=references, target_period=target_period)
+        self.__venting_emitters_mapper = VentingEmittersMapper(references=references, target_period=target_period)
 
     def from_yaml_to_dto(self, data: Dict) -> dto.Installation:
         fuel_data = data.get(EcalcYamlKeywords.fuel)
@@ -330,12 +330,12 @@ class InstallationMapper:
             )
             for fuel_consumer in data.get(EcalcYamlKeywords.fuel_consumers, [])
         ]
-        direct_emitters = [
-            self.__direct_emitters_mapper.from_yaml_to_dto(
-                direct_emitters,
+        venting_emitters = [
+            self.__venting_emitters_mapper.from_yaml_to_dto(
+                venting_emitters,
                 regularity=regularity,
             )
-            for direct_emitters in data.get(EcalcYamlKeywords.installation_direct_emitters, [])
+            for venting_emitters in data.get(EcalcYamlKeywords.installation_venting_emitters, [])
         ]
 
         hydrocarbon_export = define_time_model_for_period(
@@ -352,7 +352,7 @@ class InstallationMapper:
                 regularity=regularity,
                 hydrocarbon_export=hydrocarbon_export,
                 fuel_consumers=[*generator_sets, *fuel_consumers],
-                direct_emitters=direct_emitters,
+                venting_emitters=venting_emitters,
                 user_defined_category=data.get(EcalcYamlKeywords.user_defined_tag),
             )
         except ValidationError as e:

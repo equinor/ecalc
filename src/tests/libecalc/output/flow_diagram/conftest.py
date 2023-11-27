@@ -143,7 +143,7 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> dto.FuelConsumer:
         user_defined_category={datetime.datetime(1900, 1, 1): "COMPRESSOR"},
         fuel={datetime.datetime(1900, 1, 1): fuel_type_fd},
         energy_usage_model={
-            datetime.datetime(2019, 1, 1): dto.DirectConsumerFunction(
+            datetime.datetime(2019, 1, 1): dto.VentingConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value=5), energy_usage_type=dto.types.EnergyUsageType.FUEL
             )
         },

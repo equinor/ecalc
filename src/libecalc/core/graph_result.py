@@ -1147,7 +1147,7 @@ class GraphResult:
                         consumer_result.component_result.energy_usage, regularity=regularity
                     ).to_stream_day(),
                 )
-            else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, DIRECT_EMITTER
+            else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, VENTING_EMITTER
                 obj = parse_obj_as(
                     libecalc.dto.result.ComponentResult,
                     {
@@ -1191,7 +1191,7 @@ class GraphResult:
 
         for installation in asset.installations:
             regularity = regularities[installation.id]  # Already evaluated regularities
-            for direct_emitter in installation.direct_emitters:
+            for venting_emitter in installation.venting_emitters:
                 energy_usage = TimeSeriesRate(
                     timesteps=self.variables_map.time_vector,
                     values=[0.0] * self.variables_map.length,
@@ -1201,12 +1201,12 @@ class GraphResult:
                 )
                 sub_components.append(
                     libecalc.dto.result.DirectEmitterResult(
-                        id=direct_emitter.id,
-                        name=direct_emitter.name,
-                        componentType=direct_emitter.component_type,
+                        id=venting_emitter.id,
+                        name=venting_emitter.name,
+                        componentType=venting_emitter.component_type,
                         component_level=ComponentLevel.CONSUMER,
                         parent=installation.id,
-                        emissions=self._parse_emissions(self.emission_results[direct_emitter.id], regularity),
+                        emissions=self._parse_emissions(self.emission_results[venting_emitter.id], regularity),
                         timesteps=self.variables_map.time_vector,
                         is_valid=TimeSeriesBoolean(
                             timesteps=self.variables_map.time_vector,

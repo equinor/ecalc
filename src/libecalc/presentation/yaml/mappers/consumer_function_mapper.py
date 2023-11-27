@@ -183,13 +183,13 @@ def _pump_system_mapper(energy_usage_model: Dict, references: References = None)
     )
 
 
-def _direct_mapper(energy_usage_model: Dict, references: References = None) -> dto.DirectConsumerFunction:
+def _direct_mapper(energy_usage_model: Dict, references: References = None) -> dto.VentingConsumerFunction:
     """Change type to match DTOs, then pass the dict on to DTO to automatically create the correct DTO.
     :param energy_usage_model:
     :return:
     """
     is_power_consumer = EcalcYamlKeywords.load in energy_usage_model
-    return dto.DirectConsumerFunction(
+    return dto.VentingConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER if is_power_consumer else EnergyUsageType.FUEL,
         load=energy_usage_model.get(EcalcYamlKeywords.load),
         fuel_rate=energy_usage_model.get(EcalcYamlKeywords.fuel_rate),

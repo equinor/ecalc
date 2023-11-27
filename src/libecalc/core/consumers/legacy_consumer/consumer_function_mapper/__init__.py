@@ -13,7 +13,7 @@ from .pump_system_consumer_function import create_pump_system
 from .tabulated import create_tabulated_consumer_function
 
 TConsumerFunction = Union[
-    dto.DirectConsumerFunction,
+    dto.VentingConsumerFunction,
     dto.CompressorConsumerFunction,
     dto.CompressorSystemConsumerFunction,
     dto.TabulatedConsumerFunction,

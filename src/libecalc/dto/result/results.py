@@ -140,7 +140,7 @@ class CompressorResult(EquipmentResultBase):
 
 
 class DirectEmitterResult(EquipmentResultBase):
-    componentType: Literal[ComponentType.DIRECT_EMITTER]
+    componentType: Literal[ComponentType.VENTING_EMITTER]
 
 
 class ConsumerModelResultBase(NodeInfo, CommonResultBase):
