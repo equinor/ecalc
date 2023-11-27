@@ -18,7 +18,7 @@ class EnergyUsageType(str, Enum):
 
 
 class ConsumerType(str, Enum):
-    VENTING = "VENTING"
+    DIRECT = "DIRECT"
     COMPRESSOR = "COMPRESSOR"
     PUMP = "PUMP"
     COMPRESSOR_SYSTEM = "COMPRESSOR_SYSTEM"

@@ -25,7 +25,7 @@ class VentingEmitter:
         This means that we can simulate a direct emission as a normal fuel consumer the same,
         but using the simplification mentioned above.
         """
-        logger.debug(f"Creating DirectEmitter: {venting_emitter_dto.name}")
+        logger.debug(f"Creating VentingEmitter: {venting_emitter_dto.name}")
 
         self.venting_emitter_dto = venting_emitter_dto
         self.temporal_fuel_model = FuelModel(
@@ -57,7 +57,7 @@ class VentingEmitter:
         self,
         variables_map: VariablesMap,
     ) -> Dict[str, EmissionResult]:
-        logger.debug(f"Evaluating DirectEmitter: {self.venting_emitter_dto.name}")
+        logger.debug(f"Evaluating VentingEmitter: {self.venting_emitter_dto.name}")
         fuel_rate = self.evaluate_fuel_rate(variables_map=variables_map)
         return self.temporal_fuel_model.evaluate_emissions(
             variables_map=variables_map,
