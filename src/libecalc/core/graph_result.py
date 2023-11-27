@@ -1200,7 +1200,7 @@ class GraphResult:
                     rate_type=RateType.CALENDAR_DAY,
                 )
                 sub_components.append(
-                    libecalc.dto.result.DirectEmitterResult(
+                    libecalc.dto.result.VentingEmitterResult(
                         id=venting_emitter.id,
                         name=venting_emitter.name,
                         componentType=venting_emitter.component_type,

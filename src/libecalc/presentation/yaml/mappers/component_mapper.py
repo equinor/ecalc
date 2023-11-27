@@ -233,7 +233,7 @@ class GeneratorSetMapper:
 
 
 class EmitterModelMapper:
-    """EmitterModel used by DirectEmitters."""
+    """EmitterModel used by VentingEmitters."""
 
     def __init__(self, references: References, target_period: Period):
         self._target_period = target_period
@@ -266,7 +266,7 @@ class EmitterModelMapper:
 
 
 class VentingEmittersMapper:
-    """Mapping DirectEmitters and the corresponding EmitterModel."""
+    """Mapping VentingEmitters and the corresponding EmitterModel."""
 
     def __init__(self, references: References, target_period: Period):
         self.__references = references

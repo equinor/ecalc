@@ -6,7 +6,6 @@ from .results import (
     CompressorResult,
     ConsumerModelResult,
     ConsumerSystemResult,
-    DirectEmitterResult,
     EcalcModelResult,
     GeneratorSetResult,
     GenericConsumerResult,
@@ -14,4 +13,5 @@ from .results import (
     InstallationResult,
     PumpModelResult,
     PumpResult,
+    VentingEmitterResult,
 )
