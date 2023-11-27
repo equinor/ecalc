@@ -46,7 +46,7 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
     # train-stages are also included as CONSUMER_MODELs
     model_results = result.models
     assert isinstance(model_results, list)
-    assert len(model_results) == 3
+    assert len(model_results) == 5
 
 
 def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_same_model_type):
