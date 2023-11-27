@@ -971,10 +971,10 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
 
 
 @pytest.fixture
-def methane_direct(regularity) -> dto.DirectEmitter:
-    return dto.DirectEmitter(
+def methane_direct(regularity) -> dto.VentingEmitter:
+    return dto.VentingEmitter(
         name="methane_direct",
-        component_type=ComponentType.DIRECT_EMITTER,
+        component_type=ComponentType.VENTING_EMITTER,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
         emission_name="CH4",
         emitter_model={
@@ -1103,7 +1103,7 @@ def all_energy_usage_models_dto(
                         turbine_driven_compressor_train,
                         compressor_system_variable_speed_compressor_trains,
                     ],
-                    direct_emitters=[
+                    venting_emitters=[
                         methane_direct,
                     ],
                 )
