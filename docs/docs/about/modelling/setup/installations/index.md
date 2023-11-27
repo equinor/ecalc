@@ -60,7 +60,7 @@ INSTALLATIONS:
     FUEL: <fuel specification for installation 1>
     HCEXPORT: <hydrocarbon export specification for installation 1>
     REGULARITY: <regularity specification for installation 1>
-    DIRECT_EMITTERS: <direct emissions specification for installation 1>
+    VENTING_EMITTERS: <direct emissions specification for installation 1>
     CATEGORY: <category for installation 1>
   - NAME: <name of installation 2>
     GENERATORSETS: <generator set specifications for installation 2>
@@ -68,7 +68,7 @@ INSTALLATIONS:
     FUEL: <fuel specification for installation 2>
     HCEXPORT: <hydrocarbon export specification for installation 2>
     REGULARITY: <regularity specification for installation 2>
-    DIRECT_EMITTERS: <direct emissions specification for installation 2>
+    VENTING_EMITTERS: <direct emissions specification for installation 2>
     CATEGORY: <category for installation 2>
   - ...
 ~~~~~~~~

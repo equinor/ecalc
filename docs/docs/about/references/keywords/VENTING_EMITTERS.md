@@ -1,7 +1,7 @@
-# DIRECT_EMITTERS
+# VENTING_EMITTERS
 
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
-[DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md)
+[VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md)
 
 
 | Required   | Child of                  | Children/Options                   |
@@ -10,14 +10,14 @@
 
 
 ## Description
-The [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md) keyword covers the direct emissions on the installation
+The [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md) keyword covers the direct emissions on the installation
 that are not consuming energy. The attributes [NAME](/about/references/keywords/NAME.md),
 [EMISSION_NAME](/about/references/keywords/EMISSION_NAME.md), [CATEGORY](/about/references/keywords/CATEGORY.md) and
 [EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) are required.
 
 ## Format
 ~~~~~~~~yaml
-DIRECT_EMITTER:
+VENTING_EMITTER:
   - NAME: <emitter name>
     EMISSION_NAME: <emission name>
     CATEGORY: <category>
@@ -26,14 +26,14 @@ DIRECT_EMITTER:
 
 ## Example
 ~~~~~~~~yaml
-DIRECT_EMITTER:
-  - NAME: SomeDirectEmitter
+VENTING_EMITTER:
+  - NAME: SomeVentingEmitter
     EMISSION_NAME: CH4
     CATEGORY: COLD-VENTING-FUGITIVE
     EMITTER_MODEL:
       <emitter model data>
   ...
-  - NAME: SomeOtherDirectEmitter
+  - NAME: SomeOtherVentingEmitter
     EMISSION_NAME: C2H6
     CATEGORY: COLD-VENTING-FUGITIVE
     EMITTER_MODEL:
