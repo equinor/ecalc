@@ -453,7 +453,7 @@
                     "title": "Density",
                     "type": "object"
                 },
-                "YamlDirectEmitter": {
+                "YamlVentingEmitter": {
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
@@ -503,7 +503,7 @@
                         "EMISSION_NAME",
                         "EMITTER_MODEL"
                     ],
-                    "title": "YamlDirectEmitter",
+                    "title": "YamlVentingEmitter",
                     "type": "object"
                 },
                 "YamlElectricityConsumer": {
@@ -851,12 +851,12 @@
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
                         },
-                        "DIRECT_EMITTERS": {
+                        "VENTING_EMITTERS": {
                             "description": "Covers the direct emissions on the installation that are not consuming energy",
                             "items": {
-                                "$ref": "#/definitions/YamlDirectEmitter"
+                                "$ref": "#/definitions/YamlVentingEmitter"
                             },
-                            "title": "DIRECT_EMITTERS",
+                            "title": "VENTING_EMITTERS",
                             "type": "array"
                         },
                         "FUEL": {
