@@ -37,7 +37,7 @@ from .consumer_system import (
     PumpSystemPump,
     SystemOperationalSetting,
 )
-from .direct import VentingConsumerFunction
+from .direct import DirectConsumerFunction
 from .generator_set import GeneratorSetSampled
 from .pump import PumpConsumerFunction, PumpModel
 from .sampled import EnergyModelSampled
@@ -45,7 +45,7 @@ from .tabulated import TabulatedConsumerFunction, TabulatedData, Variables
 from .turbine import Turbine
 
 ElectricEnergyUsageModel = Union[
-    VentingConsumerFunction,
+    DirectConsumerFunction,
     CompressorConsumerFunction,
     CompressorSystemConsumerFunction,
     PumpConsumerFunction,
@@ -54,7 +54,7 @@ ElectricEnergyUsageModel = Union[
 ]
 
 FuelEnergyUsageModel = Union[
-    VentingConsumerFunction,
+    DirectConsumerFunction,
     CompressorConsumerFunction,
     CompressorSystemConsumerFunction,
     TabulatedConsumerFunction,

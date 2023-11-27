@@ -79,22 +79,22 @@ def direct_el_consumer() -> dto.ElectricityConsumer:
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): "FIXED-PRODUCTION-LOAD"},
         energy_usage_model={
-            datetime(2020, 1, 1): dto.VentingConsumerFunction(
+            datetime(2020, 1, 1): dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=1),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
                 consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
             ),
-            datetime(2021, 1, 1): dto.VentingConsumerFunction(  # Run above capacity
+            datetime(2021, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=2),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
                 consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
             ),
-            datetime(2022, 1, 1): dto.VentingConsumerFunction(  # Run above capacity
+            datetime(2022, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=10),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
                 consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
             ),
-            datetime(2023, 1, 1): dto.VentingConsumerFunction(  # Ensure we handle 0 load as well.
+            datetime(2023, 1, 1): dto.DirectConsumerFunction(  # Ensure we handle 0 load as well.
                 load=Expression.setup_from_expression(value=0),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
                 consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,

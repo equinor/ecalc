@@ -40,7 +40,7 @@ def minimal_installation_dto(
                     )
                 },
                 energy_usage_model={
-                    start: dto.VentingConsumerFunction(
+                    start: dto.DirectConsumerFunction(
                         fuel_rate=Expression.setup_from_expression(fuel_rate),
                         energy_usage_type=EnergyUsageType.FUEL,
                     )

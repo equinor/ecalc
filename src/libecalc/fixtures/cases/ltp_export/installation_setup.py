@@ -159,8 +159,8 @@ def category_dict_coarse() -> Dict[datetime, ConsumerUserDefinedCategoryType]:
     }
 
 
-def direct_consumer(power: float) -> dto.VentingConsumerFunction:
-    return dto.VentingConsumerFunction(
+def direct_consumer(power: float) -> dto.DirectConsumerFunction:
+    return dto.DirectConsumerFunction(
         load=Expression.setup_from_expression(value=power),
         energy_usage_type=dto.types.EnergyUsageType.POWER,
     )
@@ -204,7 +204,7 @@ def simple_direct_el_consumer() -> dto.ElectricityConsumer:
         component_type=dto.base.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
-            date1: dto.VentingConsumerFunction(
+            date1: dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
@@ -220,7 +220,7 @@ def simple_direct_el_consumer_mobile() -> dto.ElectricityConsumer:
         component_type=dto.base.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
-            date1: dto.VentingConsumerFunction(
+            date1: dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
@@ -252,7 +252,7 @@ def boiler_heater() -> dto.FuelConsumer:
         },
         regularity=regularity_temporal_consumer,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.VentingConsumerFunction(
+            datetime(1900, 1, 1): dto.DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value=fuel_rate),
                 energy_usage_type=dto.types.EnergyUsageType.FUEL,
             )

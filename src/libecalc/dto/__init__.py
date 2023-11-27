@@ -22,6 +22,7 @@ from libecalc.dto.models import (
     CompressorTrainSimplifiedWithUnknownStages,
     CompressorWithTurbine,
     ConsumerFunction,
+    DirectConsumerFunction,
     ElectricEnergyUsageModel,
     EnergyModel,
     EnergyModelSampled,
@@ -44,7 +45,6 @@ from libecalc.dto.models import (
     Turbine,
     Variables,
     VariableSpeedChart,
-    VentingConsumerFunction,
 )
 from libecalc.dto.models.compressor import (
     CompressorStage,

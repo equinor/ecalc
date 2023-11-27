@@ -22,7 +22,7 @@ from libecalc.dto.variables import VariablesMap
 class DirectExpressionConsumerFunction(ConsumerFunction):
     def __init__(
         self,
-        data_transfer_object: dto.VentingConsumerFunction,
+        data_transfer_object: dto.DirectConsumerFunction,
     ):
         expression = (
             data_transfer_object.fuel_rate

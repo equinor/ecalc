@@ -18,7 +18,7 @@ from .all_models_dto import (
     genset_sampled,
     late_start_consumer,
     late_start_consumer_evolving_type,
-    methane_direct,
+    methane_venting,
     pump_system_el_consumer,
     salt_water_injection_tabular,
     simplified_compressor_system,

@@ -9,8 +9,8 @@ from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 
 
-class VentingConsumerFunction(ConsumerFunction):
-    typ: Literal[ConsumerType.VENTING] = ConsumerType.VENTING
+class DirectConsumerFunction(ConsumerFunction):
+    typ: Literal[ConsumerType.DIRECT] = ConsumerType.DIRECT
     fuel_rate: Optional[Expression]
     load: Optional[Expression]
     power_loss_factor: Optional[Expression] = None

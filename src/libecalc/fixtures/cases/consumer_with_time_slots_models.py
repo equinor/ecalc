@@ -13,8 +13,8 @@ from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 
 
-def direct_consumer(power: float) -> dto.VentingConsumerFunction:
-    return dto.VentingConsumerFunction(
+def direct_consumer(power: float) -> dto.DirectConsumerFunction:
+    return dto.DirectConsumerFunction(
         load=Expression.setup_from_expression(value=power),
         energy_usage_type=dto.types.EnergyUsageType.POWER,
     )
