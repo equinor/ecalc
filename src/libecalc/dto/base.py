@@ -26,7 +26,7 @@ class ComponentType(str, Enum):
     PUMP_V2 = "PUMP@v2"
     GENERIC = "GENERIC"
     # TURBINE = "TURBINE"
-    DIRECT_EMITTER = "DIRECT_EMITTER"
+    VENTING_EMITTER = "VENTING_EMITTER"
     TRAIN_V2 = "TRAIN@V2"
 
     def __lt__(self, other: "ComponentType"):  # type: ignore[override]

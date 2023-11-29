@@ -244,7 +244,7 @@ def compressor_sampled():
 def boiler_heater() -> dto.FuelConsumer:
     return dto.FuelConsumer(
         name="boiler",
-        component_type=dto.base.ComponentType.DIRECT_EMITTER,
+        component_type=dto.base.ComponentType.VENTING_EMITTER,
         fuel={date1: fuel_turbine()},
         user_defined_category={
             date1: ConsumerUserDefinedCategoryType.BOILER,

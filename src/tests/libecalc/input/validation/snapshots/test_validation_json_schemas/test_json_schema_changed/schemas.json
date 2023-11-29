@@ -453,59 +453,6 @@
                     "title": "Density",
                     "type": "object"
                 },
-                "YamlDirectEmitter": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "CATEGORY"
-                        },
-                        "EMISSION_NAME": {
-                            "description": "Name of emission",
-                            "title": "EMISSION_NAME",
-                            "type": "string"
-                        },
-                        "EMITTER_MODEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlEmitterModel"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/YamlEmitterModel"
-                                    },
-                                    "type": "object"
-                                }
-                            ],
-                            "description": "The emitter model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EMITTER_MODEL",
-                            "title": "EMITTER_MODEL"
-                        },
-                        "NAME": {
-                            "description": "Name of the emitter.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CATEGORY",
-                        "EMISSION_NAME",
-                        "EMITTER_MODEL"
-                    ],
-                    "title": "YamlDirectEmitter",
-                    "type": "object"
-                },
                 "YamlElectricityConsumer": {
                     "additionalProperties": false,
                     "properties": {
@@ -851,14 +798,6 @@
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
                         },
-                        "DIRECT_EMITTERS": {
-                            "description": "Covers the direct emissions on the installation that are not consuming energy",
-                            "items": {
-                                "$ref": "#/definitions/YamlDirectEmitter"
-                            },
-                            "title": "DIRECT_EMITTERS",
-                            "type": "array"
-                        },
                         "FUEL": {
                             "anyOf": [
                                 {
@@ -1001,6 +940,14 @@
                             ],
                             "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
                             "title": "REGULARITY"
+                        },
+                        "VENTING_EMITTERS": {
+                            "description": "Covers the direct emissions on the installation that are not consuming energy",
+                            "items": {
+                                "$ref": "#/definitions/YamlVentingEmitter"
+                            },
+                            "title": "VENTING_EMITTERS",
+                            "type": "array"
                         }
                     },
                     "required": [
@@ -1545,6 +1492,59 @@
                         "STAGES"
                     ],
                     "title": "YamlTrain[YamlCompressor]",
+                    "type": "object"
+                },
+                "YamlVentingEmitter": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
+                        "EMISSION_NAME": {
+                            "description": "Name of emission",
+                            "title": "EMISSION_NAME",
+                            "type": "string"
+                        },
+                        "EMITTER_MODEL": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/YamlEmitterModel"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "$ref": "#/definitions/YamlEmitterModel"
+                                    },
+                                    "type": "object"
+                                }
+                            ],
+                            "description": "The emitter model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EMITTER_MODEL",
+                            "title": "EMITTER_MODEL"
+                        },
+                        "NAME": {
+                            "description": "Name of the emitter.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CATEGORY",
+                        "EMISSION_NAME",
+                        "EMITTER_MODEL"
+                    ],
+                    "title": "YamlVentingEmitter",
                     "type": "object"
                 }
             },

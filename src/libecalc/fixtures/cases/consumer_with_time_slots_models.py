@@ -288,7 +288,7 @@ def consumer_with_time_slots_models_dto(
                         ),
                         tabulated_fuel_consumer_with_time_slots(fuel_gas),
                     ],
-                    direct_emitters=[],
+                    venting_emitters=[],
                 )
             ],
         ),

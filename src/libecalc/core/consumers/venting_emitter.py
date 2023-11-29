@@ -15,41 +15,41 @@ from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
 
-class DirectEmitter:
+class VentingEmitter:
     """A class for direct (not fuel based) emissions."""
 
-    def __init__(self, direct_emitter_dto: dto.DirectEmitter):
-        """We model a Direct Emitter as a Fuel Consumer, where the emission rate (kg/day) and
+    def __init__(self, venting_emitter_dto: dto.VentingEmitter):
+        """We model a Venting Emitter as a Fuel Consumer, where the emission rate (kg/day) and
         the fuel rate (unit-less) are handled as 1 to 1.
 
         This means that we can simulate a direct emission as a normal fuel consumer the same,
         but using the simplification mentioned above.
         """
-        logger.debug(f"Creating DirectEmitter: {direct_emitter_dto.name}")
+        logger.debug(f"Creating VentingEmitter: {venting_emitter_dto.name}")
 
-        self.direct_emitter_dto = direct_emitter_dto
+        self.venting_emitter_dto = venting_emitter_dto
         self.temporal_fuel_model = FuelModel(
             {
                 start_time: FuelType(
-                    name=direct_emitter_dto.name,
-                    # This is the DIRECT-EMITTER CATEGORY which is fed into the fuel modet -> fuel validation error
+                    name=venting_emitter_dto.name,
+                    # This is the VENTING-EMITTER CATEGORY which is fed into the fuel modet -> fuel validation error
                     # Commented out, meaning the fuel model has CATEGORY set to None
-                    # user_defined_category=direct_emitter_dto.user_defined_category,
+                    # user_defined_category=venting_emitter_dto.user_defined_category,
                     emissions=[
                         Emission(
-                            name=direct_emitter_dto.emission_name,
+                            name=venting_emitter_dto.emission_name,
                             factor=Expression.setup_from_expression(1),  # See docstring.  # See docstring
                         )
                     ],
                 )
-                for start_time, emitter_model in direct_emitter_dto.emitter_model.items()
+                for start_time, emitter_model in venting_emitter_dto.emitter_model.items()
             }
         )
 
         self.temporal_emission_rate_model = TemporalModel(
             {
                 start_time: emitter_model.emission_rate
-                for start_time, emitter_model in direct_emitter_dto.emitter_model.items()
+                for start_time, emitter_model in venting_emitter_dto.emitter_model.items()
             }
         )
 
@@ -57,7 +57,7 @@ class DirectEmitter:
         self,
         variables_map: VariablesMap,
     ) -> Dict[str, EmissionResult]:
-        logger.debug(f"Evaluating DirectEmitter: {self.direct_emitter_dto.name}")
+        logger.debug(f"Evaluating VentingEmitter: {self.venting_emitter_dto.name}")
         fuel_rate = self.evaluate_fuel_rate(variables_map=variables_map)
         return self.temporal_fuel_model.evaluate_emissions(
             variables_map=variables_map,

@@ -5,7 +5,7 @@
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
-| Yes         | `DIRECT_EMITTERS`      | None                               |
+| Yes         | `VENTING_EMITTERS`      | None                               |
 
 ## Description
 Name of an entity.
@@ -16,10 +16,10 @@ EMISSION_NAME: <name>
 ~~~~~~~~
 
 ## Example
-Usage in [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md):
+Usage in [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md):
 
 ~~~~~~~~yaml
-DIRECT_EMITTERS:
+VENTING_EMITTERS:
   - EMISSION_NAME: CH4
 ~~~~~~~~
 

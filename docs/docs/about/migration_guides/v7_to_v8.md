@@ -123,7 +123,7 @@ See [INSTALLATION](../references/keywords/INSTALLATIONS.md),
 [GENERATORSET](../references/keywords/GENERATORSETS.md),
 [CONSUMERS](../references/keywords/CONSUMERS.md),
 [FUELCONSUMERS](../references/keywords/FUELCONSUMERS.md),
-[DIRECT_EMITTER](../references/keywords/DIRECT_EMITTERS.md)
+[VENTING_EMITTER](../references/keywords/VENTING_EMITTERS.md)
 for more details about the relevant keywords.
 
 :::tip Are you using power from shore?

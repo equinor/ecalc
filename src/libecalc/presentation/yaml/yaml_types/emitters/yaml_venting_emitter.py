@@ -17,7 +17,7 @@ class YamlEmitterModel(YamlBase):
     )
 
 
-class YamlDirectEmitter(YamlBase):
+class YamlVentingEmitter(YamlBase):
     name: str = Field(
         ...,
         title="NAME",

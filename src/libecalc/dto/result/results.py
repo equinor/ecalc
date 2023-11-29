@@ -139,8 +139,8 @@ class CompressorResult(EquipmentResultBase):
     streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
 
 
-class DirectEmitterResult(EquipmentResultBase):
-    componentType: Literal[ComponentType.DIRECT_EMITTER]
+class VentingEmitterResult(EquipmentResultBase):
+    componentType: Literal[ComponentType.VENTING_EMITTER]
 
 
 class ConsumerModelResultBase(NodeInfo, CommonResultBase):
@@ -242,7 +242,7 @@ ComponentResult = Annotated[
         CompressorResult,
         PumpResult,
         GenericConsumerResult,
-        DirectEmitterResult,
+        VentingEmitterResult,
     ],
     Field(discriminator="componentType"),
 ]

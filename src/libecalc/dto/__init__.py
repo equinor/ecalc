@@ -1,12 +1,12 @@
 from libecalc.dto.components import (
     Asset,
     BaseConsumer,
-    DirectEmitter,
     ElectricityConsumer,
     EmitterModel,
     FuelConsumer,
     GeneratorSet,
     Installation,
+    VentingEmitter,
 )
 from libecalc.dto.emission import Emission
 from libecalc.dto.models import (

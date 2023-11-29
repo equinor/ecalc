@@ -613,8 +613,8 @@ INSTALLATIONS:
                   - SIM1;GAS_PROD {/} 2
                 SUCTION_PRESSURE: 50
                 DISCHARGE_PRESSURE: 250
-    DIRECT_EMITTERS:
-      - NAME: methane_direct
+    VENTING_EMITTERS:
+      - NAME: methane_venting
         EMISSION_NAME: CH4
         CATEGORY: COLD-VENTING-FUGITIVE
         EMITTER_MODEL:

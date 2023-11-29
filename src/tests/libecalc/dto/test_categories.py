@@ -15,7 +15,7 @@ from pydantic import ValidationError
 
 
 class TestCategories:
-    def test_direct_emitter_categories(self):
+    def test_venting_emitter_categories(self):
         emitter_model = EmitterModel(
             regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
             emission_rate=Expression.setup_from_expression(4),
@@ -23,22 +23,22 @@ class TestCategories:
 
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.DirectEmitter(
+            dto.components.VentingEmitter(
                 name="test",
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
                 emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): "DIRECT-EMISSIONS"},
+                user_defined_category={datetime(2000, 1, 1): "VENTING-EMISSIONS"},
             )
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: DIRECT-EMISSIONS is not allowed for DirectEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == "CATEGORY: VENTING-EMISSIONS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.DirectEmitter(
+            dto.components.VentingEmitter(
                 name="test",
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
@@ -49,12 +49,12 @@ class TestCategories:
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: fuel-gas is not allowed for DirectEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == "CATEGORY: fuel-gas is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that empty raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.DirectEmitter(
+            dto.components.VentingEmitter(
                 name="test",
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
@@ -65,12 +65,12 @@ class TestCategories:
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY:  is not allowed for DirectEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == "CATEGORY:  is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that underscore raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.DirectEmitter(
+            dto.components.VentingEmitter(
                 name="test",
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",
@@ -81,12 +81,12 @@ class TestCategories:
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: FUEL_GAS is not allowed for DirectEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == "CATEGORY: FUEL_GAS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that correct category is ok
         assert (
-            dto.components.DirectEmitter(
+            dto.components.VentingEmitter(
                 name="test",
                 regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
                 emission_name="CH4",

@@ -22,8 +22,8 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import 
     YamlGeneratorSet,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_direct_emitter import (
-    YamlDirectEmitter,
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmitter,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
@@ -70,8 +70,8 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
     )
-    direct_emitters: List[YamlDirectEmitter] = Field(
+    venting_emitters: List[YamlVentingEmitter] = Field(
         None,
-        title="DIRECT_EMITTERS",
+        title="VENTING_EMITTERS",
         description="Covers the direct emissions on the installation that are not consuming energy",
     )

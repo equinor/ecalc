@@ -625,7 +625,7 @@ def consumer_system_v2_dto() -> DTOCase:
                         compressor_system,
                         compressor_system_v2,
                     ],
-                    direct_emitters=[],
+                    venting_emitters=[],
                 )
             ],
         ),

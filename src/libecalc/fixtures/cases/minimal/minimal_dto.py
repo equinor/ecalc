@@ -19,7 +19,7 @@ def minimal_installation_dto(
     return dto.Installation(
         name=installation_name,
         regularity=regularity,
-        direct_emitters=[],
+        venting_emitters=[],
         hydrocarbon_export={start: Expression.setup_from_expression(0)},
         user_defined_category=InstallationUserDefinedCategoryType.FIXED,
         fuel_consumers=[

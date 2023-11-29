@@ -6,7 +6,7 @@
 
 | Required   | Child of                  | Children/Options  |
 |------------|---------------------------|-------------------|
-| No         | `DIRECT_EMITTERS`         | `EMISSION_RATE`   |
+| No         | `VENTING_EMITTERS`         | `EMISSION_RATE`   |
 
 ## Description
 The emitter model specifies the data to calculate the direct emissions on an installation. This data is used to set up
