@@ -12,14 +12,14 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor_stage import (
 )
 
 
-class YamlSingleSpeedCompressorTrain(YamlBase):
+class YamlVariableSpeedCompressorTrain(YamlBase):
     name: str = Field(
         ...,
         description="Name of the model. See documentation for more information.",
         title="NAME",
     )
-    type: Literal[YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN] = Field(
-        YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,
+    type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN] = Field(
+        YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN,
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
@@ -28,11 +28,6 @@ class YamlSingleSpeedCompressorTrain(YamlBase):
         ...,
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
-    )
-    maximum_discharge_pressure: str = Field(
-        ...,
-        description="Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
-        title="MAXIMUM_DISCHARGE_PRESSURE",
     )
     power_adjustment_constant: float = Field(
         0.0,
@@ -49,6 +44,3 @@ class YamlSingleSpeedCompressorTrain(YamlBase):
         title="CALCULATE_MAX_RATE",
     )
     stages: List[YamlCompressorStage]
-
-    def to_dto(self):
-        raise NotImplementedError

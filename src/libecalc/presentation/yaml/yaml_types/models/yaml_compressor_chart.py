@@ -76,6 +76,25 @@ class YamlUnits(YamlBase):
         raise NotImplementedError
 
 
+class YamlSingleSpeedChart(YamlBase):
+    name: str = Field(
+        ...,
+        description="Name of the model. See documentation for more information.",
+        title="NAME",
+    )
+    type: Literal[YamlModelType.COMPRESSOR_CHART] = Field(
+        YamlModelType.COMPRESSOR_CHART,
+        description="Defines the type of model. See documentation for more information.",
+        title="TYPE",
+    )
+    chart_type: Literal[YamlChartType.VARIABLE_SPEED] = YamlChartType.VARIABLE_SPEED
+    curves: YamlCurve = Field(..., description="One single compressor chart curve.", title="CURVE")
+    units: YamlUnits = None
+
+    def to_dto(self):
+        raise NotImplementedError
+
+
 class YamlVariableSpeedChart(YamlBase):
     name: str = Field(
         ...,
@@ -143,7 +162,7 @@ class YamlGenericFromDesignPointChart(YamlBase):
 
 
 YamlCompressorChart = Annotated[
-    Union[YamlVariableSpeedChart, YamlGenericFromDesignPointChart, YamlGenericFromInputChart],
+    Union[YamlSingleSpeedChart, YamlVariableSpeedChart, YamlGenericFromDesignPointChart, YamlGenericFromInputChart],
     Field(discriminator="chart_type"),
 ]
 if __name__ == "__main__":
