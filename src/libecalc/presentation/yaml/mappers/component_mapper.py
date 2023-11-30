@@ -73,10 +73,7 @@ def _resolve_fuel(
         resolved_fuel = resolve_reference(
             fuel,
             references=references.fuel_types,
-            none_if_not_found=True,
         )
-        if resolved_fuel is None:
-            raise ValueError("Fuel not found")
 
         temporal_fuel_model[start_time] = resolved_fuel
 

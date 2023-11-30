@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
 
+from libecalc.common.errors.exceptions import InvalidReferenceException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.dto.types import (
@@ -30,13 +31,18 @@ YAML_UNIT_MAPPING: Dict[str, Unit] = {
 }
 
 
-def resolve_reference(
-    value: Any,
-    references: Dict[str, Any],
-    none_if_not_found: bool = False,
-) -> Any:
-    """Check if value is a reference and return it, if not a reference return the original value
-    :param none_if_not_found: return None if reference is not found
+def is_reference(value: Any) -> bool:
+    return isinstance(value, str)
+
+
+ReferenceValue = TypeVar("ReferenceValue")
+
+
+def resolve_reference(value: Any, references: Dict[str, ReferenceValue]) -> ReferenceValue:
+    """Check if value is a reference and return it.
+    If not a reference return the original value
+    If reference is invalid, raise InvalidReferenceException
+
     :param value: reference or value
     :param references: mapping from reference name to reference data
         {
@@ -45,26 +51,14 @@ def resolve_reference(
         }
     :return: the actual value either referenced or not.
     """
-    if isinstance(value, str):
-        resolved = references.get(value, None)
-        if resolved is not None:
-            return resolved
-        elif none_if_not_found:
-            return None
-        else:
-            return value
-    else:
+    if not is_reference(value):
         return value
 
+    if value not in references:
+        available_references = ",\n".join(references.keys())
+        raise InvalidReferenceException(f"'{value}' not found. \n\nAvailable references:\n{available_references}")
 
-ReferenceValue = TypeVar("ReferenceValue")
-
-
-def resolve_and_validate_reference(value: str, references: Dict[str, ReferenceValue]) -> ReferenceValue:
-    model = resolve_reference(value, references, none_if_not_found=True)
-    if model is None:
-        raise ValueError(f"Reference '{value}' not found. \nAvailable: {', '.join(references.keys())}")
-    return model
+    return references[value]
 
 
 def convert_rate_to_am3_per_hour(rate_values: List[float], input_unit: Unit) -> List[float]:

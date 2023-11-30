@@ -9,7 +9,7 @@ from libecalc.dto.base import ComponentType
 from libecalc.dto.components import CompressorComponent
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.mappers.utils import resolve_and_validate_reference
+from libecalc.presentation.yaml.mappers.utils import resolve_reference
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
@@ -49,7 +49,7 @@ class YamlCompressor(YamlConsumerBase):
             user_defined_category=define_time_model_for_period(self.category or category, target_period=target_period),
             fuel=fuel,
             energy_usage_model={
-                timestep: resolve_and_validate_reference(
+                timestep: resolve_reference(
                     value=reference,
                     references=references.models,
                 )
