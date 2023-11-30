@@ -44,3 +44,6 @@ class YamlVariableSpeedCompressorTrain(YamlBase):
         title="CALCULATE_MAX_RATE",
     )
     stages: List[YamlCompressorStage]
+
+    def to_dto(self):
+        raise NotImplementedError
