@@ -6,6 +6,7 @@ class YamlModelType(str, enum.Enum):
     COMPRESSOR_CHART = "COMPRESSOR_CHART"
     TURBINE = "TURBINE"
     FLUID = "FLUID"
+    SINGLE_SPEED_COMPRESSOR_TRAIN = "SINGLE_SPEED_COMPRESSOR_TRAIN"
 
 
 class YamlChartType(str, enum.Enum):
