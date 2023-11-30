@@ -613,7 +613,6 @@ INSTALLATIONS:
                   - SIM1;GAS_PROD {/} 2
                 SUCTION_PRESSURE: 50
                 DISCHARGE_PRESSURE: 250
-
     VENTING_EMITTERS:
       - NAME: methane_venting
         EMISSION_NAME: CH4
