@@ -613,11 +613,6 @@ INSTALLATIONS:
                   - SIM1;GAS_PROD {/} 2
                 SUCTION_PRESSURE: 50
                 DISCHARGE_PRESSURE: 250
-      - NAME: methane_venting_fuel
-        CATEGORY: COLD-VENTING-FUGITIVE
-        ENERGY_USAGE_MODEL: DIRECT
-
-
 
     VENTING_EMITTERS:
       - NAME: methane_venting
