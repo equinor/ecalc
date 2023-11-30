@@ -61,16 +61,9 @@ ReferenceValue = TypeVar("ReferenceValue")
 
 
 def resolve_and_validate_reference(value: str, references: Dict[str, ReferenceValue]) -> ReferenceValue:
-    model = references.get(value)
-    if isinstance(model, str) or model is None:
-        raise ValueError(f"Reference {value} not found in references \nAvailable: ({', '.join(references.keys())})")
-    return model
-
-
-def resolve_reference_and_raise_error_if_not_found(value: str, references: Dict[str, Any]):
-    model = resolve_reference(value, references=references)
-    if model is None or isinstance(model, str):
-        raise ValueError(f"Value {value} not found in references ({', '.join(list(references.keys()))})")
+    model = resolve_reference(value, references, none_if_not_found=True)
+    if model is None:
+        raise ValueError(f"Reference '{value}' not found. \nAvailable: {', '.join(references.keys())}")
     return model
 
 
