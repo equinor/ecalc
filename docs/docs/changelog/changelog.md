@@ -47,6 +47,7 @@
 * remove economy from ecalc ([#282](https://github.com/equinor/ecalc/issues/282))
 * graph.components and graph.get_component renamed to nodes and get_node
 * add type to consumers in system
+* change name from DIRECT_EMITTER to VENTING_EMITTER in input Yaml-file ([#303](https://github.com/equinor/ecalc/pull/303))
 
 ### Features
 
