@@ -15,7 +15,7 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_temperature_to_kelvin,
     get_single_speed_chart_data,
     get_units_from_chart_config,
-    resolve_and_validate_reference,
+    resolve_reference,
 )
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
@@ -247,7 +247,7 @@ _compressor_chart_map = {
 
 
 def _resolve_and_validate_chart(compressor_chart_reference, input_models: Dict[str, Any]) -> dto.CompressorChart:
-    compressor_chart = resolve_and_validate_reference(
+    compressor_chart = resolve_reference(
         value=compressor_chart_reference,
         references=input_models,
     )
@@ -273,7 +273,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stream_mappe
     stream_type = stream_config.get(EcalcYamlKeywords.type)
     fluid_model_reference = stream_config.get(EcalcYamlKeywords.models_type_fluid_model)
     if fluid_model_reference is not None:
-        fluid_model = resolve_and_validate_reference(value=fluid_model_reference, references=input_models)
+        fluid_model = resolve_reference(value=fluid_model_reference, references=input_models)
         return dto.MultipleStreamsAndPressureStream(
             name=reference_name,
             fluid_model=fluid_model,
@@ -292,7 +292,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
     input_models: Dict[str, Any],
 ) -> dto.MultipleStreamsCompressorStage:
     compressor_chart_reference = stage_config.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
-    compressor_chart = resolve_and_validate_reference(value=compressor_chart_reference, references=input_models)
+    compressor_chart = resolve_reference(value=compressor_chart_reference, references=input_models)
     inlet_temperature_kelvin = convert_temperature_to_kelvin(
         [stage_config.get(EcalcYamlKeywords.models_type_compressor_train_inlet_temperature)],
         input_unit=Unit.CELSIUS,
@@ -599,11 +599,11 @@ def _compressor_with_turbine_mapper(
 ) -> dto.CompressorWithTurbine:
     compressor_train_model_reference = model_config.get(EcalcYamlKeywords.models_compressor_model)
     turbine_model_reference = model_config.get(EcalcYamlKeywords.models_turbine_model)
-    compressor_train_model = resolve_and_validate_reference(
+    compressor_train_model = resolve_reference(
         value=compressor_train_model_reference,
         references=input_models,
     )
-    turbine_model = resolve_and_validate_reference(
+    turbine_model = resolve_reference(
         value=turbine_model_reference,
         references=input_models,
     )

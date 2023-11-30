@@ -12,7 +12,6 @@ from libecalc.dto import (
 from libecalc.dto.types import EnergyModelType, EnergyUsageType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import (
-    resolve_and_validate_reference,
     resolve_reference,
 )
 from libecalc.presentation.yaml.validation_errors import DataValidationError
@@ -84,7 +83,7 @@ def _compressor_system_mapper(
     compressors = []
     compressor_power_usage_type = set()
     for compressor in energy_usage_model.get(EcalcYamlKeywords.compressor_system_compressors, []):
-        compressor_train = resolve_and_validate_reference(
+        compressor_train = resolve_reference(
             value=compressor.get(EcalcYamlKeywords.compressor_system_compressor_sampled_data),
             references=references.models,
         )
@@ -146,7 +145,10 @@ def _pump_system_mapper(energy_usage_model: Dict, references: References = None)
     """
     pumps = []
     for pump in energy_usage_model.get(EcalcYamlKeywords.pump_system_pumps, []):
-        pump_model = resolve_reference(pump.get(EcalcYamlKeywords.pump_system_pump_model), references=references.models)
+        pump_model = resolve_reference(
+            pump.get(EcalcYamlKeywords.pump_system_pump_model),
+            references=references.models,
+        )
         pumps.append(dto.PumpSystemPump(name=pump.get(EcalcYamlKeywords.name), pump_model=pump_model))
 
     return dto.PumpSystemConsumerFunction(
@@ -241,7 +243,7 @@ def _pump_mapper(energy_usage_model: Dict, references: References = None) -> dto
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     energy_usage_model: Dict, references: References = None
 ) -> dto.CompressorConsumerFunction:
-    compressor_train_model = resolve_and_validate_reference(
+    compressor_train_model = resolve_reference(
         energy_usage_model.get(EcalcYamlKeywords.models_type_compressor_train_compressor_train_model),
         references=references.models,
     )
@@ -296,7 +298,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
 
 
 def _compressor_mapper(energy_usage_model: Dict, references: References = None) -> dto.CompressorConsumerFunction:
-    energy_model = resolve_and_validate_reference(
+    energy_model = resolve_reference(
         energy_usage_model.get(EcalcYamlKeywords.energy_model),
         references=references.models,
     )
@@ -337,7 +339,7 @@ class ConsumerFunctionMapper:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
         return model_creator(model, references)
 
-    def from_yaml_to_dto(self, data: Dict) -> Optional[Dict[datetime, dto.ConsumerFunction]]:
+    def from_yaml_to_dto(self, data: dto.EnergyModel) -> Optional[Dict[datetime, dto.ConsumerFunction]]:
         if data is None:
             return None
 

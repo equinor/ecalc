@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
+from libecalc.common.errors.exceptions import InvalidReferenceException
 from libecalc.common.time_utils import Period
 from libecalc.presentation.yaml.mappers.component_mapper import _resolve_fuel
 
@@ -44,11 +45,11 @@ class TestResolveFuel:
         assert _resolve_fuel("diesel", "fuel_gas", references, target_period=all_the_time).popitem()[1].name == "diesel"
 
     def test_invalid(self, references, all_the_time):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(InvalidReferenceException) as exc_info:
             assert (
                 _resolve_fuel("diessel", "fuel_gass", references, target_period=all_the_time).popitem()[1] == "diessel"
             )
-        assert "Fuel not found" in str(exc_info.value)
+        assert "Invalid reference: 'diessel' not found." in str(exc_info.value)
 
     def test_resolve_multiple_fuels(self, references, all_the_time):
         _resolve_fuel(
