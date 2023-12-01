@@ -87,7 +87,7 @@ class YamlSingleSpeedChart(YamlBase):
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    chart_type: Literal[YamlChartType.VARIABLE_SPEED] = YamlChartType.VARIABLE_SPEED
+    chart_type: Literal[YamlChartType.SINGLE_SPEED] = YamlChartType.SINGLE_SPEED
     curves: YamlCurve = Field(..., description="One single compressor chart curve.", title="CURVE")
     units: YamlUnits = None
 

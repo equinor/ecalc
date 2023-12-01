@@ -15,6 +15,7 @@ class YamlModelType(str, enum.Enum):
 
 
 class YamlChartType(str, enum.Enum):
+    SINGLE_SPEED = "SINGLE_SPEED"
     VARIABLE_SPEED = "VARIABLE_SPEED"
     GENERIC_FROM_INPUT = "GENERIC_FROM_INPUT"
     GENERIC_FROM_DESIGN_POINT = "GENERIC_FROM_DESIGN_POINT"
