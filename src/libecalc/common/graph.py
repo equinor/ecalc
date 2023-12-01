@@ -27,11 +27,11 @@ class Graph(Generic[TNode]):
         self.nodes[node.id] = node
         return self
 
-    def add_edge(self, from_id: NodeID, to_id: NodeID) -> Self:
+    def add_edge(self, from_id: NodeID, to_id: NodeID, **kwargs) -> Self:
         if from_id not in self.nodes or to_id not in self.nodes:
             raise ValueError("Add node before adding edges")
 
-        self.graph.add_edge(from_id, to_id)
+        self.graph.add_edge(from_id, to_id, **kwargs)
         return self
 
     def add_subgraph(self, subgraph: Graph) -> Self:
@@ -49,6 +49,15 @@ class Graph(Generic[TNode]):
         else:
             return list(self.graph.successors(node_id))
 
+    def get_successor(self, node_id: NodeID) -> NodeID:
+        successors = list(self.graph.successors(node_id))
+        if len(successors) > 1:
+            raise ValueError(
+                f"Tried to get a single successor of node with several successors. NodeID: {node_id}, "
+                f"Successors: {', '.join(successors)}"
+            )
+        return successors[0]
+
     def get_predecessor(self, node_id: NodeID) -> NodeID:
         predecessors = list(self.graph.predecessors(node_id))
         if len(predecessors) > 1:
@@ -57,6 +66,10 @@ class Graph(Generic[TNode]):
                 f"Predecessors: {', '.join(predecessors)}"
             )
         return predecessors[0]
+
+    def get_predecessors(self, node_id: NodeID) -> List[NodeID]:
+        predecessors = list(self.graph.predecessors(node_id))
+        return predecessors
 
     @property
     def root(self) -> NodeID:
