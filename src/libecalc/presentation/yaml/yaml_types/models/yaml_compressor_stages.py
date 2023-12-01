@@ -7,6 +7,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlCompressorChart,
 )
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
 
 
 class YamlControlMarginUnits(enum.Enum):
@@ -15,12 +16,12 @@ class YamlControlMarginUnits(enum.Enum):
 
 
 class YamlInterstageControlPressure(YamlBase):
-    upstream_pressure_control: str = Field(
+    upstream_pressure_control: YamlPressureControl = Field(
         ...,
         description="Pressure control.",
         title="UPSTREAM_PRESSURE_CONTROL",
     )
-    downstream_pressure_control: str = Field(
+    downstream_pressure_control: YamlPressureControl = Field(
         ...,
         description="Pressure control.",
         title="DOWNSTREAM_PRESSURE_CONTROL",
