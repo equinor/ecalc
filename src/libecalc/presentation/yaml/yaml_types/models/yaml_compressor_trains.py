@@ -97,11 +97,6 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 
 
 class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressorTrainBase):
-    name: str = Field(
-        ...,
-        description="Name of the model. See documentation for more information.",
-        title="NAME",
-    )
     type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES] = Field(
         YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
         description="Defines the type of model. See documentation for more information.",
@@ -117,10 +112,6 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
         ...,
         description="A list of all stages in compressor model.",
         title="STREAMS",
-    )
-
-    maximum_power: str = Field(
-        ..., description="Optional constant MW maximum power the compressor train can require", title="MAXIMUM_POWER"
     )
 
     def to_dto(self):
