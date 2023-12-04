@@ -1,5 +1,7 @@
 # DIRECT_EMITTERS
 
+> Deprecated since eCalc v8.7 (changed name to `VENTING_EMITTERS`)
+
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
 [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md)
 
