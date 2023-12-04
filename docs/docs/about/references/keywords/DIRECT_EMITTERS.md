@@ -1,6 +1,9 @@
 # DIRECT_EMITTERS
+<span className="major-change-deprecation"> Deprecated from eCalc v8.7 (changed name to <strong>VENTING_EMITTERS</strong>).
+</span>
+&nbsp;
 
-> Deprecated since eCalc v8.7 (changed name to `VENTING_EMITTERS`)
+
 
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
 [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md)
@@ -11,8 +14,8 @@
 | Yes        | `INSTALLATIONS`      | `NAME` <br /> `EMISSION_NAME`  <br />  `CATEGORY`  <br />  `EMITTER_MODEL`    |
 
 :::important
-eCalc version 8.7: DIRECT_EMITTERS are renamed to [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md).
-eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
+- eCalc version 8.7: DIRECT_EMITTERS are renamed to [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md).
+- eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
 :::
 
 ## Description
