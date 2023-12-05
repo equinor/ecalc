@@ -368,7 +368,7 @@ class Consumer(BaseConsumer):
         merged_result = None
         for consumer_function_result in consumer_function_results:
             if merged_result is None:
-                merged_result = consumer_function_result
+                merged_result = consumer_function_result.copy(deep=True)
             else:
                 merged_result.extend(consumer_function_result)
 

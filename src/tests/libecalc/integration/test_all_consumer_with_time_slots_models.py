@@ -1,3 +1,4 @@
+import itertools
 from datetime import datetime
 from typing import Dict, List
 
@@ -7,7 +8,7 @@ from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
-from libecalc.core.result import GenericModelResult
+from libecalc.core.result import CompressorModelResult, GenericModelResult
 
 
 def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer_with_changing_model_type):
@@ -35,23 +36,40 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
         ),
     )
 
-    consumer_model_result = result.models[0]
     consumer_result = result.component_result
 
-    # Time vector starts in 2015 and the first consumer starts in 2017.
-    assert len(consumer_result.timesteps) > len(consumer_model_result.timesteps)
-    assert consumer_result.power.values[2] == consumer_model_result.energy_usage.values[0]
-
-    # Using incompatible energy usage models results in separate CONSUMER_MODEL results,
-    # train-stages are also included as CONSUMER_MODELs
     model_results = result.models
-    assert isinstance(model_results, list)
-    assert len(model_results) == 5
+    assert len(model_results) == 3
+
+    first, second, third = model_results
+
+    assert len(consumer_result.timesteps) == 10
+
+    # First two timesteps are extrapolated in consumer result
+    assert (
+        list(itertools.chain(*[model_result.timesteps for model_result in result.models]))
+        == consumer_result.timesteps[2:]
+    )
+
+    assert first.timesteps == [datetime(2017, 1, 1)]
+    assert second.timesteps == [
+        datetime(2018, 1, 1),
+        datetime(2019, 1, 1),
+        datetime(2020, 1, 1),
+        datetime(2021, 1, 1),
+        datetime(2022, 1, 1),
+        datetime(2023, 1, 1),
+    ]
+    assert third.timesteps == [datetime(2024, 1, 1)]
+
+    assert isinstance(first, GenericModelResult)
+    assert isinstance(second, CompressorModelResult)
+    assert isinstance(third, GenericModelResult)
 
 
 def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_same_model_type):
     """When using same ENERGY_USAGE_MODEL types under a CONSUMER, the detailed energy_functions_results
-    will be a merged result object.
+    will not be a merged result object.
     """
     el_consumer = Consumer(consumer_dto=time_slot_electricity_consumer_with_same_model_type)
     input_variables_dict: Dict[str, List[float]] = {}
@@ -61,16 +79,32 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
             time_vector=[datetime(year, 1, 1) for year in range(2017, 2025)], variables=input_variables_dict
         ),
     )
-    model_result = result.models[0]
     consumer_result = result.component_result
-    # When the CONSUMER time vector match the ENERGY_USAGE_MODEL time vectors then
-    #     -> result will match consumer model -> will match energy_function_result
-    assert len(consumer_result.timesteps) == len(model_result.timesteps)
-    assert consumer_result.power.values == model_result.energy_usage.values
 
-    # Using incompatible energy usage models results in a list of energy_function_results
-    assert isinstance(model_result, GenericModelResult)
-    assert model_result.power.values == consumer_result.power.values
+    model_results = result.models
+    assert len(model_results) == 3
+
+    first, second, third = model_results
+
+    assert len(consumer_result.timesteps) == 8
+
+    assert (
+        list(itertools.chain(*[model_result.timesteps for model_result in result.models])) == consumer_result.timesteps
+    )
+
+    assert first.timesteps == [datetime(2017, 1, 1), datetime(2018, 1, 1)]
+    assert second.timesteps == [
+        datetime(2019, 1, 1),
+        datetime(2020, 1, 1),
+        datetime(2021, 1, 1),
+        datetime(2022, 1, 1),
+        datetime(2023, 1, 1),
+    ]
+    assert third.timesteps == [datetime(2024, 1, 1)]
+
+    assert isinstance(first, GenericModelResult)
+    assert isinstance(second, GenericModelResult)
+    assert isinstance(third, GenericModelResult)
 
 
 def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplified_compressor_system):
