@@ -8,6 +8,11 @@
 |------------|---------------------------|-------------------|
 | No         | `VENTING_EMITTERS`         | `EMISSION_RATE`   |
 
+:::important
+- eCalc version 8.7: [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md) keyword is replacing the [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md) keyword.
+- eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
+:::
+
 ## Description
 The emitter model specifies the data to calculate the direct emissions on an installation. This data is used to set up
 a function that may be evaluated for a set of time series and return a result including the emissions emitted and
