@@ -23491,8 +23491,8 @@
             }
         },
         "2f86c1c7d7c2d739da3ed294d8ae88ca": {
-            "ch4": {
-                "name": "ch4",
+            "CH4": {
+                "name": "CH4",
                 "rate": {
                     "timesteps": [
                         "2017-01-01 00:00:00",
