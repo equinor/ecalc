@@ -38,6 +38,7 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
     results = consumer.evaluate_consumer_temporal_model(
         variables_map=dto.VariablesMap(time_vector=time_vector), regularity=np.ones_like(time_vector)
     )
+    results = consumer.aggregate_consumer_function_results(results)
     assert results.energy_usage.tolist() == [1, 2, 10, 0, 0, 0]
     assert results.is_valid.tolist() == [1, 1, 1, 1, 1, 1]
     assert results.time_vector.tolist() == time_vector
@@ -136,7 +137,7 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
         is_valid=np.asarray([False, False, True, False, False, False]),
     )
 
-    electricity_consumer.evaluate_consumer_temporal_model = Mock(return_value=consumer_function_result)
+    electricity_consumer.evaluate_consumer_temporal_model = Mock(return_value=[consumer_function_result])
 
     result = electricity_consumer.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector),

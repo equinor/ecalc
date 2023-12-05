@@ -22188,6 +22188,72 @@
                         "2019-01-01 00:00:00",
                         "2020-01-01 00:00:00"
                     ]
+                },
+                {
+                    "energy_usage": {
+                        "timesteps": [
+                            "2019-01-01 00:00:00"
+                        ],
+                        "unit": "MW",
+                        "values": [
+                            2.0
+                        ]
+                    },
+                    "is_valid": {
+                        "timesteps": [
+                            "2019-01-01 00:00:00"
+                        ],
+                        "unit": "N/A",
+                        "values": [
+                            true
+                        ]
+                    },
+                    "name": "late_start_consumer",
+                    "power": {
+                        "timesteps": [
+                            "2019-01-01 00:00:00"
+                        ],
+                        "unit": "MW",
+                        "values": [
+                            2.0
+                        ]
+                    },
+                    "timesteps": [
+                        "2019-01-01 00:00:00"
+                    ]
+                },
+                {
+                    "energy_usage": {
+                        "timesteps": [
+                            "2020-01-01 00:00:00"
+                        ],
+                        "unit": "MW",
+                        "values": [
+                            0.0
+                        ]
+                    },
+                    "is_valid": {
+                        "timesteps": [
+                            "2020-01-01 00:00:00"
+                        ],
+                        "unit": "N/A",
+                        "values": [
+                            true
+                        ]
+                    },
+                    "name": "late_start_consumer",
+                    "power": {
+                        "timesteps": [
+                            "2020-01-01 00:00:00"
+                        ],
+                        "unit": "MW",
+                        "values": [
+                            0.0
+                        ]
+                    },
+                    "timesteps": [
+                        "2020-01-01 00:00:00"
+                    ]
                 }
             ],
             "sub_components": []
