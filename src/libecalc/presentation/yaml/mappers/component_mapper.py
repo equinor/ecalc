@@ -9,6 +9,7 @@ except ImportError:
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumerType, ConsumptionType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression
@@ -244,13 +245,16 @@ class EmitterModelMapper:
         name = model.get(EcalcYamlKeywords.name, "")
         user_defined_category = model.get(EcalcYamlKeywords.user_defined_tag, "")
         emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
-
+        emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
+        convert_to_stream_day = emission_rate_type == RateType.CALENDAR_DAY
         try:
             return dto.EmitterModel(
                 name=name,
                 user_defined_category=user_defined_category,
                 emission_rate=emission_rate,
                 regularity=regularity,
+                emission_rate_type=emission_rate_type,
+                convert_to_stream_day=convert_to_stream_day,
             )
         except ValidationError as e:
             raise DtoValidationError(data=model, validation_error=e) from e
