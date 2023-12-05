@@ -1,5 +1,37 @@
 # Changelog
 
+## [8.7.0](https://github.com/equinor/ecalc/compare/v8.6.0...v8.7.0) (2023-12-05)
+
+
+### Bug Fixes
+
+* bug in compressor with turbine models with multiple streams and only one date ([#296](https://github.com/equinor/ecalc/issues/296)) ([8c2c786](https://github.com/equinor/ecalc/commit/8c2c786f93f0cec9cebb92ee02ac94080b7becb5))
+* deep copy when aggregating model results ([#311](https://github.com/equinor/ecalc/issues/311)) ([53c8df4](https://github.com/equinor/ecalc/commit/53c8df4af5105ad7b91439c76a05b2bb32aee4bb))
+* do not merge model results ([#304](https://github.com/equinor/ecalc/issues/304)) ([34cebc4](https://github.com/equinor/ecalc/commit/34cebc4551ab1aa3d3e1b6bdabf681e7abd4f306))
+* error message when model/facility input does not exist ([4437032](https://github.com/equinor/ecalc/commit/4437032bd59ca1708376303b78e7778143f58e1d))
+
+
+### Documentation
+
+* update documentation with info about direct emitters name change ([#310](https://github.com/equinor/ecalc/issues/310)) ([990f3c2](https://github.com/equinor/ecalc/commit/990f3c2c932c0be9189828b3dae6b4034105574e))
+
+
+### Miscellaneous Chores
+
+* fix typo ([#293](https://github.com/equinor/ecalc/issues/293)) ([6489971](https://github.com/equinor/ecalc/commit/648997109e48e77727f511567af0bbd3a53d8cca))
+
+
+### Code Refactoring
+
+* change emission rate type to calendar day ([#300](https://github.com/equinor/ecalc/issues/300)) ([f8e5052](https://github.com/equinor/ecalc/commit/f8e5052d19088bb709d48d6563962e5f98d358d2))
+* change name from direct to venting emitter ([#303](https://github.com/equinor/ecalc/issues/303)) ([8d03822](https://github.com/equinor/ecalc/commit/8d038221c88946730e3badbcc4a4c9ab4d082c16))
+* remove duplicated function ([ba48dcd](https://github.com/equinor/ecalc/commit/ba48dcd4d858bcaacdd183636157fe9c0eeaef61))
+
+
+### Continuous Integration
+
+* skip spellchecking changelog ([#294](https://github.com/equinor/ecalc/issues/294)) ([9329ae2](https://github.com/equinor/ecalc/commit/9329ae28acbc4673260e8f80f45037ab7949598d))
+
 ## [8.7.0](https://github.com/equinor/ecalc/compare/v8.6.0...v8.7.0)
 
 
