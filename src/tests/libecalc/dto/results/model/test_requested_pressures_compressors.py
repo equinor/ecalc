@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import List
 
 import pytest
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import EcalcModelResult, GraphResult
 from libecalc.dto.result.results import CompressorModelResult
@@ -44,23 +46,32 @@ def test_requested_pressures_compressor_train_temporal_model(result: EcalcModelR
     :param result: eCalc result including models with requested pressures
     :return: Nothing
     """
-    date_temporal_1 = datetime(2018, 1, 1)
-    date_temporal_2 = datetime(2019, 1, 1)
     models = result.models
 
-    # Compressor train with temporal model
-    requested_inlet_pressure_date1 = get_inlet_pressure(0, date_temporal_1, models)
-    requested_inlet_pressure_date2 = get_inlet_pressure(0, date_temporal_2, models)
-    requested_outlet_pressure_date1 = get_outlet_pressure(0, date_temporal_1, models)
-    requested_outlet_pressure_date2 = get_outlet_pressure(0, date_temporal_2, models)
+    simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model_first = models[0]
+    simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model_second = models[1]
 
-    # Temporal model 1
-    assert requested_inlet_pressure_date1 == 50.0
-    assert requested_outlet_pressure_date1 == 250.0
+    assert (
+        simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model_first.requested_inlet_pressure
+        == TimeSeriesFloat(timesteps=[datetime(2018, 1, 1, 0, 0)], values=[50.0], unit=Unit.BARA)
+    )
+    assert (
+        simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model_first.requested_outlet_pressure
+        == TimeSeriesFloat(timesteps=[datetime(2018, 1, 1, 0, 0)], values=[250.0], unit=Unit.BARA)
+    )
 
-    # Temporal model 2
-    assert requested_inlet_pressure_date2 == 40.0
-    assert requested_outlet_pressure_date2 == 260.0
+    assert (
+        simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model_second.requested_inlet_pressure
+        == TimeSeriesFloat(
+            timesteps=[datetime(2019, 1, 1, 0, 0), datetime(2020, 1, 1, 0, 0)], values=[40.0, 40.0], unit=Unit.BARA
+        )
+    )
+    assert (
+        simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model_second.requested_outlet_pressure
+        == TimeSeriesFloat(
+            timesteps=[datetime(2019, 1, 1, 0, 0), datetime(2020, 1, 1, 0, 0)], values=[260.0, 260.0], unit=Unit.BARA
+        )
+    )
 
 
 def test_requested_pressures_compressor_system_temporal_model(result: EcalcModelResult):
