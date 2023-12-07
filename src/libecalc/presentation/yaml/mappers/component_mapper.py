@@ -28,6 +28,10 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlTemporalEmitterModel,
+    YamlVentingEmitter,
+)
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -277,24 +281,25 @@ class VentingEmittersMapper:
         self._target_period = target_period
         self.__emitter_model_mapper = EmitterModelMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(
+    def send_to_core(
         self,
         data: Dict[str, Dict],
         regularity: Dict[datetime, Expression],
-    ) -> dto.VentingEmitter:
-        emitter_model = self.__emitter_model_mapper.from_yaml_to_dto(
-            data.get(EcalcYamlKeywords.installation_venting_emitter_model),
+    ) -> YamlVentingEmitter:
+        yaml_emitter_model = YamlTemporalEmitterModel(self._target_period).create(
+            data=data.get(EcalcYamlKeywords.installation_venting_emitter_model),
             regularity=regularity,
         )
         try:
             venting_emitter_name = data.get(EcalcYamlKeywords.name)
-            return dto.VentingEmitter(
+
+            return YamlVentingEmitter(
                 name=venting_emitter_name,
                 user_defined_category=define_time_model_for_period(
                     data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
                 ),
                 emission_name=data.get(EcalcYamlKeywords.installation_venting_emitter_emission_name),
-                emitter_model=emitter_model,
+                emitter_model=yaml_emitter_model,
                 regularity=regularity,
             )
         except ValidationError as e:
@@ -335,7 +340,7 @@ class InstallationMapper:
             for fuel_consumer in data.get(EcalcYamlKeywords.fuel_consumers, [])
         ]
         venting_emitters = [
-            self.__venting_emitters_mapper.from_yaml_to_dto(
+            self.__venting_emitters_mapper.send_to_core(
                 venting_emitters,
                 regularity=regularity,
             )
