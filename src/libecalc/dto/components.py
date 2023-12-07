@@ -150,7 +150,6 @@ class EmitterModel(EcalcBaseModel):
 
     regularity: Dict[datetime, Expression]
     emission_rate_type: RateType = RateType.STREAM_DAY
-    convert_to_stream_day: bool = False
     _validate_emitter_model_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
 
     _default_emission_rate = validator("emission_rate", allow_reuse=True, pre=True)(convert_expression)

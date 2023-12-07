@@ -9,7 +9,6 @@ except ImportError:
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumerType, ConsumptionType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression
@@ -237,40 +236,41 @@ class GeneratorSetMapper:
             raise DtoValidationError(data=data, validation_error=e) from e
 
 
-class EmitterModelMapper:
-    """EmitterModel used by VentingEmitters."""
+# EmitterModelMapper should not be needed - commented out for check:
 
-    def __init__(self, references: References, target_period: Period):
-        self._target_period = target_period
-        self.__references = references
-
-    @staticmethod
-    def create_model(model: Dict, regularity: Dict[datetime, Expression]):
-        name = model.get(EcalcYamlKeywords.name, "")
-        user_defined_category = model.get(EcalcYamlKeywords.user_defined_tag, "")
-        emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
-        emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
-        convert_to_stream_day = emission_rate_type == RateType.CALENDAR_DAY
-        try:
-            return dto.EmitterModel(
-                name=name,
-                user_defined_category=user_defined_category,
-                emission_rate=emission_rate,
-                regularity=regularity,
-                emission_rate_type=emission_rate_type,
-                convert_to_stream_day=convert_to_stream_day,
-            )
-        except ValidationError as e:
-            raise DtoValidationError(data=model, validation_error=e) from e
-
-    def from_yaml_to_dto(
-        self, data: Optional[Dict], regularity: Dict[datetime, Expression]
-    ) -> Dict[datetime, dto.EmitterModel]:
-        time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
-        return {
-            start_date: EmitterModelMapper.create_model(model, regularity=regularity)
-            for start_date, model in time_adjusted_model.items()
-        }
+# class EmitterModelMapper:
+#     """EmitterModel used by VentingEmitters."""
+#
+#     def __init__(self, references: References, target_period: Period):
+#         self._target_period = target_period
+#         self.__references = references
+#
+#     @staticmethod
+#     def create_model(model: Dict, regularity: Dict[datetime, Expression]):
+#         name = model.get(EcalcYamlKeywords.name, "")
+#         user_defined_category = model.get(EcalcYamlKeywords.user_defined_tag, "")
+#         emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
+#         emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
+#         convert_to_stream_day = emission_rate_type == RateType.CALENDAR_DAY
+#         try:
+#             return dto.EmitterModel(
+#                 name=name,
+#                 user_defined_category=user_defined_category,
+#                 emission_rate=emission_rate,
+#                 regularity=regularity,
+#                 emission_rate_type=emission_rate_type,
+#             )
+#         except ValidationError as e:
+#             raise DtoValidationError(data=model, validation_error=e) from e
+#
+#     def from_yaml_to_dto(
+#         self, data: Optional[Dict], regularity: Dict[datetime, Expression]
+#     ) -> Dict[datetime, dto.EmitterModel]:
+#         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
+#         return {
+#             start_date: EmitterModelMapper.create_model(model, regularity=regularity)
+#             for start_date, model in time_adjusted_model.items()
+#         }
 
 
 class VentingEmittersMapper:
@@ -279,7 +279,6 @@ class VentingEmittersMapper:
     def __init__(self, references: References, target_period: Period):
         self.__references = references
         self._target_period = target_period
-        self.__emitter_model_mapper = EmitterModelMapper(references=references, target_period=target_period)
 
     def send_to_core(
         self,
