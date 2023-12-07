@@ -1,11 +1,14 @@
 from datetime import datetime
 
-import libecalc.common.utils.rates
 import pytest
 from libecalc import dto
+from libecalc.common.utils.rates import RateType
 from libecalc.dto import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlEmitterModel,
+)
 
 
 @pytest.fixture
@@ -28,17 +31,19 @@ def variables_map(methane_values):
 
 @pytest.fixture
 def emitter_model_1_dto():
-    return dto.EmitterModel(
-        emission_rate=Expression.setup_from_expression(value="TSC1;Methane_rate {*} 1.02"),
+    return YamlEmitterModel(
+        emission_rate="TSC1;Methane_rate {*} 1.02",
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        emission_rate_type=RateType.STREAM_DAY,
     )
 
 
 @pytest.fixture
 def emitter_model_2_dto():
-    return dto.EmitterModel(
-        emission_rate=Expression.setup_from_expression(value="TSC1;Methane_rate {*} 1.1"),
+    return YamlEmitterModel(
+        emission_rate="TSC1;Methane_rate {*} 1.1",
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        emission_rate_type=RateType.STREAM_DAY,
     )
 
 
@@ -82,22 +87,22 @@ def direct_el_consumer() -> dto.ElectricityConsumer:
             datetime(2020, 1, 1): dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=1),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
-                consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             ),
             datetime(2021, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=2),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
-                consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             ),
             datetime(2022, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=10),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
-                consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             ),
             datetime(2023, 1, 1): dto.DirectConsumerFunction(  # Ensure we handle 0 load as well.
                 load=Expression.setup_from_expression(value=0),
                 energy_usage_type=dto.types.EnergyUsageType.POWER,
-                consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
+                consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},

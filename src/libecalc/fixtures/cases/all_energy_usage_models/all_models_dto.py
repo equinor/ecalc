@@ -11,6 +11,11 @@ from libecalc.dto.base import (
 )
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlEmitterModel,
+    YamlVentingEmitter,
+)
+from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
 
 
 @pytest.fixture
@@ -971,16 +976,17 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
 
 
 @pytest.fixture
-def methane_venting(regularity) -> dto.VentingEmitter:
-    return dto.VentingEmitter(
+def methane_venting(regularity) -> YamlVentingEmitter:
+    return YamlVentingEmitter(
         name="methane_venting",
         component_type=ComponentType.VENTING_EMITTER,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
+        user_defined_category={YamlDefaultDatetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
         emission_name="CH4",
         emitter_model={
-            datetime(1900, 1, 1): dto.EmitterModel(
-                emission_rate=Expression.setup_from_expression(value="FLARE;METHANE_RATE"),
+            YamlDefaultDatetime(1900, 1, 1): YamlEmitterModel(
+                emission_rate="FLARE;METHANE_RATE",
                 regularity=regularity,
+                emission_rate_type=RateType.STREAM_DAY,
             ),
         },
         regularity=regularity,

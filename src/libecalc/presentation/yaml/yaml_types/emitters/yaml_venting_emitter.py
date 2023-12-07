@@ -51,7 +51,7 @@ class YamlEmitterModel(YamlEcalcBaseModel):
         title="EMISSION_RATE_TYPE",
         description="Emission rate type, calendar day or stream day",
     )
-    regularity: Dict[datetime, Expression] = Field(
+    regularity: Dict[YamlDefaultDatetime, Expression] = Field(
         ...,
         title="REGULARITY",
         description="Regularity",
@@ -66,7 +66,7 @@ class YamlTemporalEmitterModel:
         self._target_period = target_period
 
     @staticmethod
-    def create_model(model: Dict, regularity: Dict[datetime, Expression]):
+    def create_model(model: Dict, regularity: Dict[YamlDefaultDatetime, Expression]):
         emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
         emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
 
@@ -80,11 +80,13 @@ class YamlTemporalEmitterModel:
             raise ValueError(e) from e  # Got circular import issues with DtoValidationError...
 
     def get_model(
-        self, data: Optional[Dict], regularity: Dict[datetime, Expression]
+        self, data: Optional[Dict], regularity: Dict[YamlDefaultDatetime, Expression]
     ) -> Dict[YamlDefaultDatetime, YamlEmitterModel]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
         return {
-            YamlDefaultDatetime.date_to_datetime(start_date): self.create_model(model, regularity=regularity)
+            YamlDefaultDatetime(
+                start_date.year, start_date.month, start_date.day, start_date.hour, start_date.second
+            ): self.create_model(model, regularity=regularity)
             for start_date, model in time_adjusted_model.items()
         }
 
@@ -134,16 +136,4 @@ class YamlVentingEmitter(YamlBaseEquipment):
 
         return rates_out.tolist()
 
-    # @property
-    # def rate_to_core(self):
-    #
-    #     for time, model in self.emitter_model.items():
-    #         rate = TimeSeriesRate(
-    #             timesteps=
-    #         )
-    #         out_rate = TimeSeriesRate.extend
-    #     return TimeSeriesRate(
-    #         timesteps=1,
-    #         rate_type=self.emitter_model.emission_rate
-    #         )
     _validate_emitter_model_temporal_model = validator("emitter_model", allow_reuse=True)(validate_temporal_model)
