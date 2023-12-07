@@ -285,7 +285,7 @@ class VentingEmittersMapper:
         data: Dict[str, Dict],
         regularity: Dict[datetime, Expression],
     ) -> YamlVentingEmitter:
-        yaml_emitter_model = YamlTemporalEmitterModel(self._target_period).create(
+        yaml_emitter_model = YamlTemporalEmitterModel(self._target_period).get_model(
             data=data.get(EcalcYamlKeywords.installation_venting_emitter_model),
             regularity=regularity,
         )

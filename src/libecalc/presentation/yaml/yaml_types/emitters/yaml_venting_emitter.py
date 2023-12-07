@@ -74,7 +74,7 @@ class YamlTemporalEmitterModel:
         except ValidationError as e:
             raise ValueError(e) from e  # Got circular import issues with DtoValidationError...
 
-    def create(
+    def get_model(
         self, data: Optional[Dict], regularity: Dict[datetime, Expression]
     ) -> Dict[YamlDefaultDatetime, YamlEmitterModel]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
