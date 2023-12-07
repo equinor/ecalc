@@ -23,6 +23,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import
     CategoryField,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
 
 
 class YamlEcalcBaseModel(YamlBase):
@@ -71,7 +72,7 @@ class YamlBaseComponent(YamlComponent, ABC):
         description="Name of component",
     )
 
-    regularity: Dict[datetime, Expression] = Field(
+    regularity: Dict[YamlDefaultDatetime, Expression] = Field(
         ...,
         title="REGULARITY",
         description="Regularity",

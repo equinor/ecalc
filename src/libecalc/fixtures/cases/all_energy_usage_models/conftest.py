@@ -7,6 +7,7 @@ from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
+from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
 
 
 @pytest.fixture
@@ -224,8 +225,8 @@ def compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_
 
 
 @pytest.fixture
-def regularity() -> Dict[datetime, Expression]:
-    return {datetime(1900, 1, 1): Expression.setup_from_expression(value="SIM1;REGULARITY")}
+def regularity() -> Dict[YamlDefaultDatetime, Expression]:
+    return {YamlDefaultDatetime(1900, 1, 1): Expression.setup_from_expression(value="SIM1;REGULARITY")}
 
 
 @pytest.fixture
