@@ -22,6 +22,9 @@ from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmitter,
+)
 
 
 def merge_results(results_per_timestep: Dict[datetime, EcalcModelResult]) -> EcalcModelResult:
@@ -169,6 +172,6 @@ class EnergyCalculator:
                     emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
                         variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
-            elif isinstance(consumer_dto, dto.VentingEmitter):
+            elif isinstance(consumer_dto, YamlVentingEmitter):
                 emission_results[consumer_dto.id] = VentingEmitter(consumer_dto).evaluate(variables_map=variables_map)
         return emission_results

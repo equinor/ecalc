@@ -15,9 +15,10 @@ from libecalc.presentation.yaml.validation.yaml_validators import (
     convert_expression,
     validate_temporal_model,
 )
-from libecalc.presentation.yaml.validation_errors import (
-    DtoValidationError,
-)
+
+# from libecalc.presentation.yaml.validation_errors import (
+#     DtoValidationError
+# )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
@@ -70,7 +71,7 @@ class YamlTemporalEmitterModel:
                 emission_rate_type=emission_rate_type,
             )
         except ValidationError as e:
-            raise DtoValidationError(data=model, validation_error=e) from e
+            raise ValueError(e) from e  # Got circular import issues with DtoValidationError...
 
     def create(
         self, data: Optional[Dict], regularity: Dict[datetime, Expression]

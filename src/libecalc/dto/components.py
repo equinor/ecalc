@@ -51,6 +51,9 @@ from libecalc.dto.utils.validators import (
 )
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmitter,
+)
 
 
 def check_model_energy_usage_type(model_data: Dict[datetime, ConsumerFunction], energy_type: EnergyUsageType):
@@ -345,7 +348,7 @@ class Installation(BaseComponent):
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
     hydrocarbon_export: Dict[datetime, Expression]
     fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
-    venting_emitters: List[VentingEmitter] = Field(default_factory=list)
+    venting_emitters: List[YamlVentingEmitter] = Field(default_factory=list)
 
     @property
     def id(self) -> str:
