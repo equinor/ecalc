@@ -19,30 +19,30 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 class VentingEmitter:
     """A class for direct (not fuel based) emissions."""
 
-    def __init__(self, venting_emitter_to_core: YamlVentingEmitter):
-        logger.debug(f"Creating VentingEmitter: {venting_emitter_to_core.name}")
+    def __init__(self, to_core: YamlVentingEmitter):
+        logger.debug(f"Creating VentingEmitter: {to_core.name}")
 
-        self.venting_emitter_to_core = venting_emitter_to_core
+        self.to_core = to_core
 
     def evaluate(
         self,
         variables_map: VariablesMap,
     ) -> Dict[str, EmissionResult]:
-        logger.debug(f"Evaluating VentingEmitter: {self.venting_emitter_to_core.name}")
+        logger.debug(f"Evaluating VentingEmitter: {self.to_core.name}")
 
         emission_rate = self.evaluate_temporal(
             variables_map=variables_map,
-            temporal_expression=self.venting_emitter_to_core.temporal_emission_rate_model,
+            temporal_expression=self.to_core.temporal_emission_rate_model,
         )
 
         regularity = self.evaluate_temporal(
             variables_map=variables_map,
-            temporal_expression=self.venting_emitter_to_core.temporal_regularity_model,
+            temporal_expression=self.to_core.temporal_regularity_model,
         )
 
         emission_rate = Rates.to_stream_day(np.asarray(emission_rate), regularity)
 
-        emission_name = self.venting_emitter_to_core.emission_name
+        emission_name = self.to_core.emission_name
         emissions = {emission_name: EmissionResult.create_empty(name=emission_name, timesteps=[])}
 
         emission_rate_kg_per_day = emission_rate
