@@ -1,6 +1,11 @@
 ## Have you remembered and considered?
 
-- [ ] Update the notifications in web if there is a new relevant feature users should be aware of
+- [ ] Update documentation, if relevant
+- [ ] Update manual changelog, if relevant
+- [ ] Update migration guide, if relevant
+- [ ] Tagged commit with `BREAKING:` in footer or `!` in header if breaking
+- [ ] Considered to add tests
+- [ ] Used conventional commits syntax
 
 ## Why is this pull request needed?
 
