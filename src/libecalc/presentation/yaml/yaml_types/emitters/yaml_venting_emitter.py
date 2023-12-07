@@ -4,6 +4,7 @@ from typing import Dict, Optional
 from pydantic import Field, ValidationError
 from pydantic.class_validators import validator
 
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import ComponentType
@@ -94,5 +95,21 @@ class YamlVentingEmitter(YamlBaseEquipment):
     emitter_model: YamlTemporalModel[YamlEmitterModel] = Field(
         ..., title="EMITTER_MODEL", description="The emitter model.\n\n$ECALC_DOCS_KEYWORDS_URL/EMITTER_MODEL"
     )
+
+    @property
+    def temporal_emission_rate_model(self):
+        return TemporalModel(
+            {start_time: emitter_model.emission_rate for start_time, emitter_model in self.emitter_model.items()}
+        )
+
+    @property
+    def temporal_regularity_model(self):
+        return TemporalModel(
+            {
+                regularity_time: regularity
+                for model_time, emitter_model in self.emitter_model.items()
+                for regularity_time, regularity in emitter_model.regularity.items()
+            }
+        )
 
     _validate_emitter_model_temporal_model = validator("emitter_model", allow_reuse=True)(validate_temporal_model)
