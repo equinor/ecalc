@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-import numpy as np
-
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import Rates, TimeSeriesStreamDayRate
+from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
@@ -40,12 +38,12 @@ class VentingEmitter:
             temporal_expression=self.to_core.temporal_regularity_model,
         )
 
-        emission_rate = Rates.to_stream_day(np.asarray(emission_rate), regularity)
+        emission_rate_stream_day = self.to_core.stream_day_rates(emission_rate, regularity, variables_map.time_vector)
 
         emission_name = self.to_core.emission_name
         emissions = {emission_name: EmissionResult.create_empty(name=emission_name, timesteps=[])}
 
-        emission_rate_kg_per_day = emission_rate
+        emission_rate_kg_per_day = emission_rate_stream_day
         emission_rate_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate_kg_per_day)
 
         result = EmissionResult(
@@ -53,7 +51,7 @@ class VentingEmitter:
             timesteps=variables_map.time_vector,
             rate=TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
-                values=emission_rate_tons_per_day.tolist(),
+                values=emission_rate_tons_per_day,
                 unit=Unit.TONS_PER_DAY,
             ),
         )

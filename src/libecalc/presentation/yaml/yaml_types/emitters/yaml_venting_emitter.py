@@ -1,12 +1,16 @@
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
+import numpy as np
 from pydantic import Field, ValidationError
 from pydantic.class_validators import validator
 
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.common.utils.rates import RateType
+from libecalc.common.utils.rates import (
+    Rates,
+    RateType,
+)
 from libecalc.dto.base import ComponentType
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
@@ -65,6 +69,7 @@ class YamlTemporalEmitterModel:
     def create_model(model: Dict, regularity: Dict[datetime, Expression]):
         emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
         emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
+
         try:
             return YamlEmitterModel(
                 emission_rate=emission_rate,
@@ -97,13 +102,13 @@ class YamlVentingEmitter(YamlBaseEquipment):
     )
 
     @property
-    def temporal_emission_rate_model(self):
+    def temporal_emission_rate_model(self) -> TemporalModel:
         return TemporalModel(
             {start_time: emitter_model.emission_rate for start_time, emitter_model in self.emitter_model.items()}
         )
 
     @property
-    def temporal_regularity_model(self):
+    def temporal_regularity_model(self) -> TemporalModel:
         return TemporalModel(
             {
                 regularity_time: regularity
@@ -112,4 +117,33 @@ class YamlVentingEmitter(YamlBaseEquipment):
             }
         )
 
+    def stream_day_rates(
+        self, rates_in: List[float], regularity: List[float], time_vector: List[datetime]
+    ) -> list[float]:
+        rates_out = np.asarray(rates_in)
+
+        for period, model in TemporalModel(self.emitter_model).items():
+            start_index, end_index = period.get_timestep_indices(time_vector)
+            regularity_this_period = regularity[start_index:end_index]
+
+            rates_out[start_index:end_index] = (
+                Rates.to_stream_day(rates_out[start_index:end_index], regularity=list(regularity_this_period))
+                if model.emission_rate_type == RateType.CALENDAR_DAY
+                else rates_out[start_index:end_index]
+            )
+
+        return rates_out.tolist()
+
+    # @property
+    # def rate_to_core(self):
+    #
+    #     for time, model in self.emitter_model.items():
+    #         rate = TimeSeriesRate(
+    #             timesteps=
+    #         )
+    #         out_rate = TimeSeriesRate.extend
+    #     return TimeSeriesRate(
+    #         timesteps=1,
+    #         rate_type=self.emitter_model.emission_rate
+    #         )
     _validate_emitter_model_temporal_model = validator("emitter_model", allow_reuse=True)(validate_temporal_model)
