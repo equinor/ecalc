@@ -28,6 +28,7 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_syste
     YamlConsumerSystem,
 )
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlDefaultDatetime,
     YamlTemporalEmitterModel,
     YamlVentingEmitter,
 )
@@ -283,9 +284,9 @@ class VentingEmittersMapper:
     def send_to_core(
         self,
         data: Dict[str, Dict],
-        regularity: Dict[datetime, Expression],
+        regularity: Dict[YamlDefaultDatetime, Expression],
     ) -> YamlVentingEmitter:
-        yaml_emitter_model = YamlTemporalEmitterModel(self._target_period).get_model(
+        yaml_emitter_model = YamlTemporalEmitterModel(self._target_period).create_model(
             data=data.get(EcalcYamlKeywords.installation_venting_emitter_model),
             regularity=regularity,
         )

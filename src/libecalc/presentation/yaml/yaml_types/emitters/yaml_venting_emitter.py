@@ -65,30 +65,28 @@ class YamlTemporalEmitterModel:
     def __init__(self, target_period: Period):
         self._target_period = target_period
 
-    @staticmethod
-    def create_model(model: Dict, regularity: Dict[YamlDefaultDatetime, Expression]):
-        emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
-        emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
-
-        try:
-            return YamlEmitterModel(
-                emission_rate=emission_rate,
-                regularity=regularity,
-                emission_rate_type=emission_rate_type,
-            )
-        except ValidationError as e:
-            raise ValueError(e) from e  # Got circular import issues with DtoValidationError...
-
-    def get_model(
+    def create_model(
         self, data: Optional[Dict], regularity: Dict[YamlDefaultDatetime, Expression]
     ) -> Dict[YamlDefaultDatetime, YamlEmitterModel]:
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
-        return {
-            YamlDefaultDatetime(
-                start_date.year, start_date.month, start_date.day, start_date.hour, start_date.second
-            ): self.create_model(model, regularity=regularity)
-            for start_date, model in time_adjusted_model.items()
-        }
+        temporal_model = {}
+        for time, model in time_adjusted_model.items():
+            emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
+            emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
+            start_date = YamlDefaultDatetime(
+                year=time.year, month=time.month, day=time.day, hour=time.hour, second=time.second
+            )
+            try:
+                emitter_model = YamlEmitterModel(
+                    emission_rate=emission_rate,
+                    regularity=regularity,
+                    emission_rate_type=emission_rate_type,
+                )
+            except ValidationError as e:
+                raise ValueError(e) from e
+
+            temporal_model[start_date] = emitter_model
+        return temporal_model
 
 
 class YamlVentingEmitter(YamlBaseEquipment):
