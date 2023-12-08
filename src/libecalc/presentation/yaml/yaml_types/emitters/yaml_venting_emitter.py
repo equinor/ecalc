@@ -49,11 +49,15 @@ class YamlEmitterModel(YamlEcalcBaseModel):
         title="EMISSION_RATE_TYPE",
         description="Emission rate type, calendar day or stream day",
     )
-    regularity: Dict[YamlDefaultDatetime, Expression] = Field(
+    regularity: Optional[Dict[YamlDefaultDatetime, Expression]] = Field(
         ...,
         title="REGULARITY",
         description="Regularity",
     )
+
+    @validator("emission_rate_type", pre=True)
+    def replace_none_with_default(cls, value):
+        return RateType.STREAM_DAY if value is None else value
 
     _validate_regularity_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
     _default_emission_rate = validator("emission_rate", allow_reuse=True)(convert_expression)
@@ -94,12 +98,14 @@ class YamlVentingEmitter(YamlBaseEquipment):
                 variables_map=variables_map_for_this_period,
             )
 
+            emission_rate_for_period_kg_per_day = Unit.to(self.unit, Unit.KILO_PER_DAY)(emission_rate_for_period)
+
             if model.emission_rate_type == RateType.CALENDAR_DAY:
-                emission_rate_for_period = Rates.to_stream_day(
-                    calendar_day_rates=np.asarray(emission_rate_for_period), regularity=regularity_for_period
+                emission_rate_for_period_kg_per_day = Rates.to_stream_day(
+                    calendar_day_rates=np.asarray(emission_rate_for_period_kg_per_day), regularity=regularity_for_period
                 ).tolist()
 
-            emission_rate.extend(emission_rate_for_period)
+            emission_rate.extend(emission_rate_for_period_kg_per_day)
 
         return TimeSeriesStreamDayRate(
             timesteps=variables_map.time_vector,

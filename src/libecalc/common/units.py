@@ -112,6 +112,7 @@ class Unit(str, Enum):
 
         unit_registry[Unit.TONS_PER_DAY][Unit.KILO_PER_DAY] = lambda a: a * 1000
         unit_registry[Unit.KILO_PER_DAY][Unit.TONS_PER_DAY] = lambda a: a / 1000
+        unit_registry[Unit.KILO_PER_DAY][Unit.KILO_PER_DAY] = lambda a: a
 
         unit_registry[Unit.KILO][Unit.TONS] = lambda a: a / 1000
         unit_registry[Unit.TONS][Unit.KILO] = lambda a: a * 1000

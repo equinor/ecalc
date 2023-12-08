@@ -9,7 +9,6 @@ except ImportError:
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumerType, ConsumptionType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression
@@ -253,7 +252,7 @@ class VentingEmittersMapper:
         model = data.get(EcalcYamlKeywords.installation_venting_emitter_model)
         time_adjusted_model = define_time_model_for_period(model, target_period=self._target_period)
         emitter_models = {}
-        regularity = regularity_installation
+        # regularity = regularity_installation
 
         for period, model in time_adjusted_model.items():
             start_date = YamlDefaultDatetime(
@@ -263,11 +262,13 @@ class VentingEmittersMapper:
             # Check if user has specified regularity, if not inherit from installation
             if model.get(EcalcYamlKeywords.regularity):
                 regularity = {start_date: Expression.setup_from_expression(model.get(EcalcYamlKeywords.regularity))}
+            else:
+                regularity = regularity_installation
 
             yaml_emitter_model = YamlEmitterModel(
                 emission_rate=model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate),
                 regularity=regularity,
-                emission_rate_type=data.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY,
+                emission_rate_type=model.get(EcalcYamlKeywords.venting_emitter_rate_type),
             )
             emitter_models[start_date] = yaml_emitter_model
         try:
