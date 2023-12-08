@@ -16,7 +16,6 @@ from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
-from libecalc.core.consumers.venting_emitter import VentingEmitter
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
@@ -173,5 +172,13 @@ class EnergyCalculator:
                         variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
             elif isinstance(consumer_dto, YamlVentingEmitter):
-                emission_results[consumer_dto.id] = VentingEmitter(consumer_dto).evaluate(variables_map=variables_map)
+                emission_rate = consumer_dto.get_emission_rate(variables_map=variables_map).to_unit(Unit.TONS_PER_DAY)
+                emission_result = {
+                    consumer_dto.emission_name: EmissionResult(
+                        name=consumer_dto.emission_name,
+                        timesteps=variables_map.time_vector,
+                        rate=emission_rate,
+                    )
+                }
+                emission_results[consumer_dto.id] = emission_result
         return emission_results

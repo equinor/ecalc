@@ -8,6 +8,7 @@ class EcalcYamlKeywords:
 
     direct_consumer_consumption_rate_type = "CONSUMPTION_RATE_TYPE"
     venting_emitter_rate_type = "EMISSION_RATE_TYPE"
+    emission_unit = "UNIT"
 
     energy_usage_model = "ENERGY_USAGE_MODEL"
     energy_usage_model_type_direct = "DIRECT"

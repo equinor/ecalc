@@ -1,17 +1,19 @@
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import numpy as np
 from pydantic import Field, ValidationError
 from pydantic.class_validators import validator
 
-from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
     RateType,
+    TimeSeriesStreamDayRate,
 )
 from libecalc.dto.base import ComponentType
+from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.validation.yaml_validators import (
@@ -100,38 +102,41 @@ class YamlVentingEmitter(YamlBaseEquipment):
     emitter_model: YamlTemporalModel[YamlEmitterModel] = Field(
         ..., title="EMITTER_MODEL", description="The emitter model.\n\n$ECALC_DOCS_KEYWORDS_URL/EMITTER_MODEL"
     )
+    unit: Unit = Field(
+        Unit.KILO_PER_DAY,
+        title=EcalcYamlKeywords.emission_unit,
+        description="Input unit for emission rate. Default is kg/day.",
+    )
 
-    @property
-    def temporal_emission_rate_model(self) -> TemporalModel:
-        return TemporalModel(
-            {start_time: emitter_model.emission_rate for start_time, emitter_model in self.emitter_model.items()}
-        )
-
-    @property
-    def temporal_regularity_model(self) -> TemporalModel:
-        return TemporalModel(
-            {
-                regularity_time: regularity
-                for model_time, emitter_model in self.emitter_model.items()
-                for regularity_time, regularity in emitter_model.regularity.items()
-            }
-        )
-
-    def stream_day_rates(
-        self, rates_in: List[float], regularity: List[float], time_vector: List[datetime]
-    ) -> list[float]:
-        rates_out = np.asarray(rates_in)
-
+    def get_emission_rate(self, variables_map: VariablesMap) -> TimeSeriesStreamDayRate:
+        emission_rate = []
         for period, model in TemporalModel(self.emitter_model).items():
-            start_index, end_index = period.get_timestep_indices(time_vector)
-            regularity_this_period = regularity[start_index:end_index]
+            start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
+            variables_map_for_this_period = variables_map.get_subset(start_index=start_index, end_index=end_index)
 
-            rates_out[start_index:end_index] = (
-                Rates.to_stream_day(rates_out[start_index:end_index], regularity=list(regularity_this_period))
-                if model.emission_rate_type == RateType.CALENDAR_DAY
-                else rates_out[start_index:end_index]
+            regularity_for_period_temporal = TemporalModel(dict(model.regularity.items()))
+            emission_rate_for_period_temporal = TemporalModel({period.start: model.emission_rate})
+
+            regularity_for_period = TemporalExpression.evaluate(
+                temporal_expression=regularity_for_period_temporal,
+                variables_map=variables_map_for_this_period,
+            )
+            emission_rate_for_period = TemporalExpression.evaluate(
+                temporal_expression=emission_rate_for_period_temporal,
+                variables_map=variables_map_for_this_period,
             )
 
-        return rates_out.tolist()
+            if model.emission_rate_type == RateType.CALENDAR_DAY:
+                emission_rate_for_period = Rates.to_stream_day(
+                    calendar_day_rates=np.asarray(emission_rate_for_period), regularity=regularity_for_period
+                ).tolist()
+
+            emission_rate.extend(emission_rate_for_period)
+
+        return TimeSeriesStreamDayRate(
+            timesteps=variables_map.time_vector,
+            values=emission_rate,
+            unit=self.unit,
+        )
 
     _validate_emitter_model_temporal_model = validator("emitter_model", allow_reuse=True)(validate_temporal_model)
