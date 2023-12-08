@@ -1,7 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-from functools import reduce
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 
@@ -12,20 +11,19 @@ from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
+from libecalc.core.consumers.base.result import ConsumerResult
+from libecalc.core.consumers.compressor.result import CompressorResult
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.venting_emitter import VentingEmitter
 from libecalc.core.models.fuel import FuelModel
-from libecalc.core.result import ComponentResult, EcalcModelResult
+from libecalc.core.result import CompressorResult as TimeSeriesCompressorResult
+from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
-
-
-def merge_results(results_per_timestep: Dict[datetime, EcalcModelResult]) -> EcalcModelResult:
-    return reduce(lambda acc, x: acc.merge(x), results_per_timestep.values())
 
 
 class EnergyCalculator:
@@ -70,7 +68,7 @@ class EnergyCalculator:
                 )
                 optimizer = PriorityOptimizer()
 
-                results_per_timestep: Dict[str, Dict[datetime, ComponentResult]] = defaultdict(dict)
+                results_per_timestep: Dict[str, Dict[datetime, ConsumerResult]] = defaultdict(dict)
                 priorities_used = TimeSeriesString(
                     timesteps=[],
                     values=[],
@@ -91,7 +89,7 @@ class EnergyCalculator:
                         component_conditions=component_dto.component_conditions,
                     )
 
-                    def evaluator(priority: PriorityID):
+                    def evaluator(priority: PriorityID) -> List[ConsumerResult]:
                         stream_conditions_for_priority = evaluated_stream_conditions[priority]
                         stream_conditions_for_timestep = {
                             component_id: [
@@ -113,8 +111,10 @@ class EnergyCalculator:
                 consumer_ids = [consumer.id for consumer in component_dto.consumers]
                 merged_consumer_results = []
                 for consumer_id in consumer_ids:
-                    first_result, *rest_results = list(results_per_timestep[consumer_id].values())
-                    merged_consumer_results.append(first_result.merge(*rest_results))
+                    results = list(results_per_timestep[consumer_id].values())
+                    if isinstance(results[0], CompressorResult):
+                        TimeSeriesCompressorResult.from_domain(*results)
+                    # TODO from single timestep results to time-series-result, remove merge?
 
                 # Convert to legacy compatible operational_settings_used
                 priorities_to_int_map = {

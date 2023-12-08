@@ -1,1 +1,1 @@
-from .component import BaseConsumer, BaseConsumerWithoutOperationalSettings
+from .component import Consumer, ConsumerID

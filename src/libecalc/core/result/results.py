@@ -8,6 +8,7 @@ from typing_extensions import Self
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
@@ -17,6 +18,7 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.result.base import EcalcResultBaseModel
 from libecalc.dto.base import ComponentType
+from libecalc.core.consumers.compressor.result import CompressorResult as CoreCompressorResult
 
 
 class CommonResultBase(EcalcResultBaseModel):
@@ -66,6 +68,29 @@ class CompressorResult(GenericComponentResult):
     outlet_pressure_before_choking: TimeSeriesFloat
     streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
 
+    @staticmethod
+    def from_domain(self, *results: CoreCompressorResult) -> CompressorResult:
+        compressor_result = CompressorResult(
+            id=results[0].id,
+            timesteps=[],
+            is_valid=TimeSeriesBoolean(
+                timesteps=[],
+                values=[],
+                unit=Unit.NONE,
+            ),
+            energy_usage=TimeSeriesStreamDayRate(
+                values=[],
+                timesteps=[],
+                unit=results[0].energy_usage.unit,
+            )
+        energy_usage: TimeSeriesStreamDayRate
+        power: Optional[TimeSeriesStreamDayRate]
+
+        )
+        return CompressorResult(
+            timesteps=results.
+        )
+
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(
             id=self.id,
@@ -87,18 +112,6 @@ class PumpResult(GenericComponentResult):
 
     streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
 
-    def get_subset(self, indices: List[int]) -> Self:
-        return self.__class__(
-            id=self.id,
-            timesteps=[self.timesteps[index] for index in indices],
-            energy_usage=self.energy_usage[indices],
-            is_valid=self.is_valid[indices],
-            power=self.power[indices] if self.power is not None else None,
-            inlet_liquid_rate_m3_per_day=self.inlet_liquid_rate_m3_per_day[indices],
-            inlet_pressure_bar=self.inlet_pressure_bar[indices],
-            outlet_pressure_bar=self.outlet_pressure_bar[indices],
-            operational_head=self.operational_head[indices],
-        )
 
 
 class ConsumerModelResultBase(ABC, CommonResultBase):

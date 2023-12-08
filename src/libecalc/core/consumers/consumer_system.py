@@ -5,10 +5,10 @@ from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
 
 import networkx as nx
 
-from libecalc.common.priority_optimizer import EvaluatorResult
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
 )
+from libecalc.core.consumers.base.result import ConsumerResult
 from libecalc.core.consumers.compressor import Compressor
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.result import ComponentResult, ConsumerSystemResult, EcalcModelResult
@@ -96,7 +96,7 @@ class ConsumerSystem:
 
         return adjusted_stream_conditions
 
-    def evaluate_consumers(self, system_stream_conditions: Dict[str, List[StreamConditions]]) -> List[EvaluatorResult]:
+    def evaluate_consumers(self, system_stream_conditions: Dict[str, List[StreamConditions]]) -> List[ConsumerResult]:
         """
         Function to evaluate the consumers in the system given stream conditions for a single point in time
 
@@ -112,14 +112,7 @@ class ConsumerSystem:
         consumer_results_for_priority = [
             consumer.evaluate(adjusted_system_stream_conditions[consumer.id]) for consumer in self._consumers
         ]
-        return [
-            EvaluatorResult(
-                id=consumer_result_for_priority.component_result.id,
-                result=consumer_result_for_priority,
-                is_valid=consumer_result_for_priority.component_result.is_valid.values[0],
-            )
-            for consumer_result_for_priority in consumer_results_for_priority
-        ]
+        return consumer_results_for_priority
 
     @staticmethod
     def get_system_result(

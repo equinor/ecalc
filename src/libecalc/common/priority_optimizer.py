@@ -7,30 +7,29 @@ from typing import Dict, Generic, List, TypeVar
 
 from libecalc.common.priorities import PriorityID
 
-TResult = TypeVar("TResult")
-
 ComponentID = str
+
+
+class EvaluatorResult(typing.Protocol):
+    id: ComponentID
+    is_valid: bool
+
+
+TResult = TypeVar("TResult", bound=EvaluatorResult)
 
 
 @dataclass
 class PriorityOptimizerResult(Generic[TResult]):
     priority_used: PriorityID
-    priority_results: List[typing.Any]  # TODO: typing. This is the consumer results merged based on priorities used
+    priority_results: List[TResult]
 
 
-@dataclass
-class EvaluatorResult(Generic[TResult]):
-    id: ComponentID
-    result: TResult
-    is_valid: bool
-
-
-class PriorityOptimizer(Generic[TResult]):
+class PriorityOptimizer:
     def optimize(
         self,
         priorities: List[PriorityID],
-        evaluator: typing.Callable[[PriorityID], List[EvaluatorResult[TResult]]],
-    ) -> PriorityOptimizerResult:
+        evaluator: typing.Callable[[PriorityID], List[TResult]],
+    ) -> PriorityOptimizerResult[TResult]:
         """
         Given a list of priorities, evaluate each priority using the evaluator. If the result of an evaluation is valid
         the priority is selected, if invalid try the next priority.
@@ -52,7 +51,7 @@ class PriorityOptimizer(Generic[TResult]):
         for priority in priorities:
             evaluator_results = evaluator(priority)
             for evaluator_result in evaluator_results:
-                priority_results[priority][evaluator_result.id] = evaluator_result.result
+                priority_results[priority][evaluator_result.id] = evaluator_result
 
             # Check if consumers are valid for this priority, should be valid for all consumers
             all_evaluator_results_valid = reduce(
@@ -65,7 +64,5 @@ class PriorityOptimizer(Generic[TResult]):
                 break
         return PriorityOptimizerResult(
             priority_used=priority_used,
-            priority_results=[
-                ecalc_model_result.component_result for ecalc_model_result in priority_results[priority_used].values()
-            ],
+            priority_results=list(priority_results[priority_used].values()),
         )
