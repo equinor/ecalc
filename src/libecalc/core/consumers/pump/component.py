@@ -40,6 +40,12 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             fluid_density=np.asarray([inlet_stream.density.value]),
         ).tolist()[0]
 
+    def get_supported_speeds(self) -> List[int]:
+        raise NotImplementedError
+
+    def evaluate_with_speed(self, inlet_streams: List[StreamConditions], speed: int) -> EcalcModelResult:
+        raise NotImplementedError
+
     def evaluate(
         self,
         streams: List[StreamConditions],

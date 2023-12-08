@@ -8,8 +8,9 @@ import operator
 from dataclasses import dataclass
 from datetime import datetime
 from functools import reduce
-from typing import Dict, List
+from typing import Any, Dict, List
 
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.units import Unit
 
@@ -19,11 +20,35 @@ class Pressure:
     value: float
     unit: Unit
 
-    def __lt__(self, other: Pressure) -> bool:
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, Pressure):
+            raise ProgrammingError(f"Pressure should be compared with Pressure, received {type(other)}")
+
         if self.unit != other.unit:
-            raise ValueError("Unit mismatch")
+            raise ProgrammingError(f"Unit mismatch. Received {self.unit} and {other.unit}")
 
         return self.value < other.value
+
+    def __le__(self, other: Any) -> bool:
+        if not isinstance(other, Pressure):
+            raise ProgrammingError(f"Pressure should be compared with Pressure, received {type(other)}")
+
+        if self.unit != other.unit:
+            raise ProgrammingError(f"Unit mismatch. Received {self.unit} and {other.unit}")
+
+        return self.value <= other.value
+
+    def __sub__(self, other):
+        if not isinstance(other, Pressure):
+            raise ProgrammingError(f"Pressure should be compared with Pressure, received {type(other)}")
+
+        if self.unit != other.unit:
+            raise ProgrammingError(f"Unit mismatch. Received {self.unit} and {other.unit}")
+
+        return Pressure(
+            value=self.value - other.value,
+            unit=self.unit,
+        )
 
 
 @dataclass
