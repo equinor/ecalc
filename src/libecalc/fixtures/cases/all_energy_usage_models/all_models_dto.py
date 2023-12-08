@@ -989,7 +989,6 @@ def methane_venting(regularity) -> YamlVentingEmitter:
                 emission_rate_type=RateType.STREAM_DAY,
             ),
         },
-        regularity=regularity,
     )
 
 

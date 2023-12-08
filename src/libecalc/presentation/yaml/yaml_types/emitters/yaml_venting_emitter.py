@@ -1,11 +1,10 @@
 from typing import Dict, Optional
 
 import numpy as np
-from pydantic import Field, ValidationError
+from pydantic import Field
 from pydantic.class_validators import validator
 
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
-from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
@@ -22,10 +21,6 @@ from libecalc.presentation.yaml.validation.yaml_validators import (
     convert_expression,
     validate_temporal_model,
 )
-
-# from libecalc.presentation.yaml.validation_errors import (
-#     DtoValidationError
-# )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
@@ -43,6 +38,7 @@ class YamlEmitterModel(YamlEcalcBaseModel):
     user_defined_category: Optional[str] = CategoryField(
         "",
     )
+
     emission_rate: ExpressionType = Field(
         ...,
         title="EMISSION_RATE",
@@ -61,34 +57,6 @@ class YamlEmitterModel(YamlEcalcBaseModel):
 
     _validate_regularity_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
     _default_emission_rate = validator("emission_rate", allow_reuse=True)(convert_expression)
-
-
-class YamlTemporalEmitterModel:
-    def __init__(self, target_period: Period):
-        self._target_period = target_period
-
-    def create_model(
-        self, data: Optional[Dict], regularity: Dict[YamlDefaultDatetime, Expression]
-    ) -> Dict[YamlDefaultDatetime, YamlEmitterModel]:
-        time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
-        temporal_model = {}
-        for time, model in time_adjusted_model.items():
-            emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
-            emission_rate_type = model.get(EcalcYamlKeywords.venting_emitter_rate_type) or RateType.STREAM_DAY
-            start_date = YamlDefaultDatetime(
-                year=time.year, month=time.month, day=time.day, hour=time.hour, second=time.second
-            )
-            try:
-                emitter_model = YamlEmitterModel(
-                    emission_rate=emission_rate,
-                    regularity=regularity,
-                    emission_rate_type=emission_rate_type,
-                )
-            except ValidationError as e:
-                raise ValueError(e) from e
-
-            temporal_model[start_date] = emitter_model
-        return temporal_model
 
 
 class YamlVentingEmitter(YamlBaseEquipment):

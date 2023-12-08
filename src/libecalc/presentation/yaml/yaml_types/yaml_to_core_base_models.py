@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import partial
-from typing import Dict, Optional
+from typing import Optional
 
 from pydantic import Extra, Field
 from pydantic.class_validators import validator
@@ -16,14 +16,12 @@ from libecalc.dto.base import (
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.validation.yaml_validators import (
     ComponentNameStr,
-    validate_temporal_model,
 )
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
-from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
 
 
 class YamlEcalcBaseModel(YamlBase):
@@ -71,13 +69,6 @@ class YamlBaseComponent(YamlComponent, ABC):
         title="NAME",
         description="Name of component",
     )
-
-    regularity: Dict[YamlDefaultDatetime, Expression] = Field(
-        ...,
-        title="REGULARITY",
-        description="Regularity",
-    )
-    _validate_base_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
 
 
 class YamlBaseEquipment(YamlBaseComponent, ABC):

@@ -2,7 +2,6 @@ import pytest
 from libecalc.common.units import Unit
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
@@ -17,7 +16,6 @@ def test_venting_emitter(variables_map, temporal_emitter_model):
         emitter_model=temporal_emitter_model,
         user_defined_category={YamlDefaultDatetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
         emission_name="ch4",
-        regularity={YamlDefaultDatetime(1900, 1, 1): Expression.setup_from_expression(1)},
     )
 
     emission_rate = venting_emitter.get_emission_rate(variables_map=variables_map).to_unit(Unit.TONS_PER_DAY)
