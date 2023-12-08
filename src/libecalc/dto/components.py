@@ -21,7 +21,6 @@ from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
-    RateType,
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
@@ -44,7 +43,6 @@ from libecalc.dto.models.pump import PumpModel
 from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
-    EmissionNameStr,
     ExpressionType,
     convert_expression,
     validate_temporal_model,
@@ -141,26 +139,6 @@ class FuelConsumer(BaseConsumer):
 
 
 Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]
-
-
-class EmitterModel(EcalcBaseModel):
-    name: ComponentNameStr = ""  # This is not mandatory yet.
-    user_defined_category: str = ""  # This is not mandatory yet.
-    emission_rate: Expression
-
-    regularity: Dict[datetime, Expression]
-    emission_rate_type: RateType = RateType.STREAM_DAY
-    _validate_emitter_model_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
-
-    _default_emission_rate = validator("emission_rate", allow_reuse=True, pre=True)(convert_expression)
-
-
-class VentingEmitter(BaseEquipment):
-    component_type = ComponentType.VENTING_EMITTER
-    emission_name: EmissionNameStr
-    emitter_model: Dict[datetime, EmitterModel]
-
-    _validate_emitter_temporal_model = validator("emitter_model", allow_reuse=True)(validate_temporal_model)
 
 
 class CompressorOperationalSettings(EcalcBaseModel):
