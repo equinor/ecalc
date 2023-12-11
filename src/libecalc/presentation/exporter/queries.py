@@ -190,6 +190,27 @@ class EmissionQuery(Query):
                                 if self.fuel_type_category is None or fuel_category == self.fuel_type_category:
                                     if self.emission_type is None or emission.name == self.emission_type:
                                         aggregated_result[timestep] += emission_volume
+
+            # Add emissions from direct emitters, but ensure that emissions are not counted twice.
+            # Direct emissions have no fuel, and should not count when asking for emissions for a given fuel
+            if self.fuel_type_category is None:
+                for venting_emitter in installation_dto.venting_emitters:
+                    temporal_category = TemporalModel(venting_emitter.user_defined_category)
+                    for period, category in temporal_category.items():
+                        if self.consumer_categories is None or category in self.consumer_categories:
+                            emissions = installation_graph.get_emissions(venting_emitter.id)
+
+                            for emission in emissions.values():
+                                emission_volumes = (
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, regularity=regularity)
+                                    .for_period(period)
+                                    .to_volumes()
+                                )
+                                unit_in = emission_volumes.unit
+                                for timestep, emission_volume in emission_volumes.datapoints():
+                                    if self.emission_type is None or emission.name == self.emission_type:
+                                        aggregated_result[timestep] += emission_volume
+
             if aggregated_result:
                 sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
                 sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
