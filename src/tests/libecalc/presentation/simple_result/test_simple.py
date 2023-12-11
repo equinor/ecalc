@@ -5,7 +5,7 @@ import pytest
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.units import Unit
 from libecalc.dto.base import ComponentType
-from libecalc.dto.result.simple import (
+from libecalc.presentation.simple_result.simple import (
     InterpolationMethod,
     SimpleComponentResult,
     SimpleEmissionResult,

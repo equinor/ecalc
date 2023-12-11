@@ -6,9 +6,11 @@ from pydantic import Extra, root_validator
 from scipy.interpolate import interp1d
 
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.dto.base import ComponentType
+from libecalc.dto.result import ComponentResult, EcalcModelResult
 from libecalc.dto.result.base import EcalcResultBaseModel
 from libecalc.dto.result.types import opt_float
 
@@ -133,6 +135,10 @@ class SimpleComponentResult(SimpleBase):
     energy_usage_unit: Unit
     power: Optional[List[opt_float]]
 
+    @classmethod
+    def from_dto(cls, component_result: ComponentResult) -> "SimpleComponentResult":
+        return SimpleComponentResult(**component_result.dict())
+
     @root_validator(pre=True)
     def convert_time_series(cls, values):
         energy_usage = values.get("energy_usage")
@@ -198,7 +204,7 @@ class SimpleComponentResult(SimpleBase):
                         emission.rate.append(component.emissions[emission.name].rate[timestep_index])
                 else:
                     # This is a developer error, we should provide the correct timesteps.
-                    raise ValueError(
+                    raise ProgrammingError(
                         f"Provided timesteps includes timestep not found in component {component.id}. "
                         f"Extraneous timestep: {timestep}. This should not happen, contact support."
                     )
@@ -320,6 +326,13 @@ def _create_empty_component(component: SimpleComponentResult) -> SimpleComponent
 class SimpleResultData(SimpleBase):
     timesteps: List[datetime]
     components: List[SimpleComponentResult]
+
+    @classmethod
+    def from_dto(cls, result: EcalcModelResult) -> "SimpleResultData":
+        return SimpleResultData(
+            timesteps=result.timesteps,
+            components=[SimpleComponentResult.from_dto(component) for component in result.components],
+        )
 
     @classmethod
     def fit_to_timesteps(

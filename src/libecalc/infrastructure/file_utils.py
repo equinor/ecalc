@@ -7,6 +7,7 @@ import pandas as pd
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
 from libecalc.dto.result import ComponentResult, EcalcModelResult
+from libecalc.presentation.simple_result import SimpleResultData
 
 
 class OutputFormat(enum.Enum):
@@ -65,7 +66,7 @@ def to_json(result: Union[ComponentResult, EcalcModelResult], simple_output: boo
     """
     date_format = DateTimeFormats.get_format(date_format_option)
     return (
-        result.simple_result().json(
+        SimpleResultData.from_dto(result).json(
             indent=True,
             date_format=date_format,
             exclude_none=True,

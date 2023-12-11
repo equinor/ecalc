@@ -13,7 +13,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesVolumesCumulative,
 )
 from libecalc.core.result.emission import EmissionResult as EmissionCoreResult
-from libecalc.dto.result.simple import SimpleEmissionResult
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 
 
@@ -23,9 +22,6 @@ class EmissionResult(TabularTimeSeries):
     name: str
     rate: TimeSeriesRate
     cumulative: TimeSeriesVolumesCumulative
-
-    def simple_result(self):
-        return SimpleEmissionResult(**self.dict())
 
     @classmethod
     def create_empty(cls, name: str, timesteps: List[datetime]):
