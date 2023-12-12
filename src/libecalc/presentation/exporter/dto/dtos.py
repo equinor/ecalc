@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Type, Union
+from typing import Dict, List, Set, Type, Union
 
 import pandas as pd
 from pydantic import Field, root_validator
@@ -10,6 +10,7 @@ from libecalc.common.errors.exceptions import (
     DifferentLengthsError,
     IncompatibleDataError,
     MissingKeyError,
+    ProgrammingError,
 )
 from libecalc.common.math.math_utils import MathUtil
 from libecalc.common.time_utils import Frequency
@@ -69,6 +70,25 @@ class TimeSeries(EcalcResultBaseModel):
     title: str
     unit: Unit
 
+    def fit_to_timesteps(self, timesteps: List[datetime]) -> "TimeSeries":
+        """
+        Fit TimeSeries to timesteps
+        Args:
+            timesteps:
+
+        Returns:
+
+        """
+
+        if not set(timesteps).issubset(set(self.values.keys())):
+            raise ProgrammingError("Provided timesteps must be a subset of the current timesteps.")
+
+        return TimeSeries(
+            values={timestep: value for timestep, value in self.values.items() if timestep in timesteps},
+            title=self.title,
+            unit=self.unit,
+        )
+
 
 class TSVPrognosis(EcalcResultBaseModel):
     """The LongTermPrognosis (LTP) and ShortTermPrognosis (STP) - all the corresponding predefined timeseries for a regular timevector.
@@ -99,6 +119,18 @@ class TSVPrognosis(EcalcResultBaseModel):
             )
 
         return values
+
+    def fit_to_timesteps(self, timesteps: List[datetime]) -> "TSVPrognosis":
+        return TSVPrognosis(
+            time_steps=TimeSteps(
+                values=timesteps,
+                frequency=self.time_steps.frequency,
+            ),
+            time_series_collection={
+                time_series_name: time_series.fit_to_timesteps(timesteps)
+                for time_series_name, time_series in self.time_series_collection.items()
+            },
+        )
 
     def __sub__(self, other: "TSVPrognosis") -> "TSVPrognosis":
         delta_time_series_collection: Dict[str, TimeSeries] = {}
@@ -178,11 +210,31 @@ class AssetTSVPrognosis(EcalcResultBaseModel):
 
     tsv_prognoses: Dict[str, TSVPrognosis] = Field(default_factory=dict)
 
+    @property
+    def common_timesteps(self) -> Set[datetime]:
+        """
+        Get common timesteps for all tsv prognoses
+        Returns: intersection of all timesteps
+
+        """
+        timesteps_sets = []
+        for tsv_prognosis in self.tsv_prognoses.values():
+            timesteps_sets.append(set(tsv_prognosis.time_steps.values))
+        return set.intersection(*timesteps_sets)
+
     def add_tsv_prognosis(self, installation_name: str, long_term_prognosis: TSVPrognosis):
         self.tsv_prognoses[installation_name] = long_term_prognosis
 
     def get_tsv_prognosis(self, installation_name: str) -> TSVPrognosis:
         return self.tsv_prognoses.get(installation_name)
+
+    def fit_to_timesteps(self, timesteps: List[datetime]) -> "AssetTSVPrognosis":
+        return AssetTSVPrognosis(
+            tsv_prognoses={
+                installation_name: tsv_prognosis.fit_to_timesteps(timesteps)
+                for installation_name, tsv_prognosis in self.tsv_prognoses.items()
+            }
+        )
 
     @classmethod
     def from_tsv_result(cls: Type["AssetTSVPrognosis"], filtered_result: FilteredResult) -> "AssetTSVPrognosis":
@@ -212,10 +264,18 @@ class AssetTSVPrognosis(EcalcResultBaseModel):
 
         return dataframes
 
-    def __sub__(self, other: "AssetTSVPrognosis") -> "AssetTSVPrognosis":
+    @classmethod
+    def delta_profile(cls, reference: "AssetTSVPrognosis", other: "AssetTSVPrognosis") -> "AssetTSVPrognosis":
         asset_delta_tsv_profile = AssetTSVPrognosis()
 
-        for inst_name, tsv_prognosis in self.tsv_prognoses.items():
-            asset_delta_tsv_profile.add_tsv_prognosis(inst_name, tsv_prognosis - other.get_tsv_prognosis(inst_name))
+        timesteps = sorted(reference.common_timesteps.intersection(other.common_timesteps))
+
+        reference = reference.fit_to_timesteps(timesteps)
+        other = other.fit_to_timesteps(timesteps)
+
+        for inst_name, other_tsv_prognosis in other.tsv_prognoses.items():
+            asset_delta_tsv_profile.add_tsv_prognosis(
+                inst_name, other_tsv_prognosis - reference.get_tsv_prognosis(inst_name)
+            )
 
         return asset_delta_tsv_profile
