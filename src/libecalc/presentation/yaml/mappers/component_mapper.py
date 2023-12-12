@@ -28,10 +28,10 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_syste
     YamlConsumerSystem,
 )
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlDefaultDatetime,
-    YamlEmitterModel,
+    YamlVentingEmission,
     YamlVentingEmitter,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -247,40 +247,27 @@ class VentingEmittersMapper:
     def to_emission_calculator(
         self,
         data: Dict[str, Dict],
-        regularity_installation: Dict[YamlDefaultDatetime, Expression],
     ) -> YamlVentingEmitter:
-        model = data.get(EcalcYamlKeywords.installation_venting_emitter_model)
-        time_adjusted_model = define_time_model_for_period(model, target_period=self._target_period)
-        emitter_models = {}
-        # regularity = regularity_installation
+        venting_emitter_name = data.get(EcalcYamlKeywords.name)
+        venting_emission = data.get(EcalcYamlKeywords.emission)
+        venting_emission_rate = venting_emission.get(EcalcYamlKeywords.rate)
 
-        for period, model in time_adjusted_model.items():
-            start_date = YamlDefaultDatetime(
-                year=period.year, month=period.month, day=period.day, hour=period.hour, second=period.second
-            )
+        yaml_rate = YamlRate(
+            value=venting_emission_rate.get(EcalcYamlKeywords.value),
+            unit=venting_emission_rate.get(EcalcYamlKeywords.unit),
+            rate_type=venting_emission_rate.get(EcalcYamlKeywords.rate_type),
+        )
 
-            # Check if user has specified regularity, if not inherit from installation
-            if model.get(EcalcYamlKeywords.regularity):
-                regularity = {start_date: Expression.setup_from_expression(model.get(EcalcYamlKeywords.regularity))}
-            else:
-                regularity = regularity_installation
+        yaml_venting_emission = YamlVentingEmission(
+            name=venting_emission.get(EcalcYamlKeywords.name),
+            rate=yaml_rate,
+        )
 
-            yaml_emitter_model = YamlEmitterModel(
-                emission_rate=model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate),
-                regularity=regularity,
-                emission_rate_type=model.get(EcalcYamlKeywords.venting_emitter_rate_type),
-            )
-            emitter_models[start_date] = yaml_emitter_model
         try:
-            venting_emitter_name = data.get(EcalcYamlKeywords.name)
-
             return YamlVentingEmitter(
                 name=venting_emitter_name,
-                user_defined_category=define_time_model_for_period(
-                    data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
-                ),
-                emission_name=data.get(EcalcYamlKeywords.installation_venting_emitter_emission_name),
-                emitter_model=emitter_models,
+                emission=yaml_venting_emission,
+                user_defined_category=data.get(EcalcYamlKeywords.user_defined_tag),
             )
         except ValidationError as e:
             raise DtoValidationError(data=data, validation_error=e) from e
@@ -322,7 +309,6 @@ class InstallationMapper:
         venting_emitters = [
             self.__venting_emitters_mapper.to_emission_calculator(
                 venting_emitters,
-                regularity_installation=regularity,
             )
             for venting_emitters in data.get(EcalcYamlKeywords.installation_venting_emitters, [])
         ]

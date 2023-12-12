@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 
 from libecalc import dto
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import (
     ComponentType,
@@ -12,9 +13,10 @@ from libecalc.dto.base import (
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlEmitterModel,
+    YamlVentingEmission,
     YamlVentingEmitter,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
 
 
@@ -981,14 +983,9 @@ def methane_venting(regularity) -> YamlVentingEmitter:
         name="methane_venting",
         component_type=ComponentType.VENTING_EMITTER,
         user_defined_category={YamlDefaultDatetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
-        emission_name="CH4",
-        emitter_model={
-            YamlDefaultDatetime(1900, 1, 1): YamlEmitterModel(
-                emission_rate="FLARE;METHANE_RATE",
-                regularity=regularity,
-                emission_rate_type=RateType.STREAM_DAY,
-            ),
-        },
+        emission=YamlVentingEmission(
+            name="CH4", rate=YamlRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, rate_type=RateType.STREAM_DAY)
+        ),
     )
 
 

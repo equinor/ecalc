@@ -6,9 +6,6 @@ from libecalc.common.utils.rates import RateType
 from libecalc.dto import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlEmitterModel,
-)
 
 
 @pytest.fixture
@@ -27,32 +24,6 @@ def variables_map(methane_values):
             datetime(2003, 1, 1, 0, 0),
         ],
     )
-
-
-@pytest.fixture
-def emitter_model_1_dto():
-    return YamlEmitterModel(
-        emission_rate="TSC1;Methane_rate {*} 1.02",
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-        emission_rate_type=RateType.STREAM_DAY,
-    )
-
-
-@pytest.fixture
-def emitter_model_2_dto():
-    return YamlEmitterModel(
-        emission_rate="TSC1;Methane_rate {*} 1.1",
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-        emission_rate_type=RateType.STREAM_DAY,
-    )
-
-
-@pytest.fixture
-def temporal_emitter_model(emitter_model_1_dto, emitter_model_2_dto):
-    return {
-        datetime(2000, 1, 1): emitter_model_1_dto,
-        datetime(2002, 1, 1): emitter_model_2_dto,
-    }
 
 
 @pytest.fixture

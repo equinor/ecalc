@@ -172,10 +172,16 @@ class EnergyCalculator:
                         variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
             elif isinstance(consumer_dto, YamlVentingEmitter):
-                emission_rate = consumer_dto.get_emission_rate(variables_map=variables_map).to_unit(Unit.TONS_PER_DAY)
+                installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
+                installation = self._graph.get_node(installation_id)
+
+                emission_rate = consumer_dto.get_emission_rate(
+                    variables_map=variables_map, regularity=installation.regularity
+                ).to_unit(Unit.TONS_PER_DAY)
+
                 emission_result = {
-                    consumer_dto.emission_name: EmissionResult(
-                        name=consumer_dto.emission_name,
+                    consumer_dto.emission.name: EmissionResult(
+                        name=consumer_dto.emission.name,
                         timesteps=variables_map.time_vector,
                         rate=emission_rate,
                     )
