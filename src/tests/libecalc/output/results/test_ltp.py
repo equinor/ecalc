@@ -209,17 +209,4 @@ def test_boiler_heater_categories():
     assert co2_from_heater == expected_co2_from_heater()
 
 
-def test_venting_emitters():
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
 
-    get_consumption(installation=installation_venting_emitter(), variables=variables)
-    # boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
-    # heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
-    # co2_from_boiler = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
-    # co2_from_heater = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
-
-    # FuelConsumerPowerConsumptionQuery. Check gas turbine compressor el consumption.
-    # assert boiler_fuel_consumption == expected_boiler_fuel_consumption()
-    # assert heater_fuel_consumption == expected_heater_fuel_consumption()
-    # assert co2_from_boiler == expected_co2_from_boiler()
-    # assert co2_from_heater == expected_co2_from_heater()

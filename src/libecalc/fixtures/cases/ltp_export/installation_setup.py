@@ -290,19 +290,7 @@ def compressor() -> dto.FuelConsumer:
     )
 
 
-def venting_emitter() -> YamlVentingEmitter:
-    return YamlVentingEmitter(
-        name="venting emitter 1",
-        user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-        emission=YamlVentingEmission(
-            name="ch4",
-            rate=YamlRate(
-                value=10,
-                unit=Unit.KILO_PER_DAY,
-                rate_type=RateType.CALENDAR_DAY,
-            ),
-        ),
-    )
+
 
 
 def generator_set_direct_consumer_temporal_model() -> dto.GeneratorSet:
@@ -524,11 +512,4 @@ def installation_boiler_heater_dto() -> dto.Installation:
     )
 
 
-def installation_venting_emitter() -> dto.Installation:
-    return dto.Installation(
-        name="INSTALLATION_A",
-        regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
-        venting_emitters=[venting_emitter()],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
-    )
+
