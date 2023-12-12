@@ -1,9 +1,7 @@
-import enum
 from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 from pydantic import Extra, root_validator
-from scipy.interpolate import interp1d
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.errors.exceptions import ProgrammingError
@@ -74,54 +72,6 @@ def _subtract_list(first: List[Optional[float]], second: List[Optional[float]]):
     return subtracted
 
 
-class InterpolationMethod(str, enum.Enum):
-    SKIP = "SKIP"
-    LINEAR = "LINEAR"
-    # FILL_ZERO can be handled by scipy, same as linear. kind='zero' if needed.
-
-
-interpolationKindMap = {
-    InterpolationMethod.LINEAR: "linear",
-}
-
-
-def _interpolate_list(
-    x: List[datetime],
-    y: List[float],
-    target_x: List[datetime],
-    method: InterpolationMethod,
-) -> List[float]:
-    if len(y) != len(x):
-        raise ValueError("x and y should have equal length.")
-
-    if len(y) == 0:
-        return []
-
-    if len(y) == 1:
-        return [y[0]] * len(target_x)
-
-    if x == target_x:
-        return y
-
-    if len(target_x) == 0:
-        return []
-
-    kind = interpolationKindMap[method]
-    start = min(x[0], target_x[0])
-    x_in_seconds = [(time_step - start).total_seconds() for time_step in x]
-    target_x_in_seconds = [(time_step - start).total_seconds() for time_step in target_x]
-
-    return list(
-        interp1d(
-            x=x_in_seconds,
-            y=y,
-            fill_value=(y[0], y[-1]),
-            assume_sorted=True,
-            kind=kind,
-        )(target_x_in_seconds)
-    )
-
-
 class SimpleComponentResult(SimpleBase):
     componentType: ComponentType
     component_level: ComponentLevel
@@ -171,82 +121,39 @@ class SimpleComponentResult(SimpleBase):
         cls,
         component: "SimpleComponentResult",
         timesteps: List[datetime],
-        method: InterpolationMethod = InterpolationMethod.SKIP,
     ) -> "SimpleComponentResult":
-        """Fit the component to the provided timesteps based on specified method.
+        """Fit the component to the provided timesteps. Only the same or a subset of timesteps is supported.
 
         :param component: The component that should be normalized
-        :param timesteps: the target timesteps. These should already be correct based on the InterpolationMethod
-            specified, i.e. if InterpolationMethod is SKIP, the provided timesteps should all exist in the component.
-        :param method: The interpolation method that should be used to fill values
-        :return: the normalized component
+        :param timesteps: the target timesteps. The provided timesteps should all exist in the component.
+        :return: the component with the new timesteps
         """
-        if method == InterpolationMethod.SKIP:
-            power = []
-            energy_usage = []
-            is_valid = []
-            emissions: Dict[str, SimpleEmissionResult] = {
-                emission.name: SimpleEmissionResult(name=emission.name, rate=[])
-                for emission in component.emissions.values()
-            }
-            for timestep in timesteps:
-                if timestep in component.timesteps:
-                    timestep_index = component.timesteps.index(timestep)
+        power = []
+        energy_usage = []
+        is_valid = []
+        emissions: Dict[str, SimpleEmissionResult] = {
+            emission.name: SimpleEmissionResult(name=emission.name, rate=[])
+            for emission in component.emissions.values()
+        }
+        for timestep in timesteps:
+            if timestep in component.timesteps:
+                timestep_index = component.timesteps.index(timestep)
 
-                    if component.power is not None:
-                        power.append(component.power[timestep_index])
+                if component.power is not None:
+                    power.append(component.power[timestep_index])
 
-                    energy_usage.append(component.energy_usage[timestep_index])
+                energy_usage.append(component.energy_usage[timestep_index])
 
-                    is_valid.append(component.is_valid[timestep_index])
-                    for emission in emissions.values():
-                        # Assume index exist if emission exist
-                        emission.rate.append(component.emissions[emission.name].rate[timestep_index])
-                else:
-                    # This is a developer error, we should provide the correct timesteps.
-                    raise ProgrammingError(
-                        f"Provided timesteps includes timestep not found in component {component.id}. "
-                        f"Extraneous timestep: {timestep}. This should not happen, contact support."
-                    )
-        elif method == InterpolationMethod.LINEAR:
-            emissions = {
-                emission.name: SimpleEmissionResult(
-                    name=emission.name,
-                    rate=_interpolate_list(
-                        x=component.timesteps,
-                        y=emission.rate,
-                        target_x=timesteps,
-                        method=method,
-                    ),
+                is_valid.append(component.is_valid[timestep_index])
+                for emission in emissions.values():
+                    # Assume index exist if emission exist
+                    emission.rate.append(component.emissions[emission.name].rate[timestep_index])
+            else:
+                # This is a developer error, we should provide the correct timesteps.
+                raise ProgrammingError(
+                    f"Provided timesteps includes timestep not found in component {component.id}. "
+                    f"Extraneous timestep: {timestep}. This should not happen, contact support."
                 )
-                for emission in component.emissions.values()
-            }
-
-            is_valid = []
-            for timestep in timesteps:
-                if timestep in component.timesteps:
-                    timestep_index = component.timesteps.index(timestep)
-                    is_valid.append(component.is_valid[timestep_index])
-                else:
-                    is_valid.append(True)
-
-            power = None
-            if component.power is not None:
-                power = _interpolate_list(
-                    x=component.timesteps,
-                    y=component.power,
-                    target_x=timesteps,
-                    method=method,
-                )
-
-            energy_usage = _interpolate_list(
-                x=component.timesteps,
-                y=component.energy_usage,
-                target_x=timesteps,
-                method=method,
-            )
-        else:
-            raise NotImplementedError()
 
         return cls(
             componentType=component.componentType,
@@ -339,12 +246,20 @@ class SimpleResultData(SimpleBase):
         cls,
         model: "SimpleResultData",
         timesteps: List[datetime],
-        method: InterpolationMethod = InterpolationMethod.SKIP,
     ):
+        """
+        Fit result to timesteps. Only a subset or the same set of timesteps is supported.
+        Args:
+            model:
+            timesteps:
+
+        Returns:
+
+        """
         return cls(
             timesteps=timesteps,
             components=[
-                SimpleComponentResult.fit_to_timesteps(component=component, timesteps=timesteps, method=method)
+                SimpleComponentResult.fit_to_timesteps(component=component, timesteps=timesteps)
                 for component in model.components
             ],
         )
@@ -438,20 +353,14 @@ class SimpleResultData(SimpleBase):
         cls,
         other_model: "SimpleResultData",
         reference_model: "SimpleResultData",
-        interpolation_method: InterpolationMethod = InterpolationMethod.SKIP,
     ) -> Tuple["SimpleResultData", "SimpleResultData", "SimpleResultData", List[str]]:
-        if interpolation_method == InterpolationMethod.SKIP:
-            timesteps = sorted(set(other_model.timesteps).intersection(reference_model.timesteps))
-        elif interpolation_method == InterpolationMethod.LINEAR:
-            timesteps = sorted(set(other_model.timesteps).union(reference_model.timesteps))
-        else:
-            raise NotImplementedError
+        timesteps = sorted(set(other_model.timesteps).intersection(reference_model.timesteps))
 
         # Normalize components first as we need to filter out CONSUMER_MODELs for normalize_timesteps to work.
         other_model, reference_model = cls.normalize_components(other_model, reference_model)
 
-        other_model = cls.fit_to_timesteps(other_model, timesteps, method=interpolation_method)
-        reference_model = cls.fit_to_timesteps(reference_model, timesteps, method=interpolation_method)
+        other_model = cls.fit_to_timesteps(other_model, timesteps)
+        reference_model = cls.fit_to_timesteps(reference_model, timesteps)
 
         delta_profile, errors = cls.subtract(other_model, reference_model)
 

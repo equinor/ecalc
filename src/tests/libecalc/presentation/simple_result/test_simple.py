@@ -1,12 +1,10 @@
 from copy import deepcopy
 from datetime import datetime
 
-import pytest
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.units import Unit
 from libecalc.dto.base import ComponentType
 from libecalc.presentation.simple_result.simple import (
-    InterpolationMethod,
     SimpleComponentResult,
     SimpleEmissionResult,
     SimpleResultData,
@@ -412,75 +410,3 @@ class TestDeltaProfile:
                 )
             ],
         )
-
-    def test_linear_interpolation(self):
-        """Test that timesteps will be interpolated.
-        Also tests that the invalid state will be kept even if the timestep did not exist in one of the models, i.e.
-        changed model has a step that is invalid that don't exist in the changed model -> invalid = True.
-        """
-        reference_timesteps = [datetime(2020, 1, 1), datetime(2022, 1, 1)]
-        reference_model = SimpleResultData(
-            timesteps=reference_timesteps,
-            components=[
-                SimpleComponentResult(
-                    name="component1",
-                    parent="installation1",
-                    componentType=ComponentType.COMPRESSOR,
-                    component_level=ComponentLevel.CONSUMER,
-                    timesteps=reference_timesteps,
-                    emissions={
-                        "co2": SimpleEmissionResult(
-                            name="co2",
-                            rate=[3, 5],
-                        )
-                    },
-                    energy_usage=[2, 4],
-                    energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    power=[7, 9],
-                    is_valid=[True, False],
-                )
-            ],
-        )
-
-        changed_timesteps = [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
-
-        other_model = SimpleResultData(
-            timesteps=changed_timesteps,
-            components=[
-                SimpleComponentResult(
-                    name="component1",
-                    parent="installation1",
-                    componentType=ComponentType.COMPRESSOR,
-                    component_level=ComponentLevel.CONSUMER,
-                    timesteps=changed_timesteps,
-                    emissions={
-                        "co2": SimpleEmissionResult(
-                            name="co2",
-                            rate=[6, 8, 10],
-                        )
-                    },
-                    energy_usage=[4, 6, 8],
-                    energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    power=[14, 16, 18],
-                    is_valid=[True, False, True],
-                )
-            ],
-        )
-
-        other_model, reference_model, delta_profile, errors = SimpleResultData.delta_profile(
-            other_model,
-            reference_model,
-            interpolation_method=InterpolationMethod.LINEAR,
-        )
-
-        expected_timesteps = [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
-
-        assert len(errors) == 0
-        assert delta_profile.timesteps == expected_timesteps
-        interpolated_index = 1
-        component = delta_profile.components[0]
-        assert component.timesteps == expected_timesteps
-        assert component.energy_usage[interpolated_index] == pytest.approx(3, rel=0.1)
-        assert component.power[interpolated_index] == pytest.approx(8, rel=0.1)
-        assert not component.is_valid[interpolated_index]
-        assert component.emissions["co2"].rate[interpolated_index] == pytest.approx(4, rel=0.1)
