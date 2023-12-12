@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Frequency
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
@@ -220,13 +221,55 @@ def test_venting_emitters():
     emission_rate = 10
 
     variables = dto.VariablesMap(time_vector=time_vector, variables={})
-    installation = installation_venting_emitter(
+
+    installation_sd_kg_per_day = installation_venting_emitter(
         emission_rate=emission_rate,
         regularity={datetime(2027, 1, 1): Expression.setup_from_expression(regularity)},
         rate_type=RateType.STREAM_DAY,
+        unit=Unit.KILO_PER_DAY,
+        emission_name="ch4",
     )
 
-    ltp_result = get_consumption(installation=installation, variables=variables)
-    ch4_emission = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
+    installation_sd_tons_per_day = installation_venting_emitter(
+        emission_rate=emission_rate,
+        regularity={datetime(2027, 1, 1): Expression.setup_from_expression(regularity)},
+        rate_type=RateType.STREAM_DAY,
+        unit=Unit.TONS_PER_DAY,
+        emission_name="ch4",
+    )
 
-    assert ch4_emission == (emission_rate / 1000) * 365 * regularity
+    installation_cd_kg_per_day = installation_venting_emitter(
+        emission_rate=emission_rate,
+        regularity={datetime(2027, 1, 1): Expression.setup_from_expression(regularity)},
+        rate_type=RateType.CALENDAR_DAY,
+        unit=Unit.KILO_PER_DAY,
+        emission_name="ch4",
+    )
+
+    ltp_result_input_sd_kg_per_day = get_consumption(installation=installation_sd_kg_per_day, variables=variables)
+
+    ltp_result_input_sd_tons_per_day = get_consumption(installation=installation_sd_tons_per_day, variables=variables)
+
+    ltp_result_input_cd_kg_per_day = get_consumption(installation=installation_cd_kg_per_day, variables=variables)
+
+    emission_input_sd_kg_per_day = get_sum_ltp_column(
+        ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column_nr=0
+    )
+    emission_input_sd_tons_per_day = get_sum_ltp_column(
+        ltp_result_input_sd_tons_per_day, installation_nr=0, ltp_column_nr=0
+    )
+    emission_input_cd_kg_per_day = get_sum_ltp_column(
+        ltp_result_input_cd_kg_per_day, installation_nr=0, ltp_column_nr=0
+    )
+
+    # Verify correct emissions when input is kg per day. Output should be in tons per day - hence dividing by 1000
+    assert emission_input_sd_kg_per_day == (emission_rate / 1000) * 365 * regularity
+
+    # Verify correct emissions when input is tons per day.
+    assert emission_input_sd_tons_per_day == emission_rate * 365 * regularity
+
+    # Verify that input calendar day vs input stream day is linked correctly through regularity
+    assert emission_input_cd_kg_per_day == emission_input_sd_kg_per_day / regularity
+
+    # Verify that results is independent of regularity, when input rate is in calendar days
+    assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365

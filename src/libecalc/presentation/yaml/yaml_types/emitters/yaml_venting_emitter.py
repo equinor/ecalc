@@ -7,7 +7,6 @@ from pydantic.class_validators import validator
 
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
-from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
     RateType,
@@ -79,11 +78,13 @@ class YamlVentingEmitter(YamlBase):
             variables_map=variables_map,
         )
 
-        emission_rate = Expression.setup_from_expression(value=self.emission.rate.value).evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+        emission_rate = (
+            Expression.setup_from_expression(value=self.emission.rate.value)
+            .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+            .tolist()
         )
 
-        emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
+        # emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
 
         if self.emission.rate.rate_type == RateType.CALENDAR_DAY:
             emission_rate = Rates.to_stream_day(
