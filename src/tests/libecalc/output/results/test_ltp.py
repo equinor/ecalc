@@ -213,6 +213,10 @@ def test_boiler_heater_categories():
 
 
 def test_venting_emitters():
+    """Test venting emitters for LTP export.
+
+    Verify correct behaviour if input rate is given in different units and rate types (sd and cd).
+    """
     time_vector = [
         datetime(2027, 1, 1),
         datetime(2028, 1, 1),
