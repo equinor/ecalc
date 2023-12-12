@@ -56,6 +56,21 @@ class YamlVentingEmitter(YamlBase):
     def id(self) -> str:
         return generate_id(self.name)
 
+    @validator("user_defined_category", pre=True, always=True)
+    def check_user_defined_category(cls, user_defined_category, values):
+        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
+        if user_defined_category is not None:
+            if user_defined_category not in list(ConsumerUserDefinedCategoryType):
+                name = ""
+                if values.get("name") is not None:
+                    name = f"with the name {values.get('name')}"
+
+                raise ValueError(
+                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                )
+
+        return user_defined_category
+
     def get_emission_rate(
         self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
     ) -> TimeSeriesStreamDayRate:
@@ -80,18 +95,3 @@ class YamlVentingEmitter(YamlBase):
             values=emission_rate,
             unit=self.emission.rate.unit,
         )
-
-    @validator("user_defined_category", pre=True, always=True)
-    def check_user_defined_category(cls, user_defined_category, values):
-        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
-        if user_defined_category is not None:
-            if user_defined_category not in list(ConsumerUserDefinedCategoryType):
-                name = ""
-                if values.get("name") is not None:
-                    name = f"with the name {values.get('name')}"
-
-                raise ValueError(
-                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
-                )
-
-        return user_defined_category

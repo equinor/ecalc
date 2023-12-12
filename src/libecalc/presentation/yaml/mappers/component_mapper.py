@@ -237,49 +237,12 @@ class GeneratorSetMapper:
             raise DtoValidationError(data=data, validation_error=e) from e
 
 
-class VentingEmittersMapper:
-    """Mapping VentingEmitters and the corresponding EmitterModel."""
-
-    def __init__(self, references: References, target_period: Period):
-        self.__references = references
-        self._target_period = target_period
-
-    def to_emission_calculator(
-        self,
-        data: Dict[str, Dict],
-    ) -> YamlVentingEmitter:
-        venting_emitter_name = data.get(EcalcYamlKeywords.name)
-        venting_emission = data.get(EcalcYamlKeywords.emission)
-        venting_emission_rate = venting_emission.get(EcalcYamlKeywords.rate)
-
-        yaml_rate = YamlRate(
-            value=venting_emission_rate.get(EcalcYamlKeywords.value),
-            unit=venting_emission_rate.get(EcalcYamlKeywords.unit),
-            rate_type=venting_emission_rate.get(EcalcYamlKeywords.rate_type),
-        )
-
-        yaml_venting_emission = YamlVentingEmission(
-            name=venting_emission.get(EcalcYamlKeywords.name),
-            rate=yaml_rate,
-        )
-
-        try:
-            return YamlVentingEmitter(
-                name=venting_emitter_name,
-                emission=yaml_venting_emission,
-                user_defined_category=data.get(EcalcYamlKeywords.user_defined_tag),
-            )
-        except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e) from e
-
-
 class InstallationMapper:
     def __init__(self, references: References, target_period: Period):
         self.__references = references
         self._target_period = target_period
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
-        self.__venting_emitters_mapper = VentingEmittersMapper(references=references, target_period=target_period)
 
     def from_yaml_to_dto(self, data: Dict) -> dto.Installation:
         fuel_data = data.get(EcalcYamlKeywords.fuel)
@@ -306,12 +269,29 @@ class InstallationMapper:
             )
             for fuel_consumer in data.get(EcalcYamlKeywords.fuel_consumers, [])
         ]
-        venting_emitters = [
-            self.__venting_emitters_mapper.to_emission_calculator(
-                venting_emitters,
-            )
-            for venting_emitters in data.get(EcalcYamlKeywords.installation_venting_emitters, [])
-        ]
+
+        venting_emitters = []
+        for venting_emitter in data.get(EcalcYamlKeywords.installation_venting_emitters, []):
+            emission = venting_emitter.get(EcalcYamlKeywords.emission)
+            emission_rate = emission.get(EcalcYamlKeywords.rate)
+
+            try:
+                venting_emitters.append(
+                    YamlVentingEmitter(
+                        name=venting_emitter.get(EcalcYamlKeywords.name),
+                        emission=YamlVentingEmission(
+                            name=emission.get(EcalcYamlKeywords.name),
+                            rate=YamlRate(
+                                value=emission_rate.get(EcalcYamlKeywords.value),
+                                unit=emission_rate.get(EcalcYamlKeywords.unit),
+                                rate_type=emission_rate.get(EcalcYamlKeywords.rate_type),
+                            ),
+                        ),
+                        user_defined_category=venting_emitter.get(EcalcYamlKeywords.user_defined_tag),
+                    )
+                )
+            except ValidationError as e:
+                raise DtoValidationError(data=data, validation_error=e) from e
 
         hydrocarbon_export = define_time_model_for_period(
             data.get(
