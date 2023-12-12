@@ -5,8 +5,10 @@ import pandas as pd
 import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Frequency
+from libecalc.common.utils.rates import RateType
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
+from libecalc.expression import Expression
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
     expected_ch4_from_diesel,
@@ -210,16 +212,21 @@ def test_boiler_heater_categories():
 
 
 def test_venting_emitters():
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    regularity = 0.2
+    emission_rate = 10
 
-    get_consumption(installation=installation_venting_emitter(), variables=variables)
-    # boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
-    # heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
-    # co2_from_boiler = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
-    # co2_from_heater = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
+    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+    installation = installation_venting_emitter(
+        emission_rate=emission_rate,
+        regularity={datetime(2027, 1, 1): Expression.setup_from_expression(regularity)},
+        rate_type=RateType.STREAM_DAY,
+    )
 
-    # FuelConsumerPowerConsumptionQuery. Check gas turbine compressor el consumption.
-    # assert boiler_fuel_consumption == expected_boiler_fuel_consumption()
-    # assert heater_fuel_consumption == expected_heater_fuel_consumption()
-    # assert co2_from_boiler == expected_co2_from_boiler()
-    # assert co2_from_heater == expected_co2_from_heater()
+    ltp_result = get_consumption(installation=installation, variables=variables)
+    ch4_emission = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
+
+    assert ch4_emission == (emission_rate / 1000) * 365 * regularity
