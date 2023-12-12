@@ -1,0 +1,11 @@
+.idea
+.mypy_cache
+.ruff_cache
+.git
+
+node_modules/
+
+__pycache__/
+
+NeqSim\.jar
+package-lock.json

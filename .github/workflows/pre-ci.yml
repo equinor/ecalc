@@ -23,4 +23,4 @@ jobs:
         run: pip install pre-commit==3.2.2
 
       - name: Run pre-commit
-        run: pre-commit run --all-files --verbose
+        run: SKIP=trufflehog pre-commit run --all-files --verbose

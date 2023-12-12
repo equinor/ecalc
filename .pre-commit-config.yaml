@@ -2,6 +2,8 @@
 # to avoid issues with RH 7
 default_language_version:
   node: 16.15.1
+default_stages:
+  - "pre-commit"
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: 'v0.0.278'
@@ -50,3 +52,9 @@ repos:
     hooks:
       - id: interrogate
         exclude: tests|neqsim|fixtures|conftest
+
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.63.2
+    hooks:
+      - id: trufflehog
+        entry: trufflehog git file://. --since-commit HEAD --fail -x .trufflehogignore
