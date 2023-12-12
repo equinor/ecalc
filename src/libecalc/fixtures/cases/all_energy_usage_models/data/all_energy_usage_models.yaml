@@ -615,7 +615,10 @@ INSTALLATIONS:
                 DISCHARGE_PRESSURE: 250
     VENTING_EMITTERS:
       - NAME: methane_venting
-        EMISSION_NAME: CH4
         CATEGORY: COLD-VENTING-FUGITIVE
-        EMITTER_MODEL:
-          EMISSION_RATE: FLARE;METHANE_RATE
+        EMISSION:
+          NAME: CH4
+          RATE:
+            VALUE: FLARE;METHANE_RATE
+            UNIT: kg/d
+            RATE_TYPE: STREAM_DAY

@@ -21,6 +21,7 @@ from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    RateType,
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
@@ -190,6 +191,7 @@ class TrainComponent(BaseConsumer):
 class ExpressionTimeSeries(EcalcBaseModel):
     value: ExpressionType
     unit: Unit
+    rate_type: Optional[RateType]
 
 
 class ExpressionStreamConditions(EcalcBaseModel):

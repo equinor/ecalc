@@ -17,7 +17,6 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingEmitter,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
-from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
 
 
 @pytest.fixture
@@ -982,7 +981,7 @@ def methane_venting(regularity) -> YamlVentingEmitter:
     return YamlVentingEmitter(
         name="methane_venting",
         component_type=ComponentType.VENTING_EMITTER,
-        user_defined_category={YamlDefaultDatetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
+        user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
         emission=YamlVentingEmission(
             name="CH4", rate=YamlRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, rate_type=RateType.STREAM_DAY)
         ),

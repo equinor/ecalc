@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.components import (
     ComponentType,
@@ -17,28 +18,25 @@ try:
 except ImportError:
     from pydantic import ValidationError
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlEmitterModel,
+    YamlVentingEmission,
     YamlVentingEmitter,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 from pydantic import ValidationError
 
 
 class TestCategories:
     def test_venting_emitter_categories(self):
-        emitter_model = YamlEmitterModel(
-            regularity={YamlDefaultDatetime(2000, 1, 1): Expression.setup_from_expression(1)},
-            emission_rate=4,
-            emission_rate_type=RateType.STREAM_DAY,
+        emission = YamlVentingEmission(
+            name="CH4", rate=YamlRate(value=4, rate_type=RateType.STREAM_DAY, unit=Unit.KILO_PER_DAY)
         )
 
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission_name="CH4",
-                emitter_model={YamlDefaultDatetime(2000, 1, 1): emitter_model},
-                user_defined_category={YamlDefaultDatetime(2000, 1, 1): "VENTING-EMISSIONS"},
+                emission=emission,
+                user_defined_category="VENTING-EMISSIONS",
             )
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
@@ -50,9 +48,8 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission_name="CH4",
-                emitter_model={YamlDefaultDatetime(2000, 1, 1): emitter_model},
-                user_defined_category={YamlDefaultDatetime(2000, 1, 1): "fuel-gas"},
+                emission=emission,
+                user_defined_category="fuel-gas",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
@@ -65,9 +62,8 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission_name="CH4",
-                emitter_model={YamlDefaultDatetime(2000, 1, 1): emitter_model},
-                user_defined_category={YamlDefaultDatetime(2000, 1, 1): ""},
+                emission=emission,
+                user_defined_category="",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
@@ -80,9 +76,8 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission_name="CH4",
-                emitter_model={YamlDefaultDatetime(2000, 1, 1): emitter_model},
-                user_defined_category={YamlDefaultDatetime(2000, 1, 1): "FUEL_GAS"},
+                emission=emission,
+                user_defined_category="FUEL_GAS",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
@@ -95,12 +90,9 @@ class TestCategories:
         assert (
             YamlVentingEmitter(
                 name="test",
-                emission_name="CH4",
-                emitter_model={YamlDefaultDatetime(2000, 1, 1): emitter_model},
-                user_defined_category={
-                    YamlDefaultDatetime(2000, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
-                },
-            ).user_defined_category[YamlDefaultDatetime(2000, 1, 1)]
+                emission=emission,
+                user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+            ).user_defined_category
             == ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
         )
 

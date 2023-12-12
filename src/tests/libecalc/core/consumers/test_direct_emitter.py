@@ -11,7 +11,6 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingEmitter,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
-from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlDefaultDatetime
 
 
 def test_venting_emitter(variables_map):
@@ -19,7 +18,7 @@ def test_venting_emitter(variables_map):
 
     venting_emitter = YamlVentingEmitter(
         name=emitter_name,
-        user_defined_category={YamlDefaultDatetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
+        user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
         emission=YamlVentingEmission(
             name="ch4",
             rate=YamlRate(
