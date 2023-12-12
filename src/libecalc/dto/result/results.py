@@ -25,7 +25,6 @@ from libecalc.dto.base import ComponentType
 from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
 from libecalc.dto.result.base import EcalcResultBaseModel
 from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
-from libecalc.dto.result.simple import SimpleComponentResult, SimpleResultData
 from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 
 
@@ -54,9 +53,6 @@ class CommonResultBase(TabularTimeSeries):
 class ComponentResultBase(CommonResultBase, NodeInfo):
     id: str
     emissions: Dict[str, EmissionResult]
-
-    def simple_result(self):
-        return SimpleComponentResult(**self.dict())
 
 
 class EquipmentResultBase(ComponentResultBase):
@@ -273,7 +269,7 @@ class EcalcModelResult(EcalcResultBaseModel):
         return self.component_result.timesteps
 
     @property
-    def components(self):
+    def components(self) -> List[ComponentResult]:
         return [self.component_result, *self.sub_components]
 
     def get_components(self, component_ids: List[str]) -> List[ComponentResult]:
@@ -288,11 +284,6 @@ class EcalcModelResult(EcalcResultBaseModel):
             logger.warning(f"Querying duplicate component {component_name}. Returning first match")
 
         return components[0]
-
-    def simple_result(self):
-        return SimpleResultData(
-            timesteps=self.timesteps, components=[component.simple_result() for component in self.components]
-        )
 
     def resample(self, freq: Frequency) -> EcalcModelResult:
         return self.__class__(
