@@ -2,6 +2,10 @@
 
 ## [8.7.0](https://github.com/equinor/ecalc/compare/v8.6.0...v8.7.0) (2023-12-05)
 
+### ⚠ BREAKING CHANGES
+
+* Change name from `DIRECT_EMITTERS` to `VENTING_EMITTERS` in input Yaml-file ([#303](https://github.com/equinor/ecalc/pull/303))
+
 
 ### Bug Fixes
 
@@ -32,12 +36,6 @@
 
 * skip spellchecking changelog ([#294](https://github.com/equinor/ecalc/issues/294)) ([9329ae2](https://github.com/equinor/ecalc/commit/9329ae28acbc4673260e8f80f45037ab7949598d))
 
-## [8.7.0](https://github.com/equinor/ecalc/compare/v8.6.0...v8.7.0)
-
-
-### ⚠ BREAKING CHANGES
-
-* Change name from `DIRECT_EMITTERS` to `VENTING_EMITTERS` in input Yaml-file ([#303](https://github.com/equinor/ecalc/pull/303))
 
 ## [8.6.0](https://github.com/equinor/ecalc/compare/v8.5.0...v8.6.0) (2023-11-21)
 

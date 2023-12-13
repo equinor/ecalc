@@ -6,7 +6,7 @@ tags: [release, eCalc]
 sidebar_position: 1
 ---
 
-# eCalc
+# eCalc v8.7
 
 
 
@@ -18,5 +18,5 @@ sidebar_position: 1
 
 
 ## Breaking changes
-
+- Change name from `DIRECT_EMITTERS` to `VENTING_EMITTERS` in input Yaml-file.
 
