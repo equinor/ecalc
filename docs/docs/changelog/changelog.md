@@ -2,6 +2,7 @@
 
 ## [8.7.0](https://github.com/equinor/ecalc/compare/v8.6.0...v8.7.0) (2023-12-05)
 
+
 ### Bug Fixes
 
 * bug in compressor with turbine models with multiple streams and only one date ([#296](https://github.com/equinor/ecalc/issues/296)) ([8c2c786](https://github.com/equinor/ecalc/commit/8c2c786f93f0cec9cebb92ee02ac94080b7becb5))
