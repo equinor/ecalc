@@ -138,7 +138,7 @@ MODELS:
 
 ## FUEL_TYPES
 
-In this case, the installation uses a single fuel gas with a value of 1.23 NOK/Sm<sup>3</sup>. This fuel gas has a CO<sub>2</sub> intensity of 2.416 and a the CO<sub>2</sub> value is set to 1.71 NOK/Sm<sup>3</sup>.
+The fuel gas has a CO<sub>2</sub> factor of 2.416.
 
 ~~~~~~~~yaml
 FUEL_TYPES:
