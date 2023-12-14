@@ -1534,6 +1534,15 @@
                 "YamlVentingEmitter": {
                     "additionalProperties": false,
                     "properties": {
+                        "CATEGORY": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                }
+                            ],
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "title": "CATEGORY"
+                        },
                         "COMPONENT_TYPE": {
                             "allOf": [
                                 {
@@ -1555,23 +1564,14 @@
                             "description": "Name of venting emitter",
                             "title": "NAME",
                             "type": "string"
-                        },
-                        "USER_DEFINED_CATEGORY": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                }
-                            ],
-                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
-                            "title": "CATEGORY"
                         }
                     },
                     "required": [
                         "NAME",
                         "EMISSION",
-                        "USER_DEFINED_CATEGORY"
+                        "CATEGORY"
                     ],
-                    "title": "YamlVentingEmitter",
+                    "title": "VentingEmitter",
                     "type": "object"
                 }
             },

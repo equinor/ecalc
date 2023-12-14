@@ -36,12 +36,13 @@ class TestCategories:
             YamlVentingEmitter(
                 name="test",
                 emission=emission,
-                user_defined_category="VENTING-EMISSIONS",
+                category="VENTING-EMISSIONS",
             )
+
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: VENTING-EMISSIONS is not allowed for YamlVentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY: VENTING-EMISSIONS is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that lower case raises error
@@ -49,13 +50,13 @@ class TestCategories:
             YamlVentingEmitter(
                 name="test",
                 emission=emission,
-                user_defined_category="fuel-gas",
+                category="fuel-gas",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: fuel-gas is not allowed for YamlVentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY: fuel-gas is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that empty raises error
@@ -63,13 +64,13 @@ class TestCategories:
             YamlVentingEmitter(
                 name="test",
                 emission=emission,
-                user_defined_category="",
+                category="",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY:  is not allowed for YamlVentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY:  is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that underscore raises error
@@ -77,13 +78,13 @@ class TestCategories:
             YamlVentingEmitter(
                 name="test",
                 emission=emission,
-                user_defined_category="FUEL_GAS",
+                category="FUEL_GAS",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: FUEL_GAS is not allowed for YamlVentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY: FUEL_GAS is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that correct category is ok
@@ -91,7 +92,7 @@ class TestCategories:
             YamlVentingEmitter(
                 name="test",
                 emission=emission,
-                user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+                category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
             ).user_defined_category
             == ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
         )

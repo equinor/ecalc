@@ -271,11 +271,6 @@ class InstallationMapper:
         venting_emitters = []
         for venting_emitter in data.get(EcalcYamlKeywords.installation_venting_emitters, []):
             try:
-                # TODO: rename user_defined_category to category
-                # workaround to be compatible with dtos before renaming user_defined_category to category
-                venting_emitter["user_defined_category"] = venting_emitter[EcalcYamlKeywords.user_defined_tag]
-                del venting_emitter[EcalcYamlKeywords.user_defined_tag]
-
                 venting_emitters.append(YamlVentingEmitter(**venting_emitter))
             except ValidationError as e:
                 raise DtoValidationError(data=data, validation_error=e) from e

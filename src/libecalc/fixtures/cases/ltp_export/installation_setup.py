@@ -293,7 +293,7 @@ def compressor() -> dto.FuelConsumer:
 def venting_emitter(emission_rate: float, rate_type: RateType, unit: Unit, emission_name: str) -> YamlVentingEmitter:
     return YamlVentingEmitter(
         name="venting emitter 1",
-        user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+        category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
         emission=YamlVentingEmission(
             name=emission_name,
             rate=YamlRate(

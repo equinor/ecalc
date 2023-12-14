@@ -18,7 +18,7 @@ def test_venting_emitter(variables_map):
 
     venting_emitter = YamlVentingEmitter(
         name=emitter_name,
-        user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+        category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
         emission=YamlVentingEmission(
             name="ch4",
             rate=YamlRate(
