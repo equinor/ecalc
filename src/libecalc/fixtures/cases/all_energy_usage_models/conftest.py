@@ -254,3 +254,21 @@ def simplified_variable_speed_compressor_train_known_stages(
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )
+
+
+@pytest.fixture
+def methane_values():
+    return [0.005, 1.5, 3, 4]
+
+
+@pytest.fixture
+def variables_map(methane_values):
+    return dto.VariablesMap(
+        variables={"TSC1;Methane_rate": methane_values},
+        time_vector=[
+            datetime(2000, 1, 1, 0, 0),
+            datetime(2001, 1, 1, 0, 0),
+            datetime(2002, 1, 1),
+            datetime(2003, 1, 1, 0, 0),
+        ],
+    )
