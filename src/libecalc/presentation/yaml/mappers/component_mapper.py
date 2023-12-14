@@ -28,10 +28,8 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_syste
     YamlConsumerSystem,
 )
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingEmission,
     YamlVentingEmitter,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -272,24 +270,13 @@ class InstallationMapper:
 
         venting_emitters = []
         for venting_emitter in data.get(EcalcYamlKeywords.installation_venting_emitters, []):
-            emission = venting_emitter.get(EcalcYamlKeywords.emission)
-            emission_rate = emission.get(EcalcYamlKeywords.rate)
-
             try:
-                venting_emitters.append(
-                    YamlVentingEmitter(
-                        name=venting_emitter.get(EcalcYamlKeywords.name),
-                        emission=YamlVentingEmission(
-                            name=emission.get(EcalcYamlKeywords.name),
-                            rate=YamlRate(
-                                value=emission_rate.get(EcalcYamlKeywords.value),
-                                unit=emission_rate.get(EcalcYamlKeywords.unit),
-                                type=emission_rate.get(EcalcYamlKeywords.type),
-                            ),
-                        ),
-                        user_defined_category=venting_emitter.get(EcalcYamlKeywords.user_defined_tag),
-                    )
-                )
+                # TODO: rename user_defined_category to category
+                # workaround to be compatible with dtos before renaming user_defined_category to category
+                venting_emitter["user_defined_category"] = venting_emitter[EcalcYamlKeywords.user_defined_tag]
+                del venting_emitter[EcalcYamlKeywords.user_defined_tag]
+
+                venting_emitters.append(YamlVentingEmitter(**venting_emitter))
             except ValidationError as e:
                 raise DtoValidationError(data=data, validation_error=e) from e
 
