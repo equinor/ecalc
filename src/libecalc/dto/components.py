@@ -191,7 +191,7 @@ class TrainComponent(BaseConsumer):
 class ExpressionTimeSeries(EcalcBaseModel):
     value: ExpressionType
     unit: Unit
-    rate_type: Optional[RateType]
+    type: Optional[RateType]
 
 
 class ExpressionStreamConditions(EcalcBaseModel):

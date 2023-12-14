@@ -1239,7 +1239,7 @@
                 "YamlRate": {
                     "additionalProperties": false,
                     "properties": {
-                        "RATE_TYPE": {
+                        "TYPE": {
                             "allOf": [
                                 {
                                     "$ref": "#/definitions/RateType"
