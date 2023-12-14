@@ -284,7 +284,7 @@ class InstallationMapper:
                             rate=YamlRate(
                                 value=emission_rate.get(EcalcYamlKeywords.value),
                                 unit=emission_rate.get(EcalcYamlKeywords.unit),
-                                rate_type=emission_rate.get(EcalcYamlKeywords.rate_type),
+                                type=emission_rate.get(EcalcYamlKeywords.type),
                             ),
                         ),
                         user_defined_category=venting_emitter.get(EcalcYamlKeywords.user_defined_tag),

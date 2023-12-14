@@ -299,7 +299,7 @@ def venting_emitter(emission_rate: float, rate_type: RateType, unit: Unit, emiss
             rate=YamlRate(
                 value=emission_rate,
                 unit=unit,
-                rate_type=rate_type,
+                type=rate_type,
             ),
         ),
     )

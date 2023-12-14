@@ -86,7 +86,7 @@ class YamlVentingEmitter(YamlBase):
 
         # emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
 
-        if self.emission.rate.rate_type == RateType.CALENDAR_DAY:
+        if self.emission.rate.type == RateType.CALENDAR_DAY:
             emission_rate = Rates.to_stream_day(
                 calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
             ).tolist()

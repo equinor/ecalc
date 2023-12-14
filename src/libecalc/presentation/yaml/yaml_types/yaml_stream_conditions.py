@@ -23,9 +23,9 @@ class YamlRate(YamlTimeSeries):
         title = "Rate"
 
     unit: Unit = Unit.STANDARD_CUBIC_METER_PER_DAY
-    rate_type: RateType = RateType.STREAM_DAY
+    type: RateType = RateType.STREAM_DAY
 
-    @validator("rate_type", pre=True)
+    @validator("type", pre=True)
     def rate_type_validator(cls, value):
         return RateType.STREAM_DAY if value is None else value
 

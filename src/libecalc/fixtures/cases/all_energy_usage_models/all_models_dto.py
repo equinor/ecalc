@@ -983,7 +983,7 @@ def methane_venting(regularity) -> YamlVentingEmitter:
         component_type=ComponentType.VENTING_EMITTER,
         user_defined_category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
         emission=YamlVentingEmission(
-            name="CH4", rate=YamlRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, rate_type=RateType.STREAM_DAY)
+            name="CH4", rate=YamlRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY)
         ),
     )
 

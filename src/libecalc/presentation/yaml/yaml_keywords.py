@@ -7,7 +7,6 @@ class EcalcYamlKeywords:
     name = "NAME"
 
     direct_consumer_consumption_rate_type = "CONSUMPTION_RATE_TYPE"
-    rate_type = "RATE_TYPE"
     unit = "UNIT"
     emission = "EMISSION"
     rate = "RATE"
