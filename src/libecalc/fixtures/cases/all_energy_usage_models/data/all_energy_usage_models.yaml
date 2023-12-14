@@ -621,4 +621,4 @@ INSTALLATIONS:
           RATE:
             VALUE: FLARE;METHANE_RATE
             UNIT: kg/d
-            RATE_TYPE: STREAM_DAY
+            TYPE: STREAM_DAY
