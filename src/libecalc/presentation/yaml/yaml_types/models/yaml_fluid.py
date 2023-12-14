@@ -37,7 +37,7 @@ class YamlPredefinedFluidModel(YamlBase):
         description="Name of the model. See documentation for more information.",
         title="NAME",
     )
-    type: YamlModelType.FLUID
+    type: YamlModelType = YamlModelType.FLUID
 
     def to_dto(self):
         raise NotImplementedError
