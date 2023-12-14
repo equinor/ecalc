@@ -24,7 +24,7 @@ def test_venting_emitter(variables_map):
             rate=YamlRate(
                 value="TSC1;Methane_rate {*} 1.02",
                 unit=Unit.KILO_PER_DAY,
-                rate_type=RateType.STREAM_DAY,
+                type=RateType.STREAM_DAY,
             ),
         ),
     )

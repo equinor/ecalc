@@ -28,7 +28,7 @@ from pydantic import ValidationError
 class TestCategories:
     def test_venting_emitter_categories(self):
         emission = YamlVentingEmission(
-            name="CH4", rate=YamlRate(value=4, rate_type=RateType.STREAM_DAY, unit=Unit.KILO_PER_DAY)
+            name="CH4", rate=YamlRate(value=4, type=RateType.STREAM_DAY, unit=Unit.KILO_PER_DAY)
         )
 
         # Check that illegal category raises error
