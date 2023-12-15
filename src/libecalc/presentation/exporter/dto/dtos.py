@@ -4,7 +4,11 @@ from datetime import datetime
 from typing import Dict, List, Set, Type, Union
 
 import pandas as pd
-from pydantic import Field, root_validator
+
+try:
+    from pydantic.v1 import Field, root_validator
+except ImportError:
+    from pydantic import Field, root_validator
 
 from libecalc.common.errors.exceptions import (
     DifferentLengthsError,
@@ -98,7 +102,7 @@ class TSVPrognosis(EcalcResultBaseModel):
     time_steps: TimeSteps
     time_series_collection: Dict[str, TimeSeries]
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def check_equal_lengths_of_timeseries(cls, values):
         time_steps, time_series_collection = (
             values.get("time_steps"),

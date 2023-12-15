@@ -10,8 +10,13 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import YamlConsumerBase
 from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlStream
-from pydantic import Field
-from pydantic.generics import GenericModel
+
+try:
+    from pydantic.v1 import Field
+    from pydantic.v1.generics import GenericModel
+except ImportError:
+    from pydantic import Field
+    from pydantic.generics import GenericModel
 
 TYamlConsumer = TypeVar("TYamlConsumer")
 

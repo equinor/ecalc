@@ -1,4 +1,7 @@
-from pydantic import BaseModel
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.dto.base import ComponentType

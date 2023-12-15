@@ -1,4 +1,7 @@
-from pydantic import validator
+try:
+    from pydantic.v1 import validator
+except ImportError:
+    from pydantic import validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.utils.validators import EmissionNameStr, convert_expression

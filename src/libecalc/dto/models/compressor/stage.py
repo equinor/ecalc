@@ -1,6 +1,9 @@
 from typing import List, Optional
 
-from pydantic import confloat
+try:
+    from pydantic.v1 import confloat
+except ImportError:
+    from pydantic import confloat
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.compressor.chart import CompressorChart, VariableSpeedChart

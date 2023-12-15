@@ -5,7 +5,11 @@ from typing import List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, root_validator
+
+try:
+    from pydantic.v1 import BaseModel, root_validator
+except ImportError:
+    from pydantic import BaseModel, root_validator
 
 from libecalc.common.errors.exceptions import EcalcError, IncompatibleDataError
 from libecalc.common.logger import logger
@@ -40,7 +44,7 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
     def number_of_consumers(self):
         return len(self.rates)
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def check_list_length(cls, values):
         def _log_error(field: str, field_values: List[Expression], n_rates) -> None:
             msg = (
@@ -87,7 +91,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
         arbitrary_types_allowed = True
         allow_mutation = False
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def check_list_length(cls, values):
         def _log_error(field: str, field_values: List[NDArray[np.float64]], n_rates: int) -> None:
             error_message = (

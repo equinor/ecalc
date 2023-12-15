@@ -1,10 +1,11 @@
 import enum
-import json
 from pathlib import Path
 from typing import List, Literal, Union
 
-import pydantic
-from pydantic import Field
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -165,6 +166,3 @@ YamlCompressorChart = Annotated[
     Union[YamlSingleSpeedChart, YamlVariableSpeedChart, YamlGenericFromDesignPointChart, YamlGenericFromInputChart],
     Field(discriminator="chart_type"),
 ]
-if __name__ == "__main__":
-    schema = pydantic.schema_of(YamlCompressorChart)
-    print(json.dumps(schema, indent=2))

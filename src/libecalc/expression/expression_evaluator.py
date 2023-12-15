@@ -9,7 +9,11 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel
+
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
 
 from libecalc.common.logger import logger
 

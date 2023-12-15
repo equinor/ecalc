@@ -5,7 +5,11 @@ from typing import List, Literal, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel
+
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
 
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function.results import (

@@ -2,7 +2,10 @@ import json
 from pathlib import Path
 from typing import List
 
-from pydantic import schema_of
+try:
+    from pydantic.v1 import schema_of
+except ImportError:
+    from pydantic import schema_of
 
 from libecalc.dto.ecalc_model import SchemaSettings
 from libecalc.presentation.yaml.validation import json_schemas

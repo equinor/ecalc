@@ -1,7 +1,14 @@
 from typing import Dict, List, Union
 
-import pydantic
-from pydantic import ValidationError
+try:
+    from pydantic.v1 import ValidationError
+except ImportError:
+    from pydantic import ValidationError
+
+try:
+    from pydantic.v1 import parse_obj_as
+except ImportError:
+    from pydantic import parse_obj_as
 
 from libecalc import dto
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
@@ -169,7 +176,7 @@ def _default_facility_to_dto_model_data(
         "energy_usage_adjustment_factor": _get_adjustment_factor(data=facility_data),
     }
 
-    return pydantic.parse_obj_as(EnergyModelUnionType, model_data)  # type: ignore[arg-type]
+    return parse_obj_as(EnergyModelUnionType, model_data)
 
 
 facility_input_to_dto_map = {

@@ -3,7 +3,11 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_compone
     YamlSystemComponentConditions,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlCrossover
-from pydantic import ValidationError
+
+try:
+    from pydantic.v1 import ValidationError
+except ImportError:
+    from pydantic import ValidationError
 
 
 class TestSystemComponentConditions:

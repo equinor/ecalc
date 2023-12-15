@@ -3,7 +3,10 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-from pydantic import BaseModel, Field, confloat
+try:
+    from pydantic.v1 import BaseModel, Field, confloat
+except ImportError:
+    from pydantic import BaseModel, Field, confloat
 
 from libecalc.common.time_utils import Period
 

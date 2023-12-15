@@ -2,7 +2,10 @@ from datetime import datetime
 from math import isnan
 from typing import List, Literal, Optional, Tuple, Union
 
-from pydantic import Field, root_validator, validator
+try:
+    from pydantic.v1 import Field, root_validator, validator
+except ImportError:
+    from pydantic import Field, root_validator, validator
 
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
@@ -59,7 +62,7 @@ class TimeSeriesCollection(EcalcBaseModel):
             raise ValueError("The list of dates have duplicates. Duplicated dates are currently not supported.")
         return dates
 
-    @root_validator()
+    @root_validator(skip_on_failure=True)
     def check_that_lists_match(cls, values):
         headers = values.get("headers")
         columns = values.get("columns")

@@ -5,8 +5,16 @@ from functools import partial
 from typing import Optional
 
 from orjson import orjson
-from pydantic import BaseModel, Extra
-from pydantic.json import custom_pydantic_encoder
+
+try:
+    from pydantic.v1 import BaseModel, Extra
+except ImportError:
+    from pydantic import BaseModel, Extra
+
+try:
+    from pydantic.v1.json import custom_pydantic_encoder
+except ImportError:
+    from pydantic.json import custom_pydantic_encoder
 
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.expression import Expression

@@ -2,9 +2,19 @@ import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, TextIO, Type, Union
 
-import pydantic
 import yaml
 from yaml import SafeLoader
+
+try:
+    from pydantic.v1 import parse_obj_as
+except ImportError:
+    from pydantic import parse_obj_as
+
+
+try:
+    from pydantic.v1 import ValidationError as PydanticValidationError
+except ImportError:
+    from pydantic import ValidationError as PydanticValidationError
 
 from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
@@ -243,8 +253,8 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
 
         variables = self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
         try:
-            return pydantic.parse_obj_as(YamlVariables, variables)
-        except pydantic.ValidationError as e:
+            return parse_obj_as(YamlVariables, variables)
+        except PydanticValidationError as e:
             raise DtoValidationError(data=variables, validation_error=e) from e
 
     @property

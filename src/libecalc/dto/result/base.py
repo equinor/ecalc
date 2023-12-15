@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from pydantic import validator
+try:
+    from pydantic.v1 import validator
+except ImportError:
+    from pydantic import validator
 
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.utils.rates import TimeSeries, TimeSeriesInt

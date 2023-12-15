@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import Dict, Literal, Optional
 
-from pydantic import Field
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period

@@ -1,7 +1,14 @@
 from typing import List, Literal, Optional
 
-from pydantic import confloat
-from pydantic.class_validators import root_validator
+try:
+    from pydantic.v1 import confloat
+except ImportError:
+    from pydantic import confloat
+
+try:
+    from pydantic.v1.class_validators import root_validator
+except ImportError:
+    from pydantic.class_validators import root_validator
 
 from libecalc.dto.models.base import EnergyModel
 from libecalc.dto.types import EnergyModelType, EnergyUsageType
@@ -16,7 +23,8 @@ class CompressorSampled(EnergyModel):
     discharge_pressure_values: Optional[List[confloat(ge=0)]]
     power_interpolation_values: Optional[List[confloat(ge=0)]]
 
-    @root_validator
+    # skip_on_failure required if not pre=True, we don't need validation of lengths if other validations fails
+    @root_validator(skip_on_failure=True)
     def validate_equal_list_lengths(cls, values):
         number_of_data_points = len(values["energy_usage_values"])
         for variable_name in (

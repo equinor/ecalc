@@ -1,4 +1,7 @@
-from pydantic import Field
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.expression.expression import ExpressionType

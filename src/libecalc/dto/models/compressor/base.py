@@ -1,6 +1,9 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field, validator
+try:
+    from pydantic.v1 import Field, validator
+except ImportError:
+    from pydantic import Field, validator
 
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.compressor.sampled import CompressorSampled

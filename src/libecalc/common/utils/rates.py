@@ -35,9 +35,16 @@ from libecalc.common.time_utils import (
 )
 from libecalc.common.units import Unit
 from numpy.typing import NDArray
-from pydantic import Extra, validator
-from pydantic.fields import ModelField
-from pydantic.generics import GenericModel
+
+try:
+    from pydantic.v1 import Extra, validator
+    from pydantic.v1.fields import ModelField
+    from pydantic.v1.generics import GenericModel
+except ImportError:
+    from pydantic import Extra, validator
+    from pydantic.fields import ModelField
+    from pydantic.generics import GenericModel
+
 from typing_extensions import Self
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
@@ -830,7 +837,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 f"TimeSeriesRate can only be added to another TimeSeriesRate. Received type '{str(other.__class__)}'."
             )
 
-    def extend(self, other: TimeSeriesRate) -> Self:  # type: ignore[override]
+    def extend(self, other: TimeSeriesRate) -> Self:
         # Check for same unit
         if not self.unit == other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")

@@ -1,6 +1,9 @@
 from typing import Any
 
-from pydantic import Field
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 
 
 def CategoryField(default: Any) -> Field:

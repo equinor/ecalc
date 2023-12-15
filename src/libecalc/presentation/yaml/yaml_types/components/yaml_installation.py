@@ -1,6 +1,9 @@
 from typing import List, Union
 
-from pydantic import Field
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 
 from libecalc.dto.base import InstallationUserDefinedCategoryType
 from libecalc.expression import Expression

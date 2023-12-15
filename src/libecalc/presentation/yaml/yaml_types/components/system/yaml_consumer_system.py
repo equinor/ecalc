@@ -1,8 +1,12 @@
 from datetime import datetime
 from typing import Dict, Generic, List, Literal, Optional, TypeVar, Union
 
-from pydantic import Field
-from pydantic.generics import GenericModel
+try:
+    from pydantic.v1 import Field
+    from pydantic.v1.generics import GenericModel
+except ImportError:
+    from pydantic import Field
+    from pydantic.generics import GenericModel
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period

@@ -7,7 +7,11 @@ from typing import Callable, Dict, TypeVar, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic.validators import enum_validator
+
+try:
+    from pydantic.v1.validators import enum_validator
+except ImportError:
+    from pydantic.validators import enum_validator
 
 from libecalc.common.logger import logger
 

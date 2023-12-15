@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
-from pydantic import BaseModel, Extra
+try:
+    from pydantic.v1 import BaseModel, Extra
+except ImportError:
+    from pydantic import BaseModel, Extra
 
 
 class YamlBase(BaseModel, ABC):

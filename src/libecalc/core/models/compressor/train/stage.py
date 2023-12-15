@@ -1,6 +1,9 @@
 from typing import Dict, Optional, Union
 
-from pydantic import BaseModel, confloat, root_validator
+try:
+    from pydantic.v1 import BaseModel, confloat, root_validator
+except ImportError:
+    from pydantic import BaseModel, confloat, root_validator
 
 from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
