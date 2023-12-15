@@ -4,7 +4,11 @@ from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel as PydanticBaseModel
+
+try:
+    from pydantic.v1 import BaseModel as PydanticBaseModel
+except ImportError:
+    from pydantic import BaseModel as PydanticBaseModel
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.errors.exceptions import IllegalStateException

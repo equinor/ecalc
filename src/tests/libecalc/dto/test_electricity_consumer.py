@@ -5,7 +5,11 @@ from libecalc import dto
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
-from pydantic.error_wrappers import ValidationError
+
+try:
+    from pydantic.v1.error_wrappers import ValidationError
+except ImportError:
+    from pydantic.error_wrappers import ValidationError
 
 
 class TestElectricityConsumer:

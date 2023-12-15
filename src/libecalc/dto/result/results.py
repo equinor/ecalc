@@ -3,7 +3,10 @@ from __future__ import annotations
 from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import Field, validator
+try:
+    from pydantic.v1 import Field, validator
+except ImportError:
+    from pydantic import Field, validator
 from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel

@@ -1,8 +1,12 @@
 from datetime import datetime
 from typing import Dict, Union
 
-from pydantic import DateError, constr
-from pydantic.datetime_parse import parse_date, parse_datetime
+try:
+    from pydantic.v1 import DateError, constr
+    from pydantic.v1.datetime_parse import parse_date, parse_datetime
+except ImportError:
+    from pydantic import DateError, constr
+    from pydantic.datetime_parse import parse_date, parse_datetime
 
 from libecalc.common.time_utils import convert_date_to_datetime
 from libecalc.expression import Expression

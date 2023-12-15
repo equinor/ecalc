@@ -12,7 +12,11 @@ from libecalc.common.logger import logger
 from libecalc.dto import FluidComposition
 from libecalc.dto.types import EoSModel
 from py4j.protocol import Py4JJavaError
-from pydantic import BaseModel
+
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
 
 from ecalc_neqsim_wrapper import neqsim
 from ecalc_neqsim_wrapper.components import COMPONENTS

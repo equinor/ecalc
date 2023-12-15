@@ -1,6 +1,9 @@
 from typing import Union
 
-from pydantic import BaseModel
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
 
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.pump import PumpModel

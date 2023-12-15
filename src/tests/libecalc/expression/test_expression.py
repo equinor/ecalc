@@ -2,7 +2,11 @@ import datetime
 
 import pytest
 from libecalc.expression import Expression
-from pydantic import parse_obj_as
+
+try:
+    from pydantic.v1 import parse_obj_as
+except ImportError:
+    from pydantic import parse_obj_as
 
 
 class TestExpression:

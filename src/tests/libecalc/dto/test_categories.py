@@ -11,7 +11,11 @@ from libecalc.dto.components import (
 )
 from libecalc.dto.types import EnergyUsageType, FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
-from pydantic import ValidationError
+
+try:
+    from pydantic.v1 import ValidationError
+except ImportError:
+    from pydantic import ValidationError
 
 
 class TestCategories:

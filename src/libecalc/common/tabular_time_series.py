@@ -1,7 +1,10 @@
 import itertools
 from typing import Protocol, TypeVar
 
-from pydantic import BaseModel
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
 from typing_extensions import Self
 
 from libecalc.common.list.list_utils import transpose

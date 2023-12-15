@@ -1,6 +1,9 @@
 from typing import List
 
-from pydantic import BaseModel, Extra
+try:
+    from pydantic.v1 import BaseModel, Extra
+except ImportError:
+    from pydantic import BaseModel, Extra
 
 from libecalc.dto.types import ChartAreaFlag
 

@@ -18,7 +18,11 @@ from libecalc.examples import advanced, simple
 from libecalc.fixtures.cases import ltp_export
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from pydantic import Protocol
+
+try:
+    from pydantic.v1 import Protocol
+except ImportError:
+    from pydantic import Protocol
 from typer.testing import CliRunner
 
 runner = CliRunner()

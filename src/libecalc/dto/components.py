@@ -3,8 +3,16 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
 
-from pydantic import Field, root_validator
-from pydantic.class_validators import validator
+try:
+    from pydantic.v1 import Field, root_validator
+except ImportError:
+    from pydantic import Field, root_validator
+
+try:
+    from pydantic.v1.class_validators import validator
+except ImportError:
+    from pydantic.class_validators import validator
+
 from typing_extensions import Annotated
 
 from libecalc import dto

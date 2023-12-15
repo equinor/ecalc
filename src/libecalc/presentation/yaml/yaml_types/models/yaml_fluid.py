@@ -1,7 +1,10 @@
 import enum
 from typing import Literal, Optional, Union
 
-from pydantic import BaseModel, Extra, Field
+try:
+    from pydantic.v1 import BaseModel, Extra, Field
+except ImportError:
+    from pydantic import BaseModel, Extra, Field
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase

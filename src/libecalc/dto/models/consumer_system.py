@@ -1,6 +1,9 @@
 from typing import List, Literal, Optional
 
-from pydantic import Field, validator
+try:
+    from pydantic.v1 import Field, validator
+except ImportError:
+    from pydantic import Field, validator
 
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel

@@ -1,7 +1,10 @@
 from datetime import date, datetime
 from typing import Dict, List, Optional, TypeVar, Union
 
-from pydantic import constr
+try:
+    from pydantic.v1 import constr
+except ImportError:
+    from pydantic import constr
 
 from libecalc.common.time_utils import is_temporal_model
 from libecalc.expression import Expression

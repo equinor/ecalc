@@ -6,8 +6,16 @@ from functools import partial
 from typing import List, Optional
 
 import numpy as np
-from pydantic import BaseModel
-from pydantic.json import custom_pydantic_encoder
+
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
+
+try:
+    from pydantic.v1.json import custom_pydantic_encoder
+except ImportError:
+    from pydantic.json import custom_pydantic_encoder
 
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case

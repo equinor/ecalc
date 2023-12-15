@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, root_validator
+try:
+    from pydantic.v1 import BaseModel, root_validator
+except ImportError:
+    from pydantic import BaseModel, root_validator
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
@@ -22,7 +25,7 @@ class FluidStreamObjectForMultipleStreams(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def check_valid_input(cls, values):
         if not values.get("is_inlet_stream") and values.get("fluid"):
             msg = "Outgoing stream should not have a fluid model defined"

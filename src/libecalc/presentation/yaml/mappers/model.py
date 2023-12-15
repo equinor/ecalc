@@ -1,6 +1,9 @@
 from typing import Any, Dict, List, Union
 
-from pydantic import ValidationError
+try:
+    from pydantic.v1 import ValidationError
+except ImportError:
+    from pydantic import ValidationError
 
 from libecalc import dto
 from libecalc.common.units import Unit

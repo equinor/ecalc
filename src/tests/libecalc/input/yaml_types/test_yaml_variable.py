@@ -8,7 +8,10 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import (
 )
 
 # from libecalc.presentation.yaml.yaml_types import YamlSingleVariable, YamlVariables
-from pydantic import ValidationError, parse_obj_as
+try:
+    from pydantic.v1 import ValidationError, parse_obj_as
+except ImportError:
+    from pydantic import ValidationError, parse_obj_as
 
 
 class TestVariables:

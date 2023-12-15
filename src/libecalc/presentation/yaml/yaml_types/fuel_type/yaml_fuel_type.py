@@ -1,6 +1,9 @@
 from typing import List
 
-from pydantic import Field
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 
 from libecalc.dto.base import FuelTypeUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase

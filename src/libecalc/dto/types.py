@@ -1,7 +1,10 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import Field, validator
+try:
+    from pydantic.v1 import Field, validator
+except ImportError:
+    from pydantic import Field, validator
 
 from libecalc.dto.base import EcalcBaseModel, FuelTypeUserDefinedCategoryType
 from libecalc.dto.emission import Emission

@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
-from pydantic import Extra, root_validator
+try:
+    from pydantic.v1 import Extra, root_validator
+except ImportError:
+    from pydantic import Extra, root_validator
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.errors.exceptions import ProgrammingError

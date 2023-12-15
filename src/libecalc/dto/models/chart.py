@@ -1,7 +1,11 @@
 from typing import Any, Dict, List, Literal, Optional
 
 import numpy as np
-from pydantic import Field, confloat, root_validator, validator
+
+try:
+    from pydantic.v1 import Field, confloat, root_validator, validator
+except ImportError:
+    from pydantic import Field, confloat, root_validator, validator
 
 from libecalc.common.logger import logger
 from libecalc.common.math.numbers import Numbers

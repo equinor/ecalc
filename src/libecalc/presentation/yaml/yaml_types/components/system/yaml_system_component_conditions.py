@@ -1,6 +1,9 @@
 from typing import List, Optional
 
-from pydantic import Field, validator
+try:
+    from pydantic.v1 import Field, validator
+except ImportError:
+    from pydantic import Field, validator
 
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase

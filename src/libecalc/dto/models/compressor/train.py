@@ -1,6 +1,9 @@
 from typing import List, Literal, Optional
 
-from pydantic import confloat, validator
+try:
+    from pydantic.v1 import confloat, validator
+except ImportError:
+    from pydantic import confloat, validator
 
 from libecalc.dto.models.base import EnergyModel
 from libecalc.dto.models.compressor.chart import SingleSpeedChart, VariableSpeedChart

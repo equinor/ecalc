@@ -1,5 +1,9 @@
 from libecalc import dto
-from pydantic import Protocol
+
+try:
+    from pydantic.v1 import Protocol
+except ImportError:
+    from pydantic import Protocol
 
 
 def test_serialization(all_energy_usage_models_dto):

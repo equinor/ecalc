@@ -1,6 +1,9 @@
 from typing import Optional
 
-from pydantic import Field
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 
 from libecalc.common.units import Unit
 from libecalc.expression.expression import ExpressionType

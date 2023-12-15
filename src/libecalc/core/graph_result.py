@@ -5,7 +5,10 @@ from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, parse_obj_as
+try:
+    from pydantic.v1 import BaseModel, parse_obj_as
+except ImportError:
+    from pydantic import BaseModel, parse_obj_as
 
 import libecalc
 from libecalc import dto

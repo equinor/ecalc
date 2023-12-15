@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import Field, root_validator
+try:
+    from pydantic.v1 import Field, root_validator
+except ImportError:
+    from pydantic import Field, root_validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import EoSModel, FluidStreamType
@@ -52,7 +55,7 @@ class MultipleStreamsAndPressureStream(EcalcBaseModel):
     typ: FluidStreamType
     fluid_model: Optional[FluidModel]
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def validate_stream(cls, values):
         stream_name, stream_type, stream_fluid_model = (
             values.get("name"),

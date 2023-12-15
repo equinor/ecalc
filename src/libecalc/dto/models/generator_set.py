@@ -1,6 +1,9 @@
 from typing import List, Literal
 
-from pydantic.class_validators import validator
+try:
+    from pydantic.v1.class_validators import validator
+except ImportError:
+    from pydantic.class_validators import validator
 
 from libecalc.dto.types import EnergyModelType
 

@@ -1,6 +1,9 @@
 from typing import Literal, Optional, Union
 
-from pydantic import validator
+try:
+    from pydantic.v1 import validator
+except ImportError:
+    from pydantic import validator
 
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.chart import SingleSpeedChart, VariableSpeedChart

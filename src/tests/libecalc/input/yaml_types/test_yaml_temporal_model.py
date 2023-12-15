@@ -1,6 +1,10 @@
 # from libecalc.presentation.yaml.yaml_types import YamlTemporalModel
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
-from pydantic import schema_of
+
+try:
+    from pydantic.v1 import schema_of
+except ImportError:
+    from pydantic import schema_of
 
 
 class TestSchema:

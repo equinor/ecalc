@@ -1,11 +1,14 @@
-# type: ignore
 import enum
 from textwrap import indent
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import pydantic
 import yaml
 from yaml import Dumper, Mark
+
+try:
+    from pydantic.v1 import ValidationError as PydanticValidationError
+except ImportError:
+    from pydantic import ValidationError as PydanticValidationError
 
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import Resource, YamlDict, YamlList
@@ -95,7 +98,10 @@ class DataValidationError(ValidationError):
             indented_yaml = indent(yaml_dump, "    ")
 
             try:
-                indented_yaml = _mark_error_lines(indented_yaml, error_locs)
+                if error_locs is not None:
+                    indented_yaml = _mark_error_lines(indented_yaml, error_locs)
+                else:
+                    logger.debug("No error locations to mark")
             except Exception as e:
                 logger.debug(f"Could not mark error lines: {str(e)}")
                 pass
@@ -113,7 +119,7 @@ class DtoValidationError(DataValidationError):
     """
 
     def __init__(
-        self, data: Optional[Union[Dict[str, Any], YamlDict]], validation_error: pydantic.ValidationError, **kwargs
+        self, data: Optional[Union[Dict[str, Any], YamlDict]], validation_error: PydanticValidationError, **kwargs
     ):
         errors = validation_error.errors()
 

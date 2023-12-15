@@ -3,7 +3,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+try:
+    from pydantic.v1 import BaseModel
+except ImportError:
+    from pydantic import BaseModel
 
 from libecalc.common.string.string_utils import to_camel_case
 
