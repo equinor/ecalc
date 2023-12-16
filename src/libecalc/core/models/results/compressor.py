@@ -51,6 +51,8 @@ class CompressorStreamCondition(EnergyModelBaseResult):
     pressure_before_choking: Optional[List[Optional[float]]] = None
     actual_rate_m3_per_hr: Optional[List[Optional[float]]] = None
     actual_rate_before_asv_m3_per_hr: Optional[List[Optional[float]]] = None
+    standard_rate_sm3_per_day: Optional[List[Optional[float]]] = None
+    standard_rate_before_asv_sm3_per_day: Optional[List[Optional[float]]] = None
     density_kg_per_m3: Optional[List[Optional[float]]] = None
     kappa: Optional[List[Optional[float]]] = None
     z: Optional[List[Optional[float]]] = None
@@ -64,6 +66,8 @@ class CompressorStreamCondition(EnergyModelBaseResult):
             pressure_before_choking=nans,
             actual_rate_m3_per_hr=nans,
             actual_rate_before_asv_m3_per_hr=nans,
+            standard_rate_sm3_per_day=nans,
+            standard_rate_before_asv_sm3_per_day=nans,
             density_kg_per_m3=nans,
             kappa=nans,
             z=nans,

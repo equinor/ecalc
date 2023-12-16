@@ -302,6 +302,12 @@ class CompressorTrainSimplified(CompressorTrainModel):
                             outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_streams[i]),
                             inlet_actual_rate_asv_corrected_m3_per_hour=asv_corrected_actual_rate_m3_per_hour[i],
                             inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour[i],
+                            standard_rate_sm3_per_day=mass_rate_kg_per_hour[i]
+                            * 24.0
+                            / inlet_streams[i].standard_conditions_density,
+                            standard_rate_asv_corrected_sm3_per_day=mass_rate_to_use_kg_per_hour[i]
+                            * 24
+                            / inlet_streams[i].standard_conditions_density,
                             outlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_to_use_kg_per_hour[i]
                             / outlet_densities_kg_per_m3[i],
                             outlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour[i] / outlet_densities_kg_per_m3[i],
