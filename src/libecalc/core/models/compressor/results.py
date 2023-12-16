@@ -23,6 +23,7 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     """One stage, one time step.
 
     Actual rate per hour [Am3/h]
+    standard rate per day [sm3/day]
     mass rate [kg/hour]
     head [J/kg]
     Polytropic efficiency (0, 1]
@@ -35,6 +36,9 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
     inlet_actual_rate_m3_per_hour: float
     inlet_actual_rate_asv_corrected_m3_per_hour: float
+
+    standard_rate_sm3_per_day: float
+    standard_rate_asv_corrected_sm3_per_day: float
 
     outlet_actual_rate_m3_per_hour: float
     outlet_actual_rate_asv_corrected_m3_per_hour: float
@@ -72,6 +76,8 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
             # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
             inlet_actual_rate_m3_per_hour=0.0,
             inlet_actual_rate_asv_corrected_m3_per_hour=0.0,
+            standard_rate_sm3_per_day=0.0,
+            standard_rate_asv_corrected_sm3_per_day=0.0,
             outlet_actual_rate_m3_per_hour=0.0,
             outlet_actual_rate_asv_corrected_m3_per_hour=0.0,
             mass_rate_kg_per_hour=0.0,
@@ -200,6 +206,17 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                 result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour is not None
+            ]
+            #
+            inlet_stream_condition[i].standard_rate_sm3_per_day = [
+                result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day
+                for t in range(len(result_list))
+                if result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day is not None
+            ]
+            inlet_stream_condition[i].standard_rate_before_asv_sm3_per_day = [
+                result_list[t].stage_results[i].standard_rate_sm3_per_day
+                for t in range(len(result_list))
+                if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
             inlet_stream_condition[i].density_kg_per_m3 = [
                 result_list[t].stage_results[i].inlet_stream.density_kg_per_m3
