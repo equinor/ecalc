@@ -204,6 +204,10 @@ class CompressorTrainStage(BaseModel):
             inlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour / inlet_stream_compressor.density,
             inlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_asv_corrected_kg_per_hour
             / inlet_stream_compressor.density,
+            standard_rate_sm3_per_day=mass_rate_kg_per_hour*24.0
+            /inlet_stream_compressor.standard_conditions_density,
+            standard_rate_asv_corrected_sm3_per_day=mass_rate_asv_corrected_kg_per_hour*24
+            / inlet_stream_compressor.standard_conditions_density,
             outlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour / outlet_stream.density,
             outlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_asv_corrected_kg_per_hour / outlet_stream.density,
             mass_rate_kg_per_hour=mass_rate_kg_per_hour,

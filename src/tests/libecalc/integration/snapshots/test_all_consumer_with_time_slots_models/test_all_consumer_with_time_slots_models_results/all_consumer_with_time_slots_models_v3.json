@@ -443,6 +443,14 @@
                                     20.0,
                                     20.0
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    471113.9,
+                                    471113.9
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15
@@ -466,8 +474,8 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN
+                                    5.86345,
+                                    5.86345
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     5.86345,
@@ -488,6 +496,14 @@
                                 "pressure_before_choking": [
                                     42.48577,
                                     42.48577
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     356.3484,
@@ -620,6 +636,14 @@
                                     42.48577,
                                     42.48577
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    1056851.0,
+                                    1056851.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15
@@ -643,8 +667,8 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN
+                                    2.602151,
+                                    2.602151
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     2.602151,
@@ -665,6 +689,14 @@
                                 "pressure_before_choking": [
                                     93.60992,
                                     93.60992
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     361.5373,
@@ -909,6 +941,20 @@
                                     20.0,
                                     20.0
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -947,11 +993,11 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     5.86345,
@@ -987,6 +1033,20 @@
                                     42.48577,
                                     42.48577,
                                     42.48577
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     356.3484,
@@ -1182,6 +1242,20 @@
                                     42.48577,
                                     42.48577
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -1220,11 +1294,11 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     2.602151,
@@ -1260,6 +1334,20 @@
                                     93.60992,
                                     93.60992,
                                     93.60992
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     361.5373,
@@ -1559,6 +1647,22 @@
                                     20.0,
                                     20.0
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -1602,12 +1706,12 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     5.86345,
@@ -1648,6 +1752,22 @@
                                     42.48577,
                                     42.48577,
                                     42.48577
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     356.3484,
@@ -1864,6 +1984,22 @@
                                     42.48577,
                                     42.48577
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -1907,12 +2043,12 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     2.602151,
@@ -1953,6 +2089,22 @@
                                     93.60992,
                                     93.60992,
                                     93.60992
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     361.5373,
@@ -2469,6 +2621,22 @@
                                     20.0,
                                     20.0
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9,
+                                    471113.9
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -2512,12 +2680,12 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345,
+                                    5.86345
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     5.86345,
@@ -2558,6 +2726,22 @@
                                     42.48577,
                                     42.48577,
                                     42.48577
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     356.3484,
@@ -2774,6 +2958,22 @@
                                     42.48577,
                                     42.48577
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0,
+                                    1056851.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -2817,12 +3017,12 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151,
+                                    2.602151
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     2.602151,
@@ -2863,6 +3063,22 @@
                                     93.60992,
                                     93.60992,
                                     93.60992
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     361.5373,
@@ -4520,6 +4736,28 @@
                                             41.0,
                                             41.0
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -4578,15 +4816,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             2.704738,
@@ -4642,6 +4880,28 @@
                                             90.14115,
                                             90.14115,
                                             90.14115
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
                                         ],
                                         "temperature_kelvin": [
                                             361.2597,
@@ -4921,6 +5181,28 @@
                                             90.14115,
                                             90.14115
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -4979,15 +5261,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             1.189157,
@@ -5043,6 +5325,28 @@
                                             206.6155,
                                             206.6155,
                                             206.6155
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
                                         ],
                                         "temperature_kelvin": [
                                             364.0807,
@@ -5447,6 +5751,28 @@
                                             NaN,
                                             NaN
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
                                         "temperature_kelvin": [
                                             NaN,
                                             NaN,
@@ -5505,15 +5831,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
@@ -5569,6 +5895,28 @@
                                             NaN,
                                             NaN,
                                             NaN
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "temperature_kelvin": [
                                             NaN,
@@ -5848,6 +6196,28 @@
                                             NaN,
                                             NaN
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
                                         "temperature_kelvin": [
                                             NaN,
                                             NaN,
@@ -5906,15 +6276,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
@@ -5970,6 +6340,28 @@
                                             NaN,
                                             NaN,
                                             NaN
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "temperature_kelvin": [
                                             NaN,
@@ -6412,6 +6804,32 @@
                                             41.0,
                                             41.0
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -6480,17 +6898,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738,
+                                            2.704738
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             2.704738,
@@ -6556,6 +6974,32 @@
                                             90.14115,
                                             90.14115,
                                             90.14115
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
                                         ],
                                         "temperature_kelvin": [
                                             361.2597,
@@ -6877,6 +7321,32 @@
                                             90.14115,
                                             90.14115
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -6945,17 +7415,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157,
+                                            1.189157
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             1.189157,
@@ -7021,6 +7491,32 @@
                                             206.6155,
                                             206.6155,
                                             206.6155
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0,
+                                            5000.0
                                         ],
                                         "temperature_kelvin": [
                                             364.0807,
@@ -7487,6 +7983,32 @@
                                             NaN,
                                             NaN
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
                                         "temperature_kelvin": [
                                             NaN,
                                             NaN,
@@ -7555,17 +8077,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
@@ -7631,6 +8153,32 @@
                                             NaN,
                                             NaN,
                                             NaN
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "temperature_kelvin": [
                                             NaN,
@@ -7952,6 +8500,32 @@
                                             NaN,
                                             NaN
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
                                         "temperature_kelvin": [
                                             NaN,
                                             NaN,
@@ -8020,17 +8594,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.0,
@@ -8096,6 +8670,32 @@
                                             NaN,
                                             NaN,
                                             NaN
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0
                                         ],
                                         "temperature_kelvin": [
                                             NaN,
@@ -8526,6 +9126,28 @@
                                             41.0,
                                             41.0
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -8584,15 +9206,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             1.352369,
@@ -8648,6 +9270,28 @@
                                             90.14115,
                                             90.14115,
                                             90.14115
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             361.2597,
@@ -8927,6 +9571,28 @@
                                             90.14115,
                                             90.14115
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -8985,15 +9651,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.594579,
@@ -9049,6 +9715,28 @@
                                             206.6155,
                                             206.6155,
                                             206.6155
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             364.0807,
@@ -9453,6 +10141,28 @@
                                             41.0,
                                             41.0
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -9511,15 +10221,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             1.352369,
@@ -9575,6 +10285,28 @@
                                             90.14115,
                                             90.14115,
                                             90.14115
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             361.2597,
@@ -9854,6 +10586,28 @@
                                             90.14115,
                                             90.14115
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -9912,15 +10666,15 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.594579,
@@ -9976,6 +10730,28 @@
                                             206.6155,
                                             206.6155,
                                             206.6155
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             364.0807,
@@ -10418,6 +11194,32 @@
                                             41.0,
                                             41.0
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -10486,17 +11288,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             1.352369,
@@ -10562,6 +11364,32 @@
                                             90.14115,
                                             90.14115,
                                             90.14115
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             361.2597,
@@ -10883,6 +11711,32 @@
                                             90.14115,
                                             90.14115
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -10951,17 +11805,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.594579,
@@ -11027,6 +11881,32 @@
                                             206.6155,
                                             206.6155,
                                             206.6155
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             364.0807,
@@ -11493,6 +12373,32 @@
                                             41.0,
                                             41.0
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0,
+                                            1016253.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -11561,17 +12467,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369,
+                                            1.352369
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             1.352369,
@@ -11637,6 +12543,32 @@
                                             90.14115,
                                             90.14115,
                                             90.14115
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             361.2597,
@@ -11958,6 +12890,32 @@
                                             90.14115,
                                             90.14115
                                         ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0,
+                                            2487112.0
+                                        ],
                                         "temperature_kelvin": [
                                             303.15,
                                             303.15,
@@ -12026,17 +12984,17 @@
                                     ],
                                     "outlet_stream_condition": {
                                         "actual_rate_before_asv_m3_per_hr": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579,
+                                            0.594579
                                         ],
                                         "actual_rate_m3_per_hr": [
                                             0.594579,
@@ -12102,6 +13060,32 @@
                                             206.6155,
                                             206.6155,
                                             206.6155
+                                        ],
+                                        "standard_rate_before_asv_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
+                                        ],
+                                        "standard_rate_sm3_per_day": [
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0,
+                                            2500.0
                                         ],
                                         "temperature_kelvin": [
                                             364.0807,
@@ -12651,6 +13635,28 @@
                                     41.0,
                                     41.0
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -12709,15 +13715,15 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     2.704738,
@@ -12773,6 +13779,28 @@
                                     90.14115,
                                     90.14115,
                                     90.14115
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     361.2597,
@@ -13052,6 +14080,28 @@
                                     90.14115,
                                     90.14115
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -13110,15 +14160,15 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     1.189157,
@@ -13174,6 +14224,28 @@
                                     206.6155,
                                     206.6155,
                                     206.6155
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     364.0807,
@@ -13578,6 +14650,28 @@
                                     NaN,
                                     NaN
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
                                 "temperature_kelvin": [
                                     NaN,
                                     NaN,
@@ -13636,15 +14730,15 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
@@ -13700,6 +14794,28 @@
                                     NaN,
                                     NaN,
                                     NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "temperature_kelvin": [
                                     NaN,
@@ -13979,6 +15095,28 @@
                                     NaN,
                                     NaN
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
                                 "temperature_kelvin": [
                                     NaN,
                                     NaN,
@@ -14037,15 +15175,15 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
@@ -14101,6 +15239,28 @@
                                     NaN,
                                     NaN,
                                     NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "temperature_kelvin": [
                                     NaN,
@@ -14543,6 +15703,32 @@
                                     41.0,
                                     41.0
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0,
+                                    1016253.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -14611,17 +15797,17 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738,
+                                    2.704738
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     2.704738,
@@ -14687,6 +15873,32 @@
                                     90.14115,
                                     90.14115,
                                     90.14115
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     361.2597,
@@ -15008,6 +16220,32 @@
                                     90.14115,
                                     90.14115
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0,
+                                    2487112.0
+                                ],
                                 "temperature_kelvin": [
                                     303.15,
                                     303.15,
@@ -15076,17 +16314,17 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157,
+                                    1.189157
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     1.189157,
@@ -15152,6 +16390,32 @@
                                     206.6155,
                                     206.6155,
                                     206.6155
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0,
+                                    5000.0
                                 ],
                                 "temperature_kelvin": [
                                     364.0807,
@@ -15618,6 +16882,32 @@
                                     NaN,
                                     NaN
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
                                 "temperature_kelvin": [
                                     NaN,
                                     NaN,
@@ -15686,17 +16976,17 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
@@ -15762,6 +17052,32 @@
                                     NaN,
                                     NaN,
                                     NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "temperature_kelvin": [
                                     NaN,
@@ -16083,6 +17399,32 @@
                                     NaN,
                                     NaN
                                 ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
                                 "temperature_kelvin": [
                                     NaN,
                                     NaN,
@@ -16151,17 +17493,17 @@
                             ],
                             "outlet_stream_condition": {
                                 "actual_rate_before_asv_m3_per_hr": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "actual_rate_m3_per_hr": [
                                     0.0,
@@ -16227,6 +17569,32 @@
                                     NaN,
                                     NaN,
                                     NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "temperature_kelvin": [
                                     NaN,
