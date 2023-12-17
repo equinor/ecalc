@@ -178,6 +178,10 @@ class EnergyCalculator:
                 installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
                 installation = self._graph.get_node(installation_id)
 
+                # Create domain object.
+                # TODO: Check if it is ok to convert to tons/day at this stage.
+                #  There is no conversion to kg/day, as no core-calculations are made
+
                 venting_emitter = consumer_dto.to_domain(
                     variables_map=variables_map, regularity=installation.regularity
                 )
