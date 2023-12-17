@@ -201,13 +201,13 @@ class EmissionQuery(Query):
                     ):
                         emissions = installation_graph.get_emissions(venting_emitter.id)
 
-                        for emission in emissions.values():
+                        for emission_name, emission in emissions.items():
                             emission_volumes = TimeSeriesRate.from_timeseries_stream_day_rate(
                                 emission.rate, regularity=regularity
                             ).to_volumes()
                             unit_in = emission_volumes.unit
                             for timestep, emission_volume in emission_volumes.datapoints():
-                                if self.emission_type is None or emission.name == self.emission_type:
+                                if self.emission_type is None or emission_name == self.emission_type:
                                     aggregated_result[timestep] += emission_volume
 
             if aggregated_result:

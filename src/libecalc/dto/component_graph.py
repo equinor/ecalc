@@ -29,6 +29,25 @@ class ComponentGraph(Graph):
         parent_id = self.get_predecessor(node_id)
         return self.get_parent_installation_id(parent_id)
 
+    def get_parent_asset_id(self, node_id: NodeID) -> NodeID:
+        """
+        Simple helper function to get the installation of any component with id
+
+        Args:
+            node_id:
+
+        Returns:
+
+        """
+
+        # stop as soon as we get an installation. Ie. an installation of an installation, is itself...
+        node_info = self.get_node_info(node_id)
+        if node_info.component_level == ComponentLevel.ASSET:
+            return node_id
+
+        parent_id = self.get_predecessor(node_id)
+        return self.get_parent_asset_id(parent_id)
+
     def get_node_info(self, node_id: NodeID) -> NodeInfo:
         component_dto = self.nodes[node_id]
         if isinstance(component_dto, dto.Asset):

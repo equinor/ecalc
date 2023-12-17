@@ -19,6 +19,7 @@ from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.services.services import UpdateGraphVentingEmitter
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -172,18 +173,24 @@ class EnergyCalculator:
                         variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
             elif isinstance(consumer_dto, YamlVentingEmitter):
+                asset_id = self._graph.get_parent_asset_id(consumer_dto.id)
+                asset = self._graph.get_node(asset_id)
                 installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
                 installation = self._graph.get_node(installation_id)
 
-                emission_rate = consumer_dto.get_emission_rate(
+                venting_emitter = consumer_dto.to_domain(
                     variables_map=variables_map, regularity=installation.regularity
-                ).to_unit(Unit.TONS_PER_DAY)
+                )
 
+                # Replace YamlVentingEmitter-nodes in graph with domain object, i.e. VentingEmitter
+                self._graph = UpdateGraphVentingEmitter().update_asset_graph(
+                    asset=asset, installation=installation, venting_emitter=venting_emitter
+                )
                 emission_result = {
                     consumer_dto.emission.name: EmissionResult(
-                        name=consumer_dto.emission.name,
+                        name=venting_emitter.name,
                         timesteps=variables_map.time_vector,
-                        rate=emission_rate,
+                        rate=venting_emitter.emission.rate.value,
                     )
                 }
                 emission_results[consumer_dto.id] = emission_result

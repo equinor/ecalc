@@ -11,11 +11,6 @@ from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
 )
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingEmission,
-    YamlVentingEmitter,
-)
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 
 regularity_installation = 1.0
 regularity_consumer = 1.0
@@ -290,21 +285,6 @@ def compressor() -> dto.FuelConsumer:
     )
 
 
-def venting_emitter(emission_rate: float, rate_type: RateType, unit: Unit, emission_name: str) -> YamlVentingEmitter:
-    return YamlVentingEmitter(
-        name="venting emitter 1",
-        category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-        emission=YamlVentingEmission(
-            name=emission_name,
-            rate=YamlRate(
-                value=emission_rate,
-                unit=unit,
-                type=rate_type,
-            ),
-        ),
-    )
-
-
 def generator_set_direct_consumer_temporal_model() -> dto.GeneratorSet:
     return dto.GeneratorSet(
         name="genset",
@@ -520,17 +500,5 @@ def installation_boiler_heater_dto() -> dto.Installation:
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[boiler_heater()],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
-    )
-
-
-def installation_venting_emitter(
-    emission_rate: float, regularity: Dict[datetime, Expression], rate_type: RateType, unit: Unit, emission_name: str
-) -> dto.Installation:
-    return dto.Installation(
-        name="INSTALLATION_A",
-        regularity=regularity,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
-        venting_emitters=[venting_emitter(emission_rate, rate_type, unit, emission_name)],
         user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
     )
