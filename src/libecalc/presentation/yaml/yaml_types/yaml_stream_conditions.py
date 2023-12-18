@@ -4,7 +4,6 @@ try:
     from pydantic.v1 import Field
 except ImportError:
     from pydantic import Field
-from pydantic import Field
 from pydantic.class_validators import validator
 
 from libecalc.common.units import Unit

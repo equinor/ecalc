@@ -22,7 +22,6 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingEmitter,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
-from pydantic import ValidationError
 
 
 class TestCategories:

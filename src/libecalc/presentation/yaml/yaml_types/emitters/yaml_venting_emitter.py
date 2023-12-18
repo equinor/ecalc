@@ -2,7 +2,11 @@ from datetime import datetime
 from typing import Dict
 
 import numpy as np
-from pydantic import Field
+
+try:
+    from pydantic.v1 import Field
+except ImportError:
+    from pydantic import Field
 from pydantic.class_validators import validator
 
 from libecalc.common.string.string_utils import generate_id
