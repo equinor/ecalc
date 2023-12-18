@@ -7,13 +7,11 @@ from pydantic.class_validators import validator
 
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
-from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
     RateType,
     TimeSeriesStreamDayRate,
 )
-from libecalc.domain.venting_emitter import Emission, Rate, VentingEmitter
 from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
@@ -63,36 +61,6 @@ class YamlVentingEmitter(YamlBase):
     @property
     def user_defined_category(self):
         return self.category
-
-    def to_domain(self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]) -> VentingEmitter:
-        """
-        Mapping from input YamlVentingEmitter to domain. Includes evaluating the rate expression.
-
-        :param variables_map: map of all timeseries variables
-        :param regularity: installation regularity
-        :return: VentingEmitter domain object
-        """
-        rate = self.get_emission_rate(variables_map=variables_map, regularity=regularity).to_unit(Unit.TONS_PER_DAY)
-
-        rate = Rate(
-            value=rate,
-            rate_type=self.emission.rate.type,
-        )
-
-        emission = Emission(
-            name=self.emission.name,
-            rate=rate,
-        )
-
-        venting_emitter = VentingEmitter(
-            name=self.name,
-            emission=emission,
-            category=self.category,
-            emitter_id=self.id,
-            component_type=self.component_type,
-        )
-
-        return venting_emitter
 
     @validator("category", pre=True, always=True)
     def check_user_defined_category(cls, category, values):
