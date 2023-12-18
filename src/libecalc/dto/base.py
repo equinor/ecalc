@@ -107,7 +107,6 @@ class EcalcBaseModel(BaseModel):
             Expression: lambda e: str(e),
         }
         copy_on_model_validation = "deep"
-        arbitrary_types_allowed = True
 
     def json(self, date_format: Optional[str] = None, **kwargs) -> str:
         if date_format is None:
