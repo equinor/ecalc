@@ -390,6 +390,25 @@ class Asset(Component):
     def installation_ids(self) -> List[str]:
         return [installation.id for installation in self.installations]
 
+    def get_component_by_id(self, id: str) -> Optional[Component]:
+        """
+        TODO: only for pumps
+        Args:
+            id:
+
+        Returns:
+
+        """
+        for installation in self.installations:
+            for fuel_consumer in installation.fuel_consumers:
+                if fuel_consumer.id == id:
+                    return fuel_consumer
+                if isinstance(fuel_consumer, dto.GeneratorSet):
+                    for electricity_consumer in fuel_consumer.consumers:
+                        if electricity_consumer.id == id:
+                            return electricity_consumer
+        return None
+
     def get_component_ids_for_installation_id(self, installation_id: str) -> List[str]:
         installation = self.get_installation(installation_id)
         component_ids = []

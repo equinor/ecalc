@@ -20,6 +20,10 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 
 class YamlPump(YamlConsumerBase):
+    """
+    This is a DTO, a yaml DTO
+    """
+
     class Config:
         title = "Pump"
 
@@ -60,13 +64,34 @@ class YamlPump(YamlConsumerBase):
 
     def to_domain(
         self,
-        consumes: ConsumptionType,  # important in network, ie producer/consumer and units etc
+        # consumes: ConsumptionType,  # important in network, ie producer/consumer and units etc
         regularity: Dict[datetime, Expression],  # skip, already converted to stream_day ...
-        target_period: Period,  # what is this needed for? to get the correct model for a given timestep
+        # target_period: Period,  # what is this needed for? to get the correct model for a given timestep
         references: References,  # need to resolve, but that should be handled "before"? or here?
-        category: str,  # meta
+        timestep: datetime,
+        # category: str,  # meta
         fuel: Optional[Dict[datetime, dto.types.FuelType]],
     ) -> Pump:  # also, not relevant for domain, handled "above"?
+        """
+        Given a timestep, get the domain model for that timestep to calculate
+
+        Args:
+            references:
+            timestep:
+
+        Returns:
+
+        """
+
+        Pump(
+            id=self.name,
+            pump_model=resolve_reference(
+                value=self.energy_usage_model.get(timestep),
+                references=references.models,
+            ),
+        )
+        # TODO: Get pump model through factory - just energy model here ...
+
         # Remove this intermediate step ...
         dto = PumpComponent(
             consumes=consumes,

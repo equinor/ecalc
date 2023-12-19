@@ -2,6 +2,9 @@ import json
 import unittest
 
 import yaml
+from libecalc.core.consumers.pump import Pump
+from libecalc.core.models.chart import SingleSpeedChart
+from libecalc.core.models.pump import PumpSingleSpeed
 from libecalc.dto.base import ComponentType
 from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
 
@@ -73,39 +76,42 @@ name: my_pump
         generated_yaml = yaml.dump(self.yaml_pump.dict())
         assert expected_yaml == generated_yaml
 
-    # - NAME: pump_single_speed
-    # FILE: pumpchart.csv
-    # TYPE: PUMP_CHART_SINGLE_SPEED
-    # UNITS:
-    # EFFICIENCY: FRACTION
-    # HEAD: M
-    # RATE: AM3_PER_HOUR
+    def test_to_domain(self):
+        # TODO: We now also need
+        #  consumption type       for network and produce/subscribe
+        #         regularity   from installation, to convert to stream day...
+        #         target_period: Period,  # get correct model(s) for period...but skip, as we will not let core know about this
+        #         references: References,  # need to resolve, but that should be handled "before"? or here? handle "before"
+        #         category: str,  # meta ... just keep here ...
+        #         fuel: Optional[Dict[datetime, dto.types.FuelType]], from installation...just add the values ... or is this for emission only, skip?
+        self.yaml_pump.to_domain()
 
-    # energy_usage_model: YamlTemporalModel[str]
+        # or pump = PumpFactory.create(id=name, chart=single_speed_chart)
+        # or pump = PumpFactory.create(id=name, data=single_speed_chart)
 
-    #
-    # def to_dto(
-    #     self,
-    #     consumes: ConsumptionType,
-    #     regularity: Dict[datetime, Expression],
-    #     target_period: Period,
-    #     references: References,
-    #     category: str,
-    #     fuel: Optional[Dict[datetime, dto.types.FuelType]],
-    # ):
-    #     return PumpComponent(
-    #         consumes=consumes,
-    #         regularity=regularity,
-    #         name=self.name,
-    #         user_defined_category=define_time_model_for_period(self.category or category, target_period=target_period),
-    #         fuel=fuel,
-    #         energy_usage_model={
-    #             timestep: resolve_reference(
-    #                 value=reference,
-    #                 references=references.models,
-    #             )
-    #             for timestep, reference in define_time_model_for_period(
-    #                 self.energy_usage_model, target_period=target_period
-    #             ).items()
-    #         },
-    #     )
+        # for each timestep, create a pump?
+        domain_pump = Pump(
+            "unique pump name",
+            pump_model=PumpSingleSpeed(
+                pump_chart=SingleSpeedChart.create(
+                    speed_rpm=0,  # Speed is ignored...so why the hell set it? .P force users to set it, just for meta?
+                    rate_actual_m3_hour=[100, 200, 300, 400, 500],
+                    polytropic_head_joule_per_kg=[1000, 2000, 3000, 4000, 5000],
+                    efficiency_fraction=[0.4, 0.5, 0.75, 0.7, 0.6],
+                ),
+                energy_usage_adjustment_constant=0.0,
+                energy_usage_adjustment_factor=1.0,
+                head_margin=0.0,
+            ),
+        )
+
+        energy = domain_pump.simulate(stream)  # iterate, timesteps, for each rate value
+        EmissionCalculator(energy, fuel)  # fuel is actually, emission factors etc given the fuel (combinations) used.
+        # set category directly?
+        energy.to_calendar_day(regularity=regularity)
+
+        # TODO: Add a pump for a period of 30 years
+        # initially 1 type, different rates
+        # then change charts...?
+        #
+        # TODO: conversion of expressions? in app layer? not in domain model ...
