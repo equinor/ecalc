@@ -1,21 +1,73 @@
 import json
 import unittest
+from datetime import datetime
 
 import yaml
+from libecalc import dto
+from libecalc.common.units import Unit
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.models.chart import SingleSpeedChart
 from libecalc.core.models.pump import PumpSingleSpeed
+from libecalc.domain.stream_conditions import Density, Pressure, Rate, StreamConditions
 from libecalc.dto.base import ComponentType
+from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
 
 
 class TestYamlPump(unittest.TestCase):
     def setUp(self):
+        # TODO: Yamlify this as well?
+        self.pump_model_references = References(
+            models={
+                "pump_single_speed": dto.PumpModel(
+                    chart=dto.SingleSpeedChart(
+                        rate_actual_m3_hour=[100, 200, 300, 400, 500],
+                        polytropic_head_joule_per_kg=[1000, 2000, 3000, 4000, 5000],
+                        efficiency_fraction=[0.4, 0.5, 0.75, 0.7, 0.6],
+                        speed_rpm=0,
+                    ),
+                    energy_usage_adjustment_constant=0.0,
+                    energy_usage_adjustment_factor=1.0,
+                    head_margin=0.0,
+                )
+            },
+        )
+
         self.yaml_pump = YamlPump(
             name="my_pump",
             category="my_category",
             component_type=ComponentType.PUMP_V2,
             energy_usage_model="pump_single_speed",
+        )
+
+        self.inlet_stream_condition = StreamConditions(
+            id="inlet",
+            name="inlet",  # TODO: we should not relay on order of streams in list, but rather require "different types of streams" for now, ie in and out as required
+            timestep=datetime(2020, 1, 1),  # TODO: Avoid adding timestep info here, for outer layers
+            rate=Rate(
+                value=150,
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            ),
+            pressure=Pressure(
+                value=50,
+                unit=Unit.BARA,
+            ),
+            density=Density(value=1, unit=Unit.KG_SM3),
+        )
+
+        self.outlet_stream_condition = StreamConditions(
+            id="outlet",
+            name="outlet",
+            timestep=datetime(2020, 1, 1),
+            rate=Rate(
+                value=150,
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            ),
+            pressure=Pressure(
+                value=80,
+                unit=Unit.BARA,
+            ),
+            density=Density(value=1, unit=Unit.KG_SM3),
         )
 
     def test_serialize(self):
@@ -77,24 +129,16 @@ name: my_pump
         assert expected_yaml == generated_yaml
 
     def test_to_domain(self):
-        # TODO: We now also need
-        #  consumption type       for network and produce/subscribe
-        #         regularity   from installation, to convert to stream day...
-        #         target_period: Period,  # get correct model(s) for period...but skip, as we will not let core know about this
-        #         references: References,  # need to resolve, but that should be handled "before"? or here? handle "before"
-        #         category: str,  # meta ... just keep here ...
-        #         fuel: Optional[Dict[datetime, dto.types.FuelType]], from installation...just add the values ... or is this for emission only, skip?
-        self.yaml_pump.to_domain()
+        domain_pump = self.yaml_pump.to_domain_model(
+            timestep=datetime(year=2020, month=1, day=1), references=self.pump_model_references
+        )
 
-        # or pump = PumpFactory.create(id=name, chart=single_speed_chart)
-        # or pump = PumpFactory.create(id=name, data=single_speed_chart)
-
-        # for each timestep, create a pump?
-        domain_pump = Pump(
+        # NOTE! To get domain model for the whole range of timesteps, we need to call the function for each time step
+        expected_domain_pump = Pump(
             "unique pump name",
             pump_model=PumpSingleSpeed(
                 pump_chart=SingleSpeedChart.create(
-                    speed_rpm=0,  # Speed is ignored...so why the hell set it? .P force users to set it, just for meta?
+                    speed_rpm=0,  # Speed is ignored...so why set it? .P force users to set it, just for meta?
                     rate_actual_m3_hour=[100, 200, 300, 400, 500],
                     polytropic_head_joule_per_kg=[1000, 2000, 3000, 4000, 5000],
                     efficiency_fraction=[0.4, 0.5, 0.75, 0.7, 0.6],
@@ -105,13 +149,18 @@ name: my_pump
             ),
         )
 
-        energy = domain_pump.simulate(stream)  # iterate, timesteps, for each rate value
-        EmissionCalculator(energy, fuel)  # fuel is actually, emission factors etc given the fuel (combinations) used.
-        # set category directly?
-        energy.to_calendar_day(regularity=regularity)
+        # TODO: Handle correct comparison - use pydantic, dataclass or make ourselves?
+        assert expected_domain_pump == domain_pump
 
-        # TODO: Add a pump for a period of 30 years
-        # initially 1 type, different rates
-        # then change charts...?
-        #
-        # TODO: conversion of expressions? in app layer? not in domain model ...
+    def test_domain_pump(self):
+        domain_pump = self.yaml_pump.to_domain_model(
+            timestep=datetime(year=2020, month=1, day=1), references=self.pump_model_references
+        )
+
+        max_rate = domain_pump.get_max_rate(
+            inlet_stream=self.inlet_stream_condition, target_pressure=Pressure(value=50, unit=Unit.BARA)
+        )
+
+        assert max_rate == 12000
+
+        domain_pump.evaluate(streams=[self.inlet_stream_condition, self.outlet_stream_condition])

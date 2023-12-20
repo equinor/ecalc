@@ -1,12 +1,14 @@
 from datetime import datetime
-from typing import Dict, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from pydantic import Field
 
 from libecalc import dto
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.pump import Pump
+from libecalc.core.models.pump import create_pump_model
+from libecalc.dto import PumpModel
 from libecalc.dto.base import ComponentType
 from libecalc.dto.components import PumpComponent
 from libecalc.dto.types import ConsumptionType
@@ -62,18 +64,46 @@ class YamlPump(YamlConsumerBase):
             },
         )
 
-    def to_domain(
-        self,
-        # consumes: ConsumptionType,  # important in network, ie producer/consumer and units etc
-        regularity: Dict[datetime, Expression],  # skip, already converted to stream_day ...
-        # target_period: Period,  # what is this needed for? to get the correct model for a given timestep
-        references: References,  # need to resolve, but that should be handled "before"? or here?
-        timestep: datetime,
-        # category: str,  # meta
-        fuel: Optional[Dict[datetime, dto.types.FuelType]],
-    ) -> Pump:  # also, not relevant for domain, handled "above"?
+    def get_timestep_for_model(self, timestep: datetime, references: References) -> PumpModel:
         """
-        Given a timestep, get the domain model for that timestep to calculate
+        TODO: Make general and make a general util method for yaml conversion
+        Args:
+            timestep:
+            references:
+
+        Returns:
+
+        """
+        if not isinstance(self.energy_usage_model, Dict):
+            energy_model_reference = self.energy_usage_model
+        else:
+            energy_model_reference = define_time_model_for_period(
+                self.energy_usage_model, target_period=Period(start=timestep, end=timestep)
+            )  # TODO: Period is not the same as timestep...is this ok? we want the model at a given time ...
+
+        energy_model = resolve_reference(
+            value=energy_model_reference,
+            references=references.models,
+        )
+
+        pump_model_for_timestep = create_pump_model(energy_model)
+
+        return pump_model_for_timestep
+
+    def to_domain_model(
+        self,
+        references: References,  # need to resolve, but that should be handled "before"? or here? send in relevant reference?
+        timestep: datetime,
+    ) -> Pump:
+        """
+        Given a timestep, get the domain model for that timestep to calculate. In order to get domain models for all
+        timesteps a yaml pump is valid at (given a yaml scenario), this function needs to be called for each date,
+        and make sure that you have either a complete or corresponding reference list to that timestep.
+
+        Information such as emission (fuel), regularity, consumption_type and categories are not handled in the core
+        domain, and must be dealt with in other domains or in the use case/yaml layer etc.
+
+        We may later introduce a temporal and spatial domain that handles that transparently.
 
         Args:
             references:
@@ -82,32 +112,26 @@ class YamlPump(YamlConsumerBase):
         Returns:
 
         """
+        # TODO: Convert to stream day? OR done?
 
-        Pump(
-            id=self.name,
-            pump_model=resolve_reference(
-                value=self.energy_usage_model.get(timestep),
-                references=references.models,
-            ),
+        return Pump(id=self.name, pump_model=self.get_timestep_for_model(timestep=timestep, references=references))
+
+    # TODO is def from_domain(cls, pump: Pump) -> Self: relevant? Should it generate model as a string? or tuple? or with resolved and expanded reference?
+
+    def to_domain_models(self, timesteps: List[datetime], references: References) -> TemporalModel[Pump]:
+        """
+        For every valid timestep, we extrapolate and create a full domain model representation of the pump
+
+        TODO: Should "global time vector" and "global references" be "globally accessible", e.g. through a "service"?
+        such as services provided in constructor to access these services to get it?
+
+        Args:
+            timesteps:
+            references:
+
+        Returns:
+
+        """
+        return TemporalModel(
+            {timestep: self.to_domain_model(references=references, timestep=timestep) for timestep in timesteps}
         )
-        # TODO: Get pump model through factory - just energy model here ...
-
-        # Remove this intermediate step ...
-        dto = PumpComponent(
-            consumes=consumes,
-            regularity=regularity,
-            name=self.name,
-            user_defined_category=define_time_model_for_period(self.category or category, target_period=target_period),
-            fuel=fuel,
-            energy_usage_model={
-                timestep: resolve_reference(
-                    value=reference,
-                    references=references.models,
-                )
-                for timestep, reference in define_time_model_for_period(
-                    self.energy_usage_model, target_period=target_period
-                ).items()
-            },
-        )
-
-        return create_consumer(consumer=dto, timestep=datetime.now())
