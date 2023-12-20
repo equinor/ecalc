@@ -76,6 +76,7 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
             # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
             inlet_actual_rate_m3_per_hour=0.0,
             inlet_actual_rate_asv_corrected_m3_per_hour=0.0,
+            # standard rate [sm3/day]
             standard_rate_sm3_per_day=0.0,
             standard_rate_asv_corrected_sm3_per_day=0.0,
             outlet_actual_rate_m3_per_hour=0.0,
