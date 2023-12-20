@@ -112,7 +112,8 @@ def map_yaml_to_variables(
     result_options: dto.ResultOptions,
 ) -> dto.VariablesMap:
     timeseries_collections = [
-        TimeSeriesCollectionMapper(resources).from_yaml_to_dto(timeseries) for timeseries in configuration.time_series
+        TimeSeriesCollectionMapper(resources).from_yaml_to_dto(timeseries.dict(by_alias=True))
+        for timeseries in configuration.time_series
     ]
 
     global_time_vector = get_global_time_vector(

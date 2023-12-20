@@ -1618,7 +1618,14 @@
                 "TIME_SERIES": {
                     "description": "Defines the inputs for time dependent variables, or 'reservoir variables'.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TIME_SERIES",
                     "items": {
-                        "anyOf": [
+                        "discriminator": {
+                            "mapping": {
+                                "DEFAULT": "#/definitions/YamlDefaultTimeSeriesCollection",
+                                "MISCELLANEOUS": "#/definitions/YamlMiscellaneousTimeSeriesCollection"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
                             {
                                 "$ref": "#/definitions/YamlDefaultTimeSeriesCollection"
                             },
