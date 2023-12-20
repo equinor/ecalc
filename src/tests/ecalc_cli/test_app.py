@@ -305,7 +305,8 @@ class TestJsonOutput:
             json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
         )
 
-    def test_json_advanced_model(self, advanced_yaml_path, tmp_path):
+    @pytest.mark.snapshot
+    def test_json_advanced_model(self, advanced_yaml_path, tmp_path, snapshot):
         """Check advanced json file to ensure compressor requested inlet- and outlet
         pressures are reported correctly.
 
@@ -332,29 +333,8 @@ class TestJsonOutput:
         with open(v3_json_actual_path) as json_file:
             json_data = json.loads(json_file.read())
 
-        compressor_tabular = json_data["models"][0]
-        compressor_train = json_data["models"][1]
-
-        requested_inlet_pressure_tabular = compressor_tabular["requested_inlet_pressure"]["values"]
-        requested_outlet_pressure_tabular = compressor_tabular["requested_outlet_pressure"]["values"]
-        requested_inlet_pressure_train = compressor_train["requested_inlet_pressure"]["values"]
-        requested_outlet_pressure_train = compressor_train["requested_outlet_pressure"]["values"]
-
-        calculated_inlet_pressure_train = compressor_train["stage_results"][0]["inlet_stream_condition"]["pressure"][
-            "values"
-        ]
-        calculated_outlet_pressure_train = compressor_train["stage_results"][-1]["outlet_stream_condition"]["pressure"][
-            "values"
-        ]
-
-        assert requested_inlet_pressure_tabular == [20] * len(compressor_tabular["timesteps"])
-        assert requested_outlet_pressure_tabular == [200] * len(compressor_tabular["timesteps"])
-        assert requested_inlet_pressure_train == [20] * len(compressor_train["timesteps"])
-        assert requested_outlet_pressure_train == [120] * len(compressor_train["timesteps"])
-
-        assert calculated_inlet_pressure_train == [20] * len(compressor_train["timesteps"])
-        assert [round(pressure) for pressure in calculated_outlet_pressure_train] == [120] * len(
-            compressor_train["timesteps"]
+        snapshot.assert_match(
+            json.dumps(json_data, sort_keys=True, indent=2, default=str), snapshot_name=v3_json_actual_path.name
         )
 
 

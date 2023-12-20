@@ -757,10 +757,30 @@ class GraphResult:
                             rate_type=RateType.STREAM_DAY,
                             regularity=regularity.for_timesteps(model.timesteps).values,
                         )
+                        maximum_rate = TimeSeriesRate(
+                            timesteps=model.timesteps,
+                            values=model.max_standard_rate[
+                                0
+                            ]  # WORKAROUND: We only pick max rate for first stream for now
+                            if model.max_standard_rate is not None
+                            else [math.nan] * len(model.timesteps),
+                            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                            rate_type=RateType.STREAM_DAY,
+                            regularity=regularity.for_timesteps(model.timesteps).values,
+                        )
                     else:
                         rate = TimeSeriesRate(
                             timesteps=model.timesteps,
                             values=model.rate_sm3_day,
+                            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                            rate_type=RateType.STREAM_DAY,
+                            regularity=regularity.for_timesteps(model.timesteps).values,
+                        )
+                        maximum_rate = TimeSeriesRate(
+                            timesteps=model.timesteps,
+                            values=model.max_standard_rate
+                            if model.max_standard_rate is not None
+                            else [math.nan] * len(model.timesteps),
                             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                             rate_type=RateType.STREAM_DAY,
                             regularity=regularity.for_timesteps(model.timesteps).values,
@@ -780,6 +800,7 @@ class GraphResult:
                                 requested_inlet_pressure=requested_inlet_pressure,
                                 requested_outlet_pressure=requested_outlet_pressure,
                                 rate=rate,
+                                maximum_rate=maximum_rate,
                                 stage_results=model_stage_results,
                                 failure_status=model.failure_status,
                                 timesteps=model.timesteps,

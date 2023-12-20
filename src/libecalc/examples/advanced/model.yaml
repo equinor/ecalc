@@ -68,6 +68,7 @@ MODELS:
   - NAME: simplified_compressor_train_model
     TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_fluid
+    CALCULATE_MAX_RATE: True
     COMPRESSOR_TRAIN:
       STAGES:
         - INLET_TEMPERATURE: 30

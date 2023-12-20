@@ -214,6 +214,7 @@ class CompressorModelResult(ConsumerModelResultBase):
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
     rate: TimeSeriesRate
+    maximum_rate: TimeSeriesRate
     stage_results: List[CompressorModelStageResult]
     turbine_result: Optional[TurbineModelResult] = None
     energy_usage_unit: Unit
