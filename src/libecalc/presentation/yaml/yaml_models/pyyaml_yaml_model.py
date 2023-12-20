@@ -5,6 +5,10 @@ from typing import Any, Dict, Iterator, List, Optional, TextIO, Type, Union
 import yaml
 from yaml import SafeLoader
 
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
+    YamlTimeSeriesCollection,
+)
+
 try:
     from pydantic.v1 import parse_obj_as
 except ImportError:
@@ -269,8 +273,15 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         return self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, [])
 
     @property
-    def time_series(self):
-        return self._internal_datamodel.get(EcalcYamlKeywords.time_series, [])
+    def time_series(self) -> List[YamlTimeSeriesCollection]:
+        time_series = []
+        for time_series_data in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
+            try:
+                time_series.append(parse_obj_as(YamlTimeSeriesCollection, time_series_data))
+            except PydanticValidationError as e:
+                raise DtoValidationError(data=time_series_data, validation_error=e) from e
+
+        return time_series
 
     @property
     def models(self):

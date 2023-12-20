@@ -1,5 +1,7 @@
 from typing import Literal, Union
 
+from typing_extensions import Annotated
+
 try:
     from pydantic.v1 import Field
 except ImportError:
@@ -11,6 +13,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 class YamlTimeSeriesCollectionBase(YamlBase):
     class Config:
         title = "TimeSeries"
+        use_enum_values = True
 
     name: str = Field(
         ...,
@@ -71,4 +74,7 @@ class YamlMiscellaneousTimeSeriesCollection(YamlTimeSeriesCollectionBase):
     )
 
 
-YamlTimeSeriesCollection = Union[YamlDefaultTimeSeriesCollection, YamlMiscellaneousTimeSeriesCollection]
+YamlTimeSeriesCollection = Annotated[
+    Union[YamlDefaultTimeSeriesCollection, YamlMiscellaneousTimeSeriesCollection],
+    Field(discriminator="type"),
+]
