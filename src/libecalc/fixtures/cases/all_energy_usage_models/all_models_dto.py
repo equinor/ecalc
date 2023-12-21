@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 
 from libecalc import dto
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.base import (
     ComponentType,
@@ -11,6 +12,11 @@ from libecalc.dto.base import (
 )
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmission,
+    YamlVentingEmitter,
+)
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 
 
 @pytest.fixture
@@ -971,19 +977,13 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
 
 
 @pytest.fixture
-def methane_venting(regularity) -> dto.VentingEmitter:
-    return dto.VentingEmitter(
+def methane_venting(regularity) -> YamlVentingEmitter:
+    return YamlVentingEmitter(
         name="methane_venting",
-        component_type=ComponentType.VENTING_EMITTER,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
-        emission_name="CH4",
-        emitter_model={
-            datetime(1900, 1, 1): dto.EmitterModel(
-                emission_rate=Expression.setup_from_expression(value="FLARE;METHANE_RATE"),
-                regularity=regularity,
-            ),
-        },
-        regularity=regularity,
+        category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+        emission=YamlVentingEmission(
+            name="CH4", rate=YamlRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY)
+        ),
     )
 
 

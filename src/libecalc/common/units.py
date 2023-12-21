@@ -132,7 +132,6 @@ class Unit(str, Enum):
         # User for compressor charts.
         unit_registry[Unit.PERCENTAGE][Unit.FRACTION] = lambda a: a / 100
         unit_registry[Unit.FRACTION][Unit.PERCENTAGE] = lambda a: a * 100
-        unit_registry[Unit.FRACTION][Unit.FRACTION] = lambda a: a
 
         # Compressor chart polytropic head
         unit_registry[Unit.POLYTROPIC_HEAD_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG] = lambda a: a / 1000
@@ -149,9 +148,6 @@ class Unit(str, Enum):
         unit_registry[Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN] = (
             lambda a: (a * 1000) / UnitConstants.EARTH_GRAVITY
         )
-
-        # Compressor chart rate
-        unit_registry[Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR][Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR] = lambda a: a
 
         # Other
         unit_registry[Unit.KG_BOE][Unit.KG_SM3] = lambda a: a * 6.29

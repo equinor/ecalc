@@ -16,12 +16,14 @@ from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
-from libecalc.core.consumers.venting_emitter import VentingEmitter
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmitter,
+)
 
 
 def merge_results(results_per_timestep: Dict[datetime, EcalcModelResult]) -> EcalcModelResult:
@@ -169,6 +171,20 @@ class EnergyCalculator:
                     emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
                         variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
-            elif isinstance(consumer_dto, dto.VentingEmitter):
-                emission_results[consumer_dto.id] = VentingEmitter(consumer_dto).evaluate(variables_map=variables_map)
+            elif isinstance(consumer_dto, YamlVentingEmitter):
+                installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
+                installation = self._graph.get_node(installation_id)
+
+                emission_rate = consumer_dto.get_emission_rate(
+                    variables_map=variables_map, regularity=installation.regularity
+                )
+
+                emission_result = {
+                    consumer_dto.emission.name: EmissionResult(
+                        name=consumer_dto.name,
+                        timesteps=variables_map.time_vector,
+                        rate=emission_rate,
+                    )
+                }
+                emission_results[consumer_dto.id] = emission_result
         return emission_results

@@ -253,3 +253,8 @@ def simplified_variable_speed_compressor_train_known_stages(
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
     )
+
+
+@pytest.fixture
+def methane_values():
+    return [0.005, 1.5, 3, 4]

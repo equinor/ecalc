@@ -21,6 +21,7 @@ from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
+    RateType,
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
@@ -43,13 +44,15 @@ from libecalc.dto.models.pump import PumpModel
 from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
-    EmissionNameStr,
     ExpressionType,
     convert_expression,
     validate_temporal_model,
 )
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmitter,
+)
 
 
 def check_model_energy_usage_type(model_data: Dict[datetime, ConsumerFunction], energy_type: EnergyUsageType):
@@ -139,26 +142,6 @@ class FuelConsumer(BaseConsumer):
 Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]
 
 
-class EmitterModel(EcalcBaseModel):
-    name: ComponentNameStr = ""  # This is not mandatory yet.
-    user_defined_category: str = ""  # This is not mandatory yet.
-    emission_rate: Expression
-
-    regularity: Dict[datetime, Expression]
-
-    _validate_emitter_model_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
-
-    _default_emission_rate = validator("emission_rate", allow_reuse=True, pre=True)(convert_expression)
-
-
-class VentingEmitter(BaseEquipment):
-    component_type = ComponentType.VENTING_EMITTER
-    emission_name: EmissionNameStr
-    emitter_model: Dict[datetime, EmitterModel]
-
-    _validate_emitter_temporal_model = validator("emitter_model", allow_reuse=True)(validate_temporal_model)
-
-
 class CompressorOperationalSettings(EcalcBaseModel):
     rate: Expression
     inlet_pressure: Expression
@@ -208,6 +191,7 @@ class TrainComponent(BaseConsumer):
 class ExpressionTimeSeries(EcalcBaseModel):
     value: ExpressionType
     unit: Unit
+    type: Optional[RateType]
 
 
 class ExpressionStreamConditions(EcalcBaseModel):
@@ -343,7 +327,7 @@ class Installation(BaseComponent):
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
     hydrocarbon_export: Dict[datetime, Expression]
     fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
-    venting_emitters: List[VentingEmitter] = Field(default_factory=list)
+    venting_emitters: List[YamlVentingEmitter] = Field(default_factory=list)
 
     @property
     def id(self) -> str:
