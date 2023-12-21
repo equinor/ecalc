@@ -980,7 +980,6 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
 def methane_venting(regularity) -> YamlVentingEmitter:
     return YamlVentingEmitter(
         name="methane_venting",
-        component_type=ComponentType.VENTING_EMITTER,
         category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
         emission=YamlVentingEmission(
             name="CH4", rate=YamlRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY)

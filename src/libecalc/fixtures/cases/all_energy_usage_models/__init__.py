@@ -50,7 +50,6 @@ from .conftest import (
     turbine_dto,
     user_defined_single_speed_compressor_chart_dto,
     variable_speed_pump,
-    variables_map,
 )
 
 """

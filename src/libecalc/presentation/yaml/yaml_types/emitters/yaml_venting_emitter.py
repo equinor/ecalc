@@ -40,7 +40,9 @@ class YamlVentingEmitter(YamlBase):
     class Config:
         title = "VentingEmitter"
 
-    component_type = ComponentType.VENTING_EMITTER
+    @property
+    def component_type(self):
+        return ComponentType.VENTING_EMITTER
 
     name: str = Field(
         ...,

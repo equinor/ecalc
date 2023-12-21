@@ -6,26 +6,6 @@
         "schema": {
             "additionalProperties": false,
             "definitions": {
-                "ComponentType": {
-                    "description": "An enumeration.",
-                    "enum": [
-                        "ASSET",
-                        "INSTALLATION",
-                        "GENERATOR_SET",
-                        "CONSUMER_SYSTEM@v2",
-                        "COMPRESSOR_SYSTEM",
-                        "PUMP_SYSTEM",
-                        "COMPRESSOR",
-                        "COMPRESSOR@v2",
-                        "PUMP",
-                        "PUMP@v2",
-                        "GENERIC",
-                        "VENTING_EMITTER",
-                        "TRAIN@V2"
-                    ],
-                    "title": "ComponentType",
-                    "type": "string"
-                },
                 "ConsumerUserDefinedCategoryType": {
                     "description": "Consumer category",
                     "enum": [
@@ -1542,14 +1522,6 @@
                             ],
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
-                        },
-                        "COMPONENT_TYPE": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/ComponentType"
-                                }
-                            ],
-                            "default": "VENTING_EMITTER"
                         },
                         "EMISSION": {
                             "allOf": [
