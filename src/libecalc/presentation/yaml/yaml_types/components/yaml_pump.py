@@ -4,17 +4,22 @@ from typing import Dict, List, Literal, Optional
 from pydantic import Field
 
 from libecalc import dto
+from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.models.pump import create_pump_model
-from libecalc.dto import PumpModel
+from libecalc.domain.stream_conditions import Density, Pressure, Rate, StreamConditions
+from libecalc.dto import PumpModel, VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.dto.components import PumpComponent
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import resolve_reference
 from libecalc.presentation.yaml.yaml_entities import References
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
+    YamlConsumerStreamConditions,
+)
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
@@ -38,6 +43,9 @@ class YamlPump(YamlConsumerBase):
 
     energy_usage_model: YamlTemporalModel[str]
 
+    # TODO: Same for compressor and pump and ...?
+    stream_conditions: YamlConsumerStreamConditions  # = Dict[StreamID, YamlStreamConditions]
+
     def to_dto(
         self,
         consumes: ConsumptionType,
@@ -47,6 +55,21 @@ class YamlPump(YamlConsumerBase):
         category: str,
         fuel: Optional[Dict[datetime, dto.types.FuelType]],
     ) -> PumpComponent:
+        """
+        We are deprecating to_dto, and aim to remove the DTO layer and go directly to a user and dev friendly
+        domain layer (API)
+
+        Args:
+            consumes:
+            regularity:
+            target_period:
+            references:
+            category:
+            fuel:
+
+        Returns:
+
+        """
         return PumpComponent(
             consumes=consumes,
             regularity=regularity,
@@ -90,6 +113,60 @@ class YamlPump(YamlConsumerBase):
 
         return pump_model_for_timestep
 
+    def stream_conditions_for_timestep(self, timestep: datetime, variables_map: VariablesMap) -> List[StreamConditions]:
+        """
+        Get stream conditions for a given timestep, inlet and outlet, index 0 and 1 respectively
+        Args:
+            timestep:
+            variables_map:
+
+        Returns:
+
+        """
+
+        stream_conditions = []
+        for stream_type in ["inlet", "outlet"]:
+            stream_condition = self.stream_conditions.get(stream_type)
+            stream_conditions.append(
+                StreamConditions(
+                    id=generate_id(self.name, stream_type),
+                    name=stream_type,
+                    timestep=timestep,
+                    rate=Rate(
+                        value=list(
+                            Expression.setup_from_expression(stream_condition.rate.value).evaluate(
+                                variables=variables_map.variables, fill_length=1
+                            )
+                        )[0],
+                        unit=stream_condition.rate.unit,
+                    )
+                    if stream_condition.rate is not None
+                    else None,
+                    pressure=Pressure(
+                        value=list(
+                            Expression.setup_from_expression(stream_condition.pressure.value).evaluate(
+                                variables=variables_map.variables, fill_length=1
+                            )
+                        )[0],
+                        unit=stream_condition.pressure.unit,
+                    )
+                    if stream_condition.pressure is not None
+                    else None,
+                    density=Density(
+                        value=list(
+                            Expression.setup_from_expression(stream_condition.fluid_density.value).evaluate(
+                                variables=variables_map.variables, fill_length=1
+                            )
+                        )[0],
+                        unit=stream_condition.fluid_density.unit,
+                    )
+                    if stream_condition.fluid_density is not None
+                    else None,
+                )
+            )
+
+            return stream_conditions
+
     def to_domain_model(
         self,
         references: References,  # need to resolve, but that should be handled "before"? or here? send in relevant reference?
@@ -123,7 +200,8 @@ class YamlPump(YamlConsumerBase):
         For every valid timestep, we extrapolate and create a full domain model representation of the pump
 
         TODO: Should "global time vector" and "global references" be "globally accessible", e.g. through a "service"?
-        such as services provided in constructor to access these services to get it?
+        such as services provided in constructor to access these services to get it? both of these are yaml specific, as the
+        other layers will give these directly, or not be relevant.
 
         Args:
             timesteps:
