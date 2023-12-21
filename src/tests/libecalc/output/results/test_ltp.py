@@ -5,6 +5,8 @@ import pandas as pd
 import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Frequency
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType
 from libecalc.core.ecalc import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
@@ -30,6 +32,9 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
     installation_direct_consumer_dto,
     installation_offshore_wind_dto,
 )
+from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
+    venting_emitter_yaml_factory,
+)
 from libecalc.presentation.exporter.configs.configs import LTPConfig
 
 time_vector_installation = [
@@ -43,9 +48,9 @@ time_vector_installation = [
 time_vector_yearly = pd.date_range(datetime(2027, 1, 1), datetime(2029, 1, 1), freq="YS").to_pydatetime().tolist()
 
 
-def get_consumption(installation: Union[dto.Installation, dto.Asset], variables: dto.VariablesMap):
-    installation = installation
-    graph = installation.get_graph()
+def get_consumption(model: Union[dto.Installation, dto.Asset], variables: dto.VariablesMap):
+    model = model
+    graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
 
     consumer_results = energy_calculator.evaluate_energy_usage(variables)
@@ -86,7 +91,7 @@ def test_emissions_diesel_fixed_and_mobile():
 
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
-    ltp_result = get_consumption(installation=asset, variables=variables)
+    ltp_result = get_consumption(model=asset, variables=variables)
 
     co2_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
     co2_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=1)
@@ -120,7 +125,7 @@ def test_temporal_models_detailed():
     """
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
-    ltp_result = get_consumption(installation=installation_direct_consumer_dto(), variables=variables)
+    ltp_result = get_consumption(model=installation_direct_consumer_dto(), variables=variables)
 
     turbine_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     engine_diesel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
@@ -167,7 +172,7 @@ def test_temporal_models_offshore_wind():
     """
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
-    ltp_result = get_consumption(installation=installation_offshore_wind_dto(), variables=variables)
+    ltp_result = get_consumption(model=installation_offshore_wind_dto(), variables=variables)
 
     offshore_wind_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
 
@@ -183,7 +188,7 @@ def test_temporal_models_compressor():
     """
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
 
-    ltp_result = get_consumption(installation=installation_compressor_dto(), variables=variables)
+    ltp_result = get_consumption(model=installation_compressor_dto(), variables=variables)
 
     gas_turbine_compressor_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
 
@@ -194,7 +199,7 @@ def test_temporal_models_compressor():
 def test_boiler_heater_categories():
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
 
-    ltp_result = get_consumption(installation=installation_boiler_heater_dto(), variables=variables)
+    ltp_result = get_consumption(model=installation_boiler_heater_dto(), variables=variables)
 
     boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
@@ -206,3 +211,70 @@ def test_boiler_heater_categories():
     assert heater_fuel_consumption == expected_heater_fuel_consumption()
     assert co2_from_boiler == expected_co2_from_boiler()
     assert co2_from_heater == expected_co2_from_heater()
+
+
+def test_venting_emitters():
+    """Test venting emitters for LTP export.
+
+    Verify correct behaviour if input rate is given in different units and rate types (sd and cd).
+    """
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    regularity = 0.2
+    emission_rate = 10
+
+    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+
+    installation_sd_kg_per_day = venting_emitter_yaml_factory(
+        emission_rate=emission_rate,
+        regularity=regularity,
+        unit=Unit.KILO_PER_DAY,
+        emission_name="ch4",
+        rate_type=RateType.STREAM_DAY,
+    )
+
+    installation_sd_tons_per_day = venting_emitter_yaml_factory(
+        emission_rate=emission_rate,
+        regularity=regularity,
+        rate_type=RateType.STREAM_DAY,
+        unit=Unit.TONS_PER_DAY,
+        emission_name="ch4",
+    )
+
+    installation_cd_kg_per_day = venting_emitter_yaml_factory(
+        emission_rate=emission_rate,
+        regularity=regularity,
+        rate_type=RateType.CALENDAR_DAY,
+        unit=Unit.KILO_PER_DAY,
+        emission_name="ch4",
+    )
+
+    ltp_result_input_sd_kg_per_day = get_consumption(model=installation_sd_kg_per_day, variables=variables)
+
+    ltp_result_input_sd_tons_per_day = get_consumption(model=installation_sd_tons_per_day, variables=variables)
+
+    ltp_result_input_cd_kg_per_day = get_consumption(model=installation_cd_kg_per_day, variables=variables)
+
+    emission_input_sd_kg_per_day = get_sum_ltp_column(
+        ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column_nr=0
+    )
+    emission_input_sd_tons_per_day = get_sum_ltp_column(
+        ltp_result_input_sd_tons_per_day, installation_nr=0, ltp_column_nr=0
+    )
+    emission_input_cd_kg_per_day = get_sum_ltp_column(
+        ltp_result_input_cd_kg_per_day, installation_nr=0, ltp_column_nr=0
+    )
+
+    # Verify correct emissions when input is kg per day. Output should be in tons per day - hence dividing by 1000
+    assert emission_input_sd_kg_per_day == (emission_rate / 1000) * 365 * regularity
+
+    # Verify correct emissions when input is tons per day.
+    assert emission_input_sd_tons_per_day == emission_rate * 365 * regularity
+
+    # Verify that input calendar day vs input stream day is linked correctly through regularity
+    assert emission_input_cd_kg_per_day == emission_input_sd_kg_per_day / regularity
+
+    # Verify that results is independent of regularity, when input rate is in calendar days
+    assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365

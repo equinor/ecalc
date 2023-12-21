@@ -3,10 +3,11 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType
 from libecalc.dto.components import (
     ComponentType,
     ConsumerUserDefinedCategoryType,
-    EmitterModel,
     InstallationUserDefinedCategoryType,
 )
 from libecalc.dto.types import EnergyUsageType, FuelTypeUserDefinedCategoryType
@@ -16,87 +17,82 @@ try:
     from pydantic.v1 import ValidationError
 except ImportError:
     from pydantic import ValidationError
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmission,
+    YamlVentingEmitter,
+)
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
 
 
 class TestCategories:
     def test_venting_emitter_categories(self):
-        emitter_model = EmitterModel(
-            regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
-            emission_rate=Expression.setup_from_expression(4),
+        emission = YamlVentingEmission(
+            name="CH4", rate=YamlRate(value=4, type=RateType.STREAM_DAY, unit=Unit.KILO_PER_DAY)
         )
 
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.VentingEmitter(
+            YamlVentingEmitter(
                 name="test",
-                regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
-                emission_name="CH4",
-                emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): "VENTING-EMISSIONS"},
+                emission=emission,
+                category="VENTING-EMISSIONS",
             )
+
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: VENTING-EMISSIONS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY: VENTING-EMISSIONS is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.VentingEmitter(
+            YamlVentingEmitter(
                 name="test",
-                regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
-                emission_name="CH4",
-                emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): "fuel-gas"},
+                emission=emission,
+                category="fuel-gas",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: fuel-gas is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY: fuel-gas is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that empty raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.VentingEmitter(
+            YamlVentingEmitter(
                 name="test",
-                regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
-                emission_name="CH4",
-                emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): ""},
+                emission=emission,
+                category="",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY:  is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY:  is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that underscore raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.VentingEmitter(
+            YamlVentingEmitter(
                 name="test",
-                regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
-                emission_name="CH4",
-                emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): "FUEL_GAS"},
+                emission=emission,
+                category="FUEL_GAS",
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
             exception.errors()[0]["msg"]
-            == "CATEGORY: FUEL_GAS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            == f"CATEGORY: FUEL_GAS is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
         )
 
         # Check that correct category is ok
         assert (
-            dto.components.VentingEmitter(
+            YamlVentingEmitter(
                 name="test",
-                regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
-                emission_name="CH4",
-                emitter_model={datetime(2000, 1, 1): emitter_model},
-                user_defined_category={datetime(2000, 1, 1): ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE},
-            ).user_defined_category[datetime(2000, 1, 1)]
+                emission=emission,
+                category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+            ).user_defined_category
             == ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
         )
 

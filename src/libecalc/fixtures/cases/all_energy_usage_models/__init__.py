@@ -42,6 +42,7 @@ from .conftest import (
     compressor_sampled_1d,
     compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
     compressor_with_turbine,
+    methane_values,
     regularity,
     simplified_variable_speed_compressor_train_known_stages,
     simplified_variable_speed_compressor_train_with_gerg_fluid2,

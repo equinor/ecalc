@@ -5,6 +5,7 @@ import pytest
 from libecalc import dto
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType
 from libecalc.dto import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -212,6 +213,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=1000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -230,6 +232,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=6000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -248,6 +251,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=6000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -268,6 +272,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value="$var.compressor1",
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -286,6 +291,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -304,6 +310,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -324,6 +331,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=1000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -342,6 +350,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -360,6 +369,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -444,6 +454,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=4000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -466,6 +477,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=5000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -488,6 +500,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=6000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -512,6 +525,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=2000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -534,6 +548,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=2500000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,
@@ -556,6 +571,7 @@ pump_system_v2 = dto.components.ConsumerSystem(
                     rate=ExpressionTimeSeries(
                         value=3000000,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
                     ),
                     pressure=ExpressionTimeSeries(
                         value=50,

@@ -47,6 +47,15 @@
                     "title": "InstallationUserDefinedCategoryType",
                     "type": "string"
                 },
+                "RateType": {
+                    "description": "An enumeration.",
+                    "enum": [
+                        "STREAM_DAY",
+                        "CALENDAR_DAY"
+                    ],
+                    "title": "RateType",
+                    "type": "string"
+                },
                 "Unit": {
                     "description": "A very simple unit registry to convert between common eCalc units.",
                     "enum": [
@@ -523,31 +532,6 @@
                         "FACTOR"
                     ],
                     "title": "Emission",
-                    "type": "object"
-                },
-                "YamlEmitterModel": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "EMISSION_RATE": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "integer"
-                                }
-                            ],
-                            "description": "Emission rate expression [kg/day]",
-                            "title": "EMISSION_RATE"
-                        }
-                    },
-                    "required": [
-                        "EMISSION_RATE"
-                    ],
-                    "title": "YamlEmitterModel",
                     "type": "object"
                 },
                 "YamlFacilityAdjustment": {
@@ -1235,6 +1219,14 @@
                 "YamlRate": {
                     "additionalProperties": false,
                     "properties": {
+                        "TYPE": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/RateType"
+                                }
+                            ],
+                            "default": "STREAM_DAY"
+                        },
                         "UNIT": {
                             "allOf": [
                                 {
@@ -1494,57 +1486,64 @@
                     "title": "YamlTrain[YamlCompressor]",
                     "type": "object"
                 },
+                "YamlVentingEmission": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "NAME": {
+                            "description": "Name of emission",
+                            "title": "NAME",
+                            "type": "string"
+                        },
+                        "RATE": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlRate"
+                                }
+                            ],
+                            "description": "The emission rate",
+                            "title": "RATE"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "RATE"
+                    ],
+                    "title": "YamlVentingEmission",
+                    "type": "object"
+                },
                 "YamlVentingEmitter": {
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
-                            "anyOf": [
+                            "allOf": [
                                 {
                                     "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
-                                    },
-                                    "type": "object"
                                 }
                             ],
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
                         },
-                        "EMISSION_NAME": {
-                            "description": "Name of emission",
-                            "title": "EMISSION_NAME",
-                            "type": "string"
-                        },
-                        "EMITTER_MODEL": {
-                            "anyOf": [
+                        "EMISSION": {
+                            "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlEmitterModel"
-                                },
-                                {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/YamlEmitterModel"
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/definitions/YamlVentingEmission"
                                 }
                             ],
-                            "description": "The emitter model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EMITTER_MODEL",
-                            "title": "EMITTER_MODEL"
+                            "description": "The emission",
+                            "title": "EMISSION"
                         },
                         "NAME": {
-                            "description": "Name of the emitter.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "description": "Name of venting emitter",
                             "title": "NAME",
                             "type": "string"
                         }
                     },
                     "required": [
                         "NAME",
-                        "CATEGORY",
-                        "EMISSION_NAME",
-                        "EMITTER_MODEL"
+                        "EMISSION",
+                        "CATEGORY"
                     ],
-                    "title": "YamlVentingEmitter",
+                    "title": "VentingEmitter",
                     "type": "object"
                 }
             },

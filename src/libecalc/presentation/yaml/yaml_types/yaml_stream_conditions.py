@@ -4,8 +4,10 @@ try:
     from pydantic.v1 import Field
 except ImportError:
     from pydantic import Field
+from pydantic.class_validators import validator
 
 from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 
@@ -20,6 +22,11 @@ class YamlRate(YamlTimeSeries):
         title = "Rate"
 
     unit: Unit = Unit.STANDARD_CUBIC_METER_PER_DAY
+    type: RateType = RateType.STREAM_DAY
+
+    @validator("type", pre=True)
+    def rate_type_validator(cls, value):
+        return RateType.STREAM_DAY if value is None else value
 
 
 class YamlPressure(YamlTimeSeries):

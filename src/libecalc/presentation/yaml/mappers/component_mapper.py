@@ -27,6 +27,9 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmitter,
+)
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -232,78 +235,12 @@ class GeneratorSetMapper:
             raise DtoValidationError(data=data, validation_error=e) from e
 
 
-class EmitterModelMapper:
-    """EmitterModel used by VentingEmitters."""
-
-    def __init__(self, references: References, target_period: Period):
-        self._target_period = target_period
-        self.__references = references
-
-    @staticmethod
-    def create_model(model: Dict, regularity: Dict[datetime, Expression]):
-        name = model.get(EcalcYamlKeywords.name, "")
-        user_defined_category = model.get(EcalcYamlKeywords.user_defined_tag, "")
-        emission_rate = model.get(EcalcYamlKeywords.installation_venting_emitter_emission_rate)
-
-        try:
-            return dto.EmitterModel(
-                name=name,
-                user_defined_category=user_defined_category,
-                emission_rate=emission_rate,
-                regularity=regularity,
-            )
-        except ValidationError as e:
-            raise DtoValidationError(data=model, validation_error=e) from e
-
-    def from_yaml_to_dto(
-        self, data: Optional[Dict], regularity: Dict[datetime, Expression]
-    ) -> Dict[datetime, dto.EmitterModel]:
-        time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
-        return {
-            start_date: EmitterModelMapper.create_model(model, regularity=regularity)
-            for start_date, model in time_adjusted_model.items()
-        }
-
-
-class VentingEmittersMapper:
-    """Mapping VentingEmitters and the corresponding EmitterModel."""
-
-    def __init__(self, references: References, target_period: Period):
-        self.__references = references
-        self._target_period = target_period
-        self.__emitter_model_mapper = EmitterModelMapper(references=references, target_period=target_period)
-
-    def from_yaml_to_dto(
-        self,
-        data: Dict[str, Dict],
-        regularity: Dict[datetime, Expression],
-    ) -> dto.VentingEmitter:
-        emitter_model = self.__emitter_model_mapper.from_yaml_to_dto(
-            data.get(EcalcYamlKeywords.installation_venting_emitter_model),
-            regularity=regularity,
-        )
-        try:
-            venting_emitter_name = data.get(EcalcYamlKeywords.name)
-            return dto.VentingEmitter(
-                name=venting_emitter_name,
-                user_defined_category=define_time_model_for_period(
-                    data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
-                ),
-                emission_name=data.get(EcalcYamlKeywords.installation_venting_emitter_emission_name),
-                emitter_model=emitter_model,
-                regularity=regularity,
-            )
-        except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e) from e
-
-
 class InstallationMapper:
     def __init__(self, references: References, target_period: Period):
         self.__references = references
         self._target_period = target_period
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
-        self.__venting_emitters_mapper = VentingEmittersMapper(references=references, target_period=target_period)
 
     def from_yaml_to_dto(self, data: Dict) -> dto.Installation:
         fuel_data = data.get(EcalcYamlKeywords.fuel)
@@ -330,13 +267,13 @@ class InstallationMapper:
             )
             for fuel_consumer in data.get(EcalcYamlKeywords.fuel_consumers, [])
         ]
-        venting_emitters = [
-            self.__venting_emitters_mapper.from_yaml_to_dto(
-                venting_emitters,
-                regularity=regularity,
-            )
-            for venting_emitters in data.get(EcalcYamlKeywords.installation_venting_emitters, [])
-        ]
+
+        venting_emitters = []
+        for venting_emitter in data.get(EcalcYamlKeywords.installation_venting_emitters, []):
+            try:
+                venting_emitters.append(YamlVentingEmitter(**venting_emitter))
+            except ValidationError as e:
+                raise DtoValidationError(data=data, validation_error=e) from e
 
         hydrocarbon_export = define_time_model_for_period(
             data.get(
