@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Union
 
-import pandas as pd
 import pytest
 from libecalc import dto
 from libecalc.common.time_utils import Frequency
@@ -32,6 +31,9 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
     installation_direct_consumer_dto,
     installation_offshore_wind_dto,
 )
+from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
+    ltp_oil_loaded_yaml_factory,
+)
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
@@ -45,7 +47,13 @@ time_vector_installation = [
     datetime(2029, 1, 1),
 ]
 
-time_vector_yearly = pd.date_range(datetime(2027, 1, 1), datetime(2029, 1, 1), freq="YS").to_pydatetime().tolist()
+time_vector_one_year = [
+    datetime(2027, 1, 1),
+    datetime(2028, 1, 1),
+]
+
+variables_map_installation = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+variables_map_one_year = dto.VariablesMap(time_vector=time_vector_one_year, variables={})
 
 
 def get_consumption(model: Union[dto.Installation, dto.Asset], variables: dto.VariablesMap):
@@ -64,7 +72,7 @@ def get_consumption(model: Union[dto.Installation, dto.Asset], variables: dto.Va
     )
 
     ltp_filter = LTPConfig.filter(frequency=Frequency.YEAR)
-    ltp_result = ltp_filter.filter(graph_result, time_vector_yearly)
+    ltp_result = ltp_filter.filter(graph_result, variables.time_vector)
 
     return ltp_result
 
@@ -186,9 +194,8 @@ def test_temporal_models_compressor():
     Detailed temporal models (variations within one year) for:
     - Fuel consumer user defined category
     """
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
 
-    ltp_result = get_consumption(model=installation_compressor_dto(), variables=variables)
+    ltp_result = get_consumption(model=installation_compressor_dto(), variables=variables_map_installation)
 
     gas_turbine_compressor_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
 
@@ -197,9 +204,7 @@ def test_temporal_models_compressor():
 
 
 def test_boiler_heater_categories():
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
-
-    ltp_result = get_consumption(model=installation_boiler_heater_dto(), variables=variables)
+    ltp_result = get_consumption(model=installation_boiler_heater_dto(), variables=variables_map_installation)
 
     boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
@@ -218,14 +223,9 @@ def test_venting_emitters():
 
     Verify correct behaviour if input rate is given in different units and rate types (sd and cd).
     """
-    time_vector = [
-        datetime(2027, 1, 1),
-        datetime(2028, 1, 1),
-    ]
+
     regularity = 0.2
     emission_rate = 10
-
-    variables = dto.VariablesMap(time_vector=time_vector, variables={})
 
     installation_sd_kg_per_day = venting_emitter_yaml_factory(
         emission_rate=emission_rate,
@@ -251,11 +251,13 @@ def test_venting_emitters():
         emission_name="ch4",
     )
 
-    ltp_result_input_sd_kg_per_day = get_consumption(model=installation_sd_kg_per_day, variables=variables)
+    ltp_result_input_sd_kg_per_day = get_consumption(model=installation_sd_kg_per_day, variables=variables_map_one_year)
 
-    ltp_result_input_sd_tons_per_day = get_consumption(model=installation_sd_tons_per_day, variables=variables)
+    ltp_result_input_sd_tons_per_day = get_consumption(
+        model=installation_sd_tons_per_day, variables=variables_map_one_year
+    )
 
-    ltp_result_input_cd_kg_per_day = get_consumption(model=installation_cd_kg_per_day, variables=variables)
+    ltp_result_input_cd_kg_per_day = get_consumption(model=installation_cd_kg_per_day, variables=variables_map_one_year)
 
     emission_input_sd_kg_per_day = get_sum_ltp_column(
         ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column_nr=0
@@ -278,3 +280,55 @@ def test_venting_emitters():
 
     # Verify that results is independent of regularity, when input rate is in calendar days
     assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365
+
+
+def test_total_oil_loaded():
+    """Test total oil loaded/stored for LTP export.
+
+    Verify correct volume when model includes emissions related to both storage and loading of oil,
+    and when model includes only loading.
+    """
+
+    regularity = 0.6
+    emission_factor = 2
+    fuel_rate = 100
+
+    # Create model with both loading and storage
+    asset_loading_storage = ltp_oil_loaded_yaml_factory(
+        emission_factor=emission_factor,
+        rate_types=[RateType.STREAM_DAY, RateType.STREAM_DAY],
+        fuel_rates=[fuel_rate, fuel_rate],
+        emission_name="ch4",
+        regularity=regularity,
+        categories=["LOADING", "STORAGE"],
+        consumer_names=["loading", "storage"],
+    )
+
+    # Create model with only loading, not storage
+    asset_loading_only = ltp_oil_loaded_yaml_factory(
+        emission_factor=emission_factor,
+        rate_types=[RateType.STREAM_DAY],
+        fuel_rates=[fuel_rate],
+        emission_name="ch4",
+        regularity=regularity,
+        categories=["LOADING"],
+        consumer_names=["loading"],
+    )
+
+    ltp_result_loading_storage = get_consumption(model=asset_loading_storage, variables=variables_map_one_year)
+    ltp_result_loading_only = get_consumption(model=asset_loading_only, variables=variables_map_one_year)
+
+    loaded_and_stored_oil_loading_and_storage = get_sum_ltp_column(
+        ltp_result_loading_storage, installation_nr=0, ltp_column_nr=2
+    )
+    loaded_and_stored_oil_loading_only = get_sum_ltp_column(ltp_result_loading_only, installation_nr=0, ltp_column_nr=1)
+
+    # Verify output for total oil loaded/stored, if only loading is specified.
+    assert loaded_and_stored_oil_loading_only is not None
+
+    # Verify correct volume for oil loaded/stored
+    assert loaded_and_stored_oil_loading_and_storage == fuel_rate * 365 * regularity
+
+    # Verify that total oil loaded/stored is the same if only loading is specified,
+    # compared to a model with both loading and storage.
+    assert loaded_and_stored_oil_loading_and_storage == loaded_and_stored_oil_loading_only
