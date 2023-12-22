@@ -1,5 +1,6 @@
 import itertools
 import math
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from typing import DefaultDict, Iterable, List, Union
@@ -19,7 +20,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
@@ -59,6 +59,16 @@ def get_operational_settings_used_from_consumer_result(
 
 ConsumerOrSystemFunctionResult = Union[ConsumerSystemConsumerFunctionResult, ConsumerFunctionResult]
 ConsumerResult = Union[ConsumerSystemResult, PumpResult, CompressorResult]
+
+
+class BaseConsumer(ABC):
+    @abstractmethod
+    def evaluate(
+        self,
+        variables_map: VariablesMap,
+        temporal_operational_settings,
+    ) -> EcalcModelResult:
+        ...
 
 
 class Consumer(BaseConsumer):

@@ -29,6 +29,7 @@ class EcalcResultBaseModel(EcalcBaseModel):
                         f"Concatenating two temporal compressor model results where attribute {attribute} changes"
                         f" over time. The result is ambiguous and leads to loss of information."
                     )
+                    self.__setattr__(attribute, None)
             elif isinstance(values, EcalcResultBaseModel):
                 # In case of nested models such as compressor with turbine
                 values.extend(other_values)

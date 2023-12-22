@@ -66,7 +66,7 @@ class CompressorModel(BaseModel):
         self,
         inlet_streams: List[StreamConditions],
         outlet_stream: StreamConditions,
-    ):
+    ) -> CompressorTrainResult:
         raise NotImplementedError
 
 
