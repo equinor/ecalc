@@ -7,7 +7,11 @@ try:
     from pydantic.v1 import Field
 except ImportError:
     from pydantic import Field
-from pydantic.class_validators import validator
+
+try:
+    from pydantic.v1.class_validators import validator
+except ImportError:
+    from pydantic.class_validators import validator
 
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel

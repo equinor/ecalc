@@ -4,7 +4,11 @@ try:
     from pydantic.v1 import Field
 except ImportError:
     from pydantic import Field
-from pydantic.class_validators import validator
+
+try:
+    from pydantic.v1.class_validators import validator
+except ImportError:
+    from pydantic.class_validators import validator
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
