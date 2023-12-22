@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 try:
     from pydantic.v1 import BaseModel, confloat, root_validator
@@ -32,7 +32,7 @@ class CompressorTrainStage(BaseModel):
     compressor_chart: Union[SingleSpeedCompressorChart, VariableSpeedCompressorChart]
     inlet_temperature_kelvin: float
     remove_liquid_after_cooling: bool
-    pressure_drop_ahead_of_stage: Optional[float] = None
+    pressure_drop_ahead_of_stage: Optional[List[float]] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -41,6 +41,7 @@ class CompressorTrainStage(BaseModel):
         self,
         inlet_stream_stage: FluidStream,
         mass_rate_kg_per_hour: float,
+        time_step: int,
         speed: Optional[float] = None,
         asv_rate_fraction: Optional[float] = 0.0,
         asv_additional_mass_rate: Optional[float] = 0.0,
@@ -89,7 +90,7 @@ class CompressorTrainStage(BaseModel):
                 raise IllegalStateException(msg)
 
         if self.pressure_drop_ahead_of_stage:
-            inlet_pressure_stage = inlet_stream_stage.pressure_bara - self.pressure_drop_ahead_of_stage
+            inlet_pressure_stage = inlet_stream_stage.pressure_bara - self.pressure_drop_ahead_of_stage[time_step]
         else:
             inlet_pressure_stage = inlet_stream_stage.pressure_bara
 

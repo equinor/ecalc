@@ -46,7 +46,7 @@ def simplified_compressor_train_unknown_stages_dto(
         stage=dto.CompressorStage(
             compressor_chart=variable_speed_compressor_chart_dto,
             inlet_temperature_kelvin=303.15,
-            pressure_drop_before_stage=0,
+            pressure_drop_before_stage=[0],
             remove_liquid_after_cooling=True,
         ),
         energy_usage_adjustment_constant=0,
@@ -65,7 +65,7 @@ def simplified_compressor_train_unknown_stages_generic_compressor_from_input_dto
         stage=dto.CompressorStage(
             compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
             inlet_temperature_kelvin=303.15,
-            pressure_drop_before_stage=0,
+            pressure_drop_before_stage=[0],
             remove_liquid_after_cooling=True,
         ),
         energy_usage_adjustment_constant=0,
@@ -86,7 +86,7 @@ def simplified_compressor_train_known_stages_dto(
                 inlet_temperature_kelvin=303.15,
                 compressor_chart=variable_speed_compressor_chart_dto,
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=[0],
                 control_margin=0,
             )
         ],
@@ -109,7 +109,7 @@ def simplified_compressor_train_with_known_stages_dto(medium_fluid_dto) -> dto.C
                     design_polytropic_head_J_per_kg=135478.5333104937,
                 ),
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=[0],
                 control_margin=0,
             ),
             dto.CompressorStage(
@@ -120,7 +120,7 @@ def simplified_compressor_train_with_known_stages_dto(medium_fluid_dto) -> dto.C
                     design_polytropic_head_J_per_kg=116082.08687178302,
                 ),
                 remove_liquid_after_cooling=True,
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=[0],
                 control_margin=0,
             ),
         ],
@@ -331,7 +331,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
                         inlet_temperature_kelvin=303.15,
                         compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
                         remove_liquid_after_cooling=True,
-                        pressure_drop_before_stage=0,
+                        pressure_drop_before_stage=[0],
                         control_margin=0,
                     )
                 ]
@@ -362,14 +362,14 @@ def test_compressor_train_simplified_known_stages_generic_chart(
                         inlet_temperature_kelvin=303.15,
                         compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
                         remove_liquid_after_cooling=True,
-                        pressure_drop_before_stage=0,
+                        pressure_drop_before_stage=[0],
                         control_margin=0,
                     ),
                     dto.CompressorStage(
                         inlet_temperature_kelvin=313.15,
                         compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.75),
                         remove_liquid_after_cooling=True,
-                        pressure_drop_before_stage=0,
+                        pressure_drop_before_stage=[0],
                         control_margin=0,
                     ),
                 ]
@@ -587,7 +587,7 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
                 design_polytropic_head_J_per_kg=design_head,
             ),
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0,
+            pressure_drop_before_stage=[0],
             control_margin=0,
         ),
         dto.CompressorStage(
@@ -598,7 +598,7 @@ def test_evaluate_compressor_simplified_valid_points(simplified_compressor_train
                 design_polytropic_head_J_per_kg=design_head,
             ),
             remove_liquid_after_cooling=True,
-            pressure_drop_before_stage=0,
+            pressure_drop_before_stage=[0],
             control_margin=0,
         ),
     ]
@@ -652,7 +652,7 @@ def test_calculate_compressor_work(medium_fluid):
                     compressor_chart=compressor_chart,
                     inlet_temperature_kelvin=313.15,
                     remove_liquid_after_cooling=True,
-                    pressure_drop_before_stage=0,
+                    pressure_drop_before_stage=[0],
                     control_margin=0,
                 )
             ],
@@ -760,7 +760,7 @@ def test_calculate_compressor_work(medium_fluid):
                     inlet_temperature_kelvin=313.15,
                     compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency),
                     remove_liquid_after_cooling=True,
-                    pressure_drop_before_stage=0,
+                    pressure_drop_before_stage=[0],
                     control_margin=0,
                 )
             ],

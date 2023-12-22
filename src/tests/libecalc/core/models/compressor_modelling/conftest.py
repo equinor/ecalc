@@ -49,7 +49,7 @@ def variable_speed_compressor_train_stage_dto(
 ) -> dto.CompressorStage:
     return dto.CompressorStage(
         compressor_chart=process_simulator_variable_compressor_data.compressor_chart,
-        pressure_drop_before_stage=0.0,
+        pressure_drop_before_stage=[0.0] * 8,
         remove_liquid_after_cooling=False,
         inlet_temperature_kelvin=303.15,
         control_margin=0,
@@ -113,7 +113,7 @@ def single_speed_compressor_train(medium_fluid_dto, single_speed_chart_dto) -> d
         compressor_chart=single_speed_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
+        pressure_drop_before_stage=[0.0] * 5,
         control_margin=0,
     )
     return dto.SingleSpeedCompressorTrain(
@@ -140,7 +140,7 @@ def single_speed_compressor_train_stage(single_speed_chart_dto) -> CompressorTra
         ),
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_ahead_of_stage=0.0,
+        pressure_drop_ahead_of_stage=[0.0],
     )
 
 
@@ -235,7 +235,7 @@ def single_speed_compressor_train_unisim_methane(
             dto.CompressorStage(
                 compressor_chart=chart,
                 inlet_temperature_kelvin=293.15,  # 20 C.
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=[0.0] * 5,
                 remove_liquid_after_cooling=True,
                 control_margin=0,
             )
@@ -259,7 +259,7 @@ def variable_speed_compressor_train_unisim_methane(
             dto.CompressorStage(
                 compressor_chart=variable_speed_compressor_chart_unisim_methane,
                 inlet_temperature_kelvin=293.15,
-                pressure_drop_before_stage=0,
+                pressure_drop_before_stage=[0.0] * 5,
                 remove_liquid_after_cooling=True,
                 control_margin=0,
             )
@@ -306,7 +306,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
+        pressure_drop_before_stage=[0],
         stream_reference=["in_stream_stage_1"],
         interstage_pressure_control=None,
     )
@@ -314,7 +314,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
+        pressure_drop_before_stage=[0],
         interstage_pressure_control=dto.InterstagePressureControl(
             downstream_pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,

@@ -4,6 +4,7 @@ from typing import Optional
 from libecalc import dto
 from libecalc.dto import VariablesMap
 from libecalc.fixtures import DTOCase, YamlCase
+from libecalc.presentation.evaluators.evaluate_models import EvaluateModels
 from libecalc.presentation.yaml.mappers import map_yaml_to_variables
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 from libecalc.presentation.yaml.yaml_entities import Resources, ResourceStream
@@ -27,7 +28,11 @@ def parse_input(
     :return:
     """
     configuration: PyYamlYamlModel = PyYamlYamlModel.read(main_yaml=main_yaml, enable_include=True, base_dir=base_dir)
-    model_dto = map_yaml_to_dto(configuration, resources, name=Path(main_yaml.name).stem)
+    model_dto = map_yaml_to_dto(
+        configuration,
+        resources,
+        name=Path(main_yaml.name).stem,
+    )
 
     variables = map_yaml_to_variables(configuration, resources, result_options=dto.ResultOptions())
 
@@ -46,6 +51,8 @@ class TestParseYaml:
             resources=all_energy_usage_models_yaml.resources,
         )
 
+        model_evaluator = EvaluateModels(installations=model_dto.installations, variables_map=variables)
+        model_evaluator.evaluate_dto_for_expressions()
         assert model_dto.dict() == all_energy_usage_models_dto.ecalc_model.dict()
         assert variables == all_energy_usage_models_dto.variables
 
