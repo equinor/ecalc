@@ -595,7 +595,7 @@ class LTPConfig(ResultConfig):
                     unit=Unit.STANDARD_CUBIC_METER,
                     query=FuelQuery(
                         installation_category="FIXED",
-                        consumer_categories=["STORAGE"],
+                        consumer_categories=["LOADING"],
                     ),
                 ),
                 Applier(

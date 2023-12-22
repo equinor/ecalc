@@ -32,6 +32,9 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
     installation_direct_consumer_dto,
     installation_offshore_wind_dto,
 )
+from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
+    ltp_oil_loaded_yaml_factory,
+)
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
@@ -278,3 +281,60 @@ def test_venting_emitters():
 
     # Verify that results is independent of regularity, when input rate is in calendar days
     assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365
+
+
+def test_total_oil_loaded():
+    """Test total oil loaded/stored for LTP export.
+
+    Verify correct volume when model includes emissions related to both storage and loading of oil,
+    and when model includes only loading.
+    """
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+
+    regularity = 0.6
+    emission_factor = 2
+    fuel_rate = 100
+
+    # Create model with both loading and storage
+    asset_loading_storage = ltp_oil_loaded_yaml_factory(
+        emission_factor=emission_factor,
+        rate_types=[RateType.STREAM_DAY, RateType.STREAM_DAY],
+        fuel_rates=[fuel_rate, fuel_rate],
+        emission_name="ch4",
+        regularity=regularity,
+        categories=["LOADING", "STORAGE"],
+        consumer_names=["loading", "storage"],
+    )
+
+    # Create model with only loading, not storage
+    asset_loading_only = ltp_oil_loaded_yaml_factory(
+        emission_factor=emission_factor,
+        rate_types=[RateType.STREAM_DAY],
+        fuel_rates=[fuel_rate],
+        emission_name="ch4",
+        regularity=regularity,
+        categories=["LOADING"],
+        consumer_names=["loading"],
+    )
+
+    ltp_result_loading_storage = get_consumption(model=asset_loading_storage, variables=variables)
+    ltp_result_loading_only = get_consumption(model=asset_loading_only, variables=variables)
+
+    loaded_and_stored_oil_loading_and_storage = get_sum_ltp_column(
+        ltp_result_loading_storage, installation_nr=0, ltp_column_nr=2
+    )
+    loaded_and_stored_oil_loading_only = get_sum_ltp_column(ltp_result_loading_only, installation_nr=0, ltp_column_nr=1)
+
+    # Verify output for total oil loaded/stored, if only loading is specified.
+    assert loaded_and_stored_oil_loading_only is not None
+
+    # Verify correct volume for oil loaded/stored
+    assert loaded_and_stored_oil_loading_and_storage == fuel_rate * 365 * regularity
+
+    # Verify that total oil loaded/stored is the same if only loading is specified,
+    # compared to a model with both loading and storage.
+    assert loaded_and_stored_oil_loading_and_storage == loaded_and_stored_oil_loading_only
