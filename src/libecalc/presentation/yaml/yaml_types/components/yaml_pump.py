@@ -17,7 +17,7 @@ from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import resolve_reference
 from libecalc.presentation.yaml.yaml_entities import References
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer import (
     YamlConsumerStreamConditions,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (

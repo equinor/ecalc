@@ -12,6 +12,9 @@ from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_entities import References
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer import (
+    YamlConsumerStreamConditions,
+)
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
     YamlSystemComponentConditions,
 )
@@ -23,17 +26,12 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
     YamlCompressor,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
-    YamlStreamConditions,
-)
 
 opt_expr_list = Optional[List[ExpressionType]]
 
 PriorityID = str
-StreamID = str
 ConsumerID = str
 
-YamlConsumerStreamConditions = Dict[StreamID, YamlStreamConditions]
 YamlConsumerStreamConditionsMap = Dict[ConsumerID, YamlConsumerStreamConditions]
 YamlPriorities = Dict[PriorityID, YamlConsumerStreamConditionsMap]
 
