@@ -1,5 +1,62 @@
 # Changelog
 
+## [8.8.0](https://github.com/equinor/ecalc/compare/v8.7.0...v8.8.0) (2023-12-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* include direct emitter results in ltp export ([#305](https://github.com/equinor/ecalc/issues/305))
+
+### Features
+
+* add emitter rate type to venting emitters ([#312](https://github.com/equinor/ecalc/issues/312)) ([d6e16fa](https://github.com/equinor/ecalc/commit/d6e16faa341a8517c82f4295c1fc92014b0a9b92))
+
+
+### Bug Fixes
+
+* correct changelog for venting emitters ([#324](https://github.com/equinor/ecalc/issues/324)) ([eff911e](https://github.com/equinor/ecalc/commit/eff911ea8064fb22d96e31ca3302da792bc5f6b3))
+* correct fallback to pydantic v1 ([#332](https://github.com/equinor/ecalc/issues/332)) ([4f89e48](https://github.com/equinor/ecalc/commit/4f89e48e60de0f5ecd79244021c31a77285a2fc9))
+* include direct emitter results in ltp export ([#305](https://github.com/equinor/ecalc/issues/305)) ([f6b6371](https://github.com/equinor/ecalc/commit/f6b63715ddb1d1794274515edf87bb8dbb422203))
+* remove interpolation method ([#321](https://github.com/equinor/ecalc/issues/321)) ([d125552](https://github.com/equinor/ecalc/commit/d1255527c7b715569fe503db6eae9f008bc0c8f1))
+* support mismatching timesteps in ltp delta profile ([#319](https://github.com/equinor/ecalc/issues/319)) ([32f0289](https://github.com/equinor/ecalc/commit/32f02890f53c0a58aecf988cca41c8ffef25d33f))
+
+
+### Documentation
+
+* remove costs mentioned in docs ([#322](https://github.com/equinor/ecalc/issues/322)) ([ee03965](https://github.com/equinor/ecalc/commit/ee0396544ce07410bfbaa89af23fe1a3337d477c))
+* remove reference to fuel price- and tax in drogon example ([#323](https://github.com/equinor/ecalc/issues/323)) ([963d9ea](https://github.com/equinor/ecalc/commit/963d9ea858c6b39ca6d478def7a367fad1e3f69a))
+* update docs for v8.8 release ([#334](https://github.com/equinor/ecalc/issues/334)) ([153f7c4](https://github.com/equinor/ecalc/commit/153f7c408d1ffb4adbf39a006faa3ee1417b90b0))
+* update PR template with checkboxes for stuff we forget ([09f52bd](https://github.com/equinor/ecalc/commit/09f52bd08cae4bd7ccc4d6e173fb23917acf1bb5))
+
+
+### Miscellaneous Chores
+
+* add maximum_rate to CompressorModelResult ([#285](https://github.com/equinor/ecalc/issues/285)) ([2cb09e2](https://github.com/equinor/ecalc/commit/2cb09e20bec5c3031dfbff6042c93c749e97be23))
+* change ltp-filter for oil loaded/stored ([#331](https://github.com/equinor/ecalc/issues/331)) ([3cfe808](https://github.com/equinor/ecalc/commit/3cfe8084979176ebdff8eeace12769fd9bb2b95b))
+* define yaml classes for remaining elements in MODELS ([#307](https://github.com/equinor/ecalc/issues/307)) ([fedb807](https://github.com/equinor/ecalc/commit/fedb807c83a33190fe90862948a39fc8e3451ab0))
+* **ecalc-neqsim-wrapper:** update to neqsim 2.5.9 ([#302](https://github.com/equinor/ecalc/issues/302)) ([28885f2](https://github.com/equinor/ecalc/commit/28885f292c745d1afaf1afb0014e6ad8244cbfd3))
+* support pydantic v2 ([#326](https://github.com/equinor/ecalc/issues/326)) ([b1b4acf](https://github.com/equinor/ecalc/commit/b1b4acf1fd41b7a2c6c888af5ea46d89ddff9b34))
+* update dependencies ([#315](https://github.com/equinor/ecalc/issues/315)) ([49a42de](https://github.com/equinor/ecalc/commit/49a42deac51fe25ca8ed8188ef01285ca4069c67))
+* update dependencies ([#333](https://github.com/equinor/ecalc/issues/333)) ([0b027ef](https://github.com/equinor/ecalc/commit/0b027ef27e2e0f17f0da970ec3ed2d32ca3cc7b6))
+* update pydantic ([#327](https://github.com/equinor/ecalc/issues/327)) ([4a32519](https://github.com/equinor/ecalc/commit/4a325192ab3a81d0bfea4bb5d76db2346200b1c4))
+* update snapshot ([2cb09e2](https://github.com/equinor/ecalc/commit/2cb09e20bec5c3031dfbff6042c93c749e97be23))
+
+
+### Code Refactoring
+
+* move simple result to presentation ([#318](https://github.com/equinor/ecalc/issues/318)) ([e90a6eb](https://github.com/equinor/ecalc/commit/e90a6eb3fd79022bf6e963043d709a8cf61be0f7))
+* use time series collection yaml classes ([#328](https://github.com/equinor/ecalc/issues/328)) ([c36f62b](https://github.com/equinor/ecalc/commit/c36f62be4cc788ee832974aa63692e3d7ae2cb8d))
+
+
+### Tests
+
+* update tests with maximum rate ([2cb09e2](https://github.com/equinor/ecalc/commit/2cb09e20bec5c3031dfbff6042c93c749e97be23))
+
+
+### Continuous Integration
+
+* add trufflehog pre-commit ([#320](https://github.com/equinor/ecalc/issues/320)) ([8459ca6](https://github.com/equinor/ecalc/commit/8459ca686fe97f0b2225984c703d8b6c778ea1ba))
+
 ## [8.7.0](https://github.com/equinor/ecalc/compare/v8.6.0...v8.7.0) (2023-12-05)
 
 
