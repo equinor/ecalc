@@ -62,6 +62,7 @@ class YamlGeneratorSet(YamlBase):
             YamlConsumerSystem[YamlCompressor],
             YamlConsumerSystem[YamlPump],
             YamlConsumerSystem[YamlTrain[YamlCompressor]],
+            YamlPump,
         ]
     ] = Field(
         ...,

@@ -334,7 +334,9 @@ class Installation(BaseComponent):
     component_type = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
     hydrocarbon_export: Dict[datetime, Expression]
-    fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
+    fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem, PumpComponent]] = Field(
+        default_factory=list
+    )  # TODO: Change pump to type v2 or domain object?
     venting_emitters: List[VentingEmitter] = Field(default_factory=list)
 
     @property

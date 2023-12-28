@@ -24,6 +24,7 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -127,6 +128,21 @@ class ConsumerMapper:
                         fuel=fuel,
                     )
                 except ValidationError as e:
+                    raise DtoValidationError(data=data, validation_error=e) from e
+
+            elif component_type == ComponentType.PUMP_V2:  # TO DOMAIN DIRECTLY ...
+                try:
+                    pump_yaml = YamlPump(**data)
+                    return pump_yaml.to_dto(
+                        consumes=consumes,
+                        regularity=regularity,
+                        references=self.__references,
+                        target_period=self._target_period,
+                        fuel=fuel,
+                        category="",
+                    )
+                except ValidationError as e:
+                    print(str(e), e.__traceback__)
                     raise DtoValidationError(data=data, validation_error=e) from e
 
         energy_usage_model = resolve_reference(

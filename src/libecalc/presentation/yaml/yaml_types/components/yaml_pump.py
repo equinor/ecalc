@@ -17,9 +17,6 @@ from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import resolve_reference
 from libecalc.presentation.yaml.yaml_entities import References
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer import (
-    YamlConsumerStreamConditions,
-)
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
@@ -44,7 +41,7 @@ class YamlPump(YamlConsumerBase):
     energy_usage_model: YamlTemporalModel[str]
 
     # TODO: Same for compressor and pump and ...?
-    stream_conditions: YamlConsumerStreamConditions  # = Dict[StreamID, YamlStreamConditions]
+    # stream_conditions: Optional[YamlConsumerStreamConditions]  # TODO: use NAME instead of Dict[StreamID, YamlStreamConditions] TODO: optional...since it may be set as a part of consumer system and overridden/set runtime?
 
     def to_dto(
         self,

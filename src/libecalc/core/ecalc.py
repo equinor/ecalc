@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 from functools import reduce
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 
@@ -9,13 +9,14 @@ import libecalc.dto.components
 from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.priorities import PriorityID
-from libecalc.common.priority_optimizer import PriorityOptimizer
+from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
+from libecalc.core.consumers.pump import Pump
 from libecalc.core.consumers.venting_emitter import VentingEmitter
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
@@ -42,7 +43,18 @@ class EnergyCalculator:
         consumer_results: Dict[str, EcalcModelResult] = {}
 
         for component_dto in component_dtos:
-            if isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
+            if isinstance(component_dto, (dto.Asset, dto.Installation)):
+                # Asset and installation are just containers/aggregators, do not evaluate itself
+                pass
+            elif isinstance(component_dto, dto.components.PumpComponent):
+                # Can we send in the domain model here directly...since it seems to be compatible methodwise?
+                component_dto.get_model()
+                component_dto.get_stream_conditions(
+                    variables_map=variables_map,
+                )
+                pump = Pump()
+                consumer_results[component_dto.id] = pump.evaluate()
+            elif isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
                 consumer = Consumer(consumer_dto=component_dto)
                 consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)
             elif isinstance(component_dto, dto.GeneratorSet):
@@ -91,7 +103,7 @@ class EnergyCalculator:
                         component_conditions=component_dto.component_conditions,
                     )
 
-                    def evaluator(priority: PriorityID):
+                    def evaluator(priority: PriorityID) -> List[EvaluatorResult]:
                         stream_conditions_for_priority = evaluated_stream_conditions[priority]
                         stream_conditions_for_timestep = {
                             component_id: [
@@ -138,6 +150,8 @@ class EnergyCalculator:
                         sub_components=[],
                         models=[],
                     )
+            else:
+                print(f"Unknown component not evaluated: {type(component_dto)}")
 
         return consumer_results
 
