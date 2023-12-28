@@ -447,9 +447,7 @@ class Asset(Component):
             for fuel_consumer in fuel_consumers:
                 if isinstance(fuel_consumer, TemporalModel):  # domain pump v2
                     temporal_model_id = fuel_consumer.models[0].model.id
-                    fuel_consumer.id = generate_id(
-                        temporal_model_id
-                    )  # HACK: Very bad hack...we need to keep track of what is common across temporal models at yaml level - in addition to the separate models  TODO: generate_id?
+                    fuel_consumer.id = temporal_model_id  # HACK: Very bad hack...we need to keep track of what is common across temporal models at yaml level - in addition to the separate models  TODO: generate_id?
                     fuel_consumer.name = temporal_model_id
                     names.append(temporal_model_id)
                 else:

@@ -205,7 +205,9 @@ class YamlPump(YamlConsumerBase):
         """
         # TODO: Convert to stream day? OR done?
 
-        return Pump(id=self.name, pump_model=self.get_timestep_for_model(timestep=timestep, references=references))
+        return Pump(
+            id=generate_id(self.name), pump_model=self.get_timestep_for_model(timestep=timestep, references=references)
+        )
 
     # TODO is def from_domain(cls, pump: Pump) -> Self: relevant? Should it generate model as a string? or tuple? or with resolved and expanded reference?
 

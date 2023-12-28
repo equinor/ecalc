@@ -10,7 +10,6 @@ from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
-from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
@@ -70,7 +69,7 @@ class EnergyCalculator:
                     timestep = period.start
                     if isinstance(temporal_model, Pump):
                         print("my id: " + str(component_dto.id))
-                        my_id = generate_id(component_dto.id)
+                        my_id = component_dto.id
                         if result is None:  # TODO: Use map reduce
                             result = temporal_model.evaluate(stream_conditions.get(timestep))
                         else:
