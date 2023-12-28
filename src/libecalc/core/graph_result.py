@@ -53,7 +53,7 @@ class GraphResult:
     def __init__(
         self,
         graph: ComponentGraph,
-        consumer_results: Dict[str, EcalcModelResult],
+        consumer_results: Dict[str, Union[EcalcModelResult]],
         emission_results: Dict[str, Dict[str, EmissionResult]],
         variables_map: dto.VariablesMap,
     ):
@@ -161,6 +161,7 @@ class GraphResult:
                 [
                     emission_dto_results[fuel_consumer_id]
                     for fuel_consumer_id in self.graph.get_successors(installation.id)
+                    if fuel_consumer_id in emission_dto_results
                 ]
             )
 
@@ -363,6 +364,8 @@ class GraphResult:
         return TemporalModel(evaluated_temporal_energy_usage_models)
 
     def get_asset_result(self) -> libecalc.dto.result.EcalcModelResult:
+        # TODO: Add support for pump v2 here? Then we just add a few fields, as we want user to request more data to tailored endpoint instead of getting all details here..
+        # It is the core result etc that is serialized...
         asset_id = self.graph.root
         asset = self.graph.get_node(asset_id)
 
