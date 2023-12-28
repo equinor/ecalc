@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 from functools import reduce
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -10,6 +10,8 @@ from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
+from libecalc.common.string.string_utils import generate_id
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.core.consumers.consumer_system import ConsumerSystem
@@ -21,6 +23,7 @@ from libecalc.core.consumers.venting_emitter import VentingEmitter
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
 
@@ -36,7 +39,20 @@ class EnergyCalculator:
     ):
         self._graph = graph
 
-    def evaluate_energy_usage(self, variables_map: dto.VariablesMap) -> Dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(
+        self,
+        variables_map: dto.VariablesMap,
+        stream_conditions: Optional[Dict[datetime, List[StreamConditions]]] = None,
+    ) -> Dict[str, EcalcModelResult]:
+        """
+
+        Args:
+            variables_map:
+            stream_conditions:  Only to support change to domain models - must be specific for EACH component ...
+
+        Returns:
+
+        """
         component_ids = list(reversed(self._graph.sorted_node_ids))
         component_dtos = [self._graph.get_node(component_id) for component_id in component_ids]
 
@@ -46,14 +62,21 @@ class EnergyCalculator:
             if isinstance(component_dto, (dto.Asset, dto.Installation)):
                 # Asset and installation are just containers/aggregators, do not evaluate itself
                 pass
-            elif isinstance(component_dto, dto.components.PumpComponent):
+            elif isinstance(component_dto, TemporalModel):  # Just assume pump core domain model for now ..
                 # Can we send in the domain model here directly...since it seems to be compatible methodwise?
-                component_dto.get_model()
-                component_dto.get_stream_conditions(
-                    variables_map=variables_map,
-                )
-                pump = Pump()
-                consumer_results[component_dto.id] = pump.evaluate()
+                my_id = ""
+                result = None
+                for period, temporal_model in component_dto.items():
+                    timestep = period.start
+                    if isinstance(temporal_model, Pump):
+                        print("my id: " + str(component_dto.id))
+                        my_id = generate_id(component_dto.id)
+                        if result is None:  # TODO: Use map reduce
+                            result = temporal_model.evaluate(stream_conditions.get(timestep))
+                        else:
+                            result.extend(temporal_model.evaluate(stream_conditions.get(timestep)))
+
+                consumer_results[my_id] = result
             elif isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
                 consumer = Consumer(consumer_dto=component_dto)
                 consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)

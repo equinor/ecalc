@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Generic, Iterator, List, Tuple, TypeVar
+from typing import Dict, Generic, Iterator, List, Literal, Optional, Tuple, TypeVar
 
 from libecalc.common.time_utils import Period
+from libecalc.dto.base import ComponentType
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
@@ -16,6 +17,21 @@ class Model(Generic[ModelType]):
 
 
 class TemporalModel(Generic[ModelType]):
+    id: Optional[str]
+    component_type: Optional[Literal[ComponentType.PUMP_V2]] = ComponentType.PUMP_V2
+    name: Optional[str]
+
+    def set_id(self, id: str):
+        """
+        Hack to set id for temporal model that covers domain model
+        Args:
+            id:
+
+        Returns:
+
+        """
+        self.id = id
+
     def __init__(self, data: Dict[datetime, ModelType]):
         self._data = data
         start_times = list(data.keys())

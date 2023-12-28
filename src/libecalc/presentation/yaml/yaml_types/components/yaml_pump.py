@@ -17,6 +17,9 @@ from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import resolve_reference
 from libecalc.presentation.yaml.yaml_entities import References
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer import (
+    YamlConsumerStreamConditions,
+)
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
@@ -41,7 +44,9 @@ class YamlPump(YamlConsumerBase):
     energy_usage_model: YamlTemporalModel[str]
 
     # TODO: Same for compressor and pump and ...?
-    # stream_conditions: Optional[YamlConsumerStreamConditions]  # TODO: use NAME instead of Dict[StreamID, YamlStreamConditions] TODO: optional...since it may be set as a part of consumer system and overridden/set runtime?
+    stream_conditions: Optional[
+        YamlConsumerStreamConditions
+    ]  # TODO: use NAME instead of Dict[StreamID, YamlStreamConditions] TODO: optional...since it may be set as a part of consumer system and overridden/set runtime?
 
     def to_dto(
         self,
@@ -101,14 +106,26 @@ class YamlPump(YamlConsumerBase):
                 self.energy_usage_model, target_period=Period(start=timestep, end=timestep)
             )  # TODO: Period is not the same as timestep...is this ok? we want the model at a given time ...
 
+        # TODO: Get correct model for timestep
+        key = next(iter(energy_model_reference))
+        val = energy_model_reference[key]
+
         energy_model = resolve_reference(
-            value=energy_model_reference,
+            value=val,
             references=references.models,
         )
 
         pump_model_for_timestep = create_pump_model(energy_model)
 
         return pump_model_for_timestep
+
+    def all_stream_conditions(self, variables_map: VariablesMap) -> Dict[datetime, List[StreamConditions]]:
+        stream_conditions: Dict[datetime, List[StreamConditions]] = {}
+        timevector = variables_map.time_vector
+        for timestep in timevector:
+            stream_conditions[timestep] = self.stream_conditions_for_timestep(timestep, variables_map)
+
+        return stream_conditions
 
     def stream_conditions_for_timestep(self, timestep: datetime, variables_map: VariablesMap) -> List[StreamConditions]:
         """
@@ -162,7 +179,7 @@ class YamlPump(YamlConsumerBase):
                 )
             )
 
-            return stream_conditions
+        return stream_conditions
 
     def to_domain_model(
         self,

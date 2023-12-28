@@ -145,15 +145,17 @@ class GraphResult:
                 ),  # Initial value, handle no power output from components
             )
 
+            # TODO: This fails if different unit is used altogether, since it will be an empty []. Also MW is default so might fail if not explicitly set ...
             energy_usage = reduce(
                 operator.add,
                 [
                     TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
                     for component in sub_components
-                    if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    # if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
                 ],
             )
 
+            # TODO: Why is this empty for pump v2...?
             emission_dto_results = self.convert_to_timeseries(self.emission_results, regularity)
             aggregated_emissions = aggregate_emissions(
                 [

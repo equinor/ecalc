@@ -1,6 +1,6 @@
 from datetime import datetime
 from io import StringIO
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 import pytest
 from libecalc import dto
@@ -287,7 +287,7 @@ def dated_model_data(dated_model_source: str) -> Dict[str, Any]:
     )
 
 
-def parse_model(model_data, start: datetime, end: datetime) -> dto.Asset:
+def parse_model(model_data, start: datetime, end: datetime, timevector: Optional[List[datetime]] = None) -> dto.Asset:
     period = Period(
         start=start,
         end=end,
@@ -298,7 +298,7 @@ def parse_model(model_data, start: datetime, end: datetime) -> dto.Asset:
     configuration = PyYamlYamlModel(internal_datamodel=model_data, instantiated_through_read=True)
     references = create_references(configuration, resources={})
     model_mapper = EcalcModelMapper(references=references, target_period=period)
-    return model_mapper.from_yaml_to_dto(configuration, name="test")
+    return model_mapper.from_yaml_to_dto(configuration, name="test", timevector=timevector)
 
 
 class TestDatedModelFilter:
