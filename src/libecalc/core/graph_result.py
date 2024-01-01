@@ -873,7 +873,9 @@ class GraphResult:
                             )
                         ]
                     )
-
+            elif consumer_node_info.component_type in [ComponentType.PUMP_V2]:
+                # Nothing for now ...
+                pass
             else:
                 models.extend(
                     [
@@ -1152,6 +1154,10 @@ class GraphResult:
                         consumer_result.component_result.energy_usage, regularity=regularity
                     ).to_stream_day(),
                 )
+            elif consumer_node_info.component_type in [ComponentType.PUMP_V2]:
+                # add some v2 stuff here ...
+                obj = None
+                pass
             else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, VENTING_EMITTER
                 obj = parse_obj_as(
                     libecalc.dto.result.ComponentResult,
@@ -1192,7 +1198,8 @@ class GraphResult:
                     },
                 )
 
-            sub_components.append(obj)
+            if obj:
+                sub_components.append(obj)
 
         for installation in asset.installations:
             regularity = regularities[installation.id]  # Already evaluated regularities
