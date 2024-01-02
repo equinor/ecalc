@@ -39,6 +39,10 @@ class YamlVentingEmission(YamlBase):
 
     rate: YamlRate = Field(..., title="RATE", description="The emission rate")
 
+    @validator("name", pre=True)
+    def name_validator(cls, value):
+        return value.lower()
+
 
 class YamlVentingEmitter(YamlBase):
     class Config:
