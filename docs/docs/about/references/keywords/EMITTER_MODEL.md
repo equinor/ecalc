@@ -1,4 +1,7 @@
 # EMITTER_MODEL
+<span className="major-change-deprecation"> Deprecated from eCalc v8.8 (replaced by <strong>EMISSION</strong>).
+</span>
+<br></br>
 
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
@@ -9,6 +12,7 @@
 | No         | `VENTING_EMITTERS`         | `EMISSION_RATE`   |
 
 :::important
+- eCalc version 8.8: [EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) is deprecated, and replaced by new [EMISSION](/about/references/keywords/EMISSION.md) keyword.
 - eCalc version 8.7: [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md) keyword is replacing the [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md) keyword.
 - eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
 :::

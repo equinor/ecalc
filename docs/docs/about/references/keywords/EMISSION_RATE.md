@@ -1,5 +1,8 @@
 # EMISSION_RATE
- 
+<span className="major-change-deprecation"> Deprecated from eCalc v8.8 (is included in <strong>EMISSION</strong>).
+</span> 
+<br></br>
+
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [...] /
 [EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) /

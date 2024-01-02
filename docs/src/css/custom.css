@@ -51,3 +51,10 @@
   padding: 0 var(--ifm-pre-padding);
   border-left: 3px solid #ff000080;
 }
+.major-change-new-feature {
+  background-color: rgba(13, 138, 9, 0.25);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+  border-left: 3px solid rgba(14, 201, 41, 0.88);
+}
