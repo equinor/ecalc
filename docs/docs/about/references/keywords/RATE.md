@@ -43,6 +43,34 @@ RATE: SIM1:GAS_PROD
         ...
 ~~~~~~~~
 
+## Format - usage in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
+
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: <emitter name>
+    CATEGORY: <category>
+    EMISSION:
+      NAME: <emission name>
+      RATE:
+        VALUE: <emission rate>
+        UNIT: <emission rate unit, default kg/d>
+        TYPE: <emission rate type, default STREAM_DAY>
+~~~~~~~~
+
+
+## Format - usage in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
+
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: SomeVentingEmitter
+    CATEGORY: COLD-VENTING-FUGITIVE
+    EMISSION:
+      NAME: CH4
+      RATE:
+        VALUE: 4
+        UNIT: kg/d
+        TYPE: STREAM_DAY
+~~~~~~~~
 ## Use in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
 ### Format
 ~~~~~~~~yaml
