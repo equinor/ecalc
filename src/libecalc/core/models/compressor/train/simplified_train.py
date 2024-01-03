@@ -46,11 +46,9 @@ class CompressorTrainSimplified(CompressorTrainModel):
     for each compressor independently, neglecting the common shaft dependency.
 
     float of compressors:
-    There are in essence three ways of determining the number of compressors in the train:
+    There are in essence two ways of determining the number of compressors in the train:
     - Either with a compressor chart generator model with a predefined number of charts - one for each compressor.
-    - Or, when using a compressor chart generator model where charts are estimated on input data together with setting
-      the attribute number_of_compressors
-    - Or, also when using a compressor chart generator model where charts are estimated on input data together with
+    - Or, when using a compressor chart generator model where charts are estimated on input data together with
       setting compressor_maximum_pressure_ratio. In this case, the maximum total pressure ratio is found from the input
       data and the number of compressors are set such that this maximum is not exceeded for any of the stages.
 
