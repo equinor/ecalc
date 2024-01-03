@@ -1,4 +1,4 @@
-# MAXIMUM_DISCHARGE_PRESSURE
+# MAXIMUM_PRESSURE_RATIO_PER_STAGE
 
 [MODELS](/about/references/keywords/MODELS.md) / 
 [MAXIMUM_PRESSURE_RATIO_PER_STAGE](/about/references/keywords/MAXIMUM_PRESSURE_RATIO_PER_STAGE.md)
@@ -6,13 +6,13 @@
 ## Description
 
 `MAXIMUM_PRESSURE_RATIO_PER_STAGE` is used in the process of determining (at run time) the number of compressors 
-in a [SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train.md) 
+in a [SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train_model.md) 
 with unknown stages. The number of compressors is set such that there are just enough compressors to ensure no pressure ratios are above the given 
 `MAXIMUM_PRESSURE_RATIO_PER_STAGE`.
 
 ## Functionality
 
-This is an optional setting and is **only** supported for [SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train.md) with unknown stages, i.e. if `STAGES` are not specified.
+This is an optional setting and is **only** supported for [SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train_model.md) with unknown stages, i.e. if `STAGES` are not specified.
 
 
 ## Format
