@@ -8,6 +8,7 @@ Emission rate.
 
 ## Format
 ~~~~~~~~yaml
+...
 RATE:
   VALUE: <value>
 ~~~~~~~~
@@ -15,6 +16,7 @@ RATE:
 ## Example
 
 ~~~~~~~~yaml
+...
 RATE:
   VALUE: 4
 ~~~~~~~~

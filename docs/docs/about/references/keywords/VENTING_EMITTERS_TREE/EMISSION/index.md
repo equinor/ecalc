@@ -22,28 +22,26 @@ description: eCalc KEYWORDS
 :::
 
 ## Description
-The emission specifies the data to calculate the direct emissions on an installation. This data is used to set up
+The emission specifies the data to calculate the venting/direct emissions on an installation. This data is used to set up
 a function that may be evaluated for a set of time series and return an emission result.
 
 The attributes [NAME](/about/references/keywords/VENTING_EMITTERS_TREE/EMISSION/NAME.md) and [RATE](/about/references/keywords/VENTING_EMITTERS_TREE/EMISSION/RATE/index.md) are required.
 
 ## Format
 ~~~~~~~~yaml
+...
 EMISSION:
   NAME: <emission name>
   RATE:
-    VALUE: <emission rate>
-    UNIT: <emission rate unit, default kg/d>
-    TYPE: <emission rate type, default STREAM_DAY>
+    <emission rate data>
 ~~~~~~~~
 
 ## Example
 ~~~~~~~~yaml
+...
 EMISSION:
   NAME: CH4
   RATE:
-    VALUE: 4
-    UNIT: kg/d
-    TYPE: STREAM_DAY
+    <emission rate data>
 ~~~~~~~~
 

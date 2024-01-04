@@ -10,6 +10,7 @@ Optional. Emission rate unit. Available units:
 
 ## Format
 ~~~~~~~~yaml
+...
 RATE:
   UNIT: <unit>
 ~~~~~~~~
@@ -17,6 +18,7 @@ RATE:
 ## Example
 
 ~~~~~~~~yaml
+...
 RATE:
   UNIT: kg/d
 ~~~~~~~~

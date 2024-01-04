@@ -10,6 +10,7 @@ Optional. Emission rate type. Available rate types:
 
 ## Format
 ~~~~~~~~yaml
+...
 RATE:
   TYPE: <rate type>
 ~~~~~~~~
@@ -17,6 +18,7 @@ RATE:
 ## Example
 
 ~~~~~~~~yaml
+...
 RATE:
   TYPE: STREAM_DAY
 ~~~~~~~~
