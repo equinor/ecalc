@@ -809,7 +809,9 @@ class GraphResult:
                             )
                         ]
                     )
-            elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
+            elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM, ComponentType.PUMP_V2]:
+                # NOTE: Pump_v2 will provide one model per timestep, which is not assumed format and will crash a lot of resampling and aggregation?
+                # Should probably aggregate here to stay consistent with old format and backwardscompatible?
                 component = self.graph.get_node(consumer_id)
                 for model in consumer_result.models:
                     models.extend(
