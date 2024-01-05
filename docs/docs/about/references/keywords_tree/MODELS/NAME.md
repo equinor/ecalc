@@ -9,13 +9,13 @@ sidebar_position: 1
 ## Description
 Model name.
 
-## Format
+### Format
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of model, for reference>
 ~~~~~~~~
 
-## Example
+### Example
 
 ~~~~~~~~yaml
 MODELS:

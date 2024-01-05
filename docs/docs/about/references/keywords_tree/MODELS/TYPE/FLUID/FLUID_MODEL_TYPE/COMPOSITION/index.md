@@ -4,9 +4,9 @@ sidebar_position: 2
 # COMPOSITION
 
 [MODELS](/about/references/keywords_tree/MODELS/index.md) /
-[TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md) /
+[TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md) :
 [FLUID](/about/references/keywords_tree/MODELS/TYPE/FLUID/index.md) /
-[FLUID_MODEL_TYPE](/about/references/keywords_tree/MODELS/TYPE/FLUID/FLUID_MODEL_TYPE/index.md) /
+[FLUID_MODEL_TYPE](/about/references/keywords_tree/MODELS/TYPE/FLUID/FLUID_MODEL_TYPE/index.md) :
 [COMPOSITION](/about/references/keywords_tree/MODELS/TYPE/FLUID/FLUID_MODEL_TYPE/COMPOSITION/index.md)
 
 ## Description

@@ -4,7 +4,7 @@ sidebar_position: 2
 # COMPRESSOR_CHART
 
 [MODELS](/about/references/keywords_tree/MODELS/index.md) /
-[TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md) /
+[TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md): 
 [COMPRESSOR_CHART](/about/references/keywords_tree/MODELS/TYPE/COMPRESSOR_CHART/index.md)
 
 ## Description
@@ -15,3 +15,5 @@ eCalc™ currently support four ways to set up a compressor chart
 - Predefined variable speed chart
 - Generic compressor chart with a specified design point
 - Generic compressor chart which is automatically adjusted to have capacity for the input data
+
+The compressor chart types are defined using the keyword [CHART_TYPE](/about/references/keywords_tree/MODELS/TYPE/COMPRESSOR_CHART/CHART_TYPE/index.md).
