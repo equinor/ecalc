@@ -13,7 +13,7 @@ The fluid has several attributes:
 
 [FLUID_MODEL_TYPE](/about/references/keywords_tree/MODELS/TYPE/FLUID/FLUID_MODEL_TYPE/index.md) is a required attribute and defines the fluid composition, either as [PREDEFINED](/about/references/keywords_tree/MODELS/TYPE/FLUID/FLUID_MODEL_TYPE/PREDEFINED/index.md) 
 or as a user defined [COMPOSITION](/about/references/keywords_tree/MODELS/TYPE/FLUID/FLUID_MODEL_TYPE/COMPOSITION/index.md). When using a predefined composition, it has to be defined by the keyword 
-[GAS_TYPE](/about/references/keywords_tree/MODELS/TYPE/FLUID/EOS_MODEL/GAS_TYPE/index.md). 
+[GAS_TYPE](/about/references/keywords_tree/MODELS/TYPE/FLUID/FLUID_MODEL_TYPE/GAS_TYPE/index.md). 
 
 [EOS_MODEL](/about/references/keywords_tree/MODELS/TYPE/FLUID/EOS_MODEL/index.md), the equation-of-state used to describe pressure-, temperature- and volume changes, 
 is optional.
