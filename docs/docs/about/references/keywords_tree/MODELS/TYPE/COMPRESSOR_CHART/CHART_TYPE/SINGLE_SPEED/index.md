@@ -10,7 +10,7 @@ sidebar_position: 1
 [SINGLE_SPEED](/about/references/keywords_tree/MODELS/TYPE/COMPRESSOR_CHART/CHART_TYPE/SINGLE_SPEED/index.md)
 
 ## Description 
-The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](/about/references/keywords/CURVE)
+The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](/about/references/keywords/CURVE.md)
 
 ### Format
 ~~~~~~~~yaml
