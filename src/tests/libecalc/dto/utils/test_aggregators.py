@@ -8,7 +8,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.ecalc import EnergyCalculator
+from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.result.emission import PartialEmissionResult

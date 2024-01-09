@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.component import Consumer
-from libecalc.core.ecalc import EnergyCalculator
+from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.core.result import CompressorModelResult, GenericModelResult
 

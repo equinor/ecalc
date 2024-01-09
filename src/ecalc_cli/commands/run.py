@@ -5,7 +5,7 @@ import libecalc.common.time_utils
 import libecalc.version
 import typer
 from libecalc.common.run_info import RunInfo
-from libecalc.core.ecalc import EnergyCalculator
+from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.yaml.model import YamlModel
