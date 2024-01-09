@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from libecalc.core.graph_result import GraphResult
+from libecalc.application.graph_result import GraphResult
 from libecalc.presentation.exporter.aggregators import Aggregator
 from libecalc.presentation.exporter.dto.dtos import FilteredResult
 from libecalc.presentation.exporter.generators import Generator
