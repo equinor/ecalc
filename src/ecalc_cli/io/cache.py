@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from libecalc import dto
+from libecalc.application.graph_result import EnergyCalculatorResult, GraphResult
 from libecalc.common.run_info import RunInfo
-from libecalc.core.graph_result import EnergyCalculatorResult, GraphResult
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.result import EcalcModelResult
 

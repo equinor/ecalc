@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import DefaultDict, Dict, List, Optional
 
 import libecalc.dto
+from libecalc.application.graph_result import GraphResult
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Frequency, resample_time_steps
@@ -13,7 +14,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesVolumes,
 )
-from libecalc.core.graph_result import GraphResult
 from libecalc.core.result import GeneratorSetResult
 
 

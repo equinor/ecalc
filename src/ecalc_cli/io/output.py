@@ -5,9 +5,9 @@ from typing import Dict, List
 
 import libecalc.common.time_utils
 from libecalc import dto
+from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_time_steps
-from libecalc.core.graph_result import GraphResult
 from libecalc.dto.result import EcalcModelResult as EcalcModelResultDTO
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig

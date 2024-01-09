@@ -3,9 +3,9 @@ from typing import List
 
 import pytest
 from libecalc.application.energy_calculator import EnergyCalculator
+from libecalc.application.graph_result import EcalcModelResult, GraphResult
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
-from libecalc.core.graph_result import EcalcModelResult, GraphResult
 from libecalc.dto.result.results import CompressorModelResult
 
 

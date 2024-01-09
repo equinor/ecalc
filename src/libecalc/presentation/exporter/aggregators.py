@@ -1,9 +1,9 @@
 import abc
 from typing import List
 
+from libecalc.application.graph_result import GraphResult
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
-from libecalc.core.graph_result import GraphResult
 from libecalc.dto.base import ComponentType
 from libecalc.presentation.exporter.appliers import Applier
 from libecalc.presentation.exporter.dto.dtos import GroupedQueryResult, QueryResult
