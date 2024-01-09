@@ -3,12 +3,12 @@ from typing import List
 
 import pandas as pd
 from libecalc import dto
+from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.result.emission import PartialEmissionResult
