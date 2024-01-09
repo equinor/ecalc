@@ -17,7 +17,7 @@ if __name__ == "__main__":
         shutil.rmtree(out)
 
     # Generate reference documentation using pdoc
-    modules = ["libecalc", "!libecalc.core", "!libecalc.fixtures", "!libecalc.presentation"]
+    modules = ["libecalc", "!libecalc.application", "!libecalc.core", "!libecalc.fixtures", "!libecalc.presentation"]
     pdoc(*modules, output_directory=out)
 
     shutil.move(str(out / "libecalc.html"), str(destination))
