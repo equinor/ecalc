@@ -3,13 +3,13 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from libecalc import dto
+from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.generator_set import Genset
-from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.result.results import GenericComponentResult
 
 

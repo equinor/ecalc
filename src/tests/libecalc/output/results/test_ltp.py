@@ -4,10 +4,10 @@ from typing import Union
 import pandas as pd
 import pytest
 from libecalc import dto
+from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.graph_result import GraphResult
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
