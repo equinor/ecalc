@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 import pytest
-from libecalc.core.ecalc import EnergyCalculator
+from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.graph_result import EnergyCalculatorResult, GraphResult
 from libecalc.fixtures import DTOCase, consumer_system_v2_dto
 

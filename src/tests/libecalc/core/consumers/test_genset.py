@@ -9,7 +9,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.generator_set import Genset
-from libecalc.core.ecalc import EnergyCalculator
+from libecalc.core.energy_calculator import EnergyCalculator
 from libecalc.core.result.results import GenericComponentResult
 
 
