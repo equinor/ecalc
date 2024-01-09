@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.core.graph_result import EnergyCalculatorResult, GraphResult
+from libecalc.application.graph_result import EnergyCalculatorResult, GraphResult
 from libecalc.fixtures import DTOCase, consumer_system_v2_dto
 
 

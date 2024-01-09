@@ -2,10 +2,10 @@ import abc
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
-from libecalc.core.graph_result import GraphResult
 from libecalc.presentation.exporter.configs import configs
 from libecalc.presentation.exporter.dto.dtos import QueryResult
 from libecalc.presentation.exporter.queries import Query

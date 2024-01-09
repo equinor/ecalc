@@ -2,7 +2,7 @@ import abc
 from datetime import datetime
 from typing import List
 
-from libecalc.core.graph_result import GraphResult
+from libecalc.application.graph_result import GraphResult
 from libecalc.dto.result import EcalcModelResult
 from libecalc.presentation.exporter.dto.dtos import DataSeries
 
