@@ -41,13 +41,13 @@ class EnergyCalculator:
     def evaluate_energy_usage(
         self,
         variables_map: dto.VariablesMap,
-        stream_conditions: Optional[Dict[datetime, List[StreamConditions]]] = None,
+        stream_conditions: Optional[Dict[str, Dict[datetime, List[StreamConditions]]]] = None,
     ) -> Dict[str, EcalcModelResult]:
         """
 
         Args:
             variables_map:
-            stream_conditions:  Only to support change to domain models - must be specific for EACH component ...
+            stream_conditions: stream conditions for components supporting and requiring that. component_name -> timestep -> stream_conditions
 
         Returns:
 
@@ -63,17 +63,22 @@ class EnergyCalculator:
                 pass
             elif isinstance(component_dto, TemporalModel):  # Just assume pump core domain model for now ..
                 # Can we send in the domain model here directly...since it seems to be compatible methodwise?
+
+                my_stream_conditions = stream_conditions.get(component_dto.name)
+                print(f"stream conditions: {stream_conditions}")
+                if not my_stream_conditions:
+                    raise ValueError(f"Missing stream conditions for {component_dto.name}")
+
                 my_id = ""
                 result = None
                 for period, temporal_model in component_dto.items():
                     timestep = period.start
                     if isinstance(temporal_model, Pump):
-                        print("my id: " + str(component_dto.id))
                         my_id = component_dto.id
                         if result is None:  # TODO: Use map reduce
-                            result = temporal_model.evaluate(stream_conditions.get(timestep))
+                            result = temporal_model.evaluate(my_stream_conditions.get(timestep))
                         else:
-                            result.extend(temporal_model.evaluate(stream_conditions.get(timestep)))
+                            result.extend(temporal_model.evaluate(my_stream_conditions.get(timestep)))
 
                 consumer_results[my_id] = result
             elif isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
