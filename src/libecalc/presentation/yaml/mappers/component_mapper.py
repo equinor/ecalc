@@ -134,7 +134,7 @@ class ConsumerMapper:
             elif component_type == ComponentType.PUMP_V2:  # TO DOMAIN DIRECTLY ...
                 try:
                     pump_yaml = YamlPump(**data)
-                    return pump_yaml.to_domain_models(references=self.__references, timesteps=timevector)
+                    return pump_yaml.to_domain_models(references=self.__references, timesteps=timevector, fuel=fuel)
                     # return pump_yaml.to_dto(
                     #     consumes=consumes,
                     #     regularity=regularity,

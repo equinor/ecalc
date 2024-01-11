@@ -6,7 +6,10 @@ from pydantic import Field
 from libecalc import dto
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.common.time_utils import (
+    Period,
+    define_time_model_for_period,
+)
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.models.pump import create_pump_model
 from libecalc.domain.stream_conditions import Density, Pressure, Rate, StreamConditions
@@ -211,7 +214,12 @@ class YamlPump(YamlConsumerBase):
 
     # TODO is def from_domain(cls, pump: Pump) -> Self: relevant? Should it generate model as a string? or tuple? or with resolved and expanded reference?
 
-    def to_domain_models(self, timesteps: List[datetime], references: References) -> TemporalModel[Pump]:
+    def to_domain_models(
+        self,
+        timesteps: List[datetime],
+        references: References,
+        fuel: Optional[Dict[datetime, dto.types.FuelType]],
+    ) -> TemporalModel[Pump]:
         """
         For every valid timestep, we extrapolate and create a full domain model representation of the pump
 
@@ -230,6 +238,9 @@ class YamlPump(YamlConsumerBase):
             id=generate_id(self.name),
             name=self.name,
             component_type=ComponentType.PUMP_V2,
-            user_defined_category=self.category,  # TODO: Needed for LTP ... should ideally need to send through here..might need to lookup etc
-            data={timestep: self.to_domain_model(references=references, timestep=timestep) for timestep in timesteps}
+            user_defined_category={
+                timestep: self.category for timestep in timesteps
+            },  # TODO: Needed for LTP ... should ideally need to send through here..might need to lookup etc
+            fuel=fuel,
+            data={timestep: self.to_domain_model(references=references, timestep=timestep) for timestep in timesteps},
         )

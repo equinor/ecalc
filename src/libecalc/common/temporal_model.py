@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Generic, Iterator, List, Literal, Optional, Tuple, TypeVar
+from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, TypeVar
 
 from libecalc.common.time_utils import Period
 from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
@@ -21,15 +21,25 @@ class TemporalModel(Generic[ModelType]):
     component_type: Optional[ComponentType] = ComponentType.GENERIC
     name: Optional[str]
     user_defined_category: Optional[Dict[datetime, ConsumerUserDefinedCategoryType]]
+    fuel: Optional[Dict[datetime, Any]]  # cannot specify FuelType due to circular import ..
     data: Dict[datetime, ConsumerUserDefinedCategoryType]
 
-    def __init__(self, data: Dict[datetime, ModelType], id=None, name=None, component_type=ComponentType.GENERIC, user_defined_category=None):
+    def __init__(
+        self,
+        data: Dict[datetime, ModelType],
+        id=None,
+        name=None,
+        component_type=ComponentType.GENERIC,
+        user_defined_category=None,
+        fuel=None,
+    ):
         self._data = data
 
         self.id = id
         self.name = name
         self.component_type = component_type
         self.user_defined_category = user_defined_category
+        self.fuel = fuel
 
         start_times = list(data.keys())
         end_times = [*start_times[1:], datetime.max]

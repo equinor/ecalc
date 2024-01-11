@@ -196,7 +196,7 @@ class EnergyCalculator:
         """
         emission_results: Dict[str, Dict[str, EmissionResult]] = {}
         for consumer_dto in self._graph.nodes.values():
-            if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)):
+            if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet, TemporalModel)):
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                 emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
