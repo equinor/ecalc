@@ -4,8 +4,7 @@
             "*"
         ],
         "schema": {
-            "additionalProperties": false,
-            "definitions": {
+            "$defs": {
                 "ConsumerUserDefinedCategoryType": {
                     "description": "Consumer category",
                     "enum": [
@@ -30,15 +29,14 @@
                     "type": "string"
                 },
                 "ConsumptionRateType": {
-                    "description": "An enumeration.",
                     "enum": [
                         "STREAM_DAY",
                         "CALENDAR_DAY"
                     ],
-                    "title": "ConsumptionRateType"
+                    "title": "ConsumptionRateType",
+                    "type": "string"
                 },
                 "FuelTypeUserDefinedCategoryType": {
-                    "description": "An enumeration.",
                     "enum": [
                         "FUEL-GAS",
                         "DIESEL"
@@ -56,7 +54,6 @@
                     "type": "string"
                 },
                 "RateType": {
-                    "description": "An enumeration.",
                     "enum": [
                         "STREAM_DAY",
                         "CALENDAR_DAY"
@@ -176,40 +173,45 @@
                         "COMPOSITION": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlComposition"
+                                    "$ref": "#/$defs/YamlComposition"
                                 }
                             ],
                             "description": "Components in fluid and amount (relative to the others) in mole weights",
                             "title": "COMPOSITION"
                         },
                         "EOS_MODEL": {
-                            "allOf": [
+                            "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlEosModel"
+                                    "$ref": "#/$defs/YamlEosModel"
+                                },
+                                {
+                                    "type": "null"
                                 }
                             ],
                             "default": "SRK"
                         },
                         "FLUID_MODEL_TYPE": {
+                            "const": "COMPOSITION",
                             "default": "COMPOSITION",
-                            "enum": [
-                                "COMPOSITION"
-                            ],
-                            "title": "Fluid Model Type",
-                            "type": "string"
+                            "title": "Fluid Model Type"
                         },
                         "NAME": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "Name of the model. See documentation for more information.",
-                            "title": "NAME",
-                            "type": "string"
+                            "title": "NAME"
                         },
                         "TYPE": {
+                            "const": "FLUID",
                             "default": "FLUID",
-                            "enum": [
-                                "FLUID"
-                            ],
-                            "title": "Type",
-                            "type": "string"
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -222,9 +224,17 @@
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
+                            "title": "CATEGORY"
                         },
                         "ENERGY_USAGE_MODEL": {
                             "anyOf": [
@@ -246,12 +256,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "COMPRESSOR@v2",
                             "description": "The type of the component",
-                            "enum": [
-                                "COMPRESSOR@v2"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -276,8 +283,18 @@
                             "type": "number"
                         },
                         "PRESSURE_DROP_AHEAD_OF_STAGE": {
-                            "title": "Pressure Drop Ahead Of Stage",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "description": "Pressure drop before compression stage [in bar]",
+                                    "title": "PRESSURE_DROP_AHEAD_OF_STAGE",
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Pressure Drop Ahead Of Stage"
                         }
                     },
                     "required": [
@@ -296,11 +313,37 @@
                             "type": "string"
                         },
                         "CONTROL_MARGIN": {
-                            "title": "Control Margin",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "default": 0.0,
+                                    "description": "Surge control margin, see documentation for more details.",
+                                    "title": "CONTROL_MARGIN",
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Control Margin"
                         },
                         "CONTROL_MARGIN_UNIT": {
-                            "$ref": "#/definitions/YamlControlMarginUnits"
+                            "anyOf": [
+                                {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/$defs/YamlControlMarginUnits"
+                                        }
+                                    ],
+                                    "default": "PERCENTAGE",
+                                    "description": "The unit of the surge control margin.",
+                                    "title": "CONTROL_MARGIN_UNIT"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
                         },
                         "INLET_TEMPERATURE": {
                             "description": "Inlet temperature in Celsius for stage",
@@ -308,11 +351,35 @@
                             "type": "number"
                         },
                         "INTERSTAGE_CONTROL_PRESSURE": {
-                            "$ref": "#/definitions/YamlInterstageControlPressure"
+                            "anyOf": [
+                                {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/$defs/YamlInterstageControlPressure"
+                                        }
+                                    ],
+                                    "description": "Pressure control. Can only be specified for one (only one) of the stages 2, ..., N.",
+                                    "title": "INTERSTAGE_CONTROL_PRESSURE"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null
                         },
                         "PRESSURE_DROP_AHEAD_OF_STAGE": {
-                            "title": "Pressure Drop Ahead Of Stage",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "description": "Pressure drop before compression stage [in bar]",
+                                    "title": "PRESSURE_DROP_AHEAD_OF_STAGE",
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Pressure Drop Ahead Of Stage"
                         },
                         "STREAM": {
                             "anyOf": [
@@ -326,6 +393,7 @@
                                     "type": "array"
                                 }
                             ],
+                            "default": null,
                             "description": "Reference to stream from STREAMS.",
                             "title": "STREAM"
                         }
@@ -343,7 +411,7 @@
                         "STAGES": {
                             "description": "List of compressor stages",
                             "items": {
-                                "$ref": "#/definitions/YamlCompressorStage"
+                                "$ref": "#/$defs/YamlCompressorStage"
                             },
                             "title": "STAGES",
                             "type": "array"
@@ -359,20 +427,14 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSOR_MODEL": {
-                            "description": "Reference to a compressor type facility model defined in FACILITY_INPUTS",
-                            "title": "COMPRESSOR_MODEL",
+                            "title": "Compressor Model",
                             "type": "string"
                         },
                         "NAME": {
-                            "description": "Name of the compressor",
-                            "title": "NAME",
+                            "title": "Name",
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "NAME",
-                        "COMPRESSOR_MODEL"
-                    ],
                     "title": "YamlCompressorSystemCompressor",
                     "type": "object"
                 },
@@ -380,11 +442,10 @@
                     "additionalProperties": false,
                     "properties": {
                         "CROSSOVER": {
-                            "description": "Set cross over rules in system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#crossover",
                             "items": {
                                 "type": "integer"
                             },
-                            "title": "CROSSOVER",
+                            "title": "Crossover",
                             "type": "array"
                         },
                         "DISCHARGE_PRESSURE": {
@@ -399,11 +460,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
+                            "title": "Discharge Pressure"
                         },
                         "DISCHARGE_PRESSURES": {
-                            "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#discharge-pressures",
                             "items": {
                                 "anyOf": [
                                     {
@@ -417,11 +476,10 @@
                                     }
                                 ]
                             },
-                            "title": "DISCHARGE_PRESSURES",
+                            "title": "Discharge Pressures",
                             "type": "array"
                         },
                         "RATES": {
-                            "description": "Set rate per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rates",
                             "items": {
                                 "anyOf": [
                                     {
@@ -435,11 +493,10 @@
                                     }
                                 ]
                             },
-                            "title": "RATES",
+                            "title": "Rates",
                             "type": "array"
                         },
                         "RATE_FRACTIONS": {
-                            "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rate-fractions",
                             "items": {
                                 "anyOf": [
                                     {
@@ -453,7 +510,7 @@
                                     }
                                 ]
                             },
-                            "title": "RATE_FRACTIONS",
+                            "title": "Rate Fractions",
                             "type": "array"
                         },
                         "SUCTION_PRESSURE": {
@@ -468,11 +525,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
+                            "title": "Suction Pressure"
                         },
                         "SUCTION_PRESSURES": {
-                            "description": "Set suction pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#suction-pressures",
                             "items": {
                                 "anyOf": [
                                     {
@@ -486,7 +541,7 @@
                                     }
                                 ]
                             },
-                            "title": "SUCTION_PRESSURES",
+                            "title": "Suction Pressures",
                             "type": "array"
                         }
                     },
@@ -499,9 +554,10 @@
                         "ADJUSTMENT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                    "$ref": "#/$defs/YamlFacilityAdjustment"
                                 }
                             ],
+                            "default": null,
                             "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
                             "title": "ADJUSTMENT"
                         },
@@ -516,12 +572,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "COMPRESSOR_TABULAR",
                             "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "COMPRESSOR_TABULAR"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -557,12 +610,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "COMPRESSOR_WITH_TURBINE",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "COMPRESSOR_WITH_TURBINE"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -578,22 +628,31 @@
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
+                            "title": "CATEGORY"
                         },
                         "COMPONENT_CONDITIONS": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlSystemComponentConditions"
+                                    "$ref": "#/$defs/YamlSystemComponentConditions"
                                 }
                             ],
+                            "default": null,
                             "description": "Contains conditions for the component, in this case the system.",
                             "title": "System component conditions"
                         },
                         "CONSUMERS": {
                             "items": {
-                                "$ref": "#/definitions/YamlCompressor"
+                                "$ref": "#/$defs/YamlCompressor"
                             },
                             "title": "Consumers",
                             "type": "array"
@@ -607,7 +666,7 @@
                             "additionalProperties": {
                                 "additionalProperties": {
                                     "additionalProperties": {
-                                        "$ref": "#/definitions/YamlStreamConditions"
+                                        "$ref": "#/$defs/YamlStreamConditions"
                                     },
                                     "type": "object"
                                 },
@@ -618,12 +677,9 @@
                             "type": "object"
                         },
                         "TYPE": {
+                            "const": "CONSUMER_SYSTEM@v2",
                             "description": "The type of the component",
-                            "enum": [
-                                "CONSUMER_SYSTEM@v2"
-                            ],
-                            "title": "Type",
-                            "type": "string"
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -639,22 +695,31 @@
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
+                            "title": "CATEGORY"
                         },
                         "COMPONENT_CONDITIONS": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlSystemComponentConditions"
+                                    "$ref": "#/$defs/YamlSystemComponentConditions"
                                 }
                             ],
+                            "default": null,
                             "description": "Contains conditions for the component, in this case the system.",
                             "title": "System component conditions"
                         },
                         "CONSUMERS": {
                             "items": {
-                                "$ref": "#/definitions/YamlPump"
+                                "$ref": "#/$defs/YamlPump"
                             },
                             "title": "Consumers",
                             "type": "array"
@@ -668,7 +733,7 @@
                             "additionalProperties": {
                                 "additionalProperties": {
                                     "additionalProperties": {
-                                        "$ref": "#/definitions/YamlStreamConditions"
+                                        "$ref": "#/$defs/YamlStreamConditions"
                                     },
                                     "type": "object"
                                 },
@@ -679,12 +744,9 @@
                             "type": "object"
                         },
                         "TYPE": {
+                            "const": "CONSUMER_SYSTEM@v2",
                             "description": "The type of the component",
-                            "enum": [
-                                "CONSUMER_SYSTEM@v2"
-                            ],
-                            "title": "Type",
-                            "type": "string"
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -700,22 +762,31 @@
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
+                            "title": "CATEGORY"
                         },
                         "COMPONENT_CONDITIONS": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlSystemComponentConditions"
+                                    "$ref": "#/$defs/YamlSystemComponentConditions"
                                 }
                             ],
+                            "default": null,
                             "description": "Contains conditions for the component, in this case the system.",
                             "title": "System component conditions"
                         },
                         "CONSUMERS": {
                             "items": {
-                                "$ref": "#/definitions/YamlTrain_YamlCompressor_"
+                                "$ref": "#/$defs/YamlTrain_YamlCompressor_"
                             },
                             "title": "Consumers",
                             "type": "array"
@@ -729,7 +800,7 @@
                             "additionalProperties": {
                                 "additionalProperties": {
                                     "additionalProperties": {
-                                        "$ref": "#/definitions/YamlStreamConditions"
+                                        "$ref": "#/$defs/YamlStreamConditions"
                                     },
                                     "type": "object"
                                 },
@@ -740,12 +811,9 @@
                             "type": "object"
                         },
                         "TYPE": {
+                            "const": "CONSUMER_SYSTEM@v2",
                             "description": "The type of the component",
-                            "enum": [
-                                "CONSUMER_SYSTEM@v2"
-                            ],
-                            "title": "Type",
-                            "type": "string"
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -758,12 +826,12 @@
                     "type": "object"
                 },
                 "YamlControlMarginUnits": {
-                    "description": "An enumeration.",
                     "enum": [
                         "FRACTION",
                         "PERCENTAGE"
                     ],
-                    "title": "YamlControlMarginUnits"
+                    "title": "YamlControlMarginUnits",
+                    "type": "string"
                 },
                 "YamlCrossover": {
                     "additionalProperties": false,
@@ -774,6 +842,7 @@
                             "type": "string"
                         },
                         "NAME": {
+                            "default": null,
                             "description": "The name of the stream. Can be used to identify the crossover stream in multiple streams compressor train",
                             "title": "NAME",
                             "type": "string"
@@ -816,6 +885,7 @@
                             "type": "array"
                         },
                         "SPEED": {
+                            "default": null,
                             "title": "Speed",
                             "type": "number"
                         }
@@ -859,13 +929,10 @@
                             "type": "boolean"
                         },
                         "INTERPOLATION_TYPE": {
-                            "default": "RIGHT",
+                            "const": "RIGHT",
+                            "default": null,
                             "description": "Defines how the time series are interpolated between input time steps.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERPOLATION_TYPE",
-                            "enum": [
-                                "RIGHT"
-                            ],
-                            "title": "INTERPOLATION_TYPE",
-                            "type": "string"
+                            "title": "INTERPOLATION_TYPE"
                         },
                         "NAME": {
                             "description": "Name of the time series.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
@@ -873,12 +940,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "DEFAULT",
                             "description": "Defines the type of time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "DEFAULT"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -895,7 +959,7 @@
                         "UNIT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/Unit"
+                                    "$ref": "#/$defs/Unit"
                                 }
                             ],
                             "default": "kg/Sm3"
@@ -922,12 +986,12 @@
                     "type": "object"
                 },
                 "YamlEfficiencyUnits": {
-                    "description": "An enumeration.",
                     "enum": [
                         "FRACTION",
                         "PERCENTAGE"
                     ],
-                    "title": "YamlEfficiencyUnits"
+                    "title": "YamlEfficiencyUnits",
+                    "type": "string"
                 },
                 "YamlElectricityConsumer": {
                     "additionalProperties": false,
@@ -935,7 +999,7 @@
                         "CATEGORY": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                    "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
                                 }
                             ],
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
@@ -944,49 +1008,49 @@
                         "ENERGY_USAGE_MODEL": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelDirect"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelPump"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelPump"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelPumpSystem"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelPumpSystem"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
                                 },
                                 {
                                     "additionalProperties": {
                                         "anyOf": [
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelDirect"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelPump"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelPump"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelPumpSystem"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelPumpSystem"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
                                             }
                                         ]
                                     },
@@ -1056,11 +1120,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                            "title": "CONDITION"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
-                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1074,7 +1136,7 @@
                                     }
                                 ]
                             },
-                            "title": "CONDITIONS",
+                            "title": "Conditions",
                             "type": "array"
                         },
                         "DISCHARGE_PRESSURE": {
@@ -1089,15 +1151,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid (gas) pressure at compressor outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
+                            "title": "Discharge Pressure"
                         },
-                        "ENERGYFUNCTION": {
-                            "description": "The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS",
-                            "title": "ENERGY_FUNCTION",
+                        "ENERGY_FUNCTION": {
+                            "title": "Energy Function",
                             "type": "string"
                         },
-                        "POWERLOSSFACTOR": {
+                        "POWER_LOSS_FACTOR": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1109,8 +1169,7 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                            "title": "POWERLOSSFACTOR"
+                            "title": "Power Loss Factor"
                         },
                         "RATE": {
                             "anyOf": [
@@ -1124,8 +1183,7 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid (gas) rate through the compressor in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
-                            "title": "RATE"
+                            "title": "Rate"
                         },
                         "SUCTION_PRESSURE": {
                             "anyOf": [
@@ -1139,22 +1197,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid (gas) pressure at compressor inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
+                            "title": "Suction Pressure"
                         },
                         "TYPE": {
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "COMPRESSOR"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "const": "COMPRESSOR",
+                            "title": "Type"
                         }
                     },
-                    "required": [
-                        "TYPE",
-                        "ENERGYFUNCTION"
-                    ],
                     "title": "YamlEnergyUsageModelCompressor",
                     "type": "object"
                 },
@@ -1162,11 +1211,10 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSORS": {
-                            "description": "The compressors in a compressor system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/COMPRESSORS#compressors",
                             "items": {
-                                "$ref": "#/definitions/YamlCompressorSystemCompressor"
+                                "$ref": "#/$defs/YamlCompressorSystemCompressor"
                             },
-                            "title": "COMPRESSORS",
+                            "title": "Compressors",
                             "type": "array"
                         },
                         "CONDITION": {
@@ -1181,11 +1229,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                            "title": "CONDITION"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
-                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1199,18 +1245,17 @@
                                     }
                                 ]
                             },
-                            "title": "CONDITIONS",
+                            "title": "Conditions",
                             "type": "array"
                         },
                         "OPERATIONAL_SETTINGS": {
-                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
                             "items": {
-                                "$ref": "#/definitions/YamlCompressorSystemOperationalSetting"
+                                "$ref": "#/$defs/YamlCompressorSystemOperationalSetting"
                             },
-                            "title": "OPERATIONAL_SETTINGS",
+                            "title": "Operational Settings",
                             "type": "array"
                         },
-                        "POWERLOSSFACTOR": {
+                        "POWER_LOSS_FACTOR": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1222,11 +1267,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                            "title": "POWERLOSSFACTOR"
+                            "title": "Power Loss Factor"
                         },
                         "TOTAL_SYSTEM_RATE": {
-                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1240,23 +1283,14 @@
                                     }
                                 ]
                             },
-                            "title": "TOTAL_SYSTEM_RATE",
+                            "title": "Total System Rate",
                             "type": "array"
                         },
                         "TYPE": {
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "COMPRESSOR_SYSTEM"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "const": "COMPRESSOR_SYSTEM",
+                            "title": "Type"
                         }
                     },
-                    "required": [
-                        "TYPE",
-                        "COMPRESSORS",
-                        "OPERATIONAL_SETTINGS"
-                    ],
                     "title": "YamlEnergyUsageModelCompressorSystem",
                     "type": "object"
                 },
@@ -1264,8 +1298,7 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSOR_TRAIN_MODEL": {
-                            "description": "The compressor train model, reference to a compressor type model defined in MODELS",
-                            "title": "COMPRESSOR_TRAIN_MODEL",
+                            "title": "Compressor Train Model",
                             "type": "string"
                         },
                         "CONDITION": {
@@ -1280,11 +1313,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                            "title": "CONDITION"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
-                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1298,7 +1329,7 @@
                                     }
                                 ]
                             },
-                            "title": "CONDITIONS",
+                            "title": "Conditions",
                             "type": "array"
                         },
                         "DISCHARGE_PRESSURE": {
@@ -1313,8 +1344,7 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid (gas) pressure at compressor train outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
+                            "title": "Discharge Pressure"
                         },
                         "INTERSTAGE_CONTROL_PRESSURE": {
                             "anyOf": [
@@ -1328,10 +1358,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid (gas) pressure at an intermediate step in the compressor train \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERSTAGE_CONTROL_PRESSURE",
-                            "title": "INTERSTAGE_CONTROL_PRESSURE"
+                            "title": "Interstage Control Pressure"
                         },
-                        "POWERLOSSFACTOR": {
+                        "POWER_LOSS_FACTOR": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1343,11 +1372,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                            "title": "POWERLOSSFACTOR"
+                            "title": "Power Loss Factor"
                         },
                         "RATE_PER_STREAM": {
-                            "description": "Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1361,17 +1388,12 @@
                                     }
                                 ]
                             },
-                            "title": "RATE_PER_STREAM",
+                            "title": "Rate Per Stream",
                             "type": "array"
                         },
                         "RATE_UNIT": {
-                            "default": "SM3_PER_DAY",
-                            "description": "Defaults to SM3_PER_DAY, only SM3_PER_DAY implemented for now",
-                            "enum": [
-                                "SM3_PER_DAY"
-                            ],
-                            "title": "RATE_UNIT",
-                            "type": "string"
+                            "const": "SM3_PER_DAY",
+                            "title": "Rate Unit"
                         },
                         "SUCTION_PRESSURE": {
                             "anyOf": [
@@ -1385,25 +1407,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid (gas) pressure at compressor train inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
+                            "title": "Suction Pressure"
                         },
                         "TYPE": {
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
+                            "title": "Type"
                         }
                     },
-                    "required": [
-                        "TYPE",
-                        "COMPRESSOR_TRAIN_MODEL",
-                        "RATE_PER_STREAM",
-                        "SUCTION_PRESSURE",
-                        "DISCHARGE_PRESSURE"
-                    ],
                     "title": "YamlEnergyUsageModelCompressorTrainMultipleStreams",
                     "type": "object"
                 },
@@ -1422,11 +1432,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                            "title": "CONDITION"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
-                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1440,19 +1448,13 @@
                                     }
                                 ]
                             },
-                            "title": "CONDITIONS",
+                            "title": "Conditions",
                             "type": "array"
                         },
                         "CONSUMPTION_RATE_TYPE": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/ConsumptionRateType"
-                                }
-                            ],
-                            "description": "Defines the energy usage rate as stream day or calendar day.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMPTION_RATE_TYPE#consumption-rate-type",
-                            "title": "CONSUMPTION_RATE_TYPE"
+                            "$ref": "#/$defs/ConsumptionRateType"
                         },
-                        "FUELRATE": {
+                        "FUEL_RATE": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1464,8 +1466,7 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fixed power consumer with constant load.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/LOAD",
-                            "title": "FUEL_RATE"
+                            "title": "Fuel Rate"
                         },
                         "LOAD": {
                             "anyOf": [
@@ -1479,10 +1480,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fixed power consumer with constant load.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/LOAD",
-                            "title": "LOAD"
+                            "title": "Load"
                         },
-                        "POWERLOSSFACTOR": {
+                        "POWER_LOSS_FACTOR": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1494,21 +1494,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                            "title": "POWERLOSSFACTOR"
+                            "title": "Power Loss Factor"
                         },
                         "TYPE": {
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "DIRECT"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "const": "DIRECT",
+                            "title": "Type"
                         }
                     },
-                    "required": [
-                        "TYPE"
-                    ],
                     "title": "YamlEnergyUsageModelDirect",
                     "type": "object"
                 },
@@ -1527,11 +1519,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                            "title": "CONDITION"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
-                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1545,7 +1535,7 @@
                                     }
                                 ]
                             },
-                            "title": "CONDITIONS",
+                            "title": "Conditions",
                             "type": "array"
                         },
                         "DISCHARGE_PRESSURE": {
@@ -1560,12 +1550,10 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid pressure at pump outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
+                            "title": "Discharge Pressure"
                         },
-                        "ENERGYFUNCTION": {
-                            "description": "The pump energy function, reference to a pump type facility model defined in FACILITY_INPUTS",
-                            "title": "ENERGY_FUNCTION",
+                        "ENERGY_FUNCTION": {
+                            "title": "Energy Function",
                             "type": "string"
                         },
                         "FLUID_DENSITY": {
@@ -1580,10 +1568,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Density of the fluid in kg/m3. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FLUID_DENSITY",
-                            "title": "FLUID_DENSITY"
+                            "title": "Fluid Density"
                         },
-                        "POWERLOSSFACTOR": {
+                        "POWER_LOSS_FACTOR": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1595,8 +1582,7 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                            "title": "POWERLOSSFACTOR"
+                            "title": "Power Loss Factor"
                         },
                         "RATE": {
                             "anyOf": [
@@ -1610,8 +1596,7 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid rate through the pump in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
-                            "title": "RATE"
+                            "title": "Rate"
                         },
                         "SUCTION_PRESSURE": {
                             "anyOf": [
@@ -1625,23 +1610,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Fluid pressure at pump inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
+                            "title": "Suction Pressure"
                         },
                         "TYPE": {
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "PUMP"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "const": "PUMP",
+                            "title": "Type"
                         }
                     },
-                    "required": [
-                        "TYPE",
-                        "ENERGYFUNCTION",
-                        "FLUID_DENSITY"
-                    ],
                     "title": "YamlEnergyUsageModelPump",
                     "type": "object"
                 },
@@ -1660,11 +1635,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                            "title": "CONDITION"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
-                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1678,7 +1651,7 @@
                                     }
                                 ]
                             },
-                            "title": "CONDITIONS",
+                            "title": "Conditions",
                             "type": "array"
                         },
                         "FLUID_DENSITY": {
@@ -1693,18 +1666,16 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Density of the fluid in kg/m3. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FLUID_DENSITY",
-                            "title": "FLUID_DENSITY"
+                            "title": "Fluid Density"
                         },
                         "OPERATIONAL_SETTINGS": {
-                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
                             "items": {
-                                "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
+                                "$ref": "#/$defs/YamlPumpSystemOperationalSettings"
                             },
-                            "title": "OPERATIONAL_SETTINGS",
+                            "title": "Operational Settings",
                             "type": "array"
                         },
-                        "POWERLOSSFACTOR": {
+                        "POWER_LOSS_FACTOR": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1716,15 +1687,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                            "title": "POWERLOSSFACTOR"
+                            "title": "Power Loss Factor"
                         },
                         "PUMPS": {
-                            "description": "The pumps in a pump system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PUMPS#pumps",
                             "items": {
-                                "$ref": "#/definitions/YamlPumpSystemPump"
+                                "$ref": "#/$defs/YamlPumpSystemPump"
                             },
-                            "title": "PUMPS",
+                            "title": "Pumps",
                             "type": "array"
                         },
                         "TOTAL_SYSTEM_RATE": {
@@ -1739,23 +1708,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
-                            "title": "TOTAL_SYSTEM_RATE"
+                            "title": "Total System Rate"
                         },
                         "TYPE": {
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "PUMP_SYSTEM"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "const": "PUMP_SYSTEM",
+                            "title": "Type"
                         }
                     },
-                    "required": [
-                        "TYPE",
-                        "PUMPS",
-                        "OPERATIONAL_SETTINGS"
-                    ],
                     "title": "YamlEnergyUsageModelPumpSystem",
                     "type": "object"
                 },
@@ -1774,11 +1733,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                            "title": "CONDITION"
+                            "title": "Condition"
                         },
                         "CONDITIONS": {
-                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
                             "items": {
                                 "anyOf": [
                                     {
@@ -1792,15 +1749,14 @@
                                     }
                                 ]
                             },
-                            "title": "CONDITIONS",
+                            "title": "Conditions",
                             "type": "array"
                         },
-                        "ENERGYFUNCTION": {
-                            "description": "The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS",
-                            "title": "ENERGY_FUNCTION",
+                        "ENERGY_FUNCTION": {
+                            "title": "Energy Function",
                             "type": "string"
                         },
-                        "POWERLOSSFACTOR": {
+                        "POWER_LOSS_FACTOR": {
                             "anyOf": [
                                 {
                                     "type": "string"
@@ -1812,43 +1768,32 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                            "title": "POWERLOSSFACTOR"
+                            "title": "Power Loss Factor"
                         },
                         "TYPE": {
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "TABULATED"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "const": "TABULATED",
+                            "title": "Type"
                         },
                         "VARIABLES": {
-                            "description": "Variables for the tabulated energy function \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/VARIABLES#variables",
                             "items": {
-                                "$ref": "#/definitions/YamlTabulatedVariable"
+                                "$ref": "#/$defs/YamlTabulatedVariable"
                             },
-                            "title": "VARIABLES",
+                            "title": "Variables",
                             "type": "array"
                         }
                     },
-                    "required": [
-                        "TYPE",
-                        "ENERGYFUNCTION",
-                        "VARIABLES"
-                    ],
                     "title": "YamlEnergyUsageModelTabulated",
                     "type": "object"
                 },
                 "YamlEosModel": {
-                    "description": "An enumeration.",
                     "enum": [
                         "SRK",
                         "PR",
                         "GERG_SRK",
                         "GERG_PR"
                     ],
-                    "title": "YamlEosModel"
+                    "title": "YamlEosModel",
+                    "type": "string"
                 },
                 "YamlFacilityAdjustment": {
                     "additionalProperties": false,
@@ -1875,7 +1820,7 @@
                         "CATEGORY": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                    "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
                                 }
                             ],
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
@@ -1884,37 +1829,37 @@
                         "ENERGY_USAGE_MODEL": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelDirect"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
                                 },
                                 {
                                     "additionalProperties": {
                                         "anyOf": [
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelDirect"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
                                             },
                                             {
-                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                                "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
                                             }
                                         ]
                                     },
@@ -1936,6 +1881,7 @@
                                     "type": "object"
                                 }
                             ],
+                            "default": null,
                             "description": "The fuel used by the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
                             "title": "FUEL"
                         },
@@ -1959,21 +1905,23 @@
                         "CATEGORY": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/FuelTypeUserDefinedCategoryType"
+                                    "$ref": "#/$defs/FuelTypeUserDefinedCategoryType"
                                 }
                             ],
+                            "default": null,
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
                         },
                         "EMISSIONS": {
                             "description": "Emission types and their attributes for this fuel.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/EMISSIONS",
                             "items": {
-                                "$ref": "#/definitions/YamlEmission"
+                                "$ref": "#/$defs/YamlEmission"
                             },
                             "title": "EMISSIONS",
                             "type": "array"
                         },
                         "LOWER_HEATING_VALUE": {
+                            "default": null,
                             "description": "Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
                             "title": "LOWER_HEATING_VALUE",
                             "type": "number"
@@ -1997,11 +1945,11 @@
                         "CATEGORY": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                    "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
                                 },
                                 {
                                     "additionalProperties": {
-                                        "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                        "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
                                     },
                                     "type": "object"
                                 }
@@ -2014,16 +1962,16 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/YamlElectricityConsumer"
+                                        "$ref": "#/$defs/YamlElectricityConsumer"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlConsumerSystem_YamlCompressor_"
+                                        "$ref": "#/$defs/YamlConsumerSystem_YamlCompressor_"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlConsumerSystem_YamlPump_"
+                                        "$ref": "#/$defs/YamlConsumerSystem_YamlPump_"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlConsumerSystem_YamlTrain_YamlCompressor__"
+                                        "$ref": "#/$defs/YamlConsumerSystem_YamlTrain_YamlCompressor__"
                                     }
                                 ]
                             },
@@ -2057,6 +2005,7 @@
                                     "type": "object"
                                 }
                             ],
+                            "default": null,
                             "description": "The fuel used by the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
                             "title": "FUEL"
                         },
@@ -2081,9 +2030,10 @@
                         "ADJUSTMENT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                    "$ref": "#/$defs/YamlFacilityAdjustment"
                                 }
                             ],
+                            "default": null,
                             "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
                             "title": "ADJUSTMENT"
                         },
@@ -2098,12 +2048,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "ELECTRICITY2FUEL",
                             "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "ELECTRICITY2FUEL"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -2118,12 +2065,9 @@
                     "additionalProperties": false,
                     "properties": {
                         "CHART_TYPE": {
+                            "const": "GENERIC_FROM_DESIGN_POINT",
                             "default": "GENERIC_FROM_DESIGN_POINT",
-                            "enum": [
-                                "GENERIC_FROM_DESIGN_POINT"
-                            ],
-                            "title": "Chart Type",
-                            "type": "string"
+                            "title": "Chart Type"
                         },
                         "DESIGN_HEAD": {
                             "description": "Design head for generic compressor chart",
@@ -2146,16 +2090,13 @@
                             "type": "number"
                         },
                         "TYPE": {
+                            "const": "COMPRESSOR_CHART",
                             "default": "COMPRESSOR_CHART",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "COMPRESSOR_CHART"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         },
                         "UNITS": {
-                            "$ref": "#/definitions/YamlUnits"
+                            "$ref": "#/$defs/YamlUnits"
                         }
                     },
                     "required": [
@@ -2172,12 +2113,9 @@
                     "additionalProperties": false,
                     "properties": {
                         "CHART_TYPE": {
+                            "const": "GENERIC_FROM_INPUT",
                             "default": "GENERIC_FROM_INPUT",
-                            "enum": [
-                                "GENERIC_FROM_INPUT"
-                            ],
-                            "title": "Chart Type",
-                            "type": "string"
+                            "title": "Chart Type"
                         },
                         "NAME": {
                             "description": "Name of the model. See documentation for more information.",
@@ -2190,16 +2128,18 @@
                             "type": "number"
                         },
                         "TYPE": {
+                            "const": "COMPRESSOR_CHART",
                             "default": "COMPRESSOR_CHART",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "COMPRESSOR_CHART"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         },
                         "UNITS": {
-                            "$ref": "#/definitions/YamlUnits"
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/YamlUnits"
+                                }
+                            ],
+                            "default": null
                         }
                     },
                     "required": [
@@ -2210,13 +2150,13 @@
                     "type": "object"
                 },
                 "YamlHeadUnits": {
-                    "description": "An enumeration.",
                     "enum": [
                         "M",
                         "KJ_PER_KG",
                         "JOULE_PER_KG"
                     ],
-                    "title": "YamlHeadUnits"
+                    "title": "YamlHeadUnits",
+                    "type": "string"
                 },
                 "YamlInstallation": {
                     "additionalProperties": false,
@@ -2224,9 +2164,10 @@
                         "CATEGORY": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/InstallationUserDefinedCategoryType"
+                                    "$ref": "#/$defs/InstallationUserDefinedCategoryType"
                                 }
                             ],
+                            "default": null,
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
                         },
@@ -2242,24 +2183,26 @@
                                     "type": "object"
                                 }
                             ],
+                            "default": null,
                             "description": "Main fuel type for installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
                             "title": "FUEL"
                         },
                         "FUELCONSUMERS": {
+                            "default": null,
                             "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/YamlFuelConsumer"
+                                        "$ref": "#/$defs/YamlFuelConsumer"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlConsumerSystem_YamlCompressor_"
+                                        "$ref": "#/$defs/YamlConsumerSystem_YamlCompressor_"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlConsumerSystem_YamlPump_"
+                                        "$ref": "#/$defs/YamlConsumerSystem_YamlPump_"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlConsumerSystem_YamlTrain_YamlCompressor__"
+                                        "$ref": "#/$defs/YamlConsumerSystem_YamlTrain_YamlCompressor__"
                                     }
                                 ]
                             },
@@ -2267,9 +2210,10 @@
                             "type": "array"
                         },
                         "GENERATORSETS": {
+                            "default": null,
                             "description": "Defines one or more generator sets.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/GENERATORSETS",
                             "items": {
-                                "$ref": "#/definitions/YamlGeneratorSet"
+                                "$ref": "#/$defs/YamlGeneratorSet"
                             },
                             "title": "GENERATORSETS",
                             "type": "array"
@@ -2277,23 +2221,13 @@
                         "HCEXPORT": {
                             "anyOf": [
                                 {
-                                    "anyOf": [
-                                        {
-                                            "type": "integer"
-                                        },
-                                        {
-                                            "type": "number"
-                                        },
-                                        {
-                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
-                                            "type": "string"
-                                        }
-                                    ],
-                                    "examples": [
-                                        "SIM1;OIL_PROD {+} 1000",
-                                        5
-                                    ],
-                                    "title": "Expression"
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "string"
                                 },
                                 {
                                     "additionalProperties": {
@@ -2305,19 +2239,14 @@
                                                 "type": "number"
                                             },
                                             {
-                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                                 "type": "string"
                                             }
-                                        ],
-                                        "examples": [
-                                            "SIM1;OIL_PROD {+} 1000",
-                                            5
-                                        ],
-                                        "title": "Expression"
+                                        ]
                                     },
                                     "type": "object"
                                 }
                             ],
+                            "default": null,
                             "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HCEXPORT",
                             "title": "HCEXPORT"
                         },
@@ -2329,23 +2258,13 @@
                         "REGULARITY": {
                             "anyOf": [
                                 {
-                                    "anyOf": [
-                                        {
-                                            "type": "integer"
-                                        },
-                                        {
-                                            "type": "number"
-                                        },
-                                        {
-                                            "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
-                                            "type": "string"
-                                        }
-                                    ],
-                                    "examples": [
-                                        "SIM1;OIL_PROD {+} 1000",
-                                        5
-                                    ],
-                                    "title": "Expression"
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "string"
                                 },
                                 {
                                     "additionalProperties": {
@@ -2357,26 +2276,22 @@
                                                 "type": "number"
                                             },
                                             {
-                                                "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                                 "type": "string"
                                             }
-                                        ],
-                                        "examples": [
-                                            "SIM1;OIL_PROD {+} 1000",
-                                            5
-                                        ],
-                                        "title": "Expression"
+                                        ]
                                     },
                                     "type": "object"
                                 }
                             ],
+                            "default": null,
                             "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
                             "title": "REGULARITY"
                         },
                         "VENTING_EMITTERS": {
+                            "default": null,
                             "description": "Covers the direct emissions on the installation that are not consuming energy",
                             "items": {
-                                "$ref": "#/definitions/YamlVentingEmitter"
+                                "$ref": "#/$defs/YamlVentingEmitter"
                             },
                             "title": "VENTING_EMITTERS",
                             "type": "array"
@@ -2394,7 +2309,7 @@
                         "DOWNSTREAM_PRESSURE_CONTROL": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPressureControl"
+                                    "$ref": "#/$defs/YamlPressureControl"
                                 }
                             ],
                             "description": "Pressure control.",
@@ -2403,7 +2318,7 @@
                         "UPSTREAM_PRESSURE_CONTROL": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPressureControl"
+                                    "$ref": "#/$defs/YamlPressureControl"
                                 }
                             ],
                             "description": "Pressure control.",
@@ -2453,12 +2368,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "MISCELLANEOUS",
                             "description": "Defines the type of time series input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "MISCELLANEOUS"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -2474,6 +2386,7 @@
                     "additionalProperties": false,
                     "properties": {
                         "FLUID_MODEL": {
+                            "default": null,
                             "description": "Reference to a fluid model",
                             "title": "FLUID_MODEL",
                             "type": "string"
@@ -2504,21 +2417,23 @@
                         "EOS_MODEL": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlEosModel"
+                                    "$ref": "#/$defs/YamlEosModel"
                                 }
                             ],
                             "default": "SRK"
                         },
                         "FLUID_MODEL_TYPE": {
+                            "const": "PREDEFINED",
                             "default": "PREDEFINED",
-                            "enum": [
-                                "PREDEFINED"
-                            ],
-                            "title": "Fluid Model Type",
-                            "type": "string"
+                            "title": "Fluid Model Type"
                         },
                         "GAS_TYPE": {
-                            "$ref": "#/definitions/YamlPredefinedFluidType"
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/YamlPredefinedFluidType"
+                                }
+                            ],
+                            "default": null
                         },
                         "NAME": {
                             "description": "Name of the model. See documentation for more information.",
@@ -2526,11 +2441,8 @@
                             "type": "string"
                         },
                         "TYPE": {
-                            "enum": [
-                                "FLUID"
-                            ],
-                            "title": "Type",
-                            "type": "string"
+                            "const": "FLUID",
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -2541,7 +2453,6 @@
                     "type": "object"
                 },
                 "YamlPredefinedFluidType": {
-                    "description": "An enumeration.",
                     "enum": [
                         "ULTRA_DRY",
                         "DRY",
@@ -2549,7 +2460,8 @@
                         "RICH",
                         "ULTRA_RICH"
                     ],
-                    "title": "YamlPredefinedFluidType"
+                    "title": "YamlPredefinedFluidType",
+                    "type": "string"
                 },
                 "YamlPressure": {
                     "additionalProperties": false,
@@ -2557,7 +2469,7 @@
                         "UNIT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/Unit"
+                                    "$ref": "#/$defs/Unit"
                                 }
                             ],
                             "default": "bara"
@@ -2584,7 +2496,6 @@
                     "type": "object"
                 },
                 "YamlPressureControl": {
-                    "description": "An enumeration.",
                     "enum": [
                         "DOWNSTREAM_CHOKE",
                         "UPSTREAM_CHOKE",
@@ -2592,15 +2503,24 @@
                         "INDIVIDUAL_ASV_RATE",
                         "COMMON_ASV"
                     ],
-                    "title": "YamlPressureControl"
+                    "title": "YamlPressureControl",
+                    "type": "string"
                 },
                 "YamlPump": {
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
+                            "title": "CATEGORY"
                         },
                         "ENERGY_USAGE_MODEL": {
                             "anyOf": [
@@ -2622,12 +2542,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "PUMP@v2",
                             "description": "The type of the component",
-                            "enum": [
-                                "PUMP@v2"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -2644,9 +2561,10 @@
                         "ADJUSTMENT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                    "$ref": "#/$defs/YamlFacilityAdjustment"
                                 }
                             ],
+                            "default": null,
                             "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
                             "title": "ADJUSTMENT"
                         },
@@ -2656,6 +2574,7 @@
                             "type": "string"
                         },
                         "HEAD_MARGIN": {
+                            "default": null,
                             "description": "Adjustment of the head margin for power calibration.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HEAD_MARGIN",
                             "title": "HEAD_MARGIN",
                             "type": "number"
@@ -2666,17 +2585,14 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "PUMP_CHART_SINGLE_SPEED",
                             "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "PUMP_CHART_SINGLE_SPEED"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         },
                         "UNITS": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPumpChartUnits"
+                                    "$ref": "#/$defs/YamlPumpChartUnits"
                                 }
                             ],
                             "description": "Units for pump charts: RATE, HEAD and EFFICIENCY.",
@@ -2715,12 +2631,9 @@
                             "type": "string"
                         },
                         "RATE": {
+                            "const": "AM3_PER_HOUR",
                             "description": "Unit for rate in pump chart. Currently only AM3_PER_HOUR is supported",
-                            "enum": [
-                                "AM3_PER_HOUR"
-                            ],
-                            "title": "RATE",
-                            "type": "string"
+                            "title": "RATE"
                         }
                     },
                     "required": [
@@ -2737,9 +2650,10 @@
                         "ADJUSTMENT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                    "$ref": "#/$defs/YamlFacilityAdjustment"
                                 }
                             ],
+                            "default": null,
                             "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
                             "title": "ADJUSTMENT"
                         },
@@ -2749,6 +2663,7 @@
                             "type": "string"
                         },
                         "HEAD_MARGIN": {
+                            "default": null,
                             "description": "Adjustment of the head margin for power calibration.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HEAD_MARGIN",
                             "title": "HEAD_MARGIN",
                             "type": "number"
@@ -2759,17 +2674,14 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "PUMP_CHART_VARIABLE_SPEED",
                             "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "PUMP_CHART_VARIABLE_SPEED"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         },
                         "UNITS": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPumpChartUnits"
+                                    "$ref": "#/$defs/YamlPumpChartUnits"
                                 }
                             ],
                             "description": "Units for pump charts: RATE, HEAD and EFFICIENCY.",
@@ -2789,11 +2701,10 @@
                     "additionalProperties": false,
                     "properties": {
                         "CROSSOVER": {
-                            "description": "Set cross over rules in system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#crossover",
                             "items": {
                                 "type": "integer"
                             },
-                            "title": "CROSSOVER",
+                            "title": "Crossover",
                             "type": "array"
                         },
                         "DISCHARGE_PRESSURE": {
@@ -2808,11 +2719,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
+                            "title": "Discharge Pressure"
                         },
                         "DISCHARGE_PRESSURES": {
-                            "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#discharge-pressures",
                             "items": {
                                 "anyOf": [
                                     {
@@ -2826,11 +2735,10 @@
                                     }
                                 ]
                             },
-                            "title": "DISCHARGE_PRESSURES",
+                            "title": "Discharge Pressures",
                             "type": "array"
                         },
                         "FLUID_DENSITIES": {
-                            "description": "Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#fluid-densities",
                             "items": {
                                 "anyOf": [
                                     {
@@ -2844,11 +2752,10 @@
                                     }
                                 ]
                             },
-                            "title": "FLUID_DENSITIES",
+                            "title": "Fluid Densities",
                             "type": "array"
                         },
                         "RATES": {
-                            "description": "Set rate per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rates",
                             "items": {
                                 "anyOf": [
                                     {
@@ -2862,11 +2769,10 @@
                                     }
                                 ]
                             },
-                            "title": "RATES",
+                            "title": "Rates",
                             "type": "array"
                         },
                         "RATE_FRACTIONS": {
-                            "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rate-fractions",
                             "items": {
                                 "anyOf": [
                                     {
@@ -2880,7 +2786,7 @@
                                     }
                                 ]
                             },
-                            "title": "RATE_FRACTIONS",
+                            "title": "Rate Fractions",
                             "type": "array"
                         },
                         "SUCTION_PRESSURE": {
@@ -2895,11 +2801,9 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
+                            "title": "Suction Pressure"
                         },
                         "SUCTION_PRESSURES": {
-                            "description": "Set suction pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#suction-pressures",
                             "items": {
                                 "anyOf": [
                                     {
@@ -2913,7 +2817,7 @@
                                     }
                                 ]
                             },
-                            "title": "SUCTION_PRESSURES",
+                            "title": "Suction Pressures",
                             "type": "array"
                         }
                     },
@@ -2924,20 +2828,14 @@
                     "additionalProperties": false,
                     "properties": {
                         "CHART": {
-                            "description": "Reference to a pump type facility model defined in FACILITY_INPUTS",
-                            "title": "COMPRESSOR_MODEL",
+                            "title": "Chart",
                             "type": "string"
                         },
                         "NAME": {
-                            "description": "Name of the pump",
-                            "title": "NAME",
+                            "title": "Name",
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "NAME",
-                        "CHART"
-                    ],
                     "title": "YamlPumpSystemPump",
                     "type": "object"
                 },
@@ -2947,7 +2845,7 @@
                         "TYPE": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/RateType"
+                                    "$ref": "#/$defs/RateType"
                                 }
                             ],
                             "default": "STREAM_DAY"
@@ -2955,7 +2853,7 @@
                         "UNIT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/Unit"
+                                    "$ref": "#/$defs/Unit"
                                 }
                             ],
                             "default": "Sm3/d"
@@ -2982,26 +2880,32 @@
                     "type": "object"
                 },
                 "YamlRateUnits": {
-                    "description": "An enumeration.",
-                    "enum": [
-                        "AM3_PER_HOUR"
-                    ],
+                    "const": "AM3_PER_HOUR",
                     "title": "YamlRateUnits"
                 },
                 "YamlSimplifiedVariableSpeedCompressorTrain": {
                     "additionalProperties": false,
                     "properties": {
                         "CALCULATE_MAX_RATE": {
-                            "title": "Calculate Max Rate",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": false,
+                            "description": "Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly.",
+                            "title": "CALCULATE_MAX_RATE"
                         },
                         "COMPRESSOR_TRAIN": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlCompressorStages"
+                                    "$ref": "#/$defs/YamlCompressorStages"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlUnknownCompressorStages"
+                                    "$ref": "#/$defs/YamlUnknownCompressorStages"
                                 }
                             ],
                             "description": "Compressor train definition",
@@ -3013,6 +2917,7 @@
                             "type": "string"
                         },
                         "MAXIMUM_POWER": {
+                            "default": null,
                             "description": "Optional constant MW maximum power the compressor train can require",
                             "title": "MAXIMUM_POWER",
                             "type": "number"
@@ -3023,16 +2928,15 @@
                             "type": "string"
                         },
                         "POWER_ADJUSTMENT_CONSTANT": {
-                            "title": "Power Adjustment Constant",
+                            "default": 0.0,
+                            "description": "Constant to adjust power usage in MW",
+                            "title": "POWER_ADJUSTMENT_CONSTANT",
                             "type": "number"
                         },
                         "TYPE": {
+                            "const": "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -3048,17 +2952,14 @@
                     "additionalProperties": false,
                     "properties": {
                         "CHART_TYPE": {
+                            "const": "SINGLE_SPEED",
                             "default": "SINGLE_SPEED",
-                            "enum": [
-                                "SINGLE_SPEED"
-                            ],
-                            "title": "Chart Type",
-                            "type": "string"
+                            "title": "Chart Type"
                         },
                         "CURVE": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlCurve"
+                                    "$ref": "#/$defs/YamlCurve"
                                 }
                             ],
                             "description": "One single compressor chart curve.",
@@ -3070,16 +2971,18 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "COMPRESSOR_CHART",
                             "default": "COMPRESSOR_CHART",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "COMPRESSOR_CHART"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         },
                         "UNITS": {
-                            "$ref": "#/definitions/YamlUnits"
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/YamlUnits"
+                                }
+                            ],
+                            "default": null
                         }
                     },
                     "required": [
@@ -3103,8 +3006,18 @@
                             "type": "number"
                         },
                         "PRESSURE_DROP_AHEAD_OF_STAGE": {
-                            "title": "Pressure Drop Ahead Of Stage",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "description": "Pressure drop before compression stage [in bar]",
+                                    "title": "PRESSURE_DROP_AHEAD_OF_STAGE",
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Pressure Drop Ahead Of Stage"
                         }
                     },
                     "required": [
@@ -3120,7 +3033,7 @@
                         "STAGES": {
                             "description": "List of compressor stages",
                             "items": {
-                                "$ref": "#/definitions/YamlSingleSpeedCompressorStage"
+                                "$ref": "#/$defs/YamlSingleSpeedCompressorStage"
                             },
                             "title": "STAGES",
                             "type": "array"
@@ -3136,13 +3049,22 @@
                     "additionalProperties": false,
                     "properties": {
                         "CALCULATE_MAX_RATE": {
-                            "title": "Calculate Max Rate",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": false,
+                            "description": "Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly.",
+                            "title": "CALCULATE_MAX_RATE"
                         },
                         "COMPRESSOR_TRAIN": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlSingleSpeedCompressorStages"
+                                    "$ref": "#/$defs/YamlSingleSpeedCompressorStages"
                                 }
                             ],
                             "description": "Compressor train definition",
@@ -3154,10 +3076,20 @@
                             "type": "string"
                         },
                         "MAXIMUM_DISCHARGE_PRESSURE": {
-                            "title": "Maximum Discharge Pressure",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "description": "Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
+                            "title": "MAXIMUM_DISCHARGE_PRESSURE"
                         },
                         "MAXIMUM_POWER": {
+                            "default": null,
                             "description": "Optional constant MW maximum power the compressor train can require",
                             "title": "MAXIMUM_POWER",
                             "type": "number"
@@ -3168,25 +3100,25 @@
                             "type": "string"
                         },
                         "POWER_ADJUSTMENT_CONSTANT": {
-                            "title": "Power Adjustment Constant",
+                            "default": 0.0,
+                            "description": "Constant to adjust power usage in MW",
+                            "title": "POWER_ADJUSTMENT_CONSTANT",
                             "type": "number"
                         },
                         "PRESSURE_CONTROL": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPressureControl"
+                                    "$ref": "#/$defs/YamlPressureControl"
                                 }
                             ],
+                            "default": null,
                             "description": "Method for pressure control",
                             "title": "PRESSURE_CONTROL"
                         },
                         "TYPE": {
+                            "const": "SINGLE_SPEED_COMPRESSOR_TRAIN",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "SINGLE_SPEED_COMPRESSOR_TRAIN"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -3211,15 +3143,10 @@
                                     "type": "number"
                                 },
                                 {
-                                    "pattern": "^[\\w * ^ . : ; () {} = > < + \\- /$]+$",
                                     "type": "string"
                                 }
                             ],
-                            "examples": [
-                                "SIM1;OIL_PROD {+} 1000",
-                                5
-                            ],
-                            "title": "Expression"
+                            "title": "Value"
                         }
                     },
                     "required": [
@@ -3237,6 +3164,7 @@
                             "type": "string"
                         },
                         "NAME": {
+                            "default": null,
                             "description": "The name of the stream. ",
                             "title": "NAME",
                             "type": "string"
@@ -3258,38 +3186,54 @@
                     "additionalProperties": false,
                     "properties": {
                         "FLUID_DENSITY": {
-                            "allOf": [
+                            "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlDensity"
+                                    "$ref": "#/$defs/YamlDensity"
+                                },
+                                {
+                                    "type": "null"
                                 }
                             ],
+                            "default": null,
                             "description": "The fluid density...",
                             "title": "Fluid density"
                         },
                         "PRESSURE": {
-                            "allOf": [
+                            "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPressure"
+                                    "$ref": "#/$defs/YamlPressure"
+                                },
+                                {
+                                    "type": "null"
                                 }
                             ],
+                            "default": null,
                             "description": "Pressure..",
                             "title": "Pressure"
                         },
                         "RATE": {
-                            "allOf": [
+                            "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlRate"
+                                    "$ref": "#/$defs/YamlRate"
+                                },
+                                {
+                                    "type": "null"
                                 }
                             ],
+                            "default": null,
                             "description": "Rate...",
                             "title": "Rate"
                         },
                         "TEMPERATURE": {
-                            "allOf": [
+                            "anyOf": [
                                 {
-                                    "$ref": "#/definitions/YamlTemperature"
+                                    "$ref": "#/$defs/YamlTemperature"
+                                },
+                                {
+                                    "type": "null"
                                 }
                             ],
+                            "default": null,
                             "description": "Temperature...",
                             "title": "Temperature"
                         }
@@ -3301,12 +3245,20 @@
                     "additionalProperties": false,
                     "properties": {
                         "CROSSOVER": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/$defs/YamlCrossover"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "CROSSOVER specifies if rates are to be crossed over to another consumer if rate capacity is exceeded. If the energy consumption calculation is not successful for a consumer, and the consumer has a valid cross-over defined, the consumer will be allocated its maximum rate and the exceeding rate will be added to the cross-over consumer.\nTo avoid loops, a consumer can only be either receiving or giving away rate. For a cross-over to be valid, the discharge pressure at the consumer \"receiving\" overshooting rate must be higher than or equal to the discharge pressure of the \"sending\" consumer. This is because it is possible to choke pressure down to meet the outlet pressure in a flow line with lower pressure, but not possible to \"pressure up\" in the crossover flow line.\nSome examples show how the crossover logic works:\nCrossover is given as and list of integer values for the first position is the first consumer, second position is the second consumer, etc. The number specifies which consumer to send cross-over flow to, and 0 signifies no cross-over possible. Note that we use 1-index here.\nExample 1:\nTwo consumers where there is a cross-over such that if the rate for the first consumer exceeds its capacity, the excess rate will be processed by the second consumer. The second consumer can not cross-over to anyone.\nCROSSOVER: \n  - FROM: consumer1 \n    TO: consumer2 \nExample 2:\nThe first and second consumers may both send exceeding rate to the third consumer if their capacity is exceeded.\nCROSSOVER: \n  - FROM: consumer1 \n    TO: consumer3 \n  - FROM: consumer2 \n    TO: consumer3 \n",
-                            "items": {
-                                "$ref": "#/definitions/YamlCrossover"
-                            },
-                            "title": "Crossover",
-                            "type": "array"
+                            "title": "Crossover"
                         }
                     },
                     "title": "YamlSystemComponentConditions",
@@ -3318,9 +3270,10 @@
                         "ADJUSTMENT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlFacilityAdjustment"
+                                    "$ref": "#/$defs/YamlFacilityAdjustment"
                                 }
                             ],
+                            "default": null,
                             "description": "Definition of adjustments to correct for mismatches in facility energy usage.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ADJUSTMENT",
                             "title": "ADJUSTMENT"
                         },
@@ -3335,12 +3288,9 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "TABULAR",
                             "description": "Defines the type of model applied on the data in the file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "enum": [
-                                "TABULAR"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -3366,19 +3316,13 @@
                                     "type": "integer"
                                 }
                             ],
-                            "description": "Expression defining the variable",
-                            "title": "EXPRESSION"
+                            "title": "Expression"
                         },
                         "NAME": {
-                            "description": "Name of variable. Must correspond exactly to header/column name in the energy function",
-                            "title": "NAME",
+                            "title": "Name",
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "NAME",
-                        "EXPRESSION"
-                    ],
                     "title": "YamlTabulatedVariable",
                     "type": "object"
                 },
@@ -3388,7 +3332,7 @@
                         "UNIT": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/Unit"
+                                    "$ref": "#/$defs/Unit"
                                 }
                             ],
                             "default": "K"
@@ -3418,9 +3362,17 @@
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
                             "description": "User defined category",
-                            "title": "CATEGORY",
-                            "type": "string"
+                            "title": "CATEGORY"
                         },
                         "NAME": {
                             "description": "Consumer name",
@@ -3429,7 +3381,7 @@
                         },
                         "STAGES": {
                             "items": {
-                                "$ref": "#/definitions/YamlCompressor"
+                                "$ref": "#/$defs/YamlCompressor"
                             },
                             "title": "Stages",
                             "type": "array"
@@ -3437,19 +3389,16 @@
                         "STREAMS": {
                             "description": "List of streams",
                             "items": {
-                                "$ref": "#/definitions/YamlStream"
+                                "$ref": "#/$defs/YamlStream"
                             },
                             "title": "Streams",
                             "type": "array"
                         },
                         "TYPE": {
+                            "const": "TRAIN@V2",
                             "default": "TRAIN@V2",
                             "description": "The type of the component",
-                            "enum": [
-                                "TRAIN@V2"
-                            ],
-                            "title": "Type",
-                            "type": "string"
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -3529,12 +3478,9 @@
                             "type": "array"
                         },
                         "TYPE": {
+                            "const": "TURBINE",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "TURBINE"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -3544,7 +3490,7 @@
                         "TURBINE_LOADS",
                         "TURBINE_EFFICIENCIES"
                     ],
-                    "title": "YamlTurbine",
+                    "title": "TURBINE",
                     "type": "object"
                 },
                 "YamlUnits": {
@@ -3553,7 +3499,7 @@
                         "EFFICIENCY": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlEfficiencyUnits"
+                                    "$ref": "#/$defs/YamlEfficiencyUnits"
                                 }
                             ],
                             "default": "PERCENTAGE",
@@ -3563,7 +3509,7 @@
                         "HEAD": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlHeadUnits"
+                                    "$ref": "#/$defs/YamlHeadUnits"
                                 }
                             ],
                             "default": "M",
@@ -3573,7 +3519,7 @@
                         "RATE": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlRateUnits"
+                                    "$ref": "#/$defs/YamlRateUnits"
                                 }
                             ],
                             "default": "AM3_PER_HOUR",
@@ -3598,8 +3544,18 @@
                             "type": "number"
                         },
                         "MAXIMUM_PRESSURE_RATIO_PER_STAGE": {
-                            "title": "Maximum Pressure Ratio Per Stage",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "description": "Maximum pressure ratio per stage. Number of compressors will be large enough to ensure no pressure ratios are above a given maximum pressure ratio per stage, but not larger",
+                                    "title": "MAXIMUM_PRESSURE_RATIO_PER_STAGE",
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Maximum Pressure Ratio Per Stage"
                         }
                     },
                     "required": [
@@ -3613,23 +3569,20 @@
                     "additionalProperties": false,
                     "properties": {
                         "CHART_TYPE": {
+                            "const": "VARIABLE_SPEED",
                             "default": "VARIABLE_SPEED",
-                            "enum": [
-                                "VARIABLE_SPEED"
-                            ],
-                            "title": "Chart Type",
-                            "type": "string"
+                            "title": "Chart Type"
                         },
                         "CURVES": {
                             "anyOf": [
                                 {
                                     "items": {
-                                        "$ref": "#/definitions/YamlCurve"
+                                        "$ref": "#/$defs/YamlCurve"
                                     },
                                     "type": "array"
                                 },
                                 {
-                                    "$ref": "#/definitions/YamlCurvesFile"
+                                    "$ref": "#/$defs/YamlCurvesFile"
                                 }
                             ],
                             "description": "Compressor chart curves, one per speed.",
@@ -3641,16 +3594,18 @@
                             "type": "string"
                         },
                         "TYPE": {
+                            "const": "COMPRESSOR_CHART",
                             "default": "COMPRESSOR_CHART",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "COMPRESSOR_CHART"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         },
                         "UNITS": {
-                            "$ref": "#/definitions/YamlUnits"
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/YamlUnits"
+                                }
+                            ],
+                            "default": null
                         }
                     },
                     "required": [
@@ -3668,10 +3623,12 @@
                             "type": "string"
                         },
                         "CONTROL_MARGIN": {
+                            "default": null,
                             "title": "Control Margin",
                             "type": "number"
                         },
                         "CONTROL_MARGIN_UNIT": {
+                            "default": null,
                             "enum": [
                                 "PERCENTAGE",
                                 "FRACTION"
@@ -3685,6 +3642,7 @@
                             "type": "number"
                         },
                         "PRESSURE_DROP_AHEAD_OF_STAGE": {
+                            "default": null,
                             "description": "Pressure drop before compression stage [in bar]",
                             "title": "PRESSURE_DROP_AHEAD_OF_STAGE",
                             "type": "number"
@@ -3703,7 +3661,7 @@
                         "STAGES": {
                             "description": "List of compressor stages",
                             "items": {
-                                "$ref": "#/definitions/YamlVariableSpeedCompressorStage"
+                                "$ref": "#/$defs/YamlVariableSpeedCompressorStage"
                             },
                             "title": "STAGES",
                             "type": "array"
@@ -3719,13 +3677,22 @@
                     "additionalProperties": false,
                     "properties": {
                         "CALCULATE_MAX_RATE": {
-                            "title": "Calculate Max Rate",
-                            "type": "number"
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": false,
+                            "description": "Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly.",
+                            "title": "CALCULATE_MAX_RATE"
                         },
                         "COMPRESSOR_TRAIN": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlVariableSpeedCompressorStages"
+                                    "$ref": "#/$defs/YamlVariableSpeedCompressorStages"
                                 }
                             ],
                             "description": "Compressor train definition",
@@ -3737,6 +3704,7 @@
                             "type": "string"
                         },
                         "MAXIMUM_POWER": {
+                            "default": null,
                             "description": "Optional constant MW maximum power the compressor train can require",
                             "title": "MAXIMUM_POWER",
                             "type": "number"
@@ -3747,25 +3715,25 @@
                             "type": "string"
                         },
                         "POWER_ADJUSTMENT_CONSTANT": {
-                            "title": "Power Adjustment Constant",
+                            "default": 0.0,
+                            "description": "Constant to adjust power usage in MW",
+                            "title": "POWER_ADJUSTMENT_CONSTANT",
                             "type": "number"
                         },
                         "PRESSURE_CONTROL": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPressureControl"
+                                    "$ref": "#/$defs/YamlPressureControl"
                                 }
                             ],
+                            "default": null,
                             "description": "Method for pressure control",
                             "title": "PRESSURE_CONTROL"
                         },
                         "TYPE": {
+                            "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "VARIABLE_SPEED_COMPRESSOR_TRAIN"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -3781,6 +3749,7 @@
                     "additionalProperties": false,
                     "properties": {
                         "MAXIMUM_POWER": {
+                            "default": null,
                             "description": "Optional constant MW maximum power the compressor train can require",
                             "title": "MAXIMUM_POWER",
                             "type": "number"
@@ -3791,22 +3760,25 @@
                             "type": "string"
                         },
                         "POWER_ADJUSTMENT_CONSTANT": {
-                            "title": "Power Adjustment Constant",
+                            "default": 0.0,
+                            "description": "Constant to adjust power usage in MW",
+                            "title": "POWER_ADJUSTMENT_CONSTANT",
                             "type": "number"
                         },
                         "PRESSURE_CONTROL": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlPressureControl"
+                                    "$ref": "#/$defs/YamlPressureControl"
                                 }
                             ],
+                            "default": null,
                             "description": "Method for pressure control",
                             "title": "PRESSURE_CONTROL"
                         },
                         "STAGES": {
                             "description": "A list of all stages in compressor model.",
                             "items": {
-                                "$ref": "#/definitions/YamlCompressorStageMultipleStreams"
+                                "$ref": "#/$defs/YamlCompressorStageMultipleStreams"
                             },
                             "title": "STAGES",
                             "type": "array"
@@ -3814,18 +3786,15 @@
                         "STREAMS": {
                             "description": "A list of all in- and out-going streams for the compressor train. The same equation of state (EOS) must be used for each INGOING stream fluid models",
                             "items": {
-                                "$ref": "#/definitions/YamlMultipleStreamsStream"
+                                "$ref": "#/$defs/YamlMultipleStreamsStream"
                             },
                             "title": "STREAMS",
                             "type": "array"
                         },
                         "TYPE": {
+                            "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
                             "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
+                            "title": "TYPE"
                         }
                     },
                     "required": [
@@ -3848,7 +3817,7 @@
                         "RATE": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlRate"
+                                    "$ref": "#/$defs/YamlRate"
                                 }
                             ],
                             "description": "The emission rate",
@@ -3868,7 +3837,7 @@
                         "CATEGORY": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/ConsumerUserDefinedCategoryType"
+                                    "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
                                 }
                             ],
                             "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
@@ -3877,7 +3846,7 @@
                         "EMISSION": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/YamlVentingEmission"
+                                    "$ref": "#/$defs/YamlVentingEmission"
                                 }
                             ],
                             "description": "The emission",
@@ -3898,41 +3867,44 @@
                     "type": "object"
                 }
             },
+            "additionalProperties": false,
             "description": "An eCalc\u2122 yaml file",
             "properties": {
                 "END": {
+                    "default": null,
                     "description": "Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/END",
                     "title": "END",
                     "type": "string"
                 },
                 "FACILITY_INPUTS": {
+                    "default": null,
                     "description": "Defines input files which characterize various facility elements.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FACILITY_INPUTS",
                     "items": {
                         "discriminator": {
                             "mapping": {
-                                "COMPRESSOR_TABULAR": "#/definitions/YamlCompressorTabularModel",
-                                "ELECTRICITY2FUEL": "#/definitions/YamlGeneratorSetModel",
-                                "PUMP_CHART_SINGLE_SPEED": "#/definitions/YamlPumpChartSingleSpeed",
-                                "PUMP_CHART_VARIABLE_SPEED": "#/definitions/YamlPumpChartVariableSpeed",
-                                "TABULAR": "#/definitions/YamlTabularModel"
+                                "COMPRESSOR_TABULAR": "#/$defs/YamlCompressorTabularModel",
+                                "ELECTRICITY2FUEL": "#/$defs/YamlGeneratorSetModel",
+                                "PUMP_CHART_SINGLE_SPEED": "#/$defs/YamlPumpChartSingleSpeed",
+                                "PUMP_CHART_VARIABLE_SPEED": "#/$defs/YamlPumpChartVariableSpeed",
+                                "TABULAR": "#/$defs/YamlTabularModel"
                             },
                             "propertyName": "TYPE"
                         },
                         "oneOf": [
                             {
-                                "$ref": "#/definitions/YamlGeneratorSetModel"
+                                "$ref": "#/$defs/YamlGeneratorSetModel"
                             },
                             {
-                                "$ref": "#/definitions/YamlTabularModel"
+                                "$ref": "#/$defs/YamlTabularModel"
                             },
                             {
-                                "$ref": "#/definitions/YamlCompressorTabularModel"
+                                "$ref": "#/$defs/YamlCompressorTabularModel"
                             },
                             {
-                                "$ref": "#/definitions/YamlPumpChartSingleSpeed"
+                                "$ref": "#/$defs/YamlPumpChartSingleSpeed"
                             },
                             {
-                                "$ref": "#/definitions/YamlPumpChartVariableSpeed"
+                                "$ref": "#/$defs/YamlPumpChartVariableSpeed"
                             }
                         ]
                     },
@@ -3942,7 +3914,7 @@
                 "FUEL_TYPES": {
                     "description": "Specifies the various fuel types and associated emissions used in the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL_TYPES",
                     "items": {
-                        "$ref": "#/definitions/YamlFuelType"
+                        "$ref": "#/$defs/YamlFuelType"
                     },
                     "title": "FUEL_TYPES",
                     "type": "array"
@@ -3950,91 +3922,75 @@
                 "INSTALLATIONS": {
                     "description": "Description of the system of energy consumers.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INSTALLATIONS",
                     "items": {
-                        "$ref": "#/definitions/YamlInstallation"
+                        "$ref": "#/$defs/YamlInstallation"
                     },
                     "title": "INSTALLATIONS",
                     "type": "array"
                 },
                 "MODELS": {
+                    "default": null,
                     "description": "Defines input files which characterize various facility elements.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
                     "items": {
-                        "discriminator": {
-                            "mapping": {
-                                "COMPRESSOR_CHART": {
-                                    "YamlGenericFromDesignPointChart": {
-                                        "$ref": "#/definitions/YamlGenericFromDesignPointChart"
-                                    },
-                                    "YamlGenericFromInputChart": {
-                                        "$ref": "#/definitions/YamlGenericFromInputChart"
-                                    },
-                                    "YamlSingleSpeedChart": {
-                                        "$ref": "#/definitions/YamlSingleSpeedChart"
-                                    },
-                                    "YamlVariableSpeedChart": {
-                                        "$ref": "#/definitions/YamlVariableSpeedChart"
-                                    }
-                                },
-                                "COMPRESSOR_WITH_TURBINE": "#/definitions/YamlCompressorWithTurbine",
-                                "FLUID": {
-                                    "YamlCompositionFluidModel": {
-                                        "$ref": "#/definitions/YamlCompositionFluidModel"
-                                    },
-                                    "YamlPredefinedFluidModel": {
-                                        "$ref": "#/definitions/YamlPredefinedFluidModel"
-                                    }
-                                },
-                                "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN": "#/definitions/YamlSimplifiedVariableSpeedCompressorTrain",
-                                "SINGLE_SPEED_COMPRESSOR_TRAIN": "#/definitions/YamlSingleSpeedCompressorTrain",
-                                "TURBINE": "#/definitions/YamlTurbine",
-                                "VARIABLE_SPEED_COMPRESSOR_TRAIN": "#/definitions/YamlVariableSpeedCompressorTrain",
-                                "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/definitions/YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures"
-                            },
-                            "propertyName": "TYPE"
-                        },
                         "oneOf": [
                             {
+                                "discriminator": {
+                                    "mapping": {
+                                        "GENERIC_FROM_DESIGN_POINT": "#/$defs/YamlGenericFromDesignPointChart",
+                                        "GENERIC_FROM_INPUT": "#/$defs/YamlGenericFromInputChart",
+                                        "SINGLE_SPEED": "#/$defs/YamlSingleSpeedChart",
+                                        "VARIABLE_SPEED": "#/$defs/YamlVariableSpeedChart"
+                                    },
+                                    "propertyName": "CHART_TYPE"
+                                },
                                 "oneOf": [
                                     {
-                                        "$ref": "#/definitions/YamlSingleSpeedChart"
+                                        "$ref": "#/$defs/YamlSingleSpeedChart"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlVariableSpeedChart"
+                                        "$ref": "#/$defs/YamlVariableSpeedChart"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlGenericFromDesignPointChart"
+                                        "$ref": "#/$defs/YamlGenericFromDesignPointChart"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlGenericFromInputChart"
+                                        "$ref": "#/$defs/YamlGenericFromInputChart"
                                     }
                                 ]
                             },
                             {
-                                "$ref": "#/definitions/YamlCompressorWithTurbine"
+                                "$ref": "#/$defs/YamlCompressorWithTurbine"
                             },
                             {
+                                "discriminator": {
+                                    "mapping": {
+                                        "COMPOSITION": "#/$defs/YamlCompositionFluidModel",
+                                        "PREDEFINED": "#/$defs/YamlPredefinedFluidModel"
+                                    },
+                                    "propertyName": "FLUID_MODEL_TYPE"
+                                },
                                 "oneOf": [
                                     {
-                                        "$ref": "#/definitions/YamlPredefinedFluidModel"
+                                        "$ref": "#/$defs/YamlPredefinedFluidModel"
                                     },
                                     {
-                                        "$ref": "#/definitions/YamlCompositionFluidModel"
+                                        "$ref": "#/$defs/YamlCompositionFluidModel"
                                     }
                                 ]
                             },
                             {
-                                "$ref": "#/definitions/YamlTurbine"
+                                "$ref": "#/$defs/YamlTurbine"
                             },
                             {
-                                "$ref": "#/definitions/YamlVariableSpeedCompressorTrain"
+                                "$ref": "#/$defs/YamlVariableSpeedCompressorTrain"
                             },
                             {
-                                "$ref": "#/definitions/YamlSimplifiedVariableSpeedCompressorTrain"
+                                "$ref": "#/$defs/YamlSimplifiedVariableSpeedCompressorTrain"
                             },
                             {
-                                "$ref": "#/definitions/YamlSingleSpeedCompressorTrain"
+                                "$ref": "#/$defs/YamlSingleSpeedCompressorTrain"
                             },
                             {
-                                "$ref": "#/definitions/YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures"
+                                "$ref": "#/$defs/YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures"
                             }
                         ]
                     },
@@ -4042,26 +3998,28 @@
                     "type": "array"
                 },
                 "START": {
+                    "default": null,
                     "description": "Global start date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/START",
                     "title": "START",
                     "type": "string"
                 },
                 "TIME_SERIES": {
+                    "default": null,
                     "description": "Defines the inputs for time dependent variables, or 'reservoir variables'.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TIME_SERIES",
                     "items": {
                         "discriminator": {
                             "mapping": {
-                                "DEFAULT": "#/definitions/YamlDefaultTimeSeriesCollection",
-                                "MISCELLANEOUS": "#/definitions/YamlMiscellaneousTimeSeriesCollection"
+                                "DEFAULT": "#/$defs/YamlDefaultTimeSeriesCollection",
+                                "MISCELLANEOUS": "#/$defs/YamlMiscellaneousTimeSeriesCollection"
                             },
                             "propertyName": "TYPE"
                         },
                         "oneOf": [
                             {
-                                "$ref": "#/definitions/YamlDefaultTimeSeriesCollection"
+                                "$ref": "#/$defs/YamlDefaultTimeSeriesCollection"
                             },
                             {
-                                "$ref": "#/definitions/YamlMiscellaneousTimeSeriesCollection"
+                                "$ref": "#/$defs/YamlMiscellaneousTimeSeriesCollection"
                             }
                         ]
                     },
@@ -4072,16 +4030,17 @@
                     "additionalProperties": {
                         "anyOf": [
                             {
-                                "$ref": "#/definitions/YamlSingleVariable"
+                                "$ref": "#/$defs/YamlSingleVariable"
                             },
                             {
                                 "additionalProperties": {
-                                    "$ref": "#/definitions/YamlSingleVariable"
+                                    "$ref": "#/$defs/YamlSingleVariable"
                                 },
                                 "type": "object"
                             }
                         ]
                     },
+                    "default": null,
                     "description": "Defines variables used in an energy usage model by means of expressions or constants.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/VARIABLES",
                     "title": "VARIABLES",
                     "type": "object"

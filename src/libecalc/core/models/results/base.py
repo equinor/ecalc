@@ -1,21 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
 from enum import Enum
-from functools import partial
 from typing import List, Optional
 
 import numpy as np
-
-try:
-    from pydantic.v1 import BaseModel
-except ImportError:
-    from pydantic import BaseModel
-
-try:
-    from pydantic.v1.json import custom_pydantic_encoder
-except ImportError:
-    from pydantic.json import custom_pydantic_encoder
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
@@ -24,27 +13,10 @@ from libecalc.dto import SingleSpeedChart, VariableSpeedChart
 
 
 class EnergyModelBaseResult(BaseModel):
-    class Config:
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
-        json_encoders = {datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%SZ")}
-
-    def json(self, date_format: Optional[str] = None, **kwargs) -> str:
-        if date_format is None:
-            return super().json(**kwargs)
-
-        if kwargs.get("encoder") is None:
-            # Override datetime encoder, use user specified date_format_option
-            encoder = partial(
-                custom_pydantic_encoder,
-                {
-                    datetime: lambda v: v.strftime(date_format),
-                },
-            )
-        else:
-            encoder = kwargs["encoder"]
-
-        return super().json(**kwargs, encoder=encoder)
+    model_config = ConfigDict(
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
 
     def extend(self, other: EnergyModelBaseResult) -> EnergyModelBaseResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time.
@@ -89,7 +61,7 @@ class EnergyFunctionResult(EnergyModelBaseResult):
 
     energy_usage: List[Optional[float]]
     energy_usage_unit: Unit
-    power: Optional[List[Optional[float]]]
+    power: Optional[List[Optional[float]]] = None
     power_unit: Optional[Unit] = Unit.MEGA_WATT
 
     @property

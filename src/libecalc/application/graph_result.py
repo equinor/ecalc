@@ -5,10 +5,7 @@ from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
-try:
-    from pydantic.v1 import BaseModel, parse_obj_as
-except ImportError:
-    from pydantic import BaseModel, parse_obj_as
+from pydantic import BaseModel, TypeAdapter
 
 import libecalc
 from libecalc import dto
@@ -83,10 +80,10 @@ class GraphResult:
                 EmissionIntensityResult(
                     name=emissions[key].name,
                     timesteps=emissions[key].timesteps,
-                    intensity_sm3=intensity_sm3,
-                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
-                    intensity_yearly_sm3=intensity_yearly_sm3,
-                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
+                    intensity_sm3=intensity_sm3.model_dump(),  # Converted to TimeSeriesIntensity
+                    intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE).model_dump(),
+                    intensity_yearly_sm3=intensity_yearly_sm3.model_dump(),
+                    intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE).model_dump(),
                 )
             )
         return emission_intensities
@@ -896,10 +893,9 @@ class GraphResult:
             else:
                 models.extend(
                     [
-                        parse_obj_as(
-                            libecalc.dto.result.ConsumerModelResult,
+                        TypeAdapter(libecalc.dto.result.ConsumerModelResult).validate_python(
                             {
-                                **model.dict(),
+                                **model.model_dump(),
                                 "parent": consumer_id,
                                 "componentType": model.component_type,
                                 "component_level": ComponentLevel.MODEL,
@@ -908,13 +904,13 @@ class GraphResult:
                                 )
                                 .to_volumes()
                                 .cumulative()
-                                .dict(),
+                                .model_dump(),
                                 "power_cumulative": (
                                     TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
                                     .to_volumes()
                                     .to_unit(Unit.GIGA_WATT_HOURS)
                                     .cumulative()
-                                    .dict()
+                                    .model_dump()
                                     if model.power is not None
                                     else None
                                 ),
@@ -924,7 +920,7 @@ class GraphResult:
                                 "energy_usage": TimeSeriesRate.from_timeseries_stream_day_rate(
                                     model.energy_usage, regularity=regularity
                                 ),
-                            },
+                            }
                         )
                         for model in consumer_result.models
                     ]
@@ -939,7 +935,7 @@ class GraphResult:
                     componentType=consumer_node_info.component_type,
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
-                    else [],
+                    else {},
                     energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage, regularity=regularity
                     )
@@ -978,7 +974,7 @@ class GraphResult:
                     componentType=consumer_node_info.component_type,
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
-                    else [],
+                    else {},
                     energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage, regularity=regularity
                     )
@@ -1021,7 +1017,7 @@ class GraphResult:
                     componentType=consumer_node_info.component_type,
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
-                    else [],
+                    else {},
                     energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage, regularity=regularity
                     )
@@ -1063,7 +1059,7 @@ class GraphResult:
                     componentType=consumer_node_info.component_type,
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
-                    else [],
+                    else {},
                     energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage, regularity=regularity
                     )
@@ -1103,7 +1099,7 @@ class GraphResult:
                     componentType=consumer_node_info.component_type,
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
-                    else [],
+                    else {},
                     energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage, regularity=regularity
                     )
@@ -1144,7 +1140,7 @@ class GraphResult:
                     consumer_type=self.graph.get_node_info(self.graph.get_successors(consumer_id)[0]).component_type,
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
-                    else [],
+                    else {},
                     energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage,
                         regularity=regularity,
@@ -1172,30 +1168,32 @@ class GraphResult:
                     ).to_stream_day(),
                 )
             else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, VENTING_EMITTER
-                obj = parse_obj_as(
-                    libecalc.dto.result.ComponentResult,
+                emissions = (
+                    self._parse_emissions(self.emission_results[consumer_id], regularity)
+                    if consumer_id in self.emission_results
+                    else {}
+                )
+                obj = TypeAdapter(libecalc.dto.result.ComponentResult).validate_python(
                     {
-                        **consumer_result.component_result.dict(),
+                        **consumer_result.component_result.model_dump(),
                         "name": consumer_node_info.name,
                         "parent": self.graph.get_predecessor(consumer_id),
                         "component_level": consumer_node_info.component_level,
                         "componentType": consumer_node_info.component_type,
-                        "emissions": self._parse_emissions(self.emission_results[consumer_id], regularity)
-                        if consumer_id in self.emission_results
-                        else [],
+                        "emissions": emissions,
                         "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
                             consumer_result.component_result.energy_usage, regularity=regularity
                         )
                         .to_volumes()
                         .cumulative()
-                        .dict(),
+                        .model_dump(),
                         "power_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
                             consumer_result.component_result.power, regularity=regularity
                         )
                         .to_volumes()
                         .to_unit(Unit.GIGA_WATT_HOURS)
                         .cumulative()
-                        .dict()
+                        .model_dump()
                         if consumer_result.component_result.power is not None
                         else None,
                         "power": TimeSeriesRate.from_timeseries_stream_day_rate(

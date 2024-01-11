@@ -5,10 +5,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_turbine import YamlTurbine
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import Field
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (

@@ -1,28 +1,19 @@
 import datetime
+import re
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, TextIO, Type, Union
 
 import yaml
+from pydantic import TypeAdapter
+from pydantic import ValidationError as PydanticValidationError
 from yaml import SafeLoader
-
-from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
-    YamlTimeSeriesCollection,
-)
-
-try:
-    from pydantic.v1 import parse_obj_as
-except ImportError:
-    from pydantic import parse_obj_as
-
-
-try:
-    from pydantic.v1 import ValidationError as PydanticValidationError
-except ImportError:
-    from pydantic import ValidationError as PydanticValidationError
 
 from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
-from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS, ComponentNameStr
+from libecalc.dto.utils.validators import (
+    COMPONENT_NAME_ALLOWED_CHARS,
+    COMPONENT_NAME_PATTERN,
+)
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
@@ -38,6 +29,9 @@ from libecalc.presentation.yaml.yaml_entities import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlValidator
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
+    YamlTimeSeriesCollection,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_variable import (
     YamlVariableReferenceId,
     YamlVariables,
@@ -145,7 +139,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                 )
 
         def load(self, yaml_file: ResourceStream):
-            if ComponentNameStr.regex.search(Path(yaml_file.name).stem) is None:
+            if re.search(COMPONENT_NAME_PATTERN, Path(yaml_file.name).stem) is None:
                 raise EcalcError(
                     title="Bad Yaml file name",
                     message=f"The model file, {yaml_file.name}, contains illegal special characters. "
@@ -257,7 +251,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
 
         variables = self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
         try:
-            return parse_obj_as(YamlVariables, variables)
+            return TypeAdapter(YamlVariables).validate_python(variables)
         except PydanticValidationError as e:
             raise DtoValidationError(data=variables, validation_error=e) from e
 
@@ -277,7 +271,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         time_series = []
         for time_series_data in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
             try:
-                time_series.append(parse_obj_as(YamlTimeSeriesCollection, time_series_data))
+                time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
             except PydanticValidationError as e:
                 raise DtoValidationError(data=time_series_data, validation_error=e) from e
 

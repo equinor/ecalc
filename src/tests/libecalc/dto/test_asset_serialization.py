@@ -1,12 +1,8 @@
 from libecalc import dto
-
-try:
-    from pydantic.v1 import Protocol
-except ImportError:
-    from pydantic import Protocol
+from libecalc.fixtures import DTOCase
 
 
-def test_serialization(all_energy_usage_models_dto):
-    serialized_model = all_energy_usage_models_dto.ecalc_model.json()
+def test_serialization(all_energy_usage_models_dto: DTOCase):
+    serialized_model = all_energy_usage_models_dto.ecalc_model.model_dump_json()
 
-    assert dto.Asset.parse_raw(serialized_model, proto=Protocol.json) == all_energy_usage_models_dto.ecalc_model
+    assert dto.Asset.model_validate_json(serialized_model) == all_energy_usage_models_dto.ecalc_model

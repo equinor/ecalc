@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import BaseModel, root_validator
-except ImportError:
-    from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.errors.exceptions import EcalcError, IncompatibleDataError
 from libecalc.common.logger import logger
@@ -36,29 +32,27 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
     discharge_pressures: List[Expression]
     cross_overs: Optional[List[int]] = None
     fluid_densities: Optional[List[Expression]] = None
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def number_of_consumers(self):
         return len(self.rates)
 
-    @root_validator(skip_on_failure=True)
-    def check_list_length(cls, values):
-        def _log_error(field: str, field_values: List[Expression], n_rates) -> None:
+    @model_validator(mode="after")
+    def check_list_length(self):
+        def _log_error(field: str, field_values: List[Any], n_rates) -> None:
             msg = (
                 f"All attributes in a consumer system operational setting must have the same number of elements"
                 f"(corresponding to the number of consumers). The number of elements in {field} "
                 f"({len(field_values)}) is not equal to the number of elements in rates ({n_rates})."
             )
             logger.error(msg)
-            raise EcalcError(msg)
+            raise EcalcError(title="Invalid system", message=msg)
 
-        rates = values.get("rates")
-        suction_pressures = values.get("suction_pressures")
-        discharge_pressures = values.get("discharge_pressures")
-        cross_overs = values.get("cross_overs")
+        rates = self.rates
+        suction_pressures = self.suction_pressures
+        discharge_pressures = self.discharge_pressures
+        cross_overs = self.cross_overs
         n_rates = len(rates)
 
         if len(suction_pressures) != n_rates:
@@ -67,7 +61,7 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
             _log_error(field="discharge_pressures", field_values=discharge_pressures, n_rates=n_rates)
         if cross_overs and len(cross_overs) != n_rates:
             _log_error(field="cross_overs", field_values=cross_overs, n_rates=n_rates)
-        return values
+        return self
 
 
 class CompressorSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingExpressions):
@@ -84,16 +78,13 @@ class ConsumerSystemOperationalSetting(BaseModel):
     rates: List[NDArray[np.float64]]
     suction_pressures: List[NDArray[np.float64]]
     discharge_pressures: List[NDArray[np.float64]]
-    cross_overs: Optional[List[int]]
-    fluid_densities: Optional[List[NDArray[np.float64]]]
+    cross_overs: Optional[List[int]] = None
+    fluid_densities: Optional[List[NDArray[np.float64]]] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
-    class Config:
-        arbitrary_types_allowed = True
-        allow_mutation = False
-
-    @root_validator(skip_on_failure=True)
-    def check_list_length(cls, values):
-        def _log_error(field: str, field_values: List[NDArray[np.float64]], n_rates: int) -> None:
+    @model_validator(mode="after")
+    def check_list_length(self):
+        def _log_error(field: str, field_values: List[Any], n_rates: int) -> None:
             error_message = (
                 f"All attributes in a consumer system operational setting must have the same number of elements"
                 f"(corresponding to the number of consumers). The number of elements in {field} "
@@ -102,10 +93,10 @@ class ConsumerSystemOperationalSetting(BaseModel):
             logger.error(error_message)
             raise IncompatibleDataError(error_message)
 
-        rates = values.get("rates")
-        suction_pressures = values.get("suction_pressures")
-        discharge_pressures = values.get("discharge_pressures")
-        cross_overs = values.get("cross_overs")
+        rates = self.rates
+        suction_pressures = self.suction_pressures
+        discharge_pressures = self.discharge_pressures
+        cross_overs = self.cross_overs
         n_rates = len(rates)
 
         if len(suction_pressures) != n_rates:
@@ -115,7 +106,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
         if cross_overs and len(cross_overs) != n_rates:
             _log_error(field="cross_overs", field_values=cross_overs, n_rates=n_rates)
 
-        return values
+        return self
 
     def convert_rates_to_stream_day(self, regularity: List[float]) -> ConsumerSystemOperationalSetting:
         """If regularity is specified, interpret the rate in the operational setting

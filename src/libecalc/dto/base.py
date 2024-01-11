@@ -1,23 +1,9 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
 from enum import Enum
-from functools import partial
-from typing import Optional
 
-from orjson import orjson
-
-try:
-    from pydantic.v1 import BaseModel, Extra
-except ImportError:
-    from pydantic import BaseModel, Extra
-
-try:
-    from pydantic.v1.json import custom_pydantic_encoder
-except ImportError:
-    from pydantic.json import custom_pydantic_encoder
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.expression import Expression
 
 
 class ComponentType(str, Enum):
@@ -85,45 +71,12 @@ class FuelTypeUserDefinedCategoryType(str, Enum):
     DIESEL = "DIESEL"
 
 
-def orjson_dumps(v, *, default, indent: bool = False):
-    options = orjson.OPT_NON_STR_KEYS | orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME
-
-    if indent:
-        options = options | orjson.OPT_INDENT_2
-
-    # orjson.dumps returns bytes, to match standard json.dumps we need to decode
-    # default is the pydantic json encoder
-    return orjson.dumps(v, default=default, option=options).decode("utf-8")
-
-
 class EcalcBaseModel(BaseModel):
-    class Config:
-        extra = Extra.forbid
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
-        json_dumps = orjson_dumps
-        json_encoders = {
-            datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%S"),
-            Expression: lambda e: str(e),
-        }
-        copy_on_model_validation = "deep"
-
-    def json(self, date_format: Optional[str] = None, **kwargs) -> str:
-        if date_format is None:
-            return super().json(**kwargs)
-
-        if kwargs.get("encoder") is None:
-            # Override datetime encoder if not already overridden, use user specified date_format_option
-            encoder = partial(
-                custom_pydantic_encoder,
-                {
-                    datetime: lambda v: v.strftime(date_format),
-                },
-            )
-        else:
-            encoder = kwargs["encoder"]
-
-        return super().json(**kwargs, encoder=encoder)  # Encoder becomes default, i.e. should handle unhandled types
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
 
 
 class Component(EcalcBaseModel, ABC):

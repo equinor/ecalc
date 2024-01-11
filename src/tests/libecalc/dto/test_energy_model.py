@@ -1,10 +1,6 @@
 import pytest
 from libecalc import dto
-
-try:
-    from pydantic.v1 import ValidationError
-except ImportError:
-    from pydantic import ValidationError
+from pydantic import ValidationError
 
 
 class TestTurbine:

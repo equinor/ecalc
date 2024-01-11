@@ -1,13 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
-try:
-    from pydantic.v1 import BaseModel, Extra
-except ImportError:
-    from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 
 
 class YamlBase(BaseModel, ABC):
-    class Config:
-        allow_population_by_field_name = True
-        alias_generator = str.upper
-        extra = Extra.forbid
+    model_config = ConfigDict(populate_by_name=True, alias_generator=str.upper, extra="forbid")

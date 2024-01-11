@@ -5,11 +5,7 @@ from libecalc import dto
 from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
 from libecalc.dto.types import ConsumptionType, EnergyModelType, EnergyUsageType
 from libecalc.expression import Expression
-
-try:
-    from pydantic.v1.error_wrappers import ValidationError
-except ImportError:
-    from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 
 
 class TestGeneratorSetSampled:

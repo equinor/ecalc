@@ -1,9 +1,6 @@
 from typing import List, Optional
 
-try:
-    from pydantic.v1 import Field, validator
-except ImportError:
-    from pydantic import Field, validator
+from pydantic import Field, field_validator
 
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -42,7 +39,8 @@ class YamlSystemComponentConditions(YamlBase):
         ),
     )
 
-    @validator("crossover")
+    @field_validator("crossover")
+    @classmethod
     def ensure_one_crossover_out(cls, crossover: Optional[List[YamlCrossover]]):
         if crossover is None:
             return None

@@ -1,12 +1,9 @@
 import datetime
+from typing import List, Union
 
 import pytest
 from libecalc.expression import Expression
-
-try:
-    from pydantic.v1 import parse_obj_as
-except ImportError:
-    from pydantic import parse_obj_as
+from pydantic import BaseModel, TypeAdapter
 
 
 class TestExpression:
@@ -27,7 +24,7 @@ class TestExpression:
         Expression.setup_from_expression(value="1.0")
 
     def test_pydantic_parse(self):
-        expression = parse_obj_as(Expression, "SIM1;OIL_PROD")
+        expression = TypeAdapter(Expression).validate_python("SIM1;OIL_PROD")
         assert expression == Expression.setup_from_expression(value="SIM1;OIL_PROD")
 
     def test_expressions_with_scientific_notation(self):
@@ -155,3 +152,23 @@ class TestExpression:
         assert Expression.setup_from_expression("$var.first {+} $var.second").evaluate(
             variables, fill_length=3
         ).tolist() == [2, 4, 6]
+
+    def test_serialization(self):
+        class Foo(BaseModel):
+            single: Expression
+            list: List[Expression]
+            union_list: Union[Expression, List[Expression]]
+
+        foo = Foo(
+            single=Expression.setup_from_expression("1"),
+            list=[
+                Expression.setup_from_expression("2"),
+                Expression.setup_from_expression("2"),
+            ],
+            union_list=[
+                Expression.setup_from_expression("2"),
+                Expression.setup_from_expression("2"),
+            ],
+        )
+
+        assert foo.model_dump_json() == '{"single":"1.0","list":["2.0","2.0"],"union_list":["2.0","2.0"]}'

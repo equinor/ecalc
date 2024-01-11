@@ -1,10 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
-try:
-    from pydantic.v1 import Extra, root_validator
-except ImportError:
-    from pydantic import Extra, root_validator
+from pydantic import ConfigDict, model_validator
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.errors.exceptions import ProgrammingError
@@ -17,21 +14,17 @@ from libecalc.dto.result.types import opt_float
 
 
 class SimpleBase(EcalcResultBaseModel):
-    class Config:
-        extra = Extra.ignore
+    model_config = ConfigDict(extra="ignore")
 
-    def dict(self, exclude_none=True, **kwargs):
-        return super().dict(exclude_none=exclude_none, **kwargs)
-
-    def json(self, **kwargs):
-        return super().json(**kwargs)
+    def model_dump(self, exclude_none=True, **kwargs):
+        return super().model_dump(exclude_none=exclude_none, **kwargs)
 
 
 class SimpleEmissionResult(SimpleBase):
     name: str
     rate: List[opt_float]
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def convert_time_series(cls, values):
         rate = values.get("rate")
 
@@ -78,7 +71,7 @@ def _subtract_list(first: List[Optional[float]], second: List[Optional[float]]):
 class SimpleComponentResult(SimpleBase):
     componentType: ComponentType
     component_level: ComponentLevel
-    parent: Optional[str]
+    parent: Optional[str] = None
     name: str
     timesteps: List[datetime]
     is_valid: List[int]
@@ -86,13 +79,13 @@ class SimpleComponentResult(SimpleBase):
 
     energy_usage: List[opt_float]
     energy_usage_unit: Unit
-    power: Optional[List[opt_float]]
+    power: Optional[List[opt_float]] = None
 
     @classmethod
     def from_dto(cls, component_result: ComponentResult) -> "SimpleComponentResult":
         return SimpleComponentResult(**component_result.dict())
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def convert_time_series(cls, values):
         energy_usage = values.get("energy_usage")
         is_valid = values.get("is_valid")

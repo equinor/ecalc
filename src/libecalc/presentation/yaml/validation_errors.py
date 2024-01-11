@@ -3,12 +3,8 @@ from textwrap import indent
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
+from pydantic import ValidationError as PydanticValidationError
 from yaml import Dumper, Mark
-
-try:
-    from pydantic.v1 import ValidationError as PydanticValidationError
-except ImportError:
-    from pydantic import ValidationError as PydanticValidationError
 
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import Resource, YamlDict, YamlList

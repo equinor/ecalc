@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-try:
-    from pydantic.v1 import Field, root_validator
-except ImportError:
-    from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import EoSModel, FluidStreamType
@@ -53,17 +50,17 @@ class FluidStream(FluidModel):
 class MultipleStreamsAndPressureStream(EcalcBaseModel):
     name: str
     typ: FluidStreamType
-    fluid_model: Optional[FluidModel]
+    fluid_model: Optional[FluidModel] = None
 
-    @root_validator(skip_on_failure=True)
-    def validate_stream(cls, values):
+    @model_validator(mode="after")
+    def validate_stream(self):
         stream_name, stream_type, stream_fluid_model = (
-            values.get("name"),
-            values.get("typ"),
-            values.get("fluid_model"),
+            self.name,
+            self.typ,
+            self.fluid_model,
         )
         if stream_type == FluidStreamType.INGOING and not isinstance(stream_fluid_model, FluidModel):
             raise ValueError(f"Stream {stream_name} is of type {stream_type} and needs a fluid model to be defined")
         if stream_type == FluidStreamType.OUTGOING and isinstance(stream_fluid_model, FluidModel):
             raise ValueError(f"Stream {stream_name} is of type {stream_type} and should not have a fluid model defined")
-        return values
+        return self

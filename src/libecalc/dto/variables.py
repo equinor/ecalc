@@ -3,10 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-try:
-    from pydantic.v1 import BaseModel, Field, confloat
-except ImportError:
-    from pydantic import BaseModel, Field, confloat
+from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 from libecalc.common.time_utils import Period
 
@@ -31,7 +29,7 @@ class VariablesMap(BaseModel):
     """
 
     time_vector: List[datetime] = Field(default_factory=list)
-    variables: Dict[str, List[confloat(allow_inf_nan=False)]] = Field(default_factory=dict)
+    variables: Dict[str, List[Annotated[float, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)
 
     @property
     def period(self):
