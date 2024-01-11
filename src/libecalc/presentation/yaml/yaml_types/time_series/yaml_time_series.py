@@ -1,19 +1,13 @@
 from typing import Literal, Union
 
+from pydantic import ConfigDict, Field
 from typing_extensions import Annotated
-
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 
 
 class YamlTimeSeriesCollectionBase(YamlBase):
-    class Config:
-        title = "TimeSeries"
-        use_enum_values = True
+    model_config = ConfigDict(title="TimeSeries", use_enum_values=True)
 
     name: str = Field(
         ...,
@@ -38,11 +32,6 @@ class YamlTimeSeriesCollectionBase(YamlBase):
 
 
 class YamlDefaultTimeSeriesCollection(YamlTimeSeriesCollectionBase):
-    class Config:
-        fields = {
-            "interpolation_type": {"exclude": True},
-        }
-
     type: Literal["DEFAULT"] = Field(
         ...,
         title="TYPE",
@@ -50,7 +39,7 @@ class YamlDefaultTimeSeriesCollection(YamlTimeSeriesCollectionBase):
     )
 
     interpolation_type: Literal["RIGHT"] = Field(
-        "RIGHT",
+        None,
         title="INTERPOLATION_TYPE",
         description="Defines how the time series are interpolated between input time steps.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
     )

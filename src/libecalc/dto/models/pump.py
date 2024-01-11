@@ -1,9 +1,6 @@
 from typing import Literal, Optional, Union
 
-try:
-    from pydantic.v1 import validator
-except ImportError:
-    from pydantic import validator
+from pydantic import validator
 
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.chart import SingleSpeedChart, VariableSpeedChart
@@ -20,8 +17,8 @@ class PumpModel(EnergyModel):
 
 class PumpConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.PUMP] = ConsumerType.PUMP
-    energy_usage_type = EnergyUsageType.POWER
-    power_loss_factor: Optional[Expression]
+    energy_usage_type: EnergyUsageType = EnergyUsageType.POWER
+    power_loss_factor: Optional[Expression] = None
     model: PumpModel
     rate_standard_m3_day: Expression
     suction_pressure: Expression

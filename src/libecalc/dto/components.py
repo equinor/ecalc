@@ -3,16 +3,9 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
 
-try:
-    from pydantic.v1 import Field, root_validator
-except ImportError:
-    from pydantic import Field, root_validator
-
-try:
-    from pydantic.v1.class_validators import validator
-except ImportError:
-    from pydantic.class_validators import validator
-
+from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic.class_validators import validator
+from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
 from libecalc import dto
@@ -71,24 +64,24 @@ class BaseComponent(Component, ABC):
 
 
 class BaseEquipment(BaseComponent, ABC):
-    user_defined_category: Dict[datetime, ConsumerUserDefinedCategoryType]
+    user_defined_category: Dict[datetime, ConsumerUserDefinedCategoryType] = Field(..., validate_default=True)
 
     @property
     def id(self) -> str:
         return generate_id(self.name)
 
-    @validator("user_defined_category", pre=True, always=True)
-    def check_user_defined_category(cls, user_defined_category, values):
+    @field_validator("user_defined_category", mode="before")
+    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
         if isinstance(user_defined_category, dict) and len(user_defined_category.values()) > 0:
             for user_category in user_defined_category.values():
                 if user_category not in list(ConsumerUserDefinedCategoryType):
-                    name = ""
-                    if values.get("name") is not None:
-                        name = f"with the name {values.get('name')}"
+                    name_context_str = ""
+                    if name := info.data.get("name") is not None:
+                        name_context_str = f"with the name {name}"
 
                     raise ValueError(
-                        f"CATEGORY: {user_category} is not allowed for {cls.__name__} {name}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                        f"CATEGORY: {user_category} is not allowed for {cls.__name__} {name_context_str}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
                     )
 
         return user_defined_category
@@ -98,15 +91,16 @@ class BaseConsumer(BaseEquipment, ABC):
     """Base class for all consumers."""
 
     consumes: ConsumptionType
-    fuel: Optional[Dict[datetime, FuelType]]
+    fuel: Optional[Dict[datetime, FuelType]] = None
 
-    @validator("fuel")
-    def validate_fuel_exist(cls, fuel, values):
+    @field_validator("fuel")
+    @classmethod
+    def validate_fuel_exist(cls, fuel, info: ValidationInfo):
         """
         Make sure fuel is set if consumption type is FUEL.
         """
-        if values.get("consumes") == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
-            msg = f"Missing fuel for fuel consumer '{values.get('name')}'"
+        if info.data.get("consumes") == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
+            msg = f"Missing fuel for fuel consumer '{info.data.get('name')}'"
             raise ValueError(msg)
         return fuel
 
@@ -166,8 +160,7 @@ class PumpComponent(BaseConsumer):
 
 
 class Stream(EcalcBaseModel):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     stream_name: Optional[str] = Field(None)
     from_component_id: str
@@ -191,7 +184,7 @@ class TrainComponent(BaseConsumer):
 class ExpressionTimeSeries(EcalcBaseModel):
     value: ExpressionType
     unit: Unit
-    type: Optional[RateType]
+    type: Optional[RateType] = None
 
 
 class ExpressionStreamConditions(EcalcBaseModel):
@@ -209,8 +202,7 @@ SystemStreamConditions = Dict[ConsumerID, Dict[StreamID, ExpressionStreamConditi
 
 
 class Crossover(EcalcBaseModel):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     stream_name: Optional[str] = Field(None)
     from_component_id: str
@@ -298,13 +290,14 @@ class GeneratorSet(BaseEquipment):
         validate_temporal_model
     )
 
-    @validator("user_defined_category", pre=True, always=True)
-    def check_mandatory_category_for_generator_set(cls, user_defined_category):
+    @field_validator("user_defined_category", mode="before")
+    @classmethod
+    def check_mandatory_category_for_generator_set(cls, user_defined_category, info: ValidationInfo):
         """This could be handled automatically with Pydantic, but I want to inform the users in a better way, in
         particular since we introduced a breaking change for this to be mandatory for GeneratorSets in v7.2.
         """
         if user_defined_category is None or user_defined_category == "":
-            raise ValueError(f"CATEGORY is mandatory and must be set for {cls.__name__}")
+            raise ValueError(f"CATEGORY is mandatory and must be set for '{info.data.get('name', cls.__name__)}'")
 
         return user_defined_category
 
@@ -323,8 +316,8 @@ class GeneratorSet(BaseEquipment):
 
 
 class Installation(BaseComponent):
-    component_type = ComponentType.INSTALLATION
-    user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
+    component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
+    user_defined_category: Optional[InstallationUserDefinedCategoryType] = Field(default=None, validate_default=True)
     hydrocarbon_export: Dict[datetime, Expression]
     fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
     venting_emitters: List[YamlVentingEmitter] = Field(default_factory=list)
@@ -339,17 +332,17 @@ class Installation(BaseComponent):
         convert_expression
     )
 
-    @validator("user_defined_category", pre=True, always=True)
-    def check_user_defined_category(cls, user_defined_category, values):
+    @field_validator("user_defined_category", mode="before")
+    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
         if user_defined_category is not None:
             if user_defined_category not in list(InstallationUserDefinedCategoryType):
-                name = ""
-                if values.get("name") is not None:
-                    name = f"with the name {values.get('name')}"
+                name_context_str = ""
+                if name := info.data.get("name") is not None:
+                    name_context_str = f"with the name {name}"
 
                 raise ValueError(
-                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name}. Valid categories are: {[str(installation_user_defined_category.value) for installation_user_defined_category in InstallationUserDefinedCategoryType]}"
+                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name_context_str}. Valid categories are: {[str(installation_user_defined_category.value) for installation_user_defined_category in InstallationUserDefinedCategoryType]}"
                 )
 
         return user_defined_category
@@ -398,13 +391,13 @@ class Asset(Component):
     def get_installation(self, installation_id: str) -> Installation:
         return next(installation for installation in self.installations if installation.id == installation_id)
 
-    @root_validator(skip_on_failure=True)
-    def validate_unique_names(cls, values):
+    @model_validator(mode="after")
+    def validate_unique_names(self):
         """Ensure unique component names within installation."""
-        names = [values["name"]]
+        names = [self.name]
         fuel_types = [dto.FuelType]
         fuel_names = [str]
-        for installation in values["installations"]:
+        for installation in self.installations:
             names.append(installation.name)
             fuel_consumers = installation.fuel_consumers
             venting_emitters = installation.venting_emitters
@@ -442,7 +435,7 @@ class Asset(Component):
                 "Fuel type names must be unique across installations."
                 f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
             )
-        return values
+        return self
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()

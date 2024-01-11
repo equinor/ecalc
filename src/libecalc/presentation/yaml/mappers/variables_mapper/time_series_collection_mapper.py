@@ -3,17 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Union
 
 import pandas
-
-try:
-    from pydantic.v1 import Field, ValidationError
-except ImportError:
-    from pydantic import Field, ValidationError
-
-try:
-    from pydantic.v1 import parse_obj_as
-except ImportError:
-    from pydantic import parse_obj_as
-
+from pydantic import Field, TypeAdapter, ValidationError
 from typing_extensions import Annotated
 
 from libecalc.dto import TimeSeriesType
@@ -115,6 +105,6 @@ class TimeSeriesCollectionMapper:
         time_series["columns"] = columns
 
         try:
-            return parse_obj_as(TimeSeriesUnionType, time_series)
+            return TypeAdapter(TimeSeriesUnionType).validate_python(time_series)
         except ValidationError as e:
             raise DtoValidationError(data=data, validation_error=e, dump_flow_style=DumpFlowStyle.BLOCK) from e

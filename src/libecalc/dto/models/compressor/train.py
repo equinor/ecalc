@@ -1,9 +1,7 @@
 from typing import List, Literal, Optional
 
-try:
-    from pydantic.v1 import confloat, validator
-except ImportError:
-    from pydantic import confloat, validator
+from pydantic import Field, field_validator
+from typing_extensions import Annotated
 
 from libecalc.dto.models.base import EnergyModel
 from libecalc.dto.models.compressor.chart import SingleSpeedChart, VariableSpeedChart
@@ -23,7 +21,7 @@ class CompressorTrain(EnergyModel):
     stages: List[CompressorStage]
     fluid_model: FluidModel
     calculate_max_rate: bool = False
-    maximum_power: Optional[float]
+    maximum_power: Optional[float] = None
     pressure_control: FixedSpeedPressureControl
 
 
@@ -35,7 +33,8 @@ class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
     # Not in use:
     pressure_control: FixedSpeedPressureControl = None  # Not relevant for simplified trains.
 
-    @validator("stages")
+    @field_validator("stages")
+    @classmethod
     def _validate_stages(cls, stages):
         for stage in stages:
             if isinstance(stage.compressor_chart, SingleSpeedChart):
@@ -55,13 +54,14 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
         EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
     ] = EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
     stage: CompressorStage
-    maximum_pressure_ratio_per_stage: confloat(ge=0)
+    maximum_pressure_ratio_per_stage: Annotated[float, Field(ge=0)]
 
     # Not in use:
     stages: List[CompressorStage] = []  # Not relevant since the stage is Unknown
     pressure_control: FixedSpeedPressureControl = None  # Not relevant for simplified trains.
 
-    @validator("stage")
+    @field_validator("stage")
+    @classmethod
     def _validate_stages(cls, stage):
         if isinstance(stage.compressor_chart, SingleSpeedChart):
             raise ValueError(
@@ -77,9 +77,10 @@ class SingleSpeedCompressorTrain(CompressorTrain):
     typ: Literal[
         EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
     ] = EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
-    maximum_discharge_pressure: Optional[confloat(ge=0)]
+    maximum_discharge_pressure: Optional[Annotated[float, Field(ge=0)]] = None
 
-    @validator("stages")
+    @field_validator("stages")
+    @classmethod
     def _validate_stages(cls, stages):
         for stage in stages:
             if not isinstance(stage.compressor_chart, SingleSpeedChart):
@@ -95,7 +96,8 @@ class VariableSpeedCompressorTrain(CompressorTrain):
         EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
     ] = EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
 
-    @validator("stages")
+    @field_validator("stages")
+    @classmethod
     def _validate_stages(cls, stages):
         min_speed_per_stage = []
         max_speed_per_stage = []
@@ -136,7 +138,8 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
     # Not in use:
     fluid_model: FluidModel = None  # Not relevant. set by the individual stream.
 
-    @validator("stages")
+    @field_validator("stages")
+    @classmethod
     def _validate_stages(cls, stages):
         if sum([stage.has_control_pressure for stage in stages]) > 1:
             raise ValueError("Only one interstage pressure should be defined for a compressor train")

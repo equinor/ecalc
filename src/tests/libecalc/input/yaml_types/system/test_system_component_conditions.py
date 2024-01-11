@@ -3,11 +3,7 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_compone
     YamlSystemComponentConditions,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlCrossover
-
-try:
-    from pydantic.v1 import ValidationError
-except ImportError:
-    from pydantic import ValidationError
+from pydantic import ValidationError
 
 
 class TestSystemComponentConditions:
@@ -38,11 +34,9 @@ class TestSystemComponentConditions:
                     ),
                 ]
             )
-        assert str(exc_info.value) == (
-            "1 validation error for YamlSystemComponentConditions\n"
-            "CROSSOVER\n"
-            "  Only one crossover out per consumer is currently supported. Component(s) with "
-            "several crossover streams are consumer1, consumer2 (type=value_error)"
+        assert (
+            "Only one crossover out per consumer is currently supported. Component(s) with several crossover streams are consumer1, consumer2"
+            in str(exc_info.value)
         )
 
     def test_valid_crossover(self):

@@ -1,7 +1,4 @@
-try:
-    from pydantic.v1 import validator
-except ImportError:
-    from pydantic import validator
+from pydantic import field_validator, validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.utils.validators import EmissionNameStr, convert_expression
@@ -14,6 +11,7 @@ class Emission(EcalcBaseModel):
 
     _convert_expression = validator("factor", allow_reuse=True, pre=True)(convert_expression)
 
-    @validator("name", pre=True)
+    @field_validator("name", mode="before")
+    @classmethod
     def convert_name(cls, name):
         return name.lower()

@@ -31,7 +31,9 @@ def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[Schem
     # First we get the root schema
     schema = json.loads(
         get_template(
-            schema=json.dumps(YamlAsset.schema(by_alias=True)), schema_name=ROOT_JSON_SCHEMA_FILE_NAME, is_root=True
+            schema=json.dumps(YamlAsset.model_json_schema(by_alias=True)),
+            schema_name=ROOT_JSON_SCHEMA_FILE_NAME,
+            is_root=True,
         )
     )
 

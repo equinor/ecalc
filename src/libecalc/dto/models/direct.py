@@ -1,9 +1,7 @@
-from typing import Any, Dict, Literal, Optional
+from typing import Literal, Optional
 
-try:
-    from pydantic.v1 import root_validator, validator
-except ImportError:
-    from pydantic import root_validator, validator
+from pydantic import model_validator, validator
+from typing_extensions import Self
 
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.models.base import ConsumerFunction
@@ -14,8 +12,8 @@ from libecalc.expression import Expression
 
 class DirectConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.DIRECT] = ConsumerType.DIRECT
-    fuel_rate: Optional[Expression]
-    load: Optional[Expression]
+    fuel_rate: Optional[Expression] = None
+    load: Optional[Expression] = None
     power_loss_factor: Optional[Expression] = None
     consumption_rate_type: RateType = RateType.STREAM_DAY
 
@@ -23,8 +21,10 @@ class DirectConsumerFunction(ConsumerFunction):
         convert_expression
     )
 
-    @root_validator(skip_on_failure=True)
-    def validate_either_load_or_fuel_rate(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        if values.get("fuel_rate") is None and values.get("load") is None:
-            raise ValueError(f"Either 'fuel_rate' or 'load' should be specified for '{ConsumerType.DIRECT}' models.")
-        return values
+    @model_validator(mode="after")
+    def validate_either_load_or_fuel_rate(self) -> Self:
+        has_fuel_rate = getattr(self, "fuel_rate", None) is not None
+        has_load = getattr(self, "load", None) is not None
+        if (has_fuel_rate and not has_load) or (not has_fuel_rate and has_load):
+            return self
+        raise ValueError(f"Either 'fuel_rate' or 'load' should be specified for '{ConsumerType.DIRECT}' models.")

@@ -3,10 +3,7 @@ from datetime import datetime
 from functools import reduce
 from typing import List, Optional
 
-try:
-    from pydantic.v1 import BaseModel, Extra
-except ImportError:
-    from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.string.string_utils import generate_id, to_camel_case
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
@@ -20,16 +17,13 @@ from libecalc.domain.stream_conditions import (
 
 
 class TimeSeriesStreamConditions(BaseModel):
-    class Config:
-        extra = Extra.forbid
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
+    model_config = ConfigDict(extra="forbid", alias_generator=to_camel_case, populate_by_name=True)
 
     id: str
     name: str
-    rate: Optional[TimeSeriesStreamDayRate]
-    pressure: Optional[TimeSeriesFloat]
-    temperature: Optional[TimeSeriesFloat]
+    rate: Optional[TimeSeriesStreamDayRate] = None
+    pressure: Optional[TimeSeriesFloat] = None
+    temperature: Optional[TimeSeriesFloat] = None
     fluid_density: Optional[TimeSeriesFloat] = None
 
     def mix(self, *other_streams: "TimeSeriesStreamConditions") -> "TimeSeriesStreamConditions":

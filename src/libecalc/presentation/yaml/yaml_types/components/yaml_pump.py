@@ -1,10 +1,7 @@
 from datetime import datetime
 from typing import Dict, Literal, Optional
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -21,8 +18,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 
 class YamlPump(YamlConsumerBase):
-    class Config:
-        title = "Pump"
+    model_config = ConfigDict(title="Pump")
 
     component_type: Literal[ComponentType.PUMP_V2] = Field(
         ...,

@@ -8,11 +8,6 @@ from typing import Callable, Dict, TypeVar, Union
 import numpy as np
 from numpy.typing import NDArray
 
-try:
-    from pydantic.v1.validators import enum_validator
-except ImportError:
-    from pydantic.validators import enum_validator
-
 from libecalc.common.logger import logger
 
 TInput = TypeVar("TInput", bound=Union[int, float, NDArray[np.float64], list])
@@ -92,19 +87,6 @@ class Unit(str, Enum):
 
     def __str__(self) -> str:
         return self.value
-
-    @classmethod
-    def validator(cls, unit: Union[str, Unit]) -> Unit:
-        if isinstance(unit, str):
-            return Unit(unit)
-        return unit
-
-    @classmethod
-    def __get_validators__(cls):
-        # convert list to tuple before using default enum validator. Fixes problem with this unit being read as
-        # list from json
-        yield cls.validator
-        yield enum_validator
 
     @staticmethod
     def _unit_registry() -> Dict[Unit, Dict[Unit, Callable]]:

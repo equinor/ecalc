@@ -9,7 +9,6 @@ from enum import Enum
 from typing import (
     Any,
     DefaultDict,
-    Dict,
     Generic,
     Iterable,
     Iterator,
@@ -35,16 +34,8 @@ from libecalc.common.time_utils import (
 )
 from libecalc.common.units import Unit
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import Extra, validator
-    from pydantic.v1.fields import ModelField
-    from pydantic.v1.generics import GenericModel
-except ImportError:
-    from pydantic import Extra, validator
-    from pydantic.fields import ModelField
-    from pydantic.generics import GenericModel
-
+from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Self
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
@@ -157,33 +148,31 @@ class Rates:
         return Rates.compute_cumulative(volumes)
 
 
-class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
+class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     timesteps: List[datetime]
     values: List[TimeSeriesValue]
     unit: Unit
+    model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True, extra="forbid")
 
-    class Config:
-        use_enum_values = True
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
-        extra = Extra.forbid
-
-    @validator("values", each_item=True, pre=True)
-    def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
-        if field.outer_type_ is float and v is None:
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> TimeSeriesValue:
+        if v is None:
+            # TODO[pydantic]: Check that v should be float
             return math.nan
         return v
 
-    @validator("values", pre=True)
-    def timesteps_values_one_to_one(cls, v: List[Any], values: Dict[str, Any]):
-        nr_timesteps = len(values["timesteps"])
+    @field_validator("values", mode="before")
+    @classmethod
+    def timesteps_values_one_to_one(cls, v: List[Any], info: ValidationInfo):
+        nr_timesteps = len(info.data["timesteps"])
         nr_values = len(v)
 
         if not cls.__name__ == TimeSeriesVolumes.__name__:
             if nr_timesteps != nr_values:
                 if all(math.isnan(i) for i in v):
                     # TODO: This should probably be solved another place. Temporary solution to make things run
-                    return [math.nan] * len(values["timesteps"])
+                    return [math.nan] * len(info.data["timesteps"])
                 else:
                     raise ProgrammingError(
                         "Time series: number of timesteps do not match number "
@@ -500,18 +489,18 @@ class TimeSeriesFloat(TimeSeries[float]):
         )
         ds_resampled = ds.reindex(new_timeseries).ffill()
 
-        return TimeSeriesFloat(
+        return self.__class__(
             timesteps=new_timeseries,
             values=[float(x) for x in ds_resampled.values.tolist()],
             unit=self.unit,
         )
 
-    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesFloat:
+    def reindex(self, new_time_vector: Iterable[datetime]) -> Self:
         """
         Ensure to map correct value to correct timestep in the final resulting time vector.
         """
         reindex_values = self.reindex_time_vector(new_time_vector)
-        return TimeSeriesFloat(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
+        return self.__class__(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
@@ -598,12 +587,12 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
 
 class TimeSeriesVolumes(TimeSeries[float]):
-    @validator("values", pre=True)
-    def check_length_timestep_values(cls, v: List[Any], values: Dict[str, Any]):
+    @field_validator("values", mode="before")
+    def check_length_timestep_values(cls, v: List[Any], info: ValidationInfo):
         # Initially timesteps for volumes contains one more item than values
         # After reindex number of timesteps equals number of values
         # TODO: Ensure periodical volumes are handled in a consistent way. Why different after reindex?
-        if len(v) not in [len(values["timesteps"]), len(values["timesteps"]) - 1]:
+        if len(v) not in [len(info.data["timesteps"]), len(info.data["timesteps"]) - 1]:
             raise ProgrammingError(
                 "Time series: number of timesteps do not match number "
                 "of values. Most likely a bug, report to eCalc Dev Team."
@@ -612,7 +601,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
 
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
         msg = (
-            f"{self.__repr_name__()} does not have an resample method."
+            f"{self.__class__.__name__} does not have an resample method."
             f" You should not land here. Please contact the eCalc Support."
         )
         logger.warning(msg)
@@ -789,10 +778,10 @@ class TimeSeriesRate(TimeSeries[float]):
     rate_type: RateType
     regularity: List[float]
 
-    @validator("regularity")
-    def check_regularity_length(cls, regularity: List[float], values: Any) -> List[float]:
+    @field_validator("regularity")
+    def check_regularity_length(cls, regularity: List[float], info: ValidationInfo) -> List[float]:
         regularity_length = len(regularity)
-        timesteps_length = len(values.get("timesteps", []))
+        timesteps_length = len(info.data.get("timesteps", []))
         if regularity_length != timesteps_length:
             raise ProgrammingError(
                 f"Regularity must correspond to nr of timesteps. Length of timesteps ({timesteps_length}) !=  length of regularity ({regularity_length})."
@@ -837,7 +826,12 @@ class TimeSeriesRate(TimeSeries[float]):
                 f"TimeSeriesRate can only be added to another TimeSeriesRate. Received type '{str(other.__class__)}'."
             )
 
-    def extend(self, other: TimeSeriesRate) -> Self:
+    def extend(self, other: TimeSeries) -> Self:
+        if not isinstance(other, TimeSeriesRate):
+            raise ValueError(
+                f"'{str(self.__class__)}' can only be extended with itself, received type '{str(other.__class__)}'"
+            )
+
         # Check for same unit
         if not self.unit == other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")

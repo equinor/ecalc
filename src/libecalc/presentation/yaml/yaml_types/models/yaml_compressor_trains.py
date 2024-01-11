@@ -2,10 +2,7 @@ from typing import List, Literal, Optional, Union
 
 from typing_extensions import Annotated
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
@@ -50,37 +47,22 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )
-    maximum_discharge_pressure: Optional[
-        Annotated[
-            float,
-            Field(
-                ...,
-                description="Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
-                title="MAXIMUM_DISCHARGE_PRESSURE",
-            ),
-        ]
-    ]
-    calculate_max_rate: Optional[
-        Annotated[
-            float,
-            Field(
-                ...,
-                description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-                "Default false. Use with caution. This will increase runtime significantly.",
-                title="CALCULATE_MAX_RATE",
-            ),
-        ]
-    ]
-    power_adjustment_constant: Optional[
-        Annotated[
-            float,
-            Field(
-                0.0,
-                description="Constant to adjust power usage in MW",
-                title="POWER_ADJUSTMENT_CONSTANT",
-            ),
-        ]
-    ]
+    maximum_discharge_pressure: Optional[float] = Field(
+        None,
+        description="Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE)",
+        title="MAXIMUM_DISCHARGE_PRESSURE",
+    )
+    calculate_max_rate: Optional[bool] = Field(
+        False,
+        description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
+                    "Default false. Use with caution. This will increase runtime significantly.",
+        title="CALCULATE_MAX_RATE",
+    )
+    power_adjustment_constant: float = Field(
+        0.0,
+        description="Constant to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_CONSTANT",
+    )
     fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
@@ -103,27 +85,17 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )
-    calculate_max_rate: Optional[
-        Annotated[
-            float,
-            Field(
-                ...,
-                description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-                "Default false. Use with caution. This will increase runtime significantly.",
-                title="CALCULATE_MAX_RATE",
-            ),
-        ]
-    ]
-    power_adjustment_constant: Optional[
-        Annotated[
-            float,
-            Field(
-                0.0,
-                description="Constant to adjust power usage in MW",
-                title="POWER_ADJUSTMENT_CONSTANT",
-            ),
-        ]
-    ]
+    calculate_max_rate: Optional[bool] = Field(
+        False,
+        description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
+                    "Default false. Use with caution. This will increase runtime significantly.",
+        title="CALCULATE_MAX_RATE",
+    )
+    power_adjustment_constant: float = Field(
+        0.0,
+        description="Constant to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_CONSTANT",
+    )
     fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
@@ -141,28 +113,18 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
     )
-    calculate_max_rate: Optional[
-        Annotated[
-            float,
-            Field(
-                ...,
-                description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-                "Default false. Use with caution. This will increase runtime significantly.",
-                title="CALCULATE_MAX_RATE",
-            ),
-        ]
-    ]
+    calculate_max_rate: Optional[bool] = Field(
+        False,
+        description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
+                    "Default false. Use with caution. This will increase runtime significantly.",
+        title="CALCULATE_MAX_RATE",
+    )
     fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
-    power_adjustment_constant: Optional[
-        Annotated[
-            float,
-            Field(
-                0.0,
-                description="Constant to adjust power usage in MW",
-                title="POWER_ADJUSTMENT_CONSTANT",
-            ),
-        ]
-    ]
+    power_adjustment_constant: float = Field(
+        0.0,
+        description="Constant to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_CONSTANT",
+    )
 
     def to_dto(self):
         raise NotImplementedError
@@ -196,16 +158,11 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )
-    power_adjustment_constant: Optional[
-        Annotated[
-            float,
-            Field(
-                0.0,
-                description="Constant to adjust power usage in MW",
-                title="POWER_ADJUSTMENT_CONSTANT",
-            ),
-        ]
-    ]
+    power_adjustment_constant: float = Field(
+        0.0,
+        description="Constant to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_CONSTANT",
+    )
 
     def to_dto(self):
         raise NotImplementedError

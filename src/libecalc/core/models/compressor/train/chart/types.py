@@ -1,9 +1,6 @@
 from typing import List
 
-try:
-    from pydantic.v1 import BaseModel, Extra
-except ImportError:
-    from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.dto.types import ChartAreaFlag
 
@@ -32,9 +29,7 @@ class CompressorChartResult(BaseModel):
     rate_exceeds_maximum: List[bool]
     head_exceeds_maximum: List[bool]
     exceeds_capacity: List[bool]
-
-    class Config:
-        extra = Extra.forbid
+    model_config = ConfigDict(extra="forbid")
 
     @property
     def any_points_below_stone_wall(self):
