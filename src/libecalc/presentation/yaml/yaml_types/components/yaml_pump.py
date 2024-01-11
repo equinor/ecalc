@@ -227,5 +227,9 @@ class YamlPump(YamlConsumerBase):
 
         """
         return TemporalModel(
-            {timestep: self.to_domain_model(references=references, timestep=timestep) for timestep in timesteps}
+            id=generate_id(self.name),
+            name=self.name,
+            component_type=ComponentType.PUMP_V2,
+            user_defined_category=self.category,  # TODO: Needed for LTP ... should ideally need to send through here..might need to lookup etc
+            data={timestep: self.to_domain_model(references=references, timestep=timestep) for timestep in timesteps}
         )

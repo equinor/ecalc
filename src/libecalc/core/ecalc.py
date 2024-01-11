@@ -212,10 +212,6 @@ class EnergyCalculator:
                     )
             elif isinstance(consumer_dto, dto.VentingEmitter):
                 emission_results[consumer_dto.id] = VentingEmitter(consumer_dto).evaluate(variables_map=variables_map)
-            elif isinstance(consumer_dto, TemporalModel):  # TODO: Just temporary test for pump v2
-                print(f"Skipping collecting emissions for {type(consumer_dto.models[0])}")
-                # TODO: Need to find a way of getting fuel info for pump...just send it in...? + map reduce the results or timestep by timestep?
-                pass
             else:
                 print(f"Ignoring collecting emissions for {type(consumer_dto)}")
         return emission_results

@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, Generic, Iterator, List, Literal, Optional, Tuple, TypeVar
 
 from libecalc.common.time_utils import Period
-from libecalc.dto.base import ComponentType
+from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
@@ -18,22 +18,19 @@ class Model(Generic[ModelType]):
 
 class TemporalModel(Generic[ModelType]):
     id: Optional[str]
-    component_type: Optional[Literal[ComponentType.PUMP_V2]] = ComponentType.PUMP_V2
+    component_type: Optional[ComponentType] = ComponentType.GENERIC
     name: Optional[str]
+    user_defined_category: Optional[Dict[datetime, ConsumerUserDefinedCategoryType]]
+    data: Dict[datetime, ConsumerUserDefinedCategoryType]
 
-    def set_id(self, id: str):
-        """
-        Hack to set id for temporal model that covers domain model
-        Args:
-            id:
-
-        Returns:
-
-        """
-        self.id = id
-
-    def __init__(self, data: Dict[datetime, ModelType]):
+    def __init__(self, data: Dict[datetime, ModelType], id=None, name=None, component_type=ComponentType.GENERIC, user_defined_category=None):
         self._data = data
+
+        self.id = id
+        self.name = name
+        self.component_type = component_type
+        self.user_defined_category = user_defined_category
+
         start_times = list(data.keys())
         end_times = [*start_times[1:], datetime.max]
         self.models = [

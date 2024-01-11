@@ -879,9 +879,6 @@ class GraphResult:
                             )
                         ]
                     )
-            elif consumer_node_info.component_type in [ComponentType.PUMP_V2]:
-                # Nothing for now ...
-                pass
             else:
                 models.extend(
                     [
@@ -959,12 +956,12 @@ class GraphResult:
                     id=consumer_result.component_result.id,
                     is_valid=consumer_result.component_result.is_valid,
                 )
-            elif consumer_node_info.component_type == ComponentType.PUMP:
+            elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_V2]:
                 obj = dto.result.results.PumpResult(
                     name=consumer_node_info.name,
                     parent=self.graph.get_predecessor(consumer_id),
                     component_level=consumer_node_info.component_level,
-                    componentType=consumer_node_info.component_type,
+                    componentType=ComponentType.PUMP,  # TODO: Fake pump v2 for now, to make it compatible ... it has same structure ...
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
                     else [],
@@ -1160,10 +1157,6 @@ class GraphResult:
                         consumer_result.component_result.energy_usage, regularity=regularity
                     ).to_stream_day(),
                 )
-            elif consumer_node_info.component_type in [ComponentType.PUMP_V2]:
-                # add some v2 stuff here ...
-                obj = None
-                pass
             else:  # COMPRESSOR_SYSTEM, PUMP_SYSTEM, GENERIC, TURBINE, VENTING_EMITTER
                 obj = parse_obj_as(
                     libecalc.dto.result.ComponentResult,
