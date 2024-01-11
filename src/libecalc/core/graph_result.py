@@ -151,11 +151,10 @@ class GraphResult:
                 [
                     TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
                     for component in sub_components
-                    # if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
                 ],
             )
 
-            # TODO: Why is this empty for pump v2...?
             emission_dto_results = self.convert_to_timeseries(self.emission_results, regularity)
             aggregated_emissions = aggregate_emissions(
                 [

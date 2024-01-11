@@ -19,8 +19,8 @@ def generate_id(*args: str) -> str:
 
     If there are many strings they are joined together.
     """
-    full_string = "-".join(args)
-    return hashlib.md5(full_string.encode()).hexdigest()  # noqa: S324 - insecure hash for ids
+    return "-".join(args)  # TODO: skip join?
+    #return hashlib.md5(full_string.encode()).hexdigest()  # noqa: S324 - insecure hash for ids
 
 
 def to_camel_case(string: str) -> str:
