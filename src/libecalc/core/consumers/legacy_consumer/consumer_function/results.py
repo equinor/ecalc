@@ -6,11 +6,7 @@ from typing import List, Literal, NamedTuple, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import BaseModel
-except ImportError:
-    from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
@@ -39,16 +35,14 @@ class ConsumerFunctionResultBase(BaseModel):
     time_vector: NDArray[np.float64]
     is_valid: NDArray[np.float64]
     energy_usage: NDArray[np.float64]
-    energy_usage_before_power_loss_factor: Optional[NDArray[np.float64]]
-    condition: Optional[NDArray[np.float64]]
-    power_loss_factor: Optional[NDArray[np.float64]]
-    energy_function_result: Optional[Union[EnergyFunctionResult, List[EnergyFunctionResult]]]
+    energy_usage_before_power_loss_factor: Optional[NDArray[np.float64]] = None
+    condition: Optional[NDArray[np.float64]] = None
+    power_loss_factor: Optional[NDArray[np.float64]] = None
+    energy_function_result: Optional[Union[EnergyFunctionResult, List[EnergyFunctionResult]]] = None
 
     # New! to support fuel to power rate...for e.g. compressors emulating turbine
-    power: Optional[NDArray[np.float64]]
-
-    class Config:
-        arbitrary_types_allowed = True
+    power: Optional[NDArray[np.float64]] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod
     def extend(self, other: object) -> ConsumerFunctionResultBase:
@@ -61,7 +55,7 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
     def extend(self, other) -> ConsumerFunctionResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time."""
         if not isinstance(self, type(other)):
-            msg = f"{self.__repr_name__()} Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
+            msg = "Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
             logger.warning(msg)
             raise ValueError(msg)
 

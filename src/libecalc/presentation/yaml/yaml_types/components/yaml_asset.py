@@ -2,10 +2,7 @@ from typing import List
 
 from libecalc.presentation.yaml.yaml_types.models import YamlModel
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
@@ -24,8 +21,9 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 class YamlAsset(YamlBase):
     """An eCalc™ yaml file"""
 
-    class Config:
-        title = "Asset"
+    model_config = ConfigDict(
+        title="Asset",
+    )
 
     time_series: List[YamlTimeSeriesCollection] = Field(
         None,

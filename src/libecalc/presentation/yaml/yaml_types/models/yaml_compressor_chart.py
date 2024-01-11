@@ -2,10 +2,7 @@ import enum
 from pathlib import Path
 from typing import List, Literal, Union
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import Field
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase

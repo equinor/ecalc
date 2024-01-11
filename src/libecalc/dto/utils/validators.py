@@ -1,17 +1,18 @@
 from datetime import date, datetime
 from typing import Dict, List, Optional, TypeVar, Union
 
-try:
-    from pydantic.v1 import constr
-except ImportError:
-    from pydantic import constr
+from pydantic import StringConstraints
+from typing_extensions import Annotated
 
 from libecalc.common.time_utils import is_temporal_model
 from libecalc.expression import Expression
 
-EmissionNameStr = constr(regex=r"^\w*$")
+EmissionNameStr = Annotated[str, StringConstraints(pattern=r"^\w*$")]
 COMPONENT_NAME_ALLOWED_CHARS = "A-ZÆØÅa-zæøå\\d_/\\- "
-ComponentNameStr = constr(regex=r"^[" + COMPONENT_NAME_ALLOWED_CHARS + "]*$")  # synced with valid regexp in BE4FE
+COMPONENT_NAME_PATTERN = r"^[" + COMPONENT_NAME_ALLOWED_CHARS + "]*$"
+ComponentNameStr = Annotated[
+    str, StringConstraints(pattern=COMPONENT_NAME_PATTERN)
+]  # synced with valid regexp in BE4FE
 
 ExpressionType = Union[str, int, float, Expression]
 
@@ -27,14 +28,14 @@ def convert_expression(
 
 
 def convert_expressions(
-    values: Optional[List[Optional[Union[ExpressionType, Dict[date, ExpressionType]]]]]
+    value: Optional[List[Optional[Union[ExpressionType, Dict[date, ExpressionType]]]]]
 ) -> Optional[List[Optional[Union[Expression, Dict[date, Expression]]]]]:
-    if values is None:
-        return values
-    if not isinstance(values, list):
-        return convert_expression(value=values)
+    if value is None:
+        return value
+    if not isinstance(value, list):
+        return convert_expression(value=value)
     else:
-        return [convert_expression(value=value) for value in values]
+        return [convert_expression(value=value) for value in value]
 
 
 def uppercase_user_defined_category(value):

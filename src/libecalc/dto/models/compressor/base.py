@@ -1,9 +1,6 @@
 from typing import List, Literal, Optional, Union
 
-try:
-    from pydantic.v1 import Field, validator
-except ImportError:
-    from pydantic import Field, validator
+from pydantic import Field, validator
 
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.compressor.sampled import CompressorSampled
@@ -46,12 +43,12 @@ CompressorModel = Union[
 
 class CompressorConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.COMPRESSOR] = ConsumerType.COMPRESSOR
-    power_loss_factor: Optional[Expression]
+    power_loss_factor: Optional[Expression] = None
     model: CompressorModel = Field(..., discriminator="typ")
     rate_standard_m3_day: Union[Expression, List[Expression]]
-    suction_pressure: Optional[Expression]
-    discharge_pressure: Optional[Expression]
-    interstage_control_pressure: Optional[Expression]
+    suction_pressure: Optional[Expression] = None
+    discharge_pressure: Optional[Expression] = None
+    interstage_control_pressure: Optional[Expression] = None
     # Todo: add pressure_control_first_part, pressure_control_last_part and stage_number_interstage_pressure
     # TODO: validate power loss factor wrt energy usage type
     # validate energy function has the same energy_usage_type

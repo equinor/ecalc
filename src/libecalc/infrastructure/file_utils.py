@@ -64,17 +64,15 @@ def to_json(result: Union[ComponentResult, EcalcModelResult], simple_output: boo
         String dump of json output
 
     """
-    date_format = DateTimeFormats.get_format(date_format_option)
+    DateTimeFormats.get_format(date_format_option)
     return (
-        SimpleResultData.from_dto(result).json(
+        SimpleResultData.from_dto(result).model_dump_json(
             indent=True,
-            date_format=date_format,
             exclude_none=True,
         )
         if simple_output
-        else result.json(
+        else result.model_dump_json(
             indent=True,
-            date_format=date_format,
             exclude_none=True,
         )
     )

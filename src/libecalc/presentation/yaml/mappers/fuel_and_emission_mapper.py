@@ -1,11 +1,7 @@
 from typing import Dict
 
 from ecalc_cli.logger import logger
-
-try:
-    from pydantic.v1 import ValidationError
-except ImportError:
-    from pydantic import ValidationError
+from pydantic import ValidationError
 
 from libecalc import dto
 from libecalc.presentation.yaml.validation_errors import DtoValidationError

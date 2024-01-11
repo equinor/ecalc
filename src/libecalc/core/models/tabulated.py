@@ -4,11 +4,8 @@ from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import BaseModel as PydanticBaseModel
-except ImportError:
-    from pydantic import BaseModel as PydanticBaseModel
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import ConfigDict
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.errors.exceptions import IllegalStateException
@@ -101,6 +98,4 @@ class VariableExpression(PydanticBaseModel):
 class Variable(PydanticBaseModel):
     name: str
     values: NDArray[np.float64]
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

@@ -1,9 +1,6 @@
 from typing import List, Literal, Optional
 
-try:
-    from pydantic.v1 import Field, validator
-except ImportError:
-    from pydantic import Field, validator
+from pydantic import Field, field_validator, validator
 
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
@@ -25,13 +22,13 @@ class CompressorSystemCompressor(EcalcBaseModel):
 
 
 class SystemOperationalSetting(EcalcBaseModel):
-    rate_fractions: Optional[List[Expression]]
-    rates: Optional[List[Expression]]
-    suction_pressure: Optional[Expression]
-    suction_pressures: Optional[List[Expression]]
-    discharge_pressure: Optional[Expression]
-    discharge_pressures: Optional[List[Expression]]
-    crossover: Optional[List[int]]
+    rate_fractions: Optional[List[Expression]] = None
+    rates: Optional[List[Expression]] = None
+    suction_pressure: Optional[Expression] = None
+    suction_pressures: Optional[List[Expression]] = None
+    discharge_pressure: Optional[Expression] = None
+    discharge_pressures: Optional[List[Expression]] = None
+    crossover: Optional[List[int]] = None
 
     _convert_expression_lists = validator(
         "rate_fractions",
@@ -48,7 +45,7 @@ class SystemOperationalSetting(EcalcBaseModel):
 
 
 class PumpSystemOperationalSetting(SystemOperationalSetting):
-    fluid_densities: Optional[List[Expression]]
+    fluid_densities: Optional[List[Expression]] = None
 
     _convert_expression_lists = validator(
         "fluid_densities",
@@ -65,11 +62,11 @@ class PumpSystemPump(EcalcBaseModel):
 
 class PumpSystemConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.PUMP_SYSTEM] = ConsumerType.PUMP_SYSTEM
-    energy_usage_type = EnergyUsageType.POWER
-    power_loss_factor: Optional[Expression]
+    energy_usage_type: EnergyUsageType = EnergyUsageType.POWER
+    power_loss_factor: Optional[Expression] = None
     pumps: List[PumpSystemPump]
     fluid_density: Expression
-    total_system_rate: Optional[Expression]
+    total_system_rate: Optional[Expression] = None
     operational_settings: List[PumpSystemOperationalSetting]
 
     _convert_expression = validator(
@@ -83,16 +80,17 @@ class CompressorSystemOperationalSetting(SystemOperationalSetting):
 
 class CompressorSystemConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.COMPRESSOR_SYSTEM] = ConsumerType.COMPRESSOR_SYSTEM
-    power_loss_factor: Optional[Expression]
+    power_loss_factor: Optional[Expression] = None
     compressors: List[CompressorSystemCompressor]
-    total_system_rate: Optional[Expression]
+    total_system_rate: Optional[Expression] = None
     operational_settings: List[CompressorSystemOperationalSetting]
 
     _convert_total_system_rate_to_expression = validator(
         "total_system_rate", "power_loss_factor", allow_reuse=True, pre=True
     )(convert_expression)
 
-    @validator("compressors", pre=False)
+    @field_validator("compressors")
+    @classmethod
     def check_for_generic_from_input_compressor_chart_in_simplified_train_compressor_system(
         cls, v: List[CompressorSystemCompressor]
     ) -> List[CompressorSystemCompressor]:

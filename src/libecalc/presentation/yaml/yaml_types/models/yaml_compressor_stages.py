@@ -3,10 +3,7 @@ from typing import List, Literal, Optional, Union
 
 from typing_extensions import Annotated
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
@@ -53,7 +50,7 @@ class YamlSingleSpeedCompressorStage(YamlCompressorStageBase):
                 title="PRESSURE_DROP_AHEAD_OF_STAGE",
             ),
         ]
-    ]
+    ] = None
     compressor_chart: str = Field(
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
@@ -84,7 +81,7 @@ class YamlCompressorStage(YamlCompressorStageBase):
                 title="PRESSURE_DROP_AHEAD_OF_STAGE",
             ),
         ]
-    ]
+    ] = None
 
 
 class YamlCompressorStageMultipleStreams(YamlCompressorStageBase):
@@ -97,7 +94,7 @@ class YamlCompressorStageMultipleStreams(YamlCompressorStageBase):
                 title="CONTROL_MARGIN",
             ),
         ]
-    ]
+    ] = None
     control_margin_unit: Optional[
         Annotated[
             YamlControlMarginUnits,
@@ -107,7 +104,7 @@ class YamlCompressorStageMultipleStreams(YamlCompressorStageBase):
                 title="CONTROL_MARGIN_UNIT",
             ),
         ]
-    ]
+    ] = None
     stream: Union[str, List[str]] = Field(
         None,
         description="Reference to stream from STREAMS.",
@@ -122,7 +119,7 @@ class YamlCompressorStageMultipleStreams(YamlCompressorStageBase):
                 title="PRESSURE_DROP_AHEAD_OF_STAGE",
             ),
         ]
-    ]
+    ] = None
     interstage_control_pressure: Optional[
         Annotated[
             YamlInterstageControlPressure,
@@ -132,7 +129,7 @@ class YamlCompressorStageMultipleStreams(YamlCompressorStageBase):
                 title="INTERSTAGE_CONTROL_PRESSURE",
             ),
         ]
-    ]
+    ] = None
 
 
 class YamlUnknownCompressorStages(YamlCompressorStageBase):
@@ -146,7 +143,7 @@ class YamlUnknownCompressorStages(YamlCompressorStageBase):
                 title="MAXIMUM_PRESSURE_RATIO_PER_STAGE",
             ),
         ]
-    ]
+    ] = None
 
 
 class YamlCompressorStages(YamlBase):

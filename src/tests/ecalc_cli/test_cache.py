@@ -24,7 +24,9 @@ def all_energy_usage_models_cache_fixture(request, all_energy_usage_models_dto, 
         )
         cache = Cache(user_specified_output_path=tmp_path)
         cache.results_path.touch(mode=0o660, exist_ok=True)
-        cache.results_path.write_text(cache_data.json())
+        text = cache_data.model_dump_json()
+        cache_data.model_dump()
+        cache.results_path.write_text(text)
         return cache
 
 

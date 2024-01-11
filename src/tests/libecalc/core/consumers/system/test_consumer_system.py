@@ -30,7 +30,11 @@ from libecalc.expression import Expression
 
 @pytest.fixture
 def consumer_system_variables_map():
-    time_vector = [Mock(datetime)] * 3
+    time_vector = [
+        datetime(2020, 1, 1),
+        datetime(2021, 1, 1),
+        datetime(2022, 1, 1),
+    ]
     return VariablesMap(
         variables={},
         time_vector=time_vector,

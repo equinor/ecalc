@@ -64,7 +64,7 @@ class CompressorResult(GenericComponentResult):
     recirculation_loss: TimeSeriesStreamDayRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
-    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
+    streams: Optional[List[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(
@@ -85,7 +85,7 @@ class PumpResult(GenericComponentResult):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
+    streams: Optional[List[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(

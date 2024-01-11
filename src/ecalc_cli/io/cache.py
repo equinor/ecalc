@@ -48,7 +48,7 @@ class Cache:
             results=results.get_results(),
             component_dto=component_dto,
         )
-        self.results_path.write_text(cache_data.json())
+        self.results_path.write_text(cache_data.model_dump_json())
 
     def write_run_info(self, run_info: RunInfo):
         """Write meta information about the run to the cache.
@@ -61,7 +61,7 @@ class Cache:
         """
         logger.info(f"Writing run info to cache '{self.cache_path}'.")
         self.run_info_path.touch(mode=0o660, exist_ok=True)
-        self.run_info_path.write_text(run_info.json())
+        self.run_info_path.write_text(run_info.model_dump_json())
 
     def load_run_info(self) -> RunInfo:
         """Load metadata about run from cache.
@@ -78,7 +78,7 @@ class Cache:
             logger.error(msg)
             raise ValueError(msg)
 
-        return RunInfo.parse_file(self.run_info_path)
+        return RunInfo.model_validate_json(self.run_info_path.read_text())
 
     def load_results(self) -> EcalcModelResult:
         """Load cached results from an ecalc run.
@@ -93,8 +93,8 @@ class Cache:
         if not self.results_path.is_file():
             msg = "Could not find results in this directory, make sure you run 'ecalc show' from the output directory of 'ecalc run' (or specify --outputfolder). Run the model again if no output directory exists."
             raise ValueError(msg)
-
-        cache_data = CacheData.parse_file(self.results_path)
+        cached_text = self.results_path.read_text()
+        cache_data = CacheData.model_validate_json(cached_text)
         graph = cache_data.component_dto.get_graph()
 
         return GraphResult(

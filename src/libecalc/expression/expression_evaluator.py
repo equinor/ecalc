@@ -9,11 +9,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import BaseModel
-except ImportError:
-    from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from libecalc.common.logger import logger
 
@@ -251,7 +247,7 @@ def eval_value(tokens):
         raise Exception(outtext)
     elif len(tokens) == 2:
         raise ValueError("Should not enter here - no time series in expression evaluator")
-    elif isinstance(tokens[0], (int, int, float)):
+    elif isinstance(tokens[0], (int, float)):
         return float(tokens[0])
     else:
         pos = 0
@@ -404,10 +400,9 @@ class Operators(Enum):
 
 class Token(BaseModel):
     tag: TokenTag
-    value: Union[float, int, bool, NDArray[np.float64], str]
+    value: Union[float, int, bool, NDArray[np.float64], str] = Field(union_mode="left_to_right")
 
     def __str__(self):
         return str(self.value)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

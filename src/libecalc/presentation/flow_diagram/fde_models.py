@@ -3,10 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional, Union
 
-try:
-    from pydantic.v1 import BaseModel
-except ImportError:
-    from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.string.string_utils import to_camel_case
 
@@ -46,10 +43,13 @@ class FlowDiagramBaseModel(BaseModel):
     Needed for specifying datetime format in json dumps
     """
 
-    class Config:
-        json_encoders = {
+    # TODO[pydantic]: The following keys were deprecated: `json_encoders`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(
+        json_encoders={
             datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
+    )
 
 
 class FlowDiagram(FlowDiagramBaseModel):
@@ -62,10 +62,7 @@ class FlowDiagram(FlowDiagramBaseModel):
     flows: List[Flow]
     start_date: datetime
     end_date: datetime
-
-    class Config:
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
+    model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True)
 
 
 class Flow(FlowDiagramBaseModel):
@@ -74,20 +71,14 @@ class Flow(FlowDiagramBaseModel):
     id: str
     label: str
     type: str
-
-    class Config:
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
 
 class Edge(FlowDiagramBaseModel):
     from_node: str
     to_node: str
     flow: str
-
-    class Config:
-        frozen = True
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
+    model_config = ConfigDict(frozen=True, alias_generator=to_camel_case, populate_by_name=True)
 
 
 class Node(FlowDiagramBaseModel):
@@ -96,10 +87,8 @@ class Node(FlowDiagramBaseModel):
     id: str
     title: Optional[str] = None
     type: Optional[str] = None
-    subdiagram: Optional[Union[FlowDiagram, List[FlowDiagram]]]
-
-    class Config:
-        frozen = True
+    subdiagram: Optional[Union[FlowDiagram, List[FlowDiagram]]] = None
+    model_config = ConfigDict(frozen=True)
 
 
 FlowDiagram.update_forward_refs()

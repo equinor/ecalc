@@ -1,9 +1,6 @@
 from typing import List, Union
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -25,8 +22,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 
 class YamlGeneratorSet(YamlBase):
-    class Config:
-        title = "GeneratorSet"
+    model_config = ConfigDict(title="GeneratorSet")
 
     name: str = Field(
         ...,

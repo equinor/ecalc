@@ -6,11 +6,7 @@ from libecalc import dto
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
-
-try:
-    from pydantic.v1 import ValidationError
-except ImportError:
-    from pydantic import ValidationError
+from pydantic import ValidationError
 
 regularity = {datetime(2000, 1, 1): Expression.setup_from_expression(1)}
 

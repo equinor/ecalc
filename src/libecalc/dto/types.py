@@ -1,10 +1,8 @@
 from enum import Enum
 from typing import List, Optional
 
-try:
-    from pydantic.v1 import Field, validator
-except ImportError:
-    from pydantic import Field, validator
+from pydantic import Field, field_validator
+from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.dto.base import EcalcBaseModel, FuelTypeUserDefinedCategoryType
 from libecalc.dto.emission import Emission
@@ -113,20 +111,21 @@ class InterpolationType(str, Enum):
 
 class FuelType(EcalcBaseModel):
     name: str
-    user_defined_category: Optional[FuelTypeUserDefinedCategoryType] = None
+    user_defined_category: Optional[FuelTypeUserDefinedCategoryType] = Field(default=None, validate_default=True)
     emissions: List[Emission] = Field(default_factory=list)
 
-    @validator("user_defined_category", pre=True, always=True)
-    def check_user_defined_category(cls, user_defined_category, values):
+    @field_validator("user_defined_category", mode="before")
+    @classmethod
+    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
         if user_defined_category is not None:
             if user_defined_category not in list(FuelTypeUserDefinedCategoryType):
-                name = ""
-                if values.get("name") is not None:
-                    name = f"with the name {values.get('name')}"
+                name_context_str = ""
+                if name := info.data.get("name") is not None:
+                    name_context_str = f"with the name {name}"
 
                 raise ValueError(
-                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name}. Valid categories are: {[str(fuel_type_user_defined_category.value) for fuel_type_user_defined_category in FuelTypeUserDefinedCategoryType]}"
+                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name_context_str}. Valid categories are: {[str(fuel_type_user_defined_category.value) for fuel_type_user_defined_category in FuelTypeUserDefinedCategoryType]}"
                 )
 
         return user_defined_category

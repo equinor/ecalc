@@ -12,16 +12,12 @@ from libecalc.dto.components import (
 )
 from libecalc.dto.types import EnergyUsageType, FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
-
-try:
-    from pydantic.v1 import ValidationError
-except ImportError:
-    from pydantic import ValidationError
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmission,
     YamlVentingEmitter,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
+from pydantic import ValidationError
 
 
 class TestCategories:
