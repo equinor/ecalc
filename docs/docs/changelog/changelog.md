@@ -1,5 +1,31 @@
 # Changelog
 
+## [8.9.0](https://github.com/equinor/ecalc/compare/v8.8.0...v8.9.0) (2024-01-11)
+
+
+### Bug Fixes
+
+* don't run pdoc on application module ([abbb704](https://github.com/equinor/ecalc/commit/abbb704d00def3149db3ae9d6e0e8932f655c740))
+
+
+### Documentation
+
+* maximum pressure ratio per stage in docs ([#338](https://github.com/equinor/ecalc/issues/338)) ([261749f](https://github.com/equinor/ecalc/commit/261749f34c3e1955ac9d66d6b33f63bef431f984))
+* remove docstring for number of compressors ([#339](https://github.com/equinor/ecalc/issues/339)) ([be148ba](https://github.com/equinor/ecalc/commit/be148baea2312778df4d9b5b373cb4044d8b9e1d))
+* update migration guide economics ([#335](https://github.com/equinor/ecalc/issues/335)) ([c4b50d6](https://github.com/equinor/ecalc/commit/c4b50d6243acd52b5cc9deb80cdc94b061776417))
+
+
+### Miscellaneous Chores
+
+* upgrade deps ([#343](https://github.com/equinor/ecalc/issues/343)) ([b183db7](https://github.com/equinor/ecalc/commit/b183db7864e62cd83fa2c3622ee66d60f78cedfd))
+
+
+### Code Refactoring
+
+* move energy calculator to application ([78b601f](https://github.com/equinor/ecalc/commit/78b601ffb6f34d577ce214c8e01a0f40a0f627fe))
+* move graph results ([b44f8c8](https://github.com/equinor/ecalc/commit/b44f8c8b28ca15f085c25de4574cad8958e0c813))
+* rename file ([59be317](https://github.com/equinor/ecalc/commit/59be31741903845388068cfbadc23b39cb48b35b))
+
 ## [8.8.0](https://github.com/equinor/ecalc/compare/v8.7.0...v8.8.0) (2023-12-27)
 
 
