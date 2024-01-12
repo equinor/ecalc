@@ -1,5 +1,9 @@
 # VENTING_EMITTERS
 
+<span className="major-change-new-feature"> New definition of VENTING_EMITTERS from eCalc v8.8!
+</span> 
+<br></br>
+
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 
 [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md)
 
