@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Type
+from typing import List
+
+from libecalc.presentation.yaml.yaml_types.models import YamlModel
 
 try:
     from pydantic.v1 import Field
@@ -16,12 +18,6 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_placeholder_type import (
-    YamlPlaceholderType,
-)
-from libecalc.presentation.yaml.yaml_types.yaml_schema_helpers import (
-    replace_placeholder_property_with_legacy_ref,
-)
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 
 
@@ -30,14 +26,6 @@ class YamlAsset(YamlBase):
 
     class Config:
         title = "Asset"
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any], model: Type["YamlAsset"]) -> None:
-            replace_placeholder_property_with_legacy_ref(
-                schema=schema,
-                property_key="MODELS",
-                property_ref="$SERVER_NAME/api/v1/schema-validation/models.json#properties/MODELS",
-            )
 
     time_series: List[YamlTimeSeriesCollection] = Field(
         None,
@@ -51,7 +39,7 @@ class YamlAsset(YamlBase):
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
     )
-    models: YamlPlaceholderType = Field(
+    models: List[YamlModel] = Field(
         None,
         title="MODELS",
         description="Defines input files which characterize various facility elements."
