@@ -1,5 +1,5 @@
 import enum
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from typing_extensions import Annotated
 
@@ -9,12 +9,6 @@ except ImportError:
     from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
-    YamlGenericFromDesignPointChart,
-    YamlGenericFromInputChart,
-    YamlSingleSpeedChart,
-    YamlVariableSpeedChart,
-)
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
 
 
@@ -42,9 +36,7 @@ class YamlCompressorStageBase(YamlBase):
         description="Inlet temperature in Celsius for stage",
         title="INLET_TEMPERATURE",
     )
-    compressor_chart: Union[
-        YamlSingleSpeedChart, YamlVariableSpeedChart, YamlGenericFromDesignPointChart, YamlGenericFromInputChart
-    ] = Field(
+    compressor_chart: str = Field(
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",
@@ -62,21 +54,24 @@ class YamlSingleSpeedCompressorStage(YamlCompressorStageBase):
             ),
         ]
     ]
-    compressor_chart: YamlSingleSpeedChart
+    compressor_chart: str = Field(
+        ...,
+        description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
+        title="COMPRESSOR_CHART",
+    )
 
 
 class YamlVariableSpeedCompressorStage(YamlCompressorStageBase):
-    pressure_drop_ahead_of_stage: Optional[
-        Annotated[
-            float,
-            Field(
-                ...,
-                description="Pressure drop before compression stage [in bar]",
-                title="PRESSURE_DROP_AHEAD_OF_STAGE",
-            ),
-        ]
-    ]
-    compressor_chart: YamlVariableSpeedChart
+    pressure_drop_ahead_of_stage: float = Field(
+        None,
+        description="Pressure drop before compression stage [in bar]",
+        title="PRESSURE_DROP_AHEAD_OF_STAGE",
+    )
+    compressor_chart: str
+    control_margin: float = Field(
+        None,
+    )
+    control_margin_unit: Literal["PERCENTAGE", "FRACTION"] = Field(None)
 
 
 class YamlCompressorStage(YamlCompressorStageBase):
@@ -114,7 +109,7 @@ class YamlCompressorStageMultipleStreams(YamlCompressorStageBase):
         ]
     ]
     stream: Union[str, List[str]] = Field(
-        ...,
+        None,
         description="Reference to stream from STREAMS.",
         title="STREAM",
     )

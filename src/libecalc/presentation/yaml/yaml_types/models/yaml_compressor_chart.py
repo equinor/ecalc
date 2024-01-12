@@ -27,7 +27,7 @@ class YamlCurvesFile(YamlBase):
 
 
 class YamlCurve(YamlBase):
-    speed: float
+    speed: float = None
     rate: List[float]
     head: List[float]
     efficiency: List[float]
@@ -89,7 +89,7 @@ class YamlSingleSpeedChart(YamlBase):
         title="TYPE",
     )
     chart_type: Literal[YamlChartType.SINGLE_SPEED] = YamlChartType.SINGLE_SPEED
-    curves: YamlCurve = Field(..., description="One single compressor chart curve.", title="CURVE")
+    curve: YamlCurve = Field(..., description="One single compressor chart curve.", title="CURVE")
     units: YamlUnits = None
 
     def to_dto(self):
@@ -132,6 +132,7 @@ class YamlGenericFromInputChart(YamlBase):
         description="Polytropic efficiency for compressor chart",
         title="POLYTROPIC_EFFICIENCY",
     )
+    units: YamlUnits = None
 
     def to_dto(self):
         raise NotImplementedError
