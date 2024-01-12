@@ -11,7 +11,6 @@ from libecalc import dto
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
-from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -445,27 +444,21 @@ class Asset(Component):
 
             names.extend([venting_emitter.name for venting_emitter in venting_emitters])
             for fuel_consumer in fuel_consumers:
-                if isinstance(fuel_consumer, TemporalModel):  # domain pump v2
-                    temporal_model_id = fuel_consumer.models[0].model.id
-                    fuel_consumer.id = temporal_model_id  # HACK: Very bad hack...we need to keep track of what is common across temporal models at yaml level - in addition to the separate models  TODO: generate_id?
-                    fuel_consumer.name = temporal_model_id
-                    names.append(temporal_model_id)
-                else:
-                    names.append(fuel_consumer.name)
-                    if isinstance(fuel_consumer, GeneratorSet):
-                        for electricity_consumer in fuel_consumer.consumers:
-                            if isinstance(electricity_consumer, ConsumerSystem):
-                                for consumer in electricity_consumer.consumers:
-                                    names.append(consumer.name)
-                    elif isinstance(fuel_consumer, ConsumerSystem):
-                        for consumer in fuel_consumer.consumers:
-                            names.append(consumer.name)
-                    if fuel_consumer.fuel is not None:
-                        for fuel_type in fuel_consumer.fuel.values():
-                            # Need to verify that it is a different fuel
-                            if fuel_type is not None and fuel_type not in fuel_types:
-                                fuel_types.append(fuel_type)
-                                fuel_names.append(fuel_type.name)
+                names.append(fuel_consumer.name)
+                if isinstance(fuel_consumer, GeneratorSet):
+                    for electricity_consumer in fuel_consumer.consumers:
+                        if isinstance(electricity_consumer, ConsumerSystem):
+                            for consumer in electricity_consumer.consumers:
+                                names.append(consumer.name)
+                elif isinstance(fuel_consumer, ConsumerSystem):
+                    for consumer in fuel_consumer.consumers:
+                        names.append(consumer.name)
+                if fuel_consumer.fuel is not None:
+                    for fuel_type in fuel_consumer.fuel.values():
+                        # Need to verify that it is a different fuel
+                        if fuel_type is not None and fuel_type not in fuel_types:
+                            fuel_types.append(fuel_type)
+                            fuel_names.append(fuel_type.name)
 
         duplicated_names = get_duplicates(names)
         duplicated_fuel_names = get_duplicates(fuel_names)

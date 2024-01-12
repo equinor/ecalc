@@ -10,14 +10,13 @@ from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
-from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.temporal_equipment import TemporalEquipment
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
-from libecalc.core.consumers.pump import Pump
 from libecalc.core.consumers.venting_emitter import VentingEmitter
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
@@ -61,26 +60,8 @@ class EnergyCalculator:
             if isinstance(component_dto, (dto.Asset, dto.Installation)):
                 # Asset and installation are just containers/aggregators, do not evaluate itself
                 pass
-            elif isinstance(component_dto, TemporalModel):  # Just assume pump core domain model for now ..
-                # Can we send in the domain model here directly...since it seems to be compatible methodwise?
-
-                my_stream_conditions = stream_conditions.get(component_dto.name)
-                print(f"stream conditions: {stream_conditions}")
-                if not my_stream_conditions:
-                    raise ValueError(f"Missing stream conditions for {component_dto.name}")
-
-                my_id = ""
-                result = None
-                for period, temporal_model in component_dto.items():
-                    timestep = period.start
-                    if isinstance(temporal_model, Pump):
-                        my_id = component_dto.id
-                        if result is None:  # TODO: Use map reduce
-                            result = temporal_model.evaluate(my_stream_conditions.get(timestep))
-                        else:
-                            result.extend(temporal_model.evaluate(my_stream_conditions.get(timestep)))
-
-                consumer_results[my_id] = result
+            elif isinstance(component_dto, TemporalEquipment):
+                consumer_results[component_dto.id] = component_dto.evaluate(stream_conditions.get(component_dto.name))
             elif isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
                 consumer = Consumer(consumer_dto=component_dto)
                 consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)
@@ -196,7 +177,9 @@ class EnergyCalculator:
         """
         emission_results: Dict[str, Dict[str, EmissionResult]] = {}
         for consumer_dto in self._graph.nodes.values():
-            if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)) or (isinstance(consumer_dto, TemporalModel) and consumer_dto.fuel):  # Only for fuel driven ...
+            if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)) or (
+                isinstance(consumer_dto, TemporalEquipment) and consumer_dto.fuel
+            ):  # Only for fuel driven ...
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                 emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
