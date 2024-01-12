@@ -29,6 +29,14 @@
                     "title": "ConsumerUserDefinedCategoryType",
                     "type": "string"
                 },
+                "ConsumptionRateType": {
+                    "description": "An enumeration.",
+                    "enum": [
+                        "STREAM_DAY",
+                        "CALENDAR_DAY"
+                    ],
+                    "title": "ConsumptionRateType"
+                },
                 "FuelTypeUserDefinedCategoryType": {
                     "description": "An enumeration.",
                     "enum": [
@@ -372,6 +380,162 @@
                         "STAGES"
                     ],
                     "title": "YamlCompressorStages",
+                    "type": "object"
+                },
+                "YamlCompressorSystemCompressor": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "COMPRESSOR_MODEL": {
+                            "description": "Reference to a compressor type facility model defined in FACILITY_INPUTS",
+                            "title": "COMPRESSOR_MODEL",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Name of the compressor",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "COMPRESSOR_MODEL"
+                    ],
+                    "title": "YamlCompressorSystemCompressor",
+                    "type": "object"
+                },
+                "YamlCompressorSystemOperationalSetting": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CROSSOVER": {
+                            "description": "Set cross over rules in system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#crossover",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "title": "CROSSOVER",
+                            "type": "array"
+                        },
+                        "DISCHARGE_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
+                            "title": "DISCHARGE_PRESSURE"
+                        },
+                        "DISCHARGE_PRESSURES": {
+                            "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#discharge-pressures",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "DISCHARGE_PRESSURES",
+                            "type": "array"
+                        },
+                        "RATES": {
+                            "description": "Set rate per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rates",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "RATES",
+                            "type": "array"
+                        },
+                        "RATE_FRACTIONS": {
+                            "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rate-fractions",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "RATE_FRACTIONS",
+                            "type": "array"
+                        },
+                        "SUCTION_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
+                            "title": "SUCTION_PRESSURE"
+                        },
+                        "SUCTION_PRESSURES": {
+                            "description": "Set suction pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#suction-pressures",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "SUCTION_PRESSURES",
+                            "type": "array"
+                        },
+                        "TOTAL_SYSTEM_RATE": {
+                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "TOTAL_SYSTEM_RATE",
+                            "type": "array"
+                        }
+                    },
+                    "title": "YamlCompressorSystemOperationalSetting",
                     "type": "object"
                 },
                 "YamlCompressorTabularModel": {
@@ -826,11 +990,51 @@
                         "ENERGY_USAGE_MODEL": {
                             "anyOf": [
                                 {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                    "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelPump"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelPumpSystem"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
                                 },
                                 {
                                     "additionalProperties": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelPump"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelPumpSystem"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                            }
+                                        ]
                                     },
                                     "type": "object"
                                 }
@@ -883,6 +1087,756 @@
                     "title": "Emission",
                     "type": "object"
                 },
+                "YamlEnergyUsageModelCompressor": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "title": "CONDITION"
+                        },
+                        "CONDITIONS": {
+                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "CONDITIONS",
+                            "type": "array"
+                        },
+                        "DISCHARGE_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid (gas) pressure at compressor outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
+                            "title": "DISCHARGE_PRESSURE"
+                        },
+                        "ENERGYFUNCTION": {
+                            "description": "The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS",
+                            "title": "ENERGY_FUNCTION",
+                            "type": "string"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
+                            "title": "POWERLOSSFACTOR"
+                        },
+                        "RATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid (gas) rate through the compressor in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
+                            "title": "RATE"
+                        },
+                        "SUCTION_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid (gas) pressure at compressor inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
+                            "title": "SUCTION_PRESSURE"
+                        },
+                        "TYPE": {
+                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "COMPRESSOR"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "TYPE",
+                        "ENERGYFUNCTION"
+                    ],
+                    "title": "YamlEnergyUsageModelCompressor",
+                    "type": "object"
+                },
+                "YamlEnergyUsageModelCompressorSystem": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "COMPRESSORS": {
+                            "description": "The compressors in a compressor system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/COMPRESSORS#compressors",
+                            "items": {
+                                "$ref": "#/definitions/YamlCompressorSystemCompressor"
+                            },
+                            "title": "COMPRESSORS",
+                            "type": "array"
+                        },
+                        "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "title": "CONDITION"
+                        },
+                        "CONDITIONS": {
+                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "CONDITIONS",
+                            "type": "array"
+                        },
+                        "OPERATIONAL_SETTINGS": {
+                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
+                            "items": {
+                                "$ref": "#/definitions/YamlCompressorSystemOperationalSetting"
+                            },
+                            "title": "OPERATIONAL_SETTINGS",
+                            "type": "array"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
+                            "title": "POWERLOSSFACTOR"
+                        },
+                        "TYPE": {
+                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "COMPRESSOR_SYSTEM"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "TYPE",
+                        "COMPRESSORS",
+                        "OPERATIONAL_SETTINGS"
+                    ],
+                    "title": "YamlEnergyUsageModelCompressorSystem",
+                    "type": "object"
+                },
+                "YamlEnergyUsageModelCompressorTrainMultipleStreams": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "COMPRESSOR_TRAIN_MODEL": {
+                            "description": "The compressor train model, reference to a compressor type model defined in MODELS",
+                            "title": "COMPRESSOR_TRAIN_MODEL",
+                            "type": "string"
+                        },
+                        "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "title": "CONDITION"
+                        },
+                        "CONDITIONS": {
+                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "CONDITIONS",
+                            "type": "array"
+                        },
+                        "DISCHARGE_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid (gas) pressure at compressor train outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
+                            "title": "DISCHARGE_PRESSURE"
+                        },
+                        "INTERSTAGE_CONTROL_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid (gas) pressure at an intermediate step in the compressor train \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/INTERSTAGE_CONTROL_PRESSURE",
+                            "title": "INTERSTAGE_CONTROL_PRESSURE"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
+                            "title": "POWERLOSSFACTOR"
+                        },
+                        "RATE_PER_STREAM": {
+                            "description": "Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "RATE_PER_STREAM",
+                            "type": "array"
+                        },
+                        "RATE_UNIT": {
+                            "default": "SM3_PER_DAY",
+                            "description": "Defaults to SM3_PER_DAY, only SM3_PER_DAY implemented for now",
+                            "enum": [
+                                "SM3_PER_DAY"
+                            ],
+                            "title": "RATE_UNIT",
+                            "type": "string"
+                        },
+                        "SUCTION_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid (gas) pressure at compressor train inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
+                            "title": "SUCTION_PRESSURE"
+                        },
+                        "TYPE": {
+                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "TYPE",
+                        "COMPRESSOR_TRAIN_MODEL",
+                        "RATE_PER_STREAM",
+                        "SUCTION_PRESSURE",
+                        "DISCHARGE_PRESSURE"
+                    ],
+                    "title": "YamlEnergyUsageModelCompressorTrainMultipleStreams",
+                    "type": "object"
+                },
+                "YamlEnergyUsageModelDirect": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "title": "CONDITION"
+                        },
+                        "CONDITIONS": {
+                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "CONDITIONS",
+                            "type": "array"
+                        },
+                        "CONSUMPTION_RATE_TYPE": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/ConsumptionRateType"
+                                }
+                            ],
+                            "description": "Defines the energy usage rate as stream day or calendar day.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMPTION_RATE_TYPE#consumption-rate-type",
+                            "title": "CONSUMPTION_RATE_TYPE"
+                        },
+                        "FUELRATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fixed power consumer with constant load.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/LOAD",
+                            "title": "FUEL_RATE"
+                        },
+                        "LOAD": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fixed power consumer with constant load.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/LOAD",
+                            "title": "LOAD"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
+                            "title": "POWERLOSSFACTOR"
+                        },
+                        "TYPE": {
+                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "DIRECT"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "TYPE"
+                    ],
+                    "title": "YamlEnergyUsageModelDirect",
+                    "type": "object"
+                },
+                "YamlEnergyUsageModelPump": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "title": "CONDITION"
+                        },
+                        "CONDITIONS": {
+                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "CONDITIONS",
+                            "type": "array"
+                        },
+                        "DISCHARGE_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid pressure at pump outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
+                            "title": "DISCHARGE_PRESSURE"
+                        },
+                        "ENERGYFUNCTION": {
+                            "description": "The pump energy function, reference to a pump type facility model defined in FACILITY_INPUTS",
+                            "title": "ENERGY_FUNCTION",
+                            "type": "string"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
+                            "title": "POWERLOSSFACTOR"
+                        },
+                        "RATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid rate through the pump in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
+                            "title": "RATE"
+                        },
+                        "SUCTION_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Fluid pressure at pump inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
+                            "title": "SUCTION_PRESSURE"
+                        },
+                        "TYPE": {
+                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "PUMP"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "TYPE",
+                        "ENERGYFUNCTION"
+                    ],
+                    "title": "YamlEnergyUsageModelPump",
+                    "type": "object"
+                },
+                "YamlEnergyUsageModelPumpSystem": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "title": "CONDITION"
+                        },
+                        "CONDITIONS": {
+                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "CONDITIONS",
+                            "type": "array"
+                        },
+                        "FLUID_DENSITY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Density of the fluid in kg/m3. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FLUID_DENSITY",
+                            "title": "FLUID_DENSITY"
+                        },
+                        "OPERATIONAL_SETTINGS": {
+                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
+                            "items": {
+                                "$ref": "#/definitions/YamlPumpSystemOperationalSettings"
+                            },
+                            "title": "OPERATIONAL_SETTINGS",
+                            "type": "array"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
+                            "title": "POWERLOSSFACTOR"
+                        },
+                        "PUMPS": {
+                            "description": "The pumps in a pump system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PUMPS#pumps",
+                            "items": {
+                                "$ref": "#/definitions/YamlPumpSystemPump"
+                            },
+                            "title": "PUMPS",
+                            "type": "array"
+                        },
+                        "TYPE": {
+                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "PUMP_SYSTEM"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "TYPE",
+                        "PUMPS",
+                        "OPERATIONAL_SETTINGS"
+                    ],
+                    "title": "YamlEnergyUsageModelPumpSystem",
+                    "type": "object"
+                },
+                "YamlEnergyUsageModelTabulated": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CONDITION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "title": "CONDITION"
+                        },
+                        "CONDITIONS": {
+                            "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "CONDITIONS",
+                            "type": "array"
+                        },
+                        "ENERGYFUNCTION": {
+                            "description": "The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS",
+                            "title": "ENERGY_FUNCTION",
+                            "type": "string"
+                        },
+                        "POWERLOSSFACTOR": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
+                            "title": "POWERLOSSFACTOR"
+                        },
+                        "TYPE": {
+                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
+                            "enum": [
+                                "TABULATED"
+                            ],
+                            "title": "TYPE",
+                            "type": "string"
+                        },
+                        "VARIABLES": {
+                            "description": "Variables for the tabulated energy function \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/VARIABLES#variables",
+                            "items": {
+                                "$ref": "#/definitions/YamlTabulatedVariable"
+                            },
+                            "title": "VARIABLES",
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "TYPE",
+                        "ENERGYFUNCTION",
+                        "VARIABLES"
+                    ],
+                    "title": "YamlEnergyUsageModelTabulated",
+                    "type": "object"
+                },
                 "YamlEosModel": {
                     "description": "An enumeration.",
                     "enum": [
@@ -927,11 +1881,39 @@
                         "ENERGY_USAGE_MODEL": {
                             "anyOf": [
                                 {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                    "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                },
+                                {
+                                    "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
                                 },
                                 {
                                     "additionalProperties": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json#properties/ENERGY_USAGE_MODEL"
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelDirect"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressor"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorSystem"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelTabulated"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                            }
+                                        ]
                                     },
                                     "type": "object"
                                 }
@@ -1769,6 +2751,180 @@
                     "title": "YamlPumpChartVariableSpeed",
                     "type": "object"
                 },
+                "YamlPumpSystemOperationalSettings": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CROSSOVER": {
+                            "description": "Set cross over rules in system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#crossover",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "title": "CROSSOVER",
+                            "type": "array"
+                        },
+                        "DISCHARGE_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
+                            "title": "DISCHARGE_PRESSURE"
+                        },
+                        "DISCHARGE_PRESSURES": {
+                            "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#discharge-pressures",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "DISCHARGE_PRESSURES",
+                            "type": "array"
+                        },
+                        "FLUID_DENSITIES": {
+                            "description": "Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#fluid-densities",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "FLUID_DENSITIES",
+                            "type": "array"
+                        },
+                        "RATES": {
+                            "description": "Set rate per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rates",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "RATES",
+                            "type": "array"
+                        },
+                        "RATE_FRACTIONS": {
+                            "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rate-fractions",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "RATE_FRACTIONS",
+                            "type": "array"
+                        },
+                        "SUCTION_PRESSURE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
+                            "title": "SUCTION_PRESSURE"
+                        },
+                        "SUCTION_PRESSURES": {
+                            "description": "Set suction pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#suction-pressures",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "SUCTION_PRESSURES",
+                            "type": "array"
+                        },
+                        "TOTAL_SYSTEM_RATE": {
+                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            },
+                            "title": "TOTAL_SYSTEM_RATE",
+                            "type": "array"
+                        }
+                    },
+                    "title": "YamlPumpSystemOperationalSettings",
+                    "type": "object"
+                },
+                "YamlPumpSystemPump": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "CHART": {
+                            "description": "Reference to a pump type facility model defined in FACILITY_INPUTS",
+                            "title": "COMPRESSOR_MODEL",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "description": "Name of the pump",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "CHART"
+                    ],
+                    "title": "YamlPumpSystemPump",
+                    "type": "object"
+                },
                 "YamlRate": {
                     "additionalProperties": false,
                     "properties": {
@@ -2184,6 +3340,37 @@
                         "TYPE"
                     ],
                     "title": "YamlTabularModel",
+                    "type": "object"
+                },
+                "YamlTabulatedVariable": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "EXPRESSION": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Expression defining the variable",
+                            "title": "EXPRESSION"
+                        },
+                        "NAME": {
+                            "description": "Name of variable. Must correspond exactly to header/column name in the energy function",
+                            "title": "NAME",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NAME",
+                        "EXPRESSION"
+                    ],
+                    "title": "YamlTabulatedVariable",
                     "type": "object"
                 },
                 "YamlTemperature": {
