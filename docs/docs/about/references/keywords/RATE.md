@@ -43,8 +43,8 @@ RATE: SIM1:GAS_PROD
         ...
 ~~~~~~~~
 
-## Format - usage in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
-
+## Use in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
+### Format
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
@@ -58,7 +58,7 @@ VENTING_EMITTERS:
 ~~~~~~~~
 
 
-## Format - usage in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
+### Example
 
 ~~~~~~~~yaml
 VENTING_EMITTERS:
