@@ -1,4 +1,6 @@
-from typing import Annotated, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
+
+from typing_extensions import Annotated
 
 try:
     from pydantic.v1 import Field
@@ -186,3 +188,11 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
 
     def to_dto(self):
         raise NotImplementedError
+
+
+YamlCompressorTrain = Union[
+    YamlVariableSpeedCompressorTrain,
+    YamlSimplifiedVariableSpeedCompressorTrain,
+    YamlSingleSpeedCompressorTrain,
+    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+]

@@ -1,5 +1,7 @@
 import enum
-from typing import Annotated, List, Optional, Union
+from typing import List, Optional, Union
+
+from typing_extensions import Annotated
 
 try:
     from pydantic.v1 import Field
