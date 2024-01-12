@@ -19,11 +19,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
     YamlModelType,
     YamlPressureControl,
 )
-from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
-    YamlCompositionFluidModel,
-    YamlPredefinedFluidModel,
-)
-from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlStream
 
 
 class YamlCompressorTrainBase(YamlBase):
@@ -32,24 +27,16 @@ class YamlCompressorTrainBase(YamlBase):
         description="Name of the model. See documentation for more information.",
         title="NAME",
     )
-    fluid_model: Union[YamlPredefinedFluidModel, YamlCompositionFluidModel] = Field(
-        ..., description="Reference to a fluid model", title="FLUID_MODEL"
+    maximum_power: float = Field(
+        None,
+        description="Optional constant MW maximum power the compressor train can require",
+        title="MAXIMUM_POWER",
     )
-    maximum_power: Optional[
-        Annotated[
-            float,
-            Field(
-                ...,
-                description="Optional constant MW maximum power the compressor train can require",
-                title="MAXIMUM_POWER",
-            ),
-        ]
-    ]
 
 
 class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
     type: Literal[YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN] = Field(
-        YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,
+        ...,
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
@@ -59,7 +46,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         title="COMPRESSOR_TRAIN",
     )
     pressure_control: YamlPressureControl = Field(
-        ...,
+        None,
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )
@@ -94,6 +81,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
             ),
         ]
     ]
+    fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
         raise NotImplementedError
@@ -101,7 +89,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
 
 class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
     type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN] = Field(
-        YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN,
+        ...,
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
@@ -111,7 +99,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         title="COMPRESSOR_TRAIN",
     )
     pressure_control: YamlPressureControl = Field(
-        ...,
+        None,
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )
@@ -136,6 +124,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
             ),
         ]
     ]
+    fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
         raise NotImplementedError
@@ -143,7 +132,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 
 class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
     type: Literal[YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN] = Field(
-        YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
+        ...,
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
@@ -163,18 +152,35 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
             ),
         ]
     ]
+    fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    power_adjustment_constant: Optional[
+        Annotated[
+            float,
+            Field(
+                0.0,
+                description="Constant to adjust power usage in MW",
+                title="POWER_ADJUSTMENT_CONSTANT",
+            ),
+        ]
+    ]
 
     def to_dto(self):
         raise NotImplementedError
 
 
+class YamlMultipleStreamsStream(YamlBase):
+    type: Literal["INGOING", "OUTGOING"]
+    name: str
+    fluid_model: str = Field(None, description="Reference to a fluid model", title="FLUID_MODEL")
+
+
 class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressorTrainBase):
     type: Literal[YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES] = Field(
-        YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
+        ...,
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    streams: List[YamlStream] = Field(
+    streams: List[YamlMultipleStreamsStream] = Field(
         ...,
         description="A list of all in- and out-going streams for the compressor train. "
         "The same equation of state (EOS) must be used for each INGOING stream fluid models",
@@ -185,6 +191,21 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
         description="A list of all stages in compressor model.",
         title="STAGES",
     )
+    pressure_control: YamlPressureControl = Field(
+        None,
+        description="Method for pressure control",
+        title="PRESSURE_CONTROL",
+    )
+    power_adjustment_constant: Optional[
+        Annotated[
+            float,
+            Field(
+                0.0,
+                description="Constant to adjust power usage in MW",
+                title="POWER_ADJUSTMENT_CONSTANT",
+            ),
+        ]
+    ]
 
     def to_dto(self):
         raise NotImplementedError

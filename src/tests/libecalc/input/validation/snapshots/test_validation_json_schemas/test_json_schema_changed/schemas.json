@@ -266,22 +266,9 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSOR_CHART": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlSingleSpeedChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlVariableSpeedChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlGenericFromDesignPointChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlGenericFromInputChart"
-                                }
-                            ],
                             "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
-                            "title": "COMPRESSOR_CHART"
+                            "title": "COMPRESSOR_CHART",
+                            "type": "string"
                         },
                         "INLET_TEMPERATURE": {
                             "description": "Inlet temperature in Celsius for stage",
@@ -304,22 +291,9 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSOR_CHART": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlSingleSpeedChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlVariableSpeedChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlGenericFromDesignPointChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlGenericFromInputChart"
-                                }
-                            ],
                             "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
-                            "title": "COMPRESSOR_CHART"
+                            "title": "COMPRESSOR_CHART",
+                            "type": "string"
                         },
                         "CONTROL_MARGIN": {
                             "title": "Control Margin",
@@ -358,8 +332,7 @@
                     },
                     "required": [
                         "INLET_TEMPERATURE",
-                        "COMPRESSOR_CHART",
-                        "STREAM"
+                        "COMPRESSOR_CHART"
                     ],
                     "title": "YamlCompressorStageMultipleStreams",
                     "type": "object"
@@ -437,10 +410,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -455,10 +428,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -473,10 +446,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -506,32 +479,14 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
                             "title": "SUCTION_PRESSURES",
-                            "type": "array"
-                        },
-                        "TOTAL_SYSTEM_RATE": {
-                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "TOTAL_SYSTEM_RATE",
                             "type": "array"
                         }
                     },
@@ -866,7 +821,6 @@
                         }
                     },
                     "required": [
-                        "SPEED",
                         "RATE",
                         "HEAD",
                         "EFFICIENCY"
@@ -1113,10 +1067,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -1238,10 +1192,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -1270,6 +1224,24 @@
                             ],
                             "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
                             "title": "POWERLOSSFACTOR"
+                        },
+                        "TOTAL_SYSTEM_RATE": {
+                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    }
+                                ]
+                            },
+                            "title": "TOTAL_SYSTEM_RATE",
+                            "type": "array"
                         },
                         "TYPE": {
                             "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
@@ -1319,10 +1291,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -1382,10 +1354,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -1461,10 +1433,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -1566,10 +1538,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -1595,6 +1567,21 @@
                             "description": "The pump energy function, reference to a pump type facility model defined in FACILITY_INPUTS",
                             "title": "ENERGY_FUNCTION",
                             "type": "string"
+                        },
+                        "FLUID_DENSITY": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Density of the fluid in kg/m3. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FLUID_DENSITY",
+                            "title": "FLUID_DENSITY"
                         },
                         "POWERLOSSFACTOR": {
                             "anyOf": [
@@ -1652,7 +1639,8 @@
                     },
                     "required": [
                         "TYPE",
-                        "ENERGYFUNCTION"
+                        "ENERGYFUNCTION",
+                        "FLUID_DENSITY"
                     ],
                     "title": "YamlEnergyUsageModelPump",
                     "type": "object"
@@ -1683,10 +1671,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -1739,6 +1727,21 @@
                             "title": "PUMPS",
                             "type": "array"
                         },
+                        "TOTAL_SYSTEM_RATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
+                            "title": "TOTAL_SYSTEM_RATE"
+                        },
                         "TYPE": {
                             "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
                             "enum": [
@@ -1782,10 +1785,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -2194,6 +2197,9 @@
                             ],
                             "title": "TYPE",
                             "type": "string"
+                        },
+                        "UNITS": {
+                            "$ref": "#/definitions/YamlUnits"
                         }
                     },
                     "required": [
@@ -2464,6 +2470,34 @@
                     "title": "TimeSeries",
                     "type": "object"
                 },
+                "YamlMultipleStreamsStream": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "FLUID_MODEL": {
+                            "description": "Reference to a fluid model",
+                            "title": "FLUID_MODEL",
+                            "type": "string"
+                        },
+                        "NAME": {
+                            "title": "Name",
+                            "type": "string"
+                        },
+                        "TYPE": {
+                            "enum": [
+                                "INGOING",
+                                "OUTGOING"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "TYPE",
+                        "NAME"
+                    ],
+                    "title": "YamlMultipleStreamsStream",
+                    "type": "object"
+                },
                 "YamlPredefinedFluidModel": {
                     "additionalProperties": false,
                     "properties": {
@@ -2492,7 +2526,6 @@
                             "type": "string"
                         },
                         "TYPE": {
-                            "default": "FLUID",
                             "enum": [
                                 "FLUID"
                             ],
@@ -2501,7 +2534,8 @@
                         }
                     },
                     "required": [
-                        "NAME"
+                        "NAME",
+                        "TYPE"
                     ],
                     "title": "YamlPredefinedFluidModel",
                     "type": "object"
@@ -2785,10 +2819,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -2803,10 +2837,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -2821,10 +2855,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -2839,10 +2873,10 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
@@ -2872,32 +2906,14 @@
                                         "type": "string"
                                     },
                                     {
-                                        "type": "integer"
+                                        "type": "number"
                                     },
                                     {
-                                        "type": "number"
+                                        "type": "integer"
                                     }
                                 ]
                             },
                             "title": "SUCTION_PRESSURES",
-                            "type": "array"
-                        },
-                        "TOTAL_SYSTEM_RATE": {
-                            "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "title": "TOTAL_SYSTEM_RATE",
                             "type": "array"
                         }
                     },
@@ -2992,19 +3008,13 @@
                             "title": "COMPRESSOR_TRAIN"
                         },
                         "FLUID_MODEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlPredefinedFluidModel"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlCompositionFluidModel"
-                                }
-                            ],
                             "description": "Reference to a fluid model",
-                            "title": "FLUID_MODEL"
+                            "title": "FLUID_MODEL",
+                            "type": "string"
                         },
                         "MAXIMUM_POWER": {
-                            "title": "Maximum Power",
+                            "description": "Optional constant MW maximum power the compressor train can require",
+                            "title": "MAXIMUM_POWER",
                             "type": "number"
                         },
                         "NAME": {
@@ -3012,8 +3022,11 @@
                             "title": "NAME",
                             "type": "string"
                         },
+                        "POWER_ADJUSTMENT_CONSTANT": {
+                            "title": "Power Adjustment Constant",
+                            "type": "number"
+                        },
                         "TYPE": {
-                            "default": "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN",
                             "description": "Defines the type of model. See documentation for more information.",
                             "enum": [
                                 "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN"
@@ -3024,8 +3037,9 @@
                     },
                     "required": [
                         "NAME",
-                        "FLUID_MODEL",
-                        "COMPRESSOR_TRAIN"
+                        "TYPE",
+                        "COMPRESSOR_TRAIN",
+                        "FLUID_MODEL"
                     ],
                     "title": "YamlSimplifiedVariableSpeedCompressorTrain",
                     "type": "object"
@@ -3041,7 +3055,7 @@
                             "title": "Chart Type",
                             "type": "string"
                         },
-                        "CURVES": {
+                        "CURVE": {
                             "allOf": [
                                 {
                                     "$ref": "#/definitions/YamlCurve"
@@ -3070,7 +3084,7 @@
                     },
                     "required": [
                         "NAME",
-                        "CURVES"
+                        "CURVE"
                     ],
                     "title": "YamlSingleSpeedChart",
                     "type": "object"
@@ -3079,7 +3093,9 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSOR_CHART": {
-                            "$ref": "#/definitions/YamlSingleSpeedChart"
+                            "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
+                            "title": "COMPRESSOR_CHART",
+                            "type": "string"
                         },
                         "INLET_TEMPERATURE": {
                             "description": "Inlet temperature in Celsius for stage",
@@ -3133,23 +3149,17 @@
                             "title": "COMPRESSOR_TRAIN"
                         },
                         "FLUID_MODEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlPredefinedFluidModel"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlCompositionFluidModel"
-                                }
-                            ],
                             "description": "Reference to a fluid model",
-                            "title": "FLUID_MODEL"
+                            "title": "FLUID_MODEL",
+                            "type": "string"
                         },
                         "MAXIMUM_DISCHARGE_PRESSURE": {
                             "title": "Maximum Discharge Pressure",
                             "type": "number"
                         },
                         "MAXIMUM_POWER": {
-                            "title": "Maximum Power",
+                            "description": "Optional constant MW maximum power the compressor train can require",
+                            "title": "MAXIMUM_POWER",
                             "type": "number"
                         },
                         "NAME": {
@@ -3171,7 +3181,6 @@
                             "title": "PRESSURE_CONTROL"
                         },
                         "TYPE": {
-                            "default": "SINGLE_SPEED_COMPRESSOR_TRAIN",
                             "description": "Defines the type of model. See documentation for more information.",
                             "enum": [
                                 "SINGLE_SPEED_COMPRESSOR_TRAIN"
@@ -3182,9 +3191,9 @@
                     },
                     "required": [
                         "NAME",
-                        "FLUID_MODEL",
+                        "TYPE",
                         "COMPRESSOR_TRAIN",
-                        "PRESSURE_CONTROL"
+                        "FLUID_MODEL"
                     ],
                     "title": "YamlSingleSpeedCompressorTrain",
                     "type": "object"
@@ -3579,22 +3588,9 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSOR_CHART": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlSingleSpeedChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlVariableSpeedChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlGenericFromDesignPointChart"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlGenericFromInputChart"
-                                }
-                            ],
                             "description": "Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
-                            "title": "COMPRESSOR_CHART"
+                            "title": "COMPRESSOR_CHART",
+                            "type": "string"
                         },
                         "INLET_TEMPERATURE": {
                             "description": "Inlet temperature in Celsius for stage",
@@ -3668,7 +3664,20 @@
                     "additionalProperties": false,
                     "properties": {
                         "COMPRESSOR_CHART": {
-                            "$ref": "#/definitions/YamlVariableSpeedChart"
+                            "title": "Compressor Chart",
+                            "type": "string"
+                        },
+                        "CONTROL_MARGIN": {
+                            "title": "Control Margin",
+                            "type": "number"
+                        },
+                        "CONTROL_MARGIN_UNIT": {
+                            "enum": [
+                                "PERCENTAGE",
+                                "FRACTION"
+                            ],
+                            "title": "Control Margin Unit",
+                            "type": "string"
                         },
                         "INLET_TEMPERATURE": {
                             "description": "Inlet temperature in Celsius for stage",
@@ -3676,7 +3685,8 @@
                             "type": "number"
                         },
                         "PRESSURE_DROP_AHEAD_OF_STAGE": {
-                            "title": "Pressure Drop Ahead Of Stage",
+                            "description": "Pressure drop before compression stage [in bar]",
+                            "title": "PRESSURE_DROP_AHEAD_OF_STAGE",
                             "type": "number"
                         }
                     },
@@ -3722,19 +3732,13 @@
                             "title": "COMPRESSOR_TRAIN"
                         },
                         "FLUID_MODEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlPredefinedFluidModel"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlCompositionFluidModel"
-                                }
-                            ],
                             "description": "Reference to a fluid model",
-                            "title": "FLUID_MODEL"
+                            "title": "FLUID_MODEL",
+                            "type": "string"
                         },
                         "MAXIMUM_POWER": {
-                            "title": "Maximum Power",
+                            "description": "Optional constant MW maximum power the compressor train can require",
+                            "title": "MAXIMUM_POWER",
                             "type": "number"
                         },
                         "NAME": {
@@ -3756,7 +3760,6 @@
                             "title": "PRESSURE_CONTROL"
                         },
                         "TYPE": {
-                            "default": "VARIABLE_SPEED_COMPRESSOR_TRAIN",
                             "description": "Defines the type of model. See documentation for more information.",
                             "enum": [
                                 "VARIABLE_SPEED_COMPRESSOR_TRAIN"
@@ -3767,9 +3770,9 @@
                     },
                     "required": [
                         "NAME",
-                        "FLUID_MODEL",
+                        "TYPE",
                         "COMPRESSOR_TRAIN",
-                        "PRESSURE_CONTROL"
+                        "FLUID_MODEL"
                     ],
                     "title": "YamlVariableSpeedCompressorTrain",
                     "type": "object"
@@ -3777,26 +3780,28 @@
                 "YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures": {
                     "additionalProperties": false,
                     "properties": {
-                        "FLUID_MODEL": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/YamlPredefinedFluidModel"
-                                },
-                                {
-                                    "$ref": "#/definitions/YamlCompositionFluidModel"
-                                }
-                            ],
-                            "description": "Reference to a fluid model",
-                            "title": "FLUID_MODEL"
-                        },
                         "MAXIMUM_POWER": {
-                            "title": "Maximum Power",
+                            "description": "Optional constant MW maximum power the compressor train can require",
+                            "title": "MAXIMUM_POWER",
                             "type": "number"
                         },
                         "NAME": {
                             "description": "Name of the model. See documentation for more information.",
                             "title": "NAME",
                             "type": "string"
+                        },
+                        "POWER_ADJUSTMENT_CONSTANT": {
+                            "title": "Power Adjustment Constant",
+                            "type": "number"
+                        },
+                        "PRESSURE_CONTROL": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/YamlPressureControl"
+                                }
+                            ],
+                            "description": "Method for pressure control",
+                            "title": "PRESSURE_CONTROL"
                         },
                         "STAGES": {
                             "description": "A list of all stages in compressor model.",
@@ -3809,13 +3814,12 @@
                         "STREAMS": {
                             "description": "A list of all in- and out-going streams for the compressor train. The same equation of state (EOS) must be used for each INGOING stream fluid models",
                             "items": {
-                                "$ref": "#/definitions/YamlStream"
+                                "$ref": "#/definitions/YamlMultipleStreamsStream"
                             },
                             "title": "STREAMS",
                             "type": "array"
                         },
                         "TYPE": {
-                            "default": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
                             "description": "Defines the type of model. See documentation for more information.",
                             "enum": [
                                 "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
@@ -3826,7 +3830,7 @@
                     },
                     "required": [
                         "NAME",
-                        "FLUID_MODEL",
+                        "TYPE",
                         "STREAMS",
                         "STAGES"
                     ],
@@ -4091,2355 +4095,5 @@
             "type": "object"
         },
         "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/ecalc-model.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "ENERGYFUNCTION": {
-                    "anyOf": [
-                        {
-                            "additionalProperties": false,
-                            "properties": {
-                                "CONSUMERSYSTEM": {
-                                    "additionalProperties": false,
-                                    "description": "Defines the start of an energy function.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERSYSTEM",
-                                    "properties": {
-                                        "CONSUMERELEMENTS": {
-                                            "description": "A list of keys referring to elements in FACILITY_INPUTS.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERELEMENTS",
-                                            "title": "CONSUMERELEMENTS",
-                                            "type": "array"
-                                        },
-                                        "FLUID": {
-                                            "additionalProperties": false,
-                                            "description": "Specification of the fluids flowing through the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FLUID",
-                                            "properties": {
-                                                "DENSITY": {
-                                                    "description": "Density of the fluid in kg/m3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DENSITY",
-                                                    "title": "DENSITY",
-                                                    "type": "number"
-                                                }
-                                            },
-                                            "required": [
-                                                "DENSITY"
-                                            ],
-                                            "title": "FLUID",
-                                            "type": "object"
-                                        },
-                                        "PRIORITY": {
-                                            "description": "Lists the order of operational modes.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PRIORITY",
-                                            "items": {
-                                                "additionalProperties": false,
-                                                "properties": {
-                                                    "CONSUMERS": {
-                                                        "$ref": "#definitions/LIST_OF_NUMBERS",
-                                                        "description": "List of consumers in the system.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERS",
-                                                        "title": "CONSUMERS"
-                                                    },
-                                                    "CROSSOVER": {
-                                                        "$ref": "#definitions/LIST_OF_NUMBERS",
-                                                        "description": "Specifies if rates are to be crossed over to another consumer if the rate capacity is exceeded.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CROSSOVER",
-                                                        "title": "CROSSOVER"
-                                                    },
-                                                    "DISCHARGE_PRESSURE": {
-                                                        "$ref": "#definitions/LIST_OF_NUMBERS_OR_STRINGS",
-                                                        "description": "List specifying the discharge pressure for each consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                                                        "title": "DISCHARGE_PRESSURE"
-                                                    },
-                                                    "FRACTIONS": {
-                                                        "$ref": "#definitions/LIST_OF_NUMBERS_OR_STRINGS",
-                                                        "description": "List of fractions per consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FRACTIONS",
-                                                        "title": "FRACTIONS"
-                                                    },
-                                                    "SUCTION_PRESSURE": {
-                                                        "$ref": "#definitions/LIST_OF_NUMBERS_OR_STRINGS",
-                                                        "description": "List specifying the suction pressure for each consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                                                        "title": "SUCTION_PRESSURE"
-                                                    }
-                                                },
-                                                "required": [
-                                                    "CONSUMERS",
-                                                    "FRACTIONS",
-                                                    "SUCTION_PRESSURE",
-                                                    "DISCHARGE_PRESSURE"
-                                                ]
-                                            },
-                                            "title": "PRIORITY",
-                                            "type": "array"
-                                        },
-                                        "RATE": {
-                                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                                            "description": "Expression defining the total rate for the system.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
-                                            "title": "RATE"
-                                        }
-                                    },
-                                    "title": "CONSUMERSYSTEM",
-                                    "type": "object"
-                                }
-                            },
-                            "required": [
-                                "CONSUMERSYSTEM"
-                            ],
-                            "type": "object"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "Definition of energy function of equipment.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGYFUNCTION",
-                    "title": "ENERGYFUNCTION"
-                },
-                "LIST_OF_NUMBERS": {
-                    "items": {
-                        "type": "number"
-                    },
-                    "type": "array"
-                },
-                "LIST_OF_NUMBERS_OR_STRINGS": {
-                    "oneOf": [
-                        {
-                            "items": {
-                                "type": "number"
-                            }
-                        },
-                        {
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    ],
-                    "type": "array"
-                },
-                "VARIABLES": {
-                    "description": "Defines variables used in an energy usage model by means of expressions or constants.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/VARIABLES",
-                    "patternProperties": {
-                        "^[a-zA-Z0-9_]+$": {
-                            "properties": {
-                                "VALUE": {
-                                    "anyOf": [
-                                        {
-                                            "type": "string"
-                                        },
-                                        {
-                                            "type": "number"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "title": "VARIABLES",
-                    "type": "object"
-                }
-            },
-            "description": "An ecalc yaml file",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json",
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "CONDITION": {
-                    "$ref": "#/definitions/number_or_string",
-                    "description": "Logical condition for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITION",
-                    "title": "CONDITION"
-                },
-                "CONDITIONS": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json#definitions/LIST_OF_NUMBERS_OR_STRINGS",
-                    "description": "Logical conditions for the consumer to be used.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONDITIONS",
-                    "title": "CONDITIONS"
-                },
-                "POWERLOSSFACTOR": {
-                    "$ref": "#/definitions/number_or_string",
-                    "description": "A factor that may be added to account for power line losses.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/POWERLOSSFACTOR",
-                    "title": "POWERLOSSFACTOR"
-                },
-                "number_or_string": {
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "number"
-                        }
-                    ]
-                }
-            },
-            "description": "Specifies the data used when calculating the energy usage of a consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy_usage_model_common.json",
-            "title": "ENERGY_USAGE_MODEL",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "ENERGY_USAGE_MODEL_COMPRESSOR": {
-                    "additionalProperties": false,
-                    "anyOf": [
-                        {
-                            "required": [
-                                "RATE"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "SUCTION_PRESSURE"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "DISCHARGE_PRESSURE"
-                            ]
-                        }
-                    ],
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#compressor",
-                    "properties": {
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "DISCHARGE_PRESSURE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid (gas) pressure at compressor outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
-                        },
-                        "ENERGYFUNCTION": {
-                            "description": "The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS",
-                            "title": "ENERGYFUNCTION"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "RATE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid (gas) rate through the compressor in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
-                            "title": "RATE"
-                        },
-                        "SUCTION_PRESSURE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid (gas) pressure at compressor inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
-                        },
-                        "TYPE": {
-                            "const": "COMPRESSOR",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "ENERGYFUNCTION"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL COMPRESSOR",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_COMPRESSOR_MULTIPLE_STREAMS_AND_PRESSURES": {
-                    "additionalProperties": false,
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#compressor-train-multiple-streams-and-pressures",
-                    "properties": {
-                        "COMPRESSOR_TRAIN_MODEL": {
-                            "description": "The compressor train model, reference to a compressor type model defined in MODELS",
-                            "title": "COMPRESSOR_TRAIN_MODEL"
-                        },
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "DISCHARGE_PRESSURE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid (gas) pressure at compressor train outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
-                        },
-                        "INTERSTAGE_CONTROL_PRESSURE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid (gas) pressure at compressor train outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "INTERSTAGE_PRESSURE"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "RATE_PER_STREAM": {
-                            "description": "Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
-                            "title": "RATE_PER_STREAM",
-                            "type": "array"
-                        },
-                        "RATE_UNIT": {
-                            "const": "SM3_PER_DAY",
-                            "description": "Defaults to SM3_PER_DAY, only SM3_PER_DAY implemented for now",
-                            "title": "RATE_UNIT",
-                            "type": "string"
-                        },
-                        "SUCTION_PRESSURE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid (gas) pressure at compressor train inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
-                        },
-                        "TYPE": {
-                            "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "COMPRESSOR_TRAIN_MODEL",
-                        "RATE_PER_STREAM",
-                        "SUCTION_PRESSURE",
-                        "DISCHARGE_PRESSURE"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL_COMPRESSOR_MULTIPLE_STREAMS_AND_PRESSURES",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_PUMP": {
-                    "additionalProperties": false,
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#pump",
-                    "properties": {
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "DISCHARGE_PRESSURE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid pressure at compressor outlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                            "title": "DISCHARGE_PRESSURE"
-                        },
-                        "ENERGYFUNCTION": {
-                            "description": "The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS",
-                            "title": "ENERGYFUNCTION"
-                        },
-                        "FLUID_DENSITY": {
-                            "$ref": "#/definitions/FLUID_DENSITY"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "RATE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid rate through the compressor in Sm3/day \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/RATE",
-                            "title": "RATE"
-                        },
-                        "SUCTION_PRESSURE": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Fluid pressure at compressor inlet in bars \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                            "title": "SUCTION_PRESSURE"
-                        },
-                        "TYPE": {
-                            "const": "PUMP",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "ENERGYFUNCTION",
-                        "RATE",
-                        "SUCTION_PRESSURE",
-                        "DISCHARGE_PRESSURE",
-                        "FLUID_DENSITY"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL PUMP",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_TABULATED": {
-                    "additionalProperties": false,
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#tabulated",
-                    "properties": {
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "ENERGYFUNCTION": {
-                            "description": "The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS",
-                            "title": "ENERGYFUNCTION"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "TYPE": {
-                            "const": "TABULATED",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        },
-                        "VARIABLES": {
-                            "description": "Variables for the tabulated energy function \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/VARIABLES#variables",
-                            "items": {
-                                "$ref": "#/definitions/VARIABLE"
-                            },
-                            "title": "VARIABLES",
-                            "type": "array"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "ENERGYFUNCTION",
-                        "VARIABLES"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL TABULATED",
-                    "type": "object"
-                },
-                "FLUID_DENSITY": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                    "description": "Density of the fluid in kg/m3. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FLUID_DENSITY",
-                    "title": "FLUID_DENSITY"
-                },
-                "VARIABLE": {
-                    "additionalProperties": false,
-                    "description": "Variable for the tabulated energy function. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/VARIABLES#variables",
-                    "properties": {
-                        "EXPRESSION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                            "description": "Expression defining the variable",
-                            "title": "EXPRESSION"
-                        },
-                        "NAME": {
-                            "description": "Name of variable. Must correspond exactly to header/column name in the energy function",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "EXPRESSION"
-                    ],
-                    "title": "VARIABLE",
-                    "type": "object"
-                }
-            },
-            "description": "Specifies the data used when calculating the energy usage of a consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy_usage_model_compressor_pump_tabular.json",
-            "title": "ENERGY_USAGE_MODEL",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "COMPRESSORS": {
-                    "additionalProperties": false,
-                    "description": "The compressors in a compressor system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/COMPRESSORS#compressors",
-                    "properties": {
-                        "COMPRESSOR_MODEL": {
-                            "description": "Reference to a compressor type facility model defined in FACILITY_INPUTS",
-                            "title": "COMPRESSOR_MODEL",
-                            "type": "string"
-                        },
-                        "NAME": {
-                            "description": "Name of the compressor",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "COMPRESSOR_MODEL"
-                    ],
-                    "title": "COMPRESSORS",
-                    "type": "object"
-                },
-                "DISCHARGE_PRESSURE": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                    "description": "Set discharge pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/DISCHARGE_PRESSURE",
-                    "title": "DISCHARGE PRESSURE"
-                },
-                "ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM": {
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#compressor-system",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE"
-                        },
-                        {
-                            "$ref": "#/definitions/ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITH_TOTAL_SYSTEM_RATE"
-                        }
-                    ],
-                    "properties": {
-                        "TYPE": {
-                            "const": "COMPRESSOR_SYSTEM",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "title": "ENERGY_USAGE_MODEL COMPRESSOR_SYSTEM",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE": {
-                    "additionalProperties": false,
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#compressor-system",
-                    "properties": {
-                        "COMPRESSORS": {
-                            "items": {
-                                "$ref": "#/definitions/COMPRESSORS"
-                            },
-                            "type": "array"
-                        },
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "OPERATIONAL_SETTINGS": {
-                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
-                            "items": {
-                                "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_ONLY"
-                            },
-                            "title": "OPERATIONAL_SETTINGS",
-                            "type": "array"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "TYPE": {
-                            "const": "COMPRESSOR_SYSTEM",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "COMPRESSORS",
-                        "OPERATIONAL_SETTINGS"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL COMPRESSOR_SYSTEM",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM_WITH_TOTAL_SYSTEM_RATE": {
-                    "additionalProperties": false,
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#compressor-system",
-                    "properties": {
-                        "COMPRESSORS": {
-                            "items": {
-                                "$ref": "#/definitions/COMPRESSORS"
-                            },
-                            "type": "array"
-                        },
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "OPERATIONAL_SETTINGS": {
-                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
-                            "items": {
-                                "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_AND_RATE_FRACTIONS"
-                            },
-                            "title": "OPERATIONAL_SETTINGS",
-                            "type": "array"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "TOTAL_SYSTEM_RATE": {
-                            "$ref": "#/definitions/TOTAL_SYSTEM_RATE"
-                        },
-                        "TYPE": {
-                            "const": "COMPRESSOR_SYSTEM",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "COMPRESSORS",
-                        "OPERATIONAL_SETTINGS",
-                        "TOTAL_SYSTEM_RATE"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL COMPRESSOR_SYSTEM",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_PUMP_SYSTEM": {
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#pump-system",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE"
-                        },
-                        {
-                            "$ref": "#/definitions/ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITH_TOTAL_SYSTEM_RATE"
-                        }
-                    ],
-                    "properties": {
-                        "TYPE": {
-                            "const": "PUMP_SYSTEM",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "title": "ENERGY_USAGE_MODEL PUMP_SYSTEM",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITHOUT_TOTAL_SYSTEM_RATE": {
-                    "additionalProperties": false,
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#pump-system",
-                    "properties": {
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "FLUID_DENSITY": {
-                            "$ref": "#/definitions/FLUID_DENSITY"
-                        },
-                        "OPERATIONAL_SETTINGS": {
-                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
-                            "items": {
-                                "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_ONLY"
-                            },
-                            "title": "OPERATIONAL_SETTINGS",
-                            "type": "array"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "PUMPS": {
-                            "description": "The pumps in a pump system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PUMPS#pumps",
-                            "items": {
-                                "$ref": "#/definitions/PUMPS"
-                            },
-                            "type": "array"
-                        },
-                        "TYPE": {
-                            "const": "PUMP_SYSTEM",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "PUMPS",
-                        "FLUID_DENSITY",
-                        "OPERATIONAL_SETTINGS"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL PUMP_SYSTEM",
-                    "type": "object"
-                },
-                "ENERGY_USAGE_MODEL_PUMP_SYSTEM_WITH_TOTAL_SYSTEM_RATE": {
-                    "additionalProperties": false,
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#pump-system",
-                    "properties": {
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "FLUID_DENSITY": {
-                            "$ref": "#/definitions/FLUID_DENSITY"
-                        },
-                        "OPERATIONAL_SETTINGS": {
-                            "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
-                            "items": {
-                                "$ref": "#/definitions/OPERATIONAL_SETTING_RATES_AND_RATE_FRACTIONS"
-                            },
-                            "title": "OPERATIONAL_SETTINGS",
-                            "type": "array"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "PUMPS": {
-                            "description": "The pumps in a pump system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PUMPS#pumps",
-                            "items": {
-                                "$ref": "#/definitions/PUMPS"
-                            },
-                            "type": "array"
-                        },
-                        "TOTAL_SYSTEM_RATE": {
-                            "$ref": "#/definitions/TOTAL_SYSTEM_RATE"
-                        },
-                        "TYPE": {
-                            "const": "PUMP_SYSTEM",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "PUMPS",
-                        "FLUID_DENSITY",
-                        "OPERATIONAL_SETTINGS",
-                        "TOTAL_SYSTEM_RATE"
-                    ],
-                    "title": "ENERGY_USAGE_MODEL PUMP_SYSTEM",
-                    "type": "object"
-                },
-                "FLUID_DENSITY": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                    "description": "Density of the fluid in kg/m3. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FLUID_DENSITY",
-                    "title": "FLUID_DENSITY"
-                },
-                "OPERATIONAL_SETTING_CROSSOVER": {
-                    "description": "Set cross over rules in system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#crossover",
-                    "items": {
-                        "minimum": 0,
-                        "type": "integer"
-                    },
-                    "title": "CROSSOVER",
-                    "type": "array"
-                },
-                "OPERATIONAL_SETTING_DISCHARGE_PRESSURES": {
-                    "description": "Set discharge pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#discharge-pressures",
-                    "items": {
-                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                    },
-                    "title": "OPERATIONAL_SETTING DISCHARGE PRESSURES",
-                    "type": "array"
-                },
-                "OPERATIONAL_SETTING_FLUID_DENSITIES": {
-                    "description": "Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#fluid-densities",
-                    "items": {
-                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                    },
-                    "title": "OPERATIONAL_SETTING FLUID_DENSITIES",
-                    "type": "array"
-                },
-                "OPERATIONAL_SETTING_RATES": {
-                    "description": "Set rate per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rates",
-                    "items": {
-                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                    },
-                    "title": "OPERATIONAL_SETTING RATES",
-                    "type": "array"
-                },
-                "OPERATIONAL_SETTING_RATES_AND_RATE_FRACTIONS": {
-                    "additional_properties": false,
-                    "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
-                    "oneOf": [
-                        {
-                            "required": [
-                                "RATE_FRACTIONS",
-                                "SUCTION_PRESSURES",
-                                "DISCHARGE_PRESSURES"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURES",
-                                "DISCHARGE_PRESSURES"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATE_FRACTIONS",
-                                "SUCTION_PRESSURE",
-                                "DISCHARGE_PRESSURES"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURE",
-                                "DISCHARGE_PRESSURES"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATE_FRACTIONS",
-                                "SUCTION_PRESSURES",
-                                "DISCHARGE_PRESSURE"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURES",
-                                "DISCHARGE_PRESSURE"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATE_FRACTIONS",
-                                "SUCTION_PRESSURE",
-                                "DISCHARGE_PRESSURE"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURE",
-                                "DISCHARGE_PRESSURE"
-                            ]
-                        }
-                    ],
-                    "properties": {
-                        "CROSSOVER": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_CROSSOVER"
-                        },
-                        "DISCHARGE_PRESSURE": {
-                            "$ref": "#/definitions/DISCHARGE_PRESSURE"
-                        },
-                        "DISCHARGE_PRESSURES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_DISCHARGE_PRESSURES"
-                        },
-                        "FLUID_DENSITIES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_FLUID_DENSITIES"
-                        },
-                        "RATES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_RATES"
-                        },
-                        "RATE_FRACTIONS": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_RATE_FRACTIONS"
-                        },
-                        "SUCTION_PRESSURE": {
-                            "$ref": "#/definitions/SUCTION_PRESSURE"
-                        },
-                        "SUCTION_PRESSURES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_SUCTION_PRESSURES"
-                        }
-                    },
-                    "title": "OPERATIONAL_SETTING",
-                    "type": "object"
-                },
-                "OPERATIONAL_SETTING_RATES_ONLY": {
-                    "additional_properties": false,
-                    "description": "Operational settings of the system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS",
-                    "oneOf": [
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURES",
-                                "DISCHARGE_PRESSURES"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURE",
-                                "DISCHARGE_PRESSURES"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURES",
-                                "DISCHARGE_PRESSURE"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "RATES",
-                                "SUCTION_PRESSURE",
-                                "DISCHARGE_PRESSURE"
-                            ]
-                        }
-                    ],
-                    "properties": {
-                        "CROSSOVER": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_CROSSOVER"
-                        },
-                        "DISCHARGE_PRESSURE": {
-                            "$ref": "#/definitions/DISCHARGE_PRESSURE"
-                        },
-                        "DISCHARGE_PRESSURES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_DISCHARGE_PRESSURES"
-                        },
-                        "FLUID_DENSITIES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_FLUID_DENSITIES"
-                        },
-                        "RATES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_RATES"
-                        },
-                        "SUCTION_PRESSURE": {
-                            "$ref": "#/definitions/SUCTION_PRESSURE"
-                        },
-                        "SUCTION_PRESSURES": {
-                            "$ref": "#/definitions/OPERATIONAL_SETTING_SUCTION_PRESSURES"
-                        }
-                    },
-                    "title": "OPERATIONAL_SETTING",
-                    "type": "object"
-                },
-                "OPERATIONAL_SETTING_RATE_FRACTIONS": {
-                    "description": "List of expressions defining fractional rate (of total system rate) per consumer.  \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#rate-fractions",
-                    "items": {
-                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                    },
-                    "title": "OPERATIONAL_SETTING RATE_FRACTIONS",
-                    "type": "array"
-                },
-                "OPERATIONAL_SETTING_SUCTION_PRESSURES": {
-                    "description": "Set suction pressure per consumer in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/OPERATIONAL_SETTINGS#suction-pressures",
-                    "items": {
-                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string"
-                    },
-                    "title": "OPERATIONAL_SETTING SUCTION PRESSURES",
-                    "type": "array"
-                },
-                "PUMPS": {
-                    "additionalProperties": false,
-                    "description": "The pumps in a pump system. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/PUMPS#pumps",
-                    "properties": {
-                        "CHART": {
-                            "description": "Reference to a pump type facility model defined in FACILITY_INPUTS",
-                            "title": "CHART",
-                            "type": "string"
-                        },
-                        "NAME": {
-                            "description": "Name of the pump",
-                            "title": "NAME",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "CHART"
-                    ],
-                    "title": "PUMPS",
-                    "type": "object"
-                },
-                "SUCTION_PRESSURE": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                    "description": "Set suction pressure equal for all consumers in a consumer system operational setting. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/SUCTION_PRESSURE",
-                    "title": "SUCTION PRESSURE"
-                },
-                "TOTAL_SYSTEM_RATE": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                    "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
-                    "title": "TOTAL_SYSTEM_RATE"
-                }
-            },
-            "description": "Specifies the data used when calculating the energy usage of a consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy_usage_model_consumer_systems.json",
-            "title": "ENERGY_USAGE_MODEL",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-consumer-systems.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "CONSUMPTION_RATE_TYPE": {
-                    "description": "Defines the energy usage rate as stream day or calendar day.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMPTION_RATE_TYPE#consumption-rate-type",
-                    "oneOf": [
-                        {
-                            "const": "STREAM_DAY"
-                        },
-                        {
-                            "const": "CALENDAR_DAY"
-                        }
-                    ],
-                    "title": "CONSUMPTION_RATE_TYPE"
-                },
-                "ENERGY_USAGE_MODEL_DIRECT": {
-                    "additionalProperties": false,
-                    "oneOf": [
-                        {
-                            "required": [
-                                "LOAD",
-                                "TYPE"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "FUELRATE",
-                                "TYPE"
-                            ]
-                        }
-                    ],
-                    "properties": {
-                        "CONDITION": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITION"
-                        },
-                        "CONDITIONS": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/CONDITIONS"
-                        },
-                        "CONSUMPTION_RATE_TYPE": {
-                            "$ref": "#/definitions/CONSUMPTION_RATE_TYPE"
-                        },
-                        "FUELRATE": {
-                            "$ref": "#/definitions/FUELRATE"
-                        },
-                        "LOAD": {
-                            "$ref": "#/definitions/LOAD"
-                        },
-                        "POWERLOSSFACTOR": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/POWERLOSSFACTOR"
-                        },
-                        "TYPE": {
-                            "const": "DIRECT",
-                            "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    }
-                },
-                "FUELRATE": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                    "description": "Fuel rate of the facility.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELRATE",
-                    "title": "FUELRATE"
-                },
-                "LOAD": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-                    "description": "Fixed power consumer with constant load.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/LOAD",
-                    "title": "LOAD"
-                }
-            },
-            "description": "Specifies the data used when calculating the energy usage of a consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy_usage_model_direct.json",
-            "title": "ENERGY_USAGE_MODEL",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-direct.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "ENERGYFUNCTION": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json#definitions/ENERGYFUNCTION"
-                },
-                "TYPE": {
-                    "anyOf": [
-                        {
-                            "const": "DIRECT",
-                            "description": "Energy usage model for direct consumers. No energy function involved. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#direct",
-                            "title": "DIRECT"
-                        },
-                        {
-                            "const": "PUMP_SYSTEM",
-                            "description": "Energy usage model for pump systems. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#pump-system",
-                            "title": "PUMP_SYSTEM"
-                        },
-                        {
-                            "const": "COMPRESSOR_SYSTEM",
-                            "description": "Energy usage model for compressor systems. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#compressor-system",
-                            "title": "COMPRESSOR_SYSTEM"
-                        },
-                        {
-                            "const": "TABULATED",
-                            "description": "Energy usage model for tabulated energy usage. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#tabulated",
-                            "title": "TABULATED"
-                        },
-                        {
-                            "const": "COMPRESSOR",
-                            "description": "Energy usage model for compressor. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#compressor",
-                            "title": "COMPRESSOR"
-                        },
-                        {
-                            "const": "PUMP",
-                            "description": "Energy usage model for pump. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL#pump",
-                            "title": "PUMP"
-                        },
-                        {
-                            "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
-                            "description": "Energy usage model for variable speed compressor train with multiple streams. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL/#variable_speed_compressor_train_multiple_streams_and_pressures-energy-usage-model",
-                            "title": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
-                        }
-                    ],
-                    "description": "Defines the energy usage model type.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                    "title": "TYPE",
-                    "type": "string"
-                },
-                "VARIABLES": {
-                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/definitions.json#definitions/VARIABLES"
-                }
-            },
-            "description": "Specifies the data used when calculating the energy usage of a consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy_usage_model.json",
-            "properties": {
-                "ENERGY_USAGE_MODEL": {
-                    "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-                    "oneOf": [
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-direct.json#definitions/ENERGY_USAGE_MODEL_DIRECT"
-                        },
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-consumer-systems.json#definitions/ENERGY_USAGE_MODEL_PUMP_SYSTEM"
-                        },
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-consumer-systems.json#definitions/ENERGY_USAGE_MODEL_COMPRESSOR_SYSTEM"
-                        },
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_COMPRESSOR"
-                        },
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_COMPRESSOR_MULTIPLE_STREAMS_AND_PRESSURES"
-                        },
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_PUMP"
-                        },
-                        {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model-compressor-pump-tabulated.json#definitions/ENERGY_USAGE_MODEL_TABULATED"
-                        }
-                    ],
-                    "properties": {
-                        "TYPE": {
-                            "$ref": "#/definitions/TYPE"
-                        }
-                    },
-                    "title": "ENERGY_USAGE_MODEL",
-                    "type": "object"
-                }
-            },
-            "title": "ENERGY_USAGE_MODEL",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/energy-usage-model.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "COMPRESSOR_CHART": {
-                    "oneOf": [
-                        {
-                            "additionalProperties": false,
-                            "description": "Variable speed compressor chart.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "properties": {
-                                "CHART_TYPE": {
-                                    "const": "VARIABLE_SPEED"
-                                },
-                                "CURVES": {
-                                    "$ref": "#/definitions/CURVES"
-                                },
-                                "NAME": {
-                                    "$ref": "#/definitions/NAME"
-                                },
-                                "TYPE": {
-                                    "$ref": "#/definitions/TYPE"
-                                },
-                                "UNITS": {
-                                    "$ref": "#/definitions/UNITS"
-                                }
-                            },
-                            "required": [
-                                "NAME",
-                                "TYPE",
-                                "CHART_TYPE",
-                                "CURVES",
-                                "UNITS"
-                            ],
-                            "title": "VARIABLE_SPEED",
-                            "type": "object"
-                        },
-                        {
-                            "additionalProperties": false,
-                            "description": "Single speed compressor chart.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "properties": {
-                                "CHART_TYPE": {
-                                    "const": "SINGLE_SPEED"
-                                },
-                                "CURVE": {
-                                    "$ref": "#/definitions/CURVE"
-                                },
-                                "NAME": {
-                                    "$ref": "#/definitions/NAME"
-                                },
-                                "TYPE": {
-                                    "$ref": "#/definitions/TYPE"
-                                },
-                                "UNITS": {
-                                    "$ref": "#/definitions/UNITS"
-                                }
-                            },
-                            "required": [
-                                "NAME",
-                                "TYPE",
-                                "CHART_TYPE",
-                                "CURVE",
-                                "UNITS"
-                            ],
-                            "title": "SINGLE_SPEED",
-                            "type": "object"
-                        },
-                        {
-                            "additionalProperties": false,
-                            "description": "Generic compressor chart from input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "properties": {
-                                "CHART_TYPE": {
-                                    "const": "GENERIC_FROM_INPUT"
-                                },
-                                "NAME": {
-                                    "$ref": "#/definitions/NAME"
-                                },
-                                "POLYTROPIC_EFFICIENCY": {
-                                    "$ref": "#/definitions/POLYTROPIC_EFFICIENCY"
-                                },
-                                "TYPE": {
-                                    "$ref": "#/definitions/TYPE"
-                                },
-                                "UNITS": {
-                                    "$ref": "#/definitions/UNITS_GENERIC_FROM_INPUT"
-                                }
-                            },
-                            "required": [
-                                "NAME",
-                                "TYPE",
-                                "CHART_TYPE",
-                                "POLYTROPIC_EFFICIENCY",
-                                "UNITS"
-                            ],
-                            "title": "GENERIC_FROM_INPUT",
-                            "type": "object"
-                        },
-                        {
-                            "additionalProperties": false,
-                            "description": "Generic compressor chart from input.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "properties": {
-                                "CHART_TYPE": {
-                                    "const": "GENERIC_FROM_DESIGN_POINT"
-                                },
-                                "DESIGN_HEAD": {
-                                    "$ref": "#/definitions/DESIGN_HEAD"
-                                },
-                                "DESIGN_RATE": {
-                                    "$ref": "#/definitions/DESIGN_RATE"
-                                },
-                                "NAME": {
-                                    "$ref": "#/definitions/NAME"
-                                },
-                                "POLYTROPIC_EFFICIENCY": {
-                                    "$ref": "#/definitions/POLYTROPIC_EFFICIENCY"
-                                },
-                                "TYPE": {
-                                    "$ref": "#/definitions/TYPE"
-                                },
-                                "UNITS": {
-                                    "$ref": "#/definitions/UNITS"
-                                }
-                            },
-                            "required": [
-                                "NAME",
-                                "TYPE",
-                                "CHART_TYPE",
-                                "POLYTROPIC_EFFICIENCY",
-                                "DESIGN_RATE",
-                                "DESIGN_HEAD",
-                                "UNITS"
-                            ],
-                            "title": "GENERIC_FROM_DESIGN_POINT",
-                            "type": "object"
-                        }
-                    ]
-                },
-                "CURVE": {
-                    "description": "Compressor chart curve, single speed.",
-                    "oneOf": [
-                        {
-                            "additionalProperties": false,
-                            "properties": {
-                                "FILE": {
-                                    "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
-                                    "title": "FILE",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "additionalProperties": false,
-                            "properties": {
-                                "EFFICIENCY": {
-                                    "items": {
-                                        "type": "number"
-                                    },
-                                    "type": "array"
-                                },
-                                "HEAD": {
-                                    "items": {
-                                        "type": "number"
-                                    },
-                                    "type": "array"
-                                },
-                                "RATE": {
-                                    "items": {
-                                        "type": "number"
-                                    },
-                                    "type": "array"
-                                },
-                                "SPEED": {
-                                    "type": "number"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    ],
-                    "title": "CURVE"
-                },
-                "CURVES": {
-                    "description": "Compressor chart curves, one per speed.",
-                    "oneOf": [
-                        {
-                            "additionalProperties": false,
-                            "properties": {
-                                "FILE": {
-                                    "description": "Specifies the name of an input file.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FILE",
-                                    "title": "FILE",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "items": {
-                                "additionalProperties": false,
-                                "properties": {
-                                    "EFFICIENCY": {
-                                        "items": {
-                                            "type": "number"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "HEAD": {
-                                        "items": {
-                                            "type": "number"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "RATE": {
-                                        "items": {
-                                            "type": "number"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "SPEED": {
-                                        "type": "number"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "type": "array"
-                        }
-                    ],
-                    "title": "CURVES"
-                },
-                "DESIGN_HEAD": {
-                    "description": "Design head for generic compressor chart",
-                    "title": "DESIGN_HEAD",
-                    "type": "number"
-                },
-                "DESIGN_RATE": {
-                    "description": "Design rate for generic compressor chart",
-                    "title": "DESIGN_RATE",
-                    "type": "number"
-                },
-                "NAME": {
-                    "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                    "title": "NAME",
-                    "type": "string"
-                },
-                "POLYTROPIC_EFFICIENCY": {
-                    "description": "Polytropic efficiency for compressor chart",
-                    "title": "POLYTROPIC_EFFICIENCY",
-                    "type": "number"
-                },
-                "TYPE": {
-                    "const": "COMPRESSOR_CHART",
-                    "description": "Defines the type of model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                    "title": "TYPE",
-                    "type": "string"
-                },
-                "UNITS": {
-                    "additionalProperties": false,
-                    "description": "Units for compressor chart: RATE, HEAD and EFFICIENCY.",
-                    "properties": {
-                        "EFFICIENCY": {
-                            "anyOf": [
-                                {
-                                    "const": "FRACTION"
-                                },
-                                {
-                                    "const": "PERCENTAGE"
-                                }
-                            ],
-                            "description": "Unit of efficiency in compressor chart. Supported units are PERCENTAGE and FRACTION (default).",
-                            "title": "EFFICIENCY"
-                        },
-                        "HEAD": {
-                            "anyOf": [
-                                {
-                                    "const": "M"
-                                },
-                                {
-                                    "const": "KJ_PER_KG"
-                                },
-                                {
-                                    "const": "JOULE_PER_KG"
-                                }
-                            ],
-                            "description": "Unit for head in compressor chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG (default)",
-                            "title": "HEAD"
-                        },
-                        "RATE": {
-                            "const": "AM3_PER_HOUR",
-                            "description": "Unit for rate in compressor chart. Currently only AM3_PER_HOUR is supported",
-                            "title": "RATE"
-                        }
-                    },
-                    "required": [
-                        "RATE",
-                        "HEAD",
-                        "EFFICIENCY"
-                    ],
-                    "title": "compressor_chart_units",
-                    "type": "object"
-                },
-                "UNITS_GENERIC_FROM_INPUT": {
-                    "additionalProperties": false,
-                    "description": "Units for compressor chart generic from input: EFFICIENCY",
-                    "properties": {
-                        "EFFICIENCY": {
-                            "anyOf": [
-                                {
-                                    "const": "FRACTION"
-                                },
-                                {
-                                    "const": "PERCENTAGE"
-                                }
-                            ],
-                            "description": "Unit of efficiency in compressor chart. Supported units are PERCENTAGE and FRACTION (default).",
-                            "title": "EFFICIENCY"
-                        }
-                    },
-                    "required": [
-                        "EFFICIENCY"
-                    ],
-                    "title": "compressor_chart_units",
-                    "type": "object"
-                }
-            },
-            "description": "Model of a compressor chart which may be used in a compressor (train) model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-chart.json",
-            "title": "MODELS",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-chart.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "COMPRESSOR_CHART": {
-                    "description": "Reference to a compressor chart defined in MODELS. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "title": "COMPRESSOR_CHART",
-                    "type": "string"
-                },
-                "COMPRESSOR_TRAIN_WITH_DEFINED_STAGES": {
-                    "additionalProperties": false,
-                    "description": "Specification of simplified compressor train model with predefined stages.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "properties": {
-                        "STAGES": {
-                            "description": "Defines the stages of the compressor train, a compressor chart and an inlet temperature per stage. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "items": {
-                                "additionalProperties": false,
-                                "properties": {
-                                    "COMPRESSOR_CHART": {
-                                        "$ref": "#/definitions/COMPRESSOR_CHART"
-                                    },
-                                    "CONTROL_MARGIN": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN"
-                                    },
-                                    "CONTROL_MARGIN_UNIT": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN_UNIT"
-                                    },
-                                    "INLET_TEMPERATURE": {
-                                        "$ref": "#/definitions/INLET_TEMPERATURE"
-                                    }
-                                },
-                                "required": [
-                                    "COMPRESSOR_CHART",
-                                    "INLET_TEMPERATURE"
-                                ],
-                                "type": "object"
-                            },
-                            "title": "STAGES",
-                            "type": "array"
-                        }
-                    },
-                    "title": "COMPRESSOR_TRAIN_WITH_DEFINED_STAGES",
-                    "type": "object"
-                },
-                "COMPRESSOR_TRAIN_WITH_KNOWN_MAXIMUM_PRESSURE_RATIO": {
-                    "additionalProperties": false,
-                    "description": "Specification of simplified compressor train model with known number of stages.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "properties": {
-                        "COMPRESSOR_CHART": {
-                            "$ref": "#/definitions/COMPRESSOR_CHART"
-                        },
-                        "INLET_TEMPERATURE": {
-                            "$ref": "#/definitions/INLET_TEMPERATURE"
-                        },
-                        "MAXIMUM_PRESSURE_RATIO_PER_STAGE": {
-                            "description": "Maximum pressure ration per stage in compressor train",
-                            "type": "number"
-                        }
-                    },
-                    "required": [
-                        "COMPRESSOR_CHART",
-                        "INLET_TEMPERATURE",
-                        "MAXIMUM_PRESSURE_RATIO_PER_STAGE"
-                    ],
-                    "title": "COMPRESSOR_TRAIN_WITH_UNKNOWN_STAGES",
-                    "type": "object"
-                },
-                "INLET_TEMPERATURE": {
-                    "description": "Inlet temperature for each compressor in the train, should be a number larger than 0. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "title": "INLET_TEMPERATURE",
-                    "type": "number"
-                },
-                "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CALCULATE_MAX_RATE": {
-                            "description": "Will return compressor train max standard rate [Sm3/day] in result if set to true.",
-                            "title": "CALCULATE_MAX_RATE",
-                            "type": "boolean"
-                        },
-                        "COMPRESSOR_TRAIN": {
-                            "oneOf": [
-                                {
-                                    "$ref": "#/definitions/COMPRESSOR_TRAIN_WITH_DEFINED_STAGES"
-                                },
-                                {
-                                    "$ref": "#/definitions/COMPRESSOR_TRAIN_WITH_KNOWN_MAXIMUM_PRESSURE_RATIO"
-                                }
-                            ]
-                        },
-                        "FLUID_MODEL": {
-                            "oneOf": [
-                                {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-fluid.json#definitions/FLUID_MODEL"
-                                },
-                                {
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "MAXIMUM_POWER": {
-                            "description": "Maximum power delivered by electrical motor",
-                            "title": "MAXIMUM_POWER",
-                            "type": "number"
-                        },
-                        "NAME": {
-                            "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "POWER_ADJUSTMENT_CONSTANT": {
-                            "description": "Constant to adjust power usage in MW",
-                            "title": "POWER_ADJUSTMENT_CONSTANT",
-                            "type": "number"
-                        },
-                        "TYPE": {
-                            "const": "SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN",
-                            "description": "Defines the type of model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "FLUID_MODEL",
-                        "COMPRESSOR_TRAIN"
-                    ]
-                }
-            },
-            "description": " compressor train model where the calculations of inter stage pressures are simplified by assuming a balanced pressure increase fraction for all stages and from that treat all compressors independently, thus neglecting that they are on a common shaft with corresponding speed.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/_MODELS_",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-train-simplified.json",
-            "title": "MODELS",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-train-simplified.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "COMPRESSOR_WITH_TURBINE": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "COMPRESSOR_MODEL": {
-                            "description": "Reference to a compressor model",
-                            "title": "COMPRESSOR_MODEL",
-                            "type": "string"
-                        },
-                        "NAME": {
-                            "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "POWER_ADJUSTMENT_CONSTANT": {
-                            "description": "Constant to adjust power usage in MW",
-                            "title": "POWER_ADJUSTMENT_CONSTANT",
-                            "type": "number"
-                        },
-                        "TURBINE_MODEL": {
-                            "description": "Reference to a turbine model",
-                            "title": "TURBINE_MODEL",
-                            "type": "string"
-                        },
-                        "TYPE": {
-                            "const": "COMPRESSOR_WITH_TURBINE",
-                            "description": "Defines the type of model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "COMPRESSOR_MODEL",
-                        "TURBINE_MODEL"
-                    ]
-                }
-            },
-            "description": "A model which combines a compressor model (electric) with a turbine model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-with-turbine.json",
-            "title": "MODELS",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-with-turbine.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "EOS_MODEL": {
-                    "description": "Eos model for fluid. Supported values are SRK, PR, GERG_SRK and GERG_PR. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "oneOf": [
-                        {
-                            "const": "SRK"
-                        },
-                        {
-                            "const": "PR"
-                        },
-                        {
-                            "const": "GERG_SRK"
-                        },
-                        {
-                            "const": "GERG_PR"
-                        }
-                    ],
-                    "title": "EOS_MODEL",
-                    "type": "string"
-                },
-                "FLUID_MODEL": {
-                    "description": "Fluid model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/PREDEFINED_FLUID_MODEL"
-                        },
-                        {
-                            "$ref": "#/definitions/FLUID_MODEL_FROM_COMPOSITION"
-                        }
-                    ],
-                    "title": "FLUID_MODEL",
-                    "type": "object"
-                },
-                "FLUID_MODEL_FROM_COMPOSITION": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "COMPOSITION": {
-                            "additionalProperties": false,
-                            "description": "Components in fluid and amount (relative to the others) in mole weights",
-                            "properties": {
-                                "CO2": {
-                                    "type": "number"
-                                },
-                                "H2O": {
-                                    "type": "number"
-                                },
-                                "ethane": {
-                                    "type": "number"
-                                },
-                                "i_butane": {
-                                    "type": "number"
-                                },
-                                "i_pentane": {
-                                    "type": "number"
-                                },
-                                "methane": {
-                                    "type": "number"
-                                },
-                                "n_butane": {
-                                    "type": "number"
-                                },
-                                "n_hexane": {
-                                    "type": "number"
-                                },
-                                "n_pentane": {
-                                    "type": "number"
-                                },
-                                "nitrogen": {
-                                    "type": "number"
-                                },
-                                "propane": {
-                                    "type": "number"
-                                },
-                                "water": {
-                                    "type": "number"
-                                }
-                            },
-                            "required": [
-                                "methane"
-                            ],
-                            "title": "COMPOSITION",
-                            "type": "object"
-                        },
-                        "EOS_MODEL": {
-                            "$ref": "#/definitions/EOS_MODEL"
-                        },
-                        "FLUID_MODEL_TYPE": {
-                            "const": "COMPOSITION"
-                        },
-                        "NAME": {
-                            "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "TYPE": {
-                            "CONST": "FLUID"
-                        }
-                    },
-                    "required": [
-                        "TYPE",
-                        "COMPOSITION"
-                    ],
-                    "title": "FLUID_MODEL_FROM_COMPOSITION"
-                },
-                "PREDEFINED_FLUID_MODEL": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "EOS_MODEL": {
-                            "$ref": "#/definitions/EOS_MODEL"
-                        },
-                        "FLUID_MODEL_TYPE": {
-                            "const": "PREDEFINED"
-                        },
-                        "GAS_TYPE": {
-                            "$ref": "#/definitions/PREDEFINED_FLUID_TYPE"
-                        },
-                        "NAME": {
-                            "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "TYPE": {
-                            "const": "FLUID"
-                        }
-                    },
-                    "required": [
-                        "TYPE"
-                    ],
-                    "title": "PREDEFINED_FLUID_MODEL"
-                },
-                "PREDEFINED_FLUID_TYPE": {
-                    "description": "Type of predefined fluid. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "oneOf": [
-                        {
-                            "const": "ULTRA_DRY",
-                            "description": "",
-                            "title": "ULTRA_DRY"
-                        },
-                        {
-                            "const": "DRY",
-                            "description": "",
-                            "title": "DRY"
-                        },
-                        {
-                            "const": "MEDIUM",
-                            "description": "",
-                            "title": "MEDIUM"
-                        },
-                        {
-                            "const": "RICH",
-                            "description": "",
-                            "title": "RICH"
-                        },
-                        {
-                            "const": "ULTRA_RICH",
-                            "description": "",
-                            "title": "ULTRA_RICH"
-                        }
-                    ],
-                    "title": "PREDEFINED_FLUID_TYPE",
-                    "type": "string"
-                }
-            },
-            "description": "A fluid model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-fluid.json",
-            "title": "MODELS",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-fluid.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "COMPRESSOR_CHART": {
-                    "description": "Reference to a compressor chart defined in MODELS. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "title": "COMPRESSOR_CHART",
-                    "type": "string"
-                },
-                "INLET_TEMPERATURE": {
-                    "description": "Inlet temperature for each compressor in the train, should be a number larger than 0. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "title": "INLET_TEMPERATURE",
-                    "type": "number"
-                },
-                "PRESSURE_CONTROL": {
-                    "description": "Type of FixedSpeedPressureControl",
-                    "enum": [
-                        "UPSTREAM_CHOKE",
-                        "DOWNSTREAM_CHOKE",
-                        "INDIVIDUAL_ASV_PRESSURE",
-                        "INDIVIDUAL_ASV_RATE",
-                        "COMMON_ASV",
-                        "NONE"
-                    ],
-                    "title": "PRESSURE_CONTROL"
-                },
-                "SINGLE_SPEED_COMPRESSOR_TRAIN": {
-                    "additionalProperties": false,
-                    "else": {
-                        "not": {
-                            "required": [
-                                "MAXIMUM_DISCHARGE_PRESSURE"
-                            ]
-                        }
-                    },
-                    "if": {
-                        "properties": {
-                            "PRESSURE_CONTROL": {
-                                "const": "DOWNSTREAM_CHOKE"
-                            }
-                        }
-                    },
-                    "properties": {
-                        "CALCULATE_MAX_RATE": {
-                            "description": "Will return compressor train max standard rate [Sm3/day] in result if set to true.",
-                            "title": "CALCULATE_MAX_RATE",
-                            "type": "boolean"
-                        },
-                        "COMPRESSOR_TRAIN": {
-                            "additionalProperties": false,
-                            "description": "Specification of variable speed compressor train model with stages.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "properties": {
-                                "STAGES": {
-                                    "description": "Defines the stages of the compressor train, a compressor chart and an inlet temperature per stage. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                                    "items": {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "COMPRESSOR_CHART": {
-                                                "$ref": "#/definitions/COMPRESSOR_CHART"
-                                            },
-                                            "CONTROL_MARGIN": {
-                                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#/definitions/CONTROL_MARGIN"
-                                            },
-                                            "CONTROL_MARGIN_UNIT": {
-                                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#/definitions/CONTROL_MARGIN_UNIT"
-                                            },
-                                            "INLET_TEMPERATURE": {
-                                                "$ref": "#/definitions/INLET_TEMPERATURE"
-                                            }
-                                        },
-                                        "required": [
-                                            "COMPRESSOR_CHART",
-                                            "INLET_TEMPERATURE"
-                                        ],
-                                        "type": "object"
-                                    },
-                                    "title": "STAGES",
-                                    "type": "array"
-                                }
-                            },
-                            "title": "COMPRESSOR_TRAIN",
-                            "type": "object"
-                        },
-                        "FLUID_MODEL": {
-                            "oneOf": [
-                                {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-fluid.json#definitions/FLUID_MODEL"
-                                },
-                                {
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "MAXIMUM_DISCHARGE_PRESSURE": {
-                            "type": "number"
-                        },
-                        "MAXIMUM_POWER": {
-                            "description": "Maximum power delivered by electrical motor",
-                            "title": "MAXIMUM_POWER",
-                            "type": "number"
-                        },
-                        "NAME": {
-                            "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "POWER_ADJUSTMENT_CONSTANT": {
-                            "description": "Constant to adjust power usage in MW",
-                            "title": "POWER_ADJUSTMENT_CONSTANT",
-                            "type": "number"
-                        },
-                        "PRESSURE_CONTROL": {
-                            "$ref": "#/definitions/PRESSURE_CONTROL"
-                        },
-                        "TYPE": {
-                            "const": "SINGLE_SPEED_COMPRESSOR_TRAIN",
-                            "description": "Defines the type of model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "FLUID_MODEL",
-                        "COMPRESSOR_TRAIN"
-                    ],
-                    "then": {
-                        "unevaluatedProperties": {
-                            "MAXIMUM_DISCHARGE_PRESSURE": {
-                                "type": "number"
-                            }
-                        }
-                    }
-                }
-            },
-            "description": "Experimental feature: Single speed compressor train.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/_MODELS_",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-single-speed-compressor-train.json",
-            "title": "MODELS",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-single-speed-compressor-train.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-turbine.json#/definitions/YamlTurbine",
-            "definitions": {
-                "YamlTurbine": {
-                    "additionalProperties": false,
-                    "examples": [
-                        {
-                            "LOWER_HEATING_VALUE": "38 # MJ/Sm3",
-                            "NAME": "compressor_train_turbine",
-                            "POWER_ADJUSTMENT_CONSTANT": 10,
-                            "TURBINE_EFFICIENCIES": [
-                                0,
-                                0.138,
-                                0.21,
-                                0.255,
-                                0.286,
-                                0.31,
-                                0.328,
-                                0.342,
-                                0.353,
-                                0.36,
-                                0.362
-                            ],
-                            "TURBINE_LOADS": [
-                                0,
-                                2.352,
-                                4.589,
-                                6.853,
-                                9.125,
-                                11.399,
-                                13.673,
-                                15.947,
-                                18.223,
-                                20.496,
-                                22.767
-                            ],
-                            "TYPE": "TURBINE"
-                        }
-                    ],
-                    "properties": {
-                        "LOWER_HEATING_VALUE": {
-                            "description": "Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
-                            "title": "LOWER_HEATING_VALUE",
-                            "type": "number"
-                        },
-                        "NAME": {
-                            "description": "Name of the model. See documentation for more information.",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "POWER_ADJUSTMENT_CONSTANT": {
-                            "default": 0,
-                            "description": "Constant to adjust power usage in MW",
-                            "title": "POWER_ADJUSTMENT_CONSTANT",
-                            "type": "number"
-                        },
-                        "TURBINE_EFFICIENCIES": {
-                            "description": "Efficiency values in load vs efficiency table for turbine. Efficiency is given as fraction between 0 and 1 corresponding to 0-100%. Number of elements must correspond to number of elements in TURBINE_LOADS. See documentation for more information.",
-                            "items": {
-                                "type": "number"
-                            },
-                            "title": "TURBINE_EFFICIENCIES",
-                            "type": "array"
-                        },
-                        "TURBINE_LOADS": {
-                            "description": "Load values [MW] in load vs efficiency table for turbine. Number of elements must correspond to number of elements in TURBINE_EFFICIENCIES. See documentation for more information.",
-                            "items": {
-                                "type": "number"
-                            },
-                            "title": "TURBINE_LOADS",
-                            "type": "array"
-                        },
-                        "TYPE": {
-                            "description": "Defines the type of model. See documentation for more information.",
-                            "enum": [
-                                "TURBINE"
-                            ],
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "LOWER_HEATING_VALUE",
-                        "TURBINE_LOADS",
-                        "TURBINE_EFFICIENCIES"
-                    ],
-                    "title": "YamlTurbine",
-                    "type": "object"
-                }
-            },
-            "title": "TURBINE"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-turbine.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "INTERSTAGE_CONTROL_PRESSURE": {
-                    "additionalProperties": false,
-                    "description": "Defines what measure will be used to control the pressure of the compressor train.",
-                    "properties": {
-                        "DOWNSTREAM_PRESSURE_CONTROL": {
-                            "description": "Defines the measure to use to control the pressure of the compressor train after the stage with interstage pressure, if the compressor train before the interstage pressure is controlled by speed.",
-                            "title": "DOWNSTREAM_PRESSURE_CONTROL",
-                            "type": "string"
-                        },
-                        "UPSTREAM_PRESSURE_CONTROL": {
-                            "description": "Defines the measure to use to control the pressure of the compressor train prior to the stage with interstage pressure, if the compressor train after the interstage pressure is controlled by speed.",
-                            "title": "UPSTREAM_PRESSURE_CONTROL",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "UPSTREAM_PRESSURE_CONTROL",
-                        "DOWNSTREAM_PRESSURE_CONTROL"
-                    ],
-                    "title": "INTERSTAGE_PRESSURE_CONTROL",
-                    "type": "object"
-                },
-                "STREAM": {
-                    "description": "List of names of the stream(s) connected to this compressor stage. The stream(s) must have been defined under STREAMS.",
-                    "items": {
-                        "description": "Name of fluid stream",
-                        "type": "string"
-                    },
-                    "title": "STREAM",
-                    "type": "array"
-                },
-                "STREAMS": {
-                    "description": "Defines the streams of the compressor train, whether the stream is INGOING or OUTGOING, and if it is INGOING also the name of the FLUID_MODEL",
-                    "items": {
-                        "properties": {
-                            "FLUID_MODEL": {
-                                "description": "Name of the fluid model connected to the stream.",
-                                "title": "FLUID_MODEL",
-                                "type": "string"
-                            },
-                            "NAME": {
-                                "description": "Name of the stream.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                                "title": "NAME",
-                                "type": "string"
-                            },
-                            "TYPE": {
-                                "description": "Defines the type of stream.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                                "title": "TYPE",
-                                "type": "string"
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                                "NAME",
-                                "TYPE"
-                            ]
-                        },
-                        "type": "object"
-                    },
-                    "title": "STREAMS",
-                    "type": "array"
-                },
-                "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": {
-                    "properties": {
-                        "CALCULATE_MAX_RATE": {
-                            "description": "Will return compressor train max standard rate [Sm3/day] in result if set to true.",
-                            "title": "CALCULATE_MAX_RATE",
-                            "type": "boolean"
-                        },
-                        "MAXIMUM_POWER": {
-                            "description": "Maximum power delivered by electrical motor",
-                            "title": "MAXIMUM_POWER",
-                            "type": "number"
-                        },
-                        "NAME": {
-                            "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "PRESSURE_CONTROL": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-single-speed-compressor-train.json#/definitions/PRESSURE_CONTROL"
-                        },
-                        "STAGES": {
-                            "description": "Defines the stages of the compressor train, a compressor chart and an inlet temperature per stage. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "items": {
-                                "additionalProperties": false,
-                                "properties": {
-                                    "COMPRESSOR_CHART": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/COMPRESSOR_CHART"
-                                    },
-                                    "CONTROL_MARGIN": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN"
-                                    },
-                                    "CONTROL_MARGIN_UNIT": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/CONTROL_MARGIN_UNIT"
-                                    },
-                                    "INLET_TEMPERATURE": {
-                                        "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/INLET_TEMPERATURE"
-                                    },
-                                    "INTERSTAGE_CONTROL_PRESSURE": {
-                                        "$ref": "#/definitions/INTERSTAGE_CONTROL_PRESSURE"
-                                    },
-                                    "PRESSURE_DROP_AHEAD_OF_STAGE": {
-                                        "type": "number"
-                                    },
-                                    "STREAM": {
-                                        "$ref": "#/definitions/STREAM"
-                                    }
-                                },
-                                "required": [
-                                    "COMPRESSOR_CHART",
-                                    "INLET_TEMPERATURE"
-                                ],
-                                "type": "object"
-                            },
-                            "title": "STAGES",
-                            "type": "array"
-                        },
-                        "STREAMS": {
-                            "$ref": "#/definitions/STREAMS"
-                        },
-                        "TYPE": {
-                            "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES",
-                            "description": "Defines the type of model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "STREAMS",
-                        "STAGES"
-                    ]
-                }
-            },
-            "description": "Experimental feature: Variable speed compressor train with multiple streams and pressures.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/_MODELS_",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train-multiple-streams-and-pressures.json",
-            "title": "MODELS",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train-multiple-streams-and-pressures.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "definitions": {
-                "COMPRESSOR_CHART": {
-                    "description": "Reference to a compressor chart defined in MODELS. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "title": "COMPRESSOR_CHART",
-                    "type": "string"
-                },
-                "CONTROL_MARGIN": {
-                    "description": "A fraction or percentage to change the minimum flow rate by for each speed curve. Defaults to 0.",
-                    "title": "CONTROL_MARGIN",
-                    "type": "number"
-                },
-                "CONTROL_MARGIN_UNIT": {
-                    "description": "The unit of the CONTROL_MARGIN. Must be either PERCENTAGE or FRACTION. Defaults to PERCENTAGE.",
-                    "title": "CONTROL_MARGIN_UNIT",
-                    "type": "string"
-                },
-                "INLET_TEMPERATURE": {
-                    "description": "Inlet temperature for each compressor in the train, should be a number larger than 0. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                    "title": "INLET_TEMPERATURE",
-                    "type": "number"
-                },
-                "VARIABLE_SPEED_COMPRESSOR_TRAIN": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CALCULATE_MAX_RATE": {
-                            "description": "Will return compressor train max standard rate [Sm3/day] in result if set to true.",
-                            "title": "CALCULATE_MAX_RATE",
-                            "type": "boolean"
-                        },
-                        "COMPRESSOR_TRAIN": {
-                            "additionalProperties": false,
-                            "description": "Specification of variable speed compressor train model with stages.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                            "properties": {
-                                "STAGES": {
-                                    "description": "Defines the stages of the compressor train, a compressor chart and an inlet temperature per stage. \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/MODELS",
-                                    "items": {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "COMPRESSOR_CHART": {
-                                                "$ref": "#/definitions/COMPRESSOR_CHART"
-                                            },
-                                            "CONTROL_MARGIN": {
-                                                "$ref": "#/definitions/CONTROL_MARGIN"
-                                            },
-                                            "CONTROL_MARGIN_UNIT": {
-                                                "$ref": "#/definitions/CONTROL_MARGIN_UNIT"
-                                            },
-                                            "INLET_TEMPERATURE": {
-                                                "$ref": "#/definitions/INLET_TEMPERATURE"
-                                            }
-                                        },
-                                        "required": [
-                                            "COMPRESSOR_CHART",
-                                            "INLET_TEMPERATURE"
-                                        ],
-                                        "type": "object"
-                                    },
-                                    "title": "STAGES",
-                                    "type": "array"
-                                }
-                            },
-                            "title": "COMPRESSOR_TRAIN",
-                            "type": "object"
-                        },
-                        "FLUID_MODEL": {
-                            "oneOf": [
-                                {
-                                    "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-fluid.json#definitions/FLUID_MODEL"
-                                },
-                                {
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "MAXIMUM_POWER": {
-                            "description": "Maximum power delivered by electrical motor",
-                            "title": "MAXIMUM_POWER",
-                            "type": "number"
-                        },
-                        "NAME": {
-                            "description": "Name of the model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "POWER_ADJUSTMENT_CONSTANT": {
-                            "description": "Constant to adjust power usage in MW",
-                            "title": "POWER_ADJUSTMENT_CONSTANT",
-                            "type": "number"
-                        },
-                        "PRESSURE_CONTROL": {
-                            "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-single-speed-compressor-train.json#/definitions/PRESSURE_CONTROL"
-                        },
-                        "TYPE": {
-                            "const": "VARIABLE_SPEED_COMPRESSOR_TRAIN",
-                            "description": "Defines the type of model.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TYPE",
-                            "title": "TYPE",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "FLUID_MODEL",
-                        "COMPRESSOR_TRAIN"
-                    ]
-                }
-            },
-            "description": "Experimental feature: Variable speed compressor train.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/_MODELS_",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json",
-            "title": "MODELS",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json"
-    },
-    {
-        "fileMatch": [],
-        "schema": {
-            "additionalProperties": false,
-            "description": "Models",
-            "id": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json",
-            "properties": {
-                "MODELS": {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-train-simplified.json#definitions/SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN"
-                            },
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train.json#definitions/VARIABLE_SPEED_COMPRESSOR_TRAIN"
-                            },
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-variable-speed-compressor-train-multiple-streams-and-pressures.json#definitions/VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
-                            },
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-single-speed-compressor-train.json#definitions/SINGLE_SPEED_COMPRESSOR_TRAIN"
-                            },
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-with-turbine.json#definitions/COMPRESSOR_WITH_TURBINE"
-                            },
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-fluid.json#definitions/FLUID_MODEL"
-                            },
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-turbine.json"
-                            },
-                            {
-                                "$ref": "https://test.ecalc.equinor.com/api/v1/schema-validation/models-compressor-chart.json#definitions/COMPRESSOR_CHART"
-                            }
-                        ],
-                        "type": "object"
-                    },
-                    "type": "array"
-                }
-            },
-            "title": "ecalc yaml setup",
-            "type": "object"
-        },
-        "uri": "https://test.ecalc.equinor.com/api/v1/schema-validation/models.json"
     }
 ]
