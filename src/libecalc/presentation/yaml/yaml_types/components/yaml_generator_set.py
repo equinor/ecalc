@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Type, Union
+from typing import List, Union
 
 try:
     from pydantic.v1 import Field
@@ -21,26 +21,12 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
     YamlCompressor,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
-from libecalc.presentation.yaml.yaml_types.yaml_placeholder_type import (
-    YamlPlaceholderType,
-)
-from libecalc.presentation.yaml.yaml_types.yaml_schema_helpers import (
-    replace_temporal_placeholder_property_with_legacy_ref,
-)
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
 class YamlGeneratorSet(YamlBase):
     class Config:
         title = "GeneratorSet"
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any], model: Type["YamlGeneratorSet"]) -> None:
-            replace_temporal_placeholder_property_with_legacy_ref(
-                schema=schema,
-                property_key="ELECTRICITY2FUEL",
-                property_ref="$SERVER_NAME/api/v1/schema-validation/energy-usage-model-common.json#definitions/number_or_string",
-            )
 
     name: str = Field(
         ...,
@@ -53,7 +39,7 @@ class YamlGeneratorSet(YamlBase):
         title="FUEL",
         description="The fuel used by the generator set." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
-    electricity2fuel: YamlTemporalModel[YamlPlaceholderType] = Field(
+    electricity2fuel: YamlTemporalModel[str] = Field(
         ...,
         title="ELECTRICITY2FUEL",
         description="Specifies the correlation between the electric power delivered and the fuel burned by a "
