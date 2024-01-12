@@ -1,24 +1,13 @@
 import json
-from pathlib import Path
 from typing import List
 
-try:
-    from pydantic.v1 import schema_of
-except ImportError:
-    from pydantic import schema_of
-
 from libecalc.dto.ecalc_model import SchemaSettings
-from libecalc.presentation.yaml.validation import json_schemas
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 
 # This just needs to be a unique ID, it is required, but we do not need to have anything at that URI
 # since we are embedding everything within one file
 # Do not change this URI, since it has already been used in all json schemas
-# from libecalc.presentation.yaml.yaml_types import YamlTurbine
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from libecalc.presentation.yaml.yaml_types.models.yaml_turbine import YamlTurbine
-
 BASE_URI = "$SERVER_NAME/api/v1/schema-validation"
-JSON_SCHEMA_PATH = Path(json_schemas.__file__).resolve().parent
 ROOT_JSON_SCHEMA_FILE_NAME = "ecalc-model.json"
 
 VARIABLES_URI = f"{BASE_URI}/variables.json"
@@ -39,8 +28,6 @@ def get_template(schema: str, schema_name: str, is_root: bool = False) -> str:
 
 
 def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[SchemaSettings]:
-    schemas = []
-
     # First we get the root schema
     schema = json.loads(
         get_template(
@@ -57,32 +44,7 @@ def generate_json_schemas(server_url: str, docs_keywords_url: str) -> List[Schem
     monaco_variables_schema["additionalProperties"] = variables_pattern_properties[0]
     schema["schema"]["properties"]["VARIABLES"] = monaco_variables_schema
 
-    schemas.append(json.dumps(schema))
+    content = json.dumps(schema).replace("$SERVER_NAME", server_url)
+    content = content.replace("$ECALC_DOCS_KEYWORDS_URL", docs_keywords_url)
 
-    # Then we just take the rest
-    for json_schema_file in sorted([file for file in JSON_SCHEMA_PATH.iterdir() if file.suffix == ".json"]):
-        if json_schema_file.name == "models-turbine.json":
-            schema = schema_of(
-                YamlTurbine,
-                by_alias=True,
-                title="TURBINE",
-                ref_template=f"{BASE_URI}/{json_schema_file.name}#/definitions/{{model}}",
-            )
-            schemas.append(get_template(json.dumps(schema), schema_name=json_schema_file.name, is_root=False))
-        else:
-            with open(json_schema_file) as schema_file:
-                model_schema = schema_file.read()
-                schema = get_template(
-                    schema=model_schema,
-                    schema_name=json_schema_file.name,
-                    is_root=False,
-                )
-                schemas.append(schema)
-
-    processed_schemas = []
-    for schema in schemas:
-        content = schema.replace("$SERVER_NAME", server_url)
-        content = content.replace("$ECALC_DOCS_KEYWORDS_URL", docs_keywords_url)
-        processed_schemas.append(json.loads(content))
-
-    return processed_schemas
+    return [json.loads(content)]
