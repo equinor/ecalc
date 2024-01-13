@@ -1,4 +1,3 @@
-import hashlib
 from typing import Iterable, Set
 
 
@@ -18,9 +17,11 @@ def generate_id(*args: str) -> str:
     the id, i.e. it should not be used to get the name of a consumer, even if the name might be used to create the id.
 
     If there are many strings they are joined together.
+
+    TODO: Deprecate. This was needed when names on components etc were NON-UNIQUE, and we were not able to enforce uniqueness. Now we have been able to enforce uniqueness for names, and can therefore remove this method.
+    We may however want to generate "internal" IDs again, if it turns out that it is difficult to deal with names due to encoding etc, such as when using in URLs etc
     """
-    return "-".join(args)  # TODO: skip join?
-    #return hashlib.md5(full_string.encode()).hexdigest()  # noqa: S324 - insecure hash for ids
+    return "-".join(args)
 
 
 def to_camel_case(string: str) -> str:

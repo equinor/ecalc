@@ -26,16 +26,10 @@ class SingleSpeedChart(ChartCurve):
         efficiency_fraction: List[float],
     ) -> Self:
         """
-        Temporary class constructor to create domain object directly without use of DTO
-        TODO: Use pydantic?
-        Args:
-            speed_rpm:
-            rate_actual_m3_hour:
-            polytropic_head_joule_per_kg:
-            efficiency_fraction:
+        V2 only.
 
-        Returns:
-
+        This class method to construct single speed chart is being used for V2 only to avoid using old init constructor
+        used for v1 (since we must be backwords compatible, and the v1 constructur uses a single DTO for initialization)
         """
         instance = super().__new__(cls)
         instance.speed_rpm = speed_rpm

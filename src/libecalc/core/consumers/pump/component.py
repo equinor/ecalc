@@ -23,7 +23,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
     def __init__(self, id: str, pump_model: PumpModel):
         self.id = id
         self._pump_model = pump_model
-        self._operational_settings: Optional[PumpOperationalSettings] = None  # TODO: Always set, also when single?
+        self._operational_settings: Optional[PumpOperationalSettings] = None  # TODO: Always set, also for single pumps?
 
     def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: Pressure) -> List[float]:
         """

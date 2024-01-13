@@ -53,7 +53,7 @@ class GraphResult:
     def __init__(
         self,
         graph: ComponentGraph,
-        consumer_results: Dict[str, Union[EcalcModelResult]],
+        consumer_results: Dict[str, EcalcModelResult],
         emission_results: Dict[str, Dict[str, EmissionResult]],
         variables_map: dto.VariablesMap,
     ):
@@ -145,7 +145,6 @@ class GraphResult:
                 ),  # Initial value, handle no power output from components
             )
 
-            # TODO: This fails if different unit is used altogether, since it will be an empty []. Also MW is default so might fail if not explicitly set ...
             energy_usage = reduce(
                 operator.add,
                 [
@@ -363,8 +362,6 @@ class GraphResult:
         return TemporalModel(evaluated_temporal_energy_usage_models)
 
     def get_asset_result(self) -> libecalc.dto.result.EcalcModelResult:
-        # TODO: Add support for pump v2 here? Then we just add a few fields, as we want user to request more data to tailored endpoint instead of getting all details here..
-        # It is the core result etc that is serialized...
         asset_id = self.graph.root
         asset = self.graph.get_node(asset_id)
 
@@ -813,8 +810,6 @@ class GraphResult:
                 ComponentType.PUMP_SYSTEM,
                 ComponentType.PUMP_V2,
             ]:
-                # NOTE: Pump_v2 will provide one model per timestep, which is not assumed format and will crash a lot of resampling and aggregation?
-                # Should probably aggregate here to stay consistent with old format and backwardscompatible?
                 component = self.graph.get_node(consumer_id)
                 for model in consumer_result.models:
                     models.extend(
@@ -878,6 +873,7 @@ class GraphResult:
                             )
                         ]
                     )
+
             else:
                 models.extend(
                     [
@@ -960,7 +956,7 @@ class GraphResult:
                     name=consumer_node_info.name,
                     parent=self.graph.get_predecessor(consumer_id),
                     component_level=consumer_node_info.component_level,
-                    componentType=ComponentType.PUMP,  # TODO: Fake pump v2 for now, to make it compatible ... it has same structure ...
+                    componentType=ComponentType.PUMP,  # TODO: Since v1 and v2 currently has same structure, we specify as v1 to avoid having to update Web
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
                     else [],

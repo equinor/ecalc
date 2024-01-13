@@ -7,5 +7,5 @@ from .results import (
     EcalcModelResult,
     GeneratorSetResult,
     GenericModelResult,
-    PumpModelResult
+    PumpModelResult,
 )

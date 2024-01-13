@@ -334,9 +334,6 @@ class ConsumerFunctionMapper:
 
     @staticmethod
     def create_model(model: Dict, references: References = None):
-        print(f"type: {EcalcYamlKeywords.type}")
-        print(f"model type: {model[EcalcYamlKeywords.type]}")
-        print(f"mapper: {_consumer_function_mapper.get(model[EcalcYamlKeywords.type])}")
         model_creator = _consumer_function_mapper.get(model[EcalcYamlKeywords.type])
         if model_creator is None:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")

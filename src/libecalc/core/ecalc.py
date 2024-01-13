@@ -46,7 +46,7 @@ class EnergyCalculator:
 
         Args:
             variables_map:
-            stream_conditions: stream conditions for components supporting and requiring that. component_name -> timestep -> stream_conditions
+            stream_conditions: V2 only. Stream conditions for components supporting and requiring that. component_name -> timestep -> stream_conditions
 
         Returns:
 
@@ -159,7 +159,9 @@ class EnergyCalculator:
                         models=[],
                     )
             else:
-                print(f"Unknown component not evaluated: {type(component_dto)}")
+                print(
+                    f"Unknown component not evaluated: {type(component_dto)}"
+                )  # Added to more easily see when something that should be evaluated is skipped
 
         return consumer_results
 
@@ -179,7 +181,7 @@ class EnergyCalculator:
         for consumer_dto in self._graph.nodes.values():
             if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)) or (
                 isinstance(consumer_dto, TemporalEquipment) and consumer_dto.fuel
-            ):  # Only for fuel driven ...
+            ):  # Only for fuel driven, el driven are exempted for emissions of course ...
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                 emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
@@ -196,5 +198,7 @@ class EnergyCalculator:
             elif isinstance(consumer_dto, dto.VentingEmitter):
                 emission_results[consumer_dto.id] = VentingEmitter(consumer_dto).evaluate(variables_map=variables_map)
             else:
-                print(f"Ignoring collecting emissions for {type(consumer_dto)}")
+                print(
+                    f"Ignoring collecting emissions for {type(consumer_dto)}"
+                )  # Added to more easily see when something that should be evaluated for emissions is skipped
         return emission_results

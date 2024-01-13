@@ -117,7 +117,9 @@ class TestYamlPump(unittest.TestCase):
         assert expected_schema_dict == schema
 
     def test_generate_yaml(self):
-        # TODO: We need to have a special yaml converter - if we want - that can also take an uninitizlied yaml class
+        # TODO: We need to have a special yaml converter - if we want - that can also take an uninitialized yaml class
+        # We also want to create a proper yaml, and create a separate yaml for the reference etc ...
+        # This basically shows that we are not there...yet...
         # Might not use
         expected_yaml = """category: my_category
 component_type: !!python/object/apply:libecalc.dto.base.ComponentType
@@ -164,3 +166,43 @@ name: my_pump
         assert max_rate == 12000
 
         domain_pump.evaluate(streams=[self.inlet_stream_condition, self.outlet_stream_condition])
+
+    def test_compare_v1_and_v2_pumps(self):
+        """
+        To make sure that v2 is correct (assumign that v1 is correct), at least compare the 2 versions. This should also
+        be done when running..if possible, in parallel, for a period of time to make sure that v2 consistently returns the same as
+        v1. If there are differences, it may be that v2 is correct, but it should nevertheless be verified
+
+        Returns:
+
+        """
+        # TODO: Fix
+        from libecalc.core.models.pump import PumpSingleSpeed as CorePumpSingleSpeed
+
+        pump_model: dto.PumpModel = self.pump_model_references.models.get("pump_single_speed")
+
+        from libecalc.core.models.chart.single_speed_chart import (
+            SingleSpeedChart as CoreSingleSpeedChart,
+        )
+
+        chart = CoreSingleSpeedChart.create(
+            speed_rpm=pump_model.chart.speed_rpm,
+            rate_actual_m3_hour=pump_model.chart.rate_actual_m3_hour,
+            polytropic_head_joule_per_kg=pump_model.chart.polytropic_head_joule_per_kg,
+            efficiency_fraction=pump_model.chart.efficiency_fraction,
+        )
+        pump_v1 = CorePumpSingleSpeed(pump_chart=chart)
+        pump_v1_result = pump_v1.evaluate_rate_ps_pd_density(
+            fluid_density=self.inlet_stream_condition.density.value,
+            rate=self.inlet_stream_condition.rate.value,
+            suction_pressures=self.inlet_stream_condition.pressure.value,
+            discharge_pressures=self.outlet_stream_condition.pressure.value,
+        )
+
+        pump_v2 = self.yaml_pump.to_domain_model(
+            timestep=datetime(year=2020, month=1, day=1), references=self.pump_model_references
+        )
+
+        pump_v2_result = pump_v2.evaluate(streams=[self.inlet_stream_condition, self.outlet_stream_condition])
+
+        assert pump_v1_result == pump_v2_result

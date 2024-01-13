@@ -20,6 +20,8 @@ EquipmentType = TypeVar("EquipmentType", bound=Evaluationable)
 @dataclass
 class TemporalEquipment(Generic[EquipmentType]):
     """
+    V2 only.
+
     The temporal layer of equipment, includes metadata and the equipment domain model itself for each timestep, basically
     a parsed and flattened version of the yaml
 

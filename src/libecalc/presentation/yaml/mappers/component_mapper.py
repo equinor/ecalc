@@ -93,12 +93,14 @@ class ConsumerMapper:
         regularity: Dict[datetime, Expression],
         consumes: ConsumptionType,
         default_fuel: Optional[str] = None,
-        timevector: Optional[List[datetime]] = None,
+        timevector: Optional[
+            List[datetime]
+        ] = None,  # The global time vector, need to have all timesteps where we do calculations for the entire model
     ) -> dto.components.Consumer:
         component_type = data.get(EcalcYamlKeywords.type)
         valid_types = [ComponentType.CONSUMER_SYSTEM_V2, ComponentType.PUMP_V2]
         if component_type is not None and component_type not in valid_types:
-            # We have type here for v2, check that type is valid
+            # V2 only. We have type here for v2, check that type is valid
             raise DataValidationError(
                 data=data,
                 message=f"Invalid component type '{component_type}' for component with name '{data.get(EcalcYamlKeywords.name)}. Valid types are currently: {', '.join(valid_types)}'",
@@ -131,18 +133,10 @@ class ConsumerMapper:
                 except ValidationError as e:
                     raise DtoValidationError(data=data, validation_error=e) from e
 
-            elif component_type == ComponentType.PUMP_V2:  # TO DOMAIN DIRECTLY ...
+            elif component_type == ComponentType.PUMP_V2:
                 try:
                     pump_yaml = YamlPump(**data)
                     return pump_yaml.to_domain_models(references=self.__references, timesteps=timevector, fuel=fuel)
-                    # return pump_yaml.to_dto(
-                    #     consumes=consumes,
-                    #     regularity=regularity,
-                    #     references=self.__references,
-                    #     target_period=self._target_period,
-                    #     fuel=fuel,
-                    #     category="",
-                    # )
                 except ValidationError as e:
                     print(str(e), e.__traceback__)
                     raise DtoValidationError(data=data, validation_error=e) from e
@@ -199,7 +193,7 @@ class GeneratorSetMapper:
         data: Dict,
         regularity: Dict[datetime, Expression],
         default_fuel: Optional[str] = None,
-        timevector: Optional[List[datetime]] = None,
+        timevector: Optional[List[datetime]] = None,  # Needed to get the global time vector. For v2.
     ) -> dto.GeneratorSet:
         try:
             fuel = _resolve_fuel(

@@ -32,7 +32,12 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 class YamlPump(YamlConsumerBase):
     """
-    This is a DTO, a yaml DTO
+    V2 only.
+
+    This DTO represents the pump in the yaml, and must therefore be a 1:1 to the yaml for a pump.
+
+    It currently contains a simple string and dict mapping to the values in the YAML, and must therefore be parsed and resolved before being used.
+    We may want to add the parsing and resolving here, to avoid an additional layer for parsing and resolving ...
     """
 
     class Config:
@@ -47,10 +52,9 @@ class YamlPump(YamlConsumerBase):
 
     energy_usage_model: YamlTemporalModel[str]
 
-    # TODO: Same for compressor and pump and ...?
-    stream_conditions: Optional[
-        YamlConsumerStreamConditions
-    ]  # TODO: use NAME instead of Dict[StreamID, YamlStreamConditions] TODO: optional...since it may be set as a part of consumer system and overridden/set runtime?
+    # TODO: Currently we share the stream conditions between consumer system and pump. Might change if they deviate ...
+    # TODO: We may also want to enforce the names of the streams, and e.g. limit to 1 in -and output stream ...? At least we need to know what is in and out ...
+    stream_conditions: Optional[YamlConsumerStreamConditions]
 
     def to_dto(
         self,
@@ -62,6 +66,8 @@ class YamlPump(YamlConsumerBase):
         fuel: Optional[Dict[datetime, dto.types.FuelType]],
     ) -> PumpComponent:
         """
+        Deprecated. Please use to_domain instead.
+
         We are deprecating to_dto, and aim to remove the DTO layer and go directly to a user and dev friendly
         domain layer (API)
 
@@ -93,24 +99,26 @@ class YamlPump(YamlConsumerBase):
             },
         )
 
-    def get_timestep_for_model(self, timestep: datetime, references: References) -> PumpModel:
+    def get_model_for_timestep(self, timestep: datetime, references: References) -> PumpModel:
         """
-        TODO: Make general and make a general util method for yaml conversion
+        For any timestep in the global time vector, we can get a time agnostic domain model for that point in time.
+
+        Currently it returns a DTO representation of the Pump, containing all parameters required to calculate a pump ...
+
         Args:
             timestep:
             references:
 
         Returns:
-
         """
         if not isinstance(self.energy_usage_model, Dict):
             energy_model_reference = self.energy_usage_model
         else:
             energy_model_reference = define_time_model_for_period(
                 self.energy_usage_model, target_period=Period(start=timestep, end=timestep)
-            )  # TODO: Period is not the same as timestep...is this ok? we want the model at a given time ...
+            )
 
-        # TODO: Get correct model for timestep
+        # TODO: Assume one, ok?
         key = next(iter(energy_model_reference))
         val = energy_model_reference[key]
 
@@ -124,6 +132,15 @@ class YamlPump(YamlConsumerBase):
         return pump_model_for_timestep
 
     def all_stream_conditions(self, variables_map: VariablesMap) -> Dict[datetime, List[StreamConditions]]:
+        """
+        For every timestep in the global time vector, we can create a map of all stream conditions required to calculate a pump
+
+        Args:
+            variables_map:
+
+        Returns:
+
+        """
         stream_conditions: Dict[datetime, List[StreamConditions]] = {}
         timevector = variables_map.time_vector
         for timestep in timevector:
@@ -134,6 +151,9 @@ class YamlPump(YamlConsumerBase):
     def stream_conditions_for_timestep(self, timestep: datetime, variables_map: VariablesMap) -> List[StreamConditions]:
         """
         Get stream conditions for a given timestep, inlet and outlet, index 0 and 1 respectively
+
+        TODO: Enforce names and limit to 1 in and output stream?
+
         Args:
             timestep:
             variables_map:
@@ -187,7 +207,7 @@ class YamlPump(YamlConsumerBase):
 
     def to_domain_model(
         self,
-        references: References,  # need to resolve, but that should be handled "before"? or here? send in relevant reference?
+        references: References,
         timestep: datetime,
     ) -> Pump:
         """
@@ -207,30 +227,27 @@ class YamlPump(YamlConsumerBase):
         Returns:
 
         """
-        # TODO: Convert to stream day? OR done?
 
         return Pump(
-            id=generate_id(self.name), pump_model=self.get_timestep_for_model(timestep=timestep, references=references)
+            id=generate_id(self.name), pump_model=self.get_model_for_timestep(timestep=timestep, references=references)
         )
 
-    # TODO is def from_domain(cls, pump: Pump) -> Self: relevant? Should it generate model as a string? or tuple? or with resolved and expanded reference?
-
-    def to_domain_models(
+    def to_temporal_domain_models(
         self,
         timesteps: List[datetime],
         references: References,
         fuel: Optional[Dict[datetime, dto.types.FuelType]],
     ) -> TemporalEquipment[Pump]:
         """
-        For every valid timestep, we extrapolate and create a full domain model representation of the pump
+        The temporal domain model is the thin later on top of the domain models, representing all the domain models for
+        the entire global time vector
 
-        TODO: Should "global time vector" and "global references" be "globally accessible", e.g. through a "service"?
-        such as services provided in constructor to access these services to get it? both of these are yaml specific, as the
-        other layers will give these directly, or not be relevant.
+        For every valid timestep, we extrapolate and create a full domain model representation of the pump
 
         Args:
             timesteps:
             references:
+            fuel:
 
         Returns:
 
@@ -239,9 +256,7 @@ class YamlPump(YamlConsumerBase):
             id=generate_id(self.name),
             name=self.name,
             component_type=ComponentType.PUMP_V2,
-            user_defined_category={
-                timestep: ConsumerUserDefinedCategoryType(self.category) for timestep in timesteps
-            },  # TODO: Needed for LTP ... should ideally need to send through here..might need to lookup etc
+            user_defined_category={timestep: ConsumerUserDefinedCategoryType(self.category) for timestep in timesteps},
             fuel=fuel,
             data=TemporalModel(
                 {timestep: self.to_domain_model(references=references, timestep=timestep) for timestep in timesteps}
