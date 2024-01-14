@@ -98,7 +98,7 @@
     {
       "componentType": "INSTALLATION",
       "component_level": "INSTALLATION",
-      "parent": "c0cdc34263d4b970f2f3e6cd5c68324d",
+      "parent": "ASSET-model",
       "name": "Installation A",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -180,7 +180,7 @@
     {
       "componentType": "GENERATOR_SET",
       "component_level": "GENERATOR_SET",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "name": "Generator set A",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -262,7 +262,7 @@
     {
       "componentType": "COMPRESSOR",
       "component_level": "CONSUMER",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "name": "Gas export compressor",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -330,7 +330,7 @@
     {
       "componentType": "COMPRESSOR",
       "component_level": "CONSUMER",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "name": "Gas injection compressor",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -394,7 +394,7 @@
     {
       "componentType": "PUMP",
       "component_level": "CONSUMER",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "name": "Produced water reinjection pump",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -458,7 +458,7 @@
     {
       "componentType": "GENERIC",
       "component_level": "CONSUMER",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "name": "Base production load",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -522,7 +522,7 @@
     {
       "componentType": "GENERIC",
       "component_level": "CONSUMER",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "name": "Flare",
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -590,7 +590,7 @@
     {
       "componentType": "GENERIC",
       "component_level": "CONSUMER",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "name": "Sea water injection pump",
       "timesteps": [
         "2020-01-01 00:00:00",

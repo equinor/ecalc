@@ -696,6 +696,9 @@
                                     },
                                     {
                                         "$ref": "#/definitions/YamlConsumerSystem_YamlTrain_YamlCompressor__"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlPump"
                                     }
                                 ]
                             },
@@ -828,6 +831,9 @@
                                     },
                                     {
                                         "$ref": "#/definitions/YamlConsumerSystem_YamlTrain_YamlCompressor__"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/YamlPump"
                                     }
                                 ]
                             },
@@ -1043,6 +1049,7 @@
                 },
                 "YamlPump": {
                     "additionalProperties": false,
+                    "description": "V2 only.\n\nThis DTO represents the pump in the yaml, and must therefore be a 1:1 to the yaml for a pump.\n\nIt currently contains a simple string and dict mapping to the values in the YAML, and must therefore be parsed and resolved before being used.\nWe may want to add the parsing and resolving here, to avoid an additional layer for parsing and resolving ...",
                     "properties": {
                         "CATEGORY": {
                             "description": "User defined category",
@@ -1067,6 +1074,13 @@
                             "description": "Consumer name",
                             "title": "NAME",
                             "type": "string"
+                        },
+                        "STREAM_CONDITIONS": {
+                            "additionalProperties": {
+                                "$ref": "#/definitions/YamlStreamConditions"
+                            },
+                            "title": "Stream Conditions",
+                            "type": "object"
                         },
                         "TYPE": {
                             "description": "The type of the component",

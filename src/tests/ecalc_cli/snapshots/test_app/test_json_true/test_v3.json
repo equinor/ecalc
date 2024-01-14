@@ -364,7 +364,7 @@
         7000.0
       ]
     },
-    "id": "c0cdc34263d4b970f2f3e6cd5c68324d",
+    "id": "ASSET-model",
     "is_valid": {
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -617,7 +617,7 @@
         ]
       },
       "name": "Gas export compressor",
-      "parent": "a549932c65ddb3c5726af8fc99301ce5",
+      "parent": "Gas export compressor",
       "power_unit": "MW",
       "rate": {
         "rate_type": "STREAM_DAY",
@@ -2020,7 +2020,7 @@
         ]
       },
       "name": "Gas injection compressor",
-      "parent": "e9057e3053eac8e2dca7909380050de9",
+      "parent": "Gas injection compressor",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -3624,7 +3624,7 @@
           200.0
         ]
       },
-      "parent": "e1c82c648513148fb53d7b9dcff878ca",
+      "parent": "Produced water reinjection pump",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -3829,7 +3829,7 @@
         ]
       },
       "name": "Base production load",
-      "parent": "fcfb9185a43e0755ef4816d2f4d1a098",
+      "parent": "Base production load",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -4034,7 +4034,7 @@
         ]
       },
       "name": "Flare",
-      "parent": "38a368670cc1a53c88f52116bd063e08",
+      "parent": "Flare",
       "timesteps": [
         "2020-01-01 00:00:00",
         "2021-01-01 00:00:00",
@@ -4162,7 +4162,7 @@
         ]
       },
       "name": "Sea water injection pump",
-      "parent": "2c369e853d9f77089ab26d579918b199",
+      "parent": "Sea water injection pump",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -4622,7 +4622,7 @@
           7000.0
         ]
       },
-      "id": "e852d5d4b9101f154db921ece82a697c",
+      "id": "Installation A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -4655,7 +4655,7 @@
         ]
       },
       "name": "Installation A",
-      "parent": "c0cdc34263d4b970f2f3e6cd5c68324d",
+      "parent": "ASSET-model",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -4955,7 +4955,7 @@
           749387835.0
         ]
       },
-      "id": "df82601448d0dfff409ca827eb200bf7",
+      "id": "Generator set A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -4988,7 +4988,7 @@
         ]
       },
       "name": "Generator set A",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -5303,7 +5303,7 @@
           476911429.0
         ]
       },
-      "id": "a549932c65ddb3c5726af8fc99301ce5",
+      "id": "Gas export compressor",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -5367,7 +5367,7 @@
           null
         ]
       },
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "rate_exceeds_maximum": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -5541,7 +5541,7 @@
           23762.14
         ]
       },
-      "id": "e9057e3053eac8e2dca7909380050de9",
+      "id": "Gas injection compressor",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -5605,7 +5605,7 @@
           null
         ]
       },
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -5856,7 +5856,7 @@
           15219.48
         ]
       },
-      "id": "e1c82c648513148fb53d7b9dcff878ca",
+      "id": "Produced water reinjection pump",
       "inlet_liquid_rate_m3_per_day": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -6028,7 +6028,7 @@
           200.0
         ]
       },
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -6202,7 +6202,7 @@
           47412.4
         ]
       },
-      "id": "fcfb9185a43e0755ef4816d2f4d1a098",
+      "id": "Base production load",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -6235,7 +6235,7 @@
         ]
       },
       "name": "Base production load",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -6504,7 +6504,7 @@
           28126000.0
         ]
       },
-      "id": "38a368670cc1a53c88f52116bd063e08",
+      "id": "Flare",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -6537,7 +6537,7 @@
         ]
       },
       "name": "Flare",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "timesteps": [
         "2020-01-01 00:00:00",
         "2021-01-01 00:00:00",
@@ -6634,7 +6634,7 @@
           33178.86
         ]
       },
-      "id": "2c369e853d9f77089ab26d579918b199",
+      "id": "Sea water injection pump",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -6667,7 +6667,7 @@
         ]
       },
       "name": "Sea water injection pump",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
