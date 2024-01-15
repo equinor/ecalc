@@ -106,6 +106,13 @@ class BaseConsumer(BaseEquipment, ABC):
 
 
 class ElectricityConsumer(BaseConsumer):
+    component_type: Literal[
+        ComponentType.COMPRESSOR,
+        ComponentType.PUMP,
+        ComponentType.GENERIC,
+        ComponentType.PUMP_SYSTEM,
+        ComponentType.COMPRESSOR_SYSTEM,
+    ]
     consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY
     energy_usage_model: Dict[
         datetime,
@@ -120,6 +127,11 @@ class ElectricityConsumer(BaseConsumer):
 
 
 class FuelConsumer(BaseConsumer):
+    component_type: Literal[
+        ComponentType.COMPRESSOR,
+        ComponentType.GENERIC,
+        ComponentType.COMPRESSOR_SYSTEM,
+    ]
     consumes: Literal[ConsumptionType.FUEL] = ConsumptionType.FUEL
     fuel: Dict[datetime, FuelType]
     energy_usage_model: Dict[datetime, FuelEnergyUsageModel]
@@ -218,7 +230,6 @@ class ConsumerSystem(BaseConsumer):
         ComponentType.CONSUMER_SYSTEM_V2,
         title="TYPE",
         description="The type of the component",
-        alias="TYPE",
     )
     component_conditions: SystemComponentConditions
     stream_conditions_priorities: Priorities[SystemStreamConditions]
@@ -285,7 +296,12 @@ class GeneratorSet(BaseEquipment):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
     fuel: Dict[datetime, FuelType]
     generator_set_model: Dict[datetime, GeneratorSetSampled]
-    consumers: List[Union[ElectricityConsumer, ConsumerSystem]] = Field(default_factory=list)
+    consumers: List[
+        Annotated[
+            Union[ElectricityConsumer, ConsumerSystem],
+            Field(discriminator="component_type"),
+        ]
+    ] = Field(default_factory=list)
     _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
         validate_temporal_model
     )
@@ -319,7 +335,12 @@ class Installation(BaseComponent):
     component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = Field(default=None, validate_default=True)
     hydrocarbon_export: Dict[datetime, Expression]
-    fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
+    fuel_consumers: List[
+        Annotated[
+            Union[GeneratorSet, FuelConsumer, ConsumerSystem],
+            Field(discriminator="component_type"),
+        ]
+    ] = Field(default_factory=list)
     venting_emitters: List[YamlVentingEmitter] = Field(default_factory=list)
 
     @property
