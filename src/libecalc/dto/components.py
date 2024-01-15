@@ -25,6 +25,8 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
+
+# from libecalc.core.consumers.pump import Pump # TODO: Cannot import due to circular deps ..
 from libecalc.dto.base import (
     Component,
     ComponentType,
@@ -293,7 +295,9 @@ class GeneratorSet(BaseEquipment):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
     fuel: Dict[datetime, FuelType]
     generator_set_model: Dict[datetime, GeneratorSetSampled]
-    consumers: List[Union[ElectricityConsumer, ConsumerSystem]] = Field(default_factory=list)
+    consumers: List[Union[ElectricityConsumer, ConsumerSystem]] = Field(
+        default_factory=list
+    )  # Any here is Pump, that cannot be explicitly specified due to circular import ...temporalequipment?
     _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
         validate_temporal_model
     )
@@ -326,7 +330,11 @@ class Installation(BaseComponent):
     component_type = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
     hydrocarbon_export: Dict[datetime, Expression]
-    fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
+    fuel_consumers: List[
+        Union[GeneratorSet, FuelConsumer, ConsumerSystem]
+    ] = Field(  # Any to support core.Pump indirectly...due to circular import ...
+        default_factory=list
+    )
     venting_emitters: List[YamlVentingEmitter] = Field(default_factory=list)
 
     @property
@@ -381,6 +389,30 @@ class Asset(Component):
     @property
     def installation_ids(self) -> List[str]:
         return [installation.id for installation in self.installations]
+
+    def get_component_by_id(self, id: str) -> Optional[Component]:
+        """
+        Get a component by id, if it exists, otherwise None
+        Args:
+            id:
+
+        Returns:
+
+        """
+        for installation in self.installations:
+            if installation.id == id:
+                return installation
+            for fuel_consumer in installation.fuel_consumers:
+                if fuel_consumer.id == id:
+                    return fuel_consumer
+                if isinstance(fuel_consumer, dto.GeneratorSet):
+                    for electricity_consumer in fuel_consumer.consumers:
+                        if electricity_consumer.id == id:
+                            return electricity_consumer
+            for venting_emitter in installation.venting_emitters:
+                if venting_emitter.id == id:
+                    return venting_emitter
+        return None
 
     def get_component_ids_for_installation_id(self, installation_id: str) -> List[str]:
         installation = self.get_installation(installation_id)

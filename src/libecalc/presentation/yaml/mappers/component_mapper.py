@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 try:
     from pydantic.v1 import ValidationError
@@ -30,6 +30,7 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_syste
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -98,13 +99,17 @@ class ConsumerMapper:
         regularity: Dict[datetime, Expression],
         consumes: ConsumptionType,
         default_fuel: Optional[str] = None,
+        timevector: Optional[
+            List[datetime]
+        ] = None,  # The global time vector, need to have all timesteps where we do calculations for the entire model
     ) -> dto.components.Consumer:
         component_type = data.get(EcalcYamlKeywords.type)
-        if component_type is not None and component_type != ComponentType.CONSUMER_SYSTEM_V2:
-            # We have type here for v2, check that type is valid
+        valid_types = [ComponentType.CONSUMER_SYSTEM_V2, ComponentType.PUMP_V2]
+        if component_type is not None and component_type not in valid_types:
+            # V2 only. We have type here for v2, check that type is valid
             raise DataValidationError(
                 data=data,
-                message=f"Invalid component type '{component_type}' for component with name '{data.get(EcalcYamlKeywords.name)}'",
+                message=f"Invalid component type '{component_type}' for component with name '{data.get(EcalcYamlKeywords.name)}. Valid types are currently: {', '.join(valid_types)}'",
             )
 
         fuel = None
@@ -132,6 +137,14 @@ class ConsumerMapper:
                         fuel=fuel,
                     )
                 except ValidationError as e:
+                    raise DtoValidationError(data=data, validation_error=e) from e
+
+            elif component_type == ComponentType.PUMP_V2:
+                try:
+                    pump_yaml = YamlPump(**data)
+                    return pump_yaml.to_domain_models(references=self.__references, timesteps=timevector, fuel=fuel)
+                except ValidationError as e:
+                    print(str(e), e.__traceback__)
                     raise DtoValidationError(data=data, validation_error=e) from e
 
         energy_usage_model = resolve_reference(
@@ -186,6 +199,7 @@ class GeneratorSetMapper:
         data: Dict,
         regularity: Dict[datetime, Expression],
         default_fuel: Optional[str] = None,
+        timevector: Optional[List[datetime]] = None,  # Needed to get the global time vector. For v2.
     ) -> dto.GeneratorSet:
         try:
             fuel = _resolve_fuel(
@@ -213,9 +227,7 @@ class GeneratorSetMapper:
         # the generator sets electricity to fuel input. Thus, create/parse things one by one to ensure reliable errors
         consumers = [
             self.__consumer_mapper.from_yaml_to_dto(
-                consumer,
-                regularity=regularity,
-                consumes=ConsumptionType.ELECTRICITY,
+                consumer, regularity=regularity, consumes=ConsumptionType.ELECTRICITY, timevector=timevector
             )
             for consumer in data.get(EcalcYamlKeywords.consumers, [])
         ]
@@ -242,7 +254,7 @@ class InstallationMapper:
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(self, data: Dict) -> dto.Installation:
+    def from_yaml_to_dto(self, data: Dict, timevector: Optional[List[datetime]] = None) -> dto.Installation:
         fuel_data = data.get(EcalcYamlKeywords.fuel)
         regularity = define_time_model_for_period(
             convert_expression(data.get(EcalcYamlKeywords.regularity, 1)), target_period=self._target_period
@@ -252,9 +264,7 @@ class InstallationMapper:
 
         generator_sets = [
             self.__generator_set_mapper.from_yaml_to_dto(
-                generator_set,
-                regularity=regularity,
-                default_fuel=fuel_data,
+                generator_set, regularity=regularity, default_fuel=fuel_data, timevector=timevector
             )
             for generator_set in data.get(EcalcYamlKeywords.generator_sets, [])
         ]
@@ -264,6 +274,7 @@ class InstallationMapper:
                 regularity=regularity,
                 consumes=ConsumptionType.FUEL,
                 default_fuel=fuel_data,
+                timevector=timevector,
             )
             for fuel_consumer in data.get(EcalcYamlKeywords.fuel_consumers, [])
         ]
@@ -305,12 +316,14 @@ class EcalcModelMapper:
         self.__references = references
         self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(self, configuration: PyYamlYamlModel, name: str) -> dto.Asset:
+    def from_yaml_to_dto(
+        self, configuration: PyYamlYamlModel, name: str, timevector: Optional[List[datetime]] = None
+    ) -> dto.Asset:
         try:
             ecalc_model = dto.Asset(
                 name=name,
                 installations=[
-                    self.__installation_mapper.from_yaml_to_dto(installation)
+                    self.__installation_mapper.from_yaml_to_dto(installation, timevector)
                     for installation in configuration.installations
                 ],
             )

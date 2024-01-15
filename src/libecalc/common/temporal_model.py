@@ -16,8 +16,13 @@ class Model(Generic[ModelType]):
 
 
 class TemporalModel(Generic[ModelType]):
+    """
+    Very generic data structure to support temporal models of any type
+    """
+
     def __init__(self, data: Dict[datetime, ModelType]):
         self._data = data
+
         start_times = list(data.keys())
         end_times = [*start_times[1:], datetime.max]
         self.models = [

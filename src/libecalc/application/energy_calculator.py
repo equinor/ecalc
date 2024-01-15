@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 from functools import reduce
-from typing import Dict
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -9,7 +9,8 @@ import libecalc.dto.components
 from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.priorities import PriorityID
-from libecalc.common.priority_optimizer import PriorityOptimizer
+from libecalc.common.priority_optimizer import EvaluatorResult, PriorityOptimizer
+from libecalc.common.temporal_equipment import TemporalEquipment
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.core.consumers.consumer_system import ConsumerSystem
@@ -19,6 +20,7 @@ from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.models.fuel import FuelModel
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -37,14 +39,32 @@ class EnergyCalculator:
     ):
         self._graph = graph
 
-    def evaluate_energy_usage(self, variables_map: dto.VariablesMap) -> Dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(
+        self,
+        variables_map: dto.VariablesMap,
+        stream_conditions: Optional[Dict[str, Dict[datetime, List[StreamConditions]]]] = None,
+    ) -> Dict[str, EcalcModelResult]:
+        """
+
+        Args:
+            variables_map:
+            stream_conditions: V2 only. Stream conditions for components supporting and requiring that. component_name -> timestep -> stream_conditions
+
+        Returns:
+
+        """
         component_ids = list(reversed(self._graph.sorted_node_ids))
         component_dtos = [self._graph.get_node(component_id) for component_id in component_ids]
 
         consumer_results: Dict[str, EcalcModelResult] = {}
 
         for component_dto in component_dtos:
-            if isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
+            if isinstance(component_dto, (dto.Asset, dto.Installation)):
+                # Asset and installation are just containers/aggregators, do not evaluate itself
+                pass
+            elif isinstance(component_dto, TemporalEquipment):
+                consumer_results[component_dto.id] = component_dto.evaluate(stream_conditions.get(component_dto.name))
+            elif isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
                 consumer = Consumer(consumer_dto=component_dto)
                 consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)
             elif isinstance(component_dto, dto.GeneratorSet):
@@ -93,7 +113,7 @@ class EnergyCalculator:
                         component_conditions=component_dto.component_conditions,
                     )
 
-                    def evaluator(priority: PriorityID):
+                    def evaluator(priority: PriorityID) -> List[EvaluatorResult]:
                         stream_conditions_for_priority = evaluated_stream_conditions[priority]
                         stream_conditions_for_timestep = {
                             component_id: [
@@ -140,6 +160,10 @@ class EnergyCalculator:
                         sub_components=[],
                         models=[],
                     )
+            else:
+                print(
+                    f"Unknown component not evaluated: {type(component_dto)}"
+                )  # Added to more easily see when something that should be evaluated is skipped
 
         return consumer_results
 
@@ -157,7 +181,9 @@ class EnergyCalculator:
         """
         emission_results: Dict[str, Dict[str, EmissionResult]] = {}
         for consumer_dto in self._graph.nodes.values():
-            if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)):
+            if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)) or (
+                isinstance(consumer_dto, TemporalEquipment) and consumer_dto.fuel
+            ):  # Only for fuel driven, el driven are exempted for emissions of course ...
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                 emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
@@ -187,4 +213,9 @@ class EnergyCalculator:
                     )
                 }
                 emission_results[consumer_dto.id] = emission_result
+            else:
+                print(
+                    f"Ignoring collecting emissions for {type(consumer_dto)}"
+                )  # Added to more easily see when something that should be evaluated for emissions is skipped
+
         return emission_results

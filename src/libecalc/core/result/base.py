@@ -33,7 +33,16 @@ class EcalcResultBaseModel(EcalcBaseModel):
                 # In case of nested models such as compressor with turbine
                 values.extend(other_values)
             elif isinstance(values, list):
-                if isinstance(other_values, list):
+                # Temporary v2 only
+                # We are not able to currently import PumpModelResult due to circular import, therefore we use duck typing...
+                if (
+                    len(values) == 1
+                    and len(other_values) == 1
+                    and hasattr(values[0], "extend")
+                    and hasattr(other_values[0], "extend")
+                ):
+                    values[0].extend(other_values[0])
+                elif isinstance(other_values, list):
                     self.__setattr__(attribute, values + other_values)
                 else:
                     self.__setattr__(attribute, values + [other_values])

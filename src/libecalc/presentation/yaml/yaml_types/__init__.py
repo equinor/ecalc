@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 try:
     from pydantic.v1 import BaseModel, Extra

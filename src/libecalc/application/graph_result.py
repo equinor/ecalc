@@ -162,6 +162,7 @@ class GraphResult:
                 [
                     emission_dto_results[fuel_consumer_id]
                     for fuel_consumer_id in self.graph.get_successors(installation.id)
+                    if fuel_consumer_id in emission_dto_results
                 ]
             )
 
@@ -828,7 +829,11 @@ class GraphResult:
                             )
                         ]
                     )
-            elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
+            elif consumer_node_info.component_type in [
+                ComponentType.PUMP,
+                ComponentType.PUMP_SYSTEM,
+                ComponentType.PUMP_V2,
+            ]:
                 component = self.graph.get_node(consumer_id)
                 for model in consumer_result.models:
                     models.extend(
@@ -970,12 +975,12 @@ class GraphResult:
                     id=consumer_result.component_result.id,
                     is_valid=consumer_result.component_result.is_valid,
                 )
-            elif consumer_node_info.component_type == ComponentType.PUMP:
+            elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_V2]:
                 obj = dto.result.results.PumpResult(
                     name=consumer_node_info.name,
                     parent=self.graph.get_predecessor(consumer_id),
                     component_level=consumer_node_info.component_level,
-                    componentType=consumer_node_info.component_type,
+                    componentType=ComponentType.PUMP,  # TODO: Since v1 and v2 currently has same structure, we specify as v1 to avoid having to update Web
                     emissions=self._parse_emissions(self.emission_results[consumer_id], regularity)
                     if consumer_id in self.emission_results
                     else [],
@@ -1211,7 +1216,8 @@ class GraphResult:
                     },
                 )
 
-            sub_components.append(obj)
+            if obj:
+                sub_components.append(obj)
 
         for installation in asset.installations:
             regularity = regularities[installation.id]  # Already evaluated regularities
