@@ -89,7 +89,7 @@ class StreamConditions:
 
         return StreamConditions(
             id=generate_id(*[stream.id for stream in streams]),
-            name=f"Mixed-{'-'.join(stream.name for stream in streams)}",
+            name=f"{'-'.join(stream.name for stream in streams)}",
             timestep=self.timestep,
             rate=reduce(operator.add, [stream.rate for stream in streams]),
             pressure=target_pressure,

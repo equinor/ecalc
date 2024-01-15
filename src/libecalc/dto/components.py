@@ -249,7 +249,7 @@ class ConsumerSystem(BaseConsumer):
                 parsed_priorities[priority_name][generate_id(consumer_name)] = [
                     TimeSeriesStreamConditions(
                         id=generate_id(consumer_name, stream_name),
-                        name=stream_name,
+                        name="-".join([consumer_name, stream_name]),
                         rate=TimeSeriesStreamDayRate(
                             timesteps=variables_map.time_vector,
                             values=list(
@@ -371,7 +371,7 @@ class Installation(BaseComponent):
 class Asset(Component):
     @property
     def id(self):
-        return generate_id(self.component_type, self.name)
+        return generate_id(self.name)
 
     component_type: Literal[ComponentType.ASSET] = ComponentType.ASSET
 

@@ -1,4 +1,3 @@
-import hashlib
 from typing import Iterable, Set
 
 
@@ -14,13 +13,18 @@ def get_duplicates(names: Iterable[str]) -> Set[str]:
 
 
 def generate_id(*args: str) -> str:
-    """Generate an id from one or more strings. The string is encoded to avoid it being used to get other info than
+    """
+    Deprecated: When names were not unique, this was necessary in order to make names unique based on context/hierarchy. Now names should
+    be unique for any part of the eCalc model that supports names, and it should therefore not be needed any more.
+
+    TODO: First step is to make the function return the string as normal, next step is to remove it altogether.
+
+    Generate an id from one or more strings. The string is encoded to avoid it being used to get other info than
     the id, i.e. it should not be used to get the name of a consumer, even if the name might be used to create the id.
 
     If there are many strings they are joined together.
     """
-    full_string = "-".join(args)
-    return hashlib.md5(full_string.encode()).hexdigest()  # noqa: S324 - insecure hash for ids
+    return "-".join(args)
 
 
 def to_camel_case(string: str) -> str:
