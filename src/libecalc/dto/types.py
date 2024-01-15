@@ -121,7 +121,7 @@ class FuelType(EcalcBaseModel):
         if user_defined_category is not None:
             if user_defined_category not in list(FuelTypeUserDefinedCategoryType):
                 name_context_str = ""
-                if name := info.data.get("name") is not None:
+                if (name := info.data.get("name")) is not None:
                     name_context_str = f"with the name {name}"
 
                 raise ValueError(

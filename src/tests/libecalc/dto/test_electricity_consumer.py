@@ -22,10 +22,7 @@ class TestElectricityConsumer:
                 },
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
-        assert (
-            e.value.raw_errors[0].exc.args[0] == "Model does not consume EnergyUsageType.POWER"
-            or e.value.raw_errors[0].exc.args[0] == "Model does not consume POWER"
-        )
+        assert "Model does not consume POWER" in str(e.value)
 
     def test_valid_electricity_consumer(self):
         # Should not raise ValidationError
