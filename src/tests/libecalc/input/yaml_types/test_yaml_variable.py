@@ -29,10 +29,10 @@ class TestVariables:
         with pytest.raises(ValidationError) as exc_info:
             TypeAdapter(YamlVariables).validate_python({"1nvalid_key": {"VALUE": 5}})
 
-        assert 'String should match pattern "^[A-Za-z][A-Za-z0-9_]*$"' in str(exc_info.value)
+        assert "String should match pattern '^[A-Za-z][A-Za-z0-9_]*$'" in str(exc_info.value)
 
     def test_invalid_second_character(self):
         with pytest.raises(ValidationError) as exc_info:
             TypeAdapter(YamlVariables).validate_python({"invalid[key]": {"VALUE": 5}})
 
-        assert 'String should match pattern "^[A-Za-z][A-Za-z0-9_]*$"' in str(exc_info.value)
+        assert "String should match pattern '^[A-Za-z][A-Za-z0-9_]*$'" in str(exc_info.value)

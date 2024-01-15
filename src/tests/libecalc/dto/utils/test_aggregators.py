@@ -78,7 +78,7 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
 
     return dto.FuelConsumer(
         name=name,
-        component_type=dto.components.ComponentType.VENTING_EMITTER,
+        component_type=dto.components.ComponentType.GENERIC,
         fuel={datetime(2024, 1, 1): fuel(name=name_fuel, co2_factor=co2_factor)},
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
         user_defined_category={datetime(2024, 1, 1): dto.components.ConsumerUserDefinedCategoryType.MISCELLANEOUS},

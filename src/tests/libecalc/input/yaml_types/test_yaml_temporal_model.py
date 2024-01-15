@@ -1,5 +1,5 @@
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
-from pydantic import ConfigDict, TypeAdapter
+from pydantic import TypeAdapter
 
 
 class TestSchema:
@@ -8,8 +8,7 @@ class TestSchema:
         Test to make sure temporal model creates the correct schema. We could improve TemporalModel to generate
         patternProperties, we would also need to change schema_helpers.replace_temporal_placeholder_property_with_legacy_ref
         """
-        assert TypeAdapter(YamlTemporalModel[str], config=ConfigDict(title="TemporalModel")).json_schema() == {
-            "title": "TemporalModel",
+        assert TypeAdapter(YamlTemporalModel[str]).json_schema() == {
             "anyOf": [
                 {
                     "type": "string",

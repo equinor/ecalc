@@ -77,7 +77,7 @@ class BaseEquipment(BaseComponent, ABC):
             for user_category in user_defined_category.values():
                 if user_category not in list(ConsumerUserDefinedCategoryType):
                     name_context_str = ""
-                    if name := info.data.get("name") is not None:
+                    if (name := info.data.get("name")) is not None:
                         name_context_str = f"with the name {name}"
 
                     raise ValueError(
@@ -359,7 +359,7 @@ class Installation(BaseComponent):
         if user_defined_category is not None:
             if user_defined_category not in list(InstallationUserDefinedCategoryType):
                 name_context_str = ""
-                if name := info.data.get("name") is not None:
+                if (name := info.data.get("name")) is not None:
                     name_context_str = f"with the name {name}"
 
                 raise ValueError(
