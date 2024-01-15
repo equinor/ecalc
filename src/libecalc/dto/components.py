@@ -305,7 +305,7 @@ class GeneratorSet(BaseEquipment):
     generator_set_model: Dict[datetime, GeneratorSetSampled]
     consumers: List[Union[ElectricityConsumer, ConsumerSystem, Any]] = Field(
         default_factory=list
-    )  # Any here is Pump, that cannot be explicitly specified due to circular import ...
+    )  # Any here is Pump, that cannot be explicitly specified due to circular import ...temporalequipment?
     _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
         validate_temporal_model
     )

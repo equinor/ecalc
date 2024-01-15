@@ -118,12 +118,13 @@ class YamlPump(YamlConsumerBase):
                 self.energy_usage_model, target_period=Period(start=timestep, end=timestep)
             )
 
-        # TODO: Assume one, ok?
-        key = next(iter(energy_model_reference))
-        val = energy_model_reference[key]
+            # TODO: Assume one, ok?
+            key = next(iter(energy_model_reference))
+            print(f"key: {key}")
+            energy_model_reference = energy_model_reference[key]
 
         energy_model = resolve_reference(
-            value=val,
+            value=energy_model_reference,
             references=references.models,
         )
 
