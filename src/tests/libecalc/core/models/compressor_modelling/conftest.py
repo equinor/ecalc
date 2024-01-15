@@ -109,16 +109,24 @@ def single_speed_chart_dto() -> dto.SingleSpeedChart:
 
 @pytest.fixture
 def single_speed_compressor_train(medium_fluid_dto, single_speed_chart_dto) -> dto.SingleSpeedCompressorTrain:
-    stage = dto.CompressorStage(
-        compressor_chart=single_speed_chart_dto,
-        inlet_temperature_kelvin=303.15,
-        remove_liquid_after_cooling=True,
-        pressure_drop_before_stage=0,
-        control_margin=0,
-    )
     return dto.SingleSpeedCompressorTrain(
         fluid_model=medium_fluid_dto,
-        stages=[stage] * 2,
+        stages=[
+            dto.CompressorStage(
+                compressor_chart=single_speed_chart_dto.model_copy(deep=True),
+                inlet_temperature_kelvin=303.15,
+                remove_liquid_after_cooling=True,
+                pressure_drop_before_stage=0,
+                control_margin=0,
+            ),
+            dto.CompressorStage(
+                compressor_chart=single_speed_chart_dto.model_copy(deep=True),
+                inlet_temperature_kelvin=303.15,
+                remove_liquid_after_cooling=True,
+                pressure_drop_before_stage=0,
+                control_margin=0,
+            ),
+        ],
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_discharge_pressure=None,
         energy_usage_adjustment_constant=0,

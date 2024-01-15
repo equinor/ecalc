@@ -34,10 +34,9 @@ class TestCategories:
                 category="VENTING-EMISSIONS",
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == f"CATEGORY: VENTING-EMISSIONS is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY: VENTING-EMISSIONS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check that lower case raises error
@@ -48,10 +47,9 @@ class TestCategories:
                 category="fuel-gas",
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == f"CATEGORY: fuel-gas is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY: fuel-gas is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check that empty raises error
@@ -62,10 +60,9 @@ class TestCategories:
                 category="",
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == f"CATEGORY:  is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY:  is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check that underscore raises error
@@ -76,10 +73,9 @@ class TestCategories:
                 category="FUEL_GAS",
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == f"CATEGORY: FUEL_GAS is not allowed for {exception.model.Config.title} with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY: FUEL_GAS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check that correct category is ok
@@ -97,39 +93,35 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.types.FuelType(name="test", user_defined_category="GASOLINE")
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: GASOLINE is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            "CATEGORY: GASOLINE is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            in str(exc_info.value)
         )
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
             dto.types.FuelType(name="test", user_defined_category="diesel")
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: diesel is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            "CATEGORY: diesel is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            in str(exc_info.value)
         )
 
         # Check that empty raises error
         with pytest.raises(ValidationError) as exc_info:
             dto.types.FuelType(name="test", user_defined_category="")
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY:  is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            "CATEGORY:  is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            in str(exc_info.value)
         )
 
         # Check that underscore raises error
         with pytest.raises(ValidationError) as exc_info:
             dto.types.FuelType(name="test", user_defined_category="FUEL_GAS")
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: FUEL_GAS is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            "CATEGORY: FUEL_GAS is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
+            in str(exc_info.value)
         )
 
         # Check that correct category 1 is ok
@@ -161,10 +153,9 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: PLATFORM is not allowed for Installation with the name test. Valid categories are: ['FIXED', 'MOBILE']"
+            "CATEGORY: PLATFORM is not allowed for Installation with the name test. Valid categories are: ['FIXED', 'MOBILE']"
+            in str(exc_info.value)
         )
 
         # Check that lower case raises error
@@ -176,10 +167,9 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: fixed is not allowed for Installation with the name test. Valid categories are: ['FIXED', 'MOBILE']"
+            "CATEGORY: fixed is not allowed for Installation with the name test. Valid categories are: ['FIXED', 'MOBILE']"
+            in str(exc_info.value)
         )
 
         # Check that empty raises error
@@ -191,10 +181,9 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY:  is not allowed for Installation with the name test. Valid categories are: ['FIXED', 'MOBILE']"
+            "CATEGORY:  is not allowed for Installation with the name test. Valid categories are: ['FIXED', 'MOBILE']"
+            in str(exc_info.value)
         )
 
         # Check that correct category 1 is ok
@@ -244,10 +233,9 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: HUGE-SINGLE-SPEED-PUMP is not allowed for ElectricityConsumer with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY: HUGE-SINGLE-SPEED-PUMP is not allowed for ElectricityConsumer with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check correct category single date
@@ -280,10 +268,9 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY:  is not allowed for ElectricityConsumer with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY:  is not allowed for ElectricityConsumer with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check that not defining category raises error
@@ -300,7 +287,7 @@ class TestCategories:
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
-        assert exception.errors()[0]["msg"] == "field required"
+        assert exception.errors()[0]["msg"] == "Field required"
 
         # Check correct category multiple dates
         test = dto.ElectricityConsumer(
@@ -363,10 +350,9 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: FIRST-COMPRESSOR is not allowed for ElectricityConsumer with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY: FIRST-COMPRESSOR is not allowed for ElectricityConsumer with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
     def test_genset_categories(self):
@@ -393,10 +379,9 @@ class TestCategories:
                 },
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: GENERATOR-SET is not allowed for GeneratorSet with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY: GENERATOR-SET is not allowed for GeneratorSet with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check that lower case raises error
@@ -422,10 +407,9 @@ class TestCategories:
                 },
             )
 
-        exception: ValidationError = typing.cast(ValidationError, exc_info.value)
         assert (
-            exception.errors()[0]["msg"]
-            == "CATEGORY: turbine-generator is not allowed for GeneratorSet with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            "CATEGORY: turbine-generator is not allowed for GeneratorSet with the name Test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
+            in str(exc_info.value)
         )
 
         # Check correct category

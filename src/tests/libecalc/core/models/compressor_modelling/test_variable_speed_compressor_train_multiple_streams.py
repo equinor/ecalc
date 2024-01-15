@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import numpy as np
 import pytest
 from libecalc import dto
@@ -14,7 +12,7 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.dto import InterstagePressureControl
-from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
+from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl, FluidStreamType
 
 
 def calculate_relative_difference(value1, value2):
@@ -78,18 +76,25 @@ def variable_speed_compressor_train_two_compressors_individual_asv_pressure(
 @pytest.fixture
 def mock_variable_speed_compressor_train_multiple_streams_and_pressures(
     variable_speed_compressor_chart_dto,
+    medium_fluid,
 ) -> dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures:
-    stream = MagicMock(dto.MultipleStreamsAndPressureStream)
-    stage = dto.MultipleStreamsCompressorStage(
+    stream = dto.MultipleStreamsAndPressureStream(
+        name="inlet",
+        typ=FluidStreamType.INGOING,
+        fluid_model=medium_fluid,
+    )
+    stage2 = dto.MultipleStreamsCompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_before_stage=0,
         control_margin=0,
     )
+    stage1 = stage2.model_copy()
+    stage1.stream_reference = "inlet"
     return dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
-        streams=[stream] * 2,
-        stages=[stage] * 2,
+        streams=[stream],
+        stages=[stage1, stage2],
         calculate_max_rate=False,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
@@ -245,7 +250,7 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
     ]
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
-        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.copy(
+        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
                 "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -261,7 +266,6 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
     variable_speed_compressor_chart_dto,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     """Train with only two compressors, and standard medium fluid, on stream in per stage, no liquid off take."""
-    stream = MagicMock(dto.MultipleStreamsAndPressureStream)
     stage = dto.MultipleStreamsCompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
@@ -282,7 +286,7 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
     )
     mock_variable_speed_compressor_train_multiple_streams_and_pressures_with_pressure_control = (
         dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
-            streams=[stream] * 2,
+            streams=[],  # Not used because streams are provided separately
             stages=[stage, stage2],
             calculate_max_rate=False,
             energy_usage_adjustment_constant=0.0,

@@ -70,11 +70,16 @@ class YamlVentingEmitter(YamlBase):
         if category is not None:
             if category not in list(ConsumerUserDefinedCategoryType):
                 name_context_string = ""
-                if name := info.data.get("name") is not None:
+                if (name := info.data.get("name")) is not None:
                     name_context_string = f"with the name {name}"
 
+                if info.config is not None and "title" in info.config:
+                    entity_name = info.config["title"]
+                else:
+                    entity_name = str(cls)
+
                 raise ValueError(
-                    f"CATEGORY: {category} is not allowed for {cls.Config.title} {name_context_string}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                    f"CATEGORY: {category} is not allowed for {entity_name} {name_context_string}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
                 )
         return category
 

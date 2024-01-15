@@ -28,7 +28,7 @@ class TestGeneratorSetSampled:
                 energy_usage_adjustment_constant=0.0,
                 energy_usage_adjustment_factor=1.0,
             )
-        assert exc_info.value.errors()[0]["msg"] == "Sampled generator set data should have a 'FUEL' and 'POWER' header"
+        assert "Sampled generator set data should have a 'FUEL' and 'POWER' header" in str(exc_info.value)
 
 
 class TestGeneratorSet:

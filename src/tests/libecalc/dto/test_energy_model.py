@@ -22,7 +22,7 @@ class TestTurbine:
                 energy_usage_adjustment_constant=0,
                 energy_usage_adjustment_factor=1.0,
             )
-        assert e.value.raw_errors[0].exc.args[0] == "Need equal number of load and efficiency values for turbine model"
+        assert "Need equal number of load and efficiency values for turbine model" in str(e.value)
 
 
 class TestVariableSpeedCompressorChart:
@@ -56,7 +56,7 @@ class TestVariableSpeedCompressorChart:
                     )
                 ],
             )
-        assert e.value.errors()[0]["msg"] == "ensure this value is less than or equal to 1"
+        assert "Input should be less than or equal to 1" in str(e.value)
 
         with pytest.raises(ValidationError) as e:
             dto.VariableSpeedChart(
@@ -69,7 +69,7 @@ class TestVariableSpeedCompressorChart:
                     )
                 ],
             )
-        assert e.value.errors()[0]["msg"] == "value is not a valid list"
+        assert "Input should be a valid list" in str(e.value)
 
         with pytest.raises(ValidationError) as e:
             dto.VariableSpeedChart(
@@ -82,7 +82,7 @@ class TestVariableSpeedCompressorChart:
                     )
                 ],
             )
-        assert e.value.errors()[0]["msg"] == "value is not a valid float"
+        assert "Input should be a valid number, unable to parse string as a number" in str(e.value)
 
 
 class TestGenericFromDesignPointCompressorChart:
@@ -100,7 +100,7 @@ class TestGenericFromDesignPointCompressorChart:
                 design_rate_actual_m3_per_hour=7500.0,
                 design_polytropic_head_J_per_kg=55000,
             )
-        assert e.value.errors()[0]["msg"] == "ensure this value is less than or equal to 1"
+        assert "Input should be less than or equal to 1" in str(e.value)
 
     def test_invalid_design_rate(self):
         with pytest.raises(ValidationError) as e:
@@ -109,7 +109,7 @@ class TestGenericFromDesignPointCompressorChart:
                 design_rate_actual_m3_per_hour="invalid_design_rate",
                 design_polytropic_head_J_per_kg=55000,
             )
-        assert e.value.errors()[0]["msg"] == "value is not a valid float"
+        assert "Input should be a valid number, unable to parse string as a number" in str(e.value)
 
 
 class TestGenericFromInputCompressorChart:
@@ -119,7 +119,7 @@ class TestGenericFromInputCompressorChart:
     def test_invalid(self):
         with pytest.raises(ValidationError) as e:
             dto.GenericChartFromInput(polytropic_efficiency_fraction="str")
-        assert e.value.errors()[0]["msg"] == "value is not a valid float"
+        assert "Input should be a valid number, unable to parse string as a number" in str(e.value)
 
 
 class TestCompressorSystemEnergyUsageModel:
