@@ -1,7 +1,7 @@
 from abc import ABC
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, TypeVar, Union
+from typing import Any, Dict, List, Literal, Optional, TypeVar, Union
 
 try:
     from pydantic.v1 import Field, root_validator
@@ -295,9 +295,10 @@ class GeneratorSet(BaseEquipment):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
     fuel: Dict[datetime, FuelType]
     generator_set_model: Dict[datetime, GeneratorSetSampled]
-    consumers: List[Union[ElectricityConsumer, ConsumerSystem]] = Field(
+    consumers: List[Union[ElectricityConsumer, ConsumerSystem, Any]] = Field(
         default_factory=list
     )  # Any here is Pump, that cannot be explicitly specified due to circular import ...temporalequipment?
+    # Any must be set in order for pydantic to accept/validate the consumer
     _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
         validate_temporal_model
     )
@@ -330,11 +331,7 @@ class Installation(BaseComponent):
     component_type = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = None
     hydrocarbon_export: Dict[datetime, Expression]
-    fuel_consumers: List[
-        Union[GeneratorSet, FuelConsumer, ConsumerSystem]
-    ] = Field(  # Any to support core.Pump indirectly...due to circular import ...
-        default_factory=list
-    )
+    fuel_consumers: List[Union[GeneratorSet, FuelConsumer, ConsumerSystem]] = Field(default_factory=list)
     venting_emitters: List[YamlVentingEmitter] = Field(default_factory=list)
 
     @property
