@@ -1017,7 +1017,7 @@
         0.0
       ]
     },
-    "id": "c0cdc34263d4b970f2f3e6cd5c68324d",
+    "id": "model",
     "is_valid": {
       "timesteps": [
         "2020-01-01 00:00:00",
@@ -1525,7 +1525,7 @@
         ]
       },
       "name": "Gas export compressors B",
-      "parent": "f36326af761aff93c03505dfd6398464",
+      "parent": "Gas export compressors B",
       "power_unit": "MW",
       "rate": {
         "rate_type": "STREAM_DAY",
@@ -3997,7 +3997,7 @@
         ]
       },
       "name": "train1_A",
-      "parent": "5abae98e37faa4f862c2ae773c940e69",
+      "parent": "Gas export compressors system A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -10726,7 +10726,7 @@
         ]
       },
       "name": "train2_A",
-      "parent": "5abae98e37faa4f862c2ae773c940e69",
+      "parent": "Gas export compressors system A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -17588,7 +17588,7 @@
           200.0
         ]
       },
-      "parent": "cf39762d25a3ed9f4edd365ed0b518a8",
+      "parent": "Single pump A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -18174,7 +18174,7 @@
           200.0
         ]
       },
-      "parent": "77a63d15c9bf3dbf947d719cdf95acc3",
+      "parent": "Water injection pump system A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -18760,7 +18760,7 @@
           200.0
         ]
       },
-      "parent": "77a63d15c9bf3dbf947d719cdf95acc3",
+      "parent": "Water injection pump system A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -19346,7 +19346,7 @@
           200.0
         ]
       },
-      "parent": "77a63d15c9bf3dbf947d719cdf95acc3",
+      "parent": "Water injection pump system A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -19932,7 +19932,7 @@
           200.0
         ]
       },
-      "parent": "77a63d15c9bf3dbf947d719cdf95acc3",
+      "parent": "Water injection pump system A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -20280,7 +20280,7 @@
         ]
       },
       "name": "Fixed production loads A",
-      "parent": "f013fbb1f138562881af5e26b02e2706",
+      "parent": "Fixed production loads A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -20628,7 +20628,7 @@
         ]
       },
       "name": "Fixed production loads B",
-      "parent": "5a8e53ea117ceb31be9ce36f7e736a7c",
+      "parent": "Fixed production loads B",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -20976,7 +20976,7 @@
         ]
       },
       "name": "Flare A",
-      "parent": "88c7bfd2da0bdf2b4f5fc0015abbd2f9",
+      "parent": "Flare A",
       "timesteps": [
         "2020-01-01 00:00:00",
         "2020-06-01 00:00:00",
@@ -21192,7 +21192,7 @@
         ]
       },
       "name": "Flare B",
-      "parent": "ba224d2c7b1133907ba6a26c6886cccc",
+      "parent": "Flare B",
       "timesteps": [
         "2020-01-01 00:00:00",
         "2020-06-01 00:00:00",
@@ -22239,7 +22239,7 @@
           0.0
         ]
       },
-      "id": "e852d5d4b9101f154db921ece82a697c",
+      "id": "Installation A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -22294,7 +22294,7 @@
         ]
       },
       "name": "Installation A",
-      "parent": "c0cdc34263d4b970f2f3e6cd5c68324d",
+      "parent": "model",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -23524,7 +23524,7 @@
           0.0
         ]
       },
-      "id": "56c4377b44ec1de6cfb85e61580d3bd0",
+      "id": "Installation B",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -23579,7 +23579,7 @@
         ]
       },
       "name": "Installation B",
-      "parent": "c0cdc34263d4b970f2f3e6cd5c68324d",
+      "parent": "model",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -24248,7 +24248,7 @@
           2920097492.0
         ]
       },
-      "id": "df82601448d0dfff409ca827eb200bf7",
+      "id": "Generator set A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -24303,7 +24303,7 @@
         ]
       },
       "name": "Generator set A",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -24998,7 +24998,7 @@
           604381818.0
         ]
       },
-      "id": "f052159ee3a1c02b3803c90bd20a956d",
+      "id": "Generator set B",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -25053,7 +25053,7 @@
         ]
       },
       "name": "Generator set B",
-      "parent": "56c4377b44ec1de6cfb85e61580d3bd0",
+      "parent": "Installation B",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -25427,7 +25427,7 @@
           133599.8
         ]
       },
-      "id": "5abae98e37faa4f862c2ae773c940e69",
+      "id": "Gas export compressors system A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -37133,7 +37133,7 @@
           1
         ]
       },
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -37428,7 +37428,7 @@
           67111.96
         ]
       },
-      "id": "77a63d15c9bf3dbf947d719cdf95acc3",
+      "id": "Water injection pump system A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -42138,7 +42138,7 @@
           1
         ]
       },
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -42754,7 +42754,7 @@
           0.0
         ]
       },
-      "id": "f36326af761aff93c03505dfd6398464",
+      "id": "Gas export compressors B",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -42862,7 +42862,7 @@
           null
         ]
       },
-      "parent": "56c4377b44ec1de6cfb85e61580d3bd0",
+      "parent": "Installation B",
       "rate_exceeds_maximum": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -43157,7 +43157,7 @@
           25200.18
         ]
       },
-      "id": "cf39762d25a3ed9f4edd365ed0b518a8",
+      "id": "Single pump A",
       "inlet_liquid_rate_m3_per_day": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -43450,7 +43450,7 @@
           200.0
         ]
       },
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -43745,7 +43745,7 @@
           89750.7
         ]
       },
-      "id": "f013fbb1f138562881af5e26b02e2706",
+      "id": "Fixed production loads A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -43800,7 +43800,7 @@
         ]
       },
       "name": "Fixed production loads A",
-      "parent": "df82601448d0dfff409ca827eb200bf7",
+      "parent": "Generator set A",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -44095,7 +44095,7 @@
           58299.6
         ]
       },
-      "id": "5a8e53ea117ceb31be9ce36f7e736a7c",
+      "id": "Fixed production loads B",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -44150,7 +44150,7 @@
         ]
       },
       "name": "Fixed production loads B",
-      "parent": "f052159ee3a1c02b3803c90bd20a956d",
+      "parent": "Generator set B",
       "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [
@@ -44766,7 +44766,7 @@
           25541000.0
         ]
       },
-      "id": "88c7bfd2da0bdf2b4f5fc0015abbd2f9",
+      "id": "Flare A",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -44821,7 +44821,7 @@
         ]
       },
       "name": "Flare A",
-      "parent": "e852d5d4b9101f154db921ece82a697c",
+      "parent": "Installation A",
       "timesteps": [
         "2020-01-01 00:00:00",
         "2020-06-01 00:00:00",
@@ -45305,7 +45305,7 @@
           63136000.0
         ]
       },
-      "id": "ba224d2c7b1133907ba6a26c6886cccc",
+      "id": "Flare B",
       "is_valid": {
         "timesteps": [
           "2020-01-01 00:00:00",
@@ -45360,7 +45360,7 @@
         ]
       },
       "name": "Flare B",
-      "parent": "56c4377b44ec1de6cfb85e61580d3bd0",
+      "parent": "Installation B",
       "timesteps": [
         "2020-01-01 00:00:00",
         "2020-06-01 00:00:00",

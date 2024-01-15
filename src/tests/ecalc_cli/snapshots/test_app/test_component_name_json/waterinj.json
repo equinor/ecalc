@@ -79,7 +79,7 @@
             33178.86
         ]
     },
-    "id": "2c369e853d9f77089ab26d579918b199",
+    "id": "Sea water injection pump",
     "is_valid": {
         "timesteps": [
             "2020-01-01 00:00:00",
@@ -112,7 +112,7 @@
         ]
     },
     "name": "Sea water injection pump",
-    "parent": "df82601448d0dfff409ca827eb200bf7",
+    "parent": "Generator set A",
     "power": {
         "rate_type": "STREAM_DAY",
         "regularity": [

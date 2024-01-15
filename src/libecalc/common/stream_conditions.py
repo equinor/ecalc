@@ -63,7 +63,7 @@ class TimeSeriesStreamConditions(BaseModel):
 
         return TimeSeriesStreamConditions(
             id=generate_id(*[stream.id for stream in streams]),
-            name=f"Mixed-{'-'.join(stream.name for stream in streams)}",
+            name=f"{'-'.join(stream.name for stream in streams)}",
             rate=reduce(operator.add, [stream.rate for stream in streams]),
             pressure=target_pressure,
             fluid_density=self.fluid_density,  # TODO: Check that they are equal? Or handle it?
