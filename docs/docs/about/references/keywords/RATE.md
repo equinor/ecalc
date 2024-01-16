@@ -7,11 +7,12 @@
 
 ## Description
 
-This can be used in two ways:
+This can be used in three ways:
 
 - Used to define the rate for some [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)
 types using an `Expression`
 - Used defining the units of a [PUMP](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) and [COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
+- From eCalc v8.8: Used to define the rate for [EMISSION](/about/references/keywords/EMISSION.md) in [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md)
 
 ## Format
 
@@ -40,4 +41,33 @@ RATE: SIM1:GAS_PROD
       UNITS:
         RATE: <AM3_PER_HOUR>
         ...
+~~~~~~~~
+
+## Use in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
+### Format
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: <emitter name>
+    CATEGORY: <category>
+    EMISSION:
+      NAME: <emission name>
+      RATE:
+        VALUE: <emission rate>
+        UNIT: <emission rate unit, default kg/d>
+        TYPE: <emission rate type, default STREAM_DAY>
+~~~~~~~~
+
+
+### Example
+
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: SomeVentingEmitter
+    CATEGORY: COLD-VENTING-FUGITIVE
+    EMISSION:
+      NAME: CH4
+      RATE:
+        VALUE: 4
+        UNIT: kg/d
+        TYPE: STREAM_DAY
 ~~~~~~~~
