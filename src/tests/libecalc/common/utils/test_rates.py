@@ -72,13 +72,16 @@ class TestBooleanTimeSeries:
     @pytest.fixture
     def boolean_series(self):
         return TimeSeriesBoolean(
-            values=[False, True, True, False, True],
+            values=[False, True, True, False, True, True, False, True],
             timesteps=[
                 datetime(2019, 7, 1),
                 datetime(2020, 1, 1),
                 datetime(2020, 7, 1),
                 datetime(2021, 1, 1),
                 datetime(2021, 7, 1),
+                datetime(2022, 1, 1),
+                datetime(2022, 7, 1),
+                datetime(2023, 1, 1),
             ],
             unit=Unit.NONE,
         )
@@ -92,36 +95,43 @@ class TestBooleanTimeSeries:
     def test_resample_boolean(self, boolean_series):
         # resample including start and end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR)
-        assert yearly_values.values == [False, True, False, True]
+        assert yearly_values.values == [False, True, False, False, True]
         assert yearly_values.timesteps == [
             datetime(2019, 7, 1),
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
-            datetime(2021, 7, 1),
+            datetime(2022, 1, 1),
+            datetime(2023, 1, 1),
         ]
 
         # resample including start and without end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_end_date=False)
-        assert yearly_values.values == [False, True, False]
+        assert yearly_values.values == [False, True, False, False]
         assert yearly_values.timesteps == [
             datetime(2019, 7, 1),
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
+            datetime(2022, 1, 1),
         ]
 
         # resample without start and including end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False)
-        assert yearly_values.values == [True, False, True]
+        assert yearly_values.values == [True, False, False, True]
         assert yearly_values.timesteps == [
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
-            datetime(2021, 7, 1),
+            datetime(2022, 1, 1),
+            datetime(2023, 1, 1),
         ]
 
         # resample without start and end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False, include_end_date=False)
-        assert yearly_values.values == [True, False]
-        assert yearly_values.timesteps == [datetime(2020, 1, 1), datetime(2021, 1, 1)]
+        assert yearly_values.values == [True, False, False]
+        assert yearly_values.timesteps == [
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2022, 1, 1),
+        ]
 
     def test_indexing(self, boolean_series):
         first_timestep = TimeSeriesBoolean(
