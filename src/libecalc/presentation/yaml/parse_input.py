@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Optional
 
 from libecalc import dto
 from libecalc.common.time_utils import Period
@@ -10,7 +11,9 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
 
-def map_yaml_to_dto(configuration: PyYamlYamlModel, resources: Resources, name: str) -> dto.Asset:
+def map_yaml_to_dto(
+    configuration: PyYamlYamlModel, resources: Resources, name: str, timevector: Optional[List[datetime]] = None
+) -> dto.Asset:
     references = create_references(configuration, resources)
     target_period = Period(
         start=configuration.start or DEFAULT_START_TIME,
@@ -20,4 +23,4 @@ def map_yaml_to_dto(configuration: PyYamlYamlModel, resources: Resources, name: 
         references=references,
         target_period=target_period,
     )
-    return model_mapper.from_yaml_to_dto(configuration=configuration, name=name)
+    return model_mapper.from_yaml_to_dto(configuration=configuration, name=name, timevector=timevector)

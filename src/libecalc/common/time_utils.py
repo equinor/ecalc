@@ -116,6 +116,10 @@ def define_time_model_for_period(
 ) -> Optional[Dict[datetime, Any]]:
     """Process time model based on the target period.
 
+    TODO: We should probably in general get a model for a timestep instead of a period. A period may have more than one
+    model, unless we are 100% sure that the period is actually 2 successive time steps. Also, a period is only needed
+    when we need to calculate volumes, which would only be relevant wrt final aggregations and calculations ...
+
     Steps:
         - Add a default start date if the model is not already a time model
         - Filter definitions outside given time period

@@ -106,7 +106,7 @@ class StreamConditions:
     @classmethod
     def mix_all(cls, streams: List[StreamConditions]) -> StreamConditions:
         if len(streams) == 0:
-            raise ValueError("No streams to mix")
+            raise ValueError("No streams to mix.")
         if len(streams) == 1:
             return streams[0].copy()
 

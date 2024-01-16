@@ -1,4 +1,7 @@
+from typing import List
+
 import numpy as np
+from typing_extensions import Self
 
 from libecalc.core.models.chart.base import ChartCurve
 from libecalc.dto.types import ChartAreaFlag
@@ -13,6 +16,27 @@ class SingleSpeedChart(ChartCurve):
 
     Note: For a single speed chart the speed is optional, but it is good practice to include it.
     """
+
+    @classmethod
+    def create(
+        cls,
+        speed_rpm: float,
+        rate_actual_m3_hour: List[float],
+        polytropic_head_joule_per_kg: List[float],
+        efficiency_fraction: List[float],
+    ) -> Self:
+        """
+        V2 only.
+
+        This class method to construct single speed chart is being used for V2 only to avoid using old init constructor
+        used for v1 (since we must be backwards compatible, and the v1 constructor uses a single DTO for initialization)
+        """
+        instance = super().__new__(cls)
+        instance.speed_rpm = speed_rpm
+        instance.rate_actual_m3_hour = rate_actual_m3_hour
+        instance.polytropic_head_joule_per_kg = polytropic_head_joule_per_kg
+        instance.efficiency_fraction = efficiency_fraction
+        return instance
 
     def get_chart_area_flag(self, rate: float) -> ChartAreaFlag:
         """Set chart area flag based on rate [Am3/h]."""

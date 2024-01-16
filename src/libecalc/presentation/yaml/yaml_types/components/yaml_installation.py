@@ -67,6 +67,7 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
             YamlConsumerSystem[YamlCompressor],
             YamlConsumerSystem[YamlPump],
             YamlConsumerSystem[YamlTrain[YamlCompressor]],
+            YamlPump,
         ]
     ] = Field(
         None,

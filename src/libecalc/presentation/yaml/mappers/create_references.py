@@ -96,7 +96,9 @@ def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
 
             # Check if key exists: ENERGY_USAGE_MODEL.
             # Consumer system v2 has different structure/naming: test fails when looking for key ENERGY_USAGE_MODEL
-            if EcalcYamlKeywords.energy_usage_model in consumer:
+            if EcalcYamlKeywords.energy_usage_model in consumer and not isinstance(
+                consumer.get(EcalcYamlKeywords.energy_usage_model), str
+            ):  # V2 only exception. at this time, energy_usage_model may be a string in v2, will be resolved later
                 for model in consumer[EcalcYamlKeywords.energy_usage_model].values():
                     if isinstance(model, dict):
                         for key, value in model.items():
