@@ -66,7 +66,7 @@ class TestGeneratorSet:
             )
         }
 
-    @pytest.skip(
+    @pytest.mark.skip(
         reason="Due to circular dependencies we cannot specify a pump as an alternative as a consumer for genset, therefore we must set Any, which makes this not fail."
     )
     def test_genset_should_fail_with_fuel_consumer(self):
