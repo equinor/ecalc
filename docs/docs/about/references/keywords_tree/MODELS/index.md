@@ -6,6 +6,8 @@ sidebar_position: 4
 [MODELS](/about/references/keywords_tree/MODELS/index.md)
 
 ## Description
+`MODELS` is one of six top level section keywords in eCalc™.
+
 Each element is specified in a list. These are later used as input to other models, or in the
 [INSTALLATIONS](/about/references/keywords_tree/INSTALLATIONS/index.md) part of the setup by referencing their
 [NAME](/about/references/keywords_tree/MODELS/NAME.md).

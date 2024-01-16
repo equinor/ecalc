@@ -1,8 +1,13 @@
 # FUEL_TYPES
+:::note
+The [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) keyword is **mandatory** within the eCalc™ YAML file.
+:::
 
 [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md)
 
 ## Description
+`FUEL_TYPES` is one of six top level section keywords in eCalc™.
+
 This part of the setup specifies the various fuel types and associated emissions
 used in the model. Each fuel type is specified in a list and the defined fuels can later be referred to the 
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) part of the setup by its name.
