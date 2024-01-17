@@ -25,5 +25,14 @@ supported types. The facility input type is defined using the [TYPE](/about/refe
 keyword and defines the type of model applied to the data in this file. The input files are in `CSV` 
 (Comma separated file) format. The paths to the input files may be either absolute or relative to the setup file.
 
+### Format
+
+~~~~~~~~yaml
+MODELS:
+  - NAME: <name of model, for reference>
+    TYPE: <model type>
+    FILE: <input csv file name>
+    <other keywords according to TYPE>
+~~~~~~~~
 
 See [FACILITY INPUTS](/about/modelling/setup/facility_inputs/index.md) for details about different types and their usage.

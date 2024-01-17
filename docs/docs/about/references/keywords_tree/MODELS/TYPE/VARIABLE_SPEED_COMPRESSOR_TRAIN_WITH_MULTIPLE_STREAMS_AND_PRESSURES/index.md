@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 ---
-# TYPE
+# VARIABLE_SPEED_COMPRESSOR_TRAIN_WITH_MULTIPLE_STREAMS_AND_PRESSURES
 
 [MODELS](/about/references/keywords_tree/MODELS/index.md) /
 [TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md)

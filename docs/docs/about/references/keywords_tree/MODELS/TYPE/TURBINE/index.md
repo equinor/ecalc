@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 ---
-# TYPE
+# TURBINE
 
 [MODELS](/about/references/keywords_tree/MODELS/index.md) /
 [TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md)
