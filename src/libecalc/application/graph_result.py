@@ -1175,7 +1175,7 @@ class GraphResult:
                 )
                 obj = TypeAdapter(libecalc.dto.result.ComponentResult).validate_python(
                     {
-                        **consumer_result.component_result.model_dump(),
+                        **consumer_result.component_result.model_dump(exclude={"typ"}),
                         "name": consumer_node_info.name,
                         "parent": self.graph.get_predecessor(consumer_id),
                         "component_level": consumer_node_info.component_level,
