@@ -31,7 +31,7 @@ class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
     ] = EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES
 
     # Not in use:
-    pressure_control: FixedSpeedPressureControl = None  # Not relevant for simplified trains.
+    pressure_control: Optional[FixedSpeedPressureControl] = None  # Not relevant for simplified trains.
 
     @field_validator("stages")
     @classmethod
@@ -58,7 +58,7 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
 
     # Not in use:
     stages: List[CompressorStage] = []  # Not relevant since the stage is Unknown
-    pressure_control: FixedSpeedPressureControl = None  # Not relevant for simplified trains.
+    pressure_control: Optional[FixedSpeedPressureControl] = None  # Not relevant for simplified trains.
 
     @field_validator("stage")
     @classmethod
@@ -136,7 +136,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
     stages: List[MultipleStreamsCompressorStage]
 
     # Not in use:
-    fluid_model: FluidModel = None  # Not relevant. set by the individual stream.
+    fluid_model: Optional[FluidModel] = None  # Not relevant. set by the individual stream.
 
     @field_validator("stages")
     @classmethod
