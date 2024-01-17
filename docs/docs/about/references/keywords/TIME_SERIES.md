@@ -32,5 +32,18 @@ be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) fi
 | MISCELLANEOUS   | Required: LEFT, RIGHT or LINEAR       | Optional. Default: FALSE               | Optional. Default: TRUE                                                              |
 | **Description** | Determine if time steps should contribute to global time vector. TRUE or FALSE. At least one time vector is required to be TRUE.| Defines whether the rates in the source should be set to 0 after the last time step (FALSE), or equal to value at last time step after the time interval (TRUE). | Defines how rates are interpolated between the given time steps (LEFT/RIGHT/LINEAR). |
 
+## Example
+~~~~~~~~yaml
+TIME_SERIES:
+  - NAME: SIM1
+    TYPE: DEFAULT
+    FILE: /path_to_model1/model_data.csv
+  - NAME: DATA2
+    TYPE: MISCELLANEOUS # e.g. variable flare, compressor suction and discharge pressures
+    FILE: inputs/somecsvdata.csv
+    INFLUENCE_TIME_VECTOR: FALSE
+    EXTRAPOLATION: TRUE
+    INTERPOLATION_TYPE: RIGHT
+~~~~~~~~
 
 See [TIME SERIES](/about/modelling/setup/time_series.md) for more details about usage.
