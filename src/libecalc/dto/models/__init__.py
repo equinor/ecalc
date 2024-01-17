@@ -1,5 +1,8 @@
 from typing import Union
 
+from pydantic import Field
+from typing_extensions import Annotated
+
 from libecalc.dto.models.compressor import (
     CompressorChart,
     CompressorConsumerFunction,
@@ -44,23 +47,32 @@ from .sampled import EnergyModelSampled
 from .tabulated import TabulatedConsumerFunction, TabulatedData, Variables
 from .turbine import Turbine
 
-ElectricEnergyUsageModel = Union[
-    DirectConsumerFunction,
-    CompressorConsumerFunction,
-    CompressorSystemConsumerFunction,
-    PumpConsumerFunction,
-    TabulatedConsumerFunction,
-    PumpSystemConsumerFunction,
+ElectricEnergyUsageModel = Annotated[
+    Union[
+        DirectConsumerFunction,
+        CompressorConsumerFunction,
+        CompressorSystemConsumerFunction,
+        PumpConsumerFunction,
+        TabulatedConsumerFunction,
+        PumpSystemConsumerFunction,
+    ],
+    Field(discriminator="typ"),
 ]
 
-FuelEnergyUsageModel = Union[
-    DirectConsumerFunction,
-    CompressorConsumerFunction,
-    CompressorSystemConsumerFunction,
-    TabulatedConsumerFunction,
+FuelEnergyUsageModel = Annotated[
+    Union[
+        DirectConsumerFunction,
+        CompressorConsumerFunction,
+        CompressorSystemConsumerFunction,
+        TabulatedConsumerFunction,
+    ],
+    Field(discriminator="typ"),
 ]
 
-EnergyUsageModel = Union[
-    FuelEnergyUsageModel,
-    ElectricEnergyUsageModel,
+EnergyUsageModel = Annotated[
+    Union[
+        FuelEnergyUsageModel,
+        ElectricEnergyUsageModel,
+    ],
+    Field(discriminator="typ"),
 ]
