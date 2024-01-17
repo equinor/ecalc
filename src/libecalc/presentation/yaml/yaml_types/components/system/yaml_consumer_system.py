@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, Generic, List, Literal, Optional, TypeVar, Union
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -109,7 +109,9 @@ class YamlConsumerSystem(YamlConsumerBase, BaseModel, Generic[TYamlConsumer]):
             regularity=regularity,
             consumes=consumes,
             component_conditions=component_conditions,
-            stream_conditions_priorities=self.stream_conditions_priorities,
+            stream_conditions_priorities=TypeAdapter(YamlPriorities).dump_python(
+                self.stream_conditions_priorities
+            ),  # TODO: unnecessary, but we should remove the need to have dto here (two very similar classes)
             consumers=consumers,
             fuel=fuel,
         )
