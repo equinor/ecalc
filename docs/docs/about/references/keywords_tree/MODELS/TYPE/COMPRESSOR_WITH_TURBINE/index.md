@@ -1,31 +1,47 @@
 ---
-sidebar_position: 2
+sidebar_position: 8
 ---
 # COMPRESSOR_WITH_TURBINE
 
 [MODELS](/about/references/keywords_tree/MODELS/index.md) /
-[TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md)
+[TYPE](/about/references/keywords_tree/MODELS/TYPE/index.md): 
+[COMPRESSOR_WITH_TURBINE](/about/references/keywords_tree/MODELS/TYPE/COMPRESSOR_WITH_TURBINE/index.md)
 
-## Description
+### Description
+Combining a compressor train and a turbine into one model:
 
-Model type. The supported types are:
+To model a turbine driven compressor train, a compressor train model needs to be combined with a turbine model. The
+calculated shaft power required for the compressor train, will then be the input of the turbine model to calculate
+fuel usage.
 
-- [FLUID](/about/references/keywords_tree/MODELS/TYPE/FLUID/index.md)
-- [COMPRESSOR_CHART](/about/references/keywords_tree/MODELS/TYPE/COMPRESSOR_CHART/index.md)
-- [SINGLE_SPEED_COMPRESSOR_TRAIN](/about/references/keywords_tree/MODELS/TYPE/SINGLE_SPEED_COMPRESSOR_TRAIN/index.md)
-- `SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN`
-- `VARIABLE_SPEED_COMPRESSOR_TRAIN`
-- `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES`
-- `TURBINE`
-- `COMPRESSOR_WITH_TURBINE`
+## Format
+~~~~~~~~yaml
+MODELS:
+  - NAME: <name of turbine model, for reference>
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: <reference to compressor train model defined in [MODELS](../references/keywords/MODELS) or [FACILITY_INPUTS](../references/keywords/FACILITY_INPUTS) (of type COMPRESSOR_TABULAR)>
+    TURBINE_MODEL: <reference to a turbine model defined in [MODELS](../references/keywords/MODELS) (of type TURBINE)>
+    POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
+~~~~~~~~
 
-The documentation of each of these is found on the [Compressor Modelling](/about/modelling/setup/models/compressor_modelling/compressor_models_types/index.md) page.
+## Examples
+~~~~~~~~yaml
+MODELS:
+  - NAME: simplified_compressor_train_model_with_turbine
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: simplified_compressor_train_model
+    TURBINE_MODEL: compressor_train_turbine
+    POWER_ADJUSTMENT_CONSTANT: 10
+~~~~~~~~
 
-### Format
+Turbine combined with presampled compressor model (`COMPRESSOR_TABULAR<COMPRESSOR_TABULAR  facility input type>`)
 
 ~~~~~~~~yaml
 MODELS:
-  - NAME: <name of model, for reference>
-    TYPE: <model type>
-    <other keywords according to TYPE>
+  - NAME: compressor_sampled_tabulated_model_with_turbine
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: compressor_sampled_tabulated_model
+    TURBINE_MODEL: compressor_train_turbine
+    POWER_ADJUSTMENT_CONSTANT: 10
 ~~~~~~~~
+
