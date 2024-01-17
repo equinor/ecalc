@@ -1,7 +1,5 @@
 from typing import List, Literal, Optional, Union
 
-from typing_extensions import Annotated
-
 from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -55,7 +53,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
     calculate_max_rate: Optional[bool] = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-                    "Default false. Use with caution. This will increase runtime significantly.",
+        "Default false. Use with caution. This will increase runtime significantly.",
         title="CALCULATE_MAX_RATE",
     )
     power_adjustment_constant: float = Field(
@@ -88,7 +86,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
     calculate_max_rate: Optional[bool] = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-                    "Default false. Use with caution. This will increase runtime significantly.",
+        "Default false. Use with caution. This will increase runtime significantly.",
         title="CALCULATE_MAX_RATE",
     )
     power_adjustment_constant: float = Field(
@@ -116,7 +114,7 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
     calculate_max_rate: Optional[bool] = Field(
         False,
         description="Optional compressor train max standard rate [Sm3/day] in result if set to true. "
-                    "Default false. Use with caution. This will increase runtime significantly.",
+        "Default false. Use with caution. This will increase runtime significantly.",
         title="CALCULATE_MAX_RATE",
     )
     fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
