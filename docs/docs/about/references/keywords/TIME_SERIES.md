@@ -16,7 +16,7 @@ later referred to in the system of energy consumers defined under [INSTALLATIONS
 Reservoir variables and other time varying data not coming from a reservoir simulation model can
 be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file.
 
-### Required attributes for TIME_SERIES
+### Required attributes
 
 | Attributes                                 | Description                                               |
 |--------------------------------------------|-----------------------------------------------------------|
@@ -24,7 +24,7 @@ be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) fi
 | [TYPE](/about/references/keywords/TYPE.md) | Time series type. Either MISCELLANEOUS or DEFAULT.        |
 | [FILE](/about/references/keywords/FILE.md) | Path to input file                                        |
 
-### Attributes dependent on TIME_SERIES TYPE
+### Attributes dependent on time series type
 
 | TYPE            | [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md)               | [EXTRAPOLATION](/about/references/keywords/EXTRAPOLATION.md)                                                                                                     | [INFLUENCE_TIME_VECTOR](/about/references/keywords/INFLUENCE_TIME_VECTOR.md)                                                     |
 |-----------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
