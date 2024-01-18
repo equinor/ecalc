@@ -1,9 +1,8 @@
 import enum
 from typing import List, Literal, Optional, Union
 
-from typing_extensions import Annotated
-
 from pydantic import Field
+from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
