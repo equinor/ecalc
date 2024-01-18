@@ -18,18 +18,18 @@ be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) fi
 
 ### Required attributes for TIME_SERIES
 
-| Attributes            | Description                                               |
-|-----------------------|-----------------------------------------------------------|
-| NAME                  | Time series reference name                                |
-| TYPE                  | Time series type. Either MISCELLANEOUS or DEFAULT.        |
-| FILE                  | Path to input file                                        |
+| Attributes                                 | Description                                               |
+|--------------------------------------------|-----------------------------------------------------------|
+| [NAME](/about/references/keywords/NAME.md) | Time series reference name                                |
+| [TYPE](/about/references/keywords/TYPE.md) | Time series type. Either MISCELLANEOUS or DEFAULT.        |
+| [FILE](/about/references/keywords/FILE.md) | Path to input file                                        |
 
 ### Attributes dependent on TIME_SERIES TYPE
 
-| TYPE            | INTERPOLATION_TYPE                    | EXTRAPOLATION                          | INFLUENCE_TIME_VECTOR                                                                |
-|-----------------|---------------------------------------|----------------------------------------|--------------------------------------------------------------------------------------|
-| DEFAULT         | Not allowed to specify. RIGHT is used | Not possible to specify. FALSE is used | Optional. Default: TRUE                                                              |
-| MISCELLANEOUS   | Required: LEFT, RIGHT or LINEAR       | Optional. Default: FALSE               | Optional. Default: TRUE                                                              |
+| TYPE            | [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md)               | [EXTRAPOLATION](/about/references/keywords/EXTRAPOLATION.md)                                                                                                     | [INFLUENCE_TIME_VECTOR](/about/references/keywords/INFLUENCE_TIME_VECTOR.md)                                                     |
+|-----------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| DEFAULT         | Not allowed to specify. RIGHT is used                                                | Not possible to specify. FALSE is used                                                                                                                           | Optional. Default: TRUE                                                                                                          |
+| MISCELLANEOUS   | Required: LEFT, RIGHT or LINEAR                                                      | Optional. Default: FALSE                                                                                                                                         | Optional. Default: TRUE                                                                                                          |
 | **Description** | Defines how rates are interpolated between the given time steps (LEFT/RIGHT/LINEAR). | Defines whether the rates in the source should be set to 0 after the last time step (FALSE), or equal to value at last time step after the time interval (TRUE). | Determine if time steps should contribute to global time vector. TRUE or FALSE. At least one time vector is required to be TRUE. |
 
 ## Example
