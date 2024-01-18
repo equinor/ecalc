@@ -1,11 +1,10 @@
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
-    YamlElectricityEnergyUsageModel,
-)
-
 from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
+    YamlElectricityEnergyUsageModel,
+)
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
