@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -211,7 +211,10 @@ def create_time_steps(
         the requested frequency
 
     """
-    date_range = pd.date_range(start=start, end=end, freq=frequency.value)
+    # If the start date or end date is part of the date_range made by the frequency, the returned date range will
+    # always include the start and end date (no matter what the include_start_date and include_end_date booleans are).
+    # To avoid this add one day to start and subtract one day from end.
+    date_range = pd.date_range(start=start + timedelta(days=1), end=end - timedelta(days=1), freq=frequency.value)
 
     time_steps = [clear_time(time_step) for time_step in date_range]
     if include_start_date:
