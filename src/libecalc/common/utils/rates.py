@@ -429,8 +429,9 @@ class TimeSeriesInt(TimeSeries[int]):
 class TimeSeriesBoolean(TimeSeries[bool]):
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True) -> Self:
         """
-        Resample using forward-fill This means that a value is assumed to be the same until the next observation,
-        e.g. covering the whole period interval.
+        If a period between two time steps in the return time vector contains more than one time step in the
+        original vector, check if any of the relevant values in the time original time vector is False. Then the
+        resampled value for that time step will be False.
 
         Args:
             freq: The frequency the time series should be resampled to
@@ -441,16 +442,26 @@ class TimeSeriesBoolean(TimeSeries[bool]):
         if freq is Frequency.NONE:
             return self.copy()
 
-        ds = pd.Series(index=self.timesteps, data=self.values)
-
+        # Always make new time series WITH end date, but remove it later is not needed
         new_timeseries = resample_time_steps(
-            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=True
         )
-        ds_resampled = ds.reindex(new_timeseries).ffill()
+        resampled = []
+
+        # Iterate over all pairs of subsequent dates in the new time vector
+        for start_period, end_period in zip(new_timeseries[:-1], new_timeseries[1:]):
+            start_index = self.timesteps.index(max([date for date in self.timesteps if date <= start_period]))
+            end_index = self.timesteps.index(max([date for date in self.timesteps if date < end_period]))
+            resampled.append(all(self.values[start_index : end_index + 1]))
+
+        if include_end_date:
+            resampled.append(self.values[-1])
+        else:
+            new_timeseries.pop()
 
         return TimeSeriesBoolean(
             timesteps=new_timeseries,
-            values=[bool(x) for x in ds_resampled.values.tolist()],
+            values=resampled,
             unit=self.unit,
         )
 
