@@ -26,11 +26,11 @@ be specified in a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) fi
 
 ### Attributes dependent on time series type
 
-|                                                                        | DEFAULT                 | MISCELLANEOUS                   | Description                                                                                                                                                      |
-|------------------------------------------------------------------------|-------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md) | RIGHT                   | Required: LEFT, RIGHT or LINEAR | Defines how rates are interpolated between the given time steps (LEFT/RIGHT/LINEAR).                                                                             |
-| [EXTRAPOLATION](/about/references/keywords/EXTRAPOLATION.md)           | FALSE                   | Optional. Default: FALSE        | Defines whether the rates in the source should be set to 0 after the last time step (FALSE), or equal to value at last time step after the time interval (TRUE). |
-| [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md) | Optional. Default: TRUE | Optional. Default: TRUE         | Determine if time steps should contribute to global time vector. TRUE or FALSE. At least one time vector is required to be TRUE.                                 |
+|                                                                           | DEFAULT                 | MISCELLANEOUS                   | Description                                                                                                                                                      |
+|---------------------------------------------------------------------------|-------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md)    | RIGHT                   | Required: LEFT, RIGHT or LINEAR | Defines how rates are interpolated between the given time steps (LEFT/RIGHT/LINEAR).                                                                             |
+| [EXTRAPOLATION](/about/references/keywords/EXTRAPOLATION.md)              | FALSE                   | Optional. Default: FALSE        | Defines whether the rates in the source should be set to 0 after the last time step (FALSE), or equal to value at last time step after the time interval (TRUE). |
+| [INFLUENCE_TIME_VECTOR](/about/references/keywords/INFLUENCE_TIME_VECTOR.md) | Optional. Default: TRUE | Optional. Default: TRUE         | Determine if time steps should contribute to global time vector. TRUE or FALSE. At least one time vector is required to be TRUE.                                 |
 
 ## Example
 ~~~~~~~~yaml
