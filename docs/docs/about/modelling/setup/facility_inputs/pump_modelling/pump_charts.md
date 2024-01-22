@@ -54,7 +54,7 @@ FACILITY_INPUTS:
     TYPE: PUMP_CHART_SINGLE_SPEED
     UNITS:
         RATE: <rate unit, currently only AM3_PER_HOUR supported>
-        HEAD: <polytropic head unit, M, KJ_PER_KG, JOULE_PER_KG supported>
+        HEAD: <polytropic head unit, only M supported>
         EFFICIENCY: <Pump efficiency unit FRACTION or PERCENTAGE.>
 ~~~~~~~~
 
@@ -76,7 +76,7 @@ FACILITY_INPUTS:
     TYPE: PUMP_CHART_VARIABLE_SPEED
     UNITS:
         RATE: <rate unit, currently only AM3_PER_HOUR supported>
-        HEAD: <polytropic head unit, M, KJ_PER_KG, JOULE_PER_KG supported>
+        HEAD: <polytropic head unit, only M supported>
         EFFICIENCY: <Pump efficiency unit FRACTION or PERCENTAGE.>
 ~~~~~~~~
 
