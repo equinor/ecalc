@@ -55,7 +55,7 @@ class CompressorResult(ConsumerSystemComponentResult):
 
 class ConsumerSystemOperationalSettingResult(BaseModel):
     consumer_results: List[ConsumerSystemComponentResult]
-    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
+    model_config = ConfigDict(frozen=True)
 
     @property
     def total_energy_usage(self) -> NDArray[np.float64]:

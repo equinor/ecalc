@@ -14,6 +14,7 @@ from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results.base import EnergyFunctionResult
+from libecalc.core.utils.array_type import PydanticNDArray
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
 
@@ -97,5 +98,5 @@ class VariableExpression(PydanticBaseModel):
 
 class Variable(PydanticBaseModel):
     name: str
-    values: NDArray[np.float64]
+    values: PydanticNDArray
     model_config = ConfigDict(arbitrary_types_allowed=True)
