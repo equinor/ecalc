@@ -6,6 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.errors.exceptions import IncompatibleDataError
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
@@ -136,11 +137,11 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
         operational_setting_used = assemble_operational_setting_from_model_result_list(
             operational_settings=operational_settings_adjusted_for_cross_over,
-            setting_number_used_per_timestep=list(operational_setting_number_used_per_timestep),
+            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep),
         )
         operational_setting_used_without_cross_over = assemble_operational_setting_from_model_result_list(
             operational_settings=operational_settings,
-            setting_number_used_per_timestep=list(operational_setting_number_used_per_timestep),
+            setting_number_used_per_timestep=array_to_list(operational_setting_number_used_per_timestep),
         )
         cross_over_used = self.get_cross_over_used(
             operational_setting_used_without_cross_over=operational_setting_used_without_cross_over,

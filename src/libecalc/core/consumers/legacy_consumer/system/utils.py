@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
@@ -105,13 +106,17 @@ def assemble_operational_setting_from_model_result_list(
     )
 
     return ConsumerSystemOperationalSetting(
-        rates=list(rates[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),
-        suction_pressures=list(suction_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),
-        discharge_pressures=list(
+        rates=array_to_list(rates[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)),
+        suction_pressures=array_to_list(
+            suction_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
+        ),
+        discharge_pressures=array_to_list(
             discharge_pressures[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
         ),
         cross_overs=None,  # Cross-over has already been applied before this step.
-        fluid_densities=list(fluid_densities[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2))
+        fluid_densities=array_to_list(
+            fluid_densities[setting_number_used_per_timestep, :, :].diagonal(axis1=0, axis2=2)
+        )
         if fluid_densities is not None
         else None,
     )

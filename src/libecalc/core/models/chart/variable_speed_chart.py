@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc import dto
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.core.models.chart.base import ChartCurve
 
 
@@ -355,8 +356,8 @@ class VariableSpeedChart:
             # Note: the values will contain negative values which will result in a validation error unless we do this:
             curve.data_transfer_object.copy(
                 update={
-                    "rate_actual_m3_hour": list((curve.rate_values - mean_rates) / std_rates),
-                    "polytropic_head_joule_per_kg": list((curve.head_values - mean_heads) / std_heads),
+                    "rate_actual_m3_hour": array_to_list((curve.rate_values - mean_rates) / std_rates),
+                    "polytropic_head_joule_per_kg": array_to_list((curve.head_values - mean_heads) / std_heads),
                 }
             )
             for curve in self.curves
