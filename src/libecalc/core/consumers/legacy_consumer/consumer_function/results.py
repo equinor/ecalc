@@ -5,7 +5,6 @@ from enum import Enum
 from typing import List, Literal, Optional, Union
 
 import numpy as np
-from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
@@ -13,6 +12,7 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
 from libecalc.core.models.results.base import EnergyFunctionResult
+from libecalc.core.utils.array_type import PydanticNDArray
 
 
 class ConsumerFunctionResultBase(BaseModel):
@@ -24,16 +24,16 @@ class ConsumerFunctionResultBase(BaseModel):
 
     typ: ConsumerFunctionType
 
-    time_vector: NDArray[np.float64]
-    is_valid: NDArray[np.float64]
-    energy_usage: NDArray[np.float64]
-    energy_usage_before_power_loss_factor: Optional[NDArray[np.float64]] = None
-    condition: Optional[NDArray[np.float64]] = None
-    power_loss_factor: Optional[NDArray[np.float64]] = None
+    time_vector: PydanticNDArray
+    is_valid: PydanticNDArray
+    energy_usage: PydanticNDArray
+    energy_usage_before_power_loss_factor: Optional[PydanticNDArray] = None
+    condition: Optional[PydanticNDArray] = None
+    power_loss_factor: Optional[PydanticNDArray] = None
     energy_function_result: Optional[Union[EnergyFunctionResult, List[EnergyFunctionResult]]] = None
 
     # New! to support fuel to power rate...for e.g. compressors emulating turbine
-    power: Optional[NDArray[np.float64]] = None
+    power: Optional[PydanticNDArray] = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod
