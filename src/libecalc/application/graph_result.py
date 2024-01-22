@@ -715,7 +715,7 @@ class GraphResult:
                             ),
                             is_valid=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
-                                values=list(model.turbine_result.is_valid)
+                                values=model.turbine_result.is_valid
                                 if model.turbine_result.is_valid is not None
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.NONE,

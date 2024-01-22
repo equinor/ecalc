@@ -66,12 +66,12 @@ class Genset:
             timesteps=variables_map.time_vector,
             is_valid=TimeSeriesBoolean(
                 timesteps=variables_map.time_vector,
-                values=list(valid_timesteps),
+                values=array_to_list(valid_timesteps),
                 unit=Unit.NONE,
             ),
             power_capacity_margin=TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
-                values=list(power_capacity_margin),
+                values=array_to_list(power_capacity_margin),
                 unit=Unit.MEGA_WATT,
             ),
             power=TimeSeriesStreamDayRate(

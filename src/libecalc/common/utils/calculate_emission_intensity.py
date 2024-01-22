@@ -60,7 +60,7 @@ def compute_emission_intensity_yearly(
         where=hcexport_per_year != 0,
     )
 
-    return list(yearly_emission_intensity)
+    return yearly_emission_intensity.tolist()
 
 
 def compute_emission_intensity_by_yearly_buckets(
