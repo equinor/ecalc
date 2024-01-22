@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from libecalc.common.errors.exceptions import EcalcError, IncompatibleDataError
 from libecalc.common.logger import logger
 from libecalc.common.utils.rates import Rates
+from libecalc.core.utils.array_type import PydanticNDArray
 from libecalc.expression import Expression
 
 
@@ -32,7 +33,6 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
     discharge_pressures: List[Expression]
     cross_overs: Optional[List[int]] = None
     fluid_densities: Optional[List[Expression]] = None
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def number_of_consumers(self):
@@ -75,11 +75,11 @@ class PumpSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingEx
 class ConsumerSystemOperationalSetting(BaseModel):
     """Warning! The methods below are fragile to changes in attribute names and types."""
 
-    rates: List[NDArray[np.float64]]
-    suction_pressures: List[NDArray[np.float64]]
-    discharge_pressures: List[NDArray[np.float64]]
+    rates: List[PydanticNDArray]
+    suction_pressures: List[PydanticNDArray]
+    discharge_pressures: List[PydanticNDArray]
     cross_overs: Optional[List[int]] = None
-    fluid_densities: Optional[List[NDArray[np.float64]]] = None
+    fluid_densities: Optional[List[PydanticNDArray]] = None
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
     @model_validator(mode="after")
@@ -149,4 +149,4 @@ class CompressorSystemOperationalSetting(ConsumerSystemOperationalSetting):
 
 
 class PumpSystemOperationalSetting(ConsumerSystemOperationalSetting):
-    fluid_densities: List[NDArray[np.float64]]
+    fluid_densities: List[PydanticNDArray]
