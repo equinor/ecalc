@@ -20,4 +20,4 @@ class TurbineResult(EnergyFunctionResult):
 
     @property
     def is_valid(self) -> List[bool]:
-        return np.invert(self.exceeds_maximum_load)
+        return np.invert(self.exceeds_maximum_load).tolist()
