@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from libecalc import dto
+from libecalc.common.failure_status import FailureStatus
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.types import (
     FluidStreamObjectForMultipleStreams,
@@ -578,10 +579,10 @@ def test_zero_rate_zero_pressure_multiple_streams(variable_speed_compressor_trai
     # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
     assert result.is_valid == [True, True, True, True]
     assert result.failure_status == [
-        None,
-        None,
-        None,
-        None,
+        FailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
     ]
     np.testing.assert_allclose(result.energy_usage, np.array([0.0, 0.38390646, 0.38390646, 0.38390646]), rtol=0.0001)
 

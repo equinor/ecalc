@@ -2,11 +2,9 @@ import numpy as np
 import pytest
 from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.failure_status import FailureStatus
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
-)
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
 
@@ -97,8 +95,8 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         )
         assert result.is_valid[0]
         assert not result.is_valid[1]
-        assert not result.failure_status[0]
-        assert result.failure_status[1] == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
+        assert result.failure_status[0] == FailureStatus.NO_FAILURE
+        assert result.failure_status[1] == FailureStatus.ABOVE_MAXIMUM_POWER
 
     def test_single_point_rate_too_high_no_pressure_control(
         self, variable_speed_compressor_train_one_compressor_no_pressure_control
@@ -116,7 +114,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         )
         assert not np.any(result.is_valid)
         assert not np.any(result.pressure_is_choked)
-        assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
+        assert result.failure_status[0] == FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
 
     def test_single_point_recirculate_on_minimum_speed_curve_one_compressor(
         self, variable_speed_compressor_train_one_compressor_asv_rate
@@ -146,9 +144,9 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
         assert result.is_valid == [True, True, True]
         assert result.failure_status == [
-            None,
-            None,
-            None,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.NO_FAILURE,
         ]
         np.testing.assert_allclose(result.energy_usage, np.array([0.0, 0.092847, 0.092847]), rtol=0.0001)
 
@@ -274,11 +272,12 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
 
     # Target pressure too large
     result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
-        mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+        mass_rate_kg_per_hour=mass_rate_kg_per_hour / 100,
         suction_pressure=20,
         target_discharge_pressure=1000,
     )
-    assert result.failure_status == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+    result.target_discharge_pressure = 1000
+    assert result.failure_status == FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
 
     # Target pressure too low -> but still possible because of downstream choke. However, the rate is still too high.
     result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(

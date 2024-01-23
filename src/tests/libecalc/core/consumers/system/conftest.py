@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
@@ -202,7 +203,7 @@ def compressor_model_result() -> CompressorTrainResult:
             ),
         ],
         rate_sm3_day=[np.nan, np.nan, np.nan],
-        failure_status=[None, None, None],
+        failure_status=[FailureStatus.NO_FAILURE] * 3,
     )
 
 
@@ -235,7 +236,7 @@ def compressor_model_result_invalid_steps() -> CompressorTrainResult:
             )
         ],
         rate_sm3_day=[np.nan, np.nan, np.nan],
-        failure_status=[None, None, None],
+        failure_status=[FailureStatus.NO_FAILURE] * 3,
     )
 
 

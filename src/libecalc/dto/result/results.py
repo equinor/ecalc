@@ -8,6 +8,7 @@ from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.logger import logger
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Frequency
@@ -18,9 +19,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
-)
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto.base import ComponentType
 from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
@@ -208,7 +206,7 @@ class CompressorModelStageResult(EcalcResultBaseModel):
 
 class CompressorModelResult(ConsumerModelResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
-    failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
+    failure_status: List[Optional[FailureStatus]]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
     rate: TimeSeriesRate

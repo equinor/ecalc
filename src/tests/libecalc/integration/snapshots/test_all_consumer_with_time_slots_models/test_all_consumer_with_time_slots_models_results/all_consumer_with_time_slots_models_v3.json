@@ -4291,15 +4291,15 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -5220,15 +5220,15 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -6153,17 +6153,17 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -7230,17 +7230,17 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -8305,15 +8305,15 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -9234,15 +9234,15 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -10167,17 +10167,17 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -11244,17 +11244,17 @@
                             },
                             "energy_usage_unit": "MW",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -12438,15 +12438,15 @@
                     },
                     "energy_usage_unit": "MW",
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -13367,15 +13367,15 @@
                     },
                     "energy_usage_unit": "MW",
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -14300,17 +14300,17 @@
                     },
                     "energy_usage_unit": "MW",
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -15377,17 +15377,17 @@
                     },
                     "energy_usage_unit": "MW",
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
