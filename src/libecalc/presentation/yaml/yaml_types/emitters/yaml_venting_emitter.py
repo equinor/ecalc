@@ -13,6 +13,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
+from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -39,7 +40,7 @@ class YamlVentingEmitter(YamlBase):
     def component_type(self):
         return ComponentType.VENTING_EMITTER
 
-    name: str = Field(
+    name: ComponentNameStr = Field(
         ...,
         title="NAME",
         description="Name of venting emitter",
