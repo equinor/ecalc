@@ -4,63 +4,8 @@ from typing import Optional
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
-    ConditionsAndPowerLossResult,
-)
 from libecalc.dto import VariablesMap
 from libecalc.expression import Expression
-
-
-def calculate_energy_usage_with_conditions_and_power_loss(
-    variables_map: VariablesMap,
-    energy_usage: NDArray[np.float64],
-    condition_expression: Expression,
-    power_loss_factor_expression: Expression,
-    power_usage: Optional[NDArray[np.float64]] = None,
-) -> ConditionsAndPowerLossResult:
-    condition = get_condition_from_expression(
-        variables_map=variables_map,
-        condition_expression=condition_expression,
-    )
-    energy_usage_after_condition_before_power_loss_factor = (
-        energy_usage * condition if condition is not None else deepcopy(energy_usage)
-    )
-    power_usage_after_condition_before_power_loss_factor = (
-        (power_usage * condition if condition is not None else deepcopy(power_usage))
-        if power_usage is not None
-        else None
-    )
-
-    # Apply power loss factor
-    power_loss_factor = (
-        power_loss_factor_expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-        )
-        if power_loss_factor_expression is not None
-        else None
-    )
-    # Set final energy usage to energy usage after conditioning and power loss factor
-    resulting_energy_usage = apply_power_loss_factor(
-        energy_usage=energy_usage_after_condition_before_power_loss_factor,
-        power_loss_factor=power_loss_factor,
-    )
-
-    resulting_power_usage = (
-        apply_power_loss_factor(
-            energy_usage=power_usage_after_condition_before_power_loss_factor,
-            power_loss_factor=power_loss_factor,
-        )
-        if power_usage_after_condition_before_power_loss_factor is not None
-        else None
-    )
-
-    return ConditionsAndPowerLossResult(
-        condition=condition,
-        power_loss_factor=power_loss_factor,
-        energy_usage_after_condition_before_power_loss_factor=energy_usage_after_condition_before_power_loss_factor,
-        resulting_energy_usage=resulting_energy_usage,
-        resulting_power_usage=resulting_power_usage,
-    )
 
 
 def get_condition_from_expression(

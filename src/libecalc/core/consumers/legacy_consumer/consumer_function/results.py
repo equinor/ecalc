@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import List, Literal, NamedTuple, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -13,14 +13,6 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
 from libecalc.core.models.results.base import EnergyFunctionResult
-
-
-class ConditionsAndPowerLossResult(NamedTuple):
-    condition: NDArray[np.float64]
-    power_loss_factor: NDArray[np.float64]
-    energy_usage_after_condition_before_power_loss_factor: NDArray[np.float64]
-    resulting_energy_usage: NDArray[np.float64]
-    resulting_power_usage: Optional[NDArray[np.float64]]
 
 
 class ConsumerFunctionResultBase(BaseModel):
