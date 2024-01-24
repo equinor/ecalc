@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 
 from libecalc import dto
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -17,20 +18,6 @@ from libecalc.core.models.results.base import (
 )
 from libecalc.core.models.results.turbine import TurbineResult
 from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
-
-
-class CompressorTrainCommonShaftFailureStatus(str, Enum):
-    TARGET_DISCHARGE_PRESSURE_TOO_HIGH = "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
-    TARGET_DISCHARGE_PRESSURE_TOO_LOW = "TARGET_DISCHARGE_PRESSURE_TOO_LOW"
-    SUCTION_PRESSURE_TOO_LOW = "SUCTION_PRESSURE_TOO_LOW"
-    ABOVE_MAXIMUM_FLOW_RATE = "ABOVE_MAXIMUM_FLOW_RATE"
-    BELOW_MINIMUM_FLOW_RATE = "BELOW_MINIMUM_FLOW_RATE"
-    ABOVE_MAXIMUM_POWER = "ABOVE_MAXIMUM_POWER"
-    INVALID_RATE_INPUT = "INVALID_RATE_INPUT"
-    INVALID_SUCTION_PRESSURE_INPUT = "INVALID_SUCTION_PRESSURE_INPUT"
-    INVALID_INTERMEDIATE_PRESSURE_INPUT = "INVALID_INTERMEDIATE_PRESSURE_INPUT"
-    INVALID_DISCHARGE_PRESSURE_INPUT = "INVALID_DISCHARGE_PRESSURE_INPUT"
-    NOT_CALCULATED = "NOT_CALCULATED"
 
 
 class CompressorStreamCondition(EnergyModelBaseResult):
@@ -130,7 +117,7 @@ class CompressorTrainResult(EnergyFunctionResult):
     max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]] = None
 
     stage_results: List[CompressorStageResult]
-    failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
+    failure_status: List[FailureStatus]
     turbine_result: Optional[TurbineResult] = None
 
     def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:
@@ -199,11 +186,7 @@ class CompressorTrainResult(EnergyFunctionResult):
 
         Note: We need to ensure all vectors are
         """
-        failure_status_are_valid = (
-            [t is None for t in self.failure_status]
-            if self.failure_status is not None
-            else [True] * len(self.energy_usage)
-        )
+        failure_status_are_valid = [t is FailureStatus.NO_FAILURE for t in self.failure_status]
         turbine_are_valid = (
             self.turbine_result.is_valid if self.turbine_result is not None else [True] * len(self.energy_usage)
         )

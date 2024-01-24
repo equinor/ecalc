@@ -5,12 +5,11 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
-from libecalc.common.decorators.feature_flags import Feature
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models import (
     INVALID_INPUT,
-    ModelInputFailureStatus,
     validate_model_input,
 )
 from libecalc.core.models.compressor.base import CompressorModel
@@ -18,9 +17,6 @@ from libecalc.core.models.compressor.results import CompressorTrainResultSingleT
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.core.models.results import CompressorTrainResult
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTrainDTO
 from libecalc.dto.models.compressor.train import (
@@ -91,7 +87,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         """
         logger.debug(f"Evaluating {type(self).__name__} given rate, suction and discharge pressure.")
 
-        rate, suction_pressure, discharge_pressure, _, input_failure_status = validate_model_input(
+        rate, suction_pressure, discharge_pressure, _, failure_status = validate_model_input(
             rate=rate,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
@@ -110,11 +106,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         max_standard_rate = np.full_like(rate, fill_value=INVALID_MAX_RATE, dtype=float)
         if self.data_transfer_object.calculate_max_rate:
             # calculate max standard rate for time steps with valid input
-            valid_indices = [
-                i
-                for (i, failure_status) in enumerate(input_failure_status)
-                if failure_status == ModelInputFailureStatus.NO_FAILURE
-            ]
+            valid_indices = [i for (i, status) in enumerate(failure_status) if status == FailureStatus.NO_FAILURE]
             if isinstance(self.data_transfer_object, dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures):
                 max_standard_rate_for_valid_indices = self.get_max_standard_rate_per_stream(
                     suction_pressures=suction_pressure[valid_indices],
@@ -133,14 +125,9 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             result_list=train_results,
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
         )
-
-        train_results = self.adjust_train_results_for_maximum_power(
-            train_results=train_results, power=power_mw_adjusted
-        )
-
-        for i, train_result in enumerate(train_results):
-            if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE:
-                train_result.failure_status = input_failure_status[i]
+        for i, status in enumerate(failure_status):
+            if status == FailureStatus.NO_FAILURE:
+                failure_status[i] = train_results[i].failure_status
 
         return CompressorTrainResult(
             energy_usage=list(power_mw_adjusted),
@@ -150,7 +137,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             rate_sm3_day=cast(list, rate.tolist()),
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
-            failure_status=[t.failure_status for t in train_results],
+            failure_status=failure_status,
         )
 
     def evaluate_streams(
@@ -173,18 +160,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             suction_pressure=np.asarray([mixed_inlet_stream.pressure.value]),
             discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
-
-    @Feature.experimental(
-        feature_description="Maximum power constraint is an experimental feature where the syntax may change at any time."
-    )
-    def adjust_train_results_for_maximum_power(
-        self, train_results: List[CompressorTrainResultSingleTimeStep], power: NDArray[np.float64]
-    ) -> List[CompressorTrainResultSingleTimeStep]:
-        if self.data_transfer_object.maximum_power is not None:
-            for power_adjusted, train_result in zip(power, train_results):
-                if self.data_transfer_object.maximum_power < power_adjusted and train_result.failure_status is None:
-                    train_result.failure_status = CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
-        return train_results
 
     @abstractmethod
     def _evaluate_rate_ps_pd(

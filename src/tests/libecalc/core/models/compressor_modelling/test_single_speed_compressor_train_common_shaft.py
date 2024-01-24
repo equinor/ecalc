@@ -1,14 +1,12 @@
 import numpy as np
 import pytest
+from libecalc.common.failure_status import FailureStatus
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
     calculate_single_speed_compressor_stage_given_target_discharge_pressure,
 )
 from libecalc.core.models.compressor.train.stage import CompressorTrainStage
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
 from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
 
 
@@ -97,10 +95,10 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         assert result.power == pytest.approx([14.54498, 14.54498, 16.05248, 14.6864], rel=0.0001)
 
         assert result.failure_status == [
-            None,
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
-            CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [True, False, True, False]
 
@@ -163,10 +161,10 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
 
         assert result.failure_status == [
-            None,
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
-            CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [True, False, True, False]
 
@@ -191,11 +189,11 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
 
         assert result.failure_status == [
-            None,
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
-            CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-            CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+            FailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [True, False, True, False, False]
 
@@ -218,11 +216,11 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
 
         assert result.failure_status == [
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
-            None,
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
-            CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [False, True, False, True, False]
 
@@ -242,11 +240,11 @@ class TestSingleSpeedCompressorTrainCommonShaft:
             decimal=2,
         )
         assert result.failure_status == [
-            None,
-            None,
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
+            FailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
         ]
         assert result.is_valid == [True, True, False, False, False]
 
@@ -265,10 +263,10 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
 
         assert result.failure_status == [
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
-            None,
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
+            FailureStatus.NO_FAILURE,
+            FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
+            FailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [False, True, False, False]
 
@@ -405,10 +403,10 @@ def test_calculate_single_speed_train_zero_pressure_non_zero_rate(medium_fluid, 
     # Results with zero rate should be valid
     assert result.is_valid == [True, True, False, False]
     assert result.failure_status == [
-        None,
-        None,
-        CompressorTrainCommonShaftFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
-        CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        FailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
+        FailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
+        FailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
     ]
     assert all(flag == ChartAreaFlag.NOT_CALCULATED for flag in result.stage_results[0].chart_area_flags)
     np.testing.assert_allclose(result.energy_usage, np.array([0, 0, 0, 0]))
@@ -430,7 +428,7 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     )[0]
     target_outlet_pressure = 130
 
-    result, failure_status = calculate_single_speed_compressor_stage_given_target_discharge_pressure(
+    result = calculate_single_speed_compressor_stage_given_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
         outlet_pressure_stage_bara=target_outlet_pressure,
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,

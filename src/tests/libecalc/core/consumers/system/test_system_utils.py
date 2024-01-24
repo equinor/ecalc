@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
@@ -52,7 +53,7 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_succe
                                 asv_recirculation_loss_mw=[0],
                             )
                         ],
-                        failure_status=[None],
+                        failure_status=[FailureStatus.NO_FAILURE],
                     ),
                 )
             ],
@@ -100,7 +101,7 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_failu
                                 asv_recirculation_loss_mw=[np.nan],
                             )
                         ],
-                        failure_status=[None],
+                        failure_status=[FailureStatus.NO_FAILURE],
                     ),
                 )
             ],
@@ -150,7 +151,7 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_firs
                                 asv_recirculation_loss_mw=[0],
                             )
                         ],
-                        failure_status=[None],
+                        failure_status=[FailureStatus.NO_FAILURE],
                     ),
                 )
             ],
@@ -184,7 +185,7 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_firs
                                 asv_recirculation_loss_mw=[0],
                             )
                         ],
-                        failure_status=[None],
+                        failure_status=[FailureStatus.NO_FAILURE],
                     ),
                 )
             ],
@@ -232,7 +233,7 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_both
                                 asv_recirculation_loss_mw=[0],
                             )
                         ],
-                        failure_status=[None],
+                        failure_status=[FailureStatus.NO_FAILURE],
                     ),
                 )
             ],
@@ -269,7 +270,7 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_both
                                 asv_recirculation_loss_mw=[0],
                             )
                         ],
-                        failure_status=[None],
+                        failure_status=[FailureStatus.NO_FAILURE],
                     ),
                 )
             ],

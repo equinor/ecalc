@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d
 
 from libecalc import dto
 from libecalc.common.decorators.feature_flags import Feature
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -257,7 +258,7 @@ class CompressorModelSampled(CompressorModel):
             power=list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
             power_unit=Unit.MEGA_WATT,
             stage_results=[compressor_stage_result],
-            failure_status=[None] * len(energy_usage),
+            failure_status=[FailureStatus.NO_FAILURE] * len(energy_usage),
             rate_sm3_day=list(rate) if rate is not None else [np.nan] * len(energy_usage),
         )
 

@@ -1,5 +1,6 @@
 import numpy as np
-from libecalc.core.models import ModelInputFailureStatus, validate_model_input
+from libecalc.common.failure_status import FailureStatus
+from libecalc.core.models import validate_model_input
 
 
 def test_validate_model_input():
@@ -21,8 +22,8 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [
-        ModelInputFailureStatus.NO_FAILURE,
-        ModelInputFailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
     ]
 
     #  test that valid multiple stream input is not changed
@@ -43,8 +44,8 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [
-        ModelInputFailureStatus.NO_FAILURE,
-        ModelInputFailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
+        FailureStatus.NO_FAILURE,
     ]
 
     # test that suction pressure <= 0 is set to 1 and that the corresponding rate is set to 0
@@ -65,8 +66,8 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [
-        ModelInputFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
-        ModelInputFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        FailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        FailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
     ]
 
     # test that discharge pressure <= 0 is set to 1 and that the corresponding rate is set to 0
@@ -87,8 +88,8 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 1)
     assert failure_status == [
-        ModelInputFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
-        ModelInputFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
+        FailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
+        FailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
     ]
 
     # test that intermediate prressure <= 0 is set to 1 and that the corresponding rate is set to 0
@@ -109,8 +110,8 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 1)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [
-        ModelInputFailureStatus.INVALID_INTERMEDIATE_PRESSURE_INPUT,
-        ModelInputFailureStatus.INVALID_INTERMEDIATE_PRESSURE_INPUT,
+        FailureStatus.INVALID_INTERMEDIATE_PRESSURE_INPUT,
+        FailureStatus.INVALID_INTERMEDIATE_PRESSURE_INPUT,
     ]
 
     # test that rate < 0 is set to 0 for multiple stream
@@ -133,9 +134,9 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [
-        ModelInputFailureStatus.INVALID_RATE_INPUT,
-        ModelInputFailureStatus.INVALID_RATE_INPUT,
-        ModelInputFailureStatus.NO_FAILURE,
+        FailureStatus.INVALID_RATE_INPUT,
+        FailureStatus.INVALID_RATE_INPUT,
+        FailureStatus.NO_FAILURE,
     ]
     # test that rate < 0 is set to 0 for single stream
     [
@@ -156,8 +157,8 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [
-        ModelInputFailureStatus.INVALID_RATE_INPUT,
-        ModelInputFailureStatus.NO_FAILURE,
+        FailureStatus.INVALID_RATE_INPUT,
+        FailureStatus.NO_FAILURE,
     ]
 
     # test that suction_pressure, when suction_pressure > discharge_pressure, is set to discharge_pressure,
@@ -181,6 +182,6 @@ def test_validate_model_input():
     assert np.all(intermediate_pressure == 2)
     assert np.all(discharge_pressure == 3)
     assert failure_status == [
-        ModelInputFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
-        ModelInputFailureStatus.NO_FAILURE,
+        FailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        FailureStatus.NO_FAILURE,
     ]

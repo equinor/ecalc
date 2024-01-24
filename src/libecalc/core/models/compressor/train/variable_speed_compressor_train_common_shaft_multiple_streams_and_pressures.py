@@ -7,9 +7,10 @@ from numpy.typing import NDArray
 
 from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
-from libecalc.core.models import ModelInputFailureStatus, validate_model_input
+from libecalc.core.models import validate_model_input
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.base import CompressorTrainModel
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -31,9 +32,6 @@ from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train
     get_single_speed_equivalent,
 )
 from libecalc.core.models.results import CompressorTrainResult
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.types import FixedSpeedPressureControl
 
@@ -334,15 +332,11 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     outlet_pressure=target_discharge_pressure,
                 )
             else:
-                train_result_for_minimum_speed.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                )
+                train_result_for_minimum_speed.failure_status = FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
                 return train_result_for_minimum_speed
         # Else target pressure is too high
         else:
-            train_result_for_maximum_speed.failure_status = (
-                CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-            )
+            train_result_for_maximum_speed.failure_status = FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
             return train_result_for_maximum_speed
 
     def get_max_standard_rate(
@@ -824,7 +818,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         )
 
         for i, train_result in enumerate(train_results):
-            if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE:
+            if input_failure_status[i] is not FailureStatus.NO_FAILURE:
                 train_result.failure_status = input_failure_status[i]
 
         return CompressorTrainResult(
@@ -1023,9 +1017,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             )
             if train_results.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < outlet_pressure:
                 # Should probably never end up here. This is just in case we do.
-                train_results.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-                )
+                train_results.failure_status = FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
             elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
                 train_results = self.calculate_compressor_train_given_rate_pd_speed(
                     std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
@@ -1040,11 +1032,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
                 if (
-                    train_results.failure_status
-                    == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
+                    train_results.failure_status == FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
                     and outlet_pressure >= UnitConstants.STANDARD_PRESSURE_BARA
                 ):
-                    train_results.failure_status = None
+                    train_results.failure_status = FailureStatus.NO_FAILURE
 
                 # The order is important here to keep the old pressure before choking.
                 choked_stage_results.pressure_is_choked = True
@@ -1061,9 +1052,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 asv_rate_fraction=1.0,
             )
             if not train_result_max_recirculation.discharge_pressure < outlet_pressure:
-                train_result_max_recirculation.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                )
+                train_result_max_recirculation.failure_status = FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
                 msg = (
                     f"Compressor train with inlet pressure {inlet_pressure} and speed {speed} is not able"
                     f"to reach the required discharge pressure {outlet_pressure} even with full recirculation. "
@@ -1375,12 +1364,29 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 ),
             )
 
-        return CompressorTrainResultSingleTimeStep(
+        compressor_train_results_to_return_first_part.target_discharge_pressure = intermediate_pressure_target
+        compressor_train_results_to_return_first_part.target_suction_pressure = suction_pressure
+        compressor_train_results_to_return_last_part.target_suction_pressure = intermediate_pressure_target
+        compressor_train_results_to_return_last_part.target_discharge_pressure = discharge_pressure_target
+
+        train_result = CompressorTrainResultSingleTimeStep(
             speed=speed,
             stage_results=compressor_train_results_to_return_stage_results,
-            failure_status=compressor_train_results_to_return_first_part.failure_status
-            or compressor_train_results_to_return_last_part.failure_status,
         )
+        if compressor_train_results_to_return_first_part.failure_status != FailureStatus.NO_FAILURE:
+            failure_status = compressor_train_results_to_return_first_part.failure_status
+            if failure_status == FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW:
+                failure_status = FailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
+            if failure_status == FailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH:
+                failure_status = FailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
+        elif compressor_train_results_to_return_last_part.failure_status != FailureStatus.NO_FAILURE:
+            failure_status = compressor_train_results_to_return_last_part.failure_status
+        else:
+            failure_status = FailureStatus.NO_FAILURE
+
+        train_result.failure_status = failure_status
+
+        return train_result
 
     def set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
         self, stage_number: int, fluid_stream: FluidStream

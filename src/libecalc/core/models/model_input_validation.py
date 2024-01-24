@@ -1,20 +1,12 @@
-from enum import Enum
 from typing import List, Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.logger import logger
 
 INVALID_INPUT = np.nan
-
-
-class ModelInputFailureStatus(str, Enum):
-    INVALID_RATE_INPUT = "INVALID_RATE_INPUT"
-    INVALID_SUCTION_PRESSURE_INPUT = "INVALID_SUCTION_PRESSURE_INPUT"
-    INVALID_INTERMEDIATE_PRESSURE_INPUT = "INVALID_INTERMEDIATE_PRESSURE_INPUT"
-    INVALID_DISCHARGE_PRESSURE_INPUT = "INVALID_DISCHARGE_PRESSURE_INPUT"
-    NO_FAILURE = None
 
 
 def validate_model_input(
@@ -22,15 +14,9 @@ def validate_model_input(
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
     intermediate_pressure: Optional[NDArray[np.float64]] = None,
-) -> Tuple[
-    NDArray[np.float64],
-    NDArray[np.float64],
-    NDArray[np.float64],
-    NDArray[np.float64],
-    List[ModelInputFailureStatus],
-]:
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], List[FailureStatus],]:
     indices_to_validate = _find_indices_to_validate(rate=rate)
-    validated_failure_status = [None] * len(suction_pressure)
+    validated_failure_status = [FailureStatus.NO_FAILURE] * len(suction_pressure)
     validated_rate = rate.copy()
     validated_suction_pressure = suction_pressure.copy()
     validated_discharge_pressure = discharge_pressure.copy()
@@ -90,13 +76,7 @@ def _validate_model_input(
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
     intermediate_pressure: Optional[NDArray[np.float64]] = None,
-) -> Tuple[
-    NDArray[np.float64],
-    NDArray[np.float64],
-    NDArray[np.float64],
-    NDArray[np.float64],
-    List[ModelInputFailureStatus],
-]:
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], List[FailureStatus],]:
     """
     Checks for negative or zero values in the input values to the compressor train.
 
@@ -123,11 +103,11 @@ def _validate_model_input(
 
     """
     validation_failures = [
-        ModelInputFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
-        ModelInputFailureStatus.INVALID_INTERMEDIATE_PRESSURE_INPUT,
-        ModelInputFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
-        ModelInputFailureStatus.INVALID_RATE_INPUT,
-        ModelInputFailureStatus.NO_FAILURE,
+        FailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
+        FailureStatus.INVALID_INTERMEDIATE_PRESSURE_INPUT,
+        FailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
+        FailureStatus.INVALID_RATE_INPUT,
+        FailureStatus.NO_FAILURE,
     ]
 
     input_rate = rate.copy()

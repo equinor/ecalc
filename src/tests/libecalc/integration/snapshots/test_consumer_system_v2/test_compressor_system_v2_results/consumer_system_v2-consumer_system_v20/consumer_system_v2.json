@@ -841,10 +841,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -1115,10 +1115,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -1389,10 +1389,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -1665,10 +1665,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -1939,10 +1939,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -2213,10 +2213,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -2489,10 +2489,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -2763,10 +2763,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -3037,10 +3037,10 @@
                             },
                             "energy_usage_unit": "Sm3/d",
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -3352,10 +3352,10 @@
                     },
                     "energy_usage_unit": "Sm3/d",
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -3626,10 +3626,10 @@
                     },
                     "energy_usage_unit": "Sm3/d",
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -3900,10 +3900,10 @@
                     },
                     "energy_usage_unit": "Sm3/d",
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [

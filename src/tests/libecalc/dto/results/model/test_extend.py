@@ -1,4 +1,5 @@
 import pytest
+from libecalc.common.failure_status import FailureStatus
 from libecalc.common.units import Unit
 from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.core.models.results.compressor import (
@@ -28,7 +29,7 @@ def compressor_model_result() -> CompressorTrainResult:
         power_unit=Unit.MEGA_WATT,
         rate_sm3_day=[1, 2, 3],
         turbine_result=None,
-        failure_status=[None, None, None],
+        failure_status=[FailureStatus.NO_FAILURE, FailureStatus.NO_FAILURE, FailureStatus.NO_FAILURE],
         stage_results=[
             CompressorStageResult(
                 energy_usage=[1, 2, 3],
@@ -91,7 +92,7 @@ def test_extend_compressor_model_result(compressor_model_result):
     assert compressor_model_result.energy_usage_unit == Unit.STANDARD_CUBIC_METER_PER_DAY
     assert compressor_model_result.power_unit == Unit.MEGA_WATT
     assert compressor_model_result.turbine_result is None
-    assert compressor_model_result.failure_status == [None] * 6
+    assert compressor_model_result.failure_status == [FailureStatus.NO_FAILURE] * 6
     assert compressor_model_result.rate_sm3_day == [1, 2, 3] * 2
 
     assert compressor_model_result.stage_results[0].energy_usage == [1, 2, 3] * 2
