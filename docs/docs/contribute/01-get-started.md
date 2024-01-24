@@ -1,4 +1,4 @@
-# Get started
+# Get Started
 
 Welcome! We are glad that you want to contribute to our project! 💖
 
