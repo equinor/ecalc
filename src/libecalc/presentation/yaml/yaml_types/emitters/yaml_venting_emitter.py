@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Optional
 
 import numpy as np
 from pydantic import ConfigDict, Field, field_validator
@@ -31,7 +31,9 @@ class YamlVentingEmission(YamlBase):
         title="NAME",
         description="Name of emission",
     )
-
+    emission_rate_to_volume_factor: Optional[float] = Field(
+        None, title="FACTOR", description="Loading/storage volume-emission factor"
+    )
     rate: YamlEmissionRate = Field(..., title="RATE", description="The emission rate")
 
 
@@ -48,15 +50,15 @@ class YamlVentingEmitter(YamlBase):
         description="Name of venting emitter",
     )
 
+    category: ConsumerUserDefinedCategoryType = CategoryField(
+        ...,
+        validate_default=True,
+    )
+
     emission: YamlVentingEmission = Field(
         ...,
         title="EMISSION",
         description="The emission",
-    )
-
-    category: ConsumerUserDefinedCategoryType = CategoryField(
-        ...,
-        validate_default=True,
     )
 
     @property
@@ -82,9 +84,29 @@ class YamlVentingEmitter(YamlBase):
                     entity_name = str(cls)
 
                 raise ValueError(
-                    f"CATEGORY: {category} is not allowed for {entity_name} {name_context_string}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                    f"CATEGORY: {category} is not allowed for {cls.model_config['title']} {name}. Valid categories are: "
+                    f"{[consumer_user_defined_category.value for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                    f"CATEGORY: {category} is not allowed for {entity_name} {name_context_string}. Valid categories are: "
+                    f"{[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
                 )
         return category
+
+    @field_validator("emission", mode="before")
+    def check_volume_emission_factor(cls, emission, info: ValidationInfo):
+        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
+        category = info.data.get("category")
+        name = ""
+        if info.data.get("name") is not None:
+            name = f"with the name {info.data.get('name')}"
+
+        if emission["EMISSION_RATE_TO_VOLUME_FACTOR"] is not None:
+            if category not in [ConsumerUserDefinedCategoryType.LOADING, ConsumerUserDefinedCategoryType.STORAGE]:
+                raise ValueError(
+                    f"{cls.model_config['title']} {name}: It is not possible to specify FACTOR for CATEGORY {category}. "
+                    f"The volume/emission factor in EMISSION is only allowed for the categories "
+                    f"{ConsumerUserDefinedCategoryType.LOADING} and {ConsumerUserDefinedCategoryType.STORAGE}."
+                )
+        return emission
 
     def get_emission_rate(
         self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]

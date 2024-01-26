@@ -308,7 +308,8 @@ def custom_errors(e: PydanticValidationError, custom_messages: Dict[str, str]) -
     for error in e.errors():
         custom_message = custom_messages.get(error["type"])
         if custom_message:
-            error_key_name = error["loc"][0].upper().replace("__root__", "General error")
+            name = ".".join([str(item) for item in error["loc"]]) if len(error["loc"]) > 1 else error["loc"][0]
+            error_key_name = name.upper().replace("__root__", "General error")
             custom_message = error_key_name + ":\t" + custom_message
             ctx = error.get("ctx")
             error["msg"] = custom_message.format(**ctx) if ctx else custom_message

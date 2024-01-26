@@ -9,6 +9,7 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
     expected_ch4_from_diesel,
@@ -229,6 +230,7 @@ def test_venting_emitters():
     ]
     regularity = 0.2
     emission_rate = 10
+    volume_factor = 0.1
 
     variables = dto.VariablesMap(time_vector=time_vector, variables={})
 
@@ -335,6 +337,86 @@ def test_no_emitters_or_fuelconsumers():
         f"\nminimal_installation:\nValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
         f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} "
         f"in the model."
+    ) in str(ee.value)
+
+
+def test_loading_storage():
+    """Test reporting loading/storage volumes for ltp."""
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    regularity = 0.2
+    emission_rate_loading = 10
+    emission_rate_storage = 20
+    volume_factor_loading = 0.1
+    volume_factor_storage = 0.2
+
+    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+
+    installation_loading = venting_emitter_yaml_factory(
+        emission_rate=emission_rate_loading,
+        regularity=regularity,
+        unit=Unit.KILO_PER_DAY,
+        emission_name="ch4",
+        rate_type=RateType.STREAM_DAY,
+        volume_factor=volume_factor_loading,
+        category="LOADING",
+    )
+
+    installation_storage = venting_emitter_yaml_factory(
+        emission_rate=emission_rate_storage,
+        regularity=regularity,
+        unit=Unit.KILO_PER_DAY,
+        emission_name="ch4",
+        rate_type=RateType.STREAM_DAY,
+        volume_factor=volume_factor_storage,
+        category="STORAGE",
+    )
+
+    ltp_result_loading = get_consumption(model=installation_loading, variables=variables)
+    ltp_result_storage = get_consumption(model=installation_storage, variables=variables)
+
+    emission_loading = get_sum_ltp_column(ltp_result_loading, installation_nr=0, ltp_column_nr=0)
+    volume_loading = get_sum_ltp_column(ltp_result_loading, installation_nr=0, ltp_column_nr=1)
+    emission_storage = get_sum_ltp_column(ltp_result_storage, installation_nr=0, ltp_column_nr=0)
+    volume_storage = get_sum_ltp_column(ltp_result_storage, installation_nr=0, ltp_column_nr=1)
+
+    # Verify correct emissions associated with loading
+    assert emission_loading == (emission_rate_loading / 1000) * 365 * regularity
+
+    # Verify correct loading volumes
+    assert volume_loading == emission_loading / volume_factor_loading
+
+    # Verify correct emissions associated with storage
+    assert emission_storage == (emission_rate_storage / 1000) * 365 * regularity
+
+    # Verify correct storage volumes
+    assert volume_storage == emission_storage / volume_factor_storage
+
+
+def test_wrong_category_loading_storage():
+    """Verify that only STORAGE and LOADING are allowed categories."""
+
+    category = "COLD-VENTING-FUGITIVE"
+
+    with pytest.raises(DtoValidationError) as ee:
+        venting_emitter_yaml_factory(
+            emission_rate=10,
+            regularity=0.2,
+            unit=Unit.KILO_PER_DAY,
+            emission_name="ch4",
+            rate_type=RateType.STREAM_DAY,
+            volume_factor=0.1,
+            category=category,
+            name="Emitter1",
+        )
+
+    assert (
+        f"\nEmitter1:\nValue error, VentingEmitter with the name Emitter1: "
+        f"It is not possible to specify FACTOR for CATEGORY {category}. The volume/emission factor in "
+        f"EMISSION is only allowed for the categories {ConsumerUserDefinedCategoryType.LOADING} and "
+        f"{ConsumerUserDefinedCategoryType.STORAGE}."
     ) in str(ee.value)
 
 

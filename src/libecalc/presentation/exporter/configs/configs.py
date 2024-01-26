@@ -20,6 +20,7 @@ from libecalc.presentation.exporter.queries import (
     EmissionQuery,
     FuelConsumerPowerConsumptionQuery,
     FuelQuery,
+    VolumeQuery,
 )
 
 """
@@ -455,10 +456,30 @@ class LTPConfig(ResultConfig):
                     ),
                 ),
                 Applier(
+                    name="storageNmvocOilVolume",  # TODO: Get correct Centuries name here
+                    title="Oil storage volume NMVOC",
+                    unit=Unit.TONS,
+                    query=VolumeQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["STORAGE"],
+                        emission_type="nmvoc",
+                    ),
+                ),
+                Applier(
                     name="loadingNmvocMass",
                     title="NMVOC From Loading",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["LOADING"],
+                        emission_type="nmvoc",
+                    ),
+                ),
+                Applier(
+                    name="loadingNmvocOilVolume",  # TODO: Get correct Centuries name here
+                    title="Oil loading volume NMVOC",
+                    unit=Unit.TONS,
+                    query=VolumeQuery(
                         installation_category="FIXED",
                         consumer_categories=["LOADING"],
                         emission_type="nmvoc",
@@ -580,10 +601,30 @@ class LTPConfig(ResultConfig):
                     ),
                 ),
                 Applier(
+                    name="storageCh4OilVolume",  # TODO: Get correct Centuries name here
+                    title="Oil storage volume CH4",
+                    unit=Unit.TONS,
+                    query=VolumeQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["STORAGE"],
+                        emission_type="ch4",
+                    ),
+                ),
+                Applier(
                     name="loadingCh4Mass",
                     title="CH4 From Loading",
                     unit=Unit.TONS,
                     query=EmissionQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["LOADING"],
+                        emission_type="ch4",
+                    ),
+                ),
+                Applier(
+                    name="loadingCh4OilVolume",  # TODO: Get correct Centuries name here
+                    title="Oil loading volume CH4",
+                    unit=Unit.TONS,
+                    query=VolumeQuery(
                         installation_category="FIXED",
                         consumer_categories=["LOADING"],
                         emission_type="ch4",

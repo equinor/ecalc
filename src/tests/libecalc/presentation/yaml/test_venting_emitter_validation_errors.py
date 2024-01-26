@@ -22,6 +22,7 @@ def test_wrong_keyword_name_emitters():
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION2",
             names=["Venting emitter 1"],
+            volume_factor=0.3,
         )
 
     assert "Venting emitter 1:\nEMISSION:\tThis keyword is missing, it is required" in str(exc.value)
@@ -43,6 +44,7 @@ def test_wrong_unit_emitters():
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION",
             names=["Venting emitter 1"],
+            volume_factor=0.3,
         )
 
     assert "Venting emitter 1:\nInput should be <Unit.KILO_PER_DAY: 'kg/d'> or <Unit.TONS_PER_DAY: 't/d'>" in str(
