@@ -181,7 +181,7 @@ class CompressorStreamConditionResult(EcalcResultBaseModel):
 
 
 class CompressorModelStageResult(EcalcResultBaseModel):
-    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]] = None
+    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]]
     chart_area_flags: List[str]
     energy_usage_unit: Unit
     power_unit: Unit
