@@ -2,12 +2,13 @@ from typing import List, Optional
 
 from pydantic import Field
 
+from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 
 
 class YamlConsumerBase(YamlBase):
-    name: str = Field(
+    name: ComponentNameStr = Field(
         ...,
         title="NAME",
         description="Consumer name",

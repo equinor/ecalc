@@ -252,6 +252,7 @@
                         },
                         "NAME": {
                             "description": "Consumer name",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         },
@@ -659,6 +660,7 @@
                         },
                         "NAME": {
                             "description": "Consumer name",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         },
@@ -726,6 +728,7 @@
                         },
                         "NAME": {
                             "description": "Consumer name",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         },
@@ -793,6 +796,7 @@
                         },
                         "NAME": {
                             "description": "Consumer name",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         },
@@ -1094,6 +1098,7 @@
                         },
                         "NAME": {
                             "description": "Name of the emission.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "pattern": "^\\w*$",
                             "title": "NAME",
                             "type": "string"
                         }
@@ -2011,6 +2016,7 @@
                         },
                         "NAME": {
                             "description": "Name of the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         }
@@ -2252,6 +2258,7 @@
                         },
                         "NAME": {
                             "description": "Name of the installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         },
@@ -2538,6 +2545,7 @@
                         },
                         "NAME": {
                             "description": "Consumer name",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         },
@@ -3376,6 +3384,7 @@
                         },
                         "NAME": {
                             "description": "Consumer name",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         },
@@ -3854,6 +3863,7 @@
                         },
                         "NAME": {
                             "description": "Name of venting emitter",
+                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
                             "title": "NAME",
                             "type": "string"
                         }

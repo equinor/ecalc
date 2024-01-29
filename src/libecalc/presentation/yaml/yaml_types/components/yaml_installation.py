@@ -3,6 +3,7 @@ from typing import List, Union
 from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import InstallationUserDefinedCategoryType
+from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import (
@@ -31,7 +32,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelconsumers or gensets
     model_config = ConfigDict(title="Installation")
 
-    name: str = Field(
+    name: ComponentNameStr = Field(
         ...,
         title="NAME",
         description="Name of the installation.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
