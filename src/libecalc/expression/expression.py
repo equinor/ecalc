@@ -10,6 +10,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema, core_schema
 from pydantic_core.core_schema import ValidationInfo
 
+from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
 from libecalc.expression.expression_evaluator import (
     Operators,
@@ -24,6 +25,19 @@ RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_par
 MULTIPLICATION_TOKEN = Token(tag=TokenTag.operator, value=Operators.multiply.value)
 
 ExpressionType = Union[str, float, int]
+
+
+class InvalidExpressionError(EcalcError):
+    """
+    Invalid expression error
+    """
+
+    def __init__(self, message: str):
+        super().__init__(
+            title="Invalid expression",
+            message=message,
+            error_type=EcalcErrorType.CLIENT_ERROR,
+        )
 
 
 class Expression:
@@ -74,8 +88,12 @@ class Expression:
         expression = _expression_as_number_if_number(expression_input=expression)
 
         if not isinstance(expression, (str, float, int)):
-            raise ValueError("Expression should be of type str, int or float")
-        return lexer(expression)
+            raise InvalidExpressionError("Expression should be of type str, int or float")
+
+        try:
+            return lexer(expression)
+        except (KeyError, ValueError) as e:
+            raise InvalidExpressionError(message=str(e)) from e
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
@@ -143,7 +161,7 @@ class Expression:
         if len(missing_references) != 0:
             msg = f"Unable to evaluate expression. Missing reference(s) {', '.join(missing_references)}"
             logger.error(msg)
-            raise ValueError(msg)
+            raise InvalidExpressionError(msg)
 
         tokens = [
             Token(
@@ -154,8 +172,10 @@ class Expression:
             else token
             for token in self.tokens
         ]
-
-        return eval_tokens(tokens=tokens, array_length=fill_length)
+        try:
+            return eval_tokens(tokens=tokens, array_length=fill_length)
+        except (KeyError, ValueError) as e:
+            raise InvalidExpressionError(message=str(e)) from e
 
     def __eq__(self, other):
         if not isinstance(other, Expression):
