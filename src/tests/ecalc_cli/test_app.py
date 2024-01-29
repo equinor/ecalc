@@ -615,9 +615,7 @@ class TestShowResultsCommand:
         output_text = result.stdout
         snapshot.assert_match(output_text, snapshot_name="results_resampled.json")
 
-    @pytest.mark.skip("Not implemented with pydantic v2")
     def test_json_custom_date_format(self, simple_run, monkeypatch, snapshot):
-        # TODO[pydantic]: fix
         result = runner.invoke(
             show.app,
             [
