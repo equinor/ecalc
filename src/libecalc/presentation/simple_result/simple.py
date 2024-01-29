@@ -16,9 +16,6 @@ from libecalc.dto.result.types import opt_float
 class SimpleBase(EcalcResultBaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    def model_dump(self, exclude_none=True, **kwargs):
-        return super().model_dump(exclude_none=exclude_none, **kwargs)
-
 
 class SimpleEmissionResult(SimpleBase):
     name: str
