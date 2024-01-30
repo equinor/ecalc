@@ -52,6 +52,16 @@ def single_speed_compressor_train_common_shaft_common_asv(
 
 
 @pytest.fixture
+def single_speed_compressor_train_common_shaft_maximum_power(
+    single_speed_compressor_train,
+) -> SingleSpeedCompressorTrainCommonShaft:
+    single_speed_compressor_train.maximum_power = 4.5
+    return SingleSpeedCompressorTrainCommonShaft(
+        data_transfer_object=single_speed_compressor_train,
+    )
+
+
+@pytest.fixture
 def single_speed_compressor_train_common_shaft_asv_rate_control(
     single_speed_compressor_train,
 ) -> SingleSpeedCompressorTrainCommonShaft:
@@ -480,3 +490,15 @@ def test_single_speed_compressor_train_vs_unisim_methane(single_speed_compressor
 
     # np.testing.assert_allclose(result.polytropic_head_kJ_per_kg, expected_head, rtol=0.01)  # Test is failing
     np.testing.assert_allclose(result.stage_results[0].polytropic_efficiency, expected_efficiency, rtol=0.05)
+
+
+def test_points_above_and_below_maximum_power(single_speed_compressor_train_common_shaft_maximum_power):
+    result = single_speed_compressor_train_common_shaft_maximum_power.evaluate_rate_ps_pd(
+        rate=np.asarray([1800000, 2200000]),
+        suction_pressure=np.asarray([30, 30]),
+        discharge_pressure=np.asarray([80.0, 80.0]),
+    )
+    assert result.is_valid[1]
+    assert not result.is_valid[0]
+    assert not result.failure_status[1]
+    assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
