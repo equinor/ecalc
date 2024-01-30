@@ -69,7 +69,7 @@ def eval_parentheses(
             if number_of_left_parentheses != number_of_right_parentheses:
                 error_message = "Number of left and right parentheses do not match"
                 if original_expression is not None:
-                    error_message += f" for expression \n{original_expression}"
+                    error_message += f" for expression '{original_expression}'"
                 raise ValueError(error_message)
 
             ind = 0
@@ -305,6 +305,11 @@ def lex(expression: str, token_exprs: List[Tuple[str, Optional[TokenTag]]]) -> L
 def lexer(expression: Union[str, int, float]) -> List[Token]:
     if isinstance(expression, (int, float)):
         return [Token(tag=TokenTag.numeric, value=expression)]
+
+    number_of_left_parentheses = expression.count(Operators.left_parenthesis.value)
+    number_of_right_parentheses = expression.count(Operators.right_parenthesis.value)
+    if number_of_left_parentheses != number_of_right_parentheses:
+        raise ValueError(f"Number of left and right parentheses do not match for expression '{expression}'")
 
     # Arithmetic operators redefined with {} to allow +-*/ et.c. in variable names
     token_exprs = [
