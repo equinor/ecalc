@@ -3,6 +3,7 @@ from typing import List, Union
 
 import pytest
 from libecalc.expression import Expression
+from libecalc.expression.expression import InvalidExpressionError
 from pydantic import BaseModel, TypeAdapter
 
 
@@ -73,49 +74,49 @@ class TestExpression:
 
         # Test different "illegal" eval strings
         caplog.set_level("CRITICAL")
-        with pytest.raises(KeyError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("(5{+}4)=9")
-        with pytest.raises(KeyError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("(5+4)=9")
-        with pytest.raises(KeyError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("(5-4)=9")
-        with pytest.raises(KeyError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("(5*4)=9")
-        with pytest.raises(KeyError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("(5/4)=9")
-        with pytest.raises(KeyError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("(5^4)=9")
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("((3{+}4){/}2{*}) {+} 2").evaluate(
                 variables=variables, fill_length=len(time_vector)
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression(
                 "((FULL;GAS_LIFT {+} FULL;GAS_INJ){/}FULL;REGULARITY){*} (((FULL;GAS_LIFT {+} FULL;GAS_INJ){/}FULL;REGULARITY)<8200000) {+} (8200000){*} (((FULL;GAS_LIFT {+} FULL;GAS_INJ){/}FULL;REGULARITY)>8200000)",
             ).evaluate(variables=variables, fill_length=len(time_vector))
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("(3{+}4){/}2{*} {+} 2").evaluate(
                 variables=variables, fill_length=len(time_vector)
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("{/}4").evaluate(variables=variables, fill_length=len(time_vector))
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("4{^}").evaluate(variables=variables, fill_length=len(time_vector))
 
     def test_invalid_key(self, caplog):
         variables = {"key_not_present": [1]}
         time_vector = [datetime.datetime(2000, 1, 1)]
         caplog.set_level("CRITICAL")
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("GAS_INJ_TOTAL:GRP").evaluate(
                 variables=variables, fill_length=len(time_vector)
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression("SIM2;GAS_INJ_TOTAL:GRP").evaluate(
                 variables=variables, fill_length=len(time_vector)
             )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             expression = "SIM1;GAS_INJ_TOTAL:FOOBAR {*} 2"
             Expression.setup_from_expression(expression).evaluate(variables=variables, fill_length=len(time_vector))
 
@@ -125,21 +126,21 @@ class TestExpression:
             Expression.setup_from_expression("0{/}0").evaluate(variables=variables, fill_length=len(time_vector)) == 0
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression(
                 "10 {+} 1 {+} 5)  {*} (2>0)",
             ).evaluate(variables=variables, fill_length=len(time_vector))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression(
                 "(10 {+} 1 {+} 5  {*} (2>0)",
             ).evaluate(variables=variables, fill_length=len(time_vector))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression(
                 "(10 {+} 1 {+} 5 ) {*} (2>0",
             ).evaluate(variables=variables, fill_length=len(time_vector))
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidExpressionError):
             Expression.setup_from_expression(
                 "(10 {+} 1 {+} ( 5  {*} 2>0)",
             ).evaluate(variables=variables, fill_length=len(time_vector))
@@ -172,3 +173,10 @@ class TestExpression:
         )
 
         assert foo.model_dump_json() == '{"single":"1.0","list":["2.0","2.0"],"union_list":["2.0","2.0"]}'
+
+    def test_invalid_nof_parentheses(self):
+        expression = "(1 {+} 3) {+} (1 {+} 5"
+        with pytest.raises(InvalidExpressionError) as exc_info:
+            Expression.setup_from_expression(expression)
+
+        assert "Number of left and right parentheses do not match" in str(exc_info.value)
