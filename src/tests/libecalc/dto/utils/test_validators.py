@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 import pytest
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.time_utils import convert_date_to_datetime, default_temporal_model
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
@@ -35,9 +36,10 @@ class TestDefaultDate:
             datetime(2020, 12, 15): "EXPRESSION",
             "LOAD": "2021",
         }
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(EcalcError) as e:
             default_temporal_model(date_data, default_start=datetime.min)
-        assert "Time dependent should only contain date keys" in str(e)
+        assert "Temporal models should only contain date keys" in str(e.value)
+        assert "LOAD" in str(e.value)
 
     def test_date(self):
         """Test that date is converted to datetime."""
