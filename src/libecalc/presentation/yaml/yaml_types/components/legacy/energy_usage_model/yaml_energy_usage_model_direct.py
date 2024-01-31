@@ -1,10 +1,7 @@
 import enum
 from typing import Literal
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import Field
 
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
