@@ -4,6 +4,7 @@ from typing import Dict, Optional, Union
 from pydantic import ValidationError
 
 from libecalc import dto
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
@@ -270,7 +271,19 @@ class InstallationMapper:
             try:
                 venting_emitters.append(YamlVentingEmitter(**venting_emitter))
             except ValidationError as e:
-                raise DtoValidationError(data=data, validation_error=e) from e
+                error_names = [err["loc"][0] for err in e.errors()]
+                error_messages = [err["msg"] for err in e.errors()]
+                to_user = []
+                for name, message in zip(error_names, error_messages):
+                    if message == "Extra inputs are not permitted":
+                        message_to_user = "This is not a valid keyword"
+                    else:
+                        message_to_user = message
+                    to_user.append(f"\n {name}: {message_to_user}")
+
+                raise EcalcError(
+                    title=f"Error in Yaml-input for venting emitter {venting_emitter['NAME']}", message="".join(to_user)
+                )
 
         hydrocarbon_export = define_time_model_for_period(
             data.get(
