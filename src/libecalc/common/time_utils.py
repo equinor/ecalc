@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
 
-from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.units import UnitConstants
 
 
@@ -108,7 +108,7 @@ class Periods:
             if time in period:
                 return period
 
-        raise ValueError(f"Period for date '{time}' not found in periods")
+        raise ProgrammingError(f"Period for date '{time}' not found in periods")
 
 
 def define_time_model_for_period(
@@ -232,6 +232,7 @@ def clear_time(d: datetime) -> datetime:
 def is_temporal_model(data: Dict) -> bool:
     if isinstance(data, dict):
         is_date = []
+        is_not_date_keys = []
         for key in data:
             if isinstance(key, date):
                 is_date.append(True)
@@ -240,10 +241,15 @@ def is_temporal_model(data: Dict) -> bool:
                     datetime.strptime(key, "%Y-%m-%dT%H:%M:%S")
                     is_date.append(True)
                 except (TypeError, ValueError):
+                    is_not_date_keys.append(str(key))
                     is_date.append(False)
         if any(is_date):
             if not all(is_date):
-                raise ValueError("Time dependent should only contain date keys")
+                raise EcalcError(
+                    title="Invalid model",
+                    message="Temporal models should only contain date keys. "
+                    f"Invalid date(s): {','.join(is_not_date_keys)}",
+                )
             return True
     return False
 
