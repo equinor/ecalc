@@ -8,6 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Period
@@ -51,7 +52,7 @@ def get_operational_settings_used_from_consumer_result(
     result: ConsumerSystemConsumerFunctionResult,
 ) -> TimeSeriesInt:
     return TimeSeriesInt(
-        timesteps=list(result.time_vector),
+        timesteps=result.time_vector.tolist(),
         values=result.operational_setting_used.tolist(),
         unit=Unit.NONE,
     )
@@ -101,14 +102,12 @@ class Consumer(BaseConsumer):
     ) -> ConsumerResult:
         if self._consumer_dto.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             operational_settings_used = get_operational_settings_used_from_consumer_result(result=aggregated_result)
-            operational_settings_used.values = list(
-                self.reindex_time_vector(
-                    values=operational_settings_used.values,
-                    time_vector=aggregated_result.time_vector,
-                    new_time_vector=timesteps,
-                    fillna=-1,
-                )
-            )
+            operational_settings_used.values = self.reindex_time_vector(
+                values=operational_settings_used.values,
+                time_vector=aggregated_result.time_vector,
+                new_time_vector=timesteps,
+                fillna=-1,
+            ).tolist()
             operational_settings_used.timesteps = timesteps
 
             operational_settings_result = get_operational_settings_results_from_consumer_result(
@@ -134,25 +133,25 @@ class Consumer(BaseConsumer):
 
             inlet_rate_time_series = TimeSeriesStreamDayRate(
                 timesteps=aggregated_result.time_vector.tolist(),
-                values=list(aggregated_result.energy_function_result.rate),
+                values=aggregated_result.energy_function_result.rate,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             ).reindex(new_time_vector=timesteps)
 
             inlet_pressure_time_series = TimeSeriesFloat(
                 timesteps=aggregated_result.time_vector.tolist(),
-                values=list(aggregated_result.energy_function_result.suction_pressure),
+                values=aggregated_result.energy_function_result.suction_pressure,
                 unit=Unit.BARA,
             ).reindex(new_time_vector=timesteps)
 
             outlet_pressure_time_series = TimeSeriesFloat(
                 timesteps=aggregated_result.time_vector.tolist(),
-                values=list(aggregated_result.energy_function_result.discharge_pressure),
+                values=aggregated_result.energy_function_result.discharge_pressure,
                 unit=Unit.BARA,
             ).reindex(new_time_vector=timesteps)
 
             operational_head_time_series = TimeSeriesFloat(
                 timesteps=aggregated_result.time_vector.tolist(),
-                values=list(aggregated_result.energy_function_result.operational_head),
+                values=aggregated_result.energy_function_result.operational_head,
                 unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
             ).reindex(new_time_vector=timesteps)
 
@@ -172,7 +171,7 @@ class Consumer(BaseConsumer):
             # if not the consumer should not have COMPRESSOR type.
             if isinstance(aggregated_result.energy_function_result, CompressorTrainResult):
                 recirculation_loss = aggregated_result.energy_function_result.recirculation_loss
-                recirculation_loss = list(
+                recirculation_loss = array_to_list(
                     self.reindex_time_vector(
                         values=recirculation_loss,
                         time_vector=aggregated_result.time_vector,
@@ -180,7 +179,7 @@ class Consumer(BaseConsumer):
                     )
                 )
                 rate_exceeds_maximum = aggregated_result.energy_function_result.rate_exceeds_maximum
-                rate_exceeds_maximum = list(
+                rate_exceeds_maximum = array_to_list(
                     self.reindex_time_vector(
                         values=rate_exceeds_maximum,
                         time_vector=aggregated_result.time_vector,
@@ -193,7 +192,7 @@ class Consumer(BaseConsumer):
                     else [math.nan] * len(timesteps)
                 )
 
-                outlet_pressure_before_choking = list(
+                outlet_pressure_before_choking = array_to_list(
                     self.reindex_time_vector(
                         values=outlet_pressure_before_choking,
                         time_vector=aggregated_result.time_vector,
@@ -287,19 +286,19 @@ class Consumer(BaseConsumer):
                 )
                 power_time_series = TimeSeriesStreamDayRate(
                     timesteps=variables_map.time_vector,
-                    values=list(power),
+                    values=array_to_list(power),
                     unit=Unit.MEGA_WATT,
                 )
             energy_usage_time_series = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
-                values=list(energy_usage),
+                values=array_to_list(energy_usage),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             )
 
         elif self._consumer_dto.consumes == ConsumptionType.ELECTRICITY:
             energy_usage_time_series = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
-                values=list(energy_usage),
+                values=array_to_list(energy_usage),
                 unit=Unit.MEGA_WATT,
             )
 
@@ -309,7 +308,7 @@ class Consumer(BaseConsumer):
 
         is_valid = TimeSeriesBoolean(
             timesteps=variables_map.time_vector,
-            values=list(valid_timesteps),
+            values=array_to_list(valid_timesteps),
             unit=Unit.NONE,
         )
 

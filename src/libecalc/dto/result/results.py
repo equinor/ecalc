@@ -3,10 +3,8 @@ from __future__ import annotations
 from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
-try:
-    from pydantic.v1 import Field, validator
-except ImportError:
-    from pydantic import Field, validator
+from pydantic import Field, field_validator
+from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
@@ -34,7 +32,7 @@ from libecalc.dto.result.tabular_time_series import TabularTimeSeries
 class NodeInfo(EcalcResultBaseModel):
     componentType: ComponentType
     component_level: ComponentLevel
-    parent: Optional[str]  # reference parent id
+    parent: Optional[str] = None  # reference parent id
     name: str
 
 
@@ -93,12 +91,12 @@ class ConsumerSystemResult(EquipmentResultBase):
 
     consumer_type: Literal[ComponentType.COMPRESSOR, ComponentType.PUMP] = None
 
-    @validator("consumer_type", pre=True)
-    def set_consumer_type_based_on_component_type_if_possible(cls, consumer_type, values):
+    @field_validator("consumer_type", mode="before")
+    def set_consumer_type_based_on_component_type_if_possible(cls, consumer_type, info: ValidationInfo):
         """
         Set consumer type for legacy system where component type contains the same information.
         """
-        component_type = values.get("componentType")
+        component_type = info.data.get("componentType")
         if consumer_type is None:
             if component_type == ComponentType.PUMP_SYSTEM:
                 return ComponentType.PUMP
@@ -112,7 +110,7 @@ class ConsumerSystemResult(EquipmentResultBase):
         description="The operational settings used for this system. "
         "0 indicates that no valid operational setting was found.",
     )
-    operational_settings_results: Optional[Dict[int, List[Any]]]
+    operational_settings_results: Optional[Dict[int, List[Any]]] = None
 
 
 class GenericConsumerResult(EquipmentResultBase):
@@ -126,7 +124,7 @@ class PumpResult(EquipmentResultBase):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
+    streams: Optional[List[TimeSeriesStreamConditions]]  # Optional because only in v2
 
 
 class CompressorResult(EquipmentResultBase):
@@ -135,7 +133,7 @@ class CompressorResult(EquipmentResultBase):
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
 
-    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
+    streams: Optional[List[TimeSeriesStreamConditions]]  # Optional because only in v2
 
 
 class VentingEmitterResult(EquipmentResultBase):
@@ -152,10 +150,10 @@ class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
     componentType: Literal[ComponentType.PUMP]
-    inlet_liquid_rate_m3_per_day: Optional[TimeSeriesRate]
-    inlet_pressure_bar: Optional[TimeSeriesFloat]
-    outlet_pressure_bar: Optional[TimeSeriesFloat]
-    operational_head: Optional[TimeSeriesFloat]
+    inlet_liquid_rate_m3_per_day: Optional[TimeSeriesRate] = None
+    inlet_pressure_bar: Optional[TimeSeriesFloat] = None
+    outlet_pressure_bar: Optional[TimeSeriesFloat] = None
+    operational_head: Optional[TimeSeriesFloat] = None
     is_valid: TimeSeriesBoolean
 
 
@@ -260,11 +258,13 @@ class EcalcModelResult(EcalcResultBaseModel):
     sub_components: Annotated[List[ComponentResult], Field(min_items=0, max_items=10000)]
     models: Annotated[List[ConsumerModelResult], Field(min_items=0, max_items=10000)]
 
-    @validator("sub_components")
+    @field_validator("sub_components")
+    @classmethod
     def sort_sub_components(cls, sub_components):
         return sorted(sub_components, key=attrgetter("componentType", "name"))
 
-    @validator("models")
+    @field_validator("models")
+    @classmethod
     def sort_models(cls, models):
         return sorted(models, key=attrgetter("componentType", "name"))
 

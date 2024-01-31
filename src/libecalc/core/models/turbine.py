@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc import dto
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results import TurbineResult
@@ -64,12 +65,12 @@ class TurbineModel(BaseModel):
         )
 
         return TurbineResult(
-            load=list(load_adjusted),
-            efficiency=list(efficiency),
-            fuel_rate=list(fuel_usage),
-            energy_usage=list(fuel_usage),
+            load=array_to_list(load_adjusted),
+            efficiency=array_to_list(efficiency),
+            fuel_rate=array_to_list(fuel_usage),
+            energy_usage=array_to_list(fuel_usage),
             energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=list(load_adjusted),
+            power=array_to_list(load_adjusted),
             power_unit=Unit.MEGA_WATT,
-            exceeds_maximum_load=list(load > self._maximum_load),
+            exceeds_maximum_load=array_to_list(load > self._maximum_load),
         )

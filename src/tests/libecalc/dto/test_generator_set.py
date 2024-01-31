@@ -5,11 +5,7 @@ from libecalc import dto
 from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
 from libecalc.dto.types import ConsumptionType, EnergyModelType, EnergyUsageType
 from libecalc.expression import Expression
-
-try:
-    from pydantic.v1.error_wrappers import ValidationError
-except ImportError:
-    from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 
 
 class TestGeneratorSetSampled:
@@ -32,7 +28,7 @@ class TestGeneratorSetSampled:
                 energy_usage_adjustment_constant=0.0,
                 energy_usage_adjustment_factor=1.0,
             )
-        assert exc_info.value.errors()[0]["msg"] == "Sampled generator set data should have a 'FUEL' and 'POWER' header"
+        assert "Sampled generator set data should have a 'FUEL' and 'POWER' header" in str(exc_info.value)
 
 
 class TestGeneratorSet:

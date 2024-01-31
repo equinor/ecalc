@@ -1,14 +1,10 @@
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
-    YamlFuelEnergyUsageModel,
-)
-
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
+    YamlFuelEnergyUsageModel,
+)
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
@@ -16,8 +12,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 
 class YamlFuelConsumer(YamlBase):
-    class Config:
-        title = "FUEL_CONSUMER"
+    model_config = ConfigDict(title="FUEL_CONSUMER")
 
     name: str = Field(
         ...,

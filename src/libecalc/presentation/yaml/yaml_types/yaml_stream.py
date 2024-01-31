@@ -1,14 +1,10 @@
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 
 
 class YamlCrossover(YamlBase):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     name: str = Field(
         None,
@@ -30,8 +26,7 @@ class YamlCrossover(YamlBase):
 
 
 class YamlStream(YamlBase):
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
     name: str = Field(
         None,

@@ -1,11 +1,9 @@
 from typing import List, Union
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
+from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import (
     YamlElectricityConsumer,
@@ -25,10 +23,9 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 
 class YamlGeneratorSet(YamlBase):
-    class Config:
-        title = "GeneratorSet"
+    model_config = ConfigDict(title="GeneratorSet")
 
-    name: str = Field(
+    name: ComponentNameStr = Field(
         ...,
         title="NAME",
         description="Name of the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",

@@ -9,11 +9,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import BaseModel
-except ImportError:
-    from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from libecalc.common.logger import logger
 
@@ -73,7 +69,7 @@ def eval_parentheses(
             if number_of_left_parentheses != number_of_right_parentheses:
                 error_message = "Number of left and right parentheses do not match"
                 if original_expression is not None:
-                    error_message += f" for expression \n{original_expression}"
+                    error_message += f" for expression '{original_expression}'"
                 raise ValueError(error_message)
 
             ind = 0
@@ -251,7 +247,7 @@ def eval_value(tokens):
         raise Exception(outtext)
     elif len(tokens) == 2:
         raise ValueError("Should not enter here - no time series in expression evaluator")
-    elif isinstance(tokens[0], (int, int, float)):
+    elif isinstance(tokens[0], (int, float)):
         return float(tokens[0])
     else:
         pos = 0
@@ -309,6 +305,11 @@ def lex(expression: str, token_exprs: List[Tuple[str, Optional[TokenTag]]]) -> L
 def lexer(expression: Union[str, int, float]) -> List[Token]:
     if isinstance(expression, (int, float)):
         return [Token(tag=TokenTag.numeric, value=expression)]
+
+    number_of_left_parentheses = expression.count(Operators.left_parenthesis.value)
+    number_of_right_parentheses = expression.count(Operators.right_parenthesis.value)
+    if number_of_left_parentheses != number_of_right_parentheses:
+        raise ValueError(f"Number of left and right parentheses do not match for expression '{expression}'")
 
     # Arithmetic operators redefined with {} to allow +-*/ et.c. in variable names
     token_exprs = [
@@ -404,10 +405,9 @@ class Operators(Enum):
 
 class Token(BaseModel):
     tag: TokenTag
-    value: Union[float, int, bool, NDArray[np.float64], str]
+    value: Union[float, int, bool, NDArray[np.float64], str] = Field(union_mode="left_to_right")
 
     def __str__(self):
         return str(self.value)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

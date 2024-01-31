@@ -89,10 +89,13 @@ class TestEmissionIntensityByYearlyBuckets:
             emission_cumulative=emission_cumulative,
             hydrocarbon_export_cumulative=hcexport_cumulative,
         )
-
-        assert np.all(emission_intensity_yearly.values[0:2] == intensity_2000)
-        assert np.all(emission_intensity_yearly.values[2:4] == intensity_2001)
-        assert np.all(emission_intensity_yearly.values[4:6] == intensity_2002)
+        # TODO: why did this fail?
+        assert np.all(emission_intensity_yearly.values[0] == intensity_2000)
+        assert np.all(emission_intensity_yearly.values[1] == intensity_2000)
+        assert np.all(emission_intensity_yearly.values[2] == intensity_2001)
+        assert np.all(emission_intensity_yearly.values[3] == intensity_2001)
+        assert np.all(emission_intensity_yearly.values[4] == intensity_2002)
+        assert np.all(emission_intensity_yearly.values[5] == intensity_2002)
 
     def test_emission_intensity_without_start_of_the_year_in_time_vector(self):
         # Test where the dates in time_vector are not at year start

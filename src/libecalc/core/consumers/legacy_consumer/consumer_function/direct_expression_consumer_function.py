@@ -3,6 +3,7 @@ from typing import List, Optional
 import numpy as np
 
 from libecalc import dto
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
@@ -88,9 +89,9 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         )
 
         energy_function_result = EnergyFunctionGenericResult(
-            energy_usage=list(energy_usage),
+            energy_usage=array_to_list(energy_usage),
             energy_usage_unit=self.energy_usage_unit,
-            power=list(energy_usage) if self.is_electrical_consumer else None,
+            power=array_to_list(energy_usage) if self.is_electrical_consumer else None,
             power_unit=self.power_unit if self.is_electrical_consumer else None,
         )
 

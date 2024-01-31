@@ -1,8 +1,12 @@
 import enum
 import sys
-from typing import Callable, Optional, Union
+from datetime import datetime
+from typing import Any, Callable, Optional, Union
 
+import numpy as np
 import pandas as pd
+from orjson import orjson
+from pydantic import BaseModel
 
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
@@ -52,6 +56,20 @@ def dataframe_to_csv(
     )
 
 
+def find_float_64(data):
+    if isinstance(data, np.float64):
+        pass
+    elif isinstance(data, list):
+        for i in data:
+            find_float_64(i)
+    elif isinstance(data, dict):
+        for v in data.values():
+            find_float_64(v)
+    elif isinstance(data, BaseModel):
+        for v in data.model_dump().values():
+            find_float_64(v)
+
+
 def to_json(result: Union[ComponentResult, EcalcModelResult], simple_output: bool, date_format_option: int) -> str:
     """Dump result classes to json file
 
@@ -64,20 +82,36 @@ def to_json(result: Union[ComponentResult, EcalcModelResult], simple_output: boo
         String dump of json output
 
     """
-    date_format = DateTimeFormats.get_format(date_format_option)
-    return (
-        SimpleResultData.from_dto(result).json(
-            indent=True,
-            date_format=date_format,
+
+    data = (
+        SimpleResultData.from_dto(result).model_dump(
             exclude_none=True,
         )
         if simple_output
-        else result.json(
-            indent=True,
-            date_format=date_format,
+        else result.model_dump(
             exclude_none=True,
         )
     )
+    date_format = DateTimeFormats.get_format(date_format_option)
+
+    def default_serializer(x: Any):
+        if isinstance(x, datetime):
+            return x.strftime(date_format)
+        if isinstance(x, np.float64):
+            return float(x)
+
+        raise ValueError(f"Unable to serialize '{type(x)}'")
+
+    find_float_64(data)
+
+    # Using orjson to both allow custom date format and convert nan to null.
+    # NaN to null is not supported by json module.
+    # Custom date format is not supported by pydantic -> https://github.com/pydantic/pydantic/issues/7143
+    return orjson.dumps(
+        data,
+        default=default_serializer,
+        option=orjson.OPT_PASSTHROUGH_DATETIME | orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS,
+    ).decode()
 
 
 def get_result_output(

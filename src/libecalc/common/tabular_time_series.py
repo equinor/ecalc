@@ -1,10 +1,7 @@
 import itertools
 from typing import Protocol, TypeVar
 
-try:
-    from pydantic.v1 import BaseModel
-except ImportError:
-    from pydantic import BaseModel
+from pydantic import BaseModel
 from typing_extensions import Self
 
 from libecalc.common.list.list_utils import transpose
@@ -12,7 +9,7 @@ from libecalc.common.utils.rates import TimeSeries
 
 
 class TabularTimeSeries(Protocol):
-    def copy(self, deep: bool = False) -> Self:
+    def model_copy(self, deep: bool = False) -> Self:
         """
         Duplicate a model
         Args:
@@ -47,7 +44,7 @@ class TabularTimeSeriesUtils:
             raise ValueError("Can not merge objects of differing types.")
 
         first, *others = objects_with_time_series
-        merged_object = first.copy(deep=True)
+        merged_object = first.model_copy(deep=True)
 
         for key, value in first.__dict__.items():
             for other in others:

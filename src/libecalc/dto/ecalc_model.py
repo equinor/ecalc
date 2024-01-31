@@ -1,9 +1,6 @@
 from typing import List
 
-try:
-    from pydantic.v1 import Field
-except ImportError:
-    from pydantic import Field
+from pydantic import Field
 
 from libecalc.dto.base import EcalcBaseModel
 

@@ -2,12 +2,9 @@ from datetime import datetime
 from math import isnan
 from typing import List, Literal, Optional, Tuple, Union
 
-try:
-    from pydantic.v1 import Field, root_validator, validator
-except ImportError:
-    from pydantic import Field, root_validator, validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
+from typing_extensions import Annotated
 
-from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import InterpolationType, TimeSeriesType
 from libecalc.presentation.yaml.mappers.variables_mapper.time_series import TimeSeries
@@ -30,10 +27,10 @@ def _sort_time_series_data(
 
 class TimeSeriesCollection(EcalcBaseModel):
     typ: TimeSeriesType
-    name: str = Field(regex=r"^[A-Za-z][A-Za-z0-9_]*$")
+    name: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_]*$")
 
-    headers: List[str] = Field(
-        regex=r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", default_factory=list
+    headers: List[Annotated[str, Field(pattern=r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$")]] = Field(
+        default_factory=list
     )  # Does not include date header
     columns: List[List[float]] = Field(default_factory=list)
     time_vector: List[datetime] = Field(default_factory=list)
@@ -41,20 +38,20 @@ class TimeSeriesCollection(EcalcBaseModel):
     influence_time_vector: Optional[bool] = True
     extrapolate_outside_defined_time_interval: Optional[bool] = None
     interpolation_type: InterpolationType = None
+    model_config = ConfigDict(validate_default=True)
 
-    class Config:
-        allow_mutation = False
-        validate_all = True
-
-    @validator("influence_time_vector")
+    @field_validator("influence_time_vector")
+    @classmethod
     def set_influence_time_vector_default(cls, value):
         return value if value is not None else True
 
-    @validator("extrapolate_outside_defined_time_interval")
+    @field_validator("extrapolate_outside_defined_time_interval")
+    @classmethod
     def set_extrapolate_outside_defined_time_interval_default(cls, value):
         return value if value is not None else False
 
-    @validator("time_vector")
+    @field_validator("time_vector")
+    @classmethod
     def check_that_dates_are_ok(cls, dates):
         if len(dates) == 0:
             raise ValueError("Time vectors must have at least one record")
@@ -62,18 +59,11 @@ class TimeSeriesCollection(EcalcBaseModel):
             raise ValueError("The list of dates have duplicates. Duplicated dates are currently not supported.")
         return dates
 
-    @root_validator(skip_on_failure=True)
-    def check_that_lists_match(cls, values):
-        headers = values.get("headers")
-        columns = values.get("columns")
-        time_vector = values.get("time_vector")
-
-        if time_vector is None or columns is None:
-            logger.debug(
-                "Time vector or column is not initialized. This case should not be handled here, "
-                "it probably means a previous validation failed."
-            )
-            return values
+    @model_validator(mode="after")
+    def check_that_lists_match(self):
+        headers = self.headers
+        columns = self.columns
+        time_vector = self.time_vector
 
         time_vector_length = len(time_vector)
         headers_length = len(headers)
@@ -81,7 +71,7 @@ class TimeSeriesCollection(EcalcBaseModel):
         if headers_length == 0:
             raise ValueError("Headers must at least have one column")
 
-        number_of_columns = len(values.get("columns"))
+        number_of_columns = len(columns)
 
         if number_of_columns == 0:
             raise ValueError("Data vector must at least have one column")
@@ -102,27 +92,27 @@ class TimeSeriesCollection(EcalcBaseModel):
             )
 
         sorted_time_vector, sorted_columns = _sort_time_series_data(time_vector, columns)
-        values["time_vector"] = sorted_time_vector
-        values["columns"] = sorted_columns
-        return values
+        self.time_vector = sorted_time_vector
+        self.columns = sorted_columns
+        return self
 
-    @validator("columns")
-    def check_that_columns_are_ok(cls, columns, values):
-        headers = values.get("headers")
+    @model_validator(mode="after")
+    def check_that_columns_are_ok(self):
+        headers = self.headers
 
-        if headers is None or columns is None:
-            return columns
+        if headers is None or self.columns is None:
+            return self.columns
 
-        for column, header in zip(columns, headers):
+        for column, header in zip(self.columns, headers):
             for value in column:
                 if isnan(value):
-                    reference_id = f'{values["name"]};{header}'
+                    reference_id = f"{self.name};{header}"
                     raise ValueError(
                         f"The timeseries column '{reference_id}' contains empty values. "
                         f"Please check your file for missing data, each column should define values for all timesteps.",
                     )
 
-        return columns
+        return self
 
     @property
     def time_series(self):
@@ -139,7 +129,8 @@ class TimeSeriesCollection(EcalcBaseModel):
 class MiscellaneousTimeSeriesCollection(TimeSeriesCollection):
     typ: Literal[TimeSeriesType.MISCELLANEOUS] = TimeSeriesType.MISCELLANEOUS
 
-    @validator("interpolation_type", pre=True, always=True)
+    @field_validator("interpolation_type", mode="before")
+    @classmethod
     def interpolation_is_required(cls, value):
         if value is None:
             raise ValueError("interpolation_type must be specified for the MISCELLANEOUS time series type.")
@@ -149,7 +140,8 @@ class MiscellaneousTimeSeriesCollection(TimeSeriesCollection):
 class DefaultTimeSeriesCollection(TimeSeriesCollection):
     typ: Literal[TimeSeriesType.DEFAULT] = TimeSeriesType.DEFAULT
 
-    @validator("extrapolate_outside_defined_time_interval", pre=True, always=True)
+    @field_validator("extrapolate_outside_defined_time_interval", mode="before")
+    @classmethod
     def extrapolate_outside_defined_time_interval_cannot_be_set(cls, value):
         if value is not None:
             raise ValueError(
@@ -159,7 +151,7 @@ class DefaultTimeSeriesCollection(TimeSeriesCollection):
 
         return value
 
-    @validator("interpolation_type", pre=True, always=True)
+    @field_validator("interpolation_type", mode="before")
     def set_default_interpolation_type(cls, value):
         if value is not None:
             raise ValueError(

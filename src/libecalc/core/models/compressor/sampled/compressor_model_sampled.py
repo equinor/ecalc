@@ -9,6 +9,7 @@ from scipy.interpolate import interp1d
 from libecalc import dto
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.list.adjustment import transform_linear
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.base import CompressorModel
@@ -210,16 +211,18 @@ class CompressorModelSampled(CompressorModel):
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
         turbine_power = turbine_result.load if turbine_result is not None else None
 
-        energy_usage = turbine_result.energy_usage if turbine_result is not None else list(interpolated_consumer_values)
+        energy_usage = (
+            turbine_result.energy_usage if turbine_result is not None else array_to_list(interpolated_consumer_values)
+        )
 
         inlet_stream_condition = CompressorStreamCondition.create_empty(number_of_timesteps=number_of_data_points)
         inlet_stream_condition.pressure = (
-            list(suction_pressure) if suction_pressure is not None else [np.nan] * number_of_data_points
+            array_to_list(suction_pressure) if suction_pressure is not None else [np.nan] * number_of_data_points
         )
 
         outlet_stream_condition = CompressorStreamCondition.create_empty(number_of_timesteps=number_of_data_points)
         outlet_stream_condition.pressure = (
-            list(discharge_pressure) if discharge_pressure is not None else [np.nan] * number_of_data_points
+            array_to_list(discharge_pressure) if discharge_pressure is not None else [np.nan] * number_of_data_points
         )
 
         compressor_stage_result = CompressorStageResult.create_empty(number_of_timesteps=number_of_data_points)
@@ -229,14 +232,14 @@ class CompressorModelSampled(CompressorModel):
             Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY
         )
         compressor_stage_result.power = (
-            list(interpolated_consumer_values) if self.function_values_are_power else turbine_power
+            array_to_list(interpolated_consumer_values) if self.function_values_are_power else turbine_power
         )
         compressor_stage_result.power_unit = Unit.MEGA_WATT
         compressor_stage_result.inlet_stream_condition = inlet_stream_condition
         compressor_stage_result.outlet_stream_condition = outlet_stream_condition
         compressor_stage_result.fluid_composition = {}
         compressor_stage_result.chart = None
-        compressor_stage_result.is_valid = list(
+        compressor_stage_result.is_valid = array_to_list(
             np.logical_and(~np.isnan(energy_usage), turbine_result.is_valid)
             if turbine_result is not None
             else ~np.isnan(energy_usage)
@@ -254,11 +257,11 @@ class CompressorModelSampled(CompressorModel):
         result = CompressorTrainResult(
             energy_usage=energy_usage,
             energy_usage_unit=Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
+            power=array_to_list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
             power_unit=Unit.MEGA_WATT,
             stage_results=[compressor_stage_result],
             failure_status=[None] * len(energy_usage),
-            rate_sm3_day=list(rate) if rate is not None else [np.nan] * len(energy_usage),
+            rate_sm3_day=array_to_list(rate) if rate is not None else [np.nan] * len(energy_usage),
         )
 
         return result
@@ -318,7 +321,7 @@ class CompressorModelSampled(CompressorModel):
 
         """
         uniques = sampled_data.apply(lambda x: x.nunique())
-        return list(uniques[uniques != 1].index.values)
+        return array_to_list(uniques[uniques != 1].index.values)
 
     @dataclass
     class Turbine:
@@ -352,14 +355,14 @@ class CompressorModelSampled(CompressorModel):
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
                 return TurbineResult(
-                    fuel_rate=list(fuel_usage_values),
-                    efficiency=list(np.ones_like(fuel_usage_values)),
-                    load=list(load),
-                    energy_usage=list(fuel_usage_values),
+                    fuel_rate=array_to_list(fuel_usage_values),
+                    efficiency=array_to_list(np.ones_like(fuel_usage_values)),
+                    load=array_to_list(load),
+                    energy_usage=array_to_list(fuel_usage_values),
                     energy_usage_unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    power=list(self.fuel_to_power_function(fuel_usage_values)),
+                    power=array_to_list(self.fuel_to_power_function(fuel_usage_values)),
                     power_unit=Unit.MEGA_WATT,
-                    exceeds_maximum_load=list(np.isnan(load)),
+                    exceeds_maximum_load=array_to_list(np.isnan(load)),
                 )
 
             # If power_values is not set, user is not interested in power usage, there is no error in that

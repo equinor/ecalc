@@ -1,12 +1,7 @@
 from datetime import datetime
 from typing import Dict, Generic, List, Literal, Optional, TypeVar, Union
 
-try:
-    from pydantic.v1 import Field
-    from pydantic.v1.generics import GenericModel
-except ImportError:
-    from pydantic import Field
-    from pydantic.generics import GenericModel
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -44,9 +39,8 @@ YamlPriorities = Dict[PriorityID, YamlConsumerStreamConditionsMap]
 TYamlConsumer = TypeVar("TYamlConsumer", bound=Union[YamlCompressor, YamlPump, YamlTrain[YamlCompressor]])
 
 
-class YamlConsumerSystem(YamlConsumerBase, GenericModel, Generic[TYamlConsumer]):
-    class Config:
-        title = "ConsumerSystem"
+class YamlConsumerSystem(YamlConsumerBase, BaseModel, Generic[TYamlConsumer]):
+    model_config = ConfigDict(title="ConsumerSystem")
 
     component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(
         ...,
@@ -115,7 +109,9 @@ class YamlConsumerSystem(YamlConsumerBase, GenericModel, Generic[TYamlConsumer])
             regularity=regularity,
             consumes=consumes,
             component_conditions=component_conditions,
-            stream_conditions_priorities=self.stream_conditions_priorities,
+            stream_conditions_priorities=TypeAdapter(YamlPriorities).dump_python(
+                self.stream_conditions_priorities
+            ),  # TODO: unnecessary, but we should remove the need to have dto here (two very similar classes)
             consumers=consumers,
             fuel=fuel,
         )

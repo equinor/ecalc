@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
 
-from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.units import UnitConstants
 
 
@@ -108,7 +108,7 @@ class Periods:
             if time in period:
                 return period
 
-        raise ValueError(f"Period for date '{time}' not found in periods")
+        raise ProgrammingError(f"Period for date '{time}' not found in periods")
 
 
 def define_time_model_for_period(
@@ -211,7 +211,10 @@ def create_time_steps(
         the requested frequency
 
     """
-    date_range = pd.date_range(start=start, end=end, freq=frequency.value)
+    # If the start date or end date is part of the date_range made by the frequency, the returned date range will
+    # always include the start and end date (no matter what the include_start_date and include_end_date booleans are).
+    # To avoid this add one day to start and subtract one day from end.
+    date_range = pd.date_range(start=start + timedelta(days=1), end=end - timedelta(days=1), freq=frequency.value)
 
     time_steps = [clear_time(time_step) for time_step in date_range]
     if include_start_date:
@@ -229,6 +232,7 @@ def clear_time(d: datetime) -> datetime:
 def is_temporal_model(data: Dict) -> bool:
     if isinstance(data, dict):
         is_date = []
+        is_not_date_keys = []
         for key in data:
             if isinstance(key, date):
                 is_date.append(True)
@@ -237,10 +241,15 @@ def is_temporal_model(data: Dict) -> bool:
                     datetime.strptime(key, "%Y-%m-%dT%H:%M:%S")
                     is_date.append(True)
                 except (TypeError, ValueError):
+                    is_not_date_keys.append(str(key))
                     is_date.append(False)
         if any(is_date):
             if not all(is_date):
-                raise ValueError("Time dependent should only contain date keys")
+                raise EcalcError(
+                    title="Invalid model",
+                    message="Temporal models should only contain date keys. "
+                    f"Invalid date(s): {','.join(is_not_date_keys)}",
+                )
             return True
     return False
 

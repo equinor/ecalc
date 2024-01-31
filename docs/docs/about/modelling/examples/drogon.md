@@ -30,7 +30,7 @@ The results of a performed characterization of the equipment are listed below:
 | Consumer                         |Type                | Description                                                                                                                                              |
 |----------------------------------|--------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Generator set A                |Generator set       | Variable fuel consumer with electricity to fuel function                                                                                                 |
-| Base production load             |Power consumer      | Constant load - 10 MW                                                                                                                                    |
+| Base production load             |Power consumer      | Constant load - 9 MW                                                                                                                                    |
 | Gas compression train         |Power consumer      |  Variable consumption depending on produced gas rate                                                                      |
 | Gas re-compressors         |Power consumer      |  Constant load - 2 MW                                                                      |
 | Sea water injection pump         |Power consumer      | Variable consumption depending on water injection rate                                               |
@@ -76,7 +76,7 @@ TIME_SERIES:
 
 In this case, the compressors are not specified in this section as [GENERIC COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md). Thus, the pump chart and generator set will be the only facility components specified within this section. 
 
-The pump will be variable speed, meaning that the pump type will be `PUMP_CHART_VARIABLE_SPEED`. The generator set will be a tabulated, where power consumption will be linked to fuel gas utilised.
+The pump will be single speed, meaning that the pump type will be `PUMP_CHART_SINGLE_SPEED`. The generator set will be a tabulated, where power consumption will be linked to fuel gas utilised.
 
 ~~~~~~~~yaml
 FACILITY_INPUTS: 
@@ -84,8 +84,8 @@ FACILITY_INPUTS:
       TYPE: ELECTRICITY2FUEL
       FILE: genset.csv
     - NAME: wi_200
-      FILE: wi_200bar_vsp.csv
-      TYPE: PUMP_CHART_VARIABLE_SPEED
+      FILE: wi_200bar_ssp.csv
+      TYPE: PUMP_CHART_SINGLE_SPEED
       UNITS:
         HEAD: M
         RATE: AM3_PER_HOUR
@@ -155,7 +155,7 @@ In the `INSTALLATIONS` section, the previously defined models and facility input
 
 ~~~~~~~~yaml
 INSTALLATIONS:
-  - NAME: drogon
+  - NAME: drogon_installation
     CATEGORY: FIXED
     HCEXPORT: SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000
     FUEL: fuel_gas
@@ -184,7 +184,7 @@ As only one pump has been defined, the same pump model will be used for each tra
 A fluid density of 1025 kg/m<sup>3</sup> is used, with a suction and discharge pressure of 12 and 200 bar respectively.
 
 ~~~~~~~~yaml
-          - NAME: wi_lp
+          - NAME: water injection
             CATEGORY: PUMP
             ENERGY_USAGE_MODEL:
               TYPE: PUMP_SYSTEM
@@ -212,17 +212,22 @@ A fluid density of 1025 kg/m<sup>3</sup> is used, with a suction and discharge p
 
 For the compression model, a compressor system is not used. This is due to the use of generic compressor charts. As the generic charts are shifted from input data there is no need for an additional compression train. No matter what rate/head values are inputted here, the generic chart is shifted so that all operational points will be within the operational envelope of the compressor.
 
-Here, 13 bar and 431 bar is specified for the suction and discharge pressure respectively.
+Here, 13 bar and 421 bar is specified for the suction and discharge pressure respectively.
 
 ~~~~~~~~yaml
-          - NAME: compressor_train
+          - NAME: gas export compressor train
             CATEGORY: COMPRESSOR
             ENERGY_USAGE_MODEL:
-              TYPE: COMPRESSOR
-              ENERGYFUNCTION: simplified_compressor_train_model
-              RATE: SIM1;GAS_PROD
-              SUCTION_PRESSURE: 13
-              DISCHARGE_PRESSURE: 421
+              TYPE: COMPRESSOR_SYSTEM
+              COMPRESSORS:
+                - NAME: train1_2
+                  COMPRESSOR_MODEL: simplified_compressor_train_model
+              TOTAL_SYSTEM_RATE: SIM1;GAS_PROD
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS:
+                    - 1
+                  SUCTION_PRESSURE: 13
+                  DISCHARGE_PRESSURE: 421
 ~~~~~~~~
 
 #### BASE-LOAD
@@ -239,7 +244,7 @@ Three different constant-loads are specified in this section. These being the bo
             CATEGORY: BASE-LOAD
             ENERGY_USAGE_MODEL:
               TYPE: DIRECT
-              LOAD: 10
+              LOAD: 9
           - NAME: re-compressors
             CATEGORY: BASE-LOAD
             ENERGY_USAGE_MODEL:
@@ -260,8 +265,8 @@ FACILITY_INPUTS:
     FILE: genset.csv
     TYPE: ELECTRICITY2FUEL
   - NAME: wi_200
-    FILE: wi_200bar_vsp.csv
-    TYPE: PUMP_CHART_VARIABLE_SPEED
+    FILE: wi_200bar_ssp.csv
+    TYPE: PUMP_CHART_SINGLE_SPEED
     UNITS:
         HEAD: M
         RATE: AM3_PER_HOUR
@@ -303,7 +308,7 @@ FUEL_TYPES:
       - NAME: co2_fuel_gas
         FACTOR: 2.416
 INSTALLATIONS:
-  - NAME: drogon
+  - NAME: drogon_installation
     CATEGORY: FIXED
     HCEXPORT: SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000
     FUEL: fuel_gas
@@ -335,14 +340,19 @@ INSTALLATIONS:
                   SUCTION_PRESSURE: 12
                   DISCHARGE_PRESSURE: 200
         
-          - NAME: compressor_train
+          - NAME: gas export compressor train
             CATEGORY: COMPRESSOR
             ENERGY_USAGE_MODEL:
-              TYPE: COMPRESSOR
-              ENERGYFUNCTION: simplified_compressor_train_model
-              RATE: SIM1;GAS_PROD
-              SUCTION_PRESSURE: 13
-              DISCHARGE_PRESSURE: 421
+              TYPE: COMPRESSOR_SYSTEM
+              COMPRESSORS:
+                - NAME: train1_2
+                  COMPRESSOR_MODEL: simplified_compressor_train_model
+              TOTAL_SYSTEM_RATE: SIM1;GAS_PROD
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS:
+                    - 1
+                  SUCTION_PRESSURE: 13
+                  DISCHARGE_PRESSURE: 421
 
           - NAME: boosterpump
             CATEGORY: BASE-LOAD
@@ -353,7 +363,7 @@ INSTALLATIONS:
             CATEGORY: BASE-LOAD
             ENERGY_USAGE_MODEL:
               TYPE: DIRECT
-              LOAD: 10
+              LOAD: 9
           - NAME: re-compressors
             CATEGORY: BASE-LOAD
             ENERGY_USAGE_MODEL:
@@ -388,33 +398,13 @@ POWER, FUEL
 42.84,283582.3
 ~~~~~~~~
 
-~~~~~~~~text title="wi_200bar_vsp.csv"
+~~~~~~~~text title="wi_200bar_ssp.csv"
 RATE,HEAD,EFFICIENCY,SPEED
-967,1810,78,4365
-900,1900,80.4,4365
-700,2280,81,4365
-600,2385,78,4365
-500,2450,72.5,4365
-480,2475,71.5,4365
-900,1700,80.4,4157
-700,2000,81,4157
-600,2130,78,4157
-500,2200,72.5,4157
-460,2210,69,4157
-830,1340,81,3741
-800,1400,81.7,3741
-600,1675,78,3741
-500,1765,72.5,3741
-415,1805,66,3741
-740,1075,81.5,3326
-700,1120,81,3326
-500,1350,72.5,3326
-400,1405,64.5,3326
-365,1425,62,3326
-640,800,79.5,2885
-600,840,78,2885
-400,1050,64.5,2885
-320,1075,57,2885
+830,1490,81,3741
+800,1550,81.7,3741
+600,1825,78,3741
+500,1915,72.5,3741
+415,1955,66,3741
 ~~~~~~~~
 
 ### Timeseries resources

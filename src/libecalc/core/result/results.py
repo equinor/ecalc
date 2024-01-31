@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from typing_extensions import Self
+from pydantic import Field
+from typing_extensions import Annotated, Literal, Self
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
@@ -31,6 +32,7 @@ class CommonResultBase(EcalcResultBaseModel):
 
 
 class GenericComponentResult(CommonResultBase):
+    typ: Literal["generc"] = "generc"
     id: str
 
     def merge(self, *other_results: CompressorResult) -> Self:
@@ -52,19 +54,22 @@ class GenericComponentResult(CommonResultBase):
 class GeneratorSetResult(GenericComponentResult):
     """The Generator set result component."""
 
+    typ: Literal["genset"] = "genset"
     power_capacity_margin: TimeSeriesStreamDayRate
 
 
 class ConsumerSystemResult(GenericComponentResult):
+    typ: Literal["system"] = "system"
     operational_settings_used: TimeSeriesInt
     operational_settings_results: Optional[Dict[int, List[Any]]]
 
 
 class CompressorResult(GenericComponentResult):
+    typ: Literal["comp"] = "comp"
     recirculation_loss: TimeSeriesStreamDayRate
     rate_exceeds_maximum: TimeSeriesBoolean
     outlet_pressure_before_choking: TimeSeriesFloat
-    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
+    streams: Optional[List[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(
@@ -80,12 +85,13 @@ class CompressorResult(GenericComponentResult):
 
 
 class PumpResult(GenericComponentResult):
+    typ: Literal["pmp"] = "pmp"
     inlet_liquid_rate_m3_per_day: TimeSeriesStreamDayRate
     inlet_pressure_bar: TimeSeriesFloat
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    streams: List[TimeSeriesStreamConditions] = None  # Optional because only in v2
+    streams: Optional[List[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(
@@ -142,12 +148,15 @@ class GenericModelResult(ConsumerModelResultBase):
 # Consumer model result is referred to as ENERGY_USAGE_MODEL in the input YAML
 ConsumerModelResult = Union[CompressorModelResult, PumpModelResult, GenericModelResult]
 
-ComponentResult = Union[
-    GeneratorSetResult,
-    ConsumerSystemResult,
-    CompressorResult,
-    PumpResult,
-    GenericComponentResult,
+ComponentResult = Annotated[
+    Union[
+        GeneratorSetResult,
+        ConsumerSystemResult,
+        CompressorResult,
+        PumpResult,
+        GenericComponentResult,
+    ],
+    Field(discriminator="typ"),
 ]  # Order is important as pydantic will parse results, so any result will be converted to the first fit in this list.
 
 

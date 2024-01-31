@@ -1,9 +1,7 @@
 from typing import Dict, Optional, Union
 
-try:
-    from pydantic.v1 import BaseModel, confloat, root_validator
-except ImportError:
-    from pydantic import BaseModel, confloat, root_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from typing_extensions import Annotated
 
 from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
@@ -33,9 +31,7 @@ class CompressorTrainStage(BaseModel):
     inlet_temperature_kelvin: float
     remove_liquid_after_cooling: bool
     pressure_drop_ahead_of_stage: Optional[float] = None
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def evaluate(
         self,
@@ -201,12 +197,12 @@ class UndefinedCompressorStage(CompressorTrainStage):
     Artifact of the 'Generic from Input' chart.
     """
 
-    polytropic_efficiency: confloat(gt=0, le=1)
+    polytropic_efficiency: Annotated[float, Field(gt=0, le=1)]
 
     # Not in use:
     compressor_chart: VariableSpeedCompressorChart = None  # Not relevant when undefined.
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def validate_predefined_chart(cls, v: Dict):
         if v.get("compressor_chart") is None and v.get("polytropic_efficiency") is None:
             raise ValueError("Stage with non-predefined compressor chart needs to have polytropic_efficiency")

@@ -9,7 +9,6 @@ from enum import Enum
 from typing import (
     Any,
     DefaultDict,
-    Dict,
     Generic,
     Iterable,
     Iterator,
@@ -35,16 +34,8 @@ from libecalc.common.time_utils import (
 )
 from libecalc.common.units import Unit
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import Extra, validator
-    from pydantic.v1.fields import ModelField
-    from pydantic.v1.generics import GenericModel
-except ImportError:
-    from pydantic import Extra, validator
-    from pydantic.fields import ModelField
-    from pydantic.generics import GenericModel
-
+from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Self
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
@@ -157,33 +148,23 @@ class Rates:
         return Rates.compute_cumulative(volumes)
 
 
-class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
+class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     timesteps: List[datetime]
     values: List[TimeSeriesValue]
     unit: Unit
+    model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True, extra="forbid")
 
-    class Config:
-        use_enum_values = True
-        alias_generator = to_camel_case
-        allow_population_by_field_name = True
-        extra = Extra.forbid
-
-    @validator("values", each_item=True, pre=True)
-    def convert_none_to_nan(cls, v: float, field: ModelField) -> TimeSeriesValue:
-        if field.outer_type_ is float and v is None:
-            return math.nan
-        return v
-
-    @validator("values", pre=True)
-    def timesteps_values_one_to_one(cls, v: List[Any], values: Dict[str, Any]):
-        nr_timesteps = len(values["timesteps"])
+    @field_validator("values", mode="before")
+    @classmethod
+    def timesteps_values_one_to_one(cls, v: List[Any], info: ValidationInfo):
+        nr_timesteps = len(info.data["timesteps"])
         nr_values = len(v)
 
         if not cls.__name__ == TimeSeriesVolumes.__name__:
             if nr_timesteps != nr_values:
                 if all(math.isnan(i) for i in v):
                     # TODO: This should probably be solved another place. Temporary solution to make things run
-                    return [math.nan] * len(values["timesteps"])
+                    return [math.nan] * len(info.data["timesteps"])
                 else:
                     raise ProgrammingError(
                         "Time series: number of timesteps do not match number "
@@ -299,10 +280,10 @@ class TimeSeries(GenericModel, Generic[TimeSeriesValue], ABC):
         return self.copy(update={"values": [self.unit.to(unit)(rate) for rate in self.values], "unit": unit})
 
     def forward_fill(self) -> Self:
-        return self.copy(update={"values": pd.Series(self.values).ffill().tolist()})
+        return self.model_copy(update={"values": pd.Series(self.values).ffill().tolist()})
 
     def fill_nan(self, fill_value: float) -> Self:
-        return self.copy(update={"values": pd.Series(self.values).fillna(fill_value).tolist()})
+        return self.model_copy(update={"values": pd.Series(self.values).fillna(fill_value).tolist()})
 
     def __getitem__(self, indices: Union[slice, int, List[int]]) -> Self:
         if isinstance(indices, slice):
@@ -402,7 +383,7 @@ class TimeSeriesString(TimeSeries[str]):
 
         return TimeSeriesString(
             timesteps=ds_resampled.index.to_pydatetime().tolist(),
-            values=list(ds_resampled.values.tolist()),
+            values=ds_resampled.values.tolist(),
             unit=self.unit,
         )
 
@@ -440,8 +421,9 @@ class TimeSeriesInt(TimeSeries[int]):
 class TimeSeriesBoolean(TimeSeries[bool]):
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True) -> Self:
         """
-        Resample using forward-fill This means that a value is assumed to be the same until the next observation,
-        e.g. covering the whole period interval.
+        If a period between two time steps in the return time vector contains more than one time step in the
+        original vector, check if any of the relevant values in the time original time vector is False. Then the
+        resampled value for that time step will be False.
 
         Args:
             freq: The frequency the time series should be resampled to
@@ -452,16 +434,26 @@ class TimeSeriesBoolean(TimeSeries[bool]):
         if freq is Frequency.NONE:
             return self.copy()
 
-        ds = pd.Series(index=self.timesteps, data=self.values)
-
+        # Always make new time series WITH end date, but remove it later is not needed
         new_timeseries = resample_time_steps(
-            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=True
         )
-        ds_resampled = ds.reindex(new_timeseries).ffill()
+        resampled = []
+
+        # Iterate over all pairs of subsequent dates in the new time vector
+        for start_period, end_period in zip(new_timeseries[:-1], new_timeseries[1:]):
+            start_index = self.timesteps.index(max([date for date in self.timesteps if date <= start_period]))
+            end_index = self.timesteps.index(max([date for date in self.timesteps if date < end_period]))
+            resampled.append(all(self.values[start_index : end_index + 1]))
+
+        if include_end_date:
+            resampled.append(self.values[-1])
+        else:
+            new_timeseries.pop()
 
         return TimeSeriesBoolean(
             timesteps=new_timeseries,
-            values=[bool(x) for x in ds_resampled.values.tolist()],
+            values=resampled,
             unit=self.unit,
         )
 
@@ -479,6 +471,14 @@ class TimeSeriesBoolean(TimeSeries[bool]):
 
 
 class TimeSeriesFloat(TimeSeries[float]):
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+        if isinstance(v, list):
+            # convert None to nan
+            return [i if i is not None else math.nan for i in v]
+        return v
+
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True) -> Self:
         """
         Resample using forward-fill This means that a value is assumed to be the same until the next observation,
@@ -500,21 +500,29 @@ class TimeSeriesFloat(TimeSeries[float]):
         )
         ds_resampled = ds.reindex(new_timeseries).ffill()
 
-        return TimeSeriesFloat(
+        return self.__class__(
             timesteps=new_timeseries,
             values=[float(x) for x in ds_resampled.values.tolist()],
             unit=self.unit,
         )
 
-    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesFloat:
+    def reindex(self, new_time_vector: Iterable[datetime]) -> Self:
         """
         Ensure to map correct value to correct timestep in the final resulting time vector.
         """
         reindex_values = self.reindex_time_vector(new_time_vector)
-        return TimeSeriesFloat(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
+        return self.__class__(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+        if isinstance(v, list):
+            # convert None to nan
+            return [i if i is not None else math.nan for i in v]
+        return v
+
     def resample(
         self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
     ) -> TimeSeriesVolumesCumulative:
@@ -570,14 +578,12 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
             )
         return TimeSeriesCalendarDayRate(
             timesteps=self.timesteps,
-            values=list(
-                np.divide(
-                    self.values,
-                    other.values,
-                    out=np.full_like(self.values, fill_value=np.nan),
-                    where=np.asarray(other.values) != 0.0,
-                )
-            ),
+            values=np.divide(
+                self.values,
+                other.values,
+                out=np.full_like(self.values, fill_value=np.nan),
+                where=np.asarray(other.values) != 0.0,
+            ).tolist(),
             unit=unit,
         )
 
@@ -598,12 +604,20 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
 
 class TimeSeriesVolumes(TimeSeries[float]):
-    @validator("values", pre=True)
-    def check_length_timestep_values(cls, v: List[Any], values: Dict[str, Any]):
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+        if isinstance(v, list):
+            # convert None to nan
+            return [i if i is not None else math.nan for i in v]
+        return v
+
+    @field_validator("values", mode="before")
+    def check_length_timestep_values(cls, v: List[Any], info: ValidationInfo):
         # Initially timesteps for volumes contains one more item than values
         # After reindex number of timesteps equals number of values
         # TODO: Ensure periodical volumes are handled in a consistent way. Why different after reindex?
-        if len(v) not in [len(values["timesteps"]), len(values["timesteps"]) - 1]:
+        if len(v) not in [len(info.data["timesteps"]), len(info.data["timesteps"]) - 1]:
             raise ProgrammingError(
                 "Time series: number of timesteps do not match number "
                 "of values. Most likely a bug, report to eCalc Dev Team."
@@ -612,7 +626,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
 
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
         msg = (
-            f"{self.__repr_name__()} does not have an resample method."
+            f"{self.__class__.__name__} does not have an resample method."
             f" You should not land here. Please contact the eCalc Support."
         )
         logger.warning(msg)
@@ -657,7 +671,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
         """
         return TimeSeriesVolumesCumulative(
             timesteps=self.timesteps,
-            values=list(Rates.compute_cumulative(self.values)),
+            values=Rates.compute_cumulative(self.values).tolist(),
             unit=self.unit,
         )
 
@@ -698,6 +712,14 @@ class TimeSeriesVolumes(TimeSeries[float]):
 
 
 class TimeSeriesIntensity(TimeSeries[float]):
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+        if isinstance(v, list):
+            # convert None to nan
+            return [i if i is not None else math.nan for i in v]
+        return v
+
     def resample(
         self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
     ) -> TimeSeriesIntensity:
@@ -756,7 +778,7 @@ class TimeSeriesStreamDayRate(TimeSeriesFloat):
         if isinstance(other, TimeSeriesStreamDayRate):
             return TimeSeriesStreamDayRate(
                 timesteps=self.timesteps,
-                values=list(elementwise_sum(self.values, other.values)),
+                values=elementwise_sum(self.values, other.values).tolist(),
                 unit=self.unit,
             )
         else:
@@ -789,10 +811,18 @@ class TimeSeriesRate(TimeSeries[float]):
     rate_type: RateType
     regularity: List[float]
 
-    @validator("regularity")
-    def check_regularity_length(cls, regularity: List[float], values: Any) -> List[float]:
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+        if isinstance(v, list):
+            # convert None to nan
+            return [i if i is not None else math.nan for i in v]
+        return v
+
+    @field_validator("regularity")
+    def check_regularity_length(cls, regularity: List[float], info: ValidationInfo) -> List[float]:
         regularity_length = len(regularity)
-        timesteps_length = len(values.get("timesteps", []))
+        timesteps_length = len(info.data.get("timesteps", []))
         if regularity_length != timesteps_length:
             raise ProgrammingError(
                 f"Regularity must correspond to nr of timesteps. Length of timesteps ({timesteps_length}) !=  length of regularity ({regularity_length})."
@@ -815,7 +845,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 # Adding TimeSeriesRate with same regularity -> New TimeSeriesRate with same regularity
                 return self.__class__(
                     timesteps=self.timesteps,
-                    values=list(elementwise_sum(self.values, other.values)),
+                    values=elementwise_sum(self.values, other.values).tolist(),
                     unit=self.unit,
                     regularity=self.regularity,
                     rate_type=self.rate_type,
@@ -827,9 +857,9 @@ class TimeSeriesRate(TimeSeries[float]):
 
                 return TimeSeriesRate(
                     timesteps=self.timesteps,
-                    values=list(elementwise_sum(self.values, other.values)),
+                    values=elementwise_sum(self.values, other.values).tolist(),
                     unit=self.unit,
-                    regularity=list(sum_calendar_day / sum_stream_day),
+                    regularity=(sum_calendar_day / sum_stream_day).tolist(),
                     rate_type=self.rate_type,
                 )
         else:
@@ -837,7 +867,12 @@ class TimeSeriesRate(TimeSeries[float]):
                 f"TimeSeriesRate can only be added to another TimeSeriesRate. Received type '{str(other.__class__)}'."
             )
 
-    def extend(self, other: TimeSeriesRate) -> Self:
+    def extend(self, other: TimeSeries) -> Self:
+        if not isinstance(other, TimeSeriesRate):
+            raise ValueError(
+                f"'{str(self.__class__)}' can only be extended with itself, received type '{str(other.__class__)}'"
+            )
+
         # Check for same unit
         if not self.unit == other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")
@@ -938,16 +973,14 @@ class TimeSeriesRate(TimeSeries[float]):
         if self.rate_type == RateType.CALENDAR_DAY:
             return self
 
-        calendar_day_rates = list(
-            Rates.to_calendar_day(
-                stream_day_rates=np.asarray(self.values),
-                regularity=self.regularity,
-            ),
-        )
+        calendar_day_rates = Rates.to_calendar_day(
+            stream_day_rates=np.asarray(self.values),
+            regularity=self.regularity,
+        ).tolist()
         return self.__class__(
             timesteps=self.timesteps,
             values=calendar_day_rates,
-            regularity=self.regularity,  # ignore: type
+            regularity=self.regularity,
             unit=self.unit,
             rate_type=RateType.CALENDAR_DAY,
         )
@@ -957,16 +990,14 @@ class TimeSeriesRate(TimeSeries[float]):
         if self.rate_type == RateType.STREAM_DAY:
             return self
 
-        stream_day_rates = list(
-            Rates.to_stream_day(
-                calendar_day_rates=np.asarray(self.values),
-                regularity=self.regularity,
-            ),
-        )
+        stream_day_rates = Rates.to_stream_day(
+            calendar_day_rates=np.asarray(self.values),
+            regularity=self.regularity,
+        ).tolist()
         return self.__class__(
             timesteps=self.timesteps,
             values=stream_day_rates,
-            regularity=self.regularity,  # ignore: type
+            regularity=self.regularity,
             unit=self.unit,
             rate_type=RateType.STREAM_DAY,
         )
@@ -977,13 +1008,10 @@ class TimeSeriesRate(TimeSeries[float]):
 
         Volumes are always found from calendar day rates
         """
-        volumes = list(
-            Rates.to_volumes(
-                rates=self.to_calendar_day().values,
-                time_steps=self.timesteps,
-            )
-        )
-
+        volumes = Rates.to_volumes(
+            rates=self.to_calendar_day().values,
+            time_steps=self.timesteps,
+        ).tolist()
         return TimeSeriesVolumes(timesteps=self.timesteps, values=volumes, unit=self.unit.rate_to_volume())
 
     def resample(
@@ -1008,7 +1036,7 @@ class TimeSeriesRate(TimeSeries[float]):
             TimeSeriesRate resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.copy()
+            return self.model_copy()
 
         # make resampled calendar day volumes via cumulative calendar day volumes
         calendar_day_volumes = (

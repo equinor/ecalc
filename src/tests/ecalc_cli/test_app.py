@@ -18,11 +18,6 @@ from libecalc.examples import advanced, simple
 from libecalc.fixtures.cases import ltp_export
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-
-try:
-    from pydantic.v1 import Protocol
-except ImportError:
-    from pydantic import Protocol
 from typer.testing import CliRunner
 
 runner = CliRunner()
@@ -280,7 +275,7 @@ class TestJsonOutput:
 
         run_info_actual_path = tmp_path / f"{run_name_prefix}_run_info.json"
         assert run_info_actual_path.is_file()
-        assert RunInfo.parse_file(run_info_actual_path, proto=Protocol.json)
+        assert RunInfo.model_validate_json(run_info_actual_path.read_text())
 
     @pytest.mark.snapshot
     def test_json_true_detailed_output(self, simple_yaml_path, tmp_path, snapshot):
@@ -736,7 +731,7 @@ class TestYamlFile:
         Returns:
 
         """
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(EcalcError) as exc_info:
             runner.invoke(
                 main.app,
                 _get_args(
@@ -761,7 +756,7 @@ class TestYamlFile:
         Returns:
 
         """
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(EcalcError) as exc_info:
             runner.invoke(
                 main.app,
                 _get_args(
@@ -788,7 +783,7 @@ class TestYamlFile:
         Returns:
 
         """
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(EcalcError) as exc_info:
             runner.invoke(
                 main.app,
                 _get_args(

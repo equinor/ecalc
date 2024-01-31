@@ -1,10 +1,7 @@
 import enum
 from typing import Literal, Optional, Union
 
-try:
-    from pydantic.v1 import BaseModel, Extra, Field
-except ImportError:
-    from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -47,8 +44,7 @@ class YamlPredefinedFluidModel(YamlBase):
 
 
 class YamlComposition(BaseModel):
-    class Config:
-        extra = Extra.forbid
+    model_config = ConfigDict(extra="forbid")
 
     CO2: float = 0.0
     H2O: float = 0.0

@@ -4,19 +4,18 @@ from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import BaseModel as PydanticBaseModel
-except ImportError:
-    from pydantic import BaseModel as PydanticBaseModel
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import ConfigDict
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.list.adjustment import transform_linear
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results.base import EnergyFunctionResult
+from libecalc.core.utils.array_type import PydanticNDArray
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
 
@@ -74,11 +73,11 @@ class ConsumerTabularEnergyFunction(BaseModel):
         energy_usage = self._func(variables_array_for_evaluation)
 
         return EnergyFunctionResult(
-            energy_usage=list(energy_usage),
+            energy_usage=array_to_list(energy_usage),
             energy_usage_unit=Unit.MEGA_WATT
             if self.energy_usage_type == EnergyUsageType.POWER
             else Unit.STANDARD_CUBIC_METER_PER_DAY,
-            power=list(energy_usage) if self.energy_usage_type == EnergyUsageType.POWER else None,
+            power=array_to_list(energy_usage) if self.energy_usage_type == EnergyUsageType.POWER else None,
             power_unit=Unit.MEGA_WATT if self.energy_usage_type == EnergyUsageType.POWER else None,
         )
 
@@ -100,7 +99,5 @@ class VariableExpression(PydanticBaseModel):
 
 class Variable(PydanticBaseModel):
     name: str
-    values: NDArray[np.float64]
-
-    class Config:
-        arbitrary_types_allowed = True
+    values: PydanticNDArray
+    model_config = ConfigDict(arbitrary_types_allowed=True)

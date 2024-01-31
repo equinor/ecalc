@@ -2,6 +2,7 @@ from typing import List
 
 import numpy as np
 
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.utils.rates import Rates
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
@@ -75,14 +76,14 @@ class TabulatedConsumerFunction(ConsumerFunction):
         )
         # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
         # invalid points to valid where the condition sets energy_usage to zero
-        energy_function_result.energy_usage = list(
+        energy_function_result.energy_usage = array_to_list(
             apply_condition(
                 input_array=np.asarray(energy_function_result.energy_usage),
                 condition=condition,
             )
         )
         energy_function_result.power = (
-            list(
+            array_to_list(
                 apply_condition(
                     input_array=np.asarray(energy_function_result.power),
                     condition=condition,

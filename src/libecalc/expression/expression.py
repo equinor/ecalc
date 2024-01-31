@@ -1,10 +1,16 @@
 from __future__ import annotations
 
-from typing import Dict, List, Union
+from datetime import datetime
+from typing import Any, Dict, List, Union
 
 import numpy as np
 from numpy.typing import NDArray
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler, TypeAdapter
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema, core_schema
+from pydantic_core.core_schema import ValidationInfo
 
+from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
 from libecalc.expression.expression_evaluator import (
     Operators,
@@ -19,6 +25,19 @@ RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_par
 MULTIPLICATION_TOKEN = Token(tag=TokenTag.operator, value=Operators.multiply.value)
 
 ExpressionType = Union[str, float, int]
+
+
+class InvalidExpressionError(EcalcError):
+    """
+    Invalid expression error
+    """
+
+    def __init__(self, message: str):
+        super().__init__(
+            title="Invalid expression",
+            message=message,
+            error_type=EcalcErrorType.CLIENT_ERROR,
+        )
 
 
 class Expression:
@@ -69,22 +88,80 @@ class Expression:
         expression = _expression_as_number_if_number(expression_input=expression)
 
         if not isinstance(expression, (str, float, int)):
-            raise ValueError("Expression should be of type str, int or float")
-        return lexer(expression)
+            raise InvalidExpressionError("Expression should be of type str, int or float")
+
+        try:
+            return lexer(expression)
+        except (KeyError, ValueError) as e:
+            raise InvalidExpressionError(message=str(e)) from e
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
+        # TODO[pydantic]: Why is list passed into validation and serialization? Bug: https://github.com/pydantic/pydantic/issues/7642
+        def parse_expression(x: Union[List[ExpressionType], ExpressionType], info: ValidationInfo):
+            if isinstance(x, Expression):
+                return x
+
+            if isinstance(x, dict):
+                datetime_validation_func = (
+                    TypeAdapter(datetime).validate_python
+                    if info.mode == "python"
+                    else TypeAdapter(datetime).validate_json
+                )
+                return {datetime_validation_func(key): parse_expression(value, info) for key, value in x.items()}
+
+            if isinstance(x, list):
+                return [parse_expression(v, info) for v in x]
+
+            return Expression(tokens=cls.validate(x))
+
+        # item_schema = [core_schema.int_schema(), core_schema.float_schema(), core_schema.str_schema()]
+        # list_schema = core_schema.list_schema(core_schema.union_schema(item_schema))
+        # dict_schema = core_schema.dict_schema(core_schema.str_schema(), core_schema.union_schema(item_schema))
+        from_str_schema = core_schema.chain_schema(
+            [
+                # core_schema.union_schema(
+                #    [*item_schema, list_schema, dict_schema],
+                # ),
+                core_schema.with_info_plain_validator_function(parse_expression),
+            ]
+        )
+
+        def serialize_expression(instance):
+            if isinstance(instance, list):
+                # TODO[pydantic]: Why is list passed into this? Bug: https://github.com/pydantic/pydantic/issues/7642
+                return [serialize_expression(x) for x in instance]
+            if isinstance(instance, Expression):
+                return str(instance)
+
+            raise ValueError("Wrong type")
+
+        return core_schema.json_or_python_schema(
+            json_schema=from_str_schema,
+            python_schema=core_schema.union_schema(
+                [
+                    # check if it's an instance first before doing any further work
+                    core_schema.is_instance_schema(Expression),
+                    from_str_schema,
+                ]
+            ),
+            serialization=core_schema.plain_serializer_function_ser_schema(serialize_expression),
+        )
 
     @classmethod
     def validator(cls, expression: Union[str, float, int, Expression]):
         if isinstance(expression, Expression):
             return expression
         tokens = cls.validate(expression=expression)
-        return cls(tokens=tokens)
+        instance = cls(tokens=tokens)
+        return instance
 
     def evaluate(self, variables: Dict[str, List[float]], fill_length: int) -> NDArray[np.float64]:
         missing_references = [reference_id for reference_id in self.variables if reference_id not in variables]
         if len(missing_references) != 0:
             msg = f"Unable to evaluate expression. Missing reference(s) {', '.join(missing_references)}"
             logger.error(msg)
-            raise ValueError(msg)
+            raise InvalidExpressionError(msg)
 
         tokens = [
             Token(
@@ -95,8 +172,10 @@ class Expression:
             else token
             for token in self.tokens
         ]
-
-        return eval_tokens(tokens=tokens, array_length=fill_length)
+        try:
+            return eval_tokens(tokens=tokens, array_length=fill_length)
+        except (KeyError, ValueError) as e:
+            raise InvalidExpressionError(message=str(e)) from e
 
     def __eq__(self, other):
         if not isinstance(other, Expression):
@@ -107,23 +186,15 @@ class Expression:
         return f"Expression(tokens={''.join(repr(token) for token in self.tokens)})"
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(
-            title="Expression",
-            anyOf=[
-                {"type": "integer"},
-                {"type": "number"},
-                {
-                    "type": "string",
-                    "pattern": r"^[\w * ^ . : ; () {} = > < + \- /$]+$",
-                },
-            ],
-            examples=["SIM1;OIL_PROD {+} 1000", 5],
+    def __get_pydantic_json_schema__(
+        cls, _core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        # TODO: missing pattern, removed when migrating to pydantic v2
+        return handler(
+            core_schema.union_schema(
+                [core_schema.int_schema(), core_schema.float_schema(), core_schema.str_schema()],
+            )
         )
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validator
 
 
 def _expression_as_number_if_number(expression_input: ExpressionType) -> ExpressionType:

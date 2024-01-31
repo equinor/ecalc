@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
@@ -33,9 +34,10 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
     )
 
     if len(duplicated_fuel_names) > 0:
-        raise ValueError(
-            "Fuel type names must be unique across installations."
-            f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
+        raise EcalcError(
+            title="Duplicate names",
+            message="Fuel type names must be unique across installations."
+            f" Duplicated names are: {', '.join(duplicated_fuel_names)}",
         )
 
     fuel_types_emissions = [list(fuel_data[EcalcYamlKeywords.emissions]) for fuel_data in configuration.fuel_types]
@@ -48,8 +50,10 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
     duplicated_emissions_names = ",".join(name for string in duplicated_emissions for name in string if len(string) > 0)
 
     if len(duplicated_emissions_names) > 0:
-        raise ValueError(
-            "Emission names must be unique for each fuel type." f" Duplicated names are: {duplicated_emissions_names}"
+        raise EcalcError(
+            title="Duplicate names",
+            message="Emission names must be unique for each fuel type. "
+            f"Duplicated names are: {duplicated_emissions_names}",
         )
 
     fuel_types = {
@@ -103,9 +107,10 @@ def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
                             if key == EcalcYamlKeywords.type and value not in energy_models:
                                 energy_models.append(value)
             if len(energy_models) > 1:
-                raise ValueError(
-                    "Energy model type cannot change over time within a single consumer."
-                    f" The model type is changed for {consumer[EcalcYamlKeywords.name]}: {energy_models}"
+                raise EcalcError(
+                    title="Invalid model",
+                    message="Energy model type cannot change over time within a single consumer."
+                    f" The model type is changed for {consumer[EcalcYamlKeywords.name]}: {energy_models}",
                 )
 
 
@@ -118,7 +123,10 @@ def create_model_references(models_yaml_config, facility_inputs: Dict, resources
     for model in sorted_models:
         model_reference = model.get(EcalcYamlKeywords.name)
         if model_reference in models_map:
-            raise ValueError("Duplicated references not supported.")
+            raise EcalcError(
+                title="Duplicate reference",
+                message=f"The model '{model_reference}' is defined multiple times",
+            )
         models_map[model_reference] = model_mapper.from_yaml_to_dto(model, models_map)
 
     return models_map
@@ -147,7 +155,7 @@ def _model_parsing_order(model) -> int:
     except KeyError as e:
         msg = f"Unknown model type {model_type}"
         logger.exception(msg + f": {e}")
-        raise ValueError(msg) from e
+        raise EcalcError(title="Invalid model", message=msg) from e
 
 
 def _sort_models(models):

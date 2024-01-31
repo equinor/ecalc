@@ -5,11 +5,7 @@ from typing import List, Literal, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
-
-try:
-    from pydantic.v1 import BaseModel
-except ImportError:
-    from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
@@ -59,10 +55,7 @@ class CompressorResult(ConsumerSystemComponentResult):
 
 class ConsumerSystemOperationalSettingResult(BaseModel):
     consumer_results: List[ConsumerSystemComponentResult]
-
-    class Config:
-        allow_mutation = False
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(frozen=True)
 
     @property
     def total_energy_usage(self) -> NDArray[np.float64]:
@@ -123,7 +116,7 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
     consumer_results: List[List[ConsumerSystemComponentResult]]
     cross_over_used: Optional[
         NDArray[np.float64]
-    ]  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
+    ] = None  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
 
     def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
         if not isinstance(self, type(other)):

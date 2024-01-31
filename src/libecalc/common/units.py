@@ -8,25 +8,46 @@ from typing import Callable, Dict, TypeVar, Union
 import numpy as np
 from numpy.typing import NDArray
 
-try:
-    from pydantic.v1.validators import enum_validator
-except ImportError:
-    from pydantic.validators import enum_validator
-
 from libecalc.common.logger import logger
 
 TInput = TypeVar("TInput", bound=Union[int, float, NDArray[np.float64], list])
 
 
 def _type_handler(unit_func: Callable[[TInput], TInput]) -> Callable[[TInput], TInput]:
-    # TODO: Document this function
+    """
+    Receives a unit conversion function and registers a list specific override so that the resulting unit
+    function can handle conversion of both lists and single items.
+
+    Args:
+        unit_func: the unit conversion function
+
+    Returns: a unit conversion function that can handle both lists and single items
+
+    """
+
     @singledispatch
     def func(i: TInput) -> Callable[[TInput], TInput]:
+        """
+        Apply unit_func to a single item
+        Args:
+            i: the single item that should be converted
+
+        Returns:
+
+        """
         return unit_func(i)
 
     @func.register  # type: ignore
     def _(i: list) -> TInput:
-        return list(unit_func(np.asarray(i, dtype=(type(i)))))  # type: ignore
+        """
+        List specific override. The type of the first parameter is used to decide which function to use.
+        Args:
+            i: list of items that should be converted
+
+        Returns:
+
+        """
+        return unit_func(np.asarray(i, dtype=(type(i)))).tolist()  # type: ignore
 
     return func
 
@@ -92,19 +113,6 @@ class Unit(str, Enum):
 
     def __str__(self) -> str:
         return self.value
-
-    @classmethod
-    def validator(cls, unit: Union[str, Unit]) -> Unit:
-        if isinstance(unit, str):
-            return Unit(unit)
-        return unit
-
-    @classmethod
-    def __get_validators__(cls):
-        # convert list to tuple before using default enum validator. Fixes problem with this unit being read as
-        # list from json
-        yield cls.validator
-        yield enum_validator
 
     @staticmethod
     def _unit_registry() -> Dict[Unit, Dict[Unit, Callable]]:

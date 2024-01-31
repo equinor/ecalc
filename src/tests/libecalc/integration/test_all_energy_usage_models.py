@@ -28,4 +28,5 @@ def result(all_energy_usage_models_dto) -> EnergyCalculatorResult:
 @pytest.mark.snapshot
 def test_all_results(result, rounded_snapshot):
     snapshot_name = "all_energy_usage_models_v3.json"
-    rounded_snapshot(data=result.dict(), snapshot_name=snapshot_name)
+    data = result.model_dump()
+    rounded_snapshot(data=data, snapshot_name=snapshot_name)
