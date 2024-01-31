@@ -731,7 +731,7 @@ class TestYamlFile:
         Returns:
 
         """
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(EcalcError) as exc_info:
             runner.invoke(
                 main.app,
                 _get_args(
@@ -756,7 +756,7 @@ class TestYamlFile:
         Returns:
 
         """
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(EcalcError) as exc_info:
             runner.invoke(
                 main.app,
                 _get_args(
@@ -783,7 +783,7 @@ class TestYamlFile:
         Returns:
 
         """
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(EcalcError) as exc_info:
             runner.invoke(
                 main.app,
                 _get_args(
