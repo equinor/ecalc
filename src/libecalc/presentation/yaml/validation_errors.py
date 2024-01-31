@@ -115,24 +115,40 @@ class DtoValidationError(DataValidationError):
     """
 
     def __init__(
-        self, data: Optional[Union[Dict[str, Any], YamlDict]], validation_error: PydanticValidationError, **kwargs
+        self,
+        data: Optional[Union[Dict[str, Any], YamlDict]],
+        validation_error: PydanticValidationError,
+        component_name: Optional[str],
+        **kwargs,
     ):
+        name = component_name if component_name is not None else data.get(EcalcYamlKeywords.name)
+        message_title = f"\nComponent name: {name}:"
+
         errors = validation_error.errors()
 
-        messages = []
+        messages = [message_title]
+        error_names = []
         error_locs = []
         try:
+            # error_names = [err["loc"][0] for err in errors]
+            # error_messages = [err["msg"] for err in errors]
+
             for error in errors:
-                error_loc = error["loc"]
-                error_locs.append(error_loc)
-                error_message = error["msg"]
-                error_location_info = " -> ".join(
-                    [str(s).capitalize().replace("__root__", "General error").replace("_", " ") for s in error_loc]
-                )
-                if data is not None and (component_name := data.get(EcalcYamlKeywords.name)):
-                    messages.append(f"{component_name} - {error_location_info}:\n\t{error_message}\n")
+                error_name = error["loc"][0]
+                error_names.append(error_name)
+                error_locs.append(error["loc"])
+
+                if error["msg"] == "Extra inputs are not permitted":
+                    error_message = "This is not a valid keyword"
                 else:
-                    messages.append(f"{error_location_info}:\n\t{error_message}\n")
+                    error_message = error["msg"]
+
+                error_location_info = error_name.upper().replace("__root__", "General error")
+
+                if data is not None:
+                    messages.append(f"{error_location_info}:\t{error_message}")
+                else:
+                    messages.append(f"{error_location_info}:\t{error_message}")
         except Exception as e:
             logger.debug(f"Failed to add location specific error messages: {str(e)}")
 
