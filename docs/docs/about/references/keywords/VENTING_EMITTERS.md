@@ -1,6 +1,7 @@
 # VENTING_EMITTERS
 
-<span className="major-change-new-feature"> New definition of VENTING_EMITTERS from eCalc v8.8!
+<span className="major-change-new-feature"> 
+New definition of VENTING_EMITTERS from eCalc v8.8!
 </span> 
 <br></br>
 

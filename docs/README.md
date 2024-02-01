@@ -1,6 +1,6 @@
 # Get started
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+This website is built using [Docusaurus 3](https://docusaurus.io/), a modern static website generator.
 
 In order to edit the docs you need either [NodeJS (recommended)](https://nodejs.org/en/download/) together with
 the package manager [npm]. See [local development](#local-development) for details on how to get started with local development.

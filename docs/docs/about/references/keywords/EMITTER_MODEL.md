@@ -1,5 +1,6 @@
 # EMITTER_MODEL
-<span className="major-change-deprecation"> Deprecated from eCalc v8.8 (replaced by <strong>EMISSION</strong>).
+<span className="major-change-deprecation"> 
+Deprecated from eCalc v8.8 (replaced by <strong>EMISSION</strong>).
 </span>
 <br></br>
 
