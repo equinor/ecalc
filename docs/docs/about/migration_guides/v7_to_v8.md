@@ -138,7 +138,7 @@ CATEGORY:
   2030-01-01: POWER-FROM-SHORE
 ```
 
-See [Power from shore](../modelling/setup/facility_inputs/generator_modelling.md#power-from-shore) for more information.
+See [Power from shore](../modelling/setup/installations/generator_sets_in_calculations.md#power-from-shore) for more information.
 :::
 
 #### 2. UNITS for pump and compressor charts

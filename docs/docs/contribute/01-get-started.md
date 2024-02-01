@@ -17,7 +17,7 @@ You can start by looking through the [GitHub Issues](https://github.com/equinor/
 :::info
 We follow some contributor guidelines that you will find in our [contributor guidelines](#guidelines).
 
-Don't worry if your contribution does not follow all the guidelines. We will guide you in the [code review process](#3-get-code-review).
+Don't worry if your contribution does not follow all the guidelines. We will guide you in the [code review process](#get-code-review).
 The threshold for contributing is low, and we appreciate any contribution great or small. 🙏
 :::
 
@@ -37,10 +37,10 @@ to explain the change without referring to an issue.
 ### Make a Pull Request
 To contribute to the project, you will have to make the change and create a Pull Request on GitHub. How you do this depends on your role.
 
-1. Equinor internal contributors, you may open a [Pull Request directly](guides/git#pull-requests---internal-contributors),
-2. Independent contributors, you will [Fork the repository](guides/git#fork-the-repository---independent-contributors).
+1. Equinor internal contributors, you may open a [Pull Request directly](guides/git#pull-requests),
+2. Independent contributors, you will [Fork the repository](guides/git#fork-the-repository).
 
-### Get code review
+### Get code review {#get-code-review}
 Once a Pull Request has been made, we will give you feedback and maybe suggest changes.
 
 The core team looks at pull requests on a regular basis, we review the code and guide you if needed.

@@ -356,7 +356,7 @@ rate distributions between these two compressor trains. It will first send all r
 and nothing to the second `RATE_FRACTIONS: [1.0, 0.0]` and then it will run the same input while distributing equal
 rates to the two compressor trains `RATE_FRACTIONS: [0.5, 0.5]`. The final result will be composed of the first
 setting that returns a valid result for the compressors.
-See [COMPRESSOR_SYSTEM](/about/references/keywords/ENERGY_USAGE_MODEL.md#compressor-system) for further details.
+See [COMPRESSOR_SYSTEM](/about/modelling/setup/installations/compressor_models_in_calculations/compressor_system.md) for further details.
 
 The model compressor model is defined:
 ~~~~~~~~yaml
@@ -386,7 +386,7 @@ This is when the water injection rate is positive. Fluid density, suction pressu
 is also defined.
 
 This PUMP_SYSTEM behaves much the same as the COMPRESSOR_SYSTEM above.
-See [PUMP_SYSTEM](/about/references/keywords/ENERGY_USAGE_MODEL.md#pump-system) for further details.
+See [PUMP_SYSTEM](/about/modelling/setup/installations/pump_models_in_calculations.md#pump_system-energy-usage-model) for further details.
 
 ~~~~~~~~yaml
           - NAME: Water injection pump system A
