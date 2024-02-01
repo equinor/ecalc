@@ -4,6 +4,7 @@ from typing import Dict, Optional, Union
 from pydantic import ValidationError
 
 from libecalc import dto
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.base import ComponentType
@@ -265,6 +266,13 @@ class InstallationMapper:
             for fuel_consumer in data.get(EcalcYamlKeywords.fuel_consumers, [])
         ]
 
+        if not fuel_consumers and not generator_sets:
+            raise EcalcError(
+                title="Keywords are missing",
+                message=f"It is required to specify at least one of the two keywords "
+                f"{EcalcYamlKeywords.fuel_consumers} or {EcalcYamlKeywords.generator_sets} "
+                f"in the model.",
+            )
         venting_emitters = []
         for venting_emitter in data.get(EcalcYamlKeywords.installation_venting_emitters, []):
             try:

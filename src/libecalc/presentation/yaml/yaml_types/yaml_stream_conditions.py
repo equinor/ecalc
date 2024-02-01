@@ -25,6 +25,18 @@ class YamlRate(YamlTimeSeries):
         return RateType.STREAM_DAY if value is None else value
 
 
+class YamlEmissionRate(YamlTimeSeries):
+    model_config = ConfigDict(title="Rate")
+
+    unit: Unit = Unit.KILO_PER_DAY
+    type: RateType = RateType.STREAM_DAY
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def rate_type_validator(cls, value):
+        return RateType.STREAM_DAY if value is None else value
+
+
 class YamlPressure(YamlTimeSeries):
     model_config = ConfigDict(title="Pressure")
 
