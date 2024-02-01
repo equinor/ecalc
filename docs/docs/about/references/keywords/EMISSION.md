@@ -1,7 +1,8 @@
 # EMISSION
-<span className="major-change-new-feature"> New keyword from eCalc v8.8!
+<span className="major-change-new-feature"> 
+New keyword from eCalc v8.8!
 </span> 
-<br></br>
+<br/>
 
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) /
 [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md)

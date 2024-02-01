@@ -1,8 +1,7 @@
 # DIRECT_EMITTERS
-<span className="major-change-deprecation"> Deprecated from eCalc v8.7 (changed name to <strong>VENTING_EMITTERS</strong>).
+<span className="major-change-deprecation"> 
+Deprecated from eCalc v8.7 (changed name to <strong>VENTING_EMITTERS</strong>).
 </span>
-&nbsp;
-
 
 
 [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) / 

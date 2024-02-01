@@ -22,7 +22,7 @@ There are four categories of data that can be used here:
 - Other energy consuming equipment modeled variable w.r.t. reservoir management
   (tabulated relationship between variables and consumption)
 
-eCalc™ supports making simple adjustments to a table by using the [ADJUSTMENT](/about/references/keywords/ADJUSTMENT.mdx)
+eCalc™ supports making simple adjustments to a table by using the [ADJUSTMENT](/about/references/keywords/ADJUSTMENT.md)
 keyword as well as modification of the [HEAD_MARGIN](/about/references/keywords/HEAD_MARGIN.md)
 which can be used while calibrating pump charts.
 
