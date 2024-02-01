@@ -17,7 +17,7 @@ In the future, eCalc™ will most likely offer modelling of single generators th
 Electricity to fuel is a table specifying the relationship between electrical load
 and fuel consumption for an entire generator set. This means that if you have several generators,
 this table needs to include a "jump" every time a new generator is started. An example of this
-is shown [below](#Table-example).
+is shown [below](#table-example).
 
 Under [FACILITY_INPUTS](/about/modelling/setup/facility_inputs/index.md), this electricity to fuel table is specified using the keyword [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md)
 
@@ -30,7 +30,7 @@ FACILITY_INPUTS:
     TYPE: ELECTRICITY2FUEL
 ~~~~
 
-### Example table
+### Example table {#table-example}
 The table for this curve would look like:
 
 ~~~~~~~~text
