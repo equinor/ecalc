@@ -15,7 +15,9 @@ const config: Config = {
   url: 'https://equinor.github.io',
   baseUrl: baseUrl,
   onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
   onBrokenMarkdownLinks: 'throw',
+  onDuplicateRoutes: 'throw',
   favicon: 'img/favicon.svg',
 
   // GitHub pages deployment config.
