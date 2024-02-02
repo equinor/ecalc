@@ -16,14 +16,16 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingEmission,
     YamlVentingEmitter,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRate,
+)
 from pydantic import ValidationError
 
 
 class TestCategories:
     def test_venting_emitter_categories(self):
         emission = YamlVentingEmission(
-            name="CH4", rate=YamlRate(value=4, type=RateType.STREAM_DAY, unit=Unit.KILO_PER_DAY)
+            name="CH4", rate=YamlEmissionRate(value=4, type=RateType.STREAM_DAY, unit=Unit.KILO_PER_DAY)
         )
 
         # Check that illegal category raises error
