@@ -36,6 +36,16 @@ class YamlEmissionRate(YamlTimeSeries):
     def rate_type_validator(cls, value):
         return RateType.STREAM_DAY if value is None else value
 
+    @field_validator("unit", mode="before")
+    @classmethod
+    def unit_validator(cls, value):
+        valid_units = [Unit.KILO_PER_DAY, Unit.TONS_PER_DAY]
+        if value not in valid_units:
+            raise ValueError(
+                f"{value} is not a valid input unit for emissions. Valid units are [{', '.join(valid_units)}]."
+            )
+        return RateType.STREAM_DAY if value is None else value
+
 
 class YamlPressure(YamlTimeSeries):
     model_config = ConfigDict(title="Pressure")

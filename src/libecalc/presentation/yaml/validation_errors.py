@@ -130,15 +130,12 @@ class DtoValidationError(DataValidationError):
         error_names = []
         error_locs = []
         try:
-            # error_names = [err["loc"][0] for err in errors]
-            # error_messages = [err["msg"] for err in errors]
-
             for error in errors:
                 error_name = error["loc"][0]
                 error_names.append(error_name)
                 error_locs.append(error["loc"])
 
-                if error["msg"] == "Extra inputs are not permitted":
+                if error["type"] == "extra_forbidden":
                     error_message = "This is not a valid keyword"
                 else:
                     error_message = error["msg"]
