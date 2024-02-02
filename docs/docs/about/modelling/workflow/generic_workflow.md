@@ -22,6 +22,8 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
           ide1_D[Gas Injected];
           ide1_E[Water Injected];
       end
+      
+      
       subgraph ide2 ["`**Facility Information Needed**`"]
 
           ide2_A[[Power Generation System]] --> ide2_A_1([Gas Turbines]);
