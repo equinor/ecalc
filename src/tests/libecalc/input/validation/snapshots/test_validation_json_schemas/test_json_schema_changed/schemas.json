@@ -1130,6 +1130,46 @@
                     "title": "Emission",
                     "type": "object"
                 },
+                "YamlEmissionRate": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "TYPE": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/RateType"
+                                }
+                            ],
+                            "default": "STREAM_DAY"
+                        },
+                        "UNIT": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/$defs/Unit"
+                                }
+                            ],
+                            "default": "kg/d"
+                        },
+                        "VALUE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "title": "Value"
+                        }
+                    },
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "Rate",
+                    "type": "object"
+                },
                 "YamlEnergyUsageModelCompressor": {
                     "additionalProperties": false,
                     "properties": {
@@ -4003,7 +4043,7 @@
                         "RATE": {
                             "allOf": [
                                 {
-                                    "$ref": "#/$defs/YamlRate"
+                                    "$ref": "#/$defs/YamlEmissionRate"
                                 }
                             ],
                             "description": "The emission rate",
