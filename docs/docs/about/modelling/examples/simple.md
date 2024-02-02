@@ -153,7 +153,7 @@ We reference the [TIME_SERIES](#time_series) `SIM` using the column names from t
 
 :::tip
 It is possible to specify if-else conditions by multiplying with boolean values.
-This has been done in the $var.salt_water_injection_rate_m3_per_day variable example above.
+This has been done in the $var.sea_water_injection_rate_m3_per_day variable example above.
 :::
 
 ## INSTALLATION
@@ -413,7 +413,7 @@ INSTALLATIONS:
               ENERGYFUNCTION: pump_sampled
               VARIABLES:
                 - NAME: RATE
-                  EXPRESSION: $var.salt_water_injection_rate_m3_per_day
+                  EXPRESSION: $var.sea_water_injection_rate_m3_per_day
     FUELCONSUMERS:
       - NAME: Flare
         CATEGORY: FLARE
