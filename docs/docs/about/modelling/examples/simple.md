@@ -421,9 +421,9 @@ INSTALLATIONS:
           TYPE: DIRECT
           FUELRATE: $var.flare_fuel_rate_sm3_day
       - NAME: Gas export compressor
-        CATEGORY: COMPRESSOR
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
         ENERGY_USAGE_MODEL:
-          TYPE: GAS-DRIVEN-COMPRESSOR
+          TYPE: COMPRESSOR
           ENERGYFUNCTION: compressor_with_turbine_sampled
           RATE: $var.gas_export_rate_sm3_per_day
           SUCTION_PRESSURE: 50 #not used but a number is needed for eCalc
