@@ -4,7 +4,6 @@ import type * as Preset from '@docusaurus/preset-classic';
 import {themes as prismThemes} from 'prism-react-renderer';
 import math from 'remark-math';
 import katex from 'rehype-katex';
-import mdxMermaid from 'mdx-mermaid';
 import localSearch from '@easyops-cn/docusaurus-search-local';
 
 const baseUrl = "/ecalc"
@@ -25,6 +24,10 @@ const config: Config = {
   projectName: 'ecalc',
   deploymentBranch: 'gh-pages',
 
+  markdown: {
+    mermaid: true,
+  },
+
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
   // to replace "en" with "zh-Hans".
@@ -41,7 +44,7 @@ const config: Config = {
           sidebarPath: './sidebars.js',
           editUrl:
             'https://github.com/equinor/ecalc/tree/main/documentation/',
-          remarkPlugins: [mdxMermaid, math],
+          remarkPlugins: [math],
           rehypePlugins: [katex],
         },
         blog: false,
@@ -131,6 +134,7 @@ const config: Config = {
   ],
   themes: [
     // ... Your other themes.
+    '@docusaurus/theme-mermaid',
     [
       localSearch,
       ({
