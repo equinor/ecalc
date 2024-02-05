@@ -34,10 +34,12 @@ class YamlTimeseriesResource:
 @dataclass
 class ResourceStream:
     name: str
-    stream: TextIO
+    stream: Union[TextIO, str]
 
     # Implement read to make resource behave as a stream.
     def read(self, *args, **kwargs):
+        if isinstance(self.stream, str):
+            return self.stream
         return self.stream.read(*args, **kwargs)
 
 
