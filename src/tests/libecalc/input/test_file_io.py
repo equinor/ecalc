@@ -269,7 +269,7 @@ class TestReadYaml:
         )
 
         dump_yaml = PyYamlYamlModel.dump_and_load_yaml(main_yaml=main_yaml, resources=resources)
-        assert dump_yaml == yaml_resource.read()
+        assert dump_yaml == yaml_resource.stream.getvalue()
 
 
 def valid_ecalc_file(
