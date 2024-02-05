@@ -811,7 +811,7 @@ class TimeSeriesRate(TimeSeries[float]):
     rate_type: RateType
     regularity: List[float]
 
-    @field_validator("values", mode="before")
+    @field_validator("values", "regularity", mode="before")
     @classmethod
     def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
         if isinstance(v, list):
