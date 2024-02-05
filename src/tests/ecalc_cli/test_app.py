@@ -710,8 +710,7 @@ class TestYamlFile:
 
         yaml_wrong_name = (Path("test.name.yaml")).absolute()
         yaml_reader = PyYamlYamlModel.YamlReader(loader=yaml.SafeLoader)
-        stream = StringIO("")
-        yaml_stream = ResourceStream(name=yaml_wrong_name.name, stream=stream)
+        yaml_stream = ResourceStream(name=yaml_wrong_name.name, stream="")
 
         with pytest.raises(EcalcError) as ee:
             yaml_reader.load(yaml_file=yaml_stream)
