@@ -13,13 +13,20 @@ In addition, a [FLUID MODEL](/about/modelling/setup/models/fluid_model.md) must 
 
 **Control mechanisms**
 
-The variable speed comporessor train model has the following automatic control mechanisms:
+The variable speed compressor train model has a set of automatic control mechanisms. The figure below shows several operational points (rate/head) outside a variable speed compressor chart.
 
-- **Antisurge control:** When the flowrate is too low, given the suction and discharge pressures, eCalc will use automatic anti-surge control. The use of the anti-surge valve (ASV) is mimicked by increasing the total flow through the compressor, until the head is at the surge line (minimum flow curve) of the compressor chart.
-- **Speed increase below minimum speed:** If a rate/head point is below the compressor chart (below minimum speed), the speed is automatically increased to the minimum speed curve.
-- **Stonewall speed increase:** When the flowrate is too high, given the suction and discharge pressures, eCalc will automatically increase the speed to meet the stonewall (maximum flow line) of the compressor chart. To achieve the requested discharge pressure, the outlet stream is choked. This control mechanism can be turned off, for cases where a downstream choke valve does not exist.
+![](control_mechanisms_variable_speed_compressor_chart.png)
 
-![](control_mech_variable_speed.PNG)
+The points will be treated as follows:
+
+1. Points with head above the maximum head on the maximum speed curve will be out of capacity.
+1. Points with head below the minimum head on the minimum speed curve will be out of capacity.
+1. Points below the stone wall will be out of capacity.
+1. Points above the maximum speed curve will be out of capacity.
+1. Points where the flow is below the minimum flow at the minimum speed curve will be moved to the minimum speed curve by increasing the rate using the ASV of the compressor.
+1. Points where the flow is below the surge line of the compressor will be moved to the surge line of the compressor by increasing the rate using the ASV of the compressor.
+
+
 **Format**
 
 The model is defined under the main keyword [MODELS](/about/references/keywords/MODELS.md) in the format
