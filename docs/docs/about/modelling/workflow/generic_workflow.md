@@ -41,19 +41,21 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
           ide2_D_1_1 -->ide2_D_2
           ide2_D_2 --> ide2_D_3(["`Discharge Pressure per compressor`"]);
           ide2_D_3 --> ide2_D_4(["`Suction Temperature per compressor`"]);
-          ide2_C[["Constant Power Loads"]] --> ide2_C_1(["`Base Load`"]);
+          ide2_C[["Typical Constant Power Loads"]] --> ide2_C_1(["`Base Load`"]);
           ide2_C_1 --> ide2_C_2(["`Oil Export Pumps`"]);
           ide2_C_2 --> ide2_C_3(["`Gas Recompressor`"])
     
           ide2_E[[Additional Emissions]] --> ide2_E_1([Flaring]);
           ide2_E_1 --> ide2_E_2(["`Electrical Submersible Pumps (ESP)`"])
-          ide2_E_2 --> ide2_E_3(["`Drilling rigs`"])
+          ide2_E_2 --> ide2_E_3(["`Drilling rigs/Diesel motors`"])
+          ide2_E_3 --> ide2_E_4(["`Fugitives/Venting`"])
+          ide2_E_4 --> ide2_E_5(["`Diesel motor`"])
       
       end
 
       subgraph ide3 ["Consumer Data Needed"]
 
-          ide3_A[[Generator Set]]--> ide3_A_1(["`Fuel vs Power relationship. Linear lines relating fuel and power`"]);
+          ide3_A[[Generator Set]]--> ide3_A_1(["`Fuel vs Power relationship. Lines relating fuel and power`"]);
           ide3_A_1 --> ide3_A_2(["`Generating switching. At max capacity of the generator, impose another generate on the existing`"]);
     
           ide3_B[[Compressors]] --> ide3_B_1(["`Variable/single speed drive`"]);
@@ -88,7 +90,7 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 
       subgraph ide5 ["Calibration"]
 
-          ide5_A["`Calibration`"] --> ide5_A_1(["`Compare measured power against eCalc power`"]) ;
+          ide5_A["`Calibration`"] --> ide5_A_1(["`Compare measured power/fuel against eCalc power/fuel`"]) ;
           ide5_A_1 --> ide5_A_2{"`Do they correlate`"}
           ide5_A_2 -. yes .-> ide5_A_3_1{"`Are all points valid?`"};
           ide5_A_3_1 -. yes .-> ide5_A_3_2(["`No further calibration needed`"])
@@ -109,20 +111,20 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 
 ### Required Subsurface Profiles
 
-All subsurface profiles must be in Sm<sup>3</sup>/day. This data must be inputted as a `TIME-SERIES` and references to how it is used in the facility or by a relevant consumer.
+All subsurface profiles must be in calendar day rate Sm<sup>3</sup>/day and with its PE ([REGULARITY](../../references/keywords/REGULARITY.md)). This data must be inputted as a `TIME-SERIES` and references to how it is used in the facility or by a relevant consumer.
 
 ### Facility Information
 
 #### Constant Power Loads
 
-To simplify certain models, there are some common assumptions made. Here are some examples:
+To simplify certain models, there could be some common assumptions made. Here are some examples:
 
 - **Base Load**: As eCalc™ is not simulating the whole facility there are often energy consumers that are not modelled. 
-Typically these energy consumers relate to things such as the energy consumption of living quarters and are often constant loads.
+Typically these energy consumers, related to things such as the energy consumption of living quarters and direct energy consumers dependent on there being production/injection, are often constant loads.
 These smaller constant loads are then grouped into a larger term, called the "baseload". This is assumed to be constant and independent of the production rate of the facility.
 - **Recompressor**: The main function of a recompressor is to compressor gas from separator pressures back up to the inlet separator pressure.
-These compressors are often smaller and have little fluctuation in their load.
-Thus, to simplify modelling, these recompressors are often modelled as constant loads. And at times, are included within the facility's base load
+If this compressor is small and has little fluctuation in its load, or its processed gas rate and composition are unknown,
+thus, to simplify modelling, this recompressor could be modelled as a constant load. And at times, is included within the facility's base load
 - **Oil Export Pumps**: As eCalc™ does not model oil pumps, these are often modelled as constant loads or modelled with a table (that relates oil rate to power consumption). The method in which they are modelled depends from facility to facility 
 
 #### Additional Information
@@ -147,12 +149,14 @@ The generic compressor curves, use the assumption of constant polytropic efficie
 
 ### Validation
 
-Checking whether an eCalc™ model is valid or not, is an essential task. If a model is not valid, this means that input requirements set by the user are not being fulfilled, or that some consumers are giving unrealistic solutions.
+Before running an eCalc™ model, checking whether the eCalc™ model is valid or not is an essential task. If a model is not valid, this means that input requirements set by the user are not being fulfilled, or that some consumers are giving unrealistic solutions. 
 
-Validity can be checked by consumer, and there are often specific reasons why certain consumers are invalid. For example:
+Validity can be checked by consumers, and there are often specific reasons why certain consumers are invalid. Therefore, it requires engineers not only to understand the validation of operation points (history data) from consumers, but also to know the specific limits of compressor or pump charts. The charts of consumers should fit their operation points. For example:
 
 - **Compressors and Pumps**: It is common that either too high a head or rate value is specified. This means that the invalid point is outside the limits of the performance chart. To determine the issue, it is recommended that the operational points (Head, and actual flowrate) are plotted together with the chart.
 - **Generator Set**: The most common issue here is that the amount of power required is higher than the maximum value in the utilised genset. 
+
+Before any chart adjustments are made, engineers should first verify who provide the input that the adjustments make sense. 
 
 ### Calibration
 
