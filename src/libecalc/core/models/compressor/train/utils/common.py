@@ -10,6 +10,7 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
 OUTLET_PRESSURE_CONVERGENCE_TOLERANCE = 1e-2
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
+RATE_CALCULATION_TOLERANCE = 1e-3
 
 
 def calculate_asv_corrected_rate(

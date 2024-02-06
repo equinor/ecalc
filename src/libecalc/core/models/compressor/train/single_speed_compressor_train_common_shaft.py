@@ -941,7 +941,11 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 maximum_number_of_iterations=20,
             )
             compressor_train_result = _calculate_train_result(mass_rate=result_mass_rate)
-            return compressor_train_result.mass_rate_kg_per_hour
+            return self._check_maximum_rate_against_maximum_power(
+                maximum_mass_rate=compressor_train_result.mass_rate_kg_per_hour,
+                suction_pressure=inlet_stream.pressure_bara,
+                discharge_pressure=target_discharge_pressure,
+            )
 
         # If solution not found along max speed curve, run at max_mass_rate, but using the defined pressure control.
         elif self.data_transfer_object.pressure_control is not None:
@@ -950,7 +954,11 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 suction_pressure=np.asarray([inlet_stream.pressure_bara]),
                 discharge_pressure=np.asarray([target_discharge_pressure]),
             )[0].is_valid:
-                return max_mass_rate
+                return self._check_maximum_rate_against_maximum_power(
+                    maximum_mass_rate=max_mass_rate,
+                    suction_pressure=inlet_stream.pressure_bara,
+                    discharge_pressure=target_discharge_pressure,
+                )
 
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
         elif result_max_mass_rate.discharge_pressure > target_discharge_pressure:
@@ -959,6 +967,32 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         msg = "You should not end up here. Please contact eCalc support."
         logger.exception(msg)
         raise IllegalStateException(msg)
+
+    def _check_maximum_rate_against_maximum_power(
+        self, maximum_mass_rate: float, suction_pressure: float, discharge_pressure: float
+    ) -> float:
+        """Check if the maximum_rate, suction and discharge pressure power requirement exceeds a potential maximum power
+
+        Args:
+            maximum_rate:  Found maximum mass rate for the train (at given suction and discharge pressure)
+            suction_pressure: Suction pressure for the train
+            discharge_pressure: Discharge pressure for the train
+
+        Returns:
+            Maximum rate constrained by maximum power (set to 0 if required power > maximum power)
+        """
+        if self.data_transfer_object.maximum_power:
+            if (
+                self._evaluate_rate_ps_pd(
+                    rate=np.asarray([self.fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=maximum_mass_rate)]),
+                    suction_pressure=np.asarray([suction_pressure]),
+                    discharge_pressure=np.asarray([suction_pressure]),
+                )[0].power_megawatt
+                > self.data_transfer_object.maximum_power
+            ):
+                return 0.0
+
+        return maximum_mass_rate
 
 
 def calculate_single_speed_compressor_stage_given_target_discharge_pressure(

@@ -20,7 +20,9 @@ from libecalc.core.models.compressor.train.single_speed_compressor_train_common_
 )
 from libecalc.core.models.compressor.train.stage import CompressorTrainStage
 from libecalc.core.models.compressor.train.utils.common import (
+    POWER_CALCULATION_TOLERANCE,
     PRESSURE_CALCULATION_TOLERANCE,
+    RATE_CALCULATION_TOLERANCE,
 )
 from libecalc.core.models.compressor.train.utils.numeric_methods import (
     find_root,
@@ -138,9 +140,23 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 speed=_speed,
             )
 
-        train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=self.minimum_speed)
+        minimum_speed = self.minimum_speed
+        train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
         train_result_for_maximum_speed = _calculate_train_result_given_rate_ps_speed(_speed=self.maximum_speed)
 
+        if not train_result_for_maximum_speed.is_valid:
+            # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
+            return train_result_for_maximum_speed
+        if not train_result_for_minimum_speed.is_valid:
+            # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
+            minimum_speed = -maximize_x_given_boolean_condition_function(
+                x_min=-self.maximum_speed,
+                x_max=-self.minimum_speed,
+                bool_func=lambda x: _calculate_train_result_given_rate_ps_speed(_speed=-x).is_valid,
+            )
+            train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
+
+        # Solution 1, iterate on speed until target discharge pressure is found
         if (
             train_result_for_minimum_speed.discharge_pressure
             <= target_discharge_pressure
@@ -155,11 +171,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
             return _calculate_train_result_given_rate_ps_speed(_speed=speed)
 
-        # Or target pressure is too low:
+        # Solution 2, target pressure is too low:
         if target_discharge_pressure < train_result_for_minimum_speed.discharge_pressure:
             if self.pressure_control:
                 return self.calculate_compressor_train_given_rate_ps_pd_speed(
-                    speed=self.minimum_speed,
+                    speed=minimum_speed,
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                     inlet_pressure=suction_pressure,
                     outlet_pressure=target_discharge_pressure,
@@ -168,6 +184,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
             )
             return train_result_for_minimum_speed
+
+        # Solution 3, target discharge pressure is too high
         train_result_for_maximum_speed.failure_status = (
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
         )
@@ -439,8 +457,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 relative_convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
-            compressor_train_result = _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=result_mass_rate)
-            return compressor_train_result.stage_results[0].inlet_actual_rate_m3_per_hour * inlet_stream.density
+            rate_to_return = result_mass_rate * (1 - RATE_CALCULATION_TOLERANCE)
 
         # Solution 3: If solution not found along max speed curve,
         # run at max_mass_rate, but using the defined pressure control.
@@ -453,45 +470,86 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 mass_rate_kg_per_hour=max_mass_rate_at_max_speed,
             ).is_valid
         ):
-            return max_mass_rate_at_max_speed
-
-        # Ensuring that the maximum mass rate at min speed is valid for the whole train.
-        if not result_max_mass_rate_at_min_speed_first_stage.is_valid:
-            max_mass_rate_at_min_speed = maximize_x_given_boolean_condition_function(
-                x_min=EPSILON,
-                x_max=max_mass_rate_at_min_speed_first_stage,
-                bool_func=lambda x: _calculate_train_result_at_min_speed_given_mass_rate(mass_rate=x).is_valid,
-            )
-            result_max_mass_rate_at_min_speed = _calculate_train_result_at_min_speed_given_mass_rate(
-                mass_rate=max_mass_rate_at_min_speed
-            )
-        else:
-            # max_mass_rate_at_min_speed = max_mass_rate_at_max_speed_first_stage
-            result_max_mass_rate_at_min_speed = result_max_mass_rate_at_min_speed_first_stage
+            rate_to_return = max_mass_rate_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
 
         # Solution scenario 4. Solution at the "Stone wall".
-        if (
-            result_max_mass_rate_at_max_speed.discharge_pressure
-            >= target_discharge_pressure
-            >= result_max_mass_rate_at_min_speed.discharge_pressure
-        ):
-            result_speed = find_root(
-                lower_bound=self.minimum_speed,
-                upper_bound=self.maximum_speed,
-                func=lambda x: _calculate_train_result_given_speed_at_stone_wall(speed=x).discharge_pressure
-                - target_discharge_pressure,
-            )
-            compressor_train_result = _calculate_train_result_given_speed_at_stone_wall(speed=result_speed)
-
-            return compressor_train_result.mass_rate_kg_per_hour
-
-        # Solution scenario 4. Too high pressure even at min speed and max flow rate.
-        elif result_max_mass_rate_at_min_speed.discharge_pressure > target_discharge_pressure:
-            return 0.0
         else:
-            msg = "You should not end up here. Please contact eCalc support."
-            logger.exception(msg)
-            raise IllegalStateException(msg)
+            # Ensuring that the maximum mass rate at min speed is valid for the whole train.
+            if not result_max_mass_rate_at_min_speed_first_stage.is_valid:
+                max_mass_rate_at_min_speed = maximize_x_given_boolean_condition_function(
+                    x_min=EPSILON,
+                    x_max=max_mass_rate_at_min_speed_first_stage,
+                    bool_func=lambda x: _calculate_train_result_at_min_speed_given_mass_rate(mass_rate=x).is_valid,
+                )
+                result_max_mass_rate_at_min_speed = _calculate_train_result_at_min_speed_given_mass_rate(
+                    mass_rate=max_mass_rate_at_min_speed
+                )
+            else:
+                # max_mass_rate_at_min_speed = max_mass_rate_at_max_speed_first_stage
+                result_max_mass_rate_at_min_speed = result_max_mass_rate_at_min_speed_first_stage
+
+            if (
+                result_max_mass_rate_at_max_speed.discharge_pressure
+                >= target_discharge_pressure
+                >= result_max_mass_rate_at_min_speed.discharge_pressure
+            ):
+                # iterate along stone wall until target discharge pressure is reached
+                result_speed = find_root(
+                    lower_bound=self.minimum_speed,
+                    upper_bound=self.maximum_speed,
+                    func=lambda x: _calculate_train_result_given_speed_at_stone_wall(speed=x).discharge_pressure
+                    - target_discharge_pressure,
+                )
+                compressor_train_result = _calculate_train_result_given_speed_at_stone_wall(speed=result_speed)
+
+                rate_to_return = compressor_train_result.mass_rate_kg_per_hour * (1 - RATE_CALCULATION_TOLERANCE)
+
+            # Solution scenario 5. Too high pressure even at min speed and max flow rate.
+            elif result_max_mass_rate_at_min_speed.discharge_pressure > target_discharge_pressure:
+                return 0.0
+            else:
+                msg = "You should not end up here. Please contact eCalc support."
+                logger.exception(msg)
+                raise IllegalStateException(msg)
+
+        # Check that rate_to_return, suction_pressure and discharge_pressure does not require too much power.
+        # If so, reduce rate such that power comes below maximum power
+        if not self.data_transfer_object.maximum_power:
+            return rate_to_return
+        elif (
+            self.calculate_shaft_speed_given_rate_ps_pd(
+                mass_rate_kg_per_hour=rate_to_return,
+                suction_pressure=suction_pressure,
+                target_discharge_pressure=target_discharge_pressure,
+            ).power_megawatt
+            > self.data_transfer_object.maximum_power
+        ):
+            # check if minimum_rate gives too high power consumption
+            result_with_minimum_rate = self.calculate_shaft_speed_given_rate_ps_pd(
+                mass_rate_kg_per_hour=EPSILON,
+                suction_pressure=suction_pressure,
+                target_discharge_pressure=target_discharge_pressure,
+            )
+            if result_with_minimum_rate.power_megawatt > self.data_transfer_object.maximum_power:
+                return 0.0  # can't find solution
+            else:
+                # iterate between rate with minimum power, and the previously found rate to return, to find the
+                # maximum rate that gives power consumption below maximum power
+                return find_root(
+                    lower_bound=result_with_minimum_rate.mass_rate_asv_corrected_kg_per_hour,
+                    upper_bound=rate_to_return,
+                    func=lambda x: self.evaluate_rate_ps_pd(
+                        rate=np.asarray([self.fluid.mass_rate_to_standard_rate(x)]),
+                        suction_pressure=np.asarray([suction_pressure]),
+                        discharge_pressure=np.asarray([target_discharge_pressure]),
+                    ).power[0]
+                    - self.data_transfer_object.maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
+                    relative_convergence_tolerance=1e-3,
+                    maximum_number_of_iterations=20,
+                )
+        else:
+            # maximum power defined, but found rate is below maximum power
+            return rate_to_return
 
     def calculate_compressor_train_given_rate_pd_speed(
         self,

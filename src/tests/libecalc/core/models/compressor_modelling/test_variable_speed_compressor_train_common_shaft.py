@@ -272,13 +272,13 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
 
-    # Target pressure too large
+    # Target pressure too large, but rate still too high
     result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
         suction_pressure=20,
         target_discharge_pressure=1000,
     )
-    assert result.failure_status == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+    assert result.failure_status == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
 
     # Target pressure too low -> but still possible because of downstream choke. However, the rate is still too high.
     result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(
@@ -287,7 +287,6 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         target_discharge_pressure=1,
     )
     assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
-    assert result.discharge_pressure == 1
     assert not result.is_valid
 
     # Rate is too large, but point is below stonewall, i.e. rate is too large for resulting speed, but not too large
