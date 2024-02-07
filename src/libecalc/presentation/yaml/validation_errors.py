@@ -13,9 +13,6 @@ from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 Loc = Tuple[Union[int, str], ...]
 
-expected_schemes = ["test scheme"]
-field = ["EMISSION", "RATE"]
-
 CUSTOM_MESSAGES = {
     "missing": "This keyword is missing, it is required",
     "extra_forbidden": "This is not a valid keyword",
