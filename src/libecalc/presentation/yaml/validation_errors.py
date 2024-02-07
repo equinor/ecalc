@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 from pydantic import ValidationError as PydanticValidationError
+from pydantic_core import ErrorDetails
 from yaml import Dumper, Mark
 
 from libecalc.common.logger import logger
@@ -11,6 +12,14 @@ from libecalc.presentation.yaml.yaml_entities import Resource, YamlDict, YamlLis
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 Loc = Tuple[Union[int, str], ...]
+
+expected_schemes = ["test scheme"]
+field = ["EMISSION", "RATE"]
+
+CUSTOM_MESSAGES = {
+    "missing": "This keyword is missing, it is required",
+    "extra_forbidden": "This is not a valid keyword",
+}
 
 
 def _get_position_in_file_message(mark: Mark) -> str:
@@ -122,30 +131,20 @@ class DtoValidationError(DataValidationError):
         **kwargs,
     ):
         name = component_name if component_name is not None else data.get(EcalcYamlKeywords.name)
-        message_title = f"\nComponent name: {name}:"
-
-        errors = validation_error.errors()
-
+        message_title = f"\n{name}:"
         messages = [message_title]
-        error_names = []
+
+        errors = custom_errors(e=validation_error, custom_messages=CUSTOM_MESSAGES)
         error_locs = []
+
         try:
             for error in errors:
-                error_name = error["loc"][0]
-                error_names.append(error_name)
                 error_locs.append(error["loc"])
 
-                if error["type"] == "extra_forbidden":
-                    error_message = "This is not a valid keyword"
-                else:
-                    error_message = error["msg"]
-
-                error_location_info = error_name.upper().replace("__root__", "General error")
-
                 if data is not None:
-                    messages.append(f"{error_location_info}:\t{error_message}")
+                    messages.append(f"{error['msg']}")
                 else:
-                    messages.append(f"{error_location_info}:\t{error_message}")
+                    messages.append(f"{name}:\n{error['msg']}")
         except Exception as e:
             logger.debug(f"Failed to add location specific error messages: {str(e)}")
 
@@ -170,3 +169,23 @@ class ValidationValueError(ValueError):
     def __init__(self, message: str, key: Optional[str] = None):
         self.key = key
         super().__init__(message)
+
+
+def custom_errors(e: PydanticValidationError, custom_messages: Dict[str, str]) -> List[ErrorDetails]:
+    """
+    Customized pydantic validation errors, to give user more precise feedback.
+
+    :param e: pydantic validation error
+    :param custom_messages: custom error messages to overwrite pydantic standard messages
+    :return: list of error details
+    """
+    new_errors: List[ErrorDetails] = []
+    for error in e.errors():
+        custom_message = custom_messages.get(error["type"])
+        if custom_message:
+            error_key_name = error["loc"][0].upper().replace("__root__", "General error")
+            custom_message = error_key_name + ":\t" + custom_message
+            ctx = error.get("ctx")
+            error["msg"] = custom_message.format(**ctx) if ctx else custom_message
+        new_errors.append(error)
+    return new_errors
