@@ -71,10 +71,9 @@ class TimeSeriesCollectionMapper:
         """
         Fixme: we do not use the input date format when reading Time Series Collections.
         """
-        time_series_type = time_series_type_map.get(data.get(EcalcYamlKeywords.type))
 
         time_series = {
-            "typ": time_series_type,
+            "typ": data.get(EcalcYamlKeywords.type),
             "name": data.get(EcalcYamlKeywords.name),
             "influence_time_vector": data.get(EcalcYamlKeywords.time_series_influence_time_vector),
             "extrapolate_outside_defined_time_interval": data.get(

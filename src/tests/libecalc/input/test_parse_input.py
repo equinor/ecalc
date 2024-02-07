@@ -4,7 +4,7 @@ from typing import Optional
 from libecalc import dto
 from libecalc.dto import VariablesMap
 from libecalc.fixtures import DTOCase, YamlCase
-from libecalc.presentation.yaml.mappers import map_yaml_to_variables
+from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 from libecalc.presentation.yaml.yaml_entities import Resources, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
