@@ -11,7 +11,9 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingEmission,
     YamlVentingEmitter,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRate,
+)
 
 
 @pytest.fixture
@@ -35,7 +37,7 @@ def test_venting_emitter(variables_map):
         category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
         emission=YamlVentingEmission(
             name="ch4",
-            rate=YamlRate(
+            rate=YamlEmissionRate(
                 value="TSC1;Methane_rate {*} 1.02",
                 unit=Unit.KILO_PER_DAY,
                 type=RateType.STREAM_DAY,

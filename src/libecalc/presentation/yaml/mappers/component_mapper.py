@@ -270,7 +270,7 @@ class InstallationMapper:
             try:
                 venting_emitters.append(YamlVentingEmitter(**venting_emitter))
             except ValidationError as e:
-                raise DtoValidationError(data=data, validation_error=e) from e
+                raise DtoValidationError(data=venting_emitter, validation_error=e) from e
 
         hydrocarbon_export = define_time_model_for_period(
             data.get(

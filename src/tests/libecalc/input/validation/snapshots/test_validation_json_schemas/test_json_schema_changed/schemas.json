@@ -53,14 +53,6 @@
                     "title": "InstallationUserDefinedCategoryType",
                     "type": "string"
                 },
-                "RateType": {
-                    "enum": [
-                        "STREAM_DAY",
-                        "CALENDAR_DAY"
-                    ],
-                    "title": "RateType",
-                    "type": "string"
-                },
                 "Unit": {
                     "description": "A very simple unit registry to convert between common eCalc units.",
                     "enum": [
@@ -1128,6 +1120,48 @@
                         "FACTOR"
                     ],
                     "title": "Emission",
+                    "type": "object"
+                },
+                "YamlEmissionRate": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "TYPE": {
+                            "default": "STREAM_DAY",
+                            "enum": [
+                                "STREAM_DAY",
+                                "CALENDAR_DAY"
+                            ],
+                            "title": "Type",
+                            "type": "string"
+                        },
+                        "UNIT": {
+                            "default": "kg/d",
+                            "enum": [
+                                "kg/d",
+                                "t/d"
+                            ],
+                            "title": "Unit",
+                            "type": "string"
+                        },
+                        "VALUE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "title": "Value"
+                        }
+                    },
+                    "required": [
+                        "VALUE"
+                    ],
+                    "title": "Rate",
                     "type": "object"
                 },
                 "YamlEnergyUsageModelCompressor": {
@@ -3022,12 +3056,13 @@
                     "additionalProperties": false,
                     "properties": {
                         "TYPE": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/$defs/RateType"
-                                }
+                            "default": "STREAM_DAY",
+                            "enum": [
+                                "STREAM_DAY",
+                                "CALENDAR_DAY"
                             ],
-                            "default": "STREAM_DAY"
+                            "title": "Type",
+                            "type": "string"
                         },
                         "UNIT": {
                             "allOf": [
@@ -4003,7 +4038,7 @@
                         "RATE": {
                             "allOf": [
                                 {
-                                    "$ref": "#/$defs/YamlRate"
+                                    "$ref": "#/$defs/YamlEmissionRate"
                                 }
                             ],
                             "description": "The emission rate",

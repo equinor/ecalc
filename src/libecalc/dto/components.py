@@ -43,6 +43,7 @@ from libecalc.dto.utils.validators import (
 )
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
@@ -367,6 +368,15 @@ class Installation(BaseComponent):
                 )
 
         return user_defined_category
+
+    @field_validator("fuel_consumers", mode="before")
+    def check_fuel_consumers_exist(cls, fuel_consumers):
+        if not fuel_consumers:
+            raise ValueError(
+                f"Keywords are missing:\n It is required to specify at least one of the two keywords "
+                f"{EcalcYamlKeywords.fuel_consumers} or {EcalcYamlKeywords.generator_sets} in the model.",
+            )
+        return fuel_consumers
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
