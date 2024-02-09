@@ -20,7 +20,9 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlRate
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRate,
+)
 
 
 class YamlVentingEmission(YamlBase):
@@ -30,7 +32,7 @@ class YamlVentingEmission(YamlBase):
         description="Name of emission",
     )
 
-    rate: YamlRate = Field(..., title="RATE", description="The emission rate")
+    rate: YamlEmissionRate = Field(..., title="RATE", description="The emission rate")
 
 
 class YamlVentingEmitter(YamlBase):

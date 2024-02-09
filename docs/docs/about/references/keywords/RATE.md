@@ -44,6 +44,9 @@ RATE: SIM1:GAS_PROD
 ~~~~~~~~
 
 ## Use in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
+The attribute `VALUE` is required, while `UNIT` and `TYPE` are optional. Allowed values for
+`UNIT` are kg/d and t/d, while STREAM_DAY and CALENDAR_DAY are valid for `TYPE`.
+
 ### Format
 ~~~~~~~~yaml
 VENTING_EMITTERS:

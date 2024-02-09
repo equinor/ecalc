@@ -27,6 +27,14 @@ def venting_emitter_yaml_factory(
       CATEGORY: FIXED
       REGULARITY: {regularity}
 
+      FUELCONSUMERS:
+        - NAME: testings
+          CATEGORY: MISCELLANEOUS
+          FUEL: fuel
+          ENERGY_USAGE_MODEL:
+            TYPE: DIRECT
+            FUELRATE: 10
+
       VENTING_EMITTERS:
       - NAME: Venting emitter 1
         CATEGORY: COLD-VENTING-FUGITIVE
