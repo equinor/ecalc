@@ -29,7 +29,7 @@ def test_wrong_keyword_name_emitters():
 
 
 def test_wrong_unit_emitters():
-    """Test custom pydantic error messages for yaml validation with wrong units."""
+    """Test error messages for yaml validation with wrong units."""
 
     regularity = 0.2
     emission_rate = 10
