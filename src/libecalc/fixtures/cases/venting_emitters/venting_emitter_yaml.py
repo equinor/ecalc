@@ -8,7 +8,13 @@ from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 
 
 def venting_emitter_yaml_factory(
-    emission_rate: float, rate_type: RateType, unit: Unit, emission_name: str, regularity: float
+    emission_rate: float,
+    rate_type: RateType,
+    unit: Unit,
+    emission_name: str,
+    regularity: float,
+    emission_keyword_name: str = "EMISSION",
+    name: str = "Venting emitter 1",
 ) -> Asset:
     input_text = f"""
     FUEL_TYPES:
@@ -36,9 +42,9 @@ def venting_emitter_yaml_factory(
             FUELRATE: 10
 
       VENTING_EMITTERS:
-      - NAME: Venting emitter 1
+      - NAME: {name}
         CATEGORY: COLD-VENTING-FUGITIVE
-        EMISSION:
+        {emission_keyword_name}:
           NAME: {emission_name}
           RATE:
             VALUE: {emission_rate}
