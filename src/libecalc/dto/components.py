@@ -9,7 +9,6 @@ from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
 from libecalc import dto
-from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
@@ -373,11 +372,9 @@ class Installation(BaseComponent):
     @field_validator("fuel_consumers", mode="before")
     def check_fuel_consumers_exist(cls, fuel_consumers):
         if not fuel_consumers:
-            raise EcalcError(
-                title="Keywords are missing",
-                message=f"It is required to specify at least one of the two keywords "
-                f"{EcalcYamlKeywords.fuel_consumers} or {EcalcYamlKeywords.generator_sets} "
-                f"in the model.",
+            raise ValueError(
+                f"Keywords are missing:\n It is required to specify at least one of the two keywords "
+                f"{EcalcYamlKeywords.fuel_consumers} or {EcalcYamlKeywords.generator_sets} in the model.",
             )
         return fuel_consumers
 
