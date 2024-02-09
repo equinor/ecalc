@@ -124,10 +124,9 @@ class DtoValidationError(DataValidationError):
         self,
         data: Optional[Union[Dict[str, Any], YamlDict]],
         validation_error: PydanticValidationError,
-        component_name: Optional[str] = None,
         **kwargs,
     ):
-        name = component_name if component_name is not None else data.get(EcalcYamlKeywords.name)
+        name = data.get(EcalcYamlKeywords.name)
         message_title = f"\n{name}:"
         messages = [message_title]
 

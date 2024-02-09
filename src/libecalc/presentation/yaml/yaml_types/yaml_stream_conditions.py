@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -17,34 +17,14 @@ class YamlRate(YamlTimeSeries):
     model_config = ConfigDict(title="Rate")
 
     unit: Unit = Unit.STANDARD_CUBIC_METER_PER_DAY
-    type: RateType = RateType.STREAM_DAY
-
-    @field_validator("type", mode="before")
-    @classmethod
-    def rate_type_validator(cls, value):
-        return RateType.STREAM_DAY if value is None else value
+    type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
 
 class YamlEmissionRate(YamlTimeSeries):
     model_config = ConfigDict(title="Rate")
 
-    unit: Unit = Unit.KILO_PER_DAY
-    type: RateType = RateType.STREAM_DAY
-
-    @field_validator("type", mode="before")
-    @classmethod
-    def rate_type_validator(cls, value):
-        return RateType.STREAM_DAY if value is None else value
-
-    @field_validator("unit", mode="before")
-    @classmethod
-    def unit_validator(cls, value):
-        valid_units = [Unit.KILO_PER_DAY, Unit.TONS_PER_DAY]
-        if value not in valid_units:
-            raise ValueError(
-                f"{value} is not a valid input unit for emissions. Valid units are [{', '.join(valid_units)}]."
-            )
-        return RateType.STREAM_DAY if value is None else value
+    unit: Literal[Unit.KILO_PER_DAY, Unit.TONS_PER_DAY] = Unit.KILO_PER_DAY
+    type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
 
 class YamlPressure(YamlTimeSeries):
