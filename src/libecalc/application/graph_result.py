@@ -128,6 +128,33 @@ class GraphResult:
                 if component_id in self.consumer_results
             ]
 
+            for venting_emitter in installation.venting_emitters:
+                energy_usage = TimeSeriesRate(
+                    timesteps=self.variables_map.time_vector,
+                    values=[0.0] * self.variables_map.length,
+                    regularity=[1] * self.variables_map.length,  # Dummy. Has no effect since value is 0
+                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    rate_type=RateType.CALENDAR_DAY,
+                )
+                sub_components.append(
+                    libecalc.dto.result.VentingEmitterResult(
+                        id=venting_emitter.id,
+                        name=venting_emitter.name,
+                        componentType=venting_emitter.component_type,
+                        component_level=ComponentLevel.CONSUMER,
+                        parent=installation.id,
+                        emissions=self._parse_emissions(self.emission_results[venting_emitter.id], regularity),
+                        timesteps=self.variables_map.time_vector,
+                        is_valid=TimeSeriesBoolean(
+                            timesteps=self.variables_map.time_vector,
+                            values=[True] * self.variables_map.length,
+                            unit=Unit.NONE,
+                        ),
+                        energy_usage=energy_usage,
+                        energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                    )
+                )
+
             installation_node_info = self.graph.get_node_info(installation.id)
             power = reduce(
                 operator.add,
@@ -1211,34 +1238,34 @@ class GraphResult:
 
             sub_components.append(obj)
 
-        for installation in asset.installations:
-            regularity = regularities[installation.id]  # Already evaluated regularities
-            for venting_emitter in installation.venting_emitters:
-                energy_usage = TimeSeriesRate(
-                    timesteps=self.variables_map.time_vector,
-                    values=[0.0] * self.variables_map.length,
-                    regularity=[1] * self.variables_map.length,  # Dummy. Has no effect since value is 0
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    rate_type=RateType.CALENDAR_DAY,
-                )
-                sub_components.append(
-                    libecalc.dto.result.VentingEmitterResult(
-                        id=venting_emitter.id,
-                        name=venting_emitter.name,
-                        componentType=venting_emitter.component_type,
-                        component_level=ComponentLevel.CONSUMER,
-                        parent=installation.id,
-                        emissions=self._parse_emissions(self.emission_results[venting_emitter.id], regularity),
-                        timesteps=self.variables_map.time_vector,
-                        is_valid=TimeSeriesBoolean(
-                            timesteps=self.variables_map.time_vector,
-                            values=[True] * self.variables_map.length,
-                            unit=Unit.NONE,
-                        ),
-                        energy_usage=energy_usage,
-                        energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
-                    )
-                )
+        # for installation in asset.installations:
+        #     regularity = regularities[installation.id]  # Already evaluated regularities
+        #     for venting_emitter in installation.venting_emitters:
+        #         energy_usage = TimeSeriesRate(
+        #             timesteps=self.variables_map.time_vector,
+        #             values=[0.0] * self.variables_map.length,
+        #             regularity=[1] * self.variables_map.length,  # Dummy. Has no effect since value is 0
+        #             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+        #             rate_type=RateType.CALENDAR_DAY,
+        #         )
+        #         sub_components.append(
+        #             libecalc.dto.result.VentingEmitterResult(
+        #                 id=venting_emitter.id,
+        #                 name=venting_emitter.name,
+        #                 componentType=venting_emitter.component_type,
+        #                 component_level=ComponentLevel.CONSUMER,
+        #                 parent=installation.id,
+        #                 emissions=self._parse_emissions(self.emission_results[venting_emitter.id], regularity),
+        #                 timesteps=self.variables_map.time_vector,
+        #                 is_valid=TimeSeriesBoolean(
+        #                     timesteps=self.variables_map.time_vector,
+        #                     values=[True] * self.variables_map.length,
+        #                     unit=Unit.NONE,
+        #                 ),
+        #                 energy_usage=energy_usage,
+        #                 energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+        #             )
+        #         )
 
         # dto timeseries
         asset_hydrocarbon_export_rate_core = reduce(
