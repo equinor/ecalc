@@ -82,8 +82,8 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
 
         """
         if freq == freq.NONE:
-            return self.copy()
-        resampled = self.copy()
+            return self.model_copy()
+        resampled = self.model_copy()
         for attribute, values in self.__dict__.items():
             if isinstance(values, TimeSeries):
                 resampled.__setattr__(attribute, values.resample(freq=freq))

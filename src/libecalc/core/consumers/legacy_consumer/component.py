@@ -302,7 +302,7 @@ class Consumer(BaseConsumer):
                 unit=Unit.MEGA_WATT,
             )
 
-            power_time_series = energy_usage_time_series.copy()
+            power_time_series = energy_usage_time_series.model_copy()
         else:
             raise ValueError(f"Consuming '{self._consumer_dto.consumes}' is not implemented.")
 
@@ -367,7 +367,7 @@ class Consumer(BaseConsumer):
         merged_result = None
         for consumer_function_result in consumer_function_results:
             if merged_result is None:
-                merged_result = consumer_function_result.copy(deep=True)
+                merged_result = consumer_function_result.model_copy(deep=True)
             else:
                 merged_result.extend(consumer_function_result)
 
