@@ -86,7 +86,9 @@ class YamlSingleSpeedChart(YamlBase):
         title="TYPE",
     )
     chart_type: Literal[YamlChartType.SINGLE_SPEED] = YamlChartType.SINGLE_SPEED
-    curve: YamlCurve = Field(..., description="One single compressor chart curve.", title="CURVE")
+    curve: Union[YamlCurve, YamlCurvesFile] = Field(
+        ..., description="One single compressor chart curve.", title="CURVE"
+    )
     units: YamlUnits = None
 
     def to_dto(self):

@@ -79,7 +79,7 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         title="COMPRESSORS",
         description="The compressors in a compressor system. \n\n$ECALC_DOCS_KEYWORDS_URL/COMPRESSORS#compressors",
     )
-    total_system_rate: List[ExpressionType] = Field(
+    total_system_rate: ExpressionType = Field(
         None,
         title="TOTAL_SYSTEM_RATE",
         description="Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",

@@ -10,6 +10,7 @@ from libecalc.presentation.yaml.yaml_entities import (
     YamlTimeseriesResource,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
 
 
@@ -65,6 +66,10 @@ class YamlValidator(abc.ABC):
     @abc.abstractmethod
     def dates(self):
         pass
+
+    @abc.abstractmethod
+    def validate(self) -> YamlAsset:
+        ...
 
 
 class YamlReader(abc.ABC):
