@@ -153,7 +153,10 @@ def _model_parsing_order(model) -> int:
     try:
         return _model_parsing_order_map[model_type]
     except KeyError as e:
-        msg = f"Unknown model type {model_type}"
+        lines_reference = f"Check lines {model.start_mark.line} to {model.end_mark.line} in Yaml-file."
+        none_msg = f"Have you remembered to include the {EcalcYamlKeywords.type} keyword?" if model_type is None else ""
+        msg = f"{model[EcalcYamlKeywords.name]}:\nUnknown model type {model_type}. {none_msg}\n{lines_reference}"
+
         logger.exception(msg + f": {e}")
         raise EcalcError(title="Invalid model", message=msg) from e
 
