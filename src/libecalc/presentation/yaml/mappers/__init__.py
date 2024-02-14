@@ -1,1 +1,0 @@
-from .variables_mapper import map_yaml_to_variables

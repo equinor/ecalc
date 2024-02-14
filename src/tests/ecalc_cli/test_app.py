@@ -14,53 +14,11 @@ from ecalc_cli.commands import show
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
-from libecalc.examples import advanced, simple
-from libecalc.fixtures.cases import ltp_export
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from typer.testing import CliRunner
 
 runner = CliRunner()
-
-
-@pytest.fixture(scope="session")
-def simple_yaml_path():
-    return (Path(simple.__file__).parent / "model.yaml").absolute()
-
-
-@pytest.fixture(scope="session")
-def simple_temporal_yaml_path():
-    return (Path(simple.__file__).parent / "model_temporal.yaml").absolute()
-
-
-@pytest.fixture(scope="session")
-def simple_duplicate_names_yaml_path():
-    return (Path(simple.__file__).parent / "model_duplicate_names.yaml").absolute()
-
-
-@pytest.fixture(scope="session")
-def simple_multiple_energy_models_yaml_path():
-    return (Path(simple.__file__).parent / "model_multiple_energy_models_one_consumer.yaml").absolute()
-
-
-@pytest.fixture(scope="session")
-def simple_duplicate_emissions_yaml_path():
-    return (Path(simple.__file__).parent / "model_duplicate_emissions_in_fuel.yaml").absolute()
-
-
-@pytest.fixture(scope="session")
-def advanced_yaml_path():
-    return (Path(advanced.__file__).parent / "model.yaml").absolute()
-
-
-@pytest.fixture
-def ltp_data_path():
-    return Path(ltp_export.__file__).parent / "data"
-
-
-@pytest.fixture
-def ltp_yaml_path(ltp_data_path):
-    return (ltp_data_path / "ltp_export.yaml").absolute()
 
 
 def _get_args(

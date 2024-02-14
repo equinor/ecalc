@@ -229,7 +229,7 @@
                             "title": "CATEGORY"
                         },
                         "ENERGY_USAGE_MODEL": {
-                            "anyOf": [
+                            "oneOf": [
                                 {
                                     "type": "string"
                                 },
@@ -637,7 +637,7 @@
                     "title": "YamlCompressorWithTurbine",
                     "type": "object"
                 },
-                "YamlConsumerSystem_YamlCompressor_": {
+                "YamlConsumerSystem": {
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
@@ -665,143 +665,25 @@
                         },
                         "CONSUMERS": {
                             "items": {
-                                "$ref": "#/$defs/YamlCompressor"
-                            },
-                            "title": "Consumers",
-                            "type": "array"
-                        },
-                        "NAME": {
-                            "description": "Consumer name",
-                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "STREAM_CONDITIONS_PRIORITIES": {
-                            "additionalProperties": {
-                                "additionalProperties": {
-                                    "additionalProperties": {
-                                        "$ref": "#/$defs/YamlStreamConditions"
+                                "discriminator": {
+                                    "mapping": {
+                                        "COMPRESSOR@v2": "#/$defs/YamlCompressor",
+                                        "PUMP@v2": "#/$defs/YamlPump",
+                                        "TRAIN@V2": "#/$defs/YamlTrain"
                                     },
-                                    "type": "object"
+                                    "propertyName": "TYPE"
                                 },
-                                "type": "object"
-                            },
-                            "description": "A list of prioritised stream conditions per consumer.",
-                            "title": "Stream conditions priorities",
-                            "type": "object"
-                        },
-                        "TYPE": {
-                            "const": "CONSUMER_SYSTEM@v2",
-                            "description": "The type of the component",
-                            "title": "Type"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "STREAM_CONDITIONS_PRIORITIES",
-                        "CONSUMERS"
-                    ],
-                    "title": "ConsumerSystem",
-                    "type": "object"
-                },
-                "YamlConsumerSystem_YamlPump_": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "default": null,
-                            "description": "User defined category",
-                            "title": "CATEGORY"
-                        },
-                        "COMPONENT_CONDITIONS": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/$defs/YamlSystemComponentConditions"
-                                }
-                            ],
-                            "default": null,
-                            "description": "Contains conditions for the component, in this case the system.",
-                            "title": "System component conditions"
-                        },
-                        "CONSUMERS": {
-                            "items": {
-                                "$ref": "#/$defs/YamlPump"
-                            },
-                            "title": "Consumers",
-                            "type": "array"
-                        },
-                        "NAME": {
-                            "description": "Consumer name",
-                            "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
-                            "title": "NAME",
-                            "type": "string"
-                        },
-                        "STREAM_CONDITIONS_PRIORITIES": {
-                            "additionalProperties": {
-                                "additionalProperties": {
-                                    "additionalProperties": {
-                                        "$ref": "#/$defs/YamlStreamConditions"
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/$defs/YamlCompressor"
                                     },
-                                    "type": "object"
-                                },
-                                "type": "object"
-                            },
-                            "description": "A list of prioritised stream conditions per consumer.",
-                            "title": "Stream conditions priorities",
-                            "type": "object"
-                        },
-                        "TYPE": {
-                            "const": "CONSUMER_SYSTEM@v2",
-                            "description": "The type of the component",
-                            "title": "Type"
-                        }
-                    },
-                    "required": [
-                        "NAME",
-                        "TYPE",
-                        "STREAM_CONDITIONS_PRIORITIES",
-                        "CONSUMERS"
-                    ],
-                    "title": "ConsumerSystem",
-                    "type": "object"
-                },
-                "YamlConsumerSystem_YamlTrain_YamlCompressor__": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "CATEGORY": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "null"
-                                }
-                            ],
-                            "default": null,
-                            "description": "User defined category",
-                            "title": "CATEGORY"
-                        },
-                        "COMPONENT_CONDITIONS": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/$defs/YamlSystemComponentConditions"
-                                }
-                            ],
-                            "default": null,
-                            "description": "Contains conditions for the component, in this case the system.",
-                            "title": "System component conditions"
-                        },
-                        "CONSUMERS": {
-                            "items": {
-                                "$ref": "#/$defs/YamlTrain_YamlCompressor_"
+                                    {
+                                        "$ref": "#/$defs/YamlPump"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/YamlTrain"
+                                    }
+                                ]
                             },
                             "title": "Consumers",
                             "type": "array"
@@ -1022,31 +904,60 @@
                             "title": "CATEGORY"
                         },
                         "ENERGY_USAGE_MODEL": {
-                            "anyOf": [
+                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
+                            "oneOf": [
                                 {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelDirect"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelPump"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelPumpSystem"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                    "discriminator": {
+                                        "mapping": {
+                                            "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                                            "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                                            "DIRECT": "#/$defs/YamlEnergyUsageModelDirect",
+                                            "PUMP": "#/$defs/YamlEnergyUsageModelPump",
+                                            "PUMP_SYSTEM": "#/$defs/YamlEnergyUsageModelPumpSystem",
+                                            "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                                            "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                        },
+                                        "propertyName": "TYPE"
+                                    },
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelDirect"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelPump"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelPumpSystem"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                        }
+                                    ]
                                 },
                                 {
                                     "additionalProperties": {
-                                        "anyOf": [
+                                        "discriminator": {
+                                            "mapping": {
+                                                "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                                                "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                                                "DIRECT": "#/$defs/YamlEnergyUsageModelDirect",
+                                                "PUMP": "#/$defs/YamlEnergyUsageModelPump",
+                                                "PUMP_SYSTEM": "#/$defs/YamlEnergyUsageModelPumpSystem",
+                                                "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                                                "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                            },
+                                            "propertyName": "TYPE"
+                                        },
+                                        "oneOf": [
                                             {
                                                 "$ref": "#/$defs/YamlEnergyUsageModelDirect"
                                             },
@@ -1073,13 +984,18 @@
                                     "type": "object"
                                 }
                             ],
-                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
                             "title": "ENERGY_USAGE_MODEL"
                         },
                         "NAME": {
                             "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
                             "title": "NAME",
                             "type": "string"
+                        },
+                        "TYPE": {
+                            "const": "ELECTRICITY_CONSUMER",
+                            "default": "ELECTRICITY_CONSUMER",
+                            "description": "The type of the component",
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -1355,23 +1271,20 @@
                             "title": "POWERLOSSFACTOR"
                         },
                         "TOTAL_SYSTEM_RATE": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
                             "default": null,
                             "description": "Total fluid rate through the system \n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/TOTAL_SYSTEM_RATE",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "number"
-                                    },
-                                    {
-                                        "type": "integer"
-                                    }
-                                ]
-                            },
-                            "title": "TOTAL_SYSTEM_RATE",
-                            "type": "array"
+                            "title": "TOTAL_SYSTEM_RATE"
                         },
                         "TYPE": {
                             "const": "COMPRESSOR_SYSTEM",
@@ -2015,25 +1928,50 @@
                             "title": "CATEGORY"
                         },
                         "ENERGY_USAGE_MODEL": {
-                            "anyOf": [
+                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
+                            "oneOf": [
                                 {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelDirect"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
-                                },
-                                {
-                                    "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                    "discriminator": {
+                                        "mapping": {
+                                            "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                                            "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                                            "DIRECT": "#/$defs/YamlEnergyUsageModelDirect",
+                                            "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                                            "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                        },
+                                        "propertyName": "TYPE"
+                                    },
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelDirect"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelCompressor"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelCompressorSystem"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelTabulated"
+                                        },
+                                        {
+                                            "$ref": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                        }
+                                    ]
                                 },
                                 {
                                     "additionalProperties": {
-                                        "anyOf": [
+                                        "discriminator": {
+                                            "mapping": {
+                                                "COMPRESSOR": "#/$defs/YamlEnergyUsageModelCompressor",
+                                                "COMPRESSOR_SYSTEM": "#/$defs/YamlEnergyUsageModelCompressorSystem",
+                                                "DIRECT": "#/$defs/YamlEnergyUsageModelDirect",
+                                                "TABULATED": "#/$defs/YamlEnergyUsageModelTabulated",
+                                                "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES": "#/$defs/YamlEnergyUsageModelCompressorTrainMultipleStreams"
+                                            },
+                                            "propertyName": "TYPE"
+                                        },
+                                        "oneOf": [
                                             {
                                                 "$ref": "#/$defs/YamlEnergyUsageModelDirect"
                                             },
@@ -2054,11 +1992,12 @@
                                     "type": "object"
                                 }
                             ],
-                            "description": "Definition of the energy usage model for the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ENERGY_USAGE_MODEL",
                             "title": "ENERGY_USAGE_MODEL"
                         },
                         "FUEL": {
-                            "anyOf": [
+                            "default": null,
+                            "description": "The fuel used by the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "oneOf": [
                                 {
                                     "type": "string"
                                 },
@@ -2069,14 +2008,18 @@
                                     "type": "object"
                                 }
                             ],
-                            "default": null,
-                            "description": "The fuel used by the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
                             "title": "FUEL"
                         },
                         "NAME": {
                             "description": "Name of the consumer.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/NAME",
                             "title": "NAME",
                             "type": "string"
+                        },
+                        "TYPE": {
+                            "const": "FUEL_CONSUMER",
+                            "default": "FUEL_CONSUMER",
+                            "description": "The type of the component",
+                            "title": "Type"
                         }
                     },
                     "required": [
@@ -2131,7 +2074,8 @@
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
-                            "anyOf": [
+                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
+                            "oneOf": [
                                 {
                                     "$ref": "#/$defs/ConsumerUserDefinedCategoryType"
                                 },
@@ -2142,24 +2086,24 @@
                                     "type": "object"
                                 }
                             ],
-                            "description": "Output category/tag.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CATEGORY",
                             "title": "CATEGORY"
                         },
                         "CONSUMERS": {
                             "description": "Consumers getting electrical power from the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/CONSUMERS",
                             "items": {
-                                "anyOf": [
+                                "discriminator": {
+                                    "mapping": {
+                                        "CONSUMER_SYSTEM@v2": "#/$defs/YamlConsumerSystem",
+                                        "ELECTRICITY_CONSUMER": "#/$defs/YamlElectricityConsumer"
+                                    },
+                                    "propertyName": "TYPE"
+                                },
+                                "oneOf": [
                                     {
                                         "$ref": "#/$defs/YamlElectricityConsumer"
                                     },
                                     {
-                                        "$ref": "#/$defs/YamlConsumerSystem_YamlCompressor_"
-                                    },
-                                    {
-                                        "$ref": "#/$defs/YamlConsumerSystem_YamlPump_"
-                                    },
-                                    {
-                                        "$ref": "#/$defs/YamlConsumerSystem_YamlTrain_YamlCompressor__"
+                                        "$ref": "#/$defs/YamlConsumerSystem"
                                     }
                                 ]
                             },
@@ -2167,7 +2111,8 @@
                             "type": "array"
                         },
                         "ELECTRICITY2FUEL": {
-                            "anyOf": [
+                            "description": "Specifies the correlation between the electric power delivered and the fuel burned by a generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ELECTRICITY2FUEL",
+                            "oneOf": [
                                 {
                                     "type": "string"
                                 },
@@ -2178,11 +2123,12 @@
                                     "type": "object"
                                 }
                             ],
-                            "description": "Specifies the correlation between the electric power delivered and the fuel burned by a generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/ELECTRICITY2FUEL",
                             "title": "ELECTRICITY2FUEL"
                         },
                         "FUEL": {
-                            "anyOf": [
+                            "default": null,
+                            "description": "The fuel used by the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "oneOf": [
                                 {
                                     "type": "string"
                                 },
@@ -2193,8 +2139,6 @@
                                     "type": "object"
                                 }
                             ],
-                            "default": null,
-                            "description": "The fuel used by the generator set.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
                             "title": "FUEL"
                         },
                         "NAME": {
@@ -2361,7 +2305,9 @@
                             "title": "CATEGORY"
                         },
                         "FUEL": {
-                            "anyOf": [
+                            "default": null,
+                            "description": "Main fuel type for installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
+                            "oneOf": [
                                 {
                                     "type": "string"
                                 },
@@ -2372,26 +2318,25 @@
                                     "type": "object"
                                 }
                             ],
-                            "default": null,
-                            "description": "Main fuel type for installation.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUEL",
                             "title": "FUEL"
                         },
                         "FUELCONSUMERS": {
                             "default": null,
                             "description": "Defines fuel consumers on the installation which are not generators.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/FUELCONSUMERS",
                             "items": {
-                                "anyOf": [
+                                "discriminator": {
+                                    "mapping": {
+                                        "CONSUMER_SYSTEM@v2": "#/$defs/YamlConsumerSystem",
+                                        "FUEL_CONSUMER": "#/$defs/YamlFuelConsumer"
+                                    },
+                                    "propertyName": "TYPE"
+                                },
+                                "oneOf": [
                                     {
                                         "$ref": "#/$defs/YamlFuelConsumer"
                                     },
                                     {
-                                        "$ref": "#/$defs/YamlConsumerSystem_YamlCompressor_"
-                                    },
-                                    {
-                                        "$ref": "#/$defs/YamlConsumerSystem_YamlPump_"
-                                    },
-                                    {
-                                        "$ref": "#/$defs/YamlConsumerSystem_YamlTrain_YamlCompressor__"
+                                        "$ref": "#/$defs/YamlConsumerSystem"
                                     }
                                 ]
                             },
@@ -2408,15 +2353,21 @@
                             "type": "array"
                         },
                         "HCEXPORT": {
-                            "anyOf": [
+                            "default": null,
+                            "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HCEXPORT",
+                            "oneOf": [
                                 {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "string"
+                                    "anyOf": [
+                                        {
+                                            "type": "integer"
+                                        },
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "type": "string"
+                                        }
+                                    ]
                                 },
                                 {
                                     "additionalProperties": {
@@ -2435,8 +2386,6 @@
                                     "type": "object"
                                 }
                             ],
-                            "default": null,
-                            "description": "Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/HCEXPORT",
                             "title": "HCEXPORT"
                         },
                         "NAME": {
@@ -2446,15 +2395,21 @@
                             "type": "string"
                         },
                         "REGULARITY": {
-                            "anyOf": [
+                            "default": null,
+                            "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
+                            "oneOf": [
                                 {
-                                    "type": "integer"
-                                },
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "string"
+                                    "anyOf": [
+                                        {
+                                            "type": "integer"
+                                        },
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "type": "string"
+                                        }
+                                    ]
                                 },
                                 {
                                     "additionalProperties": {
@@ -2473,8 +2428,6 @@
                                     "type": "object"
                                 }
                             ],
-                            "default": null,
-                            "description": "Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/REGULARITY",
                             "title": "REGULARITY"
                         },
                         "VENTING_EMITTERS": {
@@ -2713,7 +2666,7 @@
                             "title": "CATEGORY"
                         },
                         "ENERGY_USAGE_MODEL": {
-                            "anyOf": [
+                            "oneOf": [
                                 {
                                     "type": "string"
                                 },
@@ -3171,9 +3124,12 @@
                             "title": "Chart Type"
                         },
                         "CURVE": {
-                            "allOf": [
+                            "anyOf": [
                                 {
                                     "$ref": "#/$defs/YamlCurve"
+                                },
+                                {
+                                    "$ref": "#/$defs/YamlCurvesFile"
                                 }
                             ],
                             "description": "One single compressor chart curve.",
@@ -3578,7 +3534,7 @@
                     "title": "Temperature",
                     "type": "object"
                 },
-                "YamlTrain_YamlCompressor_": {
+                "YamlTrain": {
                     "additionalProperties": false,
                     "properties": {
                         "CATEGORY": {
@@ -3626,7 +3582,7 @@
                         "NAME",
                         "STAGES"
                     ],
-                    "title": "YamlTrain[YamlCompressor]",
+                    "title": "YamlTrain",
                     "type": "object"
                 },
                 "YamlTurbine": {
@@ -4095,6 +4051,7 @@
                 "END": {
                     "default": null,
                     "description": "Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/END",
+                    "format": "date",
                     "title": "END",
                     "type": "string"
                 },
@@ -4222,6 +4179,7 @@
                 "START": {
                     "default": null,
                     "description": "Global start date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://test.ecalc.equinor.com/docs/docs/modelling/keywords/START",
+                    "format": "date",
                     "title": "START",
                     "type": "string"
                 },

@@ -8,19 +8,19 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 
-class YamlEosModel(enum.Enum):
+class YamlEosModel(str, enum.Enum):
     SRK = "SRK"
     PR = "PR"
     GERG_SRK = "GERG_SRK"
     GERG_PR = "GERG_PR"
 
 
-class YamlFluidModelType(enum.Enum):
+class YamlFluidModelType(str, enum.Enum):
     PREDEFINED = "PREDEFINED"
     COMPOSITION = "COMPOSITION"
 
 
-class YamlPredefinedFluidType(enum.Enum):
+class YamlPredefinedFluidType(str, enum.Enum):
     ULTRA_DRY = "ULTRA_DRY"
     DRY = "DRY"
     MEDIUM = "MEDIUM"
