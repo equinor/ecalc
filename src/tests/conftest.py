@@ -1,8 +1,15 @@
 import json
+from pathlib import Path
 from typing import Dict
 
 import pytest
 from libecalc.common.math.numbers import Numbers
+from libecalc.examples import advanced, simple
+from libecalc.fixtures.cases import (
+    all_energy_usage_models,
+    consumer_system_v2,
+    ltp_export,
+)
 
 
 def _round_floats(obj):
@@ -23,3 +30,65 @@ def rounded_snapshot(snapshot):
         )
 
     return rounded_snapshot
+
+
+valid_example_cases = {
+    "simple": (Path(simple.__file__).parent / "model.yaml").absolute(),
+    "simple_temporal": (Path(simple.__file__).parent / "model_temporal.yaml").absolute(),
+    "advanced": (Path(advanced.__file__).parent / "model.yaml").absolute(),
+    "ltp": (Path(ltp_export.__file__).parent / "data" / "ltp_export.yaml").absolute(),
+    "all_energy_usage_models": (
+        Path(all_energy_usage_models.__file__).parent / "data" / "all_energy_usage_models.yaml"
+    ).absolute(),
+    "consumer_system_v2": (Path(consumer_system_v2.__file__).parent / "data" / "consumer_system_v2.yaml").absolute(),
+}
+
+invalid_example_cases = {
+    "simple_duplicate_names": (Path(simple.__file__).parent / "model_duplicate_names.yaml").absolute(),
+    "simple_multiple_energy_models_one_consumer": (
+        Path(simple.__file__).parent / "model_multiple_energy_models_one_consumer.yaml"
+    ).absolute(),
+    "simple_duplicate_emissions_in_fuel": (
+        Path(simple.__file__).parent / "model_duplicate_emissions_in_fuel.yaml"
+    ).absolute(),
+}
+
+
+@pytest.fixture(scope="session")
+def simple_yaml_path():
+    return valid_example_cases["simple"]
+
+
+@pytest.fixture(scope="session")
+def simple_temporal_yaml_path():
+    return valid_example_cases["simple_temporal"]
+
+
+@pytest.fixture(scope="session")
+def simple_duplicate_names_yaml_path():
+    return invalid_example_cases["simple_duplicate_names"]
+
+
+@pytest.fixture(scope="session")
+def simple_multiple_energy_models_yaml_path():
+    return invalid_example_cases["simple_multiple_energy_models_one_consumer"]
+
+
+@pytest.fixture(scope="session")
+def simple_duplicate_emissions_yaml_path():
+    return invalid_example_cases["simple_duplicate_emissions_in_fuel"]
+
+
+@pytest.fixture(scope="session")
+def advanced_yaml_path():
+    return valid_example_cases["advanced"]
+
+
+@pytest.fixture
+def ltp_yaml_path():
+    return valid_example_cases["ltp"]
+
+
+@pytest.fixture(scope="session", params=list(valid_example_cases.items()), ids=lambda param: param[0])
+def valid_example_case_yaml_path(request) -> Path:
+    return request.param[1]

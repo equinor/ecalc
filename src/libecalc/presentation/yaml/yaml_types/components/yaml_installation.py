@@ -1,7 +1,9 @@
 from typing import List, Union
 
 from pydantic import ConfigDict, Field
+from typing_extensions import Annotated
 
+from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
 from libecalc.dto.base import InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.expression import Expression
@@ -12,17 +14,12 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer 
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
-from libecalc.presentation.yaml.yaml_types.components.train.yaml_train import YamlTrain
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
-)
-from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
-    YamlCompressor,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import (
     YamlGeneratorSet,
 )
-from libecalc.presentation.yaml.yaml_types.components.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
@@ -38,10 +35,11 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         description="Name of the installation.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
     )
     category: InstallationUserDefinedCategoryType = CategoryField(None)
-    hcexport: YamlTemporalModel[Expression] = Field(
+    hydrocarbon_export: YamlTemporalModel[Expression] = Field(
         None,
         title="HCEXPORT",
         description="Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/HCEXPORT",
+        alias="HCEXPORT",
     )
     fuel: YamlTemporalModel[str] = Field(
         None,
@@ -53,22 +51,26 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="REGULARITY",
         description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
     )
-    generatorsets: List[YamlGeneratorSet] = Field(
+    generator_sets: List[YamlGeneratorSet] = Field(
         None,
         title="GENERATORSETS",
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
+        alias="GENERATORSETS",
     )
-    fuelconsumers: List[
-        Union[
-            YamlFuelConsumer,
-            YamlConsumerSystem[YamlCompressor],
-            YamlConsumerSystem[YamlPump],
-            YamlConsumerSystem[YamlTrain[YamlCompressor]],
+    fuel_consumers: List[
+        Annotated[
+            Union[
+                YamlFuelConsumer,
+                YamlConsumerSystem,
+            ],
+            Field(discriminator="component_type"),
+            DiscriminatorWithFallback("TYPE", "FUEL_CONSUMER"),
         ]
     ] = Field(
         None,
         title="FUELCONSUMERS",
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
+        alias="FUELCONSUMERS",
     )
     venting_emitters: List[YamlVentingEmitter] = Field(
         None,
