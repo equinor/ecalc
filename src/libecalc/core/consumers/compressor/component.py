@@ -128,7 +128,6 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                         values=model_result.energy_usage,
                         unit=model_result.energy_usage_unit,
                     ),
-                    energy_usage_unit=model_result.energy_usage_unit,
                     rate_sm3_day=model_result.rate_sm3_day,
                     stage_results=model_result.stage_results,
                     failure_status=model_result.failure_status,

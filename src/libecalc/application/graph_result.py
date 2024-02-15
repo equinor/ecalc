@@ -820,7 +820,6 @@ class GraphResult:
                                 energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
                                     model.energy_usage, regularity=regularity
                                 ),
-                                energy_usage_unit=model.energy_usage_unit,
                                 requested_inlet_pressure=requested_inlet_pressure,
                                 requested_outlet_pressure=requested_outlet_pressure,
                                 rate=rate,
@@ -828,9 +827,7 @@ class GraphResult:
                                 stage_results=model_stage_results,
                                 failure_status=model.failure_status,
                                 timesteps=model.timesteps,
-                                is_valid=TimeSeriesBoolean(
-                                    timesteps=model.timesteps, values=model.is_valid, unit=Unit.NONE
-                                ),
+                                is_valid=model.is_valid,
                                 energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                                     model.energy_usage, regularity=regularity
                                 )
@@ -847,7 +844,6 @@ class GraphResult:
                                 power=TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
                                 if model.power is not None
                                 else None,
-                                power_unit=model.power_unit,
                                 turbine_result=turbine_result,
                             )
                         ]
