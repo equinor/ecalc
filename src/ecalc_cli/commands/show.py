@@ -96,7 +96,7 @@ def show_results(
     if output_frequency != Frequency.NONE:
         results_resampled = results.resample(libecalc.common.time_utils.Frequency[output_frequency.name])
     else:
-        results_resampled = results.copy()
+        results_resampled = results.model_copy()
 
     component_name = component_name
 

@@ -17,7 +17,7 @@ def variable_speed_compressor_train_one_compressor(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.copy(
+        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
             update={"stages": [variable_speed_compressor_train_stage_dto]}
         )
     )
@@ -29,7 +29,7 @@ def variable_speed_compressor_train_one_compressor_maximum_power(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.copy(
+        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto],
                 "maximum_power": 7.0,
@@ -44,7 +44,7 @@ def variable_speed_compressor_train_one_compressor_no_pressure_control(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.copy(
+        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
             update={"stages": [variable_speed_compressor_train_stage_dto], "pressure_control": None}
         )
     )
@@ -56,7 +56,7 @@ def variable_speed_compressor_train_one_compressor_asv_rate(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.copy(
+        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto],
                 "pressure_control": FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
@@ -71,7 +71,7 @@ def variable_speed_compressor_train_two_compressors(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only two compressors, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.copy(
+        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
             update={"stages": [variable_speed_compressor_train_stage_dto] * 2}
         )
     )

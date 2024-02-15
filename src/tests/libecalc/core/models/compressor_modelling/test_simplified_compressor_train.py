@@ -323,7 +323,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
         rtol=1e-3,
     )
     simple_compressor_train_model_extra_generic_stage_from_data = CompressorTrainSimplifiedKnownStages(
-        simplified_compressor_train_with_known_stages_dto.copy(
+        simplified_compressor_train_with_known_stages_dto.model_copy(
             update={
                 "stages": simplified_compressor_train_with_known_stages_dto.stages
                 + [
@@ -355,7 +355,7 @@ def test_compressor_train_simplified_known_stages_generic_chart(
     )
 
     simple_compressor_train_model_only_generic_chart_from_data = CompressorTrainSimplifiedKnownStages(
-        simplified_compressor_train_with_known_stages_dto.copy(
+        simplified_compressor_train_with_known_stages_dto.model_copy(
             update={
                 "stages": [
                     dto.CompressorStage(
