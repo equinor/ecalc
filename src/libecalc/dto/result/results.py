@@ -215,8 +215,6 @@ class CompressorModelResult(ConsumerModelResultBase):
     maximum_rate: TimeSeriesRate
     stage_results: List[CompressorModelStageResult]
     turbine_result: Optional[TurbineModelResult] = None
-    energy_usage_unit: Unit
-    power_unit: Unit
 
 
 class GenericModelResult(ConsumerModelResultBase):
