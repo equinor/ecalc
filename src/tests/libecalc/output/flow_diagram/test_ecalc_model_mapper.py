@@ -23,7 +23,7 @@ class TestEcalcModelMapper:
 
         snapshot_name = "all_energy_usage_models_fde.json"
         snapshot.assert_match(
-            json.dumps(actual_fd.dict(), sort_keys=True, indent=4, default=str), snapshot_name=snapshot_name
+            json.dumps(actual_fd.model_dump(), sort_keys=True, indent=4, default=str), snapshot_name=snapshot_name
         )
         # To assure the correct end-time is used when filtering
         installation = next(node for node in actual_fd.nodes if node.id == "installation-MAIN_INSTALLATION")
@@ -37,7 +37,7 @@ class TestEcalcModelMapper:
         actual_fd = EcalcModelMapper.from_dto_to_fde(installation_with_dates_dto_fd, result_options=dto.ResultOptions())
         snapshot_name = "actual_fde.json"
         snapshot.assert_match(
-            json.dumps(actual_fd.dict(), sort_keys=True, indent=4, default=str), snapshot_name=snapshot_name
+            json.dumps(actual_fd.model_dump(), sort_keys=True, indent=4, default=str), snapshot_name=snapshot_name
         )
 
     def test_correct_duplicate_filtering(self):

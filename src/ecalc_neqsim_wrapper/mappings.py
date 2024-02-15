@@ -54,7 +54,7 @@ _map_fluid_component_from_neqsim = {
 
 def map_fluid_composition_to_neqsim(fluid_composition: dto.FluidComposition) -> Dict[str, float]:
     component_dict = {}
-    for component_name, value in fluid_composition.dict().items():
+    for component_name, value in fluid_composition.model_dump().items():
         if value is not None and value > 0:
             neqsim_name = _map_fluid_component_to_neqsim[component_name]
             component_dict[neqsim_name] = float(value)
