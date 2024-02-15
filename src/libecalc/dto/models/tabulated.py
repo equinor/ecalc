@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from pydantic import field_validator, validator
+from pydantic import field_validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.base import ConsumerFunction
@@ -26,7 +26,7 @@ class Variables(EcalcBaseModel):
     name: str
     expression: Expression
 
-    _convert_variable_expression = validator("expression", allow_reuse=True, pre=True)(convert_expression)
+    _convert_variable_expression = field_validator("expression", mode="before")(convert_expression)
 
 
 class TabulatedConsumerFunction(ConsumerFunction):
@@ -35,4 +35,4 @@ class TabulatedConsumerFunction(ConsumerFunction):
     model: TabulatedData
     variables: List[Variables]
 
-    _convert_to_expression = validator("power_loss_factor", allow_reuse=True, pre=True)(convert_expression)
+    _convert_to_expression = field_validator("power_loss_factor", mode="before")(convert_expression)
