@@ -59,7 +59,6 @@ typer = "^0.9.0"
 [tool.poetry.group.dev.dependencies]
 pytest-snapshot = "^0.9"
 pytest = "^7.3"
-jsonschema = "^4.17"
 coverage = {version="^7.2.5", extras=["toml"]}
 pdoc = "^13.1.1"
 nbconvert = "^7.4.0"
