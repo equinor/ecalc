@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from pydantic import Field, field_validator, validator
+from pydantic import Field, field_validator
 
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
@@ -12,7 +12,7 @@ from libecalc.dto.models.compressor.train import (
 )
 from libecalc.dto.models.pump import PumpModel
 from libecalc.dto.types import ChartType, ConsumerType, EnergyUsageType
-from libecalc.dto.utils.validators import convert_expression
+from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 
 
@@ -30,29 +30,23 @@ class SystemOperationalSetting(EcalcBaseModel):
     discharge_pressures: Optional[List[Expression]] = None
     crossover: Optional[List[int]] = None
 
-    _convert_expression_lists = validator(
+    _convert_expression_lists = field_validator(
         "rate_fractions",
         "rates",
         "suction_pressures",
         "discharge_pressures",
-        allow_reuse=True,
-        pre=True,
-        each_item=True,
-    )(convert_expression)
-    _convert_expression = validator("suction_pressure", "discharge_pressure", allow_reuse=True, pre=True)(
-        convert_expression
-    )
+        mode="before",
+    )(convert_expressions)
+    _convert_expression = field_validator("suction_pressure", "discharge_pressure", mode="before")(convert_expression)
 
 
 class PumpSystemOperationalSetting(SystemOperationalSetting):
     fluid_densities: Optional[List[Expression]] = None
 
-    _convert_expression_lists = validator(
+    _convert_expression_lists = field_validator(
         "fluid_densities",
-        allow_reuse=True,
-        pre=True,
-        each_item=True,
-    )(convert_expression)
+        mode="before",
+    )(convert_expressions)
 
 
 class PumpSystemPump(EcalcBaseModel):
@@ -69,9 +63,9 @@ class PumpSystemConsumerFunction(ConsumerFunction):
     total_system_rate: Optional[Expression] = None
     operational_settings: List[PumpSystemOperationalSetting]
 
-    _convert_expression = validator(
-        "fluid_density", "total_system_rate", "power_loss_factor", allow_reuse=True, pre=True
-    )(convert_expression)
+    _convert_expression = field_validator("fluid_density", "total_system_rate", "power_loss_factor", mode="before")(
+        convert_expression
+    )
 
 
 class CompressorSystemOperationalSetting(SystemOperationalSetting):
@@ -85,9 +79,9 @@ class CompressorSystemConsumerFunction(ConsumerFunction):
     total_system_rate: Optional[Expression] = None
     operational_settings: List[CompressorSystemOperationalSetting]
 
-    _convert_total_system_rate_to_expression = validator(
-        "total_system_rate", "power_loss_factor", allow_reuse=True, pre=True
-    )(convert_expression)
+    _convert_total_system_rate_to_expression = field_validator("total_system_rate", "power_loss_factor", mode="before")(
+        convert_expression
+    )
 
     @field_validator("compressors")
     @classmethod
