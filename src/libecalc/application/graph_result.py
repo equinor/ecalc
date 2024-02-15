@@ -448,9 +448,7 @@ class GraphResult:
                             ),
                             is_valid=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
-                                values=stage_result.is_valid
-                                if stage_result.is_valid is not None
-                                else [math.nan] * len(model.timesteps),
+                                values=stage_result.is_valid,
                                 unit=Unit.NONE,
                             ),
                             polytropic_efficiency=TimeSeriesFloat(
@@ -715,9 +713,7 @@ class GraphResult:
                             ),
                             is_valid=TimeSeriesBoolean(
                                 timesteps=model.timesteps,
-                                values=model.turbine_result.is_valid
-                                if model.turbine_result.is_valid is not None
-                                else [math.nan] * len(model.timesteps),
+                                values=model.turbine_result.is_valid,
                                 unit=Unit.NONE,
                             ),
                             load=TimeSeriesRate(
