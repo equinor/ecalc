@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 
-from pydantic import model_validator, validator
+from pydantic import field_validator, model_validator
 from typing_extensions import Self
 
 from libecalc.common.utils.rates import RateType
@@ -17,9 +17,7 @@ class DirectConsumerFunction(ConsumerFunction):
     power_loss_factor: Optional[Expression] = None
     consumption_rate_type: RateType = RateType.STREAM_DAY
 
-    _convert_expressions = validator("fuel_rate", "load", "power_loss_factor", allow_reuse=True, pre=True)(
-        convert_expression
-    )
+    _convert_expressions = field_validator("fuel_rate", "load", "power_loss_factor", mode="before")(convert_expression)
 
     @model_validator(mode="after")
     def validate_either_load_or_fuel_rate(self) -> Self:

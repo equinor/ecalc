@@ -1,4 +1,4 @@
-from pydantic import field_validator, validator
+from pydantic import field_validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.utils.validators import EmissionNameStr, convert_expression
@@ -9,7 +9,7 @@ class Emission(EcalcBaseModel):
     name: EmissionNameStr
     factor: Expression  # Conversion factor for kg/day, i.e. fuel rate * factor -> kg/day
 
-    _convert_expression = validator("factor", allow_reuse=True, pre=True)(convert_expression)
+    _convert_expression = field_validator("factor", mode="before")(convert_expression)
 
     @field_validator("name", mode="before")
     @classmethod
