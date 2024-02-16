@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
-from pydantic.class_validators import validator
 from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
@@ -60,7 +59,7 @@ class BaseComponent(Component, ABC):
 
     regularity: Dict[datetime, Expression]
 
-    _validate_base_temporal_model = validator("regularity", allow_reuse=True)(validate_temporal_model)
+    _validate_base_temporal_model = field_validator("regularity")(validate_temporal_model)
 
 
 class BaseEquipment(BaseComponent, ABC):
@@ -119,9 +118,9 @@ class ElectricityConsumer(BaseConsumer):
         ElectricEnergyUsageModel,
     ]
 
-    _validate_el_consumer_temporal_model = validator("energy_usage_model", allow_reuse=True)(validate_temporal_model)
+    _validate_el_consumer_temporal_model = field_validator("energy_usage_model")(validate_temporal_model)
 
-    _check_model_energy_usage = validator("energy_usage_model", allow_reuse=True)(
+    _check_model_energy_usage = field_validator("energy_usage_model")(
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.POWER)
     )
 
@@ -136,11 +135,9 @@ class FuelConsumer(BaseConsumer):
     fuel: Dict[datetime, FuelType]
     energy_usage_model: Dict[datetime, FuelEnergyUsageModel]
 
-    _validate_fuel_consumer_temporal_models = validator("energy_usage_model", "fuel", allow_reuse=True)(
-        validate_temporal_model
-    )
+    _validate_fuel_consumer_temporal_models = field_validator("energy_usage_model", "fuel")(validate_temporal_model)
 
-    _check_model_energy_usage = validator("energy_usage_model", allow_reuse=True)(
+    _check_model_energy_usage = field_validator("energy_usage_model")(
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.FUEL)
     )
 
@@ -302,9 +299,7 @@ class GeneratorSet(BaseEquipment):
             Field(discriminator="component_type"),
         ]
     ] = Field(default_factory=list)
-    _validate_genset_temporal_models = validator("generator_set_model", "fuel", allow_reuse=True)(
-        validate_temporal_model
-    )
+    _validate_genset_temporal_models = field_validator("generator_set_model", "fuel")(validate_temporal_model)
 
     @field_validator("user_defined_category", mode="before")
     @classmethod
@@ -347,9 +342,9 @@ class Installation(BaseComponent):
     def id(self) -> str:
         return generate_id(self.name)
 
-    _validate_installation_temporal_model = validator("hydrocarbon_export", allow_reuse=True)(validate_temporal_model)
+    _validate_installation_temporal_model = field_validator("hydrocarbon_export")(validate_temporal_model)
 
-    _convert_expression_installation = validator("regularity", "hydrocarbon_export", allow_reuse=True, pre=True)(
+    _convert_expression_installation = field_validator("regularity", "hydrocarbon_export", mode="before")(
         convert_expression
     )
 
