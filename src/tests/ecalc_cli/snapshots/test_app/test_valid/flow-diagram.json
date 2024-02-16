@@ -12,7 +12,7 @@
                 "toNode": "emission-output"
             }
         ],
-        "endDate": "1901-01-01T00:00:00Z",
+        "endDate": "1901-01-01T00:00:00",
         "flows": [
             {
                 "id": "fuel-flow",
@@ -89,7 +89,7 @@
                                 "toNode": "emission-output"
                             }
                         ],
-                        "endDate": "1901-01-01T00:00:00Z",
+                        "endDate": "1901-01-01T00:00:00",
                         "flows": [
                             {
                                 "id": "fuel-flow",
@@ -164,7 +164,7 @@
                                 "type": "input-output-node"
                             }
                         ],
-                        "startDate": "1900-01-01T00:00:00Z",
+                        "startDate": "1900-01-01T00:00:00",
                         "title": "Installation A"
                     }
                 ],
@@ -178,7 +178,7 @@
                 "type": "input-output-node"
             }
         ],
-        "startDate": "1900-01-01T00:00:00Z",
+        "startDate": "1900-01-01T00:00:00",
         "title": "Area"
     }
 ]
