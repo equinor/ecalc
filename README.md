@@ -14,7 +14,7 @@ eCalc™ is a software tool for calculation of energy demand and greenhouse gas 
 > **Note**
 >
 > eCalc™ is a work in progress and is by no means considered a finished and final product. We currently recommend to use the YAML API when using eCalc, and only
-> fallback to the Python API when it is strictly needed, as a breaking v2 version of the Python API is in development and expected finished in 2023.
+> fallback to the Python API when it is strictly needed.
 
 > **Warning**
 >
