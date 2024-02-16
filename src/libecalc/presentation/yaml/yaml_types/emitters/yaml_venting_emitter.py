@@ -84,22 +84,21 @@ class YamlVentingEmitter(YamlBase):
                     entity_name = str(cls)
 
                 raise ValueError(
-                    f"CATEGORY: {category} is not allowed for {cls.model_config['title']} {name}. Valid categories are: "
-                    f"{[consumer_user_defined_category.value for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
                     f"CATEGORY: {category} is not allowed for {entity_name} {name_context_string}. Valid categories are: "
                     f"{[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
                 )
         return category
 
-    @field_validator("emission", mode="before")
+    @field_validator("emission", mode="after")
     def check_volume_emission_factor(cls, emission, info: ValidationInfo):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
         category = info.data.get("category")
         name = ""
+
         if info.data.get("name") is not None:
             name = f"with the name {info.data.get('name')}"
 
-        if emission["EMISSION_RATE_TO_VOLUME_FACTOR"] is not None:
+        if emission.emission_rate_to_volume_factor is not None:
             if category not in [ConsumerUserDefinedCategoryType.LOADING, ConsumerUserDefinedCategoryType.STORAGE]:
                 raise ValueError(
                     f"{cls.model_config['title']} {name}: It is not possible to specify FACTOR for CATEGORY {category}. "
