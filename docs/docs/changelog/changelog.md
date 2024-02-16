@@ -1,5 +1,88 @@
 # Changelog
 
+## [8.10.0](https://github.com/equinor/ecalc/compare/v8.9.0...v8.10.0) (2024-02-16)
+
+
+### Bug Fixes
+
+* add name constraints to yaml classes ([#358](https://github.com/equinor/ecalc/issues/358)) ([f586181](https://github.com/equinor/ecalc/commit/f586181dd980b964f305fe4fa0e1b6c74512e593))
+* add pydantic ndarray type ([d005ed4](https://github.com/equinor/ecalc/commit/d005ed4af198d39bf504832a1f3f31dc3cffe1d0))
+* convert numpy to python ([2be1736](https://github.com/equinor/ecalc/commit/2be17363b6c7b788ef3ac25d02b6209b6d7fe062))
+* custom date format in json ([#359](https://github.com/equinor/ecalc/issues/359)) ([d62e650](https://github.com/equinor/ecalc/commit/d62e6501fdf87f88a470ee6b61c2e66988b7ba68))
+* error when creating references ([ed1060e](https://github.com/equinor/ecalc/commit/ed1060e2b5a8ab48274a7743f4691980d7480040))
+* expression error messages ([#361](https://github.com/equinor/ecalc/issues/361)) ([6a62db5](https://github.com/equinor/ecalc/commit/6a62db5456ac9d61ca1de165ed389905249163a9))
+* generate schema for energy usage models ([c448942](https://github.com/equinor/ecalc/commit/c448942f3113815f24244647b74c5fa667ca8578))
+* generate schema for models and generator set model ([b87fd2f](https://github.com/equinor/ecalc/commit/b87fd2f2d78fa36388ccbfbe9565669bd73519fa))
+* get_max_rate for single speed train ([00cd9c5](https://github.com/equinor/ecalc/commit/00cd9c575a18ec5d94b1e5df21ab8fdf575bcb1c))
+* get_max_rate for variable speed train with and without multiple streams and pressures ([#374](https://github.com/equinor/ecalc/issues/374)) ([00cd9c5](https://github.com/equinor/ecalc/commit/00cd9c575a18ec5d94b1e5df21ab8fdf575bcb1c))
+* issue with TimeSeriesBoolean becoming float ([3622927](https://github.com/equinor/ecalc/commit/3622927e0defc0b33b0f15a55d09be284d767363))
+* **libecalc:** handle dict, list and expression when parsing expression ([1b2ee32](https://github.com/equinor/ecalc/commit/1b2ee3266bfd818305c6b3ec6bf244084bfcf14c))
+* **libecalc:** init pydantic v2 update ([158b90d](https://github.com/equinor/ecalc/commit/158b90d9550d40ae478bf3a7ad3b0177d6a85714))
+* **libecalc:** optional pressure control ([42cedb7](https://github.com/equinor/ecalc/commit/42cedb7c407589d7ac17b22e003ffd9ce4795ddb))
+* **libecalc:** pydantic models not automatically parsed/converted ([af68417](https://github.com/equinor/ecalc/commit/af684173e4b1bbd06d04352a15272ab8b8da1e7b))
+* **libecalc:** results serialization and parsing ([44b3f57](https://github.com/equinor/ecalc/commit/44b3f5770a310e5cc8e16bff66bf3b8eda75d19b))
+* **libecalc:** tests ([edc9c4c](https://github.com/equinor/ecalc/commit/edc9c4c990f3cbb6fea346dfb99c6a004b1a44a0))
+* **libecalc:** update pydantic ([1ab5105](https://github.com/equinor/ecalc/commit/1ab51053d18eb9d3524c8e6c784cdc138714d249))
+* none to nan conversion ([e8b720a](https://github.com/equinor/ecalc/commit/e8b720a1478d0f537ae33c47bb7ac0515938e1a2))
+* remove deprecated validator ([9765874](https://github.com/equinor/ecalc/commit/976587460e561bd9e3aa7ff47ce192990bcaf945))
+* remove generate_json_schemas function ([#382](https://github.com/equinor/ecalc/issues/382)) ([cf5a16d](https://github.com/equinor/ecalc/commit/cf5a16d08a0c4fc0cbcdd14d25dd2ff6f0cb7b7c))
+* resample method for TimeSeriesBoolean ([#349](https://github.com/equinor/ecalc/issues/349)) ([8feaf6c](https://github.com/equinor/ecalc/commit/8feaf6c95f58e36b8dbe5b9440738d818d3441a6))
+* use discriminated union ([d66fed3](https://github.com/equinor/ecalc/commit/d66fed3dea423dc4658b4fa4c7a52ed68fbe4ab3))
+* use EcalcError and provide context ([975d3b1](https://github.com/equinor/ecalc/commit/975d3b1b6c6214f963a7e9e55cf8539c4e3886b4))
+* validation using yaml classes ([#377](https://github.com/equinor/ecalc/issues/377)) ([66aada1](https://github.com/equinor/ecalc/commit/66aada1de1204465c762f8f789d30219516e9a80))
+* yaml models schema ([b5d3451](https://github.com/equinor/ecalc/commit/b5d3451a32939e06dfca9185cb084abd30b5ea99))
+
+
+### Documentation
+
+* fix broken links ([ab80399](https://github.com/equinor/ecalc/commit/ab803992709ca571be41e94badf9f841f462e307))
+* fixed the Error in Simple model example in eCalc Docs, variable name started from salt_water to sea_water in full eCalc YAML model ([#369](https://github.com/equinor/ecalc/issues/369)) ([2961d2f](https://github.com/equinor/ecalc/commit/2961d2f0cde2d7d1cd152c84b4bc7ac769b1d75b))
+* remove subgraph markdown styling ([3632fbd](https://github.com/equinor/ecalc/commit/3632fbddb6049d5ca148f0c8023d8a1d4ee3b343))
+* remove v2 expectations ([#386](https://github.com/equinor/ecalc/issues/386)) ([0595fbd](https://github.com/equinor/ecalc/commit/0595fbd3af6999988d7b07ad9c92279153278fc7))
+* The new update of Drogon eCalc model with a single speed pump ([#241](https://github.com/equinor/ecalc/issues/241)) ([a22ffe8](https://github.com/equinor/ecalc/commit/a22ffe891c6d96600ab1e73e0d64898ac3443225))
+* update description of control mechanisms in a variable speed compressor chart ([#291](https://github.com/equinor/ecalc/issues/291)) ([67c3476](https://github.com/equinor/ecalc/commit/67c34763499616dfa1131daf54a2da7da51b7917))
+* update info about time series ([#352](https://github.com/equinor/ecalc/issues/352)) ([aff50d7](https://github.com/equinor/ecalc/commit/aff50d7e9526b3303aa48648520ae795f68cdc38))
+* update migration guide venting emitters ([#337](https://github.com/equinor/ecalc/issues/337)) ([551e1e1](https://github.com/equinor/ecalc/commit/551e1e1e5cfb93b608f280299bb34c37b7f8fb29))
+* Wrong_category_for_directly_driven_compressor_in_simple_model_example_in_eCalc_Docs ([#368](https://github.com/equinor/ecalc/issues/368)) ([e01080b](https://github.com/equinor/ecalc/commit/e01080be6f144a80f7191a91d05913197f436f91))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/cache from 3.3.2 to 4.0.0 ([#351](https://github.com/equinor/ecalc/issues/351)) ([6c824ea](https://github.com/equinor/ecalc/commit/6c824ea831d78d68e54fc2402943767afa687b64))
+* **deps:** bump actions/setup-python from 4 to 5 ([#313](https://github.com/equinor/ecalc/issues/313)) ([a9cca9e](https://github.com/equinor/ecalc/commit/a9cca9e2560723fa76551d9ddd40e8a67ccf691c))
+* **docs:** fix mermaid diagrams ([d405717](https://github.com/equinor/ecalc/commit/d405717bd8e5c34ae825ab3c2139c638ecce0e56))
+* **docs:** update docusaurus to v3 ([8065c52](https://github.com/equinor/ecalc/commit/8065c520a3756f79c33448e8f6ed10d8d7a2f67d))
+* **docs:** update node in ci ([625772d](https://github.com/equinor/ecalc/commit/625772d0392ef8f922666191927c28c15b18847c))
+* **docs:** use node 20 ([#367](https://github.com/equinor/ecalc/issues/367)) ([7557811](https://github.com/equinor/ecalc/commit/75578110c9dd271195c2602d63889d407177b8e1))
+* document _type_handler ([82769a0](https://github.com/equinor/ecalc/commit/82769a0a75d4c4af55872b85b411fbc5948ef411))
+* fix formatting ([185f624](https://github.com/equinor/ecalc/commit/185f6248db22a7a6a1d2345b8ef0df230fc4a624))
+* fix typing for charts ([f6a58a2](https://github.com/equinor/ecalc/commit/f6a58a26e00d60bf1669ff80aadee05ce68126aa))
+* improve error message when unknown model type ([#380](https://github.com/equinor/ecalc/issues/380)) ([d6686fa](https://github.com/equinor/ecalc/commit/d6686fa6b71a735ef17eec52577e0c5a87a3828d))
+* remove deprecated json_encoders ([#384](https://github.com/equinor/ecalc/issues/384)) ([885efee](https://github.com/equinor/ecalc/commit/885efeea13bb4098d77ef39f49b7bc48a58879e2))
+* remove deprecated min_items,max_items ([d457c2d](https://github.com/equinor/ecalc/commit/d457c2d2c4bd3292f36691c009e737b806be2fea))
+* remove deprecated usage of dict,copy ([#381](https://github.com/equinor/ecalc/issues/381)) ([3a19620](https://github.com/equinor/ecalc/commit/3a19620b2cd16ff6638b9ee34b4568bd7686ede7))
+* remove pydantic.v1 import ([#364](https://github.com/equinor/ecalc/issues/364)) ([6d1a127](https://github.com/equinor/ecalc/commit/6d1a127db84ebf2d8a70e3495c339b34a3c90fd8))
+* remove unused method ([#357](https://github.com/equinor/ecalc/issues/357)) ([5a4021d](https://github.com/equinor/ecalc/commit/5a4021d2cb31141723f3b963b57bae6373e202dd))
+* skip date format test temporarily ([b3a073b](https://github.com/equinor/ecalc/commit/b3a073bb232a9791f65e5922b32f422131d7d025))
+* update dependencies ([#362](https://github.com/equinor/ecalc/issues/362)) ([b373726](https://github.com/equinor/ecalc/commit/b3737269826cf94cfdd850cd161e03360d4894c6))
+* update dependencies ([#373](https://github.com/equinor/ecalc/issues/373)) ([a35c604](https://github.com/equinor/ecalc/commit/a35c604ce88399b5235300a42b0563d54386dba1))
+* update neqsim to 2.5.16 ([#341](https://github.com/equinor/ecalc/issues/341)) ([950b0fd](https://github.com/equinor/ecalc/commit/950b0fd941a22fa64dd1ed2fc948333c387258d4))
+* update snapshot for failing test ([#387](https://github.com/equinor/ecalc/issues/387)) ([a135a97](https://github.com/equinor/ecalc/commit/a135a977b226fd1d68e3c8a490ef35e1650235e5))
+* update snapshots ([5c1c98c](https://github.com/equinor/ecalc/commit/5c1c98c2e1822ef9618d0c7c8f6cb21b02bff04e))
+* use field_validator ([1756aac](https://github.com/equinor/ecalc/commit/1756aacff551ab4983c02d9b17cd22e894780a0a))
+
+
+### Code Refactoring
+
+* allow str in resource stream ([#371](https://github.com/equinor/ecalc/issues/371)) ([fe9f3f2](https://github.com/equinor/ecalc/commit/fe9f3f2008ee32f2a9614d4c88966e4c5e4831f6))
+* remove inheritance of CompressorTrainResult ([3ab8964](https://github.com/equinor/ecalc/commit/3ab8964acdc8ef1238bd2be91a866f692115a1f0))
+* remove need for id on components etc ([#347](https://github.com/equinor/ecalc/issues/347)) ([f9e32ae](https://github.com/equinor/ecalc/commit/f9e32aeb1fbcbba1d7ee56bdb5767ccc7c2e3f14))
+
+
+### Tests
+
+* add test for yaml validation errors ([#378](https://github.com/equinor/ecalc/issues/378)) ([e5a0772](https://github.com/equinor/ecalc/commit/e5a0772e0b0b01cc4229b211bea929d6ef1b885b))
+
 ## [8.9.0](https://github.com/equinor/ecalc/compare/v8.8.0...v8.9.0) (2024-01-11)
 
 
