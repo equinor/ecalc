@@ -1,9 +1,12 @@
 from typing import Literal, Union
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, field_validator
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_validators.file_validators import (
+    file_exists_validator,
+)
 
 
 class YamlTimeSeriesCollectionBase(YamlBase):
@@ -29,6 +32,8 @@ class YamlTimeSeriesCollectionBase(YamlBase):
         title="INFLUENCE_TIME_VECTOR",
         description="Determines if the time steps in this input source will contribute to the global time vector.\n\n$ECALC_DOCS_KEYWORDS_URL/INFLUENCE_TIME_VECTOR",
     )
+
+    validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
 
 
 class YamlDefaultTimeSeriesCollection(YamlTimeSeriesCollectionBase):
