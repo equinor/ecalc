@@ -1,9 +1,12 @@
 from typing import Literal, Union
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_validators.file_validators import (
+    file_exists_validator,
+)
 
 
 def FacilityTypeField():
@@ -43,6 +46,8 @@ class YamlFacilityTypeBase(YamlBase):
         title="ADJUSTMENT",
         description="Definition of adjustments to correct for mismatches in facility energy usage.\n\n$ECALC_DOCS_KEYWORDS_URL/ADJUSTMENT",
     )
+
+    validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
 
 
 class YamlGeneratorSetModel(YamlFacilityTypeBase):

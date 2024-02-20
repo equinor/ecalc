@@ -28,3 +28,19 @@ def simple_yaml() -> YamlCase:
             "pump_sampled.csv",
         ],
     )
+
+
+@pytest.fixture
+def simple_temporal_yaml() -> YamlCase:
+    return YamlCaseLoader.load(
+        case_path=Path(__file__).parent,
+        main_file="model_temporal.yaml",
+        resource_names=[
+            "compressor_sampled.csv",
+            "compressor_sampled_with_turbine.csv",
+            "genset.csv",
+            "production_data.csv",
+            "pump_chart.csv",
+            "pump_sampled.csv",
+        ],
+    )
