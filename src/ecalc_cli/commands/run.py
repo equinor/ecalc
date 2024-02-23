@@ -152,7 +152,7 @@ def run(
         # Note: LTP can't use this resampled-result yet, because of differences in methodology.
         results_resampled = results_dto.resample(output_frequency)
     else:
-        results_resampled = results_dto.model_copy()
+        results_resampled = results_dto.copy()
 
     if csv:
         csv_data = get_result_output(

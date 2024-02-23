@@ -175,7 +175,7 @@ class TestMerge:
         expected_timesteps = [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1), datetime(2023, 1, 1)]
 
         assert (
-            merged.model_dump()
+            merged.dict()
             == MergeableObject(
                 string_test="1",
                 int_test=15,
@@ -245,7 +245,7 @@ class TestMerge:
                         ),
                     ),
                 ],
-            ).model_dump()
+            ).dict()
         )
 
     def test_invalid_types(self):

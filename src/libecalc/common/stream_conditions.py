@@ -131,7 +131,7 @@ class TimeSeriesStreamConditions(BaseModel):
         if len(streams) == 0:
             raise ValueError("No streams to mix")
         if len(streams) == 1:
-            return streams[0].model_copy()
+            return streams[0].copy()
 
         first, *rest = streams
-        return first.model_copy().mix(*rest)
+        return first.copy().mix(*rest)

@@ -80,7 +80,7 @@ class SimpleComponentResult(SimpleBase):
 
     @classmethod
     def from_dto(cls, component_result: ComponentResult) -> "SimpleComponentResult":
-        return SimpleComponentResult(**component_result.model_dump())
+        return SimpleComponentResult(**component_result.dict())
 
     @model_validator(mode="before")
     def convert_time_series(cls, values):

@@ -151,4 +151,4 @@ def test_all_consumer_with_time_slots_models_results(consumer_with_time_slots_mo
     ).get_results()
 
     snapshot_name = "all_consumer_with_time_slots_models_v3.json"
-    rounded_snapshot(data=result.model_dump(), snapshot_name=snapshot_name)
+    rounded_snapshot(data=result.dict(), snapshot_name=snapshot_name)

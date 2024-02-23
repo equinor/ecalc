@@ -301,7 +301,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
             # Add transfer rate to receiving consumer
             rates_after_cross_over[cross_over_number - 1] += transfer_rate
 
-        return operational_setting.model_copy(update={"rates": rates_after_cross_over})
+        return operational_setting.copy(update={"rates": rates_after_cross_over})
 
     @staticmethod
     def get_cross_over_used(

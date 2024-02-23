@@ -276,8 +276,8 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
     def to_unit(self, unit: Unit) -> Self:
         if unit == self.unit:
-            return self.model_copy()
-        return self.model_copy(update={"values": [self.unit.to(unit)(rate) for rate in self.values], "unit": unit})
+            return self.copy()
+        return self.copy(update={"values": [self.unit.to(unit)(rate) for rate in self.values], "unit": unit})
 
     def forward_fill(self) -> Self:
         return self.model_copy(update={"values": pd.Series(self.values).ffill().tolist()})
@@ -374,7 +374,7 @@ class TimeSeriesString(TimeSeries[str]):
             TimeSeriesString resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.model_copy()
+            return self.copy()
 
         ds = pd.Series(index=self.timesteps, data=self.values)
 
@@ -401,7 +401,7 @@ class TimeSeriesInt(TimeSeries[int]):
             TimeSeriesInt resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.model_copy()
+            return self.copy()
 
         ds = pd.Series(index=self.timesteps, data=self.values)
 
@@ -432,7 +432,7 @@ class TimeSeriesBoolean(TimeSeries[bool]):
             TimeSeriesBoolean resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.model_copy()
+            return self.copy()
 
         # Always make new time series WITH end date, but remove it later is not needed
         new_timeseries = resample_time_steps(
@@ -491,7 +491,7 @@ class TimeSeriesFloat(TimeSeries[float]):
             TimeSeriesFloat resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.model_copy()
+            return self.copy()
 
         ds = pd.Series(index=self.timesteps, data=self.values)
 
@@ -542,7 +542,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
             TimeSeriesVolumesCumulative resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.model_copy()
+            return self.copy()
 
         ds = pd.Series(index=self.timesteps, data=self.values)
         new_timeseries = resample_time_steps(
@@ -734,7 +734,7 @@ class TimeSeriesIntensity(TimeSeries[float]):
             TimeSeriesIntensity resampled to the given frequency
         """
         if freq is Frequency.NONE:
-            return self.model_copy()
+            return self.copy()
 
         ds = pd.Series(index=self.timesteps, data=self.values)
         new_timeseries = resample_time_steps(

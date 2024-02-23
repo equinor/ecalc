@@ -56,6 +56,4 @@ class TestMerge:
 
         compressor_result_subset_2 = compressor_result.get_subset([1, 3])
 
-        assert (
-            compressor_result_subset_1.merge(compressor_result_subset_2).model_dump() == compressor_result.model_dump()
-        )
+        assert compressor_result_subset_1.merge(compressor_result_subset_2).dict() == compressor_result.dict()

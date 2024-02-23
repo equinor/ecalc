@@ -25,7 +25,7 @@ def variable_speed_compressor_train_one_compressor(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only one compressor, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
+        data_transfer_object=variable_speed_compressor_train_dto.copy(
             update={"stages": [variable_speed_compressor_train_stage_dto]}
         )
     )
@@ -37,7 +37,7 @@ def variable_speed_compressor_train_two_compressors(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with only two compressors, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
+        data_transfer_object=variable_speed_compressor_train_dto.copy(
             update={"stages": [variable_speed_compressor_train_stage_dto] * 2}
         )
     )
@@ -49,7 +49,7 @@ def variable_speed_compressor_train_two_compressors_downstream_choke(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with two compressors, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
+        data_transfer_object=variable_speed_compressor_train_dto.copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
                 "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -64,7 +64,7 @@ def variable_speed_compressor_train_two_compressors_individual_asv_pressure(
 ) -> VariableSpeedCompressorTrainCommonShaft:
     """Train with two compressors, and standard medium fluid, no liquid off take."""
     return VariableSpeedCompressorTrainCommonShaft(
-        data_transfer_object=variable_speed_compressor_train_dto.model_copy(
+        data_transfer_object=variable_speed_compressor_train_dto.copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
                 "pressure_control": dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
@@ -117,7 +117,7 @@ def variable_speed_compressor_train_one_compressor_one_stream(
                 fluid=FluidStream(medium_fluid), is_inlet_stream=True, connected_to_stage_no=0
             )
         ],
-        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
+        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.copy(
             update={"stages": [variable_speed_compressor_train_stage_dto]}
         ),
     )
@@ -138,7 +138,7 @@ def variable_speed_compressor_train_one_compressor_one_stream_downstream_choke(
                 fluid=FluidStream(medium_fluid), is_inlet_stream=True, connected_to_stage_no=0
             )
         ],
-        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
+        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto],
                 "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -163,7 +163,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_downstream_choke(
     ]
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
-        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
+        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
                 "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
@@ -188,7 +188,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_individual_asv_pr
     ]
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
-        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
+        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
                 "pressure_control": dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
@@ -218,7 +218,7 @@ def variable_speed_compressor_train_two_compressors_two_streams(
     ]
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=fluid_streams,
-        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
+        data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.copy(
             update={"stages": [variable_speed_compressor_train_stage_dto] * 2}
         ),
     )

@@ -147,7 +147,7 @@ def map_energy_function_results(
             values=result.energy_usage,
             unit=result.energy_usage_unit,
         )
-        energy_model_result_dict = result.model_dump()
+        energy_model_result_dict = result.dict()
         del energy_model_result_dict["energy_usage"]
         del energy_model_result_dict["power"]
         energy_function_results.append(

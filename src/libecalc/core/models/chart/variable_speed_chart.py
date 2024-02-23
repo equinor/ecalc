@@ -354,7 +354,7 @@ class VariableSpeedChart:
 
         scaled_chart_curves = [
             # Note: the values will contain negative values which will result in a validation error unless we do this:
-            curve.data_transfer_object.model_copy(
+            curve.data_transfer_object.copy(
                 update={
                     "rate_actual_m3_hour": array_to_list((curve.rate_values - mean_rates) / std_rates),
                     "polytropic_head_joule_per_kg": array_to_list((curve.head_values - mean_heads) / std_heads),

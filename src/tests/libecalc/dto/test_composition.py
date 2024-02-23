@@ -18,8 +18,8 @@ def test_composition(caplog):
     }
     composition = dto.FluidComposition.parse_obj(composition_spec)
 
-    assert all(x in composition.model_dump() for x in composition_spec)
-    assert all(x in composition.model_dump().values() for x in composition_spec.values())
+    assert all(x in composition.dict() for x in composition_spec)
+    assert all(x in composition.dict().values() for x in composition_spec.values())
 
     # Composition with invalid component name
     with pytest.raises(ValidationError):

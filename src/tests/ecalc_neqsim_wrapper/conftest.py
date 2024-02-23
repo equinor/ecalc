@@ -56,6 +56,6 @@ def light_fluid() -> NeqsimFluid:
 
 @pytest.fixture
 def heavy_fluid_with_water() -> NeqsimFluid:
-    composition = HEAVY_FLUID_COMPOSITION.model_copy()
+    composition = HEAVY_FLUID_COMPOSITION.copy()
     composition["water"] = 0.15
     return NeqsimFluid.create_thermo_system(composition=composition)

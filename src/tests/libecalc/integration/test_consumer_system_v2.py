@@ -80,19 +80,19 @@ def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, re
     compressor_system_v2_id = asset_graph.get_node_id_by_name("compressor_system_v2")
 
     pump_system_result = ecalc_result.consumer_results[pump_system_id]
-    pump_system_component_result = pump_system_result.component_result.model_copy(
+    pump_system_component_result = pump_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "pump system"}
     )
     pump_system_v2_result = ecalc_result.consumer_results[pump_system_v2_id]
-    pump_system_v2_component_result = pump_system_v2_result.component_result.model_copy(
+    pump_system_v2_component_result = pump_system_v2_result.component_result.copy(
         update={"operational_settings_results": None, "id": "pump system"}
     )
     compressor_system_result = ecalc_result.consumer_results[compressor_system_id]
-    compressor_system_component_result = compressor_system_result.component_result.model_copy(
+    compressor_system_component_result = compressor_system_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
     compressor_system_v2_result = ecalc_result.consumer_results[compressor_system_v2_id]
-    compressor_system_v2_component_result = compressor_system_v2_result.component_result.model_copy(
+    compressor_system_v2_component_result = compressor_system_v2_result.component_result.copy(
         update={"operational_settings_results": None, "id": "compressor system"}
     )
 
@@ -100,11 +100,11 @@ def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, re
     assert compressor_system_component_result.power.unit == compressor_system_v2_component_result.power.unit
     assert isinstance(compressor_system_component_result.power, type(compressor_system_v2_component_result.power))
 
-    assert pump_system_component_result.model_dump() == pump_system_v2_component_result.model_dump()
-    assert compressor_system_component_result.model_dump() == compressor_system_v2_component_result.model_dump()
+    assert pump_system_component_result.dict() == pump_system_v2_component_result.dict()
+    assert compressor_system_component_result.dict() == compressor_system_v2_component_result.dict()
 
     snapshot_name = f"{name}.json"
-    rounded_snapshot(data=ecalc_result.model_dump(), snapshot_name=snapshot_name)
+    rounded_snapshot(data=ecalc_result.dict(), snapshot_name=snapshot_name)
 
 
 def test_compare_snapshots(snapshot):
