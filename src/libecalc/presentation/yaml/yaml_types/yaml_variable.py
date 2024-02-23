@@ -1,13 +1,12 @@
+from datetime import date, datetime
 from typing import Dict, Union
 
-from pydantic import StringConstraints
+from pydantic import AfterValidator, StringConstraints
 from typing_extensions import Annotated
 
+from libecalc.common.time_utils import convert_date_to_datetime
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import (
-    YamlDefaultDatetime,
-)
 
 
 class YamlSingleVariable(YamlBase):
@@ -20,6 +19,8 @@ class YamlSingleVariable(YamlBase):
     def to_dto(self):
         raise NotImplementedError
 
+
+YamlDefaultDatetime = Union[datetime, Annotated[date, AfterValidator(convert_date_to_datetime)]]
 
 YamlTimeVariable = Dict[YamlDefaultDatetime, YamlSingleVariable]
 

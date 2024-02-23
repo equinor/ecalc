@@ -9,13 +9,10 @@ from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import YamlConsumerBase
-from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
-    YamlCompressor,
-)
 from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlStream
 from pydantic import Field
 
-TYamlConsumer = TypeVar("TYamlConsumer", bound=YamlCompressor)
+TYamlConsumer = TypeVar("TYamlConsumer")
 
 
 class YamlTrain(YamlConsumerBase, Generic[TYamlConsumer]):

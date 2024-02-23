@@ -11,7 +11,7 @@ from libecalc.infrastructure.file_io import (
     read_facility_resource,
     read_timeseries_resource,
 )
-from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
+from libecalc.presentation.yaml.mappers import map_yaml_to_variables
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 from libecalc.presentation.yaml.yaml_entities import (
     Resource,

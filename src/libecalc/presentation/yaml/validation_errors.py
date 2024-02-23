@@ -1,14 +1,10 @@
 import enum
-import re
-from dataclasses import dataclass
-from datetime import date
 from textwrap import indent
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 from pydantic import ValidationError as PydanticValidationError
 from pydantic_core import ErrorDetails
-from typing_extensions import Self
 from yaml import Dumper, Mark
 
 from libecalc.common.logger import logger
@@ -119,132 +115,10 @@ class DataValidationError(ValidationError):
         self.extended_message = extended_message
 
 
-date_repr_pattern = r"datetime\.date\(([0-9]{4}),\s([0-9]{1,2}),\s([0-9]{1,2})\)"
-date_repr_regex = re.compile(date_repr_pattern)
-
-
-@dataclass
-class Location:
-    keys: List[Union[str, int, date]]
-
-    def as_dot_separated(self) -> str:
-        path = ""
-        for i, x in enumerate(self.keys):
-            if isinstance(x, str):
-                if i > 0:
-                    path += "."
-                path += x
-            elif isinstance(x, int):
-                path += f"[{x}]"
-            elif isinstance(x, date):
-                path += f".{x.strftime('%Y-%m-%d')}"
-            else:
-                raise TypeError("Unexpected type")
-        return path
-
-    @classmethod
-    def _parse_date(cls, key: str) -> Union[date, str]:
-        date_matches = date_repr_regex.fullmatch(key)
-        try:
-            year, month, day = date_matches.groups()
-            return date(int(year), int(month), int(day))
-        except ValueError:
-            # If matches.groups() does not contain three values, or year,month,day can not be parsed as int
-            logger.exception("Unable to parse date key, returning string instead")
-            return key
-
-    @classmethod
-    def _parse_key(cls, key: Union[str, int]) -> Union[int, str, date]:
-        if isinstance(key, str) and date_repr_regex.fullmatch(key) is not None:
-            return cls._parse_date(key)
-        return key
-
-    @classmethod
-    def from_pydantic_loc(cls, loc: Loc) -> Self:
-        return cls([cls._parse_key(key) for key in loc])
-
-
-@dataclass
-class ModelValidationError:
-    details: ErrorDetails
-    data: Optional[Dict]
-
-    @property
-    def location(self) -> Location:
-        return Location.from_pydantic_loc(self.details["loc"])
-
-    @property
-    def message(self):
-        return self.details["msg"]
-
-    @property
-    def input(self):
-        return self.details["input"]
-
-    @property
-    def yaml(self) -> Optional[str]:
-        if self.data is None:
-            return None
-
-        return yaml.dump(self.data, sort_keys=False).strip()
-
-    def __str__(self):
-        msg = self.location.as_dot_separated()
-        msg += f"\t{self.message}"
-        return msg
-
-
 class DtoValidationError(DataValidationError):
     """DTO validation error. Should be used in the case that we have a ValidationError from creating a DTO.
     Context to the error message will be added. The data provided should be yaml-read data.
     """
-
-    def error_count(self):
-        return self.validation_error.error_count()
-
-    @staticmethod
-    def _get_nested_data(data: Any, keys: Loc) -> Optional[Any]:
-        current_data = data
-        for key in keys:
-            try:
-                current_data = current_data[key]
-            except (KeyError, TypeError):
-                # KeyError if key not in dict, TypeError if current_data is None
-                return None
-        return current_data
-
-    def _get_closest_data_with_key(self, loc: Loc, key: str) -> Optional[Dict]:
-        for i in range(len(loc)):
-            if i == 0:
-                end_index = None
-            else:
-                end_index = -i
-            nested_data = self._get_nested_data(data=self.data, keys=loc[:end_index])
-            if isinstance(nested_data, dict) and key in nested_data:
-                return nested_data
-
-        return None
-
-    def _get_context_data(self, loc: Loc) -> Optional[Dict]:
-        # Try to get data with 'NAME' attribute
-        component_data = self._get_closest_data_with_key(loc, key=EcalcYamlKeywords.name)
-        if component_data is not None:
-            return component_data
-
-        if len(loc) > 1:
-            # Get one level, works well for VARIABLES
-            return self._get_nested_data(self.data, (loc[0],))
-
-    def errors(self) -> List[ModelValidationError]:
-        errors = []
-        for error in custom_errors(e=self.validation_error, custom_messages=CUSTOM_MESSAGES):
-            errors.append(
-                ModelValidationError(
-                    details=error,
-                    data=self._get_context_data(loc=error["loc"]),
-                )
-            )
-        return errors
 
     def __init__(
         self,
@@ -252,9 +126,6 @@ class DtoValidationError(DataValidationError):
         validation_error: PydanticValidationError,
         **kwargs,
     ):
-        self.data = data
-        self.validation_error = validation_error
-
         name = data.get(EcalcYamlKeywords.name)
         message_title = f"\n{name}:"
         messages = [message_title]

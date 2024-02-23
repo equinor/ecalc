@@ -112,11 +112,8 @@ class Expression:
 
             if isinstance(x, list):
                 return [parse_expression(v, info) for v in x]
-            try:
-                return Expression(tokens=cls.validate(x))
-            except InvalidExpressionError as e:
-                # Raise ValueError for pydantic to pick up
-                raise ValueError(str(e)) from e
+
+            return Expression(tokens=cls.validate(x))
 
         # item_schema = [core_schema.int_schema(), core_schema.float_schema(), core_schema.str_schema()]
         # list_schema = core_schema.list_schema(core_schema.union_schema(item_schema))

@@ -1,8 +1,5 @@
 from typing import Union
 
-from pydantic import Field
-from typing_extensions import Annotated
-
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_compressor import (
     YamlEnergyUsageModelCompressor,
 )
@@ -23,25 +20,19 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
     YamlEnergyUsageModelTabulated,
 )
 
-YamlElectricityEnergyUsageModel = Annotated[
-    Union[
-        YamlEnergyUsageModelDirect,
-        YamlEnergyUsageModelCompressor,
-        YamlEnergyUsageModelPump,
-        YamlEnergyUsageModelCompressorSystem,
-        YamlEnergyUsageModelPumpSystem,
-        YamlEnergyUsageModelTabulated,
-        YamlEnergyUsageModelCompressorTrainMultipleStreams,
-    ],
-    Field(discriminator="type"),
+YamlElectricityEnergyUsageModel = Union[
+    YamlEnergyUsageModelDirect,
+    YamlEnergyUsageModelCompressor,
+    YamlEnergyUsageModelPump,
+    YamlEnergyUsageModelCompressorSystem,
+    YamlEnergyUsageModelPumpSystem,
+    YamlEnergyUsageModelTabulated,
+    YamlEnergyUsageModelCompressorTrainMultipleStreams,
 ]
-YamlFuelEnergyUsageModel = Annotated[
-    Union[
-        YamlEnergyUsageModelDirect,
-        YamlEnergyUsageModelCompressor,
-        YamlEnergyUsageModelCompressorSystem,
-        YamlEnergyUsageModelTabulated,
-        YamlEnergyUsageModelCompressorTrainMultipleStreams,
-    ],
-    Field(discriminator="type"),
+YamlFuelEnergyUsageModel = Union[
+    YamlEnergyUsageModelDirect,
+    YamlEnergyUsageModelCompressor,
+    YamlEnergyUsageModelCompressorSystem,
+    YamlEnergyUsageModelTabulated,
+    YamlEnergyUsageModelCompressorTrainMultipleStreams,
 ]

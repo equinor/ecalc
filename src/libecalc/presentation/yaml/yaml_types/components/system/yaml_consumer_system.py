@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Dict, Generic, List, Literal, Optional, TypeVar, Union
 
-from pydantic import ConfigDict, Field, TypeAdapter
-from typing_extensions import Annotated
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -37,12 +36,10 @@ YamlConsumerStreamConditions = Dict[StreamID, YamlStreamConditions]
 YamlConsumerStreamConditionsMap = Dict[ConsumerID, YamlConsumerStreamConditions]
 YamlPriorities = Dict[PriorityID, YamlConsumerStreamConditionsMap]
 
-TYamlConsumer = TypeVar(
-    "TYamlConsumer", bound=Annotated[Union[YamlCompressor, YamlPump, YamlTrain], Field(discriminator="component_type")]
-)
+TYamlConsumer = TypeVar("TYamlConsumer", bound=Union[YamlCompressor, YamlPump, YamlTrain[YamlCompressor]])
 
 
-class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
+class YamlConsumerSystem(YamlConsumerBase, BaseModel, Generic[TYamlConsumer]):
     model_config = ConfigDict(title="ConsumerSystem")
 
     component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(

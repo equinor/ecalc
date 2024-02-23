@@ -6,7 +6,6 @@ from typing import Any, Dict, Iterator, List, Optional, TextIO, Type, Union
 import yaml
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
-from typing_extensions import Self
 from yaml import SafeLoader
 
 from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
@@ -30,7 +29,6 @@ from libecalc.presentation.yaml.yaml_entities import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlValidator
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -305,13 +303,6 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
     def dates(self):
         """All dates in the yaml."""
         return set(find_date_keys_in_yaml(self._internal_datamodel))
-
-    def validate(self) -> Self:
-        try:
-            YamlAsset.model_validate(self._internal_datamodel)
-            return self
-        except PydanticValidationError as e:
-            raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
 
 
 def find_date_keys_in_yaml(yaml_object: Union[List, Dict]) -> List[datetime.datetime]:

@@ -1,5 +1,3 @@
-from typing import Literal
-
 from pydantic import ConfigDict, Field
 
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
@@ -15,14 +13,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTempor
 
 class YamlElectricityConsumer(YamlBase):
     model_config = ConfigDict(title="ELECTRICITY_CONSUMER")
-
-    component_type: Literal["ELECTRICITY_CONSUMER"] = Field(
-        "ELECTRICITY_CONSUMER",
-        title="Type",
-        description="The type of the component",
-        alias="TYPE",
-        exclude=True,
-    )
 
     name: str = Field(
         ...,

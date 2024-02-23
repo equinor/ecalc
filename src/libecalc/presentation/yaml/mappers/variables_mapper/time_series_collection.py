@@ -127,7 +127,7 @@ class TimeSeriesCollection(EcalcBaseModel):
 
 
 class MiscellaneousTimeSeriesCollection(TimeSeriesCollection):
-    typ: Literal[TimeSeriesType.MISCELLANEOUS] = TimeSeriesType.MISCELLANEOUS.value
+    typ: Literal[TimeSeriesType.MISCELLANEOUS] = TimeSeriesType.MISCELLANEOUS
 
     @field_validator("interpolation_type", mode="before")
     @classmethod
@@ -138,7 +138,7 @@ class MiscellaneousTimeSeriesCollection(TimeSeriesCollection):
 
 
 class DefaultTimeSeriesCollection(TimeSeriesCollection):
-    typ: Literal[TimeSeriesType.DEFAULT] = TimeSeriesType.DEFAULT.value
+    typ: Literal[TimeSeriesType.DEFAULT] = TimeSeriesType.DEFAULT
 
     @field_validator("extrapolate_outside_defined_time_interval", mode="before")
     @classmethod

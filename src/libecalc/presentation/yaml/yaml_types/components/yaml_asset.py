@@ -14,9 +14,6 @@ from libecalc.presentation.yaml.yaml_types.models import YamlModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import (
-    YamlDefaultDatetime,
-)
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 
 
@@ -62,14 +59,14 @@ class YamlAsset(YamlBase):
         title="INSTALLATIONS",
         description="Description of the system of energy consumers." "\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
     )
-    start: YamlDefaultDatetime = Field(
-        None,
+    start: str = Field(
+        None,  # TODO: DefaultDatetime?
         title="START",
         description="Global start date for eCalc calculations in <YYYY-MM-DD> format."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/START",
     )
-    end: YamlDefaultDatetime = Field(
-        None,
+    end: str = Field(
+        None,  # TODO: DefaultDatetime?
         title="END",
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format." "\n\n$ECALC_DOCS_KEYWORDS_URL/END",
     )
