@@ -253,8 +253,10 @@ class EcalcModelResult(EcalcResultBaseModel):
     """
 
     component_result: ComponentResult
-    sub_components: List[ComponentResult]
-    models: List[ConsumerModelResult]
+    # Setting min and max items to be able to generate OpenAPI:
+    # Ref. https://github.com/developmentseed/geojson-pydantic/issues/42
+    sub_components: Annotated[List[ComponentResult], Field(min_items=0, max_items=10000)]
+    models: Annotated[List[ConsumerModelResult], Field(min_items=0, max_items=10000)]
 
     @field_validator("sub_components")
     @classmethod
