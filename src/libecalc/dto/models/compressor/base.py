@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field, field_validator
+from pydantic import Field, validator
 
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.compressor.sampled import CompressorSampled
@@ -53,14 +53,16 @@ class CompressorConsumerFunction(ConsumerFunction):
     # TODO: validate power loss factor wrt energy usage type
     # validate energy function has the same energy_usage_type
 
-    _convert_expressions = field_validator(
+    _convert_expressions = validator(
         "suction_pressure",
         "discharge_pressure",
         "power_loss_factor",
         "interstage_control_pressure",
-        mode="before",
+        allow_reuse=True,
+        pre=True,
     )(convert_expression)
-    _convert_rate_expressions = field_validator(
+    _convert_rate_expressions = validator(
         "rate_standard_m3_day",
-        mode="before",
+        allow_reuse=True,
+        pre=True,
     )(convert_expressions)

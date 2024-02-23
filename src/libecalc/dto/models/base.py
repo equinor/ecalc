@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import ConfigDict, field_validator
+from pydantic import ConfigDict, validator
 
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import ConsumerType, EnergyUsageType
@@ -13,7 +13,7 @@ class ConsumerFunction(EcalcBaseModel):
     energy_usage_type: EnergyUsageType
     condition: Optional[Expression] = None
 
-    _convert_condition_to_expression = field_validator("condition", mode="before")(convert_expression)
+    _convert_condition_to_expression = validator("condition", allow_reuse=True, pre=True)(convert_expression)
     model_config = ConfigDict(use_enum_values=True)
 
 

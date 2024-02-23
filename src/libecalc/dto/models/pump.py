@@ -1,6 +1,6 @@
 from typing import Literal, Optional, Union
 
-from pydantic import field_validator
+from pydantic import validator
 
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.chart import SingleSpeedChart, VariableSpeedChart
@@ -25,11 +25,12 @@ class PumpConsumerFunction(ConsumerFunction):
     discharge_pressure: Expression
     fluid_density: Expression
 
-    _convert_pump_expressions = field_validator(
+    _convert_pump_expressions = validator(
         "rate_standard_m3_day",
         "suction_pressure",
         "discharge_pressure",
         "fluid_density",
         "power_loss_factor",
-        mode="before",
+        allow_reuse=True,
+        pre=True,
     )(convert_expression)
