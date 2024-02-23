@@ -15,11 +15,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.core.models.results import TurbineResult
-from libecalc.core.models.results.compressor import (
-    CompressorStageResult,
-    CompressorTrainCommonShaftFailureStatus,
-)
+from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.result.base import EcalcResultBaseModel
 from libecalc.dto.base import ComponentType
 
@@ -135,14 +131,7 @@ class PumpModelResult(ConsumerModelResultBase):
         return ComponentType.PUMP
 
 
-class CompressorModelResult(ConsumerModelResultBase):
-    rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]]]
-    max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]] = None
-
-    stage_results: List[CompressorStageResult]
-    failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
-    turbine_result: Optional[TurbineResult] = None
-
+class CompressorModelResult(ConsumerModelResultBase, CompressorTrainResult):
     @property
     def component_type(self):
         return ComponentType.COMPRESSOR

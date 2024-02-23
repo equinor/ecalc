@@ -147,8 +147,12 @@ def map_energy_function_results(
             values=result.energy_usage,
             unit=result.energy_usage_unit,
         )
+        energy_model_result_dict = result.model_dump()
+        del energy_model_result_dict["energy_usage"]
+        del energy_model_result_dict["power"]
         energy_function_results.append(
             core_results.CompressorModelResult(
+                **energy_model_result_dict,
                 name=name,
                 timesteps=time_vector,
                 is_valid=TimeSeriesBoolean(
@@ -158,11 +162,6 @@ def map_energy_function_results(
                 ),
                 energy_usage=energy_usage,
                 power=power,
-                rate_sm3_day=result.rate_sm3_day,
-                stage_results=result.stage_results,
-                failure_status=result.failure_status,
-                turbine_result=result.turbine_result,
-                max_standard_rate=result.max_standard_rate,
             )
         )
     elif isinstance(result, PumpModelResult):

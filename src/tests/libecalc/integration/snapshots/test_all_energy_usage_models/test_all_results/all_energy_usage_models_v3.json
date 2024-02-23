@@ -119,6 +119,7 @@
                                     137746.985
                                 ]
                             },
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null
                             ],
@@ -144,6 +145,7 @@
                                     21.8839939
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 2372352.0
                             ],
@@ -753,6 +755,7 @@
                                     137746.985
                                 ]
                             },
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null
                             ],
@@ -778,6 +781,7 @@
                                     21.8839939
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 2372352.0
                             ],
@@ -1387,6 +1391,7 @@
                                     137746.985
                                 ]
                             },
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null
                             ],
@@ -1412,6 +1417,7 @@
                                     21.8839939
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 2372352.0
                             ],
@@ -2023,6 +2029,7 @@
                                     0.0
                                 ]
                             },
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -2054,6 +2061,7 @@
                                     0.0
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 2667349.5,
                                 0.0
@@ -2737,6 +2745,7 @@
                                     0.0
                                 ]
                             },
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null
@@ -2768,6 +2777,7 @@
                                     0.0
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 2667349.5,
                                 0.0
@@ -3490,6 +3500,7 @@
                             137746.985
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null
                     ],
@@ -3515,6 +3526,7 @@
                             21.8839939
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         2372352.0
                     ],
@@ -4124,6 +4136,7 @@
                             137746.985
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null
                     ],
@@ -4149,6 +4162,7 @@
                             21.8839939
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         2372352.0
                     ],
@@ -4758,6 +4772,7 @@
                             137746.985
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null
                     ],
@@ -4783,6 +4798,7 @@
                             21.8839939
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         2372352.0
                     ],
@@ -5394,6 +5410,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null
@@ -5425,6 +5442,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         2667349.5,
                         0.0
@@ -6108,6 +6126,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null
@@ -6139,6 +6158,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         2667349.5,
                         0.0
@@ -7132,6 +7152,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -7175,6 +7196,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5000000.0,
                         5000000.0,
@@ -8175,6 +8197,7 @@
                                     0.0
                                 ]
                             },
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null,
@@ -8213,6 +8236,7 @@
                                     0.0
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 3035242.5,
                                 2372352.0,
@@ -8447,6 +8471,7 @@
                                     0.0
                                 ]
                             },
+                            "energy_usage_unit": "Sm3/d",
                             "failure_status": [
                                 null,
                                 null,
@@ -8485,6 +8510,7 @@
                                     0.0
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 3035242.5,
                                 2372352.0,
@@ -8760,6 +8786,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null,
@@ -8798,6 +8825,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         3035242.5,
                         2372352.0,
@@ -9032,6 +9060,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null,
@@ -9070,6 +9099,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         3035242.5,
                         2372352.0,
@@ -9342,6 +9372,7 @@
                                     0.0
                                 ]
                             },
+                            "energy_usage_unit": "MW",
                             "failure_status": [
                                 null,
                                 null,
@@ -9385,6 +9416,7 @@
                                     0.0
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 18211455.0,
                                 14234112.0,
@@ -10177,6 +10209,7 @@
                                     0.0
                                 ]
                             },
+                            "energy_usage_unit": "MW",
                             "failure_status": [
                                 null,
                                 null,
@@ -10220,6 +10253,7 @@
                                     0.0
                                 ]
                             },
+                            "power_unit": "MW",
                             "rate_sm3_day": [
                                 18211455.0,
                                 14234112.0,
@@ -11053,6 +11087,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -11096,6 +11131,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         18211455.0,
                         14234112.0,
@@ -11888,6 +11924,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -11931,6 +11968,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         18211455.0,
                         14234112.0,
@@ -12829,6 +12867,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -12872,6 +12911,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5000000.0,
                         5000000.0,
@@ -13770,6 +13810,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -13813,6 +13854,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5000000.0,
                         5000000.0,
@@ -14711,6 +14753,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -14754,6 +14797,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5000000.0,
                         5000000.0,
@@ -15442,6 +15486,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null,
@@ -15480,6 +15525,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         3035242.5,
                         2372352.0,
@@ -15820,6 +15866,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -15863,6 +15910,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5800000.0,
                         5800000.0,
@@ -16489,6 +16537,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -16532,6 +16581,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5800000.0,
                         5800000.0,
@@ -17158,6 +17208,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -17201,6 +17252,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         1000000.0,
                         1000000.0,
@@ -17827,6 +17879,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -17870,6 +17923,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5800000.0,
                         5800000.0,
@@ -18582,6 +18636,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "Sm3/d",
                     "failure_status": [
                         null,
                         null,
@@ -18625,6 +18680,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5000000.0,
                         5000000.0,
@@ -19562,6 +19618,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -19600,6 +19657,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         [
                             900000.0,
@@ -21658,6 +21716,7 @@
                             0.0
                         ]
                     },
+                    "energy_usage_unit": "MW",
                     "failure_status": [
                         null,
                         null,
@@ -21701,6 +21760,7 @@
                             0.0
                         ]
                     },
+                    "power_unit": "MW",
                     "rate_sm3_day": [
                         5000000.0,
                         5000000.0,
