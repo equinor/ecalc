@@ -128,33 +128,6 @@ class GraphResult:
                 if component_id in self.consumer_results
             ]
 
-            for venting_emitter in installation.venting_emitters:
-                energy_usage = TimeSeriesRate(
-                    timesteps=self.variables_map.time_vector,
-                    values=[0.0] * self.variables_map.length,
-                    regularity=[1] * self.variables_map.length,  # Dummy. Has no effect since value is 0
-                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-                    rate_type=RateType.CALENDAR_DAY,
-                )
-                sub_components.append(
-                    libecalc.dto.result.VentingEmitterResult(
-                        id=venting_emitter.id,
-                        name=venting_emitter.name,
-                        componentType=venting_emitter.component_type,
-                        component_level=ComponentLevel.CONSUMER,
-                        parent=installation.id,
-                        emissions=self._parse_emissions(self.emission_results[venting_emitter.id], regularity),
-                        timesteps=self.variables_map.time_vector,
-                        is_valid=TimeSeriesBoolean(
-                            timesteps=self.variables_map.time_vector,
-                            values=[True] * self.variables_map.length,
-                            unit=Unit.NONE,
-                        ),
-                        energy_usage=energy_usage,
-                        energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
-                    )
-                )
-
             installation_node_info = self.graph.get_node_info(installation.id)
             power = reduce(
                 operator.add,
@@ -172,13 +145,17 @@ class GraphResult:
                 ),  # Initial value, handle no power output from components
             )
 
-            energy_usage = reduce(
-                operator.add,
-                [
-                    TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
-                    for component in sub_components
-                    if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                ],
+            energy_usage = (
+                reduce(
+                    operator.add,
+                    [
+                        TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
+                        for component in sub_components
+                        if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                    ],
+                )
+                if sub_components
+                else 0
             )
 
             emission_dto_results = self.convert_to_timeseries(self.emission_results, regularity)
@@ -220,7 +197,7 @@ class GraphResult:
                         unit=Unit.NONE,
                     ),
                 )
-            )
+            ) if sub_components else 0
         return installation_results
 
     def get_subgraph(self, node_id: str) -> "GraphResult":
@@ -1230,28 +1207,82 @@ class GraphResult:
 
             sub_components.append(obj)
 
+        regularity_emitters = TimeSeriesFloat(
+            values=[1] * self.variables_map.length,
+            unit=Unit.NONE,
+            timesteps=self.variables_map.time_vector,
+        )
+        for installation in asset.installations:
+            for venting_emitter in installation.venting_emitters:
+                energy_usage = TimeSeriesRate(
+                    timesteps=self.variables_map.time_vector,
+                    values=[0.0] * self.variables_map.length,
+                    regularity=[1] * self.variables_map.length,  # Dummy. Has no effect since value is 0,
+                    unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                    rate_type=RateType.CALENDAR_DAY,
+                )
+                sub_components.append(
+                    libecalc.dto.result.VentingEmitterResult(
+                        id=venting_emitter.id,
+                        name=venting_emitter.name,
+                        componentType=venting_emitter.component_type,
+                        component_level=ComponentLevel.CONSUMER,
+                        parent=installation.id,
+                        emissions=self._parse_emissions(self.emission_results[venting_emitter.id], regularity_emitters),
+                        timesteps=self.variables_map.time_vector,
+                        is_valid=TimeSeriesBoolean(
+                            timesteps=self.variables_map.time_vector,
+                            values=[True] * self.variables_map.length,
+                            unit=Unit.NONE,
+                        ),
+                        energy_usage=energy_usage,
+                        energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                    )
+                )
+
         # dto timeseries
-        asset_hydrocarbon_export_rate_core = reduce(
-            operator.add,
-            [installation.hydrocarbon_export_rate for installation in installation_results],
+        venting_emitters_zero_rate = TimeSeriesRate(
+            values=[0] * self.variables_map.length,
+            timesteps=self.variables_map.time_vector,
+            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+            rate_type=RateType.CALENDAR_DAY,
+            regularity=[1] * self.variables_map.length,
+        )
+        asset_hydrocarbon_export_rate_core = (
+            reduce(
+                operator.add,
+                [installation.hydrocarbon_export_rate for installation in installation_results],
+            )
+            if installation_results
+            else venting_emitters_zero_rate
         )
 
         emission_dto_results = self.convert_to_timeseries(
             self.emission_results,
-            regularities,
+            regularities if regularities else regularity_emitters,
         )
         asset_aggregated_emissions = aggregate_emissions(list(emission_dto_results.values()))
 
-        asset_power_core = reduce(
-            operator.add,
-            [installation.power for installation in installation_results if installation.power is not None],
+        asset_power_core = (
+            reduce(
+                operator.add,
+                [installation.power for installation in installation_results if installation.power is not None],
+            )
+            if installation_results
+            else None
         )
 
-        asset_power_cumulative = asset_power_core.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+        asset_power_cumulative = (
+            asset_power_core.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative() if installation_results else None
+        )
 
-        asset_energy_usage_core = reduce(
-            operator.add,
-            [installation.energy_usage for installation in installation_results],
+        asset_energy_usage_core = (
+            reduce(
+                operator.add,
+                [installation.energy_usage for installation in installation_results],
+            )
+            if installation_results
+            else venting_emitters_zero_rate
         )
 
         asset_energy_usage_cumulative = asset_energy_usage_core.to_volumes().cumulative()
@@ -1265,7 +1296,9 @@ class GraphResult:
             timesteps=self.variables_map.time_vector,
             is_valid=TimeSeriesBoolean(
                 timesteps=self.variables_map.time_vector,
-                values=aggregate_is_valid(installation_results),
+                values=aggregate_is_valid(installation_results)
+                if installation_results
+                else [True] * self.variables_map.length,
                 unit=Unit.NONE,
             ),
             power=asset_power_core,
@@ -1277,7 +1310,9 @@ class GraphResult:
             emission_intensities=self._compute_intensity(
                 hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
                 emissions=asset_aggregated_emissions,
-            ),
+            )
+            if installation_results
+            else [],
         )
 
         return libecalc.dto.result.EcalcModelResult(
@@ -1316,7 +1351,7 @@ class GraphResult:
             installation_id = self.graph.get_parent_installation_id(consumer_id)
             dto_result[consumer_id] = defaultdict()
 
-            if isinstance(regularities, Dict):
+            if isinstance(regularities, Dict) and regularities:
                 regularity = regularities[installation_id]
             else:
                 regularity = regularities
