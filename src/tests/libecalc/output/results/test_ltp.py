@@ -355,23 +355,23 @@ def test_loading_storage():
     variables = dto.VariablesMap(time_vector=time_vector, variables={})
 
     installation_loading = venting_emitter_yaml_factory(
-        emission_rate=emission_rate_loading,
+        emission_rates=[emission_rate_loading],
         regularity=regularity,
-        unit=Unit.KILO_PER_DAY,
-        emission_name="ch4",
-        rate_type=RateType.STREAM_DAY,
-        volume_factor=volume_factor_loading,
-        category="LOADING",
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
+        rate_types=[RateType.STREAM_DAY],
+        volume_factors=[volume_factor_loading],
+        categories=["LOADING"],
     )
 
     installation_storage = venting_emitter_yaml_factory(
-        emission_rate=emission_rate_storage,
+        emission_rates=[emission_rate_storage],
         regularity=regularity,
-        unit=Unit.KILO_PER_DAY,
-        emission_name="ch4",
-        rate_type=RateType.STREAM_DAY,
-        volume_factor=volume_factor_storage,
-        category="STORAGE",
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
+        rate_types=[RateType.STREAM_DAY],
+        volume_factors=[volume_factor_storage],
+        categories=["STORAGE"],
     )
 
     ltp_result_loading = get_consumption(model=installation_loading, variables=variables)
@@ -402,14 +402,14 @@ def test_wrong_category_loading_storage():
 
     with pytest.raises(DtoValidationError) as ee:
         venting_emitter_yaml_factory(
-            emission_rate=10,
+            emission_rates=[10],
             regularity=0.2,
-            unit=Unit.KILO_PER_DAY,
-            emission_name="ch4",
-            rate_type=RateType.STREAM_DAY,
-            volume_factor=0.1,
-            category=category,
-            name="Emitter1",
+            units=[Unit.KILO_PER_DAY],
+            emission_names=["ch4"],
+            rate_types=[RateType.STREAM_DAY],
+            volume_factors=[0.1],
+            categories=[category],
+            names=["Emitter1"],
         )
 
     assert (
