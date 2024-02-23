@@ -4,9 +4,6 @@ import pytest
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_validation_context import (
-    YamlModelValidationContextNames,
-)
 
 
 @pytest.fixture()
@@ -23,11 +20,7 @@ TIME_SERIES:
 class TestYamlValidation:
     def test_pyyaml_validation(self, yaml_resource_with_errors):
         with pytest.raises(DtoValidationError) as exc_info:
-            PyYamlYamlModel.read(yaml_resource_with_errors).validate(
-                {
-                    YamlModelValidationContextNames.resource_file_names: [],
-                }
-            )
+            PyYamlYamlModel.read(yaml_resource_with_errors).validate()
 
         errors = exc_info.value.errors()
 
@@ -42,16 +35,6 @@ class TestYamlValidation:
         assert errors[2].details["type"] == "missing"
         assert errors[2].location.keys == ["INSTALLATIONS"]
 
-    def test_valid_cases(self, valid_example_case_yaml_case):
-        PyYamlYamlModel.read(
-            ResourceStream(
-                name=valid_example_case_yaml_case.main_file_path.stem,
-                stream=valid_example_case_yaml_case.main_file,
-            )
-        ).validate(
-            {
-                YamlModelValidationContextNames.resource_file_names: list(
-                    valid_example_case_yaml_case.resources.keys()
-                ),
-            }
-        )
+    def test_valid_cases(self, valid_example_case_yaml_path):
+        with valid_example_case_yaml_path.open() as f:
+            PyYamlYamlModel.read(ResourceStream(name=valid_example_case_yaml_path.stem, stream=f)).validate()

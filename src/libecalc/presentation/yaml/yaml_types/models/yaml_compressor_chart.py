@@ -1,4 +1,5 @@
 import enum
+from pathlib import Path
 from typing import List, Literal, Union
 
 from pydantic import Field
@@ -9,7 +10,17 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
     YamlChartType,
     YamlModelType,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
+
+
+class YamlCurvesFile(YamlBase):
+    file: Path = Field(
+        ...,
+        description="Specifies the name of an input file. See documentation for more information.",
+        title="FILE",
+    )
+
+    def to_dto(self):
+        raise NotImplementedError
 
 
 class YamlCurve(YamlBase):
@@ -17,6 +28,14 @@ class YamlCurve(YamlBase):
     rate: List[float]
     head: List[float]
     efficiency: List[float]
+
+    def to_dto(self):
+        raise NotImplementedError
+
+
+YamlCurvesArray = List[YamlCurve]
+
+YamlCurves = Union[YamlCurvesArray, YamlCurvesFile]
 
 
 class YamlRateUnits(enum.Enum):
@@ -51,6 +70,9 @@ class YamlUnits(YamlBase):
         title="EFFICIENCY",
     )
 
+    def to_dto(self):
+        raise NotImplementedError
+
 
 class YamlSingleSpeedChart(YamlBase):
     name: str = Field(
@@ -64,8 +86,13 @@ class YamlSingleSpeedChart(YamlBase):
         title="TYPE",
     )
     chart_type: Literal[YamlChartType.SINGLE_SPEED] = YamlChartType.SINGLE_SPEED
-    curve: DataOrFile[YamlCurve] = Field(..., description="One single compressor chart curve.", title="CURVE")
+    curve: Union[YamlCurve, YamlCurvesFile] = Field(
+        ..., description="One single compressor chart curve.", title="CURVE"
+    )
     units: YamlUnits = None
+
+    def to_dto(self):
+        raise NotImplementedError
 
 
 class YamlVariableSpeedChart(YamlBase):
@@ -80,10 +107,11 @@ class YamlVariableSpeedChart(YamlBase):
         title="TYPE",
     )
     chart_type: Literal[YamlChartType.VARIABLE_SPEED] = YamlChartType.VARIABLE_SPEED
-    curves: DataOrFile[List[YamlCurve]] = Field(
-        ..., description="Compressor chart curves, one per speed.", title="CURVES"
-    )
+    curves: YamlCurves = Field(..., description="Compressor chart curves, one per speed.", title="CURVES")
     units: YamlUnits = None
+
+    def to_dto(self):
+        raise NotImplementedError
 
 
 class YamlGenericFromInputChart(YamlBase):
@@ -104,6 +132,9 @@ class YamlGenericFromInputChart(YamlBase):
         title="POLYTROPIC_EFFICIENCY",
     )
     units: YamlUnits = None
+
+    def to_dto(self):
+        raise NotImplementedError
 
 
 class YamlGenericFromDesignPointChart(YamlBase):
@@ -126,6 +157,9 @@ class YamlGenericFromDesignPointChart(YamlBase):
     design_rate: float = Field(..., description="Design rate for generic compressor chart", title="DESIGN_RATE")
     design_head: float = Field(..., description="Design head for generic compressor chart", title="DESIGN_HEAD")
     units: YamlUnits
+
+    def to_dto(self):
+        raise NotImplementedError
 
 
 YamlCompressorChart = Annotated[

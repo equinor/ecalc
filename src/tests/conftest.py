@@ -5,7 +5,6 @@ from typing import Dict
 import pytest
 from libecalc.common.math.numbers import Numbers
 from libecalc.examples import advanced, simple
-from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import (
     all_energy_usage_models,
     consumer_system_v2,
@@ -42,17 +41,6 @@ valid_example_cases = {
         Path(all_energy_usage_models.__file__).parent / "data" / "all_energy_usage_models.yaml"
     ).absolute(),
     "consumer_system_v2": (Path(consumer_system_v2.__file__).parent / "data" / "consumer_system_v2.yaml").absolute(),
-}
-
-
-# The value should be the name of a fixture returning the YamlCase for the example
-valid_example_yaml_case_fixture_names = {
-    "simple": "simple_yaml",
-    "simple_temporal": "simple_temporal_yaml",
-    "advanced": "advanced_yaml",
-    "ltp": "ltp_export_yaml",
-    "all_energy_usage_models": "all_energy_usage_models_yaml",
-    "consumer_system_v2": "consumer_system_v2_yaml",
 }
 
 invalid_example_cases = {
@@ -101,12 +89,6 @@ def ltp_yaml_path():
     return valid_example_cases["ltp"]
 
 
-@pytest.fixture(
-    scope="function", params=list(valid_example_yaml_case_fixture_names.items()), ids=lambda param: param[0]
-)
-def valid_example_case_yaml_case(request) -> YamlCase:
-    """
-    Parametrized fixture returning each YamlCase for all valid examples
-    """
-    yaml_case = request.getfixturevalue(request.param[1])
-    return yaml_case
+@pytest.fixture(scope="session", params=list(valid_example_cases.items()), ids=lambda param: param[0])
+def valid_example_case_yaml_path(request) -> Path:
+    return request.param[1]

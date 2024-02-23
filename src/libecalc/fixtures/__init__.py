@@ -6,7 +6,6 @@ from .cases.consumer_system_v2 import (
     consumer_system_v2_yaml,
 )
 from .cases.consumer_with_time_slots_models import *  # noqa: F403
-from .cases.ltp_export import ltp_export_yaml
 from .cases.minimal import *  # noqa: F403
 from .compressor_process_simulations.compressor_process_simulations import *  # noqa: F403
 from .conftest import (

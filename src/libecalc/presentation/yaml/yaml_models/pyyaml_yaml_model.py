@@ -38,9 +38,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import (
     YamlVariableReferenceId,
     YamlVariables,
 )
-from libecalc.presentation.yaml.yaml_validation_context import (
-    YamlModelValidationContext,
-)
 
 
 class PyYamlYamlModel(YamlValidator, YamlModel):
@@ -309,9 +306,9 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         """All dates in the yaml."""
         return set(find_date_keys_in_yaml(self._internal_datamodel))
 
-    def validate(self, context: YamlModelValidationContext) -> Self:
+    def validate(self) -> Self:
         try:
-            YamlAsset.model_validate(self._internal_datamodel, context=context)
+            YamlAsset.model_validate(self._internal_datamodel)
             return self
         except PydanticValidationError as e:
             raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e

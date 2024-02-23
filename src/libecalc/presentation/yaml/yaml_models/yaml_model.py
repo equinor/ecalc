@@ -12,9 +12,6 @@ from libecalc.presentation.yaml.yaml_entities import (
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
-from libecalc.presentation.yaml.yaml_validation_context import (
-    YamlModelValidationContext,
-)
 
 
 class YamlValidator(abc.ABC):
@@ -71,7 +68,7 @@ class YamlValidator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate(self, context: YamlModelValidationContext) -> YamlAsset:
+    def validate(self) -> YamlAsset:
         ...
 
 
