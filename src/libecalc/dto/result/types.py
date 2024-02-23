@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-opt_float = Optional[float]
+opt_float: Optional[float] = Optional[float]
 
 
 class CompressorTrainCommonShaftFailureStatus(str, Enum):

@@ -25,17 +25,6 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
         self,
         prefix: Optional[str] = None,
     ) -> pd.DataFrame:
-        """
-        Provide a dataframe representing the timeseries data in the object.
-
-        TimeSeriesBoolean is converted into ints.
-
-        Args:
-            prefix: prefix for all column names
-
-        Returns:
-
-        """
         timesteps = self.timesteps
         df = pd.DataFrame(index=timesteps)
 
@@ -50,7 +39,6 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                         unit_value = unit_value.replace("/d", f"/{unit_extension}")
                 elif isinstance(attribute_value, TimeSeriesVolumesCumulative):
                     unit_value = unit_value.replace(attribute_value.unit, f"{attribute_value.unit} (cd)")
-
                 column_name = f"{attribute_name}[{unit_value}]"
 
                 if isinstance(attribute_value, TimeSeriesBoolean):

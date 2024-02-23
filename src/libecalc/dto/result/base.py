@@ -3,13 +3,13 @@ from __future__ import annotations
 from pydantic import field_validator
 
 from libecalc.common.math.numbers import Numbers
-from libecalc.common.utils.rates import TimeSeries, TimeSeriesBoolean, TimeSeriesInt
+from libecalc.common.utils.rates import TimeSeries, TimeSeriesInt
 from libecalc.dto.base import EcalcBaseModel
 
 
 def control_maximum_decimals(v):
     """Control maximum number of decimals and convert null-floats to NaN."""
-    if isinstance(v, TimeSeries) and not isinstance(v, (TimeSeriesInt, TimeSeriesBoolean)):
+    if isinstance(v, TimeSeries) and not isinstance(v, TimeSeriesInt):
         return v.model_copy(
             update={
                 "values": [

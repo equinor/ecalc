@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
 from libecalc.common.time_utils import Period
@@ -27,8 +27,6 @@ class VariablesMap(BaseModel):
     BEFORE the calculation starts; ie happens as a pre step before calculation, and not in the calculation
     directly.
     """
-
-    model_config = ConfigDict(extra="forbid")
 
     time_vector: List[datetime] = Field(default_factory=list)
     variables: Dict[str, List[Annotated[float, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)

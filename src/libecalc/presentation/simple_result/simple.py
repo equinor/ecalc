@@ -83,7 +83,6 @@ class SimpleComponentResult(SimpleBase):
         return SimpleComponentResult(**component_result.model_dump())
 
     @model_validator(mode="before")
-    @classmethod
     def convert_time_series(cls, values):
         energy_usage = values.get("energy_usage")
         is_valid = values.get("is_valid")
