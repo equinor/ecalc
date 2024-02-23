@@ -37,7 +37,22 @@ class FlowType:
     ELECTRICITY = "electricity-flow"
 
 
-class FlowDiagram(BaseModel):
+class FlowDiagramBaseModel(BaseModel):
+    """Pydantic basemodel for FDE pydantic models
+
+    Needed for specifying datetime format in json dumps
+    """
+
+    # TODO[pydantic]: The following keys were deprecated: `json_encoders`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+    )
+
+
+class FlowDiagram(FlowDiagramBaseModel):
     """Pydantic class for flowdiagram of eCalc model"""
 
     id: str
@@ -50,7 +65,7 @@ class FlowDiagram(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True)
 
 
-class Flow(BaseModel):
+class Flow(FlowDiagramBaseModel):
     """Pydantic class for connection between nodes in FDE diagram"""
 
     id: str
@@ -59,14 +74,14 @@ class Flow(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-class Edge(BaseModel):
+class Edge(FlowDiagramBaseModel):
     from_node: str
     to_node: str
     flow: str
     model_config = ConfigDict(frozen=True, alias_generator=to_camel_case, populate_by_name=True)
 
 
-class Node(BaseModel):
+class Node(FlowDiagramBaseModel):
     """Component in flowdiagram model, ex. a turbine or compressor"""
 
     id: str
