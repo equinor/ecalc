@@ -365,7 +365,7 @@ class Installation(BaseComponent):
         return user_defined_category
 
     @model_validator(mode="after")
-    def check_fuel_consumers_or_venting_emitters_exist(self, info: ValidationInfo):
+    def check_fuel_consumers_or_venting_emitters_exist(self):
         if not self.fuel_consumers and not self.venting_emitters:
             raise ValueError(
                 f"Keywords are missing:\n It is required to specify at least one of the two keywords "

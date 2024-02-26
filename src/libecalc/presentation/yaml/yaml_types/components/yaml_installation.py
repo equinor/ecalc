@@ -1,7 +1,6 @@
 from typing import List, Union
 
 from pydantic import ConfigDict, Field, model_validator
-from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
 from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
@@ -81,7 +80,7 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
     )
 
     @model_validator(mode="after")
-    def check_fuel_consumers_or_venting_emitters_exist(self, info: ValidationInfo):
+    def check_fuel_consumers_or_venting_emitters_exist(self):
         if not self.fuel_consumers and not self.venting_emitters:
             raise ValueError(
                 f"Keywords are missing:\n It is required to specify at least one of the two keywords "
