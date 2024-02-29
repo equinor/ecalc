@@ -15,13 +15,13 @@ def test_wrong_keyword_name_emitters():
 
     with pytest.raises(DtoValidationError) as exc:
         venting_emitter_yaml_factory(
-            emission_rate=emission_rate,
+            emission_rates=[emission_rate],
             regularity=regularity,
-            unit=Unit.KILO_PER_DAY,
-            emission_name="ch4",
-            rate_type=RateType.STREAM_DAY,
+            units=[Unit.KILO_PER_DAY],
+            emission_names=["ch4"],
+            rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION2",
-            name="Venting emitter 1",
+            names=["Venting emitter 1"],
         )
 
     assert "Venting emitter 1:\nEMISSION:\tThis keyword is missing, it is required" in str(exc.value)
@@ -36,13 +36,13 @@ def test_wrong_unit_emitters():
 
     with pytest.raises(DtoValidationError) as exc:
         venting_emitter_yaml_factory(
-            emission_rate=emission_rate,
+            emission_rates=[emission_rate],
             regularity=regularity,
-            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            emission_name="ch4",
-            rate_type=RateType.STREAM_DAY,
+            units=[Unit.STANDARD_CUBIC_METER_PER_DAY],
+            emission_names=["ch4"],
+            rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION",
-            name="Venting emitter 1",
+            names=["Venting emitter 1"],
         )
 
     assert "Venting emitter 1:\nInput should be <Unit.KILO_PER_DAY: 'kg/d'> or <Unit.TONS_PER_DAY: 't/d'>" in str(

@@ -145,21 +145,8 @@ class TestCategories:
         # Check that not defining category is ok
         assert dto.types.FuelType(name="test").user_defined_category is None
 
-    def test_installation_categories(self):
+    def test_installation_categories(self, flare):
         # Installation-dto requires either fuelconsumers or venting emitters to be set, hence use dummy fuelconsumer:
-        fuel_type = dto.types.FuelType(name="fuel-gas", emissions=[])
-        fuel_consumer = dto.FuelConsumer(
-            name="Fuel consumer 1",
-            user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
-            fuel={datetime(1900, 1, 1): fuel_type},
-            energy_usage_model={
-                datetime(1900, 1, 1): dto.models.direct.DirectConsumerFunction(
-                    fuel_rate=Expression.setup_from_expression(0), energy_usage_type=EnergyUsageType.FUEL
-                )
-            },
-            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-            component_type=ComponentType.GENERIC,
-        )
 
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
@@ -210,7 +197,7 @@ class TestCategories:
                 user_defined_category=InstallationUserDefinedCategoryType.MOBILE,
                 hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-                fuel_consumers=[fuel_consumer],
+                fuel_consumers=[flare],
             ).user_defined_category
             == InstallationUserDefinedCategoryType.MOBILE
         )
@@ -222,7 +209,7 @@ class TestCategories:
                 user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                 hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-                fuel_consumers=[fuel_consumer],
+                fuel_consumers=[flare],
             ).user_defined_category
             == InstallationUserDefinedCategoryType.FIXED
         )
@@ -233,7 +220,7 @@ class TestCategories:
                 name="test",
                 hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-                fuel_consumers=[fuel_consumer],
+                fuel_consumers=[flare],
             ).user_defined_category
             is None
         )
