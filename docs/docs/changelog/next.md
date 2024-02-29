@@ -15,8 +15,6 @@ sidebar_position: 1
 
 ## Fixes
 
-* Make sure that maximum standard rate calculations takes a potential maximum power constraint into account for single speed compressor trains and variable speed compressor trains. 
-
 
 ## Breaking changes
 
