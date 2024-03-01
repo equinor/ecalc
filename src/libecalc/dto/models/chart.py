@@ -1,22 +1,19 @@
 from typing import List, Literal, Optional
 
 import numpy as np
-from pydantic import AfterValidator, Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from typing_extensions import Annotated, Self
 
 from libecalc.common.logger import logger
-from libecalc.common.math.numbers import Numbers
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.types import ChartType
 
-FloatWithPrecision = Annotated[float, AfterValidator(lambda v: float(Numbers.format_to_precision(v, precision=6)))]
-
 
 class ChartCurve(EcalcBaseModel):
-    speed_rpm: FloatWithPrecision = Field(..., ge=0)
-    rate_actual_m3_hour: List[Annotated[FloatWithPrecision, Field(ge=0)]]
-    polytropic_head_joule_per_kg: List[Annotated[FloatWithPrecision, Field(ge=0)]]
-    efficiency_fraction: List[Annotated[FloatWithPrecision, Field(ge=0, le=1)]]
+    speed_rpm: float = Field(..., ge=0)
+    rate_actual_m3_hour: List[Annotated[float, Field(ge=0)]]
+    polytropic_head_joule_per_kg: List[Annotated[float, Field(ge=0)]]
+    efficiency_fraction: List[Annotated[float, Field(ge=0, le=1)]]
 
     @model_validator(mode="after")
     def validate_equal_lengths_and_sort(self) -> Self:
@@ -78,9 +75,9 @@ class SingleSpeedChart(ChartCurve):
 class VariableSpeedChart(EcalcBaseModel):
     typ: Literal[ChartType.VARIABLE_SPEED] = ChartType.VARIABLE_SPEED
     curves: List[ChartCurve]
-    control_margin: Optional[FloatWithPrecision] = None  # Todo: Raise warning if this is used in an un-supported model.
-    design_rate: Optional[FloatWithPrecision] = Field(None, ge=0)
-    design_head: Optional[FloatWithPrecision] = Field(None, ge=0)
+    control_margin: Optional[float] = None  # Todo: Raise warning if this is used in an un-supported model.
+    design_rate: Optional[float] = Field(None, ge=0)
+    design_head: Optional[float] = Field(None, ge=0)
 
     @field_validator("curves")
     def sort_chart_curves_by_speed(cls, curves: List[ChartCurve]) -> List[ChartCurve]:
