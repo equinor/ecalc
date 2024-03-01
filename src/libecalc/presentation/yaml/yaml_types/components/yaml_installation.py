@@ -1,12 +1,13 @@
 from typing import List, Union
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, model_validator
 from typing_extensions import Annotated
 
 from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
 from libecalc.dto.base import InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import (
     YamlFuelConsumer,
@@ -77,3 +78,14 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
         title="VENTING_EMITTERS",
         description="Covers the direct emissions on the installation that are not consuming energy",
     )
+
+    @model_validator(mode="after")
+    def check_fuel_consumers_or_venting_emitters_exist(self):
+        try:
+            if self.fuel_consumers or self.venting_emitters or self.generator_sets:
+                return self
+        except AttributeError:
+            raise ValueError(
+                f"Keywords are missing:\n It is required to specify at least one of the keywords "
+                f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model.",
+            ) from None

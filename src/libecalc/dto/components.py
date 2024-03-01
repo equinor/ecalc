@@ -364,14 +364,16 @@ class Installation(BaseComponent):
 
         return user_defined_category
 
-    @field_validator("fuel_consumers", mode="before")
-    def check_fuel_consumers_exist(cls, fuel_consumers):
-        if not fuel_consumers:
+    @model_validator(mode="after")
+    def check_fuel_consumers_or_venting_emitters_exist(self):
+        try:
+            if self.fuel_consumers or self.venting_emitters or self.generator_sets:
+                return self
+        except AttributeError:
             raise ValueError(
-                f"Keywords are missing:\n It is required to specify at least one of the two keywords "
-                f"{EcalcYamlKeywords.fuel_consumers} or {EcalcYamlKeywords.generator_sets} in the model.",
-            )
-        return fuel_consumers
+                f"Keywords are missing:\n It is required to specify at least one of the keywords "
+                f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model.",
+            ) from None
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
