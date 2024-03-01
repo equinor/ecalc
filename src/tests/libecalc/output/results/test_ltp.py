@@ -332,8 +332,8 @@ def test_no_emitters_or_fuelconsumers():
         )
 
     assert (
-        f"Keywords are missing:\n It is required to specify at least one of the two keywords "
-        f"{EcalcYamlKeywords.fuel_consumers} or {EcalcYamlKeywords.installation_venting_emitters} "
+        f"\nminimal_installation:\nValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
+        f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} "
         f"in the model."
     ) in str(ee.value)
 
