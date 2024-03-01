@@ -88,4 +88,4 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
             raise ValueError(
                 f"Keywords are missing:\n It is required to specify at least one of the keywords "
                 f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model.",
-            )
+            ) from None
