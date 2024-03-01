@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Dict, List, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler, TypeAdapter
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema, core_schema
-from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
@@ -84,7 +82,7 @@ class Expression:
         return cls(tokens=tokens_multiplied)
 
     @classmethod
-    def validate(cls, expression: ExpressionType) -> List[Token]:
+    def validate(cls, expression: Any) -> List[Token]:
         expression = _expression_as_number_if_number(expression_input=expression)
 
         if not isinstance(expression, (str, float, int)):
@@ -97,42 +95,28 @@ class Expression:
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
-        # TODO[pydantic]: Why is list passed into validation and serialization? Bug: https://github.com/pydantic/pydantic/issues/7642
-        def parse_expression(x: Union[List[ExpressionType], ExpressionType], info: ValidationInfo):
+        def parse_expression(x: Any):
             if isinstance(x, Expression):
                 return x
 
-            if isinstance(x, dict):
-                datetime_validation_func = (
-                    TypeAdapter(datetime).validate_python
-                    if info.mode == "python"
-                    else TypeAdapter(datetime).validate_json
-                )
-                return {datetime_validation_func(key): parse_expression(value, info) for key, value in x.items()}
-
-            if isinstance(x, list):
-                return [parse_expression(v, info) for v in x]
             try:
                 return Expression(tokens=cls.validate(x))
             except InvalidExpressionError as e:
                 # Raise ValueError for pydantic to pick up
                 raise ValueError(str(e)) from e
 
-        # item_schema = [core_schema.int_schema(), core_schema.float_schema(), core_schema.str_schema()]
-        # list_schema = core_schema.list_schema(core_schema.union_schema(item_schema))
-        # dict_schema = core_schema.dict_schema(core_schema.str_schema(), core_schema.union_schema(item_schema))
         from_str_schema = core_schema.chain_schema(
             [
                 # core_schema.union_schema(
-                #    [*item_schema, list_schema, dict_schema],
+                #    [core_schema.int_schema(), core_schema.float_schema(), core_schema.str_schema()],
                 # ),
-                core_schema.with_info_plain_validator_function(parse_expression),
+                core_schema.no_info_plain_validator_function(parse_expression),
             ]
         )
 
         def serialize_expression(instance):
             if isinstance(instance, list):
-                # TODO[pydantic]: Why is list passed into this? Bug: https://github.com/pydantic/pydantic/issues/7642
+                # TODO[pydantic]: Why is list passed into this? Bug: https://github.com/pydantic/pydantic/issues/6830
                 return [serialize_expression(x) for x in instance]
             if isinstance(instance, Expression):
                 return str(instance)
