@@ -14,6 +14,10 @@ from libecalc.core.models.compressor.train.chart.types import CompressorChartRes
 from libecalc.core.models.compressor.train.chart.variable_speed_compressor_chart import (
     logger,
 )
+from libecalc.core.models.compressor.train.utils.common import (
+    PRESSURE_CALCULATION_TOLERANCE,
+    RATE_CALCULATION_TOLERANCE,
+)
 from libecalc.core.models.compressor.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
@@ -72,9 +76,11 @@ class CompressorChartCreator:
             maximum_head_on_maximum_speed_curve_unified - minimum_head_on_maximum_speed_curve_unified
         )
 
-        # Maximum values from input
-        maximum_actual_rate = np.max(actual_volume_rates_m3_per_hour)
-        maximum_head_value = np.max(heads_joule_per_kg)
+        # Maximum values from input - scaling them slightly up to avoid having points exactly at the ends of the
+        # maximum speed curve, which potentially leads to numerical issues with the current implementation (rounding
+        # chart curves to a certain number of significant digits since they are also exported in results)
+        maximum_actual_rate = np.max(actual_volume_rates_m3_per_hour) * (1 + RATE_CALCULATION_TOLERANCE)
+        maximum_head_value = np.max(heads_joule_per_kg) * (1 + PRESSURE_CALCULATION_TOLERANCE)
 
         # Values to scale input with
         scaling_rate_to_unified = np.divide(maximum_actual_rate, maximum_rate_on_maximum_speed_curve_unified)
