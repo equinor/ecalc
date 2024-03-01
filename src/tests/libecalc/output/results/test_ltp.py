@@ -39,6 +39,8 @@ from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
 from libecalc.presentation.exporter.configs.configs import LTPConfig
+from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 time_vector_installation = [
     datetime(2027, 1, 1),
@@ -231,27 +233,27 @@ def test_venting_emitters():
     variables = dto.VariablesMap(time_vector=time_vector, variables={})
 
     installation_sd_kg_per_day = venting_emitter_yaml_factory(
-        emission_rate=emission_rate,
+        emission_rates=[emission_rate],
         regularity=regularity,
-        unit=Unit.KILO_PER_DAY,
-        emission_name="ch4",
-        rate_type=RateType.STREAM_DAY,
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
+        rate_types=[RateType.STREAM_DAY],
     )
 
     installation_sd_tons_per_day = venting_emitter_yaml_factory(
-        emission_rate=emission_rate,
+        emission_rates=[emission_rate],
         regularity=regularity,
-        rate_type=RateType.STREAM_DAY,
-        unit=Unit.TONS_PER_DAY,
-        emission_name="ch4",
+        rate_types=[RateType.STREAM_DAY],
+        units=[Unit.TONS_PER_DAY],
+        emission_names=["ch4"],
     )
 
     installation_cd_kg_per_day = venting_emitter_yaml_factory(
-        emission_rate=emission_rate,
+        emission_rates=[emission_rate],
         regularity=regularity,
-        rate_type=RateType.CALENDAR_DAY,
-        unit=Unit.KILO_PER_DAY,
-        emission_name="ch4",
+        rate_types=[RateType.CALENDAR_DAY],
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
     )
 
     ltp_result_input_sd_kg_per_day = get_consumption(model=installation_sd_kg_per_day, variables=variables)
@@ -281,6 +283,59 @@ def test_venting_emitters():
 
     # Verify that results is independent of regularity, when input rate is in calendar days
     assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365
+
+
+def test_only_venting_emitters_no_fuelconsumers():
+    """
+    Test that it is possible with only venting emitters, without fuelconsumers.
+    """
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    regularity = 0.2
+    emission_rate = 10
+
+    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+
+    installation_venting_emitters = venting_emitter_yaml_factory(
+        emission_rates=[emission_rate],
+        regularity=regularity,
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
+        rate_types=[RateType.STREAM_DAY],
+        include_emitters=True,
+        include_fuel_consumers=False,
+    )
+    venting_emitter_results = get_consumption(model=installation_venting_emitters, variables=variables)
+    emissions_ch4 = get_sum_ltp_column(venting_emitter_results, installation_nr=0, ltp_column_nr=0)
+    assert emissions_ch4 == (emission_rate / 1000) * 365 * regularity
+
+
+def test_no_emitters_or_fuelconsumers():
+    """
+    Test that eCalc returns error when neither fuelconsumers or venting emitters are specified.
+    """
+
+    regularity = 0.2
+    emission_rate = 10
+
+    with pytest.raises(DtoValidationError) as ee:
+        venting_emitter_yaml_factory(
+            emission_rates=[emission_rate],
+            regularity=regularity,
+            units=[Unit.KILO_PER_DAY],
+            emission_names=["ch4"],
+            rate_types=[RateType.STREAM_DAY],
+            include_emitters=False,
+            include_fuel_consumers=False,
+        )
+
+    assert (
+        f"\nminimal_installation:\nValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
+        f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} "
+        f"in the model."
+    ) in str(ee.value)
 
 
 def test_total_oil_loaded():
