@@ -1213,7 +1213,7 @@ class GraphResult:
             timesteps=self.variables_map.time_vector,
         )
 
-        venting_emitter_zero_value = TimeSeriesRate(
+        time_series_zero = TimeSeriesRate(
             values=[0] * self.variables_map.length,
             timesteps=self.variables_map.time_vector,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
@@ -1223,7 +1223,7 @@ class GraphResult:
 
         for installation in asset.installations:
             for venting_emitter in installation.venting_emitters:
-                energy_usage = venting_emitter_zero_value
+                energy_usage = time_series_zero
                 sub_components.append(
                     libecalc.dto.result.VentingEmitterResult(
                         id=venting_emitter.id,
@@ -1250,7 +1250,7 @@ class GraphResult:
                 [installation.hydrocarbon_export_rate for installation in installation_results],
             )
             if installation_results
-            else venting_emitter_zero_value
+            else time_series_zero
         )
 
         emission_dto_results = self.convert_to_timeseries(
@@ -1278,7 +1278,7 @@ class GraphResult:
                 [installation.energy_usage for installation in installation_results],
             )
             if installation_results
-            else venting_emitter_zero_value
+            else time_series_zero
         )
 
         asset_energy_usage_cumulative = asset_energy_usage_core.to_volumes().cumulative()
