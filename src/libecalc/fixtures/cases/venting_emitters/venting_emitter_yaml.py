@@ -51,6 +51,7 @@ def venting_emitter_yaml_factory(
           {create_venting_emitters_yaml(
         categories=categories, rate_types=rate_types, emitter_names=names, emission_names=emission_names,
         emission_rates=emission_rates, units=units, emission_keyword_name=emission_keyword_name, include_emitters=include_emitters,
+        volume_factors=volume_factors,
     )}
 
         """
@@ -64,6 +65,7 @@ def venting_emitter_yaml_factory(
         emission_names=emission_names,
         emission_rates=emission_rates,
         units=units,
+        volume_factors=volume_factors,
         emission_keyword_name=emission_keyword_name,
         include_emitters=include_emitters,
     )
@@ -99,6 +101,7 @@ def create_venting_emitters_yaml(
     emission_names: List[str],
     emission_rates: List[float],
     units: List[Unit],
+    volume_factors: List[float],
     emission_keyword_name: str,
     include_emitters: bool,
 ) -> str:
@@ -106,14 +109,24 @@ def create_venting_emitters_yaml(
         return ""
     else:
         emitters = "VENTING_EMITTERS:"
-        for category, rate_type, emitter_name, emission_name, emission_rate, unit in zip(
-            categories, rate_types, emitter_names, emission_names, emission_rates, units
+        for category, rate_type, emitter_name, emission_name, emission_rate, unit, volume_factor in zip(
+            categories,
+            rate_types,
+            emitter_names,
+            emission_names,
+            emission_rates,
+            units,
+            volume_factors,
         ):
+            volume_factor_string = (
+                f"EMISSION_RATE_TO_VOLUME_FACTOR: {volume_factor}" if volume_factor is not None else ""
+            )
             emitter = f"""
             - NAME: {emitter_name}
               CATEGORY: {category}
               {emission_keyword_name}:
                 NAME: {emission_name}
+                {volume_factor_string}
                 RATE:
                   VALUE: {emission_rate}
                   UNIT:  {unit}
