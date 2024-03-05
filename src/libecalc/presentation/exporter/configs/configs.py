@@ -456,16 +456,6 @@ class LTPConfig(ResultConfig):
                     ),
                 ),
                 Applier(
-                    name="storageNmvocOilVolume",  # TODO: Get correct Centuries name here
-                    title="Oil storage volume NMVOC",
-                    unit=Unit.TONS,
-                    query=VolumeQuery(
-                        installation_category="FIXED",
-                        consumer_categories=["STORAGE"],
-                        emission_type="nmvoc",
-                    ),
-                ),
-                Applier(
                     name="loadingNmvocMass",
                     title="NMVOC From Loading",
                     unit=Unit.TONS,
