@@ -1,6 +1,11 @@
+from copy import deepcopy
 from decimal import Decimal
+from typing import TypeVar
 
 import numpy as np
+from pydantic import BaseModel
+
+TResult = TypeVar("TResult")
 
 
 class Numbers:
@@ -57,3 +62,31 @@ class Numbers:
                 trim="-",
             )
         )
+
+    @staticmethod
+    def format_results_to_precision(result: TResult, precision: int) -> TResult:
+        """Traverse the graph_results, locate all numbers and round to the specified precision
+
+        Args:
+            result: The results
+            precision: The precision
+
+        Returns:
+            Copy of results, rounded to the given precision
+        """
+
+        def recursive_rounding(value):
+            if isinstance(value, BaseModel):
+                for k, v in value.__dict__.items():
+                    value.__setattr__(k, recursive_rounding(v))
+                return value
+            elif isinstance(value, dict):
+                return {k: recursive_rounding(v) for k, v in value.items()}
+            elif isinstance(value, list):
+                return [recursive_rounding(val) for val in value]
+            elif isinstance(value, float):
+                return float(Numbers.format_to_precision(value, precision=precision))
+            else:
+                return value
+
+        return recursive_rounding(deepcopy(result))

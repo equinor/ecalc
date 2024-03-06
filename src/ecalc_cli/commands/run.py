@@ -6,6 +6,7 @@ import libecalc.version
 import typer
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.yaml.model import YamlModel
@@ -123,10 +124,16 @@ def run(
         )
 
     energy_calculator = EnergyCalculator(graph=model.graph)
-    consumer_results = energy_calculator.evaluate_energy_usage(model.variables)
-    emission_results = energy_calculator.evaluate_emissions(
-        variables_map=model.variables,
-        consumer_results=consumer_results,
+    precision = 6
+    consumer_results = Numbers.format_results_to_precision(
+        energy_calculator.evaluate_energy_usage(model.variables), precision=precision
+    )
+    emission_results = Numbers.format_results_to_precision(
+        energy_calculator.evaluate_emissions(
+            variables_map=model.variables,
+            consumer_results=consumer_results,
+        ),
+        precision=precision,
     )
     results_core = GraphResult(
         graph=model.graph,
@@ -146,11 +153,13 @@ def run(
 
     output_prefix: Path = output_folder / name_prefix
 
-    results_dto = results_core.get_asset_result()
+    results_dto = Numbers.format_results_to_precision(results_core.get_asset_result(), precision=precision)
 
     if output_frequency != Frequency.NONE:
         # Note: LTP can't use this resampled-result yet, because of differences in methodology.
-        results_resampled = results_dto.resample(output_frequency)
+        results_resampled = Numbers.format_results_to_precision(
+            results_dto.resample(output_frequency), precision=precision
+        )
     else:
         results_resampled = results_dto.model_copy()
 

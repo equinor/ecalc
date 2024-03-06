@@ -3,6 +3,7 @@ from pathlib import Path
 
 from libecalc import dto
 from libecalc.application.graph_result import EnergyCalculatorResult, GraphResult
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.result import EcalcModelResult
@@ -97,9 +98,12 @@ class Cache:
         cache_data = CacheData.model_validate_json(cached_text)
         graph = cache_data.component_dto.get_graph()
 
-        return GraphResult(
-            graph=graph,
-            emission_results=cache_data.results.emission_results,
-            consumer_results=cache_data.results.consumer_results,
-            variables_map=cache_data.results.variables_map,
-        ).get_asset_result()
+        return Numbers.format_results_to_precision(
+            GraphResult(
+                graph=graph,
+                emission_results=cache_data.results.emission_results,
+                consumer_results=cache_data.results.consumer_results,
+                variables_map=cache_data.results.variables_map,
+            ).get_asset_result(),
+            precision=6,
+        )

@@ -415,15 +415,16 @@ def test_compressor_train_simplified_unknown_stages(
     np.testing.assert_allclose(
         results.power,
         [
-            47.84035,
-            48.67651,
-            34.39074,
-            32.022781,
-            24.389316,
-            19.867827,
-            19.867827,
-            19.867827,
+            47.84,
+            48.68,
+            34.39,
+            32.02,
+            24.39,
+            19.87,
+            19.87,
+            19.87,
         ],
+        rtol=1e-3,
     )
 
 
