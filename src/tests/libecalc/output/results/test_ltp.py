@@ -9,6 +9,7 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
     expected_ch4_from_diesel,
@@ -332,14 +333,76 @@ def test_no_emitters_or_fuelconsumers():
         )
 
     assert (
-        f"\nminimal_installation:\nValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
+        f"\nminimal_installation:\n:\tValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
         f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} "
         f"in the model."
     ) in str(ee.value)
 
 
-def test_total_oil_loaded():
-    """Test total oil loaded/stored for LTP export.
+def test_oil_loaded_new_method():
+    """Test reporting oil volumes associated with loading for ltp. This is based on using venting emitters,
+    and not the old method of using fuelconsumers and DIRECT.
+    """
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    regularity = 0.2
+    emission_rate_loading = 10
+    volume_factor_loading = 0.1
+
+    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+
+    installation_loading = venting_emitter_yaml_factory(
+        emission_rates=[emission_rate_loading],
+        regularity=regularity,
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
+        rate_types=[RateType.STREAM_DAY],
+        volume_factors=[volume_factor_loading],
+        categories=["LOADING"],
+    )
+
+    ltp_result_loading = get_consumption(model=installation_loading, variables=variables)
+
+    emission_loading = get_sum_ltp_column(ltp_result_loading, installation_nr=0, ltp_column_nr=0)
+    volume_loading = get_sum_ltp_column(ltp_result_loading, installation_nr=0, ltp_column_nr=1)
+
+    # Verify correct emissions associated with loading
+    assert emission_loading == (emission_rate_loading / 1000) * 365 * regularity
+
+    # Verify correct loading volumes
+    assert volume_loading == emission_loading / volume_factor_loading
+
+
+def test_wrong_category_oil_loaded():
+    """Verify that only STORAGE and LOADING are allowed categories, if specifying volume factor."""
+
+    category = "COLD-VENTING-FUGITIVE"
+
+    with pytest.raises(DtoValidationError) as ee:
+        venting_emitter_yaml_factory(
+            emission_rates=[10],
+            regularity=0.2,
+            units=[Unit.KILO_PER_DAY],
+            emission_names=["ch4"],
+            rate_types=[RateType.STREAM_DAY],
+            volume_factors=[0.1],
+            categories=[category],
+            names=["Emitter1"],
+        )
+
+    assert (
+        f"\nEmitter1:\nEMISSION:\tValue error, VentingEmitter with the name Emitter1: "
+        f"It is not possible to specify FACTOR for CATEGORY {category}. The volume/emission factor in "
+        f"EMISSION is only allowed for the categories {ConsumerUserDefinedCategoryType.LOADING} and "
+        f"{ConsumerUserDefinedCategoryType.STORAGE}."
+    ) in str(ee.value)
+
+
+def test_total_oil_loaded_old_method():
+    """Test total oil loaded/stored for LTP export. Using original method where direct/venting emitters are
+    modelled as FUELSCONSUMERS using DIRECT.
 
     Verify correct volume when model includes emissions related to both storage and loading of oil,
     and when model includes only loading.
@@ -393,3 +456,48 @@ def test_total_oil_loaded():
     # Verify that total oil loaded/stored is the same if only loading is specified,
     # compared to a model with both loading and storage.
     assert loaded_and_stored_oil_loading_and_storage == loaded_and_stored_oil_loading_only
+
+
+def test_oil_loaded_new_vs_old_method():
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+
+    regularity = 0.6
+    emission_factor = 2
+    fuel_rate = 100
+    volume_factor_loading = 0.1
+
+    # Multiply emission rate with volume factor, as volume is derived directly from emission rate.
+    # This to be comparable with old method, where volume is directly taken from the fuel rate.
+    # Multiply with 1000 as input is kg/d, and output is converted to t/d for venting emitters.
+
+    oil_loaded_new = venting_emitter_yaml_factory(
+        emission_rates=[fuel_rate * volume_factor_loading * 1000],
+        regularity=regularity,
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
+        rate_types=[RateType.STREAM_DAY],
+        volume_factors=[volume_factor_loading],
+        categories=["LOADING"],
+    )
+
+    oil_loaded_old = ltp_oil_loaded_yaml_factory(
+        emission_factor=emission_factor,
+        rate_types=[RateType.STREAM_DAY],
+        fuel_rates=[fuel_rate],
+        emission_name="ch4",
+        regularity=regularity,
+        categories=["LOADING"],
+        consumer_names=["loading"],
+    )
+
+    ltp_result_oil_loaded_new = get_consumption(model=oil_loaded_new, variables=variables)
+    ltp_result_oil_loaded_old = get_consumption(model=oil_loaded_old, variables=variables)
+
+    volume_oil_loaded_new = get_sum_ltp_column(ltp_result_oil_loaded_new, installation_nr=0, ltp_column_nr=1)
+    volume_oil_loaded_old = get_sum_ltp_column(ltp_result_oil_loaded_old, installation_nr=0, ltp_column_nr=1)
+
+    assert volume_oil_loaded_new == volume_oil_loaded_old

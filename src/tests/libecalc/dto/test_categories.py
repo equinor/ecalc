@@ -37,8 +37,8 @@ class TestCategories:
             )
 
         assert (
-            "CATEGORY: VENTING-EMISSIONS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
-            in str(exc_info.value)
+            f"CATEGORY VENTING-EMISSIONS is not allowed for VentingEmitter with the name test. "
+            f"Valid categories are: {', '.join(ConsumerUserDefinedCategoryType)}" in str(exc_info.value)
         )
 
         # Check that lower case raises error
@@ -50,8 +50,8 @@ class TestCategories:
             )
 
         assert (
-            "CATEGORY: fuel-gas is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
-            in str(exc_info.value)
+            f"CATEGORY fuel-gas is not allowed for VentingEmitter with the name test. "
+            f"Valid categories are: {', '.join(ConsumerUserDefinedCategoryType)}" in str(exc_info.value)
         )
 
         # Check that empty raises error
@@ -63,8 +63,8 @@ class TestCategories:
             )
 
         assert (
-            "CATEGORY:  is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
-            in str(exc_info.value)
+            f"CATEGORY  is not allowed for VentingEmitter with the name test. "
+            f"Valid categories are: {', '.join(ConsumerUserDefinedCategoryType)}" in str(exc_info.value)
         )
 
         # Check that underscore raises error
@@ -76,8 +76,8 @@ class TestCategories:
             )
 
         assert (
-            "CATEGORY: FUEL_GAS is not allowed for VentingEmitter with the name test. Valid categories are: ['BASE-LOAD', 'COLD-VENTING-FUGITIVE', 'COMPRESSOR', 'FIXED-PRODUCTION-LOAD', 'FLARE', 'MISCELLANEOUS', 'PUMP', 'GAS-DRIVEN-COMPRESSOR', 'TURBINE-GENERATOR', 'POWER-FROM-SHORE', 'OFFSHORE-WIND', 'LOADING', 'STORAGE', 'STEAM-TURBINE-GENERATOR', 'BOILER', 'HEATER']"
-            in str(exc_info.value)
+            f"CATEGORY FUEL_GAS is not allowed for VentingEmitter with the name test. "
+            f"Valid categories are: {', '.join(ConsumerUserDefinedCategoryType)}" in str(exc_info.value)
         )
 
         # Check that correct category is ok

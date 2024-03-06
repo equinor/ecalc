@@ -16833,6 +16833,7 @@
     "emission_results": {
         "fuel_consumer_with_time_slots": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -16907,6 +16908,7 @@
         },
         "some_genset": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -16981,6 +16983,7 @@
         },
         "some_genset_startup_after_consumer": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [

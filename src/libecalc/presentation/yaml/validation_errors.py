@@ -15,7 +15,8 @@ from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import Resource, YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
-Loc = Tuple[Union[int, str], ...]
+PydanticKey = Union[int, str]
+PydanticLoc = Tuple[PydanticKey, ...]
 
 CUSTOM_MESSAGES = {
     "missing": "This keyword is missing, it is required",
@@ -48,11 +49,11 @@ def list_node_representer(dumper: Dumper, data):
 yaml.add_representer(YamlList, list_node_representer)
 
 
-def _remove_root_key(error_loc: Loc) -> List[Union[int, str]]:
+def _remove_root_key(error_loc: PydanticLoc) -> List[Union[int, str]]:
     return [key for key in error_loc if key != "__root__"]
 
 
-def _mark_error_lines(yaml_text: str, locs: List[Loc]) -> str:
+def _mark_error_lines(yaml_text: str, locs: List[PydanticLoc]) -> str:
     lines = yaml_text.split("\n")
     marked_lines = []
     for line in lines:
@@ -79,7 +80,7 @@ class DataValidationError(ValidationError):
         self,
         data: Optional[Union[Dict[str, Any], YamlDict]],
         message: str,
-        error_locs: Optional[List[Loc]] = None,
+        error_locs: Optional[List[PydanticLoc]] = None,
         error_key: Optional[str] = None,
         dump_flow_style: Optional[DumpFlowStyle] = None,
     ):
@@ -137,10 +138,14 @@ class Location:
             elif isinstance(x, int):
                 path += f"[{x}]"
             elif isinstance(x, date):
-                path += f".{x.strftime('%Y-%m-%d')}"
+                path += f".{self._date_to_string(x)}"
             else:
                 raise TypeError("Unexpected type")
         return path
+
+    @classmethod
+    def _date_to_string(cls, d: date) -> str:
+        return d.strftime("%Y-%m-%d")
 
     @classmethod
     def _parse_date(cls, key: str) -> Union[date, str]:
@@ -160,8 +165,18 @@ class Location:
         return key
 
     @classmethod
-    def from_pydantic_loc(cls, loc: Loc) -> Self:
+    def from_pydantic_loc(cls, loc: PydanticLoc) -> Self:
         return cls([cls._parse_key(key) for key in loc])
+
+    def as_pydantic_compatible(self) -> PydanticLoc:
+        keys: List[PydanticKey] = []
+        for key in keys:
+            if isinstance(key, date):
+                keys.append(self._date_to_string(key))
+            else:
+                keys.append(key)
+
+        return tuple(keys)
 
 
 @dataclass
@@ -190,7 +205,7 @@ class ModelValidationError:
 
     def __str__(self):
         msg = self.location.as_dot_separated()
-        msg += f"\t{self.message}"
+        msg += f":\t{self.message}"
         return msg
 
 
@@ -203,7 +218,7 @@ class DtoValidationError(DataValidationError):
         return self.validation_error.error_count()
 
     @staticmethod
-    def _get_nested_data(data: Any, keys: Loc) -> Optional[Any]:
+    def _get_nested_data(data: Any, keys: PydanticLoc) -> Optional[Any]:
         current_data = data
         for key in keys:
             try:
@@ -213,7 +228,7 @@ class DtoValidationError(DataValidationError):
                 return None
         return current_data
 
-    def _get_closest_data_with_key(self, loc: Loc, key: str) -> Optional[Dict]:
+    def _get_closest_data_with_key(self, loc: PydanticLoc, key: str) -> Optional[Dict]:
         for i in range(len(loc)):
             if i == 0:
                 end_index = None
@@ -225,7 +240,7 @@ class DtoValidationError(DataValidationError):
 
         return None
 
-    def _get_context_data(self, loc: Loc) -> Optional[Dict]:
+    def _get_context_data(self, loc: PydanticLoc) -> Optional[Dict]:
         # Try to get data with 'NAME' attribute
         component_data = self._get_closest_data_with_key(loc, key=EcalcYamlKeywords.name)
         if component_data is not None:
@@ -259,17 +274,15 @@ class DtoValidationError(DataValidationError):
         message_title = f"\n{name}:"
         messages = [message_title]
 
-        errors = custom_errors(e=validation_error, custom_messages=CUSTOM_MESSAGES)
+        errors = self.errors()
         error_locs = []
-
         try:
             for error in errors:
-                error_locs.append(error["loc"])
-
+                error_locs.append(error.location.as_pydantic_compatible())
                 if data is not None:
-                    messages.append(f"{error['msg']}")
+                    messages.append(f"{error}")
                 else:
-                    messages.append(f"{name}:\n{error['msg']}")
+                    messages.append(f"{name}:\n{error}")
         except Exception as e:
             logger.debug(f"Failed to add location specific error messages: {str(e)}")
 
@@ -308,8 +321,6 @@ def custom_errors(e: PydanticValidationError, custom_messages: Dict[str, str]) -
     for error in e.errors():
         custom_message = custom_messages.get(error["type"])
         if custom_message:
-            error_key_name = error["loc"][0].upper().replace("__root__", "General error")
-            custom_message = error_key_name + ":\t" + custom_message
             ctx = error.get("ctx")
             error["msg"] = custom_message.format(**ctx) if ctx else custom_message
         new_errors.append(error)
