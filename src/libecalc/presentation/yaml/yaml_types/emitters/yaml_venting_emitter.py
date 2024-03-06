@@ -84,8 +84,8 @@ class YamlVentingEmitter(YamlBase):
                     entity_name = str(cls)
 
                 raise ValueError(
-                    f"CATEGORY: {category} is not allowed for {entity_name} {name_context_string}. Valid categories are: "
-                    f"{[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                    f"CATEGORY {category} is not allowed for {entity_name} {name_context_string}. Valid categories are: "
+                    f"{', '.join(ConsumerUserDefinedCategoryType)}"
                 )
         return category
 

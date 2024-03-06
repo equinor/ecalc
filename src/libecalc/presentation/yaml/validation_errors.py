@@ -190,7 +190,7 @@ class ModelValidationError:
 
     def __str__(self):
         msg = self.location.as_dot_separated()
-        msg += f"\t{self.message}"
+        msg += f":\t{self.message}"
         return msg
 
 
@@ -259,17 +259,15 @@ class DtoValidationError(DataValidationError):
         message_title = f"\n{name}:"
         messages = [message_title]
 
-        errors = custom_errors(e=validation_error, custom_messages=CUSTOM_MESSAGES)
+        errors = self.errors()
         error_locs = []
-
         try:
             for error in errors:
-                error_locs.append(error["loc"])
-
+                error_locs.append(tuple(error.location.keys))
                 if data is not None:
-                    messages.append(f"{error['msg']}")
+                    messages.append(f"{error}")
                 else:
-                    messages.append(f"{name}:\n{error['msg']}")
+                    messages.append(f"{name}:\n{error}")
         except Exception as e:
             logger.debug(f"Failed to add location specific error messages: {str(e)}")
 
@@ -308,9 +306,6 @@ def custom_errors(e: PydanticValidationError, custom_messages: Dict[str, str]) -
     for error in e.errors():
         custom_message = custom_messages.get(error["type"])
         if custom_message:
-            name = ".".join([str(item) for item in error["loc"]]) if len(error["loc"]) > 1 else error["loc"][0]
-            error_key_name = name.upper().replace("__root__", "General error")
-            custom_message = error_key_name + ":\t" + custom_message
             ctx = error.get("ctx")
             error["msg"] = custom_message.format(**ctx) if ctx else custom_message
         new_errors.append(error)

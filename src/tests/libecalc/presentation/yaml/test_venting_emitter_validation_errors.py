@@ -25,8 +25,10 @@ def test_wrong_keyword_name_emitters():
             volume_factors=[0.3],
         )
 
-    assert "Venting emitter 1:\nEMISSION:\tThis keyword is missing, it is required" in str(exc.value)
-    assert "EMISSION2:\tThis is not a valid keyword" in str(exc.value)
+    assert (
+        "Venting emitter 1:\nEMISSION:\tThis keyword is missing, it is required\n"
+        "EMISSION2:\tThis is not a valid keyword"
+    ) in str(exc.value)
 
 
 def test_wrong_unit_emitters():
@@ -47,6 +49,7 @@ def test_wrong_unit_emitters():
             volume_factors=[0.3],
         )
 
-    assert "Venting emitter 1:\nInput should be <Unit.KILO_PER_DAY: 'kg/d'> or <Unit.TONS_PER_DAY: 't/d'>" in str(
-        exc.value
-    )
+    assert (
+        "Venting emitter 1:\nEMISSION.RATE.UNIT:\tInput should be "
+        "<Unit.KILO_PER_DAY: 'kg/d'> or <Unit.TONS_PER_DAY: 't/d'>"
+    ) in str(exc.value)

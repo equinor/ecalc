@@ -27,7 +27,7 @@ def venting_emitter_yaml_factory(
     if names is None:
         names = ["Venting emitter 1"]
     if volume_factors is None:
-        volume_factors = [1]
+        volume_factors = [None]
 
     input_text = f"""
         FUEL_TYPES:

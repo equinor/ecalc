@@ -333,7 +333,7 @@ def test_no_emitters_or_fuelconsumers():
         )
 
     assert (
-        f"\nminimal_installation:\nValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
+        f"\nminimal_installation:\n:\tValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
         f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} "
         f"in the model."
     ) in str(ee.value)
@@ -393,7 +393,7 @@ def test_wrong_category_oil_loaded():
         )
 
     assert (
-        f"\nEmitter1:\nValue error, VentingEmitter with the name Emitter1: "
+        f"\nEmitter1:\nEMISSION:\tValue error, VentingEmitter with the name Emitter1: "
         f"It is not possible to specify FACTOR for CATEGORY {category}. The volume/emission factor in "
         f"EMISSION is only allowed for the categories {ConsumerUserDefinedCategoryType.LOADING} and "
         f"{ConsumerUserDefinedCategoryType.STORAGE}."
