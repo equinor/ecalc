@@ -23431,6 +23431,7 @@
     "emission_results": {
         "GeneratorSet": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -23457,6 +23458,7 @@
         },
         "compressor_system_variable_speed_compressor_trains": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -23483,6 +23485,7 @@
         },
         "flare": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -23509,6 +23512,7 @@
         },
         "methane_venting": {
             "CH4": {
+                "emission_rate_to_volume_factor": null,
                 "name": "methane_venting",
                 "rate": {
                     "timesteps": [
@@ -23535,6 +23539,7 @@
         },
         "sampled_compressor_system": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -23561,6 +23566,7 @@
         },
         "single_1d_compressor_sampled": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -23587,6 +23593,7 @@
         },
         "tabulated": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -23613,6 +23620,7 @@
         },
         "turbine_driven_compressor_train": {
             "co2": {
+                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
