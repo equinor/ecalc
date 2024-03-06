@@ -14,14 +14,13 @@
       "extensions": ["dbaeumer.vscode-eslint"]
     }
   },
-  "onCreateCommand": "cd docs && npm install && conda install -y pre-commit && pre-commit install",
+  "forwardPorts": 3001,
+  "onCreateCommand": "cd docs && npm install && pre-commit install",
   "postStartCommand": "cd docs && npm run start",
 
   "remoteUser": "node",
   "features": {
     "git": "latest",
-    "ghcr.io/devcontainers/features/conda:1": {
-      "version": "latest"
-    }
+    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {}
   }
 }
