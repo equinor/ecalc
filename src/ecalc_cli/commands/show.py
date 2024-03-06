@@ -3,6 +3,7 @@ from pathlib import Path
 import libecalc.common.time_utils
 import libecalc.version
 import typer
+from libecalc.common.math.numbers import Numbers
 from libecalc.infrastructure.file_utils import (
     OutputFormat,
     get_component_output,
@@ -94,7 +95,9 @@ def show_results(
         )
 
     if output_frequency != Frequency.NONE:
-        results_resampled = results.resample(libecalc.common.time_utils.Frequency[output_frequency.name])
+        results_resampled = Numbers.format_results_to_precision(
+            results.resample(libecalc.common.time_utils.Frequency[output_frequency.name]), precision=6
+        )
     else:
         results_resampled = results.model_copy()
 

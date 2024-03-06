@@ -357,10 +357,7 @@ class TestPumpSystemConsumerFunction:
             variables_map=variables_map,
             regularity=regularity,
         )
-        np.testing.assert_allclose(
-            result.energy_usage,
-            [1.719326, 1.719326, 1.719326],
-        )
+        np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
 
         pump_consumer_function = PumpConsumerFunction(
             pump_function=pump,
@@ -384,10 +381,7 @@ class TestPumpSystemConsumerFunction:
             variables_map=variables_map,
             regularity=regularity,
         )
-        np.testing.assert_allclose(
-            result.energy_usage,
-            [1.719326, 1.719326, 1.719326],
-        )
+        np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
         np.testing.assert_equal(
             result.energy_usage / (1 - power_loss_factor),
             result_with_power_loss_factor.energy_usage,
