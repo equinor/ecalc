@@ -180,6 +180,18 @@ class Location:
 
 
 @dataclass
+class FileMark:
+    line_number: int
+    column_number: int
+
+
+@dataclass
+class FileContext:
+    start: FileMark
+    end: FileMark
+
+
+@dataclass
 class ModelValidationError:
     details: ErrorDetails
     data: Optional[Dict]
@@ -202,6 +214,27 @@ class ModelValidationError:
             return None
 
         return yaml.dump(self.data, sort_keys=False).strip()
+
+    @property
+    def file_context(self) -> Optional[FileContext]:
+        if hasattr(self.data, "end_mark") and hasattr(self.data, "start_mark"):
+            # This only works with our implementation of pyyaml read
+            # In the future, we can move this logic into PyYamlYamlModel with a better interface in YamlValidator.
+            # Specifically with our own definition of the returned data in each property in YamlValidator.
+            start_mark = self.data.start_mark
+            end_mark = self.data.end_mark
+            return FileContext(
+                start=FileMark(
+                    line_number=start_mark.line + 1,
+                    column_number=start_mark.column,
+                ),
+                end=FileMark(
+                    line_number=end_mark.line + 1,
+                    column_number=end_mark.column,
+                ),
+            )
+
+        return None
 
     def __str__(self):
         msg = self.location.as_dot_separated()
