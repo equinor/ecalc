@@ -9,6 +9,7 @@ from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.logger import logger
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
@@ -286,8 +287,11 @@ class EcalcModelResult(EcalcResultBaseModel):
         return components[0]
 
     def resample(self, freq: Frequency) -> EcalcModelResult:
-        return self.__class__(
-            component_result=self.component_result.resample(freq),
-            sub_components=[sub_component.resample(freq) for sub_component in self.sub_components],
-            models=[model.resample(freq) for model in self.models],
+        return Numbers.format_results_to_precision(
+            self.__class__(
+                component_result=self.component_result.resample(freq),
+                sub_components=[sub_component.resample(freq) for sub_component in self.sub_components],
+                models=[model.resample(freq) for model in self.models],
+            ),
+            precision=6,
         )
