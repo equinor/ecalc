@@ -13,6 +13,7 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
@@ -1311,10 +1312,13 @@ class GraphResult:
             else [],
         )
 
-        return libecalc.dto.result.EcalcModelResult(
-            component_result=asset_result_dto,
-            sub_components=sub_components,
-            models=models,
+        return Numbers.format_results_to_precision(
+            libecalc.dto.result.EcalcModelResult(
+                component_result=asset_result_dto,
+                sub_components=sub_components,
+                models=models,
+            ),
+            precision=6,
         )
 
     def get_emissions(self, component_id: str) -> Dict[str, EmissionResult]:

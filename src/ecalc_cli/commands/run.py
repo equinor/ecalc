@@ -125,15 +125,10 @@ def run(
 
     energy_calculator = EnergyCalculator(graph=model.graph)
     precision = 6
-    consumer_results = Numbers.format_results_to_precision(
-        energy_calculator.evaluate_energy_usage(model.variables), precision=precision
-    )
-    emission_results = Numbers.format_results_to_precision(
-        energy_calculator.evaluate_emissions(
-            variables_map=model.variables,
-            consumer_results=consumer_results,
-        ),
-        precision=precision,
+    consumer_results = energy_calculator.evaluate_energy_usage(model.variables)
+    emission_results = energy_calculator.evaluate_emissions(
+        variables_map=model.variables,
+        consumer_results=consumer_results,
     )
     results_core = GraphResult(
         graph=model.graph,
@@ -153,7 +148,7 @@ def run(
 
     output_prefix: Path = output_folder / name_prefix
 
-    results_dto = Numbers.format_results_to_precision(results_core.get_asset_result(), precision=precision)
+    results_dto = results_core.get_asset_result()
 
     if output_frequency != Frequency.NONE:
         # Note: LTP can't use this resampled-result yet, because of differences in methodology.

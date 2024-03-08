@@ -8,6 +8,7 @@ import numpy as np
 import libecalc.dto.components
 from libecalc import dto
 from libecalc.common.list.list_utils import elementwise_sum
+from libecalc.common.math.numbers import Numbers
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.units import Unit
@@ -141,7 +142,7 @@ class EnergyCalculator:
                         models=[],
                     )
 
-        return consumer_results
+        return Numbers.format_results_to_precision(consumer_results, precision=6)
 
     def evaluate_emissions(
         self, variables_map: dto.VariablesMap, consumer_results: Dict[str, EcalcModelResult]
@@ -188,4 +189,4 @@ class EnergyCalculator:
                     )
                 }
                 emission_results[consumer_dto.id] = emission_result
-        return emission_results
+        return Numbers.format_results_to_precision(emission_results, precision=6)
