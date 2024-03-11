@@ -486,9 +486,10 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             train_result_for_minimum_asv_rate_fraction = _calculate_train_result_given_asv_rate_margin(
                 asv_rate_fraction=minimum_asv_fraction
             )
-            if outlet_pressure_train_bara > train_result_for_minimum_asv_rate_fraction.discharge_pressure:
+            if (
+                train_result_for_minimum_asv_rate_fraction.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
+            ) or (outlet_pressure_train_bara > train_result_for_minimum_asv_rate_fraction.discharge_pressure):
                 return train_result_for_minimum_asv_rate_fraction
-
             train_result_for_maximum_asv_rate_fraction = _calculate_train_result_given_asv_rate_margin(
                 asv_rate_fraction=maximum_asv_fraction
             )
