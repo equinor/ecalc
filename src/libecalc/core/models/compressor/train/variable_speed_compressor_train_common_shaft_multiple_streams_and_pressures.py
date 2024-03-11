@@ -1128,7 +1128,18 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 train_results.stage_results[-1] = choked_stage_results
 
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
-            # first check if full recirculation gives low enough discharge pressure
+            # first check if there is room for recirculation
+            train_result_no_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
+                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
+                inlet_pressure_bara=inlet_pressure,
+                speed=speed,
+            )
+            if (
+                train_result_no_recirculation.failure_status
+                == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
+            ):
+                return train_result_no_recirculation
+            # then check if full recirculation gives low enough discharge pressure
             train_result_max_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
                 inlet_pressure_bara=inlet_pressure,

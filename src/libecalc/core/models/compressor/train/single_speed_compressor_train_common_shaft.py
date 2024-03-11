@@ -555,9 +555,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 train_result_for_minimum_asv_rate_fraction = _calculate_train_result_given_asv_rate_margin(
                     asv_rate_fraction=minimum_asv_fraction
                 )
-                if outlet_pressure_train_bara > train_result_for_minimum_asv_rate_fraction.discharge_pressure:
+
+                if (
+                    train_result_for_minimum_asv_rate_fraction.failure_status
+                    == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
+                ) or (outlet_pressure_train_bara > train_result_for_minimum_asv_rate_fraction.discharge_pressure):
                     train_result_per_time_step.append(train_result_for_minimum_asv_rate_fraction)
-                    continue  # next iteration in for loop - # will never reach target pressure, too high
+                    continue  # next iteration in for loop - either rate is above maximum flow rate or discharge pressure will never reach target pressure, it is too high
                 train_result_for_maximum_asv_rate_fraction = _calculate_train_result_given_asv_rate_margin(
                     asv_rate_fraction=maximum_asv_fraction
                 )
