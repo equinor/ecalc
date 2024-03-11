@@ -2,10 +2,12 @@ from typing import List, Literal
 
 from pydantic import Field
 
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
     EnergyUsageModelCommon,
+)
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
+    YamlExpressionType,
 )
 
 
@@ -15,7 +17,7 @@ class YamlTabulatedVariable(YamlBase):
         title="NAME",
         description="Name of variable. Must correspond exactly to header/column name in the energy function",
     )
-    expression: ExpressionType = Field(
+    expression: YamlExpressionType = Field(
         ...,
         title="EXPRESSION",
         description="Expression defining the variable",

@@ -2,9 +2,11 @@ from typing import List, Literal
 
 from pydantic import Field
 
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
     EnergyUsageModelCommon,
+)
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
+    YamlExpressionType,
 )
 
 
@@ -24,22 +26,22 @@ class YamlEnergyUsageModelCompressorTrainMultipleStreams(EnergyUsageModelCommon)
         title="COMPRESSOR_TRAIN_MODEL",
         description="The compressor train model, reference to a compressor type model defined in MODELS",
     )
-    rate_per_stream: List[ExpressionType] = Field(
+    rate_per_stream: List[YamlExpressionType] = Field(
         ...,
         title="RATE_PER_STREAM",
         description="Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",
     )
-    suction_pressure: ExpressionType = Field(
+    suction_pressure: YamlExpressionType = Field(
         ...,
         title="SUCTION_PRESSURE",
         description="Fluid (gas) pressure at compressor train inlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
     )
-    discharge_pressure: ExpressionType = Field(
+    discharge_pressure: YamlExpressionType = Field(
         ...,
         title="DISCHARGE_PRESSURE",
         description="Fluid (gas) pressure at compressor train outlet in bars \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
     )
-    interstage_control_pressure: ExpressionType = Field(
+    interstage_control_pressure: YamlExpressionType = Field(
         None,
         title="INTERSTAGE_CONTROL_PRESSURE",
         description="Fluid (gas) pressure at an intermediate step in the compressor train \n\n$ECALC_DOCS_KEYWORDS_URL/INTERSTAGE_CONTROL_PRESSURE",

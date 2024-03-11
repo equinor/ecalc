@@ -4,12 +4,14 @@ from pydantic import ConfigDict, Field
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
+    YamlExpressionType,
+)
 
 
 class YamlTimeSeries(YamlBase):
-    value: ExpressionType
+    value: YamlExpressionType
     unit: Unit
 
 

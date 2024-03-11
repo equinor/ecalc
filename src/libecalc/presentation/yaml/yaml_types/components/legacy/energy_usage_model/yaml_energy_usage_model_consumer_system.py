@@ -2,10 +2,12 @@ from typing import List, Literal
 
 from pydantic import Field
 
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
     EnergyUsageModelCommon,
+)
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
+    YamlExpressionType,
 )
 
 
@@ -28,32 +30,32 @@ class YamlCompressorSystemOperationalSetting(YamlBase):
         title="CROSSOVER",
         description="Set cross over rules in system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#crossover",
     )
-    rates: List[ExpressionType] = Field(
+    rates: List[YamlExpressionType] = Field(
         None,
         title="RATES",
         description="Set rate per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rates",
     )
-    rate_fractions: List[ExpressionType] = Field(
+    rate_fractions: List[YamlExpressionType] = Field(
         None,
         title="RATE_FRACTIONS",
         description="List of expressions defining fractional rate (of total system rate) per consumer.  \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rate-fractions",
     )
-    suction_pressures: List[ExpressionType] = Field(
+    suction_pressures: List[YamlExpressionType] = Field(
         None,
         title="SUCTION_PRESSURES",
         description="Set suction pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#suction-pressures",
     )
-    discharge_pressures: List[ExpressionType] = Field(
+    discharge_pressures: List[YamlExpressionType] = Field(
         None,
         title="DISCHARGE_PRESSURES",
         description="Set discharge pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#discharge-pressures",
     )
-    discharge_pressure: ExpressionType = Field(
+    discharge_pressure: YamlExpressionType = Field(
         None,
         title="DISCHARGE_PRESSURE",
         description="Set discharge pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/DISCHARGE_PRESSURE",
     )
-    suction_pressure: ExpressionType = Field(
+    suction_pressure: YamlExpressionType = Field(
         None,
         title="SUCTION_PRESSURE",
         description="Set suction pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
@@ -61,7 +63,7 @@ class YamlCompressorSystemOperationalSetting(YamlBase):
 
 
 class YamlPumpSystemOperationalSettings(YamlCompressorSystemOperationalSetting):
-    fluid_densities: List[ExpressionType] = Field(
+    fluid_densities: List[YamlExpressionType] = Field(
         None,
         title="FLUID_DENSITIES",
         description="Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#fluid-densities",
@@ -79,7 +81,7 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         title="COMPRESSORS",
         description="The compressors in a compressor system. \n\n$ECALC_DOCS_KEYWORDS_URL/COMPRESSORS#compressors",
     )
-    total_system_rate: ExpressionType = Field(
+    total_system_rate: YamlExpressionType = Field(
         None,
         title="TOTAL_SYSTEM_RATE",
         description="Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
@@ -115,12 +117,12 @@ class YamlEnergyUsageModelPumpSystem(EnergyUsageModelCommon):
         title="PUMPS",
         description="The pumps in a pump system. \n\n$ECALC_DOCS_KEYWORDS_URL/PUMPS#pumps",
     )
-    fluid_density: ExpressionType = Field(
+    fluid_density: YamlExpressionType = Field(
         None,
         title="FLUID_DENSITY",
         description="Density of the fluid in kg/m3. \n\n$ECALC_DOCS_KEYWORDS_URL/FLUID_DENSITY",
     )
-    total_system_rate: ExpressionType = Field(
+    total_system_rate: YamlExpressionType = Field(
         None,
         title="TOTAL_SYSTEM_RATE",
         description="Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
