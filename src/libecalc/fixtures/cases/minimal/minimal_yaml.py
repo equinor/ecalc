@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Union
 
 import pytest
 
@@ -10,7 +10,7 @@ class YamlModel(NamedTuple):
 
 @pytest.fixture
 def minimal_model_yaml_factory():
-    def minimal_model_yaml(fuel_rate: int = 50):
+    def minimal_model_yaml(fuel_rate: Union[int, str] = 50):
         return YamlModel(
             name="minimal_model",
             source=f"""
