@@ -6,7 +6,7 @@ from typing import Any, Dict, Iterator, List, Optional, TextIO, Type, Union
 import yaml
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
-from typing_extensions import Self
+from typing_extensions import Self, deprecated
 from yaml import SafeLoader
 
 from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
@@ -35,6 +35,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_variable import (
+    YamlVariable,
     YamlVariableReferenceId,
     YamlVariables,
 )
@@ -250,7 +251,8 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         return [*facility_resource_names, *timeseries_resource_names]
 
     @property
-    def variables(self) -> YamlVariables:
+    @deprecated("Deprecated, variables in combination with validate should be used instead")
+    def variables_raise_if_invalid(self) -> YamlVariables:
         if not isinstance(self._internal_datamodel, dict):
             raise ValidationError("Yaml model is invalid.")
 
@@ -259,6 +261,24 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
             return TypeAdapter(YamlVariables).validate_python(variables)
         except PydanticValidationError as e:
             raise DtoValidationError(data=variables, validation_error=e) from e
+
+    @property
+    def variables(self) -> YamlVariables:
+        if not isinstance(self._internal_datamodel, dict):
+            return {}
+
+        variables = self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
+
+        valid_variables = {}
+        for reference, variable in variables.items():
+            try:
+                reference = TypeAdapter(YamlVariableReferenceId).validate_python(reference)
+                variable = TypeAdapter(YamlVariable).validate_python(variable)
+                valid_variables[reference] = variable
+            except ValidationError:
+                continue
+
+        return valid_variables
 
     @property
     def yaml_variables(self) -> Dict[YamlVariableReferenceId, dict]:
@@ -272,13 +292,31 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         return self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, [])
 
     @property
-    def time_series(self) -> List[YamlTimeSeriesCollection]:
+    @deprecated("Deprecated, time_series in combination with validate should be used instead")
+    def time_series_raise_if_invalid(self) -> List[YamlTimeSeriesCollection]:
         time_series = []
         for time_series_data in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
             try:
                 time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
             except PydanticValidationError as e:
                 raise DtoValidationError(data=time_series_data, validation_error=e) from e
+
+        return time_series
+
+    @property
+    def time_series(self) -> List[YamlTimeSeriesCollection]:
+        """
+        Get only valid time series, i.e. don't fail if one is invalid.
+        # TODO: Replace time_series_raise_if_invalid with this method when we are using Yaml-class validation everywhere. Then property
+            access will always try to get the available information, while ignoring invalid. validate should be used to
+            validate the full model.
+        """
+        time_series = []
+        for time_series_data in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
+            try:
+                time_series.append(TypeAdapter(YamlTimeSeriesCollection).validate_python(time_series_data))
+            except PydanticValidationError:
+                pass
 
         return time_series
 

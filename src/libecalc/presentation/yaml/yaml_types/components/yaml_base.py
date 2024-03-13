@@ -3,8 +3,10 @@ from typing import List, Optional
 from pydantic import Field
 
 from libecalc.dto.utils.validators import ComponentNameStr
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
+    YamlExpressionType,
+)
 
 
 class YamlConsumerBase(YamlBase):
@@ -20,4 +22,4 @@ class YamlConsumerBase(YamlBase):
     )
 
 
-opt_expr_list = Optional[List[ExpressionType]]
+opt_expr_list = Optional[List[YamlExpressionType]]

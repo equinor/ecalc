@@ -3,9 +3,11 @@ from typing import Literal
 
 from pydantic import Field
 
-from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
     EnergyUsageModelCommon,
+)
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
+    YamlExpressionType,
 )
 
 
@@ -20,12 +22,12 @@ class YamlEnergyUsageModelDirect(EnergyUsageModelCommon):
         title="TYPE",
         description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
     )
-    load: ExpressionType = Field(
+    load: YamlExpressionType = Field(
         None,
         title="LOAD",
         description="Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",
     )
-    fuel_rate: ExpressionType = Field(
+    fuel_rate: YamlExpressionType = Field(
         None,
         title="FUEL_RATE",
         description="Fixed power consumer with constant load.\n\n$ECALC_DOCS_KEYWORDS_URL/LOAD",

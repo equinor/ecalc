@@ -11,6 +11,9 @@ from libecalc.presentation.yaml.yaml_entities import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
+    YamlTimeSeriesCollection,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
 from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
@@ -34,6 +37,7 @@ class YamlValidator(abc.ABC):
     def all_resource_names(self) -> List[str]:
         pass
 
+    @property
     @abc.abstractmethod
     def variables(self) -> Dict[str, YamlVariable]:
         pass
@@ -42,8 +46,9 @@ class YamlValidator(abc.ABC):
     def facility_inputs(self):
         pass
 
+    @property
     @abc.abstractmethod
-    def time_series(self):
+    def time_series(self) -> List[YamlTimeSeriesCollection]:
         pass
 
     @abc.abstractmethod
