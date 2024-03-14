@@ -14,6 +14,7 @@ class ModelInputFailureStatus(str, Enum):
     INVALID_SUCTION_PRESSURE_INPUT = "INVALID_SUCTION_PRESSURE_INPUT"
     INVALID_INTERMEDIATE_PRESSURE_INPUT = "INVALID_INTERMEDIATE_PRESSURE_INPUT"
     INVALID_DISCHARGE_PRESSURE_INPUT = "INVALID_DISCHARGE_PRESSURE_INPUT"
+    ABOVE_MAXIMUM_DISCHARGE_PRESSURE = "ABOVE_MAXIMUM_DISCHARGE_PRESSURE"
     NO_FAILURE = None
 
 
@@ -22,6 +23,7 @@ def validate_model_input(
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
     intermediate_pressure: Optional[NDArray[np.float64]] = None,
+    maximum_discharge_pressure: Optional[float] = None,
 ) -> Tuple[
     NDArray[np.float64],
     NDArray[np.float64],
@@ -50,6 +52,7 @@ def validate_model_input(
             intermediate_pressure=intermediate_pressure[indices_to_validate]
             if intermediate_pressure is not None
             else None,
+            maximum_discharge_pressure=maximum_discharge_pressure,
         )
 
         if np.ndim(rate) == 2:
@@ -90,6 +93,7 @@ def _validate_model_input(
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
     intermediate_pressure: Optional[NDArray[np.float64]] = None,
+    maximum_discharge_pressure: Optional[float] = None,
 ) -> Tuple[
     NDArray[np.float64],
     NDArray[np.float64],
@@ -105,6 +109,7 @@ def _validate_model_input(
           (but zero or negative pressures will still be changed to 1)
         - Any pressures that are negative or zero are set to one, and all rates for that time step are set to zero
         - Any negative rates are set to zero
+        - Checks if the required discharge pressure is above a defined maximum discharge pressure
         - A failure_status describing the first failure encountered is returned
 
     Returns only one failure_status. Checks the potential failures at each time step in the following order:
@@ -127,6 +132,7 @@ def _validate_model_input(
         ModelInputFailureStatus.INVALID_INTERMEDIATE_PRESSURE_INPUT,
         ModelInputFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
         ModelInputFailureStatus.INVALID_RATE_INPUT,
+        ModelInputFailureStatus.ABOVE_MAXIMUM_DISCHARGE_PRESSURE,
         ModelInputFailureStatus.NO_FAILURE,
     ]
 
@@ -190,6 +196,11 @@ def _validate_model_input(
         if intermediate_pressure is not None
         else np.asarray([False] * len(suction_pressure))
     )
+    above_maximum_discharge_pressure_input = (
+        np.where(discharge_pressure > maximum_discharge_pressure, True, False)
+        if maximum_discharge_pressure is not None
+        else np.asarray([False] * len(suction_pressure))
+    )
 
     failure_status = [
         validation_failures[
@@ -198,14 +209,16 @@ def _validate_model_input(
                 invalid_intermediate_pressure,
                 invalid_discharge_pressure,
                 invalid_rate,
+                above_maximum_discharge_pressure,
                 True,  # This is to also pick up failure_status NO_FAILURE
             ].index(True)
         ]
-        for invalid_rate, invalid_suction_pressure, invalid_intermediate_pressure, invalid_discharge_pressure in zip(
+        for invalid_rate, invalid_suction_pressure, invalid_intermediate_pressure, invalid_discharge_pressure, above_maximum_discharge_pressure in zip(
             invalid_rate_input,
             invalid_suction_pressure_input,
             invalid_intermediate_pressure_input,
             invalid_discharge_pressure_input,
+            above_maximum_discharge_pressure_input,
         )
     ]
 

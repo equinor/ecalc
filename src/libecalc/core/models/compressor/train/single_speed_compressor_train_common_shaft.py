@@ -111,29 +111,18 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """Evaluate a single speed compressor train total power given rate, suction pressure and discharge pressure.
         The evaluation will be different depending on the pressure control chosen.
 
-        For some time steps, the input for rate, suction pressure and discharge pressure may provide a point which
-        is outside the capacity of one or more or the compressor stages. In these cases a failure_status describing
-        the problem will be returned as part of the CompressorTrainResult.
+        Calculations are performed and results are returned even in situations where one (or more) of the compressors
+        in the compressor train is operation outside of capacity.
 
-        For other time steps it may not be possible to find a feasible solution - the target discharge pressure is
-        either too high or too low given the rate and suction pressure. In these situations, calculations will still be
-        performed, and results returned, including a failure_status telling that target discharge pressure is too high
-        or too low. The returned results will in these cases have either no asv recirculation (target pressure too high,
-        returning the results with maximum possible discharge pressure) or maximum recirculation (target pressure too
-        low, returning the results with the lowest possible discharge pressure).
+        Args:
+            rate: Standard volume rate per time step [Sm3/day]
+            suction_pressure: Suction pressure per time step [bara]
+            discharge_pressure: Discharge pressure per time step [bara]
 
-        :param rate: Standard volume rate [Sm3/day]
-        :param suction_pressure: Suction pressure per time step [bara]
-        :param discharge_pressure: Discharge pressure per time step [bara]
+        Returns:
+            A list of results for the compressor train for each time step
+
         """
-        if self.maximum_discharge_pressure is not None:
-            maximum_input_discharge_pressure = max(discharge_pressure)
-            if maximum_input_discharge_pressure > self.maximum_discharge_pressure:
-                raise ValueError(
-                    f"Maximum dishcarge pressure in input data ({maximum_input_discharge_pressure}) is "
-                    f"larger than maximum allowed discharge pressure in single speed compressor model"
-                    f" ({self.maximum_discharge_pressure})"
-                )
         mass_rates_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         if self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             train_results = self._evaluate_train_results_downstream_choking(
@@ -179,10 +168,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """Evaluate a single speed compressor train total power given mass rate, suction pressure and discharge pressure
         assuming the discharge pressure is controlled to meet target by a downstream choke valve.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
-        :param suction_pressure: Suction pressure per time step [bara]
-        :param discharge_pressure: Discharge pressure per time step [bara]
-        :return: A list of results per compressor stage and a list of failure status per compressor stage
+        Args:
+            mass_rates_kg_per_hour: Mass rate per time step [kg/hour]
+            suction_pressure: Suction pressure per time step [bara]
+            discharge_pressure: Discharge pressure per time step [bara]
+
+        Returns:
+            A list of results for the compressor train for each time step
         """
         train_result_per_time_step = self._evaluate_rate_ps(
             mass_rates_kg_per_hour=mass_rates_kg_per_hour,
@@ -226,10 +218,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         train results are calculated as a forward model, flashing the fluid at each stage given the inlet conditions, an
         iterative algorithm is used to find the suction pressure that results in the target discharge pressure.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
-        :param suction_pressure: Suction pressure per time step [bara]
-        :param discharge_pressure: Discharge pressure per time step [bara]
-        :return: A list of results per compressor stage and a list of failure status per compressor stage
+        Args:
+            mass_rates_kg_per_hour: Mass rate per time step [kg/hour]
+            suction_pressure: Suction pressure per time step [bara]
+            discharge_pressure: Discharge pressure per time step [bara]
+
+        Returns:
+            A list of results for the compressor train for each time step
         """
         train_results_per_time_step = self._evaluate_rate_pd(
             mass_rates_kg_per_hour=mass_rates_kg_per_hour,
@@ -264,10 +259,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         The asv_fraction that results in the target discharge pressure is found through an iterative algorithm, which
         includes flashing the fluid at each stage given the inlet conditions and the asv_fraction.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
-        :param suction_pressure: Suction pressure per time step [bara]
-        :param discharge_pressure: Discharge pressure per time step [bara]
-        :return: A list of results per compressor stage and a list of failure status per compressor stage
+        Args:
+            mass_rates_kg_per_hour: Mass rate per time step [kg/hour]
+            suction_pressure: Suction pressure per time step [bara]
+            discharge_pressure: Discharge pressure per time step [bara]
+
+        Returns:
+            A list of results for the compressor train for each time step
         """
         train_result_per_time_step = self._evaluate_ps_pd_minimum_mass_rates(
             inlet_pressures_train_bara=suction_pressure,
@@ -284,7 +282,15 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         discharge_pressures: NDArray[np.float64],
     ) -> List[CompressorTrainResultSingleTimeStep]:
         """Model of single speed compressor train where asv is used to meet target pressure assuming that the
-        pressure ratios (discharge pressure / suction pressure=) is equal over all compressors in the compressor train.
+        pressure ratios (discharge pressure / suction pressure) is equal over all compressors in the compressor train.
+
+        Args:
+            mass_rates_kg_per_hour: Mass rate per time step [kg/hour]
+            suction_pressure: Suction pressure per time step [bara]
+            discharge_pressure: Discharge pressure per time step [bara]
+
+        Returns:
+            A list of results for the compressor train for each time step
         """
         results_per_time_step = []
         for suction_pressure, discharge_pressure, mass_rate_kg_per_hour in zip(
@@ -347,10 +353,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         an iterative algorithm is used on the forward model which flash the fluid at each stage given the inlet conditions
         and the additional recirculated mass rate.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
-        :param suction_pressure: Suction pressure per time step [bara]
-        :param discharge_pressure: Discharge pressure per time step [bara]
-        :return: A list of results per compressor stage and a list of failure status per compressor stage
+        Args:
+            mass_rates_kg_per_hour: Mass rate per time step [kg/hour]
+            suction_pressure: Suction pressure per time step [bara]
+            discharge_pressure: Discharge pressure per time step [bara]
+
+        Returns:
+            A list of results for the compressor train for each time step
         """
         train_results_per_time_step = self._evaluate_ps_pd_constant_mass_rates(
             inlet_pressures_train_bara=suction_pressure,
@@ -368,9 +377,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """Evaluate the single speed compressor train total power given mass rate and suction pressure. The discharge
         pressure is a result of the inlet conditions, fluid rate and the resulting process.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
-        :param inlet_pressures_train_bara: Inlet pressure per time step [bara]
-        :return: A list of results per compressor stage
+        Args:
+            mass_rates_kg_per_hour: Mass rate per time step [kg/hour]
+            inlet_pressures_train_bara: Inlet pressure per time step [bara]
+
+        Returns:
+            A list of results for the compressor train for each time step
+
         """
         train_result_per_time_step = []
         for mass_rate_kg_per_hour_this_time_step, inlet_pressure_train_bara in zip(
@@ -405,9 +418,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         Newton iteration is used on the forward model which flash the fluid at each stage given the inlet conditions to
         find the suction pressure that results in the target discharge pressure.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
-        :param outlet_pressures_train_bara: Discharge pressure per time step [bara]
-        :return: A list of results per compressor stage and a list of failure status per compressor stage
+        Args:
+            mass_rates_kg_per_hour: Mass rate per time step [kg/hour]
+            outlet_pressures_train_bara: Discharge pressure per time step [bara]
+
+        Returns:
+            A list of results for the compressor train for each time step
+
         """
         train_result_per_time_step = []
         for mass_rate_kg_per_hour_this_time_step, outlet_pressure_train_bara in zip(
@@ -469,10 +486,14 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         To find the asv_fraction that results in the target discharge pressure, a Newton iteration is used on the
         forward model which flash the fluid at each stage given the inlet conditions and the asv_fraction.
 
-        :param minimum_mass_rates_kg_per_hour: Mass rate which is the minimum gross mass rate for each stage [kg/hour]
-        :param inlet_pressures_train_bara: Suction pressure per time step [bara]
-        :param outlet_pressures_train_bara: Discharge pressure per time step [bara]
-        :return: A list of results per compressor stage and a list of failure status per compressor stage
+        Args:
+            inlet_pressures_train_bara: Suction pressure per time step [bara]
+            outlet_pressures_train_bara: Discharge pressure per time step [bara]
+            minimum_mass_rates_kg_per_hour: Mass rate which is the minimum gross mass rate for each stage [kg/hour]
+
+        Returns:
+            A list of results for the compressor train for each time step
+
         """
         # Iterate on rate until pressures are met
         train_result_per_time_step = []
@@ -549,10 +570,13 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         To find the mass_rate that results in the target discharge pressure, a Newton iteration is used on the
         forward model which flash the fluid at each stage given the inlet conditions and the mass_rate.
 
-        :param minimum_mass_rates_kg_per_hour: Mass rate which is the minimum gross mass rate for each stage [kg/hour]
-        :param inlet_pressures_train_bara: Suction pressure per time step [bara]
-        :param outlet_pressures_train_bara: Discharge pressure per time step [bara]
-        :return: A list of results per compressor stage and a list of failure status per compressor stage
+        Args:
+            inlet_pressures_train_bara: Suction pressure per time step [bara]
+            outlet_pressures_train_bara: Discharge pressure per time step [bara]
+            minimum_mass_rates_kg_per_hour: Mass rate which is the minimum gross mass rate for each stage [kg/hour]
+
+        Returns:
+            A list of results for the compressor train for each time step
         """
         # Iterate on rate until pressures are met
         results_per_time_step = []

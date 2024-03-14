@@ -100,6 +100,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             rate=rate,
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
+            maximum_discharge_pressure=self.maximum_discharge_pressure,
         )
         train_results = self._evaluate_rate_ps_pd(
             rate=rate,
