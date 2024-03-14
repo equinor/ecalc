@@ -1,3 +1,4 @@
+import copy
 import math
 import operator
 from collections import defaultdict
@@ -89,6 +90,25 @@ class GraphResult:
             )
         return emission_intensities
 
+    def _compute_aggregated_power(
+        self, sub_components: list, regularity: TimeSeriesFloat, components: List[ComponentType]
+    ):
+        return reduce(
+            operator.add,
+            [
+                TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
+                for component in sub_components
+                if self.graph.get_node_info(component.id).component_type in components and component.power is not None
+            ],
+            TimeSeriesRate(
+                values=[0.0] * self.variables_map.length,
+                timesteps=self.variables_map.time_vector,
+                unit=Unit.MEGA_WATT,
+                rate_type=RateType.STREAM_DAY,
+                regularity=regularity.values,
+            ),  # Initial value, handle no power output from components
+        )
+
     def _evaluate_installations(self, variables_map: dto.VariablesMap) -> List[libecalc.dto.result.InstallationResult]:
         """
         All subcomponents have already been evaluated, here we basically collect and aggregate the results
@@ -130,22 +150,27 @@ class GraphResult:
             ]
 
             installation_node_info = self.graph.get_node_info(installation.id)
-            power = reduce(
-                operator.add,
-                [
-                    TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
-                    for component in sub_components
-                    if self.graph.get_node_info(component.id).component_type == ComponentType.GENERATOR_SET
-                ],
-                TimeSeriesRate(
-                    values=[0.0] * self.variables_map.length,
-                    timesteps=self.variables_map.time_vector,
-                    unit=Unit.MEGA_WATT,
-                    rate_type=RateType.STREAM_DAY,
-                    regularity=regularity.values,
-                ),  # Initial value, handle no power output from components
+
+            power_electrical = self._compute_aggregated_power(
+                sub_components=sub_components, regularity=regularity, components=[ComponentType.GENERATOR_SET]
             )
 
+            fuel_consumer_nodes = self.graph.get_fuel_consumer_nodes()
+            fuel_consumer_sub_components = [
+                sub_component for sub_component in sub_components if sub_component.id in fuel_consumer_nodes
+            ]
+
+            power_mechanical = self._compute_aggregated_power(
+                sub_components=fuel_consumer_sub_components,
+                regularity=regularity,
+                components=[ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_V2],
+            )
+            power_sum = [
+                electrical + mechanical
+                for electrical, mechanical in zip(power_electrical.values, power_mechanical.values)
+            ]
+            power = copy.deepcopy(power_electrical)
+            power.values = power_sum
             energy_usage = (
                 reduce(
                     operator.add,
@@ -182,6 +207,14 @@ class GraphResult:
                     ),
                     power=power,
                     power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
+                    power_electrical=power_electrical,
+                    power_electrical_cumulative=power_electrical.to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative(),
+                    power_mechanical=power_mechanical,
+                    power_mechanical_cumulative=power_mechanical.to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative(),
                     energy_usage=energy_usage.to_calendar_day()
                     if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
                     else energy_usage.to_stream_day(),
