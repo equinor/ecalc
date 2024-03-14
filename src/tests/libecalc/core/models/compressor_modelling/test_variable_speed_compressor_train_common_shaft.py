@@ -278,7 +278,7 @@ def test_find_and_calculate_for_compressor_shaft_speed_given_rate_ps_pd_invalid_
         suction_pressure=20,
         target_discharge_pressure=1000,
     )
-    assert result.failure_status == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
+    assert result.chart_area_status == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE
 
     # Target pressure too low -> but still possible because of downstream choke. However, the rate is still too high.
     result = variable_speed_compressor_train.calculate_shaft_speed_given_rate_ps_pd(

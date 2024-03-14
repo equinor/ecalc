@@ -440,7 +440,7 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     )[0]
     target_outlet_pressure = 130
 
-    result, failure_status = calculate_single_speed_compressor_stage_given_target_discharge_pressure(
+    result = calculate_single_speed_compressor_stage_given_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
         outlet_pressure_stage_bara=target_outlet_pressure,
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
