@@ -5,7 +5,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
-from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models import (
@@ -14,8 +13,13 @@ from libecalc.core.models import (
     validate_model_input,
 )
 from libecalc.core.models.compressor.base import CompressorModel
-from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
+from libecalc.core.models.compressor.results import (
+    CompressorTrainResultSingleTimeStep,
+)
 from libecalc.core.models.compressor.train.fluid import FluidStream
+from libecalc.core.models.compressor.train.utils.common import (
+    PRESSURE_CALCULATION_TOLERANCE,
+)
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.models.results.compressor import (
@@ -26,6 +30,7 @@ from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTr
 from libecalc.dto.models.compressor.train import (
     SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
 )
+from libecalc.dto.types import ChartAreaFlag
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT
@@ -134,13 +139,16 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
         )
 
-        train_results = self.adjust_train_results_for_maximum_power(
-            train_results=train_results, power=power_mw_adjusted
+        failure_status = self.evaluate_train_results_for_failure_status(
+            train_results=train_results,
+            power=power_mw_adjusted,
+            target_suction_pressures=suction_pressure,
+            target_discharge_pressures=discharge_pressure,
         )
 
-        for i, train_result in enumerate(train_results):
-            if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE:
-                train_result.failure_status = input_failure_status[i]
+        for i, model_failure in enumerate(input_failure_status):
+            if model_failure is not ModelInputFailureStatus.NO_FAILURE:
+                failure_status[i] = model_failure
 
         return CompressorTrainResult(
             energy_usage=list(power_mw_adjusted),
@@ -150,7 +158,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             rate_sm3_day=cast(list, rate.tolist()),
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
-            failure_status=[t.failure_status for t in train_results],
+            failure_status=failure_status,
         )
 
     def evaluate_streams(
@@ -174,17 +182,70 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
 
-    @Feature.experimental(
-        feature_description="Maximum power constraint is an experimental feature where the syntax may change at any time."
-    )
-    def adjust_train_results_for_maximum_power(
-        self, train_results: List[CompressorTrainResultSingleTimeStep], power: NDArray[np.float64]
-    ) -> List[CompressorTrainResultSingleTimeStep]:
-        if self.data_transfer_object.maximum_power is not None:
-            for power_adjusted, train_result in zip(power, train_results):
-                if self.data_transfer_object.maximum_power < power_adjusted and train_result.failure_status is None:
-                    train_result.failure_status = CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
-        return train_results
+    def evaluate_train_results_for_failure_status(
+        self,
+        train_results: List[CompressorTrainResultSingleTimeStep],
+        power: NDArray[np.float64],
+        target_suction_pressures: NDArray[np.float64],
+        target_discharge_pressures: NDArray[np.float64],
+        target_intermediate_pressures: Optional[NDArray[np.float64]] = None,
+    ) -> List[CompressorTrainCommonShaftFailureStatus]:
+        """Takes the separate stage results and compares to the given pressure and power constraints
+
+        Args:
+            stage_results:
+            target_suction_pressure:
+            target_discharge_pressure:
+            target_intermediate_pressure:
+
+        Returns:
+
+        """
+        failure_status = [None] * len(train_results)
+        for i, train_result in enumerate(train_results):
+            target_suction_pressure = target_suction_pressures[i]
+            target_intermediate_pressure = (
+                target_intermediate_pressures[i] if target_intermediate_pressures is not None else None
+            )
+            target_discharge_pressure = target_discharge_pressures[i]
+
+            if not all(r.is_valid for r in train_result.stage_results):
+                for stage in train_result.stage_results:
+                    if not stage.is_valid:
+                        if stage.chart_area_flag in (
+                            ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
+                            ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
+                        ):
+                            failure_status[i] = CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
+                            break
+                        elif stage.chart_area_flag in (
+                            ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE,
+                            ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
+                        ):
+                            failure_status[i] = CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
+                            break
+
+            elif train_result.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < target_discharge_pressure:
+                failure_status[i] = CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+            elif train_result.suction_pressure * (1 - PRESSURE_CALCULATION_TOLERANCE) > target_suction_pressure:
+                failure_status[i] = CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+            elif train_result.discharge_pressure * (1 - PRESSURE_CALCULATION_TOLERANCE) > target_discharge_pressure:
+                failure_status[i] = CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
+            elif target_intermediate_pressure is not None:
+                intermediate_pressure_to_check = train_result.stage_results[
+                    self.data_transfer_object.stage_number_interstage_pressure - 1
+                ].discharge_pressure
+                if intermediate_pressure_to_check * (1 - PRESSURE_CALCULATION_TOLERANCE) > target_intermediate_pressure:
+                    failure_status[i] = CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
+                elif (
+                    intermediate_pressure_to_check * (1 + PRESSURE_CALCULATION_TOLERANCE) < target_intermediate_pressure
+                ):
+                    failure_status[i] = CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
+            elif self.data_transfer_object.maximum_power:
+                if self.data_transfer_object.maximum_power < power[i]:
+                    failure_status[i] = CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
+
+        return failure_status
 
     @abstractmethod
     def _evaluate_rate_ps_pd(
