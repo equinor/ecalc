@@ -92,7 +92,11 @@ class GraphResult:
         return emission_intensities
 
     def _compute_aggregated_power(
-        self, sub_components: list, regularity: TimeSeriesFloat, consumption_type: ConsumptionType
+        self,
+        sub_components: list,
+        regularity: TimeSeriesFloat,
+        consumption_type: ConsumptionType,
+        exclude_components: List[ComponentType],
     ):
         sub_components_consumption_type = []
         for sub_component in sub_components:
@@ -108,6 +112,7 @@ class GraphResult:
                 TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
                 for component in sub_components_consumption_type
                 if component.power is not None
+                and self.graph.get_node_info(component.id).component_type not in exclude_components
             ],
             TimeSeriesRate(
                 values=[0.0] * self.variables_map.length,
@@ -160,14 +165,29 @@ class GraphResult:
 
             installation_node_info = self.graph.get_node_info(installation.id)
 
+            # Ensure that only components at individual consumer level are included in aggregation of power,
+            # to secure that nothing is counted twice:
+            exclude_components = [
+                ComponentType.GENERATOR_SET,
+                ComponentType.ASSET,
+                ComponentType.INSTALLATION,
+                ComponentType.COMPRESSOR_SYSTEM,
+                ComponentType.CONSUMER_SYSTEM_V2,
+                ComponentType.PUMP_SYSTEM,
+                ComponentType.TRAIN_V2,
+            ]
             power_electrical = self._compute_aggregated_power(
-                sub_components=sub_components, regularity=regularity, consumption_type=ConsumptionType.ELECTRICITY
+                sub_components=sub_components,
+                regularity=regularity,
+                consumption_type=ConsumptionType.ELECTRICITY,
+                exclude_components=exclude_components,
             )
 
             power_mechanical = self._compute_aggregated_power(
                 sub_components=sub_components,
                 regularity=regularity,
                 consumption_type=ConsumptionType.FUEL,
+                exclude_components=exclude_components,
             )
 
             power_sum = [
