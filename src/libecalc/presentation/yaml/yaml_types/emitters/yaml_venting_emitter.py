@@ -1,5 +1,6 @@
+import enum
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 from pydantic import ConfigDict, Field, field_validator
@@ -16,6 +17,7 @@ from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
@@ -25,14 +27,36 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 )
 
 
-class YamlVentingEmission(YamlBase):
+class YamlVentingType(enum.Enum):
+    OIL_VOLUME = "OIL_VOLUME"
+    DIRECT_EMISSION = "DIRECT_EMISSION"
+
+
+class YamlVentingVolumeEmission(YamlBase):
     name: str = Field(
         ...,
         title="NAME",
         description="Name of emission",
     )
-    emission_rate_to_volume_factor: Optional[float] = Field(
+    volume_to_emission_factor: ExpressionType = Field(
         None, title="FACTOR", description="Loading/storage volume-emission factor"
+    )
+
+
+class YamlVentingVolume(YamlBase):
+    rate: YamlEmissionRate = Field(..., title="RATE", description="The oil loading/storage volume or volume/rate")
+    emissions: List[YamlVentingVolumeEmission] = Field(
+        ...,
+        title="EMISSIONS",
+        description="The emission types and volume-emission-factors associated with oil loading/storage",
+    )
+
+
+class YamlVentingEmission(YamlBase):
+    name: str = Field(
+        ...,
+        title="NAME",
+        description="Name of emission",
     )
     rate: YamlEmissionRate = Field(..., title="RATE", description="The emission rate")
 
@@ -44,23 +68,6 @@ class YamlVentingEmitter(YamlBase):
     def component_type(self):
         return ComponentType.VENTING_EMITTER
 
-    name: ComponentNameStr = Field(
-        ...,
-        title="NAME",
-        description="Name of venting emitter",
-    )
-
-    category: ConsumerUserDefinedCategoryType = CategoryField(
-        ...,
-        validate_default=True,
-    )
-
-    emission: YamlVentingEmission = Field(
-        ...,
-        title="EMISSION",
-        description="The emission",
-    )
-
     @property
     def id(self) -> str:
         return generate_id(self.name)
@@ -68,6 +75,35 @@ class YamlVentingEmitter(YamlBase):
     @property
     def user_defined_category(self):
         return self.category
+
+    name: ComponentNameStr = Field(
+        ...,
+        title="NAME",
+        description="Name of venting emitter",
+    )
+
+    type: YamlVentingType = Field(
+        ...,
+        title="TYPE",
+        description="Type of venting emitter",
+    )
+
+    category: ConsumerUserDefinedCategoryType = CategoryField(
+        ...,
+        validate_default=True,
+    )
+
+    emissions: Optional[YamlVentingEmission] = Field(
+        ...,
+        title="EMISSIONS",
+        description="The emissions",
+    )
+
+    oil_volume: Optional[YamlVentingVolumeEmission] = Field(
+        ...,
+        title="VOLUME",
+        description="The emissions",
+    )
 
     @field_validator("category", mode="before")
     def check_user_defined_category(cls, category, info: ValidationInfo):
@@ -89,7 +125,7 @@ class YamlVentingEmitter(YamlBase):
                 )
         return category
 
-    @field_validator("emission", mode="after")
+    @field_validator("emissions", mode="after")
     def check_volume_emission_factor(cls, emission, info: ValidationInfo):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
         category = info.data.get("category")
