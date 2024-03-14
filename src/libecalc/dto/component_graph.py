@@ -62,6 +62,3 @@ class ComponentGraph(Graph):
 
     def get_nodes_of_type(self, component_type: ComponentType) -> List[NodeID]:
         return [node.id for node in self.nodes.values() if node.component_type == component_type]
-
-    def get_fuel_consumer_nodes(self):
-        return [node for node in self.nodes if isinstance(self.get_node(node), dto.FuelConsumer)]

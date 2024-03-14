@@ -41,6 +41,7 @@ from libecalc.dto.result.results import (
     PumpModelResult,
     TurbineModelResult,
 )
+from libecalc.dto.types import ConsumptionType
 from libecalc.dto.utils.aggregators import aggregate_emissions, aggregate_is_valid
 from libecalc.expression import Expression
 
@@ -91,14 +92,22 @@ class GraphResult:
         return emission_intensities
 
     def _compute_aggregated_power(
-        self, sub_components: list, regularity: TimeSeriesFloat, components: List[ComponentType]
+        self, sub_components: list, regularity: TimeSeriesFloat, consumption_type: ConsumptionType
     ):
+        sub_components_consumption_type = []
+        for sub_component in sub_components:
+            try:
+                if self.graph.get_node(sub_component.id).consumes == consumption_type:
+                    sub_components_consumption_type.append(sub_component)
+            except AttributeError:
+                pass
+
         return reduce(
             operator.add,
             [
                 TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
-                for component in sub_components
-                if self.graph.get_node_info(component.id).component_type in components and component.power is not None
+                for component in sub_components_consumption_type
+                if component.power is not None
             ],
             TimeSeriesRate(
                 values=[0.0] * self.variables_map.length,
@@ -152,19 +161,15 @@ class GraphResult:
             installation_node_info = self.graph.get_node_info(installation.id)
 
             power_electrical = self._compute_aggregated_power(
-                sub_components=sub_components, regularity=regularity, components=[ComponentType.GENERATOR_SET]
+                sub_components=sub_components, regularity=regularity, consumption_type=ConsumptionType.ELECTRICITY
             )
-
-            fuel_consumer_nodes = self.graph.get_fuel_consumer_nodes()
-            fuel_consumer_sub_components = [
-                sub_component for sub_component in sub_components if sub_component.id in fuel_consumer_nodes
-            ]
 
             power_mechanical = self._compute_aggregated_power(
-                sub_components=fuel_consumer_sub_components,
+                sub_components=sub_components,
                 regularity=regularity,
-                components=[ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_V2],
+                consumption_type=ConsumptionType.FUEL,
             )
+
             power_sum = [
                 electrical + mechanical
                 for electrical, mechanical in zip(power_electrical.values, power_mechanical.values)
