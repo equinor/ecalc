@@ -21,6 +21,7 @@ from libecalc.core.models.compressor.train.single_speed_compressor_train_common_
 from libecalc.core.models.compressor.train.stage import CompressorTrainStage
 from libecalc.core.models.compressor.train.utils.common import (
     POWER_CALCULATION_TOLERANCE,
+    PRESSURE_CALCULATION_TOLERANCE,
     RATE_CALCULATION_TOLERANCE,
 )
 from libecalc.core.models.compressor.train.utils.numeric_methods import (
@@ -458,7 +459,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 inlet_pressure=suction_pressure,
                 outlet_pressure=target_discharge_pressure,
                 mass_rate_kg_per_hour=max_mass_rate_at_max_speed,
-            ).is_valid
+            ).discharge_pressure
+            * (1 - PRESSURE_CALCULATION_TOLERANCE)
+            < target_discharge_pressure
         ):
             rate_to_return = max_mass_rate_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
 

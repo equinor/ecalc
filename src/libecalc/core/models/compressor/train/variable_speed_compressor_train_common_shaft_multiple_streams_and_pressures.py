@@ -22,6 +22,7 @@ from libecalc.core.models.compressor.train.types import (
 )
 from libecalc.core.models.compressor.train.utils.common import (
     POWER_CALCULATION_TOLERANCE,
+    PRESSURE_CALCULATION_TOLERANCE,
     RATE_CALCULATION_TOLERANCE,
 )
 from libecalc.core.models.compressor.train.utils.numeric_methods import (
@@ -711,7 +712,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         for i, _ in enumerate(self.streams)
                     ]
                 ),
-            ).is_valid
+            ).discharge_pressure
+            * (1 - PRESSURE_CALCULATION_TOLERANCE)
+            < target_discharge_pressure
         ):
             rate_to_return = max_std_rate_m3_per_day_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
 
