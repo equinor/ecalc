@@ -89,6 +89,27 @@ class GraphResult:
             )
         return emission_intensities
 
+    def _compute_aggregated_power(
+        self,
+        regularity: TimeSeriesFloat,
+        power_components: list,
+    ):
+        return reduce(
+            operator.add,
+            [
+                TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
+                for component in power_components
+                if component.power is not None
+            ],
+            TimeSeriesRate(
+                values=[0.0] * self.variables_map.length,
+                timesteps=self.variables_map.time_vector,
+                unit=Unit.MEGA_WATT,
+                rate_type=RateType.STREAM_DAY,
+                regularity=regularity.values,
+            ),  # Initial value, handle no power output from components
+        )
+
     def _evaluate_installations(self, variables_map: dto.VariablesMap) -> List[libecalc.dto.result.InstallationResult]:
         """
         All subcomponents have already been evaluated, here we basically collect and aggregate the results
@@ -129,22 +150,34 @@ class GraphResult:
                 if component_id in self.consumer_results
             ]
 
+            power_components = [
+                self.consumer_results[component_id].component_result
+                for component_id in self.graph.get_successors(installation.id, recursively=False)
+                if component_id in self.consumer_results
+            ]
+
+            electrical_components = []
+            fuel_components = []
+
+            for component in power_components:
+                if self.graph.get_node_info(component.id).component_type == ComponentType.GENERATOR_SET:
+                    electrical_components.append(component)
+                else:
+                    fuel_components.append(component)
+
             installation_node_info = self.graph.get_node_info(installation.id)
-            power = reduce(
-                operator.add,
-                [
-                    TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
-                    for component in sub_components
-                    if self.graph.get_node_info(component.id).component_type == ComponentType.GENERATOR_SET
-                ],
-                TimeSeriesRate(
-                    values=[0.0] * self.variables_map.length,
-                    timesteps=self.variables_map.time_vector,
-                    unit=Unit.MEGA_WATT,
-                    rate_type=RateType.STREAM_DAY,
-                    regularity=regularity.values,
-                ),  # Initial value, handle no power output from components
+
+            power_electrical = self._compute_aggregated_power(
+                power_components=electrical_components,
+                regularity=regularity,
             )
+
+            power_mechanical = self._compute_aggregated_power(
+                power_components=fuel_components,
+                regularity=regularity,
+            )
+
+            power = power_electrical + power_mechanical
 
             energy_usage = (
                 reduce(
@@ -182,6 +215,14 @@ class GraphResult:
                     ),
                     power=power,
                     power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
+                    power_electrical=power_electrical,
+                    power_electrical_cumulative=power_electrical.to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative(),
+                    power_mechanical=power_mechanical,
+                    power_mechanical_cumulative=power_mechanical.to_volumes()
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .cumulative(),
                     energy_usage=energy_usage.to_calendar_day()
                     if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
                     else energy_usage.to_stream_day(),
