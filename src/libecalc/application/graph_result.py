@@ -177,7 +177,8 @@ class GraphResult:
                 regularity=regularity,
             )
 
-            power = power_electrical.__add__(power_mechanical)
+            power = power_electrical + power_mechanical
+
             energy_usage = (
                 reduce(
                     operator.add,
