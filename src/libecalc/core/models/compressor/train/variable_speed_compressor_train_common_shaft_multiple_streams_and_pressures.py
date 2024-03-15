@@ -891,7 +891,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             power_mw > 0, power_mw + self.data_transfer_object.energy_usage_adjustment_constant, power_mw
         )
 
-        failure_status = self.evaluate_train_results_for_failure_status(
+        failure_status = self.evaluate_train_results_for_failure(
             train_results=train_results,
             power=power_mw_adjusted,
             target_suction_pressures=suction_pressure,
