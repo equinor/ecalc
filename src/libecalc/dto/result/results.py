@@ -67,6 +67,10 @@ class AssetResult(ComponentResultBase):
     componentType: Literal[ComponentType.ASSET]
     hydrocarbon_export_rate: TimeSeriesRate
     emission_intensities: List[EmissionIntensityResult]
+    power_electrical: Optional[TimeSeriesRate] = None
+    power_electrical_cumulative: Optional[TimeSeriesVolumesCumulative] = None
+    power_mechanical: Optional[TimeSeriesRate] = None
+    power_mechanical_cumulative: Optional[TimeSeriesVolumesCumulative] = None
 
 
 class InstallationResult(AssetResult):
