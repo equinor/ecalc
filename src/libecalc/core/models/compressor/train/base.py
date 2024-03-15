@@ -140,16 +140,16 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
         )
 
-        failure_status = self.evaluate_train_results_for_failure_status(
+        failure_status = self.evaluate_train_results_for_failure(
             train_results=train_results,
             power=power_mw_adjusted,
             target_suction_pressures=suction_pressure,
             target_discharge_pressures=discharge_pressure,
         )
 
-        for i, model_failure in enumerate(input_failure_status):
-            if model_failure is not ModelInputFailureStatus.NO_FAILURE:
-                failure_status[i] = model_failure
+        for i, input_failure in enumerate(input_failure_status):
+            if input_failure is not ModelInputFailureStatus.NO_FAILURE:
+                failure_status[i] = input_failure
 
         return CompressorTrainResult(
             energy_usage=list(power_mw_adjusted),
@@ -183,7 +183,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
 
-    def evaluate_train_results_for_failure_status(
+    def evaluate_train_results_for_failure(
         self,
         train_results: List[CompressorTrainResultSingleTimeStep],
         power: NDArray[np.float64],
@@ -191,16 +191,30 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         target_discharge_pressures: NDArray[np.float64],
         target_intermediate_pressures: Optional[NDArray[np.float64]] = None,
     ) -> List[CompressorTrainCommonShaftFailureStatus]:
-        """Takes the separate stage results and compares to the given pressure and power constraints
+        """Takes the separate train results and compares to the given pressure and power constraints
+
+        The following failures are checked:
+            1) The input rate being above maximum flow rate (ABOVE_MAXIMUM_FLOW_RATE)
+                or below minimum rate (in cases where recirculation is unfeasible) (BELOW_MINIMUM_FLOW_RATE)
+            2) The discharge pressure of the compressor train does not reach as high as
+                the given target pressure (TARGET_DISCHARGE_PRESSURE_TOO_HIGH)
+            3) The discharge pressure of the compressor train does not reach as low as
+                the given target pressure (TARGET_DISCHARGE_PRESSURE_TOO_LOW)
+            4) The compressor train is not able to meet the target intermediate pressure
+                because it is too high (TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH)
+            5) The compressor train is not able to meet the target intermediate pressure
+                because it is too low (TARGET_INTERMEDIATE_PRESSURE_TOO_LOW)
+            6) The compressor train requires more power than what is available (ABOVE_MAXIMUM_POWER)
 
         Args:
-            stage_results:
-            target_suction_pressure:
-            target_discharge_pressure:
-            target_intermediate_pressure:
+            train_results: Compressor train result for each time step
+            power: The power required by the compressor train at each time step after potential adjustments
+            target_suction_pressures: The target suction pressure for the compressor train at each time step [bara]
+            target_discharge_pressures: The target discharge pressure for the compressor train at each time step [bara]
+            target_intermediate_pressures: The target intermediate pressure for the compressor train at each time step [bara]
 
         Returns:
-
+            The failure_status of the compressor train at each time step
         """
         failure_status = [None] * len(train_results)
         for i, train_result in enumerate(train_results):
@@ -228,6 +242,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
             elif train_result.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < target_discharge_pressure:
                 failure_status[i] = CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+            # with UPSTREAM_CHOKE there is a possibility that the suction pressure (found through iterations) needed
+            # to reach the target discharge pressure is higher than the target suction pressure. This is interpreted
+            # as the discharge pressure being too high (but it could probably also be interpreted as suction pressure
+            # being too low...)
             elif train_result.suction_pressure * (1 - PRESSURE_CALCULATION_TOLERANCE) > target_suction_pressure:
                 failure_status[i] = CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
             elif train_result.discharge_pressure * (1 - PRESSURE_CALCULATION_TOLERANCE) > target_discharge_pressure:

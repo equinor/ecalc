@@ -898,9 +898,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             target_discharge_pressures=discharge_pressure,
         )
 
-        for i, model_failure in enumerate(input_failure_status):
-            if model_failure is not ModelInputFailureStatus.NO_FAILURE:
-                failure_status[i] = model_failure
+        for i, input_failure in enumerate(input_failure_status):
+            if input_failure is not ModelInputFailureStatus.NO_FAILURE:
+                failure_status[i] = input_failure
 
         return CompressorTrainResult(
             energy_usage=list(power_mw_adjusted),
