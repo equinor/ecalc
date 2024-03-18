@@ -1,5 +1,46 @@
 # Changelog
 
+## [8.11.0](https://github.com/equinor/ecalc/compare/v8.10.0...v8.11.0) (2024-03-18)
+
+
+### Features
+
+* add file context to model validation error ([#401](https://github.com/equinor/ecalc/issues/401)) ([0a75da4](https://github.com/equinor/ecalc/commit/0a75da425eacf4f7770e50b50c970fa3720375ee))
+* check that file exist when validating yaml for run ([#388](https://github.com/equinor/ecalc/issues/388)) ([441722f](https://github.com/equinor/ecalc/commit/441722f9e8d86b4a48c1191a413f931e336d6ff7))
+* validate expression reference tokens ([#404](https://github.com/equinor/ecalc/issues/404)) ([2af9d13](https://github.com/equinor/ecalc/commit/2af9d1332864b3e3bf17f84bd980b8bd436e7c7a))
+
+
+### Bug Fixes
+
+* add control margin to compressor stage validation ([#405](https://github.com/equinor/ecalc/issues/405)) ([0f1e6f8](https://github.com/equinor/ecalc/commit/0f1e6f8af15208ce613f9d39fe1de4f8edd9e72f))
+
+
+### Documentation
+
+* fix latest release in changelog ([#393](https://github.com/equinor/ecalc/issues/393)) ([317c958](https://github.com/equinor/ecalc/commit/317c9585b0257aca7057f173b87aed2388ee939f))
+* move next changelog into release ([#395](https://github.com/equinor/ecalc/issues/395)) ([82b892c](https://github.com/equinor/ecalc/commit/82b892c1d9792ef8259f1cff12585c53287d4afe))
+* remove latest tag on v8.7 ([#394](https://github.com/equinor/ecalc/issues/394)) ([55da754](https://github.com/equinor/ecalc/commit/55da75468ffc15d0de63618f9a446a11fc022f5f))
+
+
+### Miscellaneous Chores
+
+* allow venting emitters without fuelconsumers ([#392](https://github.com/equinor/ecalc/issues/392)) ([f75f18f](https://github.com/equinor/ecalc/commit/f75f18fede56c7b5ace8aad0273c1ba22c9d2e2a))
+* also rounding of results for show command, cache and after resampling ([4b04729](https://github.com/equinor/ecalc/commit/4b04729bcf073e17be57ce4b920d480762eb819b))
+* fix failing tests ([4b04729](https://github.com/equinor/ecalc/commit/4b04729bcf073e17be57ce4b920d480762eb819b))
+* sum and split electrical and mechanical power ([#406](https://github.com/equinor/ecalc/issues/406)) ([86754cc](https://github.com/equinor/ecalc/commit/86754cc534b222cd761b19c04eb0de6deef26402))
+* switch license to LGPLv3 ([424635e](https://github.com/equinor/ecalc/commit/424635e3456e00ef180492852fdd97f1b26938c4))
+* update contribution docs ([b428c03](https://github.com/equinor/ecalc/commit/b428c034870ec0c8bc3b9994e8639f393fc76962))
+* update snapshots ([4b04729](https://github.com/equinor/ecalc/commit/4b04729bcf073e17be57ce4b920d480762eb819b))
+* upgrade dependencies ([#410](https://github.com/equinor/ecalc/issues/410)) ([016c0bd](https://github.com/equinor/ecalc/commit/016c0bd838f90f2066cc1d1ab12717957d83609e))
+* upgrade node to 18 for codespace ([#399](https://github.com/equinor/ecalc/issues/399)) ([14c1793](https://github.com/equinor/ecalc/commit/14c17933b5c7b85bbfed2b5404721078268b6ff0))
+
+
+### Code Refactoring
+
+* all rounding of numers to a given precision is now performed after all calculations are finished ([#400](https://github.com/equinor/ecalc/issues/400)) ([4b04729](https://github.com/equinor/ecalc/commit/4b04729bcf073e17be57ce4b920d480762eb819b))
+* move rounding to result objects ([#402](https://github.com/equinor/ecalc/issues/402)) ([383e7f6](https://github.com/equinor/ecalc/commit/383e7f662fec3ae37c66214e2170a20cfd770c07))
+* remove unnecessary collection handling in expression ([#390](https://github.com/equinor/ecalc/issues/390)) ([650aa74](https://github.com/equinor/ecalc/commit/650aa74c04a83798c36cb40d8e696e5992789fd6))
+
 ## [8.10.0](https://github.com/equinor/ecalc/compare/v8.9.0...v8.10.0) (2024-02-16)
 
 
