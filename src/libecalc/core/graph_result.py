@@ -579,7 +579,8 @@ class GraphResult:
                                 standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
                                     timesteps=model.timesteps,
                                     values=stage_result.inlet_stream_condition.standard_rate_before_asv_sm3_per_day
-                                    if stage_result.inlet_stream_condition.standard_rate_before_asv_sm3_per_day is not None
+                                    if stage_result.inlet_stream_condition.standard_rate_before_asv_sm3_per_day
+                                    is not None
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                     rate_type=RateType.STREAM_DAY,
@@ -651,8 +652,8 @@ class GraphResult:
                                 ),
                                 standard_rate_sm3_per_day=TimeSeriesRate(
                                     timesteps=model.timesteps,
-                                    values=stage_result.inlet_stream_condition.standard_rate_sm3_per_day
-                                    if stage_result.inlet_stream_condition.standard_rate_sm3_per_day is not None
+                                    values=stage_result.outlet_stream_condition.standard_rate_sm3_per_day
+                                    if stage_result.outlet_stream_condition.standard_rate_sm3_per_day is not None
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                     rate_type=RateType.STREAM_DAY,
@@ -660,8 +661,9 @@ class GraphResult:
                                 ),
                                 standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
                                     timesteps=model.timesteps,
-                                    values=stage_result.inlet_stream_condition.standard_rate_before_asv_sm3_per_day
-                                    if stage_result.inlet_stream_condition.standard_rate_before_asv_sm3_per_day is not None
+                                    values=stage_result.outlet_stream_condition.standard_rate_before_asv_sm3_per_day
+                                    if stage_result.outlet_stream_condition.standard_rate_before_asv_sm3_per_day
+                                    is not None
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                     rate_type=RateType.STREAM_DAY,
