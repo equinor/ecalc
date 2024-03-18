@@ -10,7 +10,6 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmission,
     YamlVentingEmitter,
-    YamlVentingType,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
@@ -35,29 +34,26 @@ def test_venting_emitter(variables_map):
 
     venting_emitter = YamlVentingEmitter(
         name=emitter_name,
-        type=YamlVentingType.DIRECT_EMISSION,
         category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-        emissions=[
-            YamlVentingEmission(
-                name="ch4",
-                rate=YamlEmissionRate(
-                    value="TSC1;Methane_rate {*} 1.02",
-                    unit=Unit.KILO_PER_DAY,
-                    type=RateType.STREAM_DAY,
-                ),
-            )
-        ],
+        emission=YamlVentingEmission(
+            name="ch4",
+            rate=YamlEmissionRate(
+                value="TSC1;Methane_rate {*} 1.02",
+                unit=Unit.KILO_PER_DAY,
+                type=RateType.STREAM_DAY,
+            ),
+        ),
     )
 
     regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
 
-    emission_rate = venting_emitter.get_emission_rate(variables_map=variables_map, regularity=regularity)[
-        "ch4"
-    ].to_unit(Unit.TONS_PER_DAY)
+    emission_rate = venting_emitter.get_emission_rate(variables_map=variables_map, regularity=regularity).to_unit(
+        Unit.TONS_PER_DAY
+    )
 
     emission_result = {
-        venting_emitter.emissions[0].name: EmissionResult(
-            name=venting_emitter.emissions[0].name,
+        venting_emitter.emission.name: EmissionResult(
+            name=venting_emitter.emission.name,
             timesteps=variables_map.time_vector,
             rate=emission_rate,
         )

@@ -15,7 +15,6 @@ from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmission,
     YamlVentingEmitter,
-    YamlVentingType,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
@@ -984,13 +983,10 @@ def methane_venting(regularity) -> YamlVentingEmitter:
     return YamlVentingEmitter(
         name="methane_venting",
         category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-        type=YamlVentingType.DIRECT_EMISSION,
-        emissions=[
-            YamlVentingEmission(
-                name="CH4",
-                rate=YamlEmissionRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY),
-            )
-        ],
+        emission=YamlVentingEmission(
+            name="CH4",
+            rate=YamlEmissionRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY),
+        ),
     )
 
 

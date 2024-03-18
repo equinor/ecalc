@@ -20,6 +20,7 @@ from libecalc.presentation.exporter.queries import (
     EmissionQuery,
     FuelConsumerPowerConsumptionQuery,
     FuelQuery,
+    VolumeQuery,
 )
 
 """
@@ -587,6 +588,15 @@ class LTPConfig(ResultConfig):
                         installation_category="FIXED",
                         consumer_categories=["LOADING"],
                         emission_type="ch4",
+                    ),
+                ),
+                Applier(
+                    name="loadedAndStoredOil",  # TODO: Get correct Centuries name here
+                    title="Total Oil Loaded/Stored new",
+                    unit=Unit.TONS,
+                    query=VolumeQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["LOADING"],
                     ),
                 ),
                 Applier(

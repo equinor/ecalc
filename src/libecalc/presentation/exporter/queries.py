@@ -12,6 +12,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesRate,
+    TimeSeriesStreamDayRate,
     TimeSeriesVolumes,
 )
 from libecalc.core.result import GeneratorSetResult
@@ -230,6 +231,101 @@ class EmissionQuery(Query):
                 }
 
             return aggregated_result_volume if aggregated_result_volume else None
+        return None
+
+
+class VolumeQuery(Query):
+    def __init__(
+        self,
+        installation_category: Optional[str] = None,
+        consumer_categories: Optional[List[str]] = None,
+        fuel_type_category: Optional[str] = None,
+        emission_type: Optional[str] = None,
+    ):
+        self.installation_category = installation_category
+        self.consumer_categories = consumer_categories
+        self.fuel_type_category = fuel_type_category
+        self.emission_type = emission_type
+
+    def query(
+        self,
+        installation_graph: GraphResult,
+        unit: Unit,
+        frequency: Frequency,
+    ) -> Optional[Dict[datetime, float]]:
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
+
+        installation_time_steps = installation_graph.timesteps
+        time_steps = resample_time_steps(
+            frequency=frequency,
+            time_steps=installation_time_steps,
+        )
+
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
+        aggregated_emission_volume_output_unit = {}
+        aggregated_emission_volume: Dict[datetime, float] = defaultdict(float)
+        unit_in = None
+
+        if self.installation_category is None or installation_dto.user_defined_category == self.installation_category:
+            # Add loading and storage volumes related to venting emissions, but ensure that emissions are not counted twice.
+            # Venting emissions have no fuel, and should not count when asking for emissions for a given fuel
+            if self.fuel_type_category is None:
+                for venting_emitter in installation_dto.venting_emitters:
+                    if (
+                        self.consumer_categories is None
+                        or venting_emitter.user_defined_category in self.consumer_categories
+                    ):
+                        emissions = installation_graph.get_emissions(venting_emitter.id)
+
+                        for emission_name, emission in emissions.items():
+                            if emission.emission_rate_to_volume_factor is None:
+                                return None
+                            else:
+                                rate = TimeSeriesStreamDayRate(
+                                    timesteps=emission.rate.timesteps,
+                                    unit=emission.rate.unit,
+                                    values=[
+                                        rate_value / emission.emission_rate_to_volume_factor
+                                        for rate_value in emission.rate.values
+                                    ],
+                                )
+
+                            emission_volumes = TimeSeriesRate.from_timeseries_stream_day_rate(
+                                rate, regularity=regularity
+                            ).to_volumes()
+                            unit_in = emission_volumes.unit
+                            for timestep, emission_volume in emission_volumes.datapoints():
+                                if self.emission_type is None or emission_name == self.emission_type:
+                                    aggregated_emission_volume[timestep] += emission_volume
+
+            if aggregated_emission_volume:
+                sorted_result = dict(
+                    dict(sorted(zip(aggregated_emission_volume.keys(), aggregated_emission_volume.values()))).items()
+                )
+                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                date_keys = list(sorted_result.keys())
+
+                reindexed_result = (
+                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit_in)
+                    .to_unit(Unit.KILO)
+                    .to_unit(unit)
+                    .reindex(time_steps)
+                    .fill_nan(0)
+                )
+
+                aggregated_emission_volume_output_unit = {
+                    reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                }
+
+            return aggregated_emission_volume_output_unit if aggregated_emission_volume_output_unit else None
         return None
 
 
