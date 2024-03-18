@@ -99,7 +99,7 @@ class YamlVentingEmitter(YamlBase):
         description="The emission",
     )
 
-    oil_volume: Optional[YamlVentingVolumeEmission] = Field(
+    oil_volume: Optional[YamlVentingVolume] = Field(
         None,
         title="VOLUME",
         description="The emissions",
@@ -163,6 +163,49 @@ class YamlVentingEmitter(YamlBase):
             temporal_expression=TemporalModel(regularity),
             variables_map=variables_map,
         )
+
+        if self.type == YamlVentingType.DIRECT_EMISSION:
+            emissions = self._get_direct_type_emissions(variables_map=variables_map, regularity=regularity_evaluated)
+
+        else:
+            emissions = self._get_oil_type_emissions(variables_map=variables_map, regularity=regularity_evaluated)
+
+        return emissions
+
+    def _get_oil_type_emissions(
+        self,
+        variables_map: VariablesMap,
+        regularity: List[float],
+    ) -> Dict[str, TimeSeriesStreamDayRate]:
+        oil_rates = (
+            Expression.setup_from_expression(value=self.oil_volume.rate.value)
+            .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+            .tolist()
+        )
+
+        if self.oil_volume.rate.type == RateType.CALENDAR_DAY:
+            oil_rates = Rates.to_stream_day(
+                calendar_day_rates=np.asarray(oil_rates),
+                regularity=regularity,
+            ).tolist()
+
+        emissions = {}
+        for emission in self.oil_volume.emissions:
+            factors = (
+                Expression.setup_from_expression(value=emission.volume_to_emission_factor)
+                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+                .tolist()
+            )
+            emissions[emission.name] = TimeSeriesStreamDayRate(
+                timesteps=variables_map.time_vector,
+                values=[oil_rate * factor for oil_rate, factor in zip(oil_rates, factors)],
+                unit=self.oil_volume.rate.unit,
+            )
+        return emissions
+
+    def _get_direct_type_emissions(
+        self, variables_map: VariablesMap, regularity: List[float]
+    ) -> Dict[str, TimeSeriesStreamDayRate]:
         emissions = {}
         for emission in self.emissions:
             emission_rate = (
@@ -175,7 +218,7 @@ class YamlVentingEmitter(YamlBase):
 
             if emission.rate.type == RateType.CALENDAR_DAY:
                 emission_rate = Rates.to_stream_day(
-                    calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
+                    calendar_day_rates=np.asarray(emission_rate), regularity=regularity
                 ).tolist()
             emissions[emission.name] = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,

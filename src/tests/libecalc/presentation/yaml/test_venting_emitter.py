@@ -11,16 +11,26 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingEmission,
     YamlVentingEmitter,
     YamlVentingType,
+    YamlVentingVolume,
+    YamlVentingVolumeEmission,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
 )
 
 
+def oil_values():
+    return [10, 10, 10, 10]
+
+
+def methane():
+    return [0.005, 1.5, 3, 4]
+
+
 @pytest.fixture
 def variables_map(methane_values):
     return dto.VariablesMap(
-        variables={"TSC1;Methane_rate": methane_values},
+        variables={"TSC1;Methane_rate": methane(), "TSC1;Oil_rate": oil_values()},
         time_vector=[
             datetime(2000, 1, 1, 0, 0),
             datetime(2001, 1, 1, 0, 0),
@@ -66,6 +76,51 @@ def test_venting_emitter(variables_map):
 
     # Two first time steps using emitter_emission_function
     assert emissions_ch4.rate.values == pytest.approx([5.1e-06, 0.00153, 0.00306, 0.00408])
+
+
+def test_venting_emitter_oil_volume(variables_map):
+    """
+    Check that emissions related to oil loading/storage are correct. These emissions are
+    calculated using a factor of input oil rates, i.e. the TYPE set to OIL_VOLUME.
+    """
+    emitter_name = "venting_emitter"
+
+    venting_emitter = YamlVentingEmitter(
+        name=emitter_name,
+        category=ConsumerUserDefinedCategoryType.LOADING,
+        type=YamlVentingType.OIL_VOLUME,
+        oil_volume=YamlVentingVolume(
+            rate=YamlEmissionRate(
+                value="TSC1;Oil_rate",
+                unit=Unit.KILO_PER_DAY,
+                type=RateType.STREAM_DAY,
+            ),
+            emissions=[
+                YamlVentingVolumeEmission(
+                    name="ch4",
+                    volume_to_emission_factor=0.1,
+                )
+            ],
+        ),
+    )
+
+    regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
+
+    emission_rate = venting_emitter.get_emission_rate(variables_map=variables_map, regularity=regularity)[
+        "ch4"
+    ].to_unit(Unit.TONS_PER_DAY)
+
+    emission_result = {
+        venting_emitter.oil_volume.emissions[0].name: EmissionResult(
+            name=venting_emitter.oil_volume.emissions[0].name,
+            timesteps=variables_map.time_vector,
+            rate=emission_rate,
+        )
+    }
+    emissions_ch4 = emission_result["ch4"]
+
+    # Two first time steps using emitter_emission_function
+    assert emissions_ch4.rate.values == pytest.approx([0.001, 0.001, 0.001, 0.001])
 
 
 def test_no_emissions_direct(variables_map):
