@@ -15,6 +15,7 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmission,
     YamlVentingEmitter,
+    YamlVentingType,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
@@ -32,8 +33,9 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="VENTING-EMISSIONS",
+                type=YamlVentingType.DIRECT_EMISSION,
             )
 
         assert (
@@ -45,8 +47,9 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="fuel-gas",
+                type=YamlVentingType.DIRECT_EMISSION,
             )
 
         assert (
@@ -58,8 +61,9 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="",
+                type=YamlVentingType.DIRECT_EMISSION,
             )
 
         assert (
@@ -71,8 +75,9 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             YamlVentingEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="FUEL_GAS",
+                type=YamlVentingType.DIRECT_EMISSION,
             )
 
         assert (
@@ -84,8 +89,9 @@ class TestCategories:
         assert (
             YamlVentingEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+                type=YamlVentingType.DIRECT_EMISSION,
             ).user_defined_category
             == ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
         )

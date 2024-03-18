@@ -186,7 +186,6 @@ class EnergyCalculator:
                         name=consumer_dto.name,
                         timesteps=variables_map.time_vector,
                         rate=emission_rate[1],
-                        emission_rate_to_volume_factor=consumer_dto.emission.emission_rate_to_volume_factor,
                     )
                     venting_emitter_results[emission_rate[0]] = emission_result
                 emission_results[consumer_dto.id] = venting_emitter_results

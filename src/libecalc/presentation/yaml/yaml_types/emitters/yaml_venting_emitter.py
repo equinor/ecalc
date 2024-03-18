@@ -87,14 +87,20 @@ class YamlVentingEmitter(YamlBase):
         validate_default=True,
     )
 
-    emissions: Optional[YamlVentingEmission] = Field(
+    type: YamlVentingType = Field(
+        ...,
+        title="TYPE",
+        description="Type of venting emitter",
+    )
+
+    emissions: Optional[List[YamlVentingEmission]] = Field(
         None,
         title="EMISSIONS",
         description="The emission",
     )
 
     oil_volume: Optional[YamlVentingVolumeEmission] = Field(
-        ...,
+        None,
         title="VOLUME",
         description="The emissions",
     )

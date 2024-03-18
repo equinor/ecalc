@@ -108,9 +108,9 @@ def create_venting_emitters_yaml(
             emitter = f"""
             - NAME: {emitter_name}
               CATEGORY: {category}
+              TYPE: {emitter_type}
               {emission_keyword_name}:
                 - NAME: {emission_name}
-                  TYPE: {emitter_type}
                   RATE:
                     VALUE: {emission_rate}
                     UNIT:  {unit}
