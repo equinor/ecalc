@@ -1,5 +1,6 @@
+import enum
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 from pydantic import ConfigDict, Field, field_validator
@@ -16,6 +17,7 @@ from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
@@ -25,14 +27,36 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 )
 
 
-class YamlVentingEmission(YamlBase):
+class YamlVentingType(enum.Enum):
+    OIL_VOLUME = "OIL_VOLUME"
+    DIRECT_EMISSION = "DIRECT_EMISSION"
+
+
+class YamlVentingVolumeEmission(YamlBase):
     name: str = Field(
         ...,
         title="NAME",
         description="Name of emission",
     )
-    emission_rate_to_volume_factor: Optional[float] = Field(
+    volume_to_emission_factor: ExpressionType = Field(
         None, title="FACTOR", description="Loading/storage volume-emission factor"
+    )
+
+
+class YamlVentingVolume(YamlBase):
+    rate: YamlEmissionRate = Field(..., title="RATE", description="The oil loading/storage volume or volume/rate")
+    emissions: List[YamlVentingVolumeEmission] = Field(
+        ...,
+        title="EMISSIONS",
+        description="The emission types and volume-emission-factors associated with oil loading/storage",
+    )
+
+
+class YamlVentingEmission(YamlBase):
+    name: str = Field(
+        ...,
+        title="NAME",
+        description="Name of emission",
     )
     rate: YamlEmissionRate = Field(..., title="RATE", description="The emission rate")
 
@@ -43,6 +67,14 @@ class YamlVentingEmitter(YamlBase):
     @property
     def component_type(self):
         return ComponentType.VENTING_EMITTER
+
+    @property
+    def user_defined_category(self):
+        return self.category
+
+    @property
+    def id(self) -> str:
+        return generate_id(self.name)
 
     name: ComponentNameStr = Field(
         ...,
@@ -55,19 +87,17 @@ class YamlVentingEmitter(YamlBase):
         validate_default=True,
     )
 
-    emission: YamlVentingEmission = Field(
-        ...,
-        title="EMISSION",
+    emissions: Optional[YamlVentingEmission] = Field(
+        None,
+        title="EMISSIONS",
         description="The emission",
     )
 
-    @property
-    def id(self) -> str:
-        return generate_id(self.name)
-
-    @property
-    def user_defined_category(self):
-        return self.category
+    oil_volume: Optional[YamlVentingVolumeEmission] = Field(
+        ...,
+        title="VOLUME",
+        description="The emissions",
+    )
 
     @field_validator("category", mode="before")
     def check_user_defined_category(cls, category, info: ValidationInfo):
@@ -89,47 +119,48 @@ class YamlVentingEmitter(YamlBase):
                 )
         return category
 
-    @field_validator("emission", mode="after")
-    def check_volume_emission_factor(cls, emission, info: ValidationInfo):
-        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
-        category = info.data.get("category")
-        name = ""
-
-        if info.data.get("name") is not None:
-            name = f"with the name {info.data.get('name')}"
-
-        if emission.emission_rate_to_volume_factor is not None:
-            if category not in [ConsumerUserDefinedCategoryType.LOADING, ConsumerUserDefinedCategoryType.STORAGE]:
-                raise ValueError(
-                    f"{cls.model_config['title']} {name}: It is not possible to specify FACTOR for CATEGORY {category}. "
-                    f"The volume/emission factor in EMISSION is only allowed for the categories "
-                    f"{ConsumerUserDefinedCategoryType.LOADING} and {ConsumerUserDefinedCategoryType.STORAGE}."
-                )
-        return emission
+    # @field_validator("emissions", mode="after")
+    # def check_volume_emission_factor(cls, emission, info: ValidationInfo):
+    #     """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
+    #     category = info.data.get("category")
+    #     name = ""
+    #
+    #     if info.data.get("name") is not None:
+    #         name = f"with the name {info.data.get('name')}"
+    #
+    #     if emission.emission_rate_to_volume_factor is not None:
+    #         if category not in [ConsumerUserDefinedCategoryType.LOADING, ConsumerUserDefinedCategoryType.STORAGE]:
+    #             raise ValueError(
+    #                 f"{cls.model_config['title']} {name}: It is not possible to specify FACTOR for CATEGORY {category}. "
+    #                 f"The volume/emission factor in EMISSION is only allowed for the categories "
+    #                 f"{ConsumerUserDefinedCategoryType.LOADING} and {ConsumerUserDefinedCategoryType.STORAGE}."
+    #             )
+    #     return emission
 
     def get_emission_rate(
         self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
-    ) -> TimeSeriesStreamDayRate:
+    ) -> Dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = TemporalExpression.evaluate(
             temporal_expression=TemporalModel(regularity),
             variables_map=variables_map,
         )
+        emissions = {}
+        for emission in self.emissions:
+            emission_rate = (
+                Expression.setup_from_expression(value=emission.rate.value)
+                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+                .tolist()
+            )
 
-        emission_rate = (
-            Expression.setup_from_expression(value=self.emission.rate.value)
-            .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
-            .tolist()
-        )
+            # emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
 
-        # emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
-
-        if self.emission.rate.type == RateType.CALENDAR_DAY:
-            emission_rate = Rates.to_stream_day(
-                calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
-            ).tolist()
-
-        return TimeSeriesStreamDayRate(
-            timesteps=variables_map.time_vector,
-            values=emission_rate,
-            unit=self.emission.rate.unit,
-        )
+            if emission.rate.type == RateType.CALENDAR_DAY:
+                emission_rate = Rates.to_stream_day(
+                    calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
+                ).tolist()
+            emissions[emission.name] = TimeSeriesStreamDayRate(
+                timesteps=variables_map.time_vector,
+                values=emission_rate,
+                unit=emission.rate.unit,
+            )
+        return emissions
