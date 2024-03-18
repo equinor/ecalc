@@ -93,14 +93,14 @@ class YamlVentingEmitter(YamlBase):
         validate_default=True,
     )
 
-    emissions: Optional[YamlVentingEmission] = Field(
-        ...,
+    emissions: Optional[List[YamlVentingEmission]] = Field(
+        None,
         title="EMISSIONS",
         description="The emissions",
     )
 
     oil_volume: Optional[YamlVentingVolumeEmission] = Field(
-        ...,
+        None,
         title="VOLUME",
         description="The emissions",
     )
@@ -125,47 +125,50 @@ class YamlVentingEmitter(YamlBase):
                 )
         return category
 
-    @field_validator("emissions", mode="after")
-    def check_volume_emission_factor(cls, emission, info: ValidationInfo):
-        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
-        category = info.data.get("category")
-        name = ""
-
-        if info.data.get("name") is not None:
-            name = f"with the name {info.data.get('name')}"
-
-        if emission.emission_rate_to_volume_factor is not None:
-            if category not in [ConsumerUserDefinedCategoryType.LOADING, ConsumerUserDefinedCategoryType.STORAGE]:
-                raise ValueError(
-                    f"{cls.model_config['title']} {name}: It is not possible to specify FACTOR for CATEGORY {category}. "
-                    f"The volume/emission factor in EMISSION is only allowed for the categories "
-                    f"{ConsumerUserDefinedCategoryType.LOADING} and {ConsumerUserDefinedCategoryType.STORAGE}."
-                )
-        return emission
+    # @field_validator("emissions", mode="after")
+    # def check_volume_emission_factor(cls, emission, info: ValidationInfo):
+    #     """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
+    #     category = info.data.get("category")
+    #     name = ""
+    #
+    #     if info.data.get("name") is not None:
+    #         name = f"with the name {info.data.get('name')}"
+    #
+    #     if emission.emission_rate_to_volume_factor is not None:
+    #         if category not in [ConsumerUserDefinedCategoryType.LOADING, ConsumerUserDefinedCategoryType.STORAGE]:
+    #             raise ValueError(
+    #                 f"{cls.model_config['title']} {name}: It is not possible to specify FACTOR for CATEGORY {category}. "
+    #                 f"The volume/emission factor in EMISSION is only allowed for the categories "
+    #                 f"{ConsumerUserDefinedCategoryType.LOADING} and {ConsumerUserDefinedCategoryType.STORAGE}."
+    #             )
+    #     return emission
 
     def get_emission_rate(
         self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
-    ) -> TimeSeriesStreamDayRate:
+    ) -> Dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = TemporalExpression.evaluate(
             temporal_expression=TemporalModel(regularity),
             variables_map=variables_map,
         )
+        emissions = {}
+        for emission in self.emissions:
+            emission_rate = (
+                Expression.setup_from_expression(value=emission.rate.value)
+                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+                .tolist()
+            )
 
-        emission_rate = (
-            Expression.setup_from_expression(value=self.emission.rate.value)
-            .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
-            .tolist()
-        )
+            # emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
 
-        # emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
+            if emission.rate.type == RateType.CALENDAR_DAY:
+                emission_rate = Rates.to_stream_day(
+                    calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
+                ).tolist()
 
-        if self.emission.rate.type == RateType.CALENDAR_DAY:
-            emission_rate = Rates.to_stream_day(
-                calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
-            ).tolist()
+            emissions[emission.name] = TimeSeriesStreamDayRate(
+                timesteps=variables_map.time_vector,
+                values=emission_rate,
+                unit=emission.rate.unit,
+            )
 
-        return TimeSeriesStreamDayRate(
-            timesteps=variables_map.time_vector,
-            values=emission_rate,
-            unit=self.emission.rate.unit,
-        )
+        return emissions
