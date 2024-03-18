@@ -66,3 +66,40 @@ def test_venting_emitter(variables_map):
 
     # Two first time steps using emitter_emission_function
     assert emissions_ch4.rate.values == pytest.approx([5.1e-06, 0.00153, 0.00306, 0.00408])
+
+
+def test_no_emissions_direct(variables_map):
+    """
+    Check that error message is given if no emissions are specified for TYPE DIRECT_EMISSION.
+    """
+    emitter_name = "venting_emitter"
+
+    with pytest.raises(ValueError) as exc:
+        YamlVentingEmitter(
+            name=emitter_name,
+            category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+            type=YamlVentingType.DIRECT_EMISSION,
+        )
+
+    assert (
+        f"The keyword EMISSIONS is required for VENTING_EMITTERS of TYPE {YamlVentingType.DIRECT_EMISSION.name}"
+        in str(exc.value)
+    )
+
+
+def test_no_volume_oil(variables_map):
+    """
+    Check that error message is given if no volume is specified for TYPE OIL_VOLUME.
+    """
+    emitter_name = "venting_emitter"
+
+    with pytest.raises(ValueError) as exc:
+        YamlVentingEmitter(
+            name=emitter_name,
+            category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+            type=YamlVentingType.OIL_VOLUME,
+        )
+
+    assert f"The keyword VOLUME is required for VENTING_EMITTERS of TYPE {YamlVentingType.OIL_VOLUME.name}" in str(
+        exc.value
+    )

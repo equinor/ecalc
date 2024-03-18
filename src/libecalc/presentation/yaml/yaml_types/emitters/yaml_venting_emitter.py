@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import numpy as np
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import generate_id
@@ -142,6 +142,19 @@ class YamlVentingEmitter(YamlBase):
     #                 f"{ConsumerUserDefinedCategoryType.LOADING} and {ConsumerUserDefinedCategoryType.STORAGE}."
     #             )
     #     return emission
+
+    @model_validator(mode="after")
+    def check_types(self):
+        if self.emissions is None and self.oil_volume is None:
+            if self.type == YamlVentingType.DIRECT_EMISSION:
+                raise ValueError(
+                    f"The keyword EMISSIONS is required for VENTING_EMITTERS of TYPE {YamlVentingType.DIRECT_EMISSION.name}"
+                )
+            if self.type == YamlVentingType.OIL_VOLUME:
+                raise ValueError(
+                    f"The keyword VOLUME is required for VENTING_EMITTERS of TYPE {YamlVentingType.OIL_VOLUME.name}"
+                )
+        return self
 
     def get_emission_rate(
         self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
