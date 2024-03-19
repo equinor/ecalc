@@ -1,12 +1,8 @@
 from datetime import datetime
-from typing import Union
 
 import pandas as pd
 import pytest
 from libecalc import dto
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
@@ -35,10 +31,13 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
 from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
     ltp_oil_loaded_yaml_factory,
 )
+from libecalc.fixtures.cases.ltp_export.utilities import (
+    get_consumption,
+    get_sum_ltp_column,
+)
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
-from libecalc.presentation.exporter.configs.configs import LTPConfig
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
@@ -51,34 +50,6 @@ time_vector_installation = [
 ]
 
 time_vector_yearly = pd.date_range(datetime(2027, 1, 1), datetime(2029, 1, 1), freq="YS").to_pydatetime().tolist()
-
-
-def get_consumption(model: Union[dto.Installation, dto.Asset], variables: dto.VariablesMap):
-    model = model
-    graph = model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
-
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
-    emission_results = energy_calculator.evaluate_emissions(variables, consumer_results)
-
-    graph_result = GraphResult(
-        graph=graph,
-        variables_map=variables,
-        consumer_results=consumer_results,
-        emission_results=emission_results,
-    )
-
-    ltp_filter = LTPConfig.filter(frequency=Frequency.YEAR)
-    ltp_result = ltp_filter.filter(graph_result, time_vector_yearly)
-
-    return ltp_result
-
-
-def get_sum_ltp_column(ltp_result, installation_nr, ltp_column_nr) -> float:
-    ltp_sum = sum(
-        float(v) for (k, v) in ltp_result.query_results[installation_nr].query_results[ltp_column_nr].values.items()
-    )
-    return ltp_sum
 
 
 def test_emissions_diesel_fixed_and_mobile():
@@ -96,7 +67,7 @@ def test_emissions_diesel_fixed_and_mobile():
 
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
-    ltp_result = get_consumption(model=asset, variables=variables)
+    ltp_result = get_consumption(model=asset, variables=variables, time_vector=time_vector_yearly)
 
     co2_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
     co2_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=1)
@@ -130,7 +101,9 @@ def test_temporal_models_detailed():
     """
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
-    ltp_result = get_consumption(model=installation_direct_consumer_dto(), variables=variables)
+    ltp_result = get_consumption(
+        model=installation_direct_consumer_dto(), variables=variables, time_vector=time_vector_yearly
+    )
 
     turbine_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     engine_diesel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
@@ -177,7 +150,9 @@ def test_temporal_models_offshore_wind():
     """
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
-    ltp_result = get_consumption(model=installation_offshore_wind_dto(), variables=variables)
+    ltp_result = get_consumption(
+        model=installation_offshore_wind_dto(), variables=variables, time_vector=time_vector_yearly
+    )
 
     offshore_wind_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
 
@@ -193,7 +168,9 @@ def test_temporal_models_compressor():
     """
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
 
-    ltp_result = get_consumption(model=installation_compressor_dto(), variables=variables)
+    ltp_result = get_consumption(
+        model=installation_compressor_dto(), variables=variables, time_vector=time_vector_yearly
+    )
 
     gas_turbine_compressor_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
 
@@ -204,7 +181,9 @@ def test_temporal_models_compressor():
 def test_boiler_heater_categories():
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
 
-    ltp_result = get_consumption(model=installation_boiler_heater_dto(), variables=variables)
+    ltp_result = get_consumption(
+        model=installation_boiler_heater_dto(), variables=variables, time_vector=time_vector_yearly
+    )
 
     boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
@@ -256,11 +235,17 @@ def test_venting_emitters():
         emission_names=["ch4"],
     )
 
-    ltp_result_input_sd_kg_per_day = get_consumption(model=installation_sd_kg_per_day, variables=variables)
+    ltp_result_input_sd_kg_per_day = get_consumption(
+        model=installation_sd_kg_per_day, variables=variables, time_vector=time_vector_yearly
+    )
 
-    ltp_result_input_sd_tons_per_day = get_consumption(model=installation_sd_tons_per_day, variables=variables)
+    ltp_result_input_sd_tons_per_day = get_consumption(
+        model=installation_sd_tons_per_day, variables=variables, time_vector=time_vector_yearly
+    )
 
-    ltp_result_input_cd_kg_per_day = get_consumption(model=installation_cd_kg_per_day, variables=variables)
+    ltp_result_input_cd_kg_per_day = get_consumption(
+        model=installation_cd_kg_per_day, variables=variables, time_vector=time_vector_yearly
+    )
 
     emission_input_sd_kg_per_day = get_sum_ltp_column(
         ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column_nr=0
@@ -307,7 +292,9 @@ def test_only_venting_emitters_no_fuelconsumers():
         include_emitters=True,
         include_fuel_consumers=False,
     )
-    venting_emitter_results = get_consumption(model=installation_venting_emitters, variables=variables)
+    venting_emitter_results = get_consumption(
+        model=installation_venting_emitters, variables=variables, time_vector=time_vector_yearly
+    )
     emissions_ch4 = get_sum_ltp_column(venting_emitter_results, installation_nr=0, ltp_column_nr=0)
     assert emissions_ch4 == (emission_rate / 1000) * 365 * regularity
 
@@ -377,8 +364,12 @@ def test_total_oil_loaded_old_method():
         consumer_names=["loading"],
     )
 
-    ltp_result_loading_storage = get_consumption(model=asset_loading_storage, variables=variables)
-    ltp_result_loading_only = get_consumption(model=asset_loading_only, variables=variables)
+    ltp_result_loading_storage = get_consumption(
+        model=asset_loading_storage, variables=variables, time_vector=time_vector_yearly
+    )
+    ltp_result_loading_only = get_consumption(
+        model=asset_loading_only, variables=variables, time_vector=time_vector_yearly
+    )
 
     loaded_and_stored_oil_loading_and_storage = get_sum_ltp_column(
         ltp_result_loading_storage, installation_nr=0, ltp_column_nr=2

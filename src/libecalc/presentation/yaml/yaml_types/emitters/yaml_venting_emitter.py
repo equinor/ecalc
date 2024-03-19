@@ -38,8 +38,8 @@ class YamlVentingVolumeEmission(YamlBase):
         title="NAME",
         description="Name of emission",
     )
-    volume_to_emission_factor: ExpressionType = Field(
-        None, title="FACTOR", description="Loading/storage volume-emission factor"
+    emission_factor: ExpressionType = Field(
+        None, title="EMISSION_FACTOR", description="Loading/storage volume-emission factor"
     )
 
 
@@ -96,13 +96,13 @@ class YamlVentingEmitter(YamlBase):
     emissions: Optional[List[YamlVentingEmission]] = Field(
         None,
         title="EMISSIONS",
-        description="The emission",
+        description="The emissions for the emitter of type DIRECT_EMISSION",
     )
 
-    oil_volume: Optional[YamlVentingVolume] = Field(
+    volume: Optional[YamlVentingVolume] = Field(
         None,
         title="VOLUME",
-        description="The emissions",
+        description="The volume rate and emissions for the emitter of type OIL_VOLUME",
     )
 
     @field_validator("category", mode="before")
@@ -145,7 +145,7 @@ class YamlVentingEmitter(YamlBase):
 
     @model_validator(mode="after")
     def check_types(self):
-        if self.emissions is None and self.oil_volume is None:
+        if self.emissions is None and self.volume is None:
             if self.type == YamlVentingType.DIRECT_EMISSION:
                 raise ValueError(
                     f"The keyword EMISSIONS is required for VENTING_EMITTERS of TYPE {YamlVentingType.DIRECT_EMISSION.name}"
@@ -178,28 +178,28 @@ class YamlVentingEmitter(YamlBase):
         regularity: List[float],
     ) -> Dict[str, TimeSeriesStreamDayRate]:
         oil_rates = (
-            Expression.setup_from_expression(value=self.oil_volume.rate.value)
+            Expression.setup_from_expression(value=self.volume.rate.value)
             .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
             .tolist()
         )
 
-        if self.oil_volume.rate.type == RateType.CALENDAR_DAY:
+        if self.volume.rate.type == RateType.CALENDAR_DAY:
             oil_rates = Rates.to_stream_day(
                 calendar_day_rates=np.asarray(oil_rates),
                 regularity=regularity,
             ).tolist()
 
         emissions = {}
-        for emission in self.oil_volume.emissions:
+        for emission in self.volume.emissions:
             factors = (
-                Expression.setup_from_expression(value=emission.volume_to_emission_factor)
+                Expression.setup_from_expression(value=emission.emission_factor)
                 .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
                 .tolist()
             )
             emissions[emission.name] = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
                 values=[oil_rate * factor for oil_rate, factor in zip(oil_rates, factors)],
-                unit=self.oil_volume.rate.unit,
+                unit=self.volume.rate.unit,
             )
         return emissions
 
