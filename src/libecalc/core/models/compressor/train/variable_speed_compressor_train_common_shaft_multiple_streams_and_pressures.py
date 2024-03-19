@@ -35,6 +35,7 @@ from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
+    StageTargetPressureStatus,
 )
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.types import FixedSpeedPressureControl
@@ -182,6 +183,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             suction_pressure_this_time_step,
             discharge_pressure_this_time_step,
         ) in enumerate(zip(suction_pressure, discharge_pressure)):
+            self.target_suction_pressure = suction_pressure_this_time_step
+            self.target_discharge_pressure = discharge_pressure_this_time_step
             std_rates_std_m3_per_day_per_stream_this_time_step = (
                 self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate[:, time_step])
             )
@@ -312,15 +315,15 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
         train_result_for_maximum_speed = _calculate_train_result_given_rate_ps_speed(_speed=maximum_speed)
 
-        if not train_result_for_maximum_speed.is_valid:
+        if not train_result_for_maximum_speed.within_capacity:
             # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
             return train_result_for_maximum_speed
-        if not train_result_for_minimum_speed.is_valid:
+        if not train_result_for_minimum_speed.within_capacity:
             # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
             minimum_speed = -maximize_x_given_boolean_condition_function(
                 x_min=-self.maximum_speed,
                 x_max=-self.minimum_speed,
-                bool_func=lambda x: _calculate_train_result_given_rate_ps_speed(_speed=-x).is_valid,
+                bool_func=lambda x: _calculate_train_result_given_rate_ps_speed(_speed=-x).within_capacity,
             )
             train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
 
@@ -349,15 +352,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     outlet_pressure=target_discharge_pressure,
                 )
             else:
-                train_result_for_minimum_speed.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                )
                 return train_result_for_minimum_speed
         # Solution 3, target discharge pressure is too high
         else:
-            train_result_for_maximum_speed.failure_status = (
-                CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-            )
             return train_result_for_maximum_speed
 
     def get_max_standard_rate(
@@ -868,6 +865,9 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 discharge_pressure_this_time_step,
             ),
         ) in enumerate(zip(suction_pressure, intermediate_pressure, discharge_pressure)):
+            self.target_suction_pressure = suction_pressure_this_time_step
+            self.target_intermediate_pressure = intermediate_pressure_this_time_step
+            self.target_discharge_pressure = discharge_pressure_this_time_step
             std_rates_std_m3_per_day_per_stream_this_time_step = (
                 self.check_that_ingoing_streams_are_larger_than_or_equal_to_outgoing_streams(rate[:, time_step])
             )
@@ -959,6 +959,18 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         previous_outlet_stream = None
 
         for stage_number, stage in enumerate(self.stages):
+            if stage_number == 0:
+                stage.target_suction_pressure = self.target_suction_pressure
+            else:
+                stage.target_suction_pressure = None
+            if stage_number == self.number_of_compressor_stages - 1:
+                stage.target_discharge_pressure = self.target_discharge_pressure
+            elif self.target_intermediate_pressure:
+                if stage_number == self.data_transfer_object.stage_number_interstage_pressure - 1:
+                    stage.target_discharge_pressure = self.target_intermediate_pressure
+            else:
+                stage.target_discharge_pressure = None
+
             if stage_number > 0:
                 inlet_stream = previous_outlet_stream
                 mass_rate_this_stage_kg_per_hour = mass_rate_previous_stage_kg_per_hour
@@ -1109,22 +1121,19 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     upper_bound_for_inlet_pressure=inlet_pressure,
                 )
                 # Set pressure before upstream choking to the given inlet pressure
-                train_results.stage_results[0].inlet_pressure_before_choking = (
+                choked_stage_results = deepcopy(train_results.stage_results[0])
+                choked_stage_results.pressure_is_choked = True
+                choked_stage_results.inlet_pressure_before_choking = (
                     inlet_pressure - self.stages[0].pressure_drop_ahead_of_stage
                 )
+                choked_stage_results.target_pressure_status = StageTargetPressureStatus.TARGET_PRESSURES_MET
+                train_results.stage_results[0] = choked_stage_results
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
-                if (
-                    train_results.failure_status
-                    == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                    and outlet_pressure >= UnitConstants.STANDARD_PRESSURE_BARA
-                ):
-                    train_results.failure_status = None
-
-                # The order is important here to keep the old pressure before choking.
                 choked_stage_results.pressure_is_choked = True
                 choked_stage_results.outlet_pressure_before_choking = float(choked_stage_results.discharge_pressure)
                 choked_stage_results.outlet_stream.pressure_bara = outlet_pressure
+                choked_stage_results.target_pressure_status = StageTargetPressureStatus.TARGET_PRESSURES_MET
                 train_results.stage_results[-1] = choked_stage_results
 
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
@@ -1334,6 +1343,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         inlet_pressure_first_part, outlet_pressure_first_part = suction_pressure, intermediate_pressure_target
         inlet_pressure_last_part, outlet_pressure_last_part = intermediate_pressure_target, discharge_pressure_target
+        compressor_train_first_part.target_suction_pressure = inlet_pressure_first_part
+        compressor_train_first_part.target_discharge_pressure = outlet_pressure_first_part
+        compressor_train_last_part.target_suction_pressure = inlet_pressure_last_part
+        compressor_train_last_part.target_discharge_pressure = outlet_pressure_last_part
         std_rates_first_part, std_rates_last_part = split_rates_on_stage_number(
             compressor_train=self,
             rates_per_stream=std_rates_std_m3_per_day_per_stream,
@@ -1453,8 +1466,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         return CompressorTrainResultSingleTimeStep(
             speed=speed,
             stage_results=compressor_train_results_to_return_stage_results,
-            failure_status=compressor_train_results_to_return_first_part.failure_status
-            or compressor_train_results_to_return_last_part.failure_status,
         )
 
     def set_fluid_to_recirculate_in_stage_when_inlet_rate_is_zero(
