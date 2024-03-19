@@ -28,6 +28,9 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_polytropic_head_campbell,
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
+from libecalc.core.models.results.compressor import (
+    StageTargetPressureStatus,
+)
 from libecalc.dto.types import ChartAreaFlag
 
 
@@ -324,6 +327,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                             outlet_pressure_before_choking=np.nan,  # We do not have this value here
                             # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
                             point_is_valid=~np.isnan(power_mw[i]),  # power_mw is set to np.NaN if invalid step.
+                            target_pressure_status=StageTargetPressureStatus.TARGET_PRESSURES_MET,
                         )
                     ],
                 )

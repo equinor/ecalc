@@ -33,6 +33,7 @@ from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train
 )
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
+    StageTargetPressureStatus,
 )
 from libecalc.dto.types import FixedSpeedPressureControl
 
@@ -90,6 +91,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             suction_pressure_this_time_step,
             discharge_pressure_this_time_step,
         ) in zip(mass_rate_kg_per_hour, suction_pressure, discharge_pressure):
+            self.target_suction_pressure = suction_pressure_this_time_step
+            self.target_discharge_pressure = discharge_pressure_this_time_step
             if mass_rate_kg_per_hour_this_time_step > 0:
                 compressor_train_result_single_time_step = self.calculate_shaft_speed_given_rate_ps_pd(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour_this_time_step,
@@ -144,10 +147,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
         train_result_for_maximum_speed = _calculate_train_result_given_rate_ps_speed(_speed=self.maximum_speed)
 
-        if not train_result_for_maximum_speed.is_valid:
+        if not train_result_for_maximum_speed.within_capacity:
             # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
             return train_result_for_maximum_speed
-        if not train_result_for_minimum_speed.is_valid:
+        if not train_result_for_minimum_speed.within_capacity:
             # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
             minimum_speed = -maximize_x_given_boolean_condition_function(
                 x_min=-self.maximum_speed,
@@ -180,15 +183,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     inlet_pressure=suction_pressure,
                     outlet_pressure=target_discharge_pressure,
                 )
-            train_result_for_minimum_speed.failure_status = (
-                CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-            )
             return train_result_for_minimum_speed
 
         # Solution 3, target discharge pressure is too high
-        train_result_for_maximum_speed.failure_status = (
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-        )
         return train_result_for_maximum_speed
 
     def calculate_compressor_train_given_rate_ps_speed(
@@ -221,9 +218,17 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         stage_results: List[CompressorTrainStageResultSingleTimeStep] = []
         outlet_stream = train_inlet_stream
-        for stage in self.stages:
+        for i, stage in enumerate(self.stages):
             inlet_stream = outlet_stream
-
+            # set stage target pressures for first and last stage
+            if i == 0:
+                stage.target_suction_pressure = self.target_suction_pressure
+            else:
+                stage.target_suction_pressure = None
+            if i == self.number_of_compressor_stages - 1:
+                stage.target_discharge_pressure = self.target_discharge_pressure
+            else:
+                self.target_discharge_pressure = None
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 speed=speed,
@@ -239,7 +244,14 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
             )
 
-        return CompressorTrainResultSingleTimeStep(stage_results=stage_results, speed=speed)
+        return CompressorTrainResultSingleTimeStep(
+            stage_results=stage_results,
+            speed=speed,
+            above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
+            > self.maximum_power
+            if self.maximum_power
+            else False,
+        )
 
     def get_max_standard_rate(
         self,
@@ -627,11 +639,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 speed=speed,
             )
             if train_results.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < outlet_pressure:
-                # Should probably never end up here. This is just in case we do.
-                train_results.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-                )
-
+                pass
             elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
                 train_results = self.calculate_compressor_train_given_rate_pd_speed(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
@@ -646,17 +654,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
-                if (
-                    train_results.failure_status
-                    == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                    and outlet_pressure >= UnitConstants.STANDARD_PRESSURE_BARA
-                ):
-                    train_results.failure_status = None
-
-                # The order is important here to keep the old pressure before choking.
                 choked_stage_results.pressure_is_choked = True
                 choked_stage_results.outlet_pressure_before_choking = float(choked_stage_results.discharge_pressure)
                 choked_stage_results.outlet_stream.pressure_bara = outlet_pressure
+                choked_stage_results.target_pressure_status = StageTargetPressureStatus.TARGET_PRESSURES_MET
                 train_results.stage_results[-1] = choked_stage_results
 
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
