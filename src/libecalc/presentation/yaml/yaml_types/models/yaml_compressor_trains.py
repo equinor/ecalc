@@ -6,9 +6,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
     YamlCompressorStageMultipleStreams,
     YamlCompressorStages,
-    YamlSingleSpeedCompressorStages,
     YamlUnknownCompressorStages,
-    YamlVariableSpeedCompressorStages,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
     YamlModelType,
@@ -35,7 +33,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    compressor_train: YamlSingleSpeedCompressorStages = Field(
+    compressor_train: YamlCompressorStages = Field(
         ...,
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
@@ -73,7 +71,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    compressor_train: YamlVariableSpeedCompressorStages = Field(
+    compressor_train: YamlCompressorStages = Field(
         ...,
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
