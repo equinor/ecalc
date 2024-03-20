@@ -261,14 +261,14 @@ class SimpleResultData(SimpleBase):
     @classmethod
     def subtract(
         cls,
-        other_model: "SimpleResultData",
+        changed_model: "SimpleResultData",
         reference_model: "SimpleResultData",
     ) -> Tuple["SimpleResultData", List[Exception]]:
-        """Subtract reference model from other model.
+        """Subtract reference model from changed model.
 
         Timesteps and components should be equal between the models.
         """
-        if other_model.timesteps != reference_model.timesteps:
+        if changed_model.timesteps != reference_model.timesteps:
             raise ValueError(
                 "Timesteps should be equal between models when calculating delta profile. "
                 "Use separate methods to normalize."
@@ -277,9 +277,9 @@ class SimpleResultData(SimpleBase):
 
         errors = []
         components = []
-        for other_component, reference_component in zip(other_model.components, reference_model.components):
+        for changed_component, reference_component in zip(changed_model.components, reference_model.components):
             try:
-                components.append(other_component - reference_component)
+                components.append(changed_component - reference_component)
             except ValueError as e:
                 logger.error(e)
                 errors.append(e)
@@ -287,11 +287,11 @@ class SimpleResultData(SimpleBase):
         return SimpleResultData(timesteps=timesteps, components=components), errors
 
     @classmethod
-    def _normalize_emissions(cls, other_component, reference_component):
-        emission_names = set(other_component.emissions.keys()).union(x for x in reference_component.emissions)
+    def _normalize_emissions(cls, changed_component, reference_component):
+        emission_names = set(changed_component.emissions.keys()).union(x for x in reference_component.emissions)
 
         for emission_name in emission_names:
-            for component in [other_component, reference_component]:
+            for component in [changed_component, reference_component]:
                 if emission_name not in list(component.emissions):
                     vector_length = len(component.timesteps)
                     component.emissions[emission_name] = SimpleEmissionResult(
@@ -299,63 +299,67 @@ class SimpleResultData(SimpleBase):
                         rate=[0] * vector_length,
                     )
 
-        return other_component, reference_component
+        return changed_component, reference_component
 
     @classmethod
     def normalize_components(
         cls,
-        other_model: "SimpleResultData",
         reference_model: "SimpleResultData",
+        changed_model: "SimpleResultData",
         exclude: Optional[List[ComponentType]] = None,
     ):
         if exclude is None:
             exclude = []
 
-        other_components = {component.id: component for component in other_model.components}
+        changed_components = {component.id: component for component in changed_model.components}
         reference_components = {component.id: component for component in reference_model.components}
 
-        component_ids = sorted(set(other_components.keys()).union(set(reference_components.keys())))
+        component_ids = sorted(set(changed_components.keys()).union(set(reference_components.keys())))
 
         filtered_component_ids = [
             component_id for component_id in component_ids if component_id.componentType not in exclude
         ]
 
         normalized_reference_components = []
-        normalized_other_components = []
+        normalized_changed_components = []
 
         for component_id in filtered_component_ids:
-            other_component = other_components.get(component_id)
+            changed_component = changed_components.get(component_id)
             reference_component = reference_components.get(component_id)
 
-            if other_component is None and reference_component is not None:
-                other_component = _create_empty_component(reference_component)
-            elif reference_component is None and other_component is not None:
-                reference_component = _create_empty_component(other_component)
+            if changed_component is None and reference_component is not None:
+                changed_component = _create_empty_component(reference_component)
+            elif reference_component is None and changed_component is not None:
+                reference_component = _create_empty_component(changed_component)
 
-            other_component, reference_component = cls._normalize_emissions(other_component, reference_component)
+            changed_component, reference_component = cls._normalize_emissions(
+                reference_component=reference_component, changed_component=changed_component
+            )
 
             normalized_reference_components.append(reference_component)
-            normalized_other_components.append(other_component)
+            normalized_changed_components.append(changed_component)
 
         return (
-            cls(timesteps=other_model.timesteps, components=normalized_other_components),
+            cls(timesteps=changed_model.timesteps, components=normalized_changed_components),
             cls(timesteps=reference_model.timesteps, components=normalized_reference_components),
         )
 
     @classmethod
     def delta_profile(
         cls,
-        other_model: "SimpleResultData",
         reference_model: "SimpleResultData",
+        changed_model: "SimpleResultData",
     ) -> Tuple["SimpleResultData", "SimpleResultData", "SimpleResultData", List[str]]:
-        timesteps = sorted(set(other_model.timesteps).intersection(reference_model.timesteps))
+        timesteps = sorted(set(changed_model.timesteps).intersection(reference_model.timesteps))
 
         # Normalize components first as we need to filter out CONSUMER_MODELs for normalize_timesteps to work.
-        other_model, reference_model = cls.normalize_components(other_model, reference_model)
+        changed_model, reference_model = cls.normalize_components(
+            reference_model=reference_model, changed_model=changed_model
+        )
 
-        other_model = cls.fit_to_timesteps(other_model, timesteps)
+        changed_model = cls.fit_to_timesteps(changed_model, timesteps)
         reference_model = cls.fit_to_timesteps(reference_model, timesteps)
 
-        delta_profile, errors = cls.subtract(other_model, reference_model)
+        delta_profile, errors = cls.subtract(changed_model=changed_model, reference_model=reference_model)
 
-        return other_model, reference_model, delta_profile, [str(error) for error in errors]
+        return changed_model, reference_model, delta_profile, [str(error) for error in errors]

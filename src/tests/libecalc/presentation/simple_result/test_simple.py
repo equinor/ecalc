@@ -60,7 +60,8 @@ class TestDeltaProfile:
             ],
         )
         other_model, reference_model, delta_profile, errors = SimpleResultData.delta_profile(
-            other_model, reference_model
+            reference_model,
+            other_model,
         )
         assert delta_profile == reference_model
         assert len(errors) == 0
@@ -114,7 +115,8 @@ class TestDeltaProfile:
 
         other_model = SimpleResultData(timesteps=timesteps, components=[component_2])
         other_model, reference_model, delta_profile, errors = SimpleResultData.delta_profile(
-            other_model, reference_model
+            reference_model,
+            other_model,
         )
         assert len(errors) == 0
         assert delta_profile == SimpleResultData(
@@ -195,7 +197,8 @@ class TestDeltaProfile:
         timesteps = [datetime(2020, 1, 1), datetime(2022, 1, 1)]
 
         other_model, reference_model, delta_profile, errors = SimpleResultData.delta_profile(
-            other_model, reference_model
+            reference_model,
+            other_model,
         )
         assert len(errors) == 0
         assert delta_profile == SimpleResultData(
@@ -253,7 +256,8 @@ class TestDeltaProfile:
         )
 
         other_model, reference_model, delta_profile, errors = SimpleResultData.delta_profile(
-            other_model, reference_model
+            reference_model,
+            other_model,
         )
         assert len(errors) == 0
         assert delta_profile == SimpleResultData(
@@ -332,7 +336,8 @@ class TestDeltaProfile:
         )
 
         other_model, reference_model, delta_profile, errors = SimpleResultData.delta_profile(
-            other_model, reference_model
+            reference_model,
+            other_model,
         )
         assert len(errors) == 0
         assert delta_profile == SimpleResultData(
