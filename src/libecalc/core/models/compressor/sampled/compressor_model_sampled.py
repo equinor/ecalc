@@ -37,6 +37,9 @@ from libecalc.core.models.results import (
     CompressorTrainResult,
     TurbineResult,
 )
+from libecalc.core.models.results.compressor import (
+    CompressorTrainCommonShaftFailureStatus,
+)
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor import CompressorSampled
 from libecalc.dto.types import ChartAreaFlag
@@ -260,7 +263,7 @@ class CompressorModelSampled(CompressorModel):
             power=array_to_list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,
             power_unit=Unit.MEGA_WATT,
             stage_results=[compressor_stage_result],
-            failure_status=[None] * len(energy_usage),
+            failure_status=[CompressorTrainCommonShaftFailureStatus.NO_FAILURE] * len(energy_usage),
             rate_sm3_day=array_to_list(rate) if rate is not None else [np.nan] * len(energy_usage),
         )
 
