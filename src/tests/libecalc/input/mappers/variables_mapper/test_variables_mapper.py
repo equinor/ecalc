@@ -9,8 +9,6 @@ from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import
 )
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariable
 
-# from libecalc.presentation.yaml.yaml_types import YamlSingleVariable
-
 
 class TestEvaluateVariables:
     def test_unsolvable(self):
