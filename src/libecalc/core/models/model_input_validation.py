@@ -30,7 +30,7 @@ def validate_model_input(
     List[ModelInputFailureStatus],
 ]:
     indices_to_validate = _find_indices_to_validate(rate=rate)
-    validated_failure_status = [None] * len(suction_pressure)
+    validated_failure_status = [ModelInputFailureStatus.NO_FAILURE] * len(suction_pressure)
     validated_rate = rate.copy()
     validated_suction_pressure = suction_pressure.copy()
     validated_discharge_pressure = discharge_pressure.copy()

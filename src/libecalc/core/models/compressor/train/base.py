@@ -50,6 +50,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self._target_intermediate_pressure = None
 
     @property
+    def number_of_compressor_stages(self) -> int:
+        return len(self.stages)
+
+    @property
     def target_discharge_pressure(self):
         return self._target_discharge_pressure
 

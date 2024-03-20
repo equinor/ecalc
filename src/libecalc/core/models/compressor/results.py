@@ -90,7 +90,10 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
 
     @property
     def is_valid(self) -> bool:
-        return self.within_capacity and self.target_pressure_status == StageTargetPressureStatus.TARGET_PRESSURES_MET
+        return self.within_capacity and self.target_pressure_status in (
+            StageTargetPressureStatus.TARGET_PRESSURES_MET,
+            StageTargetPressureStatus.NOT_CALCULATED,
+        )
 
     @property
     def within_capacity(self) -> bool:
@@ -360,24 +363,24 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                             return CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
                     elif stage.target_pressure_status == StageTargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE:
                         if i == 0:  # first stage
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_SUCTION_PRESSURE_TOO_LOW
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
                         else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMIEDIATE_PRESSURE_TOO_LOW
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
                     elif stage.target_pressure_status == StageTargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
                         if i == 0:  # first stage
                             return CompressorTrainCommonShaftFailureStatus.TARGET_SUCTION_PRESSURE_TOO_HIGH
                         else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMIEDIATE_PRESSURE_TOO_HIGH
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
                     elif stage.target_pressure_status == StageTargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
                         if i == len(self.stage_results) - 1:  # last stage
                             return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
                         else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMIEDIATE_PRESSURE_TOO_LOW
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
                     elif stage.target_pressure_status == StageTargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE:
                         if i == len(self.stage_results) - 1:  # last stage
                             return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
                         else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMIEDIATE_PRESSURE_TOO_HIGH
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
         elif self.above_maximum_power:
             return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
 

@@ -72,10 +72,6 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         super().__init__(data_transfer_object)
         self.data_transfer_object = data_transfer_object
 
-    @property
-    def number_of_compressor_stages(self) -> int:
-        return len(self.stages)
-
     def _evaluate_rate_ps_pd(
         self,
         rate: NDArray[np.float64],
@@ -155,7 +151,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             minimum_speed = -maximize_x_given_boolean_condition_function(
                 x_min=-self.maximum_speed,
                 x_max=-self.minimum_speed,
-                bool_func=lambda x: _calculate_train_result_given_rate_ps_speed(_speed=-x).is_valid,
+                bool_func=lambda x: _calculate_train_result_given_rate_ps_speed(_speed=-x).within_capacity,
             )
             train_result_for_minimum_speed = _calculate_train_result_given_rate_ps_speed(_speed=minimum_speed)
 
@@ -228,7 +224,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             if i == self.number_of_compressor_stages - 1:
                 stage.target_discharge_pressure = self.target_discharge_pressure
             else:
-                self.target_discharge_pressure = None
+                stage.target_discharge_pressure = None
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 speed=speed,
@@ -277,6 +273,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         for suction_pressure, discharge_pressure, inlet_stream in zip(
             suction_pressures, discharge_pressures, inlet_streams
         ):
+            self.target_suction_pressure = suction_pressure
+            self.target_discharge_pressure = discharge_pressure
             try:
                 max_mass_rate = self._get_max_mass_rate_single_timestep(
                     suction_pressure=suction_pressure,
@@ -404,13 +402,13 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         # Ensure that the minimum mass rate at max speed is valid for the whole train.
-        if not result_min_mass_rate_at_max_speed_first_stage.is_valid:
+        if not result_min_mass_rate_at_max_speed_first_stage.within_capacity:
             if allow_asv:
                 min_mass_rate_at_max_speed = EPSILON
                 result_min_mass_rate_at_max_speed = _calculate_train_result_at_max_speed_given_mass_rate(
                     mass_rate=min_mass_rate_at_max_speed
                 )
-                if not result_min_mass_rate_at_max_speed.is_valid:
+                if not result_min_mass_rate_at_max_speed.within_capacity:
                     logger.debug(
                         "There are no valid mass rate for VariableSpeedCompressorTrain."
                         "Infeasible solution. Returning max rate 0.0 (None)."
@@ -419,7 +417,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 max_mass_rate_at_max_speed = maximize_x_given_boolean_condition_function(
                     x_min=EPSILON,
                     x_max=min_mass_rate_at_max_speed_first_stage,
-                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=x).is_valid,
+                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(
+                        mass_rate=x
+                    ).within_capacity,
                     convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
                 )
@@ -437,11 +437,13 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             result_min_mass_rate_at_max_speed = result_min_mass_rate_at_max_speed_first_stage
 
             # Ensuring that the maximum mass rate at max speed is valid for the whole train.
-            if not result_max_mass_rate_at_max_speed_first_stage.is_valid:
+            if not result_max_mass_rate_at_max_speed_first_stage.within_capacity:
                 max_mass_rate_at_max_speed = maximize_x_given_boolean_condition_function(
                     x_min=min_mass_rate_at_max_speed,
                     x_max=max_mass_rate_at_max_speed_first_stage,
-                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=x).is_valid,
+                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(
+                        mass_rate=x
+                    ).within_capacity,
                     convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
                 )
