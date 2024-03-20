@@ -357,7 +357,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             _max_valid_mass_rate_at_given_speed = maximize_x_given_boolean_condition_function(
                 x_min=self.stages[0].compressor_chart.minimum_rate_as_function_of_speed(speed) * inlet_density,  # or 0?
                 x_max=self.stages[0].compressor_chart.maximum_rate_as_function_of_speed(speed) * inlet_density,
-                bool_func=lambda x: _calculate_train_result(mass_rate=x, speed=speed).is_valid,
+                bool_func=lambda x: _calculate_train_result(mass_rate=x, speed=speed).within_capacity,
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
@@ -489,11 +489,13 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         # Solution scenario 4. Solution at the "Stone wall".
         else:
             # Ensuring that the maximum mass rate at min speed is valid for the whole train.
-            if not result_max_mass_rate_at_min_speed_first_stage.is_valid:
+            if not result_max_mass_rate_at_min_speed_first_stage.within_capacity:
                 max_mass_rate_at_min_speed = maximize_x_given_boolean_condition_function(
                     x_min=EPSILON,
                     x_max=max_mass_rate_at_min_speed_first_stage,
-                    bool_func=lambda x: _calculate_train_result_at_min_speed_given_mass_rate(mass_rate=x).is_valid,
+                    bool_func=lambda x: _calculate_train_result_at_min_speed_given_mass_rate(
+                        mass_rate=x
+                    ).within_capacity,
                 )
                 result_max_mass_rate_at_min_speed = _calculate_train_result_at_min_speed_given_mass_rate(
                     mass_rate=max_mass_rate_at_min_speed
