@@ -3,15 +3,13 @@ from __future__ import annotations
 from typing import List, Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pydantic_core.core_schema import ValidationInfo
+from pydantic import BaseModel, ConfigDict
 
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.core.models.results.compressor import (
     CompressorStageResult,
     CompressorStreamCondition,
-    CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto.types import ChartAreaFlag
 
@@ -124,9 +122,6 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     speed: float
     stage_results: List[CompressorTrainStageResultSingleTimeStep]
-
-    # Used to override failure status is some cases.
-    failure_status: Optional[CompressorTrainCommonShaftFailureStatus] = Field(default=None, validate_default=True)
 
     @staticmethod
     def from_result_list_to_dto(
@@ -338,25 +333,6 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    @field_validator("failure_status")
-    @classmethod
-    def set_failure_status(cls, v, info: ValidationInfo):
-        stage_results = info.data.get("stage_results")
-        if not all(r.is_valid for r in stage_results):
-            for stage in stage_results:
-                if not stage.is_valid:
-                    if stage.chart_area_flag in (
-                        ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
-                        ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
-                    ):
-                        return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
-                    elif stage.chart_area_flag in (
-                        ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE,
-                        ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
-                    ):
-                        return CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
-        return v
-
     @property
     def chart_area_status(self) -> ChartAreaFlag:
         """Checks where the operational points are placed in relation to the compressor charts in a compressor train.
@@ -378,9 +354,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def is_valid(self) -> bool:
-        if self.failure_status:
-            return False
-        elif len(self.stage_results) > 0:
+        if len(self.stage_results) > 0:
             return bool(np.all([r.is_valid for r in self.stage_results]))
         else:
             return True

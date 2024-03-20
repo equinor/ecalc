@@ -31,9 +31,6 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import (
 from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train_common_shaft import (
     get_single_speed_equivalent,
 )
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
 from libecalc.dto.types import FixedSpeedPressureControl
 
 EPSILON = 1e-5
@@ -180,15 +177,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     inlet_pressure=suction_pressure,
                     outlet_pressure=target_discharge_pressure,
                 )
-            train_result_for_minimum_speed.failure_status = (
-                CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-            )
             return train_result_for_minimum_speed
 
         # Solution 3, target discharge pressure is too high
-        train_result_for_maximum_speed.failure_status = (
-            CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-        )
         return train_result_for_maximum_speed
 
     def calculate_compressor_train_given_rate_ps_speed(
@@ -468,7 +459,9 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 inlet_pressure=suction_pressure,
                 outlet_pressure=target_discharge_pressure,
                 mass_rate_kg_per_hour=max_mass_rate_at_max_speed,
-            ).is_valid
+            ).discharge_pressure
+            * (1 - PRESSURE_CALCULATION_TOLERANCE)
+            < target_discharge_pressure
         ):
             rate_to_return = max_mass_rate_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
 
@@ -626,13 +619,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 inlet_pressure_bara=inlet_pressure,
                 speed=speed,
             )
-            if train_results.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) < outlet_pressure:
-                # Should probably never end up here. This is just in case we do.
-                train_results.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-                )
-
-            elif self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
+            if self.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
                 train_results = self.calculate_compressor_train_given_rate_pd_speed(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                     outlet_pressure=outlet_pressure,
@@ -646,13 +633,6 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
-                if (
-                    train_results.failure_status
-                    == CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                    and outlet_pressure >= UnitConstants.STANDARD_PRESSURE_BARA
-                ):
-                    train_results.failure_status = None
-
                 # The order is important here to keep the old pressure before choking.
                 choked_stage_results.pressure_is_choked = True
                 choked_stage_results.outlet_pressure_before_choking = float(choked_stage_results.discharge_pressure)
@@ -669,9 +649,6 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
 
             if not train_result_max_recirculation.discharge_pressure < outlet_pressure:
-                train_result_max_recirculation.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                )
                 msg = (
                     f"Compressor train with inlet pressure {inlet_pressure} and speed {speed} is not able"
                     f"to reach the required discharge pressure {outlet_pressure} even with full recirculation. "
