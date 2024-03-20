@@ -630,8 +630,8 @@
                                 ]
                             },
                             "is_valid": [
-                                true,
-                                true
+                                false,
+                                false
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
@@ -1198,11 +1198,11 @@
                                 ]
                             },
                             "is_valid": [
-                                true,
-                                true,
-                                true,
-                                true,
-                                true
+                                false,
+                                false,
+                                false,
+                                false,
+                                false
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
@@ -1882,12 +1882,12 @@
                                 ]
                             },
                             "is_valid": [
-                                true,
-                                true,
-                                true,
-                                true,
-                                true,
-                                true
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
@@ -2792,12 +2792,12 @@
                                 ]
                             },
                             "is_valid": [
-                                true,
-                                true,
-                                true,
-                                true,
-                                true,
-                                true
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
@@ -4282,15 +4282,15 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -5124,15 +5124,15 @@
                                     ],
                                     "power_unit": "MW",
                                     "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true
                                     ],
                                     "rate_exceeds_maximum": [
                                         false,
@@ -5209,15 +5209,15 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -6140,17 +6140,17 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -7116,17 +7116,17 @@
                                     ],
                                     "power_unit": "MW",
                                     "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true
                                     ],
                                     "rate_exceeds_maximum": [
                                         false,
@@ -7215,17 +7215,17 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -8288,15 +8288,15 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -9130,15 +9130,15 @@
                                     ],
                                     "power_unit": "MW",
                                     "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true
                                     ],
                                     "rate_exceeds_maximum": [
                                         false,
@@ -9215,15 +9215,15 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -10057,15 +10057,15 @@
                                     ],
                                     "power_unit": "MW",
                                     "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true
                                     ],
                                     "rate_exceeds_maximum": [
                                         false,
@@ -10146,17 +10146,17 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -11122,17 +11122,17 @@
                                     ],
                                     "power_unit": "MW",
                                     "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true
                                     ],
                                     "rate_exceeds_maximum": [
                                         false,
@@ -11221,17 +11221,17 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -12197,17 +12197,17 @@
                                     ],
                                     "power_unit": "MW",
                                     "pressure_is_choked": [
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false,
-                                        false
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true,
+                                        true
                                     ],
                                     "rate_exceeds_maximum": [
                                         false,
@@ -12413,15 +12413,15 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -13255,15 +13255,15 @@
                             ],
                             "power_unit": "MW",
                             "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true
                             ],
                             "rate_exceeds_maximum": [
                                 false,
@@ -13340,15 +13340,15 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -14271,17 +14271,17 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -15247,17 +15247,17 @@
                             ],
                             "power_unit": "MW",
                             "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true
                             ],
                             "rate_exceeds_maximum": [
                                 false,
@@ -15346,17 +15346,17 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
