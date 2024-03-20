@@ -232,14 +232,14 @@ class CompressorTrainStage(BaseModel):
 
         """
         if self._target_suction_pressure:
-            if inlet_stream.pressure_bara - self._target_suction_pressure > PRESSURE_CALCULATION_TOLERANCE:
+            if (inlet_stream.pressure_bara / self._target_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return StageTargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
-            if self._target_suction_pressure - inlet_stream.pressure_bara > PRESSURE_CALCULATION_TOLERANCE:
+            if (self._target_suction_pressure / inlet_stream.pressure_bara) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return StageTargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
         if self._target_discharge_pressure:
-            if outlet_stream.pressure_bara - self._target_discharge_pressure > PRESSURE_CALCULATION_TOLERANCE:
+            if (outlet_stream.pressure_bara / self._target_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return StageTargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
-            if self._target_discharge_pressure - outlet_stream.pressure_bara > PRESSURE_CALCULATION_TOLERANCE:
+            if (self._target_discharge_pressure / outlet_stream.pressure_bara) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return StageTargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
 
         return StageTargetPressureStatus.TARGET_PRESSURES_MET

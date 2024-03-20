@@ -86,8 +86,8 @@
                     "unit": "Sm3/d",
                     "values": [
                         0.0,
-                        0.0,
-                        0.0,
+                        434990.5,
+                        275494.0,
                         0.0
                     ]
                 },
@@ -102,8 +102,8 @@
                     "unit": "N/A",
                     "values": [
                         true,
-                        false,
-                        false,
+                        true,
+                        true,
                         true
                     ]
                 },
@@ -120,7 +120,7 @@
                                 ]
                             },
                             "failure_status": [
-                                "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -128,7 +128,7 @@
                                 ],
                                 "unit": "N/A",
                                 "values": [
-                                    false
+                                    true
                                 ]
                             },
                             "max_standard_rate": [
@@ -653,7 +653,7 @@
                                         ]
                                     },
                                     "is_valid": [
-                                        false
+                                        true
                                     ],
                                     "mass_rate_before_asv_kg_per_hr": [
                                         81545.42
@@ -754,7 +754,7 @@
                                 ]
                             },
                             "failure_status": [
-                                "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -762,7 +762,7 @@
                                 ],
                                 "unit": "N/A",
                                 "values": [
-                                    false
+                                    true
                                 ]
                             },
                             "max_standard_rate": [
@@ -1287,7 +1287,7 @@
                                         ]
                                     },
                                     "is_valid": [
-                                        false
+                                        true
                                     ],
                                     "mass_rate_before_asv_kg_per_hr": [
                                         81545.42
@@ -1388,7 +1388,7 @@
                                 ]
                             },
                             "failure_status": [
-                                "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -1396,7 +1396,7 @@
                                 ],
                                 "unit": "N/A",
                                 "values": [
-                                    false
+                                    true
                                 ]
                             },
                             "max_standard_rate": [
@@ -1921,7 +1921,7 @@
                                         ]
                                     },
                                     "is_valid": [
-                                        false
+                                        true
                                     ],
                                     "mass_rate_before_asv_kg_per_hr": [
                                         81545.42
@@ -2024,7 +2024,7 @@
                                 ]
                             },
                             "failure_status": [
-                                "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                                "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
                             "is_valid": {
@@ -2034,7 +2034,7 @@
                                 ],
                                 "unit": "N/A",
                                 "values": [
-                                    false,
+                                    true,
                                     true
                                 ]
                             },
@@ -2608,7 +2608,7 @@
                                         ]
                                     },
                                     "is_valid": [
-                                        false,
+                                        true,
                                         true
                                     ],
                                     "mass_rate_before_asv_kg_per_hr": [
@@ -2738,7 +2738,7 @@
                                 ]
                             },
                             "failure_status": [
-                                "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                                "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
                             "is_valid": {
@@ -2748,7 +2748,7 @@
                                 ],
                                 "unit": "N/A",
                                 "values": [
-                                    false,
+                                    true,
                                     true
                                 ]
                             },
@@ -3322,7 +3322,7 @@
                                         ]
                                     },
                                     "is_valid": [
-                                        false,
+                                        true,
                                         true
                                     ],
                                     "mass_rate_before_asv_kg_per_hr": [
@@ -3491,7 +3491,7 @@
                         ]
                     },
                     "failure_status": [
-                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -3499,7 +3499,7 @@
                         ],
                         "unit": "N/A",
                         "values": [
-                            false
+                            true
                         ]
                     },
                     "max_standard_rate": [
@@ -4024,7 +4024,7 @@
                                 ]
                             },
                             "is_valid": [
-                                false
+                                true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 81545.42
@@ -4125,7 +4125,7 @@
                         ]
                     },
                     "failure_status": [
-                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -4133,7 +4133,7 @@
                         ],
                         "unit": "N/A",
                         "values": [
-                            false
+                            true
                         ]
                     },
                     "max_standard_rate": [
@@ -4658,7 +4658,7 @@
                                 ]
                             },
                             "is_valid": [
-                                false
+                                true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 81545.42
@@ -4759,7 +4759,7 @@
                         ]
                     },
                     "failure_status": [
-                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -4767,7 +4767,7 @@
                         ],
                         "unit": "N/A",
                         "values": [
-                            false
+                            true
                         ]
                     },
                     "max_standard_rate": [
@@ -5292,7 +5292,7 @@
                                 ]
                             },
                             "is_valid": [
-                                false
+                                true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 81545.42
@@ -5395,7 +5395,7 @@
                         ]
                     },
                     "failure_status": [
-                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "NO_FAILURE",
                         "NO_FAILURE"
                     ],
                     "is_valid": {
@@ -5405,7 +5405,7 @@
                         ],
                         "unit": "N/A",
                         "values": [
-                            false,
+                            true,
                             true
                         ]
                     },
@@ -5979,7 +5979,7 @@
                                 ]
                             },
                             "is_valid": [
-                                false,
+                                true,
                                 true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
@@ -6109,7 +6109,7 @@
                         ]
                     },
                     "failure_status": [
-                        "TARGET_DISCHARGE_PRESSURE_TOO_HIGH",
+                        "NO_FAILURE",
                         "NO_FAILURE"
                     ],
                     "is_valid": {
@@ -6119,7 +6119,7 @@
                         ],
                         "unit": "N/A",
                         "values": [
-                            false,
+                            true,
                             true
                         ]
                     },
@@ -6693,7 +6693,7 @@
                                 ]
                             },
                             "is_valid": [
-                                false,
+                                true,
                                 true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
@@ -23470,8 +23470,8 @@
                     "unit": "t/d",
                     "values": [
                         0.0,
-                        0.0,
-                        0.0,
+                        956.9791,
+                        606.0868,
                         0.0
                     ]
                 },
