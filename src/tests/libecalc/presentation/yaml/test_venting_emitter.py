@@ -68,7 +68,7 @@ def test_venting_emitter(variables_map):
 
     regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
 
-    emission_rate = venting_emitter.get_emission_rate(variables_map=variables_map, regularity=regularity)[
+    emission_rate = venting_emitter.get_emission_rates(variables_map=variables_map, regularity=regularity)[
         "ch4"
     ].to_unit(Unit.TONS_PER_DAY)
 
@@ -114,13 +114,13 @@ def test_venting_emitter_oil_volume(variables_map):
 
     regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
 
-    emission_rate = venting_emitter.get_emission_rate(variables_map=variables_map, regularity=regularity)[
+    emission_rate = venting_emitter.get_emission_rates(variables_map=variables_map, regularity=regularity)[
         "ch4"
     ].to_unit(Unit.TONS_PER_DAY)
 
     emission_result = {
-        venting_emitter.oil_volume.emissions[0].name: EmissionResult(
-            name=venting_emitter.oil_volume.emissions[0].name,
+        venting_emitter.volume.emissions[0].name: EmissionResult(
+            name=venting_emitter.volume.emissions[0].name,
             timesteps=variables_map.time_vector,
             rate=emission_rate,
         )

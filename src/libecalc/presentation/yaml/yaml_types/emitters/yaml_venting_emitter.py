@@ -125,24 +125,6 @@ class YamlVentingEmitter(YamlBase):
                 )
         return category
 
-    # @field_validator("emissions", mode="after")
-    # def check_volume_emission_factor(cls, emission, info: ValidationInfo):
-    #     """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
-    #     category = info.data.get("category")
-    #     name = ""
-    #
-    #     if info.data.get("name") is not None:
-    #         name = f"with the name {info.data.get('name')}"
-    #
-    #     if emission.emission_rate_to_volume_factor is not None:
-    #         if category not in [ConsumerUserDefinedCategoryType.LOADING, ConsumerUserDefinedCategoryType.STORAGE]:
-    #             raise ValueError(
-    #                 f"{cls.model_config['title']} {name}: It is not possible to specify FACTOR for CATEGORY {category}. "
-    #                 f"The volume/emission factor in EMISSION is only allowed for the categories "
-    #                 f"{ConsumerUserDefinedCategoryType.LOADING} and {ConsumerUserDefinedCategoryType.STORAGE}."
-    #             )
-    #     return emission
-
     @model_validator(mode="after")
     def check_types(self):
         if self.emissions is None and self.volume is None:
@@ -156,7 +138,7 @@ class YamlVentingEmitter(YamlBase):
                 )
         return self
 
-    def get_emission_rate(
+    def get_emission_rates(
         self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
     ) -> Dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = TemporalExpression.evaluate(
@@ -213,8 +195,6 @@ class YamlVentingEmitter(YamlBase):
                 .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
                 .tolist()
             )
-
-            # emission_rate = Unit.to(self.emission.rate.unit, Unit.KILO_PER_DAY)(emission_rate).tolist()
 
             if emission.rate.type == RateType.CALENDAR_DAY:
                 emission_rate = Rates.to_stream_day(

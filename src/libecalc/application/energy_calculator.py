@@ -177,16 +177,16 @@ class EnergyCalculator:
                 installation = self._graph.get_node(installation_id)
 
                 venting_emitter_results = {}
-                emission_rates = consumer_dto.get_emission_rate(
+                emission_rates = consumer_dto.get_emission_rates(
                     variables_map=variables_map, regularity=installation.regularity
                 )
 
-                for emission_rate in emission_rates.items():
+                for emission_name, emission_rate in emission_rates.items():
                     emission_result = EmissionResult(
-                        name=consumer_dto.name,
+                        name=emission_name,
                         timesteps=variables_map.time_vector,
-                        rate=emission_rate[1],
+                        rate=emission_rate,
                     )
-                    venting_emitter_results[emission_rate[0]] = emission_result
+                    venting_emitter_results[emission_name] = emission_result
                 emission_results[consumer_dto.id] = venting_emitter_results
         return Numbers.format_results_to_precision(emission_results, precision=6)

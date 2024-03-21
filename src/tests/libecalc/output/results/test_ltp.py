@@ -217,6 +217,7 @@ def test_venting_emitters():
         units=[Unit.KILO_PER_DAY],
         emission_names=["ch4"],
         rate_types=[RateType.STREAM_DAY],
+        names=["Venting emitter 1"],
     )
 
     installation_sd_tons_per_day = venting_emitter_yaml_factory(
@@ -225,6 +226,7 @@ def test_venting_emitters():
         rate_types=[RateType.STREAM_DAY],
         units=[Unit.TONS_PER_DAY],
         emission_names=["ch4"],
+        names=["Venting emitter 1"],
     )
 
     installation_cd_kg_per_day = venting_emitter_yaml_factory(
@@ -233,6 +235,7 @@ def test_venting_emitters():
         rate_types=[RateType.CALENDAR_DAY],
         units=[Unit.KILO_PER_DAY],
         emission_names=["ch4"],
+        names=["Venting emitter 1"],
     )
 
     ltp_result_input_sd_kg_per_day = get_consumption(
@@ -291,6 +294,7 @@ def test_only_venting_emitters_no_fuelconsumers():
         rate_types=[RateType.STREAM_DAY],
         include_emitters=True,
         include_fuel_consumers=False,
+        names=["Venting emitter 1"],
     )
     venting_emitter_results = get_consumption(
         model=installation_venting_emitters, variables=variables, time_vector=time_vector_yearly
@@ -316,6 +320,7 @@ def test_no_emitters_or_fuelconsumers():
             rate_types=[RateType.STREAM_DAY],
             include_emitters=False,
             include_fuel_consumers=False,
+            names=["Venting emitter 1"],
         )
 
     assert (
