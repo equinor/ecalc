@@ -1,4 +1,5 @@
-from typing import Tuple
+from copy import deepcopy
+from typing import Optional, Tuple
 
 from libecalc.core.models.chart import SingleSpeedChart
 from libecalc.core.models.compressor.train.chart.types import (
@@ -14,6 +15,14 @@ class SingleSpeedCompressorChart(SingleSpeedChart):
     calculations and must be converted to J/kg before using this class
     Chart may be used with or without efficiency values.
     """
+
+    def get_chart_adjusted_for_control_margin(self, control_margin: Optional[float]) -> SingleSpeedChart:
+        """Sets a new minimum rate and corresponding head and efficiency for each curve in a compressor chart."""
+        if control_margin is None:
+            return deepcopy(self)
+        new_chart = deepcopy(self)
+
+        return new_chart.adjust_for_control_margin(control_margin=control_margin)
 
     def _evaluate_point_validity_chart_area_flag_and_adjusted_rate(
         self,

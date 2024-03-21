@@ -6,18 +6,52 @@
 
 ## Description
 
-This keyword defines the surge control margin for a variable speed compressor chart.
+This keyword defines the surge control margin for a single speed compressor chart or a variable speed compressor chart.
 
-The `CONTROL_MARGIN` behaves as an alternate to the minimum flow line: The input will be 'cropped' to only include points to the right of the control line - modelling recirculation (ASV) from the correct control line.
+The `CONTROL_MARGIN` behaves as an alternate to the minimum flow line: For each chart curve (a single speed chart will have one, a variable speed chart will have at least two) the input will be 'cropped' to only include points to the right of the control line - modelling recirculation (ASV) from the correct control line.
 
 The `CONTROL_MARGIN` is given as a percentage or fraction ([CONTROL_MARGIN_UNIT](/about/references/keywords/CONTROL_MARGIN_UNIT.md)) of the rate difference between minimum- and maximum flow, 
 for the given speed. It is used to calculate the increase in minimum flow for each individual speed curve. 
-It is defined when setting up the stages in a [Variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md) or [Variable speed compressor train model with multiple streams and pressures](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
-
-It is currently only possible to define a surge control margin for variable speed compressors.
+It is defined when setting up the stages in a [Single speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md), [Variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md) or [Variable speed compressor train model with multiple streams and pressures](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
 
 See [Surge control margin for variable speed compressor chart](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md) for more details.
 
+## Use in [Single speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md)
+### Format
+
+~~~~yaml
+MODELS:
+  - NAME: <model name>
+    TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: <reference to fluid model, must be defined in MODELS>
+    ...
+    COMPRESSOR_TRAIN:
+      STAGES:
+        - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
+          COMPRESSOR_CHART: <reference to compressor chart model for first stage, must be defined in MODELS or FACILITY_INPUTS>
+          CONTROL_MARGIN: <Default value is zero>
+          CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
+          ....
+~~~~
+
+### Example
+~~~~yaml
+MODELS:
+  - NAME: compressor_model
+    TYPE: SINGLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: fluid_model
+    ...
+    COMPRESSOR_TRAIN:
+      STAGES:
+        - INLET_TEMPERATURE: 20
+          COMPRESSOR_CHART: 1_stage_chart
+          CONTROL_MARGIN: 0.1
+          CONTROL_MARGIN_UNIT: FRACTION
+          ....
+~~~~
+
+
+>>>>>>> Stashed changes
 ## Use in [Variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md)
 ### Format
 

@@ -1,11 +1,14 @@
+from copy import deepcopy
 from typing import List, Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
+from typing_extensions import Self
 
 from libecalc import dto
+from libecalc.common.logger import logger
 
 
 class ChartCurve:
@@ -124,8 +127,8 @@ class ChartCurve:
         return self.rate[-1], self.head[-1], self.efficiency[-1]
 
     def get_distance_and_efficiency_from_closest_point_on_curve(self, rate: float, head: float) -> Tuple[float, float]:
-        """Compute the closest distance from a point (rate,head) to the (interpolated) curve and corresponding efficiency for
-        that closest point.
+        """Compute the closest distance from a point (rate,head) to the (interpolated) curve and corresponding
+        efficiency for that closest point.
         """
         head_linestring = LineString([(x, y) for x, y in zip(self.rate_values, self.head_values)])
         p = Point(rate, head)
@@ -136,3 +139,53 @@ class ChartCurve:
             distance = -distance
         efficiency = float(self.efficiency_as_function_of_rate(closest_interpolated_point.x))
         return distance, efficiency
+
+    def adjust_for_control_margin(self, control_margin: Optional[float]) -> Self:
+        """Adjusts the chart curve with respect to the given control margin.
+
+        Args:
+            control_margin: a fraction on the interval [0, 1]
+
+        Returns:
+            Chart curve where lowest fraction (given by control margin) of rates have been removed and the
+            head/efficiency updated accordingly for the new minimum rate point on the curve
+        """
+        if control_margin is None:
+            return deepcopy(self)
+
+        def _get_new_point(x: List[float], y: List[float], new_x_value) -> float:
+            """Set up simple interpolation and get a point estimate on y based on the new x point."""
+            return interp1d(x=x, y=y, fill_value=(np.min(y), np.max(y)), bounds_error=False, assume_sorted=False)(
+                new_x_value
+            )
+
+        logger.warning(
+            "The CONTROL_MARGIN functionality is experimental. Usage in an operational setting is not recommended. "
+            "Any usage of this functionality is at your own risk."
+        )
+        adjust_minimum_rate_by = (np.max(self.rate) - np.min(self.rate)) * control_margin
+        new_minimum_rate = np.min(self.rate) + adjust_minimum_rate_by
+        rate_head_efficiency_array = np.vstack((self.rate, self.head, self.efficiency))
+        # remove points with rate less than the new minimum rate (i.e. chop off left part of chart curve)
+        rate_head_efficiency_array = rate_head_efficiency_array[:, rate_head_efficiency_array[0, :] > new_minimum_rate]
+
+        new_rate_head_efficiency_point = [
+            new_minimum_rate,
+            _get_new_point(x=self.rate, y=self.head, new_x_value=new_minimum_rate),  # Head as a function of rate
+            _get_new_point(  # Efficiency as a function of rate
+                x=self.rate, y=self.efficiency, new_x_value=new_minimum_rate
+            ),
+        ]
+
+        rate_head_efficiency_array = np.c_[
+            new_rate_head_efficiency_point,
+            rate_head_efficiency_array,
+        ]
+
+        new_chart_curve = deepcopy(self)
+
+        new_chart_curve.rate_actual_m3_hour = rate_head_efficiency_array[0, :].tolist()
+        new_chart_curve.polytropic_head_joule_per_kg = rate_head_efficiency_array[1, :].tolist()
+        new_chart_curve.efficiency_fraction = rate_head_efficiency_array[2, :].tolist()
+
+        return new_chart_curve

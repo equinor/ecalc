@@ -423,7 +423,15 @@ def _single_speed_compressor_train_mapper(
             pressure_drop_before_stage=stage.get(
                 EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage, 0.0
             ),
-            control_margin=0,
+            control_margin=convert_control_margin_to_fraction(
+                stage.get(EcalcYamlKeywords.models_type_compressor_train_stage_control_margin, 0.0),
+                YAML_UNIT_MAPPING[
+                    stage.get(
+                        EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit,
+                        EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit_percentage,
+                    )
+                ],
+            ),
         )
         for stage in stages_data
     ]
