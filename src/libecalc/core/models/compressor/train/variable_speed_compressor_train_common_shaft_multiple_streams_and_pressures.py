@@ -1339,6 +1339,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         inlet_pressure_first_part, outlet_pressure_first_part = suction_pressure, intermediate_pressure_target
         inlet_pressure_last_part, outlet_pressure_last_part = intermediate_pressure_target, discharge_pressure_target
+        compressor_train_first_part.target_suction_pressure = inlet_pressure_first_part
+        compressor_train_first_part.target_discharge_pressure = outlet_pressure_first_part
+        compressor_train_last_part.target_suction_pressure = inlet_pressure_last_part
+        compressor_train_last_part.target_discharge_pressure = outlet_pressure_last_part
         std_rates_first_part, std_rates_last_part = split_rates_on_stage_number(
             compressor_train=self,
             rates_per_stream=std_rates_std_m3_per_day_per_stream,
