@@ -9,7 +9,10 @@ import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
 
-from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
+from libecalc.common.errors.exceptions import (
+    InvalidDateException,
+    ProgrammingError,
+)
 from libecalc.common.units import UnitConstants
 
 
@@ -245,7 +248,7 @@ def is_temporal_model(data: Dict) -> bool:
                     is_date.append(False)
         if any(is_date):
             if not all(is_date):
-                raise EcalcError(
+                raise InvalidDateException(
                     title="Invalid model",
                     message="Temporal models should only contain date keys. "
                     f"Invalid date(s): {','.join(is_not_date_keys)}",
