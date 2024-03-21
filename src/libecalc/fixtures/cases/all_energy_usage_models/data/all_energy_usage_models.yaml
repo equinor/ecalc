@@ -616,9 +616,10 @@ INSTALLATIONS:
     VENTING_EMITTERS:
       - NAME: methane_venting
         CATEGORY: COLD-VENTING-FUGITIVE
-        EMISSION:
-          NAME: CH4
-          RATE:
-            VALUE: FLARE;METHANE_RATE
-            UNIT: kg/d
-            TYPE: STREAM_DAY
+        TYPE: DIRECT_EMISSION
+        EMISSIONS:
+          - NAME: CH4
+            RATE:
+              VALUE: FLARE;METHANE_RATE
+              UNIT: kg/d
+              TYPE: STREAM_DAY
