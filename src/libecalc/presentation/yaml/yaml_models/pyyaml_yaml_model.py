@@ -264,6 +264,12 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
 
     @property
     def variables(self) -> YamlVariables:
+        """
+        Get variables, invalid variable definitions will be skipped.
+
+        Returns: valid variables
+
+        """
         if not isinstance(self._internal_datamodel, dict):
             return {}
 
@@ -275,7 +281,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                 reference = TypeAdapter(YamlVariableReferenceId).validate_python(reference)
                 variable = TypeAdapter(YamlVariable).validate_python(variable)
                 valid_variables[reference] = variable
-            except ValidationError:
+            except PydanticValidationError:
                 continue
 
         return valid_variables
