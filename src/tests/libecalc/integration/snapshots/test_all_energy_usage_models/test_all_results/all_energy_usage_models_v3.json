@@ -42,9 +42,9 @@
                     ],
                     "unit": "MW",
                     "values": [
-                        356.4152,
-                        347.0916,
-                        359.2078,
+                        286.0074,
+                        275.9332,
+                        287.5618,
                         5.414691
                     ]
                 },
@@ -57,9 +57,9 @@
                     ],
                     "unit": "MW",
                     "values": [
-                        643.5848,
-                        652.9084,
-                        640.7922,
+                        713.9926,
+                        724.0668,
+                        712.4382,
                         994.5853
                     ]
                 },
@@ -19454,9 +19454,9 @@
                     ],
                     "unit": "MW",
                     "values": [
-                        70.40784,
-                        71.15836,
-                        71.64606,
+                        0.0,
+                        0.0,
+                        0.0,
                         0.0
                     ]
                 },
@@ -19470,9 +19470,9 @@
                     ],
                     "unit": "N/A",
                     "values": [
-                        true,
-                        true,
-                        true,
+                        false,
+                        false,
+                        false,
                         true
                     ]
                 },
@@ -19500,9 +19500,9 @@
                     ],
                     "unit": "MW",
                     "values": [
-                        70.40784,
-                        71.15836,
-                        71.64606,
+                        0.0,
+                        0.0,
+                        0.0,
                         0.0
                     ]
                 },
@@ -19563,9 +19563,9 @@
                         ]
                     },
                     "failure_status": [
-                        "NO_FAILURE",
-                        "NO_FAILURE",
-                        "NO_FAILURE",
+                        "TARGET_SUCTION_PRESSURE_TOO_HIGH",
+                        "TARGET_SUCTION_PRESSURE_TOO_HIGH",
+                        "TARGET_SUCTION_PRESSURE_TOO_HIGH",
                         "NO_FAILURE"
                     ],
                     "is_valid": {
@@ -19577,9 +19577,9 @@
                         ],
                         "unit": "N/A",
                         "values": [
-                            true,
-                            true,
-                            true,
+                            false,
+                            false,
+                            false,
                             true
                         ]
                     },
@@ -19884,9 +19884,9 @@
                                 ]
                             },
                             "is_valid": [
-                                true,
-                                true,
-                                true,
+                                false,
+                                false,
+                                false,
                                 true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
