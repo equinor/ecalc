@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.core.models.chart import ChartCurve, VariableSpeedChart
+from libecalc.core.models.chart import VariableSpeedChart
 from libecalc.core.models.compressor.train.chart.types import (
     CompressorChartHeadEfficiencyResultSinglePoint,
     CompressorChartResult,
@@ -26,52 +25,10 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
         if control_margin is None:
             return deepcopy(self)
 
-        def _get_new_point(x: List[float], y: List[float], new_x_value) -> float:
-            """Set up simple interpolation and get a point estimate on y based on the new x point."""
-            return interp1d(x=x, y=y, fill_value=(np.min(y), np.max(y)), bounds_error=False, assume_sorted=False)(
-                new_x_value
-            )
-
-        logger.warning(
-            "The CONTROL_MARGIN functionality is experimental. Usage in an operational setting is not recommended. "
-            "Any usage of this functionality is at your own risk."
-        )
-        new_curves = []
-        for curve in self.curves:
-            adjust_minimum_rate_by = (np.max(curve.rate) - np.min(curve.rate)) * control_margin
-            new_minimum_rate = np.min(curve.rate) + adjust_minimum_rate_by
-            rate_head_efficiency_array = np.vstack((curve.rate, curve.head, curve.efficiency))
-            # remove points with rate less than the new minimum rate (i.e. chop off left part of chart curve)
-            rate_head_efficiency_array = rate_head_efficiency_array[
-                :, rate_head_efficiency_array[0, :] > new_minimum_rate
-            ]
-
-            new_rate_head_efficiency_point = [
-                new_minimum_rate,
-                _get_new_point(x=curve.rate, y=curve.head, new_x_value=new_minimum_rate),  # Head as a function of rate
-                _get_new_point(  # Efficiency as a function of rate
-                    x=curve.rate, y=curve.efficiency, new_x_value=new_minimum_rate
-                ),
-            ]
-
-            rate_head_efficiency_array = np.c_[
-                new_rate_head_efficiency_point,
-                rate_head_efficiency_array,
-            ]
-
-            new_curves.append(
-                ChartCurve(
-                    dto.ChartCurve(
-                        rate_actual_m3_hour=rate_head_efficiency_array[0, :].tolist(),
-                        polytropic_head_joule_per_kg=rate_head_efficiency_array[1, :].tolist(),
-                        efficiency_fraction=rate_head_efficiency_array[2, :].tolist(),
-                        speed_rpm=curve.speed_rpm,
-                    )
-                )
-            )
-
         new_chart = deepcopy(self)
-        new_chart.curves = new_curves
+        new_chart.curves = [
+            curve.adjust_for_control_margin(control_margin=control_margin) for curve in new_chart.curves
+        ]
 
         return new_chart
 

@@ -2,7 +2,10 @@ import numpy as np
 import pytest
 from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.core.models.compressor.train.chart import VariableSpeedCompressorChart
+from libecalc.core.models.compressor.train.chart import (
+    SingleSpeedCompressorChart,
+    VariableSpeedCompressorChart,
+)
 from libecalc.dto.types import ChartAreaFlag
 from pytest import approx
 
@@ -305,6 +308,39 @@ def test_calculate_scaling_factors_for_speed_below_and_above():
         speed_above=9886,
         speed_below=8787.0,
     ) == (0.5, 0.5)
+
+
+def test_single_speed_compressor_chart_control_margin():
+    """When adjusting the chart using a control margin, we multiply the average of the minimum rate for all curves
+    by the control margin factor and multiply by the margin:
+
+    Here:
+        minimum rates are [1, 4] => average = 2
+        control margin = 0.1 (10 %)
+        Result: 2 *  0.1 = 0.25
+
+    This is used to move eash minimum rate to the "right" by 0.25.
+
+    :return:
+    """
+    compressor_chart = SingleSpeedCompressorChart(
+        dto.ChartCurve(
+            speed_rpm=1,
+            rate_actual_m3_hour=[1, 2, 3],
+            polytropic_head_joule_per_kg=[4, 5, 6],
+            efficiency_fraction=[0.7, 0.8, 0.9],
+        ),
+    )
+    control_margin = 0.1
+    compressor_chart_adjusted = compressor_chart.get_chart_adjusted_for_control_margin(control_margin=control_margin)
+
+    adjust_minimum_rate_by = (
+        compressor_chart.rate_actual_m3_hour[-1] - compressor_chart.rate_actual_m3_hour[0]
+    ) * control_margin
+
+    new_minimum_rate = compressor_chart.rate_actual_m3_hour[0] + adjust_minimum_rate_by
+
+    assert compressor_chart_adjusted.rate_actual_m3_hour[0] == new_minimum_rate
 
 
 def test_variable_speed_compressor_chart_control_margin():

@@ -53,19 +53,7 @@ def _create_undefined_compressor_train_stage(
     )
 
 
-def _create_single_speed_compressor_train_stage(
-    stage_data: dto.CompressorStage,
-) -> CompressorTrainStage:
-    compressor_chart = _create_compressor_chart(stage_data.compressor_chart)
-    return CompressorTrainStage(
-        compressor_chart=compressor_chart,
-        inlet_temperature_kelvin=stage_data.inlet_temperature_kelvin,
-        pressure_drop_ahead_of_stage=stage_data.pressure_drop_before_stage,
-        remove_liquid_after_cooling=stage_data.remove_liquid_after_cooling,
-    )
-
-
-def _create_variable_speed_compressor_train_stage(
+def _create_compressor_train_stage(
     stage_data: dto.CompressorStage,
 ) -> CompressorTrainStage:
     compressor_chart = _create_compressor_chart(stage_data.compressor_chart)
@@ -84,10 +72,10 @@ def _create_variable_speed_compressor_train_stage(
 def map_compressor_train_stage_to_domain(stage_dto: dto.CompressorStage) -> CompressorTrainStage:
     """Todo: Add multiple streams and pressures here."""
     if isinstance(stage_dto, dto.CompressorStage):
-        if isinstance(stage_dto.compressor_chart, (dto.VariableSpeedChart, dto.GenericChartFromDesignPoint)):
-            return _create_variable_speed_compressor_train_stage(stage_dto)
-        elif isinstance(stage_dto.compressor_chart, dto.SingleSpeedChart):
-            return _create_single_speed_compressor_train_stage(stage_dto)
+        if isinstance(
+            stage_dto.compressor_chart, (dto.VariableSpeedChart, dto.GenericChartFromDesignPoint, dto.SingleSpeedChart)
+        ):
+            return _create_compressor_train_stage(stage_dto)
         elif isinstance(stage_dto.compressor_chart, dto.GenericChartFromInput):
             return _create_undefined_compressor_train_stage(stage_dto)
     raise ValueError(f"Compressor stage typ {stage_dto.type_} has not been implemented.")
