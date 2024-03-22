@@ -1,5 +1,29 @@
 # Changelog
 
+## [8.12.0](https://github.com/equinor/ecalc/compare/v8.11.0...v8.12.0) (2024-03-22)
+
+
+### Features
+
+* add control margin to single speed compressor charts ([#418](https://github.com/equinor/ecalc/issues/418)) ([472e592](https://github.com/equinor/ecalc/commit/472e592774e41bfab23754738f3290ca142caebe))
+
+
+### Bug Fixes
+
+* issue with invalid dates in temporal model ([dc33776](https://github.com/equinor/ecalc/commit/dc33776bb8d5a052be1405d92186be9559751a0b))
+* use yaml expression type for installation ([#412](https://github.com/equinor/ecalc/issues/412)) ([4a2bdf9](https://github.com/equinor/ecalc/commit/4a2bdf9c3cc1c28bdddc33886cbed9cb42f948b1))
+* variables validation ([7a66d54](https://github.com/equinor/ecalc/commit/7a66d54cac2a73b42f5c671f976090cd79195bbb))
+
+
+### Documentation
+
+* update control margin keyword ([472e592](https://github.com/equinor/ecalc/commit/472e592774e41bfab23754738f3290ca142caebe))
+
+
+### Code Refactoring
+
+* reference parameter first for delta profile ([#416](https://github.com/equinor/ecalc/issues/416)) ([73f6175](https://github.com/equinor/ecalc/commit/73f6175d4837498d837d61db0cbbce627bdaf4a7))
+
 ## [8.11.0](https://github.com/equinor/ecalc/compare/v8.10.0...v8.11.0) (2024-03-18)
 
 
