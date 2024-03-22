@@ -42,6 +42,40 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             else None
         )
         self.stages = [map_compressor_train_stage_to_domain(stage_dto) for stage_dto in data_transfer_object.stages]
+        self.maximum_power = data_transfer_object.maximum_power
+
+        # Will be filled at runtime
+        self._target_discharge_pressure = None
+        self._target_suction_pressure = None
+        self._target_intermediate_pressure = None
+
+    @property
+    def number_of_compressor_stages(self) -> int:
+        return len(self.stages)
+
+    @property
+    def target_discharge_pressure(self):
+        return self._target_discharge_pressure
+
+    @target_discharge_pressure.setter
+    def target_discharge_pressure(self, value):
+        self._target_discharge_pressure = value
+
+    @property
+    def target_suction_pressure(self):
+        return self._target_suction_pressure
+
+    @target_suction_pressure.setter
+    def target_suction_pressure(self, value):
+        self._target_suction_pressure = value
+
+    @property
+    def target_intermediate_pressure(self):
+        return self._target_intermediate_pressure
+
+    @target_intermediate_pressure.setter
+    def target_intermediate_pressure(self, value):
+        self._target_intermediate_pressure = value
 
     @property
     def minimum_speed(self) -> float:
@@ -138,10 +172,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             train_results=train_results, power=power_mw_adjusted
         )
 
-        for i, train_result in enumerate(train_results):
-            if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE:
-                train_result.failure_status = input_failure_status[i]
-
         return CompressorTrainResult(
             energy_usage=list(power_mw_adjusted),
             energy_usage_unit=Unit.MEGA_WATT,
@@ -150,7 +180,12 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             rate_sm3_day=cast(list, rate.tolist()),
             max_standard_rate=cast(list, max_standard_rate.tolist()),
             stage_results=stage_results,
-            failure_status=[t.failure_status for t in train_results],
+            failure_status=[
+                input_failure_status[i]
+                if input_failure_status[i] is not ModelInputFailureStatus.NO_FAILURE
+                else t.failure_status
+                for i, t in enumerate(train_results)
+            ],
         )
 
     def evaluate_streams(

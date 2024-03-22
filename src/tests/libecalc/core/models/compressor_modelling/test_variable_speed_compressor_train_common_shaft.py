@@ -97,7 +97,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         )
         assert result.is_valid[0]
         assert not result.is_valid[1]
-        assert not result.failure_status[0]
+        assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.NO_FAILURE
         assert result.failure_status[1] == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
 
     def test_single_point_rate_too_high_no_pressure_control(
@@ -146,9 +146,9 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         # Ensuring that first stage returns zero energy usage and no failure (zero rate should always be valid).
         assert result.is_valid == [True, True, True]
         assert result.failure_status == [
-            None,
-            None,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         ]
         np.testing.assert_allclose(result.energy_usage, np.array([0.0, 0.092847, 0.092847]), rtol=0.0001)
 

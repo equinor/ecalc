@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import List, Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pydantic_core.core_schema import ValidationInfo
+from pydantic import BaseModel, ConfigDict
 
 from libecalc import dto
 from libecalc.common.units import Unit
@@ -12,6 +11,7 @@ from libecalc.core.models.results.compressor import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainCommonShaftFailureStatus,
+    StageTargetPressureStatus,
 )
 from libecalc.dto.types import ChartAreaFlag
 
@@ -47,6 +47,7 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     power_megawatt: float
 
     chart_area_flag: ChartAreaFlag
+    target_pressure_status: StageTargetPressureStatus
 
     rate_has_recirculation: Optional[bool] = None
     rate_exceeds_maximum: Optional[bool] = None
@@ -84,10 +85,18 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
             inlet_pressure_before_choking=np.nan,
             outlet_pressure_before_choking=np.nan,
             point_is_valid=True,
+            target_pressure_status=StageTargetPressureStatus.NOT_CALCULATED,
         )
 
     @property
     def is_valid(self) -> bool:
+        return self.within_capacity and self.target_pressure_status in (
+            StageTargetPressureStatus.TARGET_PRESSURES_MET,
+            StageTargetPressureStatus.NOT_CALCULATED,
+        )
+
+    @property
+    def within_capacity(self) -> bool:
         return self.chart_area_flag == ChartAreaFlag.INTERNAL_POINT or self.point_is_valid is True
 
     @property
@@ -124,9 +133,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     speed: float
     stage_results: List[CompressorTrainStageResultSingleTimeStep]
-
-    # Used to override failure status is some cases.
-    failure_status: Optional[CompressorTrainCommonShaftFailureStatus] = Field(default=None, validate_default=True)
+    above_maximum_power: bool = False
 
     @staticmethod
     def from_result_list_to_dto(
@@ -338,24 +345,46 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    @field_validator("failure_status")
-    @classmethod
-    def set_failure_status(cls, v, info: ValidationInfo):
-        stage_results = info.data.get("stage_results")
-        if not all(r.is_valid for r in stage_results):
-            for stage in stage_results:
+    @property
+    def failure_status(self):
+        if not all(r.is_valid for r in self.stage_results):
+            for i, stage in enumerate(self.stage_results):
                 if not stage.is_valid:
-                    if stage.chart_area_flag in (
-                        ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
-                        ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
-                    ):
-                        return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
-                    elif stage.chart_area_flag in (
-                        ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE,
-                        ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
-                    ):
-                        return CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
-        return v
+                    if not stage.within_capacity:
+                        if stage.chart_area_flag in (
+                            ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
+                            ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
+                        ):
+                            return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
+                        elif stage.chart_area_flag in (
+                            ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE,
+                            ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
+                        ):
+                            return CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
+                    elif stage.target_pressure_status == StageTargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE:
+                        if i == 0:  # first stage
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+                        else:
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
+                    elif stage.target_pressure_status == StageTargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
+                        if i == 0:  # first stage
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_SUCTION_PRESSURE_TOO_HIGH
+                        else:
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
+                    elif stage.target_pressure_status == StageTargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
+                        if i == len(self.stage_results) - 1:  # last stage
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
+                        else:
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
+                    elif stage.target_pressure_status == StageTargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE:
+                        if i == len(self.stage_results) - 1:  # last stage
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+                        else:
+                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
+        elif self.above_maximum_power:
+            return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
+
+        return CompressorTrainCommonShaftFailureStatus.NO_FAILURE
 
     @property
     def chart_area_status(self) -> ChartAreaFlag:
@@ -378,12 +407,16 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def is_valid(self) -> bool:
-        if self.failure_status:
+        if not self.failure_status == CompressorTrainCommonShaftFailureStatus.NO_FAILURE:
             return False
         elif len(self.stage_results) > 0:
             return bool(np.all([r.is_valid for r in self.stage_results]))
         else:
             return True
+
+    @property
+    def within_capacity(self) -> bool:
+        return bool(np.all([r.within_capacity for r in self.stage_results]))
 
     @property
     def power_megawatt(self) -> float:

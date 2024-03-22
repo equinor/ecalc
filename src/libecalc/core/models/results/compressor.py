@@ -20,9 +20,13 @@ from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
 
 
 class CompressorTrainCommonShaftFailureStatus(str, Enum):
+    NO_FAILURE = "NO_FAILURE"
     TARGET_DISCHARGE_PRESSURE_TOO_HIGH = "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
     TARGET_DISCHARGE_PRESSURE_TOO_LOW = "TARGET_DISCHARGE_PRESSURE_TOO_LOW"
-    SUCTION_PRESSURE_TOO_LOW = "SUCTION_PRESSURE_TOO_LOW"
+    TARGET_SUCTION_PRESSURE_TOO_HIGH = "TARGET_SUCTION_PRESSURE_TOO_HIGH"
+    TARGET_SUCTION_PRESSURE_TOO_LOW = "TARGET_SUCTION_PRESSURE_TOO_LOW"
+    TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH = "TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH"
+    TARGET_INTERMEDIATE_PRESSURE_TOO_LOW = "TARGET_INTERMEDIATE_PRESSURE_TOO_LOW"
     ABOVE_MAXIMUM_FLOW_RATE = "ABOVE_MAXIMUM_FLOW_RATE"
     BELOW_MINIMUM_FLOW_RATE = "BELOW_MINIMUM_FLOW_RATE"
     ABOVE_MAXIMUM_POWER = "ABOVE_MAXIMUM_POWER"
@@ -31,6 +35,15 @@ class CompressorTrainCommonShaftFailureStatus(str, Enum):
     INVALID_INTERMEDIATE_PRESSURE_INPUT = "INVALID_INTERMEDIATE_PRESSURE_INPUT"
     INVALID_DISCHARGE_PRESSURE_INPUT = "INVALID_DISCHARGE_PRESSURE_INPUT"
     NOT_CALCULATED = "NOT_CALCULATED"
+
+
+class StageTargetPressureStatus(str, Enum):
+    NOT_CALCULATED = "NOT_CALCULATED"
+    BELOW_TARGET_SUCTION_PRESSURE = "BELOW_TARGET_SUCTION_PRESSURE"
+    ABOVE_TARGET_SUCTION_PRESSURE = "ABOVE_TARGET_SUCTION_PRESSURE"
+    BELOW_TARGET_DISCHARGE_PRESSURE = "BELOW_TARGET_DISCHARGE_PRESSURE"
+    ABOVE_TARGET_DISCHARGE_PRESSURE = "ABOVE_TARGET_DISCHARGE_PRESSURE"
+    TARGET_PRESSURES_MET = "TARGET_PRESSURES_MET"
 
 
 class CompressorStreamCondition(EnergyModelBaseResult):
@@ -199,11 +212,9 @@ class CompressorTrainResult(EnergyFunctionResult):
 
         Note: We need to ensure all vectors are
         """
-        failure_status_are_valid = (
-            [t is None for t in self.failure_status]
-            if self.failure_status is not None
-            else [True] * len(self.energy_usage)
-        )
+        failure_status_are_valid = [
+            t is CompressorTrainCommonShaftFailureStatus.NO_FAILURE for t in self.failure_status
+        ]
         turbine_are_valid = (
             self.turbine_result.is_valid if self.turbine_result is not None else [True] * len(self.energy_usage)
         )

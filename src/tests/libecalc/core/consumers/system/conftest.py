@@ -23,6 +23,9 @@ from libecalc.core.models.results import (
     CompressorTrainResult,
     PumpModelResult,
 )
+from libecalc.core.models.results.compressor import (
+    CompressorTrainCommonShaftFailureStatus,
+)
 from libecalc.dto.types import ChartAreaFlag
 from libecalc.expression import Expression
 
@@ -202,7 +205,11 @@ def compressor_model_result() -> CompressorTrainResult:
             ),
         ],
         rate_sm3_day=[np.nan, np.nan, np.nan],
-        failure_status=[None, None, None],
+        failure_status=[
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+        ],
     )
 
 
@@ -235,7 +242,11 @@ def compressor_model_result_invalid_steps() -> CompressorTrainResult:
             )
         ],
         rate_sm3_day=[np.nan, np.nan, np.nan],
-        failure_status=[None, None, None],
+        failure_status=[
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+        ],
     )
 
 

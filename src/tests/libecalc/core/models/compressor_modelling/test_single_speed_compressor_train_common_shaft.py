@@ -107,9 +107,9 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         assert result.power == pytest.approx([14.54498, 14.54498, 16.05248, 14.6864], rel=0.0001)
 
         assert result.failure_status == [
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [True, False, True, False]
@@ -173,9 +173,9 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
 
         assert result.failure_status == [
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [True, False, True, False]
@@ -201,9 +201,9 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
 
         assert result.failure_status == [
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
@@ -229,9 +229,9 @@ class TestSingleSpeedCompressorTrainCommonShaft:
 
         assert result.failure_status == [
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
         assert result.is_valid == [False, True, False, True, False]
@@ -252,8 +252,8 @@ class TestSingleSpeedCompressorTrainCommonShaft:
             decimal=2,
         )
         assert result.failure_status == [
-            None,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
@@ -276,7 +276,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
 
         assert result.failure_status == [
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW,
-            None,
+            CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH,
             CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
         ]
@@ -415,8 +415,8 @@ def test_calculate_single_speed_train_zero_pressure_non_zero_rate(medium_fluid, 
     # Results with zero rate should be valid
     assert result.is_valid == [True, True, False, False]
     assert result.failure_status == [
-        None,
-        None,
+        CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
+        CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         CompressorTrainCommonShaftFailureStatus.INVALID_DISCHARGE_PRESSURE_INPUT,
         CompressorTrainCommonShaftFailureStatus.INVALID_SUCTION_PRESSURE_INPUT,
     ]
@@ -440,7 +440,7 @@ def test_calculate_single_speed_compressor_stage_given_target_discharge_pressure
     )[0]
     target_outlet_pressure = 130
 
-    result, failure_status = calculate_single_speed_compressor_stage_given_target_discharge_pressure(
+    result = calculate_single_speed_compressor_stage_given_target_discharge_pressure(
         inlet_stream_stage=inlet_stream_stage,
         outlet_pressure_stage_bara=target_outlet_pressure,
         mass_rate_kg_per_hour=mass_rate_kg_per_hour,
@@ -500,5 +500,5 @@ def test_points_above_and_below_maximum_power(single_speed_compressor_train_comm
     )
     assert result.is_valid[1]
     assert not result.is_valid[0]
-    assert not result.failure_status[1]
+    assert result.failure_status[1] == CompressorTrainCommonShaftFailureStatus.NO_FAILURE
     assert result.failure_status[0] == CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
