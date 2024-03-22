@@ -1,5 +1,5 @@
 ---
-title: Modelling guide
+title: Modelling Guide
 sidebar_position: 4
 description: eCalc modelling
 ---
