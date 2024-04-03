@@ -411,7 +411,7 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         # The second (1-index) axis of stages_maximum_standard_rates - each numpy array - represent each of the input
         # pressure points
         # Want to calculate the maximum over all stages, hence use axis=0 in numpy.amax
-        maximum_rates = np.amax(
+        maximum_rates = np.amin(
             a=stages_maximum_standard_rates,
             axis=0,
         )
