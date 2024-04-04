@@ -120,7 +120,7 @@
                                 ]
                             },
                             "failure_status": [
-                                null
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -754,7 +754,7 @@
                                 ]
                             },
                             "failure_status": [
-                                null
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -1388,7 +1388,7 @@
                                 ]
                             },
                             "failure_status": [
-                                null
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -2024,8 +2024,8 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -2738,8 +2738,8 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -3491,7 +3491,7 @@
                         ]
                     },
                     "failure_status": [
-                        null
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -4125,7 +4125,7 @@
                         ]
                     },
                     "failure_status": [
-                        null
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -4759,7 +4759,7 @@
                         ]
                     },
                     "failure_status": [
-                        null
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -5395,8 +5395,8 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -6109,8 +6109,8 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -7133,10 +7133,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -8176,10 +8176,10 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -8448,10 +8448,10 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -8761,10 +8761,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -9033,10 +9033,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -9343,10 +9343,10 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -10178,10 +10178,10 @@
                                 ]
                             },
                             "failure_status": [
-                                null,
-                                null,
-                                null,
-                                null
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE",
+                                "NO_FAILURE"
                             ],
                             "is_valid": {
                                 "timesteps": [
@@ -11054,10 +11054,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -11889,10 +11889,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -12830,10 +12830,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -13771,10 +13771,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -14712,10 +14712,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -15443,10 +15443,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -15821,10 +15821,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -16490,10 +16490,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -17003,9 +17003,9 @@
                             ],
                             "power_unit": "MW",
                             "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
+                                true,
+                                true,
+                                true,
                                 false
                             ],
                             "rate_exceeds_maximum": [
@@ -17159,10 +17159,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -17310,9 +17310,9 @@
                                     NaN
                                 ],
                                 "pressure_before_choking": [
-                                    75.80978,
-                                    75.80978,
-                                    75.80978,
+                                    80.0,
+                                    80.0,
+                                    80.0,
                                     NaN
                                 ],
                                 "temperature_kelvin": [
@@ -17428,9 +17428,9 @@
                             ],
                             "power_unit": "MW",
                             "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
+                                true,
+                                true,
+                                true,
                                 false
                             ],
                             "rate_exceeds_maximum": [
@@ -17672,9 +17672,9 @@
                             ],
                             "power_unit": "MW",
                             "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
+                                true,
+                                true,
+                                true,
                                 false
                             ],
                             "rate_exceeds_maximum": [
@@ -17828,10 +17828,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -18097,9 +18097,9 @@
                             ],
                             "power_unit": "MW",
                             "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
+                                true,
+                                true,
+                                true,
                                 false
                             ],
                             "rate_exceeds_maximum": [
@@ -18583,10 +18583,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -19563,10 +19563,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
@@ -19983,9 +19983,9 @@
                             ],
                             "power_unit": "MW",
                             "pressure_is_choked": [
-                                false,
-                                false,
-                                false,
+                                true,
+                                true,
+                                true,
                                 false
                             ],
                             "rate_exceeds_maximum": [
@@ -21659,10 +21659,10 @@
                         ]
                     },
                     "failure_status": [
-                        null,
-                        null,
-                        null,
-                        null
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE",
+                        "NO_FAILURE"
                     ],
                     "is_valid": {
                         "timesteps": [
