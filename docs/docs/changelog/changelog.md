@@ -1,5 +1,41 @@
 # Changelog
 
+## [8.12.0](https://github.com/equinor/ecalc/compare/v8.11.0...v8.12.0) (2024-04-04)
+
+
+### Features
+
+* add control margin to single speed compressor charts ([#418](https://github.com/equinor/ecalc/issues/418)) ([472e592](https://github.com/equinor/ecalc/commit/472e592774e41bfab23754738f3290ca142caebe))
+
+
+### Bug Fixes
+
+* issue with invalid dates in temporal model ([dc33776](https://github.com/equinor/ecalc/commit/dc33776bb8d5a052be1405d92186be9559751a0b))
+* maximum rate for simplified compressor train ([#421](https://github.com/equinor/ecalc/issues/421)) ([18235d5](https://github.com/equinor/ecalc/commit/18235d58f7d4f6e881b577019fac82fb0b5edc29))
+* support control margin for single speed compressor stage ([d0bebd5](https://github.com/equinor/ecalc/commit/d0bebd5b691474359e4ae89c877e54070f56c2d6))
+* use yaml expression type for installation ([#412](https://github.com/equinor/ecalc/issues/412)) ([4a2bdf9](https://github.com/equinor/ecalc/commit/4a2bdf9c3cc1c28bdddc33886cbed9cb42f948b1))
+* variables validation ([7a66d54](https://github.com/equinor/ecalc/commit/7a66d54cac2a73b42f5c671f976090cd79195bbb))
+
+
+### Documentation
+
+* update control margin keyword ([472e592](https://github.com/equinor/ecalc/commit/472e592774e41bfab23754738f3290ca142caebe))
+
+
+### Miscellaneous Chores
+
+* update failing tests ([952309a](https://github.com/equinor/ecalc/commit/952309a318802abea1496d74573419accfa6f0d0))
+* update NeqSim to 2.5.21 ([#422](https://github.com/equinor/ecalc/issues/422)) ([9f73552](https://github.com/equinor/ecalc/commit/9f73552b088e3447b7951c2009e5d5f4436b4313))
+* update snapshots ([952309a](https://github.com/equinor/ecalc/commit/952309a318802abea1496d74573419accfa6f0d0))
+* update snapshots ([18235d5](https://github.com/equinor/ecalc/commit/18235d58f7d4f6e881b577019fac82fb0b5edc29))
+
+
+### Code Refactoring
+
+* make calculations inside single speed compressor train point in time ([952309a](https://github.com/equinor/ecalc/commit/952309a318802abea1496d74573419accfa6f0d0))
+* reference parameter first for delta profile ([#416](https://github.com/equinor/ecalc/issues/416)) ([73f6175](https://github.com/equinor/ecalc/commit/73f6175d4837498d837d61db0cbbce627bdaf4a7))
+* set target pressures in compressor train and compressor stage models for failure status evaluations ([#415](https://github.com/equinor/ecalc/issues/415)) ([952309a](https://github.com/equinor/ecalc/commit/952309a318802abea1496d74573419accfa6f0d0))
+
 ## [8.11.0](https://github.com/equinor/ecalc/compare/v8.10.0...v8.11.0) (2024-03-18)
 
 
