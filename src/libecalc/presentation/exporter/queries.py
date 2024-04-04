@@ -12,7 +12,6 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesRate,
-    TimeSeriesStreamDayRate,
     TimeSeriesVolumes,
 )
 from libecalc.core.result import GeneratorSetResult

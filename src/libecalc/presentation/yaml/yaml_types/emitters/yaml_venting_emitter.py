@@ -7,8 +7,8 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import generate_id
-from libecalc.common.units import Unit
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
+from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
     RateType,
@@ -213,4 +213,3 @@ class YamlVentingEmitter(YamlBase):
                 unit=Unit.TONS_PER_DAY,
             )
         return emissions
-
