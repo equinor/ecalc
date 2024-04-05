@@ -23,7 +23,8 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.types import ConsumptionType
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingEmitter,
+    YamlDirectTypeEmitter,
+    YamlOilTypeEmitter,
 )
 
 
@@ -172,12 +173,12 @@ class EnergyCalculator:
                     emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
                         variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
-            elif isinstance(consumer_dto, YamlVentingEmitter):
+            elif isinstance(consumer_dto, (YamlDirectTypeEmitter, YamlOilTypeEmitter)):
                 installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
                 installation = self._graph.get_node(installation_id)
 
                 venting_emitter_results = {}
-                emission_rates = consumer_dto.get_emission_rates(
+                emission_rates = consumer_dto.get_emissions(
                     variables_map=variables_map, regularity=installation.regularity
                 )
 

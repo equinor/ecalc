@@ -45,6 +45,6 @@ def test_wrong_unit_emitters():
         )
 
     assert (
-        "Venting emitter 1:\nEMISSIONS[0].RATE.UNIT:\tInput should be "
+        "Venting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
         "<Unit.KILO_PER_DAY: 'kg/d'> or <Unit.TONS_PER_DAY: 't/d'>"
     ) in str(exc.value)

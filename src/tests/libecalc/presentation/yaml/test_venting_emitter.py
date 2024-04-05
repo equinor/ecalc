@@ -15,8 +15,9 @@ from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlDirectTypeEmitter,
+    YamlOilTypeEmitter,
     YamlVentingEmission,
-    YamlVentingEmitter,
     YamlVentingType,
     YamlVentingVolume,
     YamlVentingVolumeEmission,
@@ -50,10 +51,10 @@ def variables_map(methane_values):
 def test_venting_emitter(variables_map):
     emitter_name = "venting_emitter"
 
-    venting_emitter = YamlVentingEmitter(
+    venting_emitter = YamlDirectTypeEmitter(
         name=emitter_name,
         category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-        type=YamlVentingType.DIRECT_EMISSION,
+        type=YamlVentingType.DIRECT_EMISSION.value,
         emissions=[
             YamlVentingEmission(
                 name="ch4",
@@ -68,9 +69,9 @@ def test_venting_emitter(variables_map):
 
     regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
 
-    emission_rate = venting_emitter.get_emission_rates(variables_map=variables_map, regularity=regularity)[
-        "ch4"
-    ].to_unit(Unit.TONS_PER_DAY)
+    emission_rate = venting_emitter.get_emissions(variables_map=variables_map, regularity=regularity)["ch4"].to_unit(
+        Unit.TONS_PER_DAY
+    )
 
     emission_result = {
         venting_emitter.emissions[0].name: EmissionResult(
@@ -93,10 +94,10 @@ def test_venting_emitter_oil_volume(variables_map):
     emitter_name = "venting_emitter"
     emission_factor = 0.1
 
-    venting_emitter = YamlVentingEmitter(
+    venting_emitter = YamlOilTypeEmitter(
         name=emitter_name,
         category=ConsumerUserDefinedCategoryType.LOADING,
-        type=YamlVentingType.OIL_VOLUME,
+        type=YamlVentingType.OIL_VOLUME.value,
         volume=YamlVentingVolume(
             rate=YamlEmissionRate(
                 value="TSC1;Oil_rate",
@@ -114,9 +115,9 @@ def test_venting_emitter_oil_volume(variables_map):
 
     regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
 
-    emission_rate = venting_emitter.get_emission_rates(variables_map=variables_map, regularity=regularity)[
-        "ch4"
-    ].to_unit(Unit.TONS_PER_DAY)
+    emission_rate = venting_emitter.get_emissions(variables_map=variables_map, regularity=regularity)["ch4"].to_unit(
+        Unit.TONS_PER_DAY
+    )
 
     emission_result = {
         venting_emitter.volume.emissions[0].name: EmissionResult(
@@ -142,16 +143,13 @@ def test_no_emissions_direct(variables_map):
     emitter_name = "venting_emitter"
 
     with pytest.raises(ValueError) as exc:
-        YamlVentingEmitter(
+        YamlDirectTypeEmitter(
             name=emitter_name,
             category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-            type=YamlVentingType.DIRECT_EMISSION,
+            type=YamlVentingType.DIRECT_EMISSION.name,
         )
 
-    assert (
-        f"The keyword EMISSIONS is required for VENTING_EMITTERS of TYPE {YamlVentingType.DIRECT_EMISSION.name}"
-        in str(exc.value)
-    )
+    assert "1 validation error for VentingEmitter\nEMISSIONS\n  Field required" in str(exc.value)
 
 
 def test_no_volume_oil(variables_map):
@@ -161,15 +159,13 @@ def test_no_volume_oil(variables_map):
     emitter_name = "venting_emitter"
 
     with pytest.raises(ValueError) as exc:
-        YamlVentingEmitter(
+        YamlOilTypeEmitter(
             name=emitter_name,
             category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-            type=YamlVentingType.OIL_VOLUME,
+            type=YamlVentingType.OIL_VOLUME.name,
         )
 
-    assert f"The keyword VOLUME is required for VENTING_EMITTERS of TYPE {YamlVentingType.OIL_VOLUME.name}" in str(
-        exc.value
-    )
+    assert "1 validation error for VentingEmitter\nVOLUME\n  Field required" in str(exc.value)
 
 
 def test_venting_emitters_direct_multiple_emissions_ltp():

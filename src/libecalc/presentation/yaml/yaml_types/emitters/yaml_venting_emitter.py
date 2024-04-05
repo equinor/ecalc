@@ -1,9 +1,13 @@
 import enum
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Annotated, Dict, List, Literal, Union, Final
 
 import numpy as np
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    field_validator,
+)
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import generate_id
@@ -62,7 +66,7 @@ class YamlVentingEmission(YamlBase):
     rate: YamlEmissionRate = Field(..., title="RATE", description="The emission rate")
 
 
-class YamlVentingEmitter(YamlBase):
+class YamlDirectTypeEmitter(YamlBase):
     model_config = ConfigDict(title="VentingEmitter")
 
     @property
@@ -88,23 +92,46 @@ class YamlVentingEmitter(YamlBase):
         validate_default=True,
     )
 
-    type: YamlVentingType = Field(
-        ...,
+    type: Literal[YamlVentingType.DIRECT_EMISSION.name] = Field(
         title="TYPE",
         description="Type of venting emitter",
     )
 
-    emissions: Optional[List[YamlVentingEmission]] = Field(
-        None,
+    emissions: List[YamlVentingEmission] = Field(
+        ...,
         title="EMISSIONS",
         description="The emissions for the emitter of type DIRECT_EMISSION",
     )
 
-    volume: Optional[YamlVentingVolume] = Field(
-        None,
-        title="VOLUME",
-        description="The volume rate and emissions for the emitter of type OIL_VOLUME",
-    )
+    def get_emissions(
+        self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
+    ) -> Dict[str, TimeSeriesStreamDayRate]:
+        regularity_evaluated = TemporalExpression.evaluate(
+            temporal_expression=TemporalModel(regularity),
+            variables_map=variables_map,
+        )
+
+        emissions = {}
+        for emission in self.emissions:
+            emission_rate = (
+                Expression.setup_from_expression(value=emission.rate.value)
+                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+                .tolist()
+            )
+
+            if emission.rate.type == RateType.CALENDAR_DAY:
+                emission_rate = Rates.to_stream_day(
+                    calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
+                ).tolist()
+
+            emission_rate = Unit.to(emission.rate.unit, Unit.TONS_PER_DAY)(emission_rate)
+
+            emissions[emission.name] = TimeSeriesStreamDayRate(
+                timesteps=variables_map.time_vector,
+                values=emission_rate,
+                unit=Unit.TONS_PER_DAY,
+            )
+        return emissions
 
     @field_validator("category", mode="before")
     def check_user_defined_category(cls, category, info: ValidationInfo):
@@ -126,40 +153,54 @@ class YamlVentingEmitter(YamlBase):
                 )
         return category
 
-    @model_validator(mode="after")
-    def check_types(self):
-        if self.emissions is None and self.volume is None:
-            if self.type == YamlVentingType.DIRECT_EMISSION:
-                raise ValueError(
-                    f"The keyword EMISSIONS is required for VENTING_EMITTERS of TYPE {YamlVentingType.DIRECT_EMISSION.name}"
-                )
-            if self.type == YamlVentingType.OIL_VOLUME:
-                raise ValueError(
-                    f"The keyword VOLUME is required for VENTING_EMITTERS of TYPE {YamlVentingType.OIL_VOLUME.name}"
-                )
-        return self
 
-    def get_emission_rates(
-        self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
+class YamlOilTypeEmitter(YamlBase):
+    model_config = ConfigDict(title="VentingEmitter")
+
+    @property
+    def component_type(self):
+        return ComponentType.VENTING_EMITTER
+
+    @property
+    def user_defined_category(self):
+        return self.category
+
+    @property
+    def id(self) -> str:
+        return generate_id(self.name)
+
+    name: ComponentNameStr = Field(
+        ...,
+        title="NAME",
+        description="Name of venting emitter",
+    )
+
+    category: ConsumerUserDefinedCategoryType = CategoryField(
+        ...,
+        validate_default=True,
+    )
+
+    type: Literal[YamlVentingType.OIL_VOLUME.name] = Field(
+        title="TYPE",
+        description="Type of venting emitter",
+    )
+
+    volume: YamlVentingVolume = Field(
+        ...,
+        title="VOLUME",
+        description="The volume rate and emissions for the emitter of type OIL_VOLUME",
+    )
+
+    def get_emissions(
+        self,
+        variables_map: VariablesMap,
+        regularity: Dict[datetime, Expression],
     ) -> Dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = TemporalExpression.evaluate(
             temporal_expression=TemporalModel(regularity),
             variables_map=variables_map,
         )
 
-        if self.type == YamlVentingType.DIRECT_EMISSION:
-            emissions = self._get_direct_type_emissions(variables_map=variables_map, regularity=regularity_evaluated)
-
-        else:
-            emissions = self._get_oil_type_emissions(variables_map=variables_map, regularity=regularity_evaluated)
-
-        return emissions
-
-    def _get_oil_type_emissions(
-        self,
-        variables_map: VariablesMap,
-        regularity: List[float],
-    ) -> Dict[str, TimeSeriesStreamDayRate]:
         oil_rates = (
             Expression.setup_from_expression(value=self.volume.rate.value)
             .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
@@ -169,7 +210,7 @@ class YamlVentingEmitter(YamlBase):
         if self.volume.rate.type == RateType.CALENDAR_DAY:
             oil_rates = Rates.to_stream_day(
                 calendar_day_rates=np.asarray(oil_rates),
-                regularity=regularity,
+                regularity=regularity_evaluated,
             ).tolist()
 
         emissions = {}
@@ -189,27 +230,25 @@ class YamlVentingEmitter(YamlBase):
             )
         return emissions
 
-    def _get_direct_type_emissions(
-        self, variables_map: VariablesMap, regularity: List[float]
-    ) -> Dict[str, TimeSeriesStreamDayRate]:
-        emissions = {}
-        for emission in self.emissions:
-            emission_rate = (
-                Expression.setup_from_expression(value=emission.rate.value)
-                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
-                .tolist()
-            )
+    @field_validator("category", mode="before")
+    def check_user_defined_category(cls, category, info: ValidationInfo):
+        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
+        if category is not None:
+            if category not in list(ConsumerUserDefinedCategoryType):
+                name_context_string = ""
+                if (name := info.data.get("name")) is not None:
+                    name_context_string = f"with the name {name}"
 
-            if emission.rate.type == RateType.CALENDAR_DAY:
-                emission_rate = Rates.to_stream_day(
-                    calendar_day_rates=np.asarray(emission_rate), regularity=regularity
-                ).tolist()
+                if info.config is not None and "title" in info.config:
+                    entity_name = info.config["title"]
+                else:
+                    entity_name = str(cls)
 
-            emission_rate = Unit.to(emission.rate.unit, Unit.TONS_PER_DAY)(emission_rate)
+                raise ValueError(
+                    f"CATEGORY {category} is not allowed for {entity_name} {name_context_string}. Valid categories are: "
+                    f"{', '.join(ConsumerUserDefinedCategoryType)}"
+                )
+        return category
 
-            emissions[emission.name] = TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
-                values=emission_rate,
-                unit=Unit.TONS_PER_DAY,
-            )
-        return emissions
+
+YamlVentingEmitter = Annotated[Union[YamlOilTypeEmitter, YamlDirectTypeEmitter], Field(discriminator="type")]
