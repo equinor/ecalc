@@ -7506,7 +7506,6 @@
     "emission_results": {
         "GeneratorSet": {
             "co2": {
-                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -7533,7 +7532,6 @@
         },
         "compressor_system": {
             "co2": {
-                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
@@ -7560,7 +7558,6 @@
         },
         "compressor_system_v2": {
             "co2": {
-                "emission_rate_to_volume_factor": null,
                 "name": "co2",
                 "rate": {
                     "timesteps": [
