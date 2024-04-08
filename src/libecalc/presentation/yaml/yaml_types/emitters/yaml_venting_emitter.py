@@ -93,7 +93,7 @@ class YamlDirectTypeEmitter(YamlBase):
         validate_default=True,
     )
 
-    type: Literal[YamlVentingType.DIRECT_EMISSION.name] = Field(
+    type: Literal[str(YamlVentingType.DIRECT_EMISSION.name)] = Field(
         title="TYPE",
         description="Type of venting emitter",
     )
@@ -181,7 +181,7 @@ class YamlOilTypeEmitter(YamlBase):
         validate_default=True,
     )
 
-    type: Literal[YamlVentingType.OIL_VOLUME.name] = Field(
+    type: Literal[str(YamlVentingType.OIL_VOLUME.name)] = Field(
         title="TYPE",
         description="Type of venting emitter",
     )
