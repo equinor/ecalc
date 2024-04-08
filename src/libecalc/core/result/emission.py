@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
@@ -14,7 +14,6 @@ class EmissionResult(EcalcResultBaseModel):
     name: str
     timesteps: List[datetime]
     rate: TimeSeriesStreamDayRate  # ton/day
-    emission_rate_to_volume_factor: Optional[float] = None
 
     @classmethod
     def create_empty(cls, name: str, timesteps: List[datetime]):
