@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, Optional, Union
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from libecalc import dto
 from libecalc.common.logger import logger
@@ -268,7 +268,8 @@ class InstallationMapper:
         venting_emitters = []
         for venting_emitter in data.get(EcalcYamlKeywords.installation_venting_emitters, []):
             try:
-                venting_emitters.append(YamlVentingEmitter(**venting_emitter))
+                venting_emitter = TypeAdapter(YamlVentingEmitter).validate_python(venting_emitter)
+                venting_emitters.append(venting_emitter)
             except ValidationError as e:
                 raise DtoValidationError(data=venting_emitter, validation_error=e) from e
 

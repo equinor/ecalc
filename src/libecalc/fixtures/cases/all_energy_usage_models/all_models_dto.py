@@ -13,8 +13,10 @@ from libecalc.dto.base import (
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlDirectTypeEmitter,
     YamlVentingEmission,
     YamlVentingEmitter,
+    YamlVentingType,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
@@ -980,13 +982,16 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
 
 @pytest.fixture
 def methane_venting(regularity) -> YamlVentingEmitter:
-    return YamlVentingEmitter(
+    return YamlDirectTypeEmitter(
         name="methane_venting",
         category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
-        emission=YamlVentingEmission(
-            name="CH4",
-            rate=YamlEmissionRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY),
-        ),
+        type=YamlVentingType.DIRECT_EMISSION.name,
+        emissions=[
+            YamlVentingEmission(
+                name="CH4",
+                rate=YamlEmissionRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY),
+            )
+        ],
     )
 
 

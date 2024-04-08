@@ -13,8 +13,9 @@ from libecalc.dto.components import (
 from libecalc.dto.types import EnergyUsageType, FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlDirectTypeEmitter,
     YamlVentingEmission,
-    YamlVentingEmitter,
+    YamlVentingType,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
@@ -30,10 +31,11 @@ class TestCategories:
 
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlVentingEmitter(
+            YamlDirectTypeEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="VENTING-EMISSIONS",
+                type=YamlVentingType.DIRECT_EMISSION.name,
             )
 
         assert (
@@ -43,10 +45,11 @@ class TestCategories:
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlVentingEmitter(
+            YamlDirectTypeEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="fuel-gas",
+                type=YamlVentingType.DIRECT_EMISSION.name,
             )
 
         assert (
@@ -56,10 +59,11 @@ class TestCategories:
 
         # Check that empty raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlVentingEmitter(
+            YamlDirectTypeEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="",
+                type=YamlVentingType.DIRECT_EMISSION.name,
             )
 
         assert (
@@ -69,10 +73,11 @@ class TestCategories:
 
         # Check that underscore raises error
         with pytest.raises(ValidationError) as exc_info:
-            YamlVentingEmitter(
+            YamlDirectTypeEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category="FUEL_GAS",
+                type=YamlVentingType.DIRECT_EMISSION.name,
             )
 
         assert (
@@ -82,10 +87,11 @@ class TestCategories:
 
         # Check that correct category is ok
         assert (
-            YamlVentingEmitter(
+            YamlDirectTypeEmitter(
                 name="test",
-                emission=emission,
+                emissions=[emission],
                 category=ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE,
+                type=YamlVentingType.DIRECT_EMISSION.name,
             ).user_defined_category
             == ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
         )
