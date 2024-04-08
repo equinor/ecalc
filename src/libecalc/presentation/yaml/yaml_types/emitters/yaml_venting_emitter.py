@@ -33,7 +33,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 )
 
 
-class YamlVentingType(enum.Enum):
+class YamlVentingType(str, enum.Enum):
     OIL_VOLUME = "OIL_VOLUME"
     DIRECT_EMISSION = "DIRECT_EMISSION"
 
@@ -93,7 +93,7 @@ class YamlDirectTypeEmitter(YamlBase):
         validate_default=True,
     )
 
-    type: Literal[str(YamlVentingType.DIRECT_EMISSION.name)] = Field(
+    type: Literal[YamlVentingType.DIRECT_EMISSION] = Field(
         title="TYPE",
         description="Type of venting emitter",
     )
@@ -181,7 +181,7 @@ class YamlOilTypeEmitter(YamlBase):
         validate_default=True,
     )
 
-    type: Literal[str(YamlVentingType.OIL_VOLUME.name)] = Field(
+    type: Literal[YamlVentingType.OIL_VOLUME] = Field(
         title="TYPE",
         description="Type of venting emitter",
     )
