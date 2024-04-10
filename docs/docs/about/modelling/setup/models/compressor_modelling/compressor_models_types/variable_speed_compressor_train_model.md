@@ -52,6 +52,6 @@ MODELS:
     POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
     CALCULATE_MAX_RATE: <Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. >
-    PRESSURE_CONTROL: <method for pressure control, DOWNSTREAM_CHOKE (default), UPSTREAM_CHOKE, , INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE, COMMON_ASV or NONE>
+    PRESSURE_CONTROL: <method for pressure control, DOWNSTREAM_CHOKE (default), UPSTREAM_CHOKE, , INDIVIDUAL_ASV_PRESSURE, INDIVIDUAL_ASV_RATE or COMMON_ASV>
 ~~~~~~~~
 
