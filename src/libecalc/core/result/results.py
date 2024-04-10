@@ -60,6 +60,8 @@ class GeneratorSetResult(GenericComponentResult):
 
     typ: Literal["genset"] = "genset"
     power_capacity_margin: TimeSeriesStreamDayRate
+    power_supply_onshore: Optional[TimeSeriesStreamDayRate]
+    max_usage_from_shore: Optional[TimeSeriesStreamDayRate]
 
 
 class ConsumerSystemResult(GenericComponentResult):

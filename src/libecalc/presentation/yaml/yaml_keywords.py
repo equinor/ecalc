@@ -63,6 +63,8 @@ class EcalcYamlKeywords:
     conditions = "CONDITIONS"
     consumers = "CONSUMERS"
     el2fuel = "ELECTRICITY2FUEL"
+    cable_loss = "CABLE_LOSS"
+    max_usage_from_shore = "MAX_USAGE_FROM_SHORE"
     emission_factor = "FACTOR"
     emissions = "EMISSIONS"
     energy_model = "ENERGYFUNCTION"
