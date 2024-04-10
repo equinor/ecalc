@@ -6,8 +6,8 @@
 [LOAD](/about/references/keywords/LOAD.md)
 
 ## Description
-Used for direct load `energy usage models<ENERGY_USAGE_MODEL>` to define electrical power load directly
-with an `expression <Expressions>`
+Used for direct load [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) to define electrical power load directly
+with an [EXPRESSION](/about/references/keywords/EXPRESSION.md).
 
 ## Format
 ~~~~~~~~yaml

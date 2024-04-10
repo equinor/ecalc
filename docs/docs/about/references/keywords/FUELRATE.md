@@ -7,8 +7,8 @@
 [FUELRATE](/about/references/keywords/FUELRATE.md)
 
 ## Description
-Used for direct fuel `energy usage models<ENERGY_USAGE_MODEL>` to define fuel consumption directly with an
-`expression <Expressions>`
+Used for direct fuel [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) to define fuel consumption directly with an
+[EXPRESSION](/about/references/keywords/EXPRESSION.md).
 
 ## Format
 ~~~~~~~~yaml
