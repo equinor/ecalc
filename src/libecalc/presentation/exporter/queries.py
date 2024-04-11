@@ -15,6 +15,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesVolumes,
 )
 from libecalc.core.result import GeneratorSetResult
+from libecalc.dto.types import PowerFromShoreOutputType
 
 
 class Query(abc.ABC):
@@ -236,9 +237,15 @@ class EmissionQuery(Query):
 class ElectricityGeneratedQuery(Query):
     """GenSet only (ie el producers)."""
 
-    def __init__(self, installation_category: Optional[str] = None, producer_categories: Optional[List[str]] = None):
+    def __init__(
+        self,
+        installation_category: Optional[str] = None,
+        producer_categories: Optional[List[str]] = None,
+        power_from_shore_output: Optional[PowerFromShoreOutputType] = None,
+    ):
         self.installation_category = installation_category
         self.producer_categories = producer_categories
+        self.power_from_shore_output = power_from_shore_output
 
     def query(
         self,
@@ -276,11 +283,15 @@ class ElectricityGeneratedQuery(Query):
                             fuel_consumer_result: GeneratorSetResult = installation_graph.get_energy_result(
                                 fuel_consumer.id
                             )
+                            power_result = fuel_consumer_result.power
+
+                            if self.power_from_shore_output == PowerFromShoreOutputType.POWER_SUPPLY_ONSHORE:
+                                power_result = fuel_consumer_result.power_supply_onshore
+                            if self.power_from_shore_output == PowerFromShoreOutputType.MAX_USAGE_FROM_SHORE:
+                                power_result = fuel_consumer_result.max_usage_from_shore
 
                             cumulative_volumes_gwh = (
-                                TimeSeriesRate.from_timeseries_stream_day_rate(
-                                    fuel_consumer_result.power, regularity=regularity
-                                )
+                                TimeSeriesRate.from_timeseries_stream_day_rate(power_result, regularity=regularity)
                                 .for_period(period)
                                 .to_volumes()
                             )
