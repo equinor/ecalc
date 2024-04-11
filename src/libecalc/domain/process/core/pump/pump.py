@@ -14,6 +14,7 @@ from libecalc.domain.process.core.base import BaseModel
 from libecalc.domain.process.core.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.domain.process.core.results import PumpModelResult
 from libecalc.domain.stream_conditions import StreamConditions
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 
 EPSILON = 1e-15
 
@@ -298,11 +299,14 @@ class PumpSingleSpeed(PumpModel):
 
         # Ensure that the pump does not run when rate is <= 0.
         stream_day_rate = np.where(rate > 0, rate, 0)
-
+        chart_area_flags = np.where(rate > 0, ChartAreaFlag.INTERNAL_POINT, ChartAreaFlag.NOT_CALCULATED)
         # Reservoir rates: m3/day, pumpchart rates: m3/h
         rates_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
 
         # Rates less than min to min rate (recirc)
+        chart_area_flags = np.where(
+            rates_m3_per_hour < self.pump_chart.minimum_rate, ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE, chart_area_flags
+        )
         rates_m3_per_hour = np.fmax(rates_m3_per_hour, self.pump_chart.minimum_rate)
 
         # Head [J/kg]
@@ -313,6 +317,16 @@ class PumpSingleSpeed(PumpModel):
 
         # Allowed calculation points is where required head is less than or equal to actual pump head
         # and rates are less than or equal to maximum pump rate
+        chart_area_flags = np.where(
+            rates_m3_per_hour > self.pump_chart.maximum_rate, ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE, chart_area_flags
+        )
+
+        chart_area_flags = np.where(
+            operational_heads > actual_heads + self._head_margin,
+            ChartAreaFlag.ABOVE_MAXIMUM_HEAD.value,
+            chart_area_flags,
+        )
+
         allowed_points = np.argwhere(
             (rates_m3_per_hour <= self.pump_chart.maximum_rate)
             & (operational_heads <= actual_heads + self._head_margin)
