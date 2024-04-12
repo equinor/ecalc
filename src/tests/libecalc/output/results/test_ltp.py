@@ -406,12 +406,25 @@ def test_electrical_and_mechanical_power_installation():
     )
 
     asset_result = get_consumption_asset_result(model=asset, variables=variables)
+    power_fuel_driven_compressor = asset_result.get_component_by_name(
+        "single_1d_compressor_sampled"
+    ).power_cumulative.values[-1]
+    power_generator_set = asset_result.get_component_by_name("genset").power_cumulative.values[-1]
+
+    # Extract cumulative electrical-, mechanical- and total power.
     power_electrical_installation = asset_result.get_component_by_name(
         "INSTALLATION_A"
     ).power_electrical_cumulative.values[-1]
+
     power_mechanical_installation = asset_result.get_component_by_name(
         "INSTALLATION_A"
     ).power_mechanical_cumulative.values[-1]
+
     power_total_installation = asset_result.get_component_by_name("INSTALLATION_A").power_cumulative.values[-1]
 
+    # Verify that total power is correct
     assert power_total_installation == power_electrical_installation + power_mechanical_installation
+
+    # Verify that electrical power equals genset power, and mechanical power includes power from gas driven compressor:
+    assert power_generator_set == power_electrical_installation
+    assert power_fuel_driven_compressor == power_mechanical_installation
