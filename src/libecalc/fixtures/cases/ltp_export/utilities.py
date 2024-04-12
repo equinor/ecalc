@@ -31,7 +31,7 @@ def get_consumption(
     return ltp_result
 
 
-def get_consumption_graph_result(
+def get_consumption_asset_result(
     model: Union[dto.Installation, dto.Asset],
     variables: dto.VariablesMap,
 ):

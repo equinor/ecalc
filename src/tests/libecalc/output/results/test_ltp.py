@@ -35,7 +35,7 @@ from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
 )
 from libecalc.fixtures.cases.ltp_export.utilities import (
     get_consumption,
-    get_consumption_graph_result,
+    get_consumption_asset_result,
     get_sum_ltp_column,
 )
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
@@ -405,7 +405,7 @@ def test_electrical_and_mechanical_power_installation():
         ],
     )
 
-    asset_result = get_consumption_graph_result(model=asset, variables=variables)
+    asset_result = get_consumption_asset_result(model=asset, variables=variables)
     power_electrical_installation = asset_result.get_component_by_name(
         "INSTALLATION_A"
     ).power_electrical_cumulative.values[-1]
