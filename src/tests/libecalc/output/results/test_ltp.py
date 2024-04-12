@@ -27,12 +27,15 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
     installation_diesel_mobile_dto,
     installation_direct_consumer_dto,
     installation_offshore_wind_dto,
+    no_el_consumption,
+    simple_direct_el_consumer,
 )
 from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
     ltp_oil_loaded_yaml_factory,
 )
 from libecalc.fixtures.cases.ltp_export.utilities import (
     get_consumption,
+    get_consumption_graph_result,
     get_sum_ltp_column,
 )
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
@@ -169,7 +172,7 @@ def test_temporal_models_compressor():
     variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
 
     ltp_result = get_consumption(
-        model=installation_compressor_dto(), variables=variables, time_vector=time_vector_yearly
+        model=installation_compressor_dto([no_el_consumption()]), variables=variables, time_vector=time_vector_yearly
     )
 
     gas_turbine_compressor_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
@@ -390,3 +393,25 @@ def test_total_oil_loaded_old_method():
     # Verify that total oil loaded/stored is the same if only loading is specified,
     # compared to a model with both loading and storage.
     assert loaded_and_stored_oil_loading_and_storage == loaded_and_stored_oil_loading_only
+
+
+def test_electrical_and_mechanical_power_installation():
+    """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
+    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+    asset = dto.Asset(
+        name="Asset 1",
+        installations=[
+            installation_compressor_dto([simple_direct_el_consumer()]),
+        ],
+    )
+
+    asset_result = get_consumption_graph_result(model=asset, variables=variables)
+    power_electrical_installation = asset_result.get_component_by_name(
+        "INSTALLATION_A"
+    ).power_electrical_cumulative.values[-1]
+    power_mechanical_installation = asset_result.get_component_by_name(
+        "INSTALLATION_A"
+    ).power_mechanical_cumulative.values[-1]
+    power_total_installation = asset_result.get_component_by_name("INSTALLATION_A").power_cumulative.values[-1]
+
+    assert power_total_installation == power_electrical_installation + power_mechanical_installation
