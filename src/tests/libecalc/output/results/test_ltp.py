@@ -33,6 +33,9 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
 from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
     ltp_oil_loaded_yaml_factory,
 )
+from libecalc.fixtures.cases.ltp_export.ltp_power_from_shore_yaml import (
+    ltp_pfs_yaml_factory,
+)
 from libecalc.fixtures.cases.ltp_export.utilities import (
     get_consumption,
     get_consumption_asset_result,
@@ -428,3 +431,14 @@ def test_electrical_and_mechanical_power_installation():
     # Verify that electrical power equals genset power, and mechanical power equals power from gas driven compressor:
     assert power_generator_set == power_electrical_installation
     assert power_fuel_driven_compressor == power_mechanical_installation
+
+
+def test_power_from_shore():
+    """Test power from shore output for LTP export."""
+    [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    regularity = 0.2
+
+    ltp_pfs_yaml_factory(regularity=regularity)
