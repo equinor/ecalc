@@ -425,6 +425,6 @@ def test_electrical_and_mechanical_power_installation():
     # Verify that total power is correct
     assert power_total_installation == power_electrical_installation + power_mechanical_installation
 
-    # Verify that electrical power equals genset power, and mechanical power includes power from gas driven compressor:
+    # Verify that electrical power equals genset power, and mechanical power equals power from gas driven compressor:
     assert power_generator_set == power_electrical_installation
     assert power_fuel_driven_compressor == power_mechanical_installation
