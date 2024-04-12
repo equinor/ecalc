@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 
@@ -307,13 +307,13 @@ def generator_set_offshore_wind_temporal_model() -> dto.GeneratorSet:
     )
 
 
-def generator_set_compressor_temporal_model() -> dto.GeneratorSet:
+def generator_set_compressor_temporal_model(consumers: List[dto.ElectricityConsumer]) -> dto.GeneratorSet:
     return dto.GeneratorSet(
         name="genset",
         user_defined_category={date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
         fuel={date1: fuel_turbine()},
         generator_set_model={date1: generator_set_fuel()},
-        consumers=[no_el_consumption()],
+        consumers=consumers,
         regularity=regularity_temporal_consumer,
     )
 
@@ -464,12 +464,12 @@ def installation_offshore_wind_dto() -> dto.Installation:
     )
 
 
-def installation_compressor_dto() -> dto.Installation:
+def installation_compressor_dto(el_consumers: List[dto.ElectricityConsumer]) -> dto.Installation:
     return dto.Installation(
         name="INSTALLATION_A",
         regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
-        fuel_consumers=[generator_set_compressor_temporal_model(), compressor()],
+        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
+        fuel_consumers=[generator_set_compressor_temporal_model(el_consumers), compressor()],
         user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
     )
 
