@@ -5,7 +5,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc import dto
-from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models import (
@@ -18,9 +17,6 @@ from libecalc.core.models.compressor.results import CompressorTrainResultSingleT
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.core.models.results import CompressorTrainResult
-from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
-)
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTrainDTO
 from libecalc.dto.models.compressor.train import (
@@ -168,10 +164,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
         )
 
-        train_results = self.adjust_train_results_for_maximum_power(
-            train_results=train_results, power=power_mw_adjusted
-        )
-
         return CompressorTrainResult(
             energy_usage=list(power_mw_adjusted),
             energy_usage_unit=Unit.MEGA_WATT,
@@ -208,18 +200,6 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             suction_pressure=np.asarray([mixed_inlet_stream.pressure.value]),
             discharge_pressure=np.asarray([outlet_stream.pressure.value]),
         )
-
-    @Feature.experimental(
-        feature_description="Maximum power constraint is an experimental feature where the syntax may change at any time."
-    )
-    def adjust_train_results_for_maximum_power(
-        self, train_results: List[CompressorTrainResultSingleTimeStep], power: NDArray[np.float64]
-    ) -> List[CompressorTrainResultSingleTimeStep]:
-        if self.data_transfer_object.maximum_power is not None:
-            for power_adjusted, train_result in zip(power, train_results):
-                if self.data_transfer_object.maximum_power < power_adjusted and train_result.failure_status is None:
-                    train_result.failure_status = CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
-        return train_results
 
     @abstractmethod
     def _evaluate_rate_ps_pd(
