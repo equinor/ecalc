@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.12.1](https://github.com/equinor/ecalc/compare/v8.12.0...v8.12.1) (2024-04-15)
+
+
+### Bug Fixes
+
+* a few things that were left out when the failure_status were refactored ([#434](https://github.com/equinor/ecalc/issues/434)) ([4ae0a06](https://github.com/equinor/ecalc/commit/4ae0a06a6331e9751e88df907e747e57ca94db20))
+
 ## [8.12.0](https://github.com/equinor/ecalc/compare/v8.11.0...v8.12.0) (2024-04-04)
 
 
