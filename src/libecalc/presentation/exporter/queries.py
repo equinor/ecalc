@@ -347,7 +347,7 @@ class PowerSupplyOnshoreQuery(Query):
 
         if self.installation_category is None or installation_dto.user_defined_category == self.installation_category:
             for fuel_consumer in installation_dto.fuel_consumers:
-                if isinstance(fuel_consumer, libecalc.dto.GeneratorSet):
+                if isinstance(fuel_consumer, libecalc.dto.GeneratorSet) and fuel_consumer.cable_loss is not None:
                     temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                     for period, category in temporal_category.items():
                         if self.producer_categories is None or category in self.producer_categories:
@@ -430,7 +430,10 @@ class MaxUsageFromShoreQuery(Query):
 
         if self.installation_category is None or installation_dto.user_defined_category == self.installation_category:
             for fuel_consumer in installation_dto.fuel_consumers:
-                if isinstance(fuel_consumer, libecalc.dto.GeneratorSet):
+                if (
+                    isinstance(fuel_consumer, libecalc.dto.GeneratorSet)
+                    and fuel_consumer.max_usage_from_shore is not None
+                ):
                     temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                     for period, category in temporal_category.items():
                         if self.producer_categories is None or category in self.producer_categories:
