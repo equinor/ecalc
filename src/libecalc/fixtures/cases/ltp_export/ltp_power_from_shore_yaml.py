@@ -68,7 +68,7 @@ def ltp_pfs_yaml_factory(
         internal_datamodel=yaml_text,
         instantiated_through_read=True,
     )
-    path = Path("/Users/FKB/PycharmProjects/ecalc-engine/libecalc/src/libecalc/fixtures/cases/ltp_export/data/einput")
+    path = Path("../../libecalc/fixtures/cases/ltp_export/data/einput/")
     resources = YamlModel._read_resources(yaml_configuration=configuration, working_directory=path)
     yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources, name="test")
     return yaml_model
