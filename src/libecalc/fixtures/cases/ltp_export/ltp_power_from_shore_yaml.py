@@ -4,6 +4,7 @@ import yaml
 
 from libecalc.dto import Asset
 from libecalc.expression.expression import ExpressionType
+from libecalc.fixtures.cases.ltp_export.data import einput
 from libecalc.presentation.yaml.model import PyYamlYamlModel, YamlModel
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 
@@ -68,7 +69,8 @@ def ltp_pfs_yaml_factory(
         internal_datamodel=yaml_text,
         instantiated_through_read=True,
     )
-    path = Path("../../libecalc/fixtures/cases/ltp_export/data/einput/")
+
+    path = Path(einput.__path__._path[0])
     resources = YamlModel._read_resources(yaml_configuration=configuration, working_directory=path)
     yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources, name="test")
     return yaml_model
