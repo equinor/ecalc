@@ -14,9 +14,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
-from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.dto.variables import VariablesMap
-from libecalc.expression import Expression
 
 
 class Genset:
@@ -109,33 +107,3 @@ class Genset:
                     power_requirement[start_index:end_index]
                 )
         return result
-
-    def evaluate_power_from_shore(self, power_requirement: NDArray[np.float64], variables_map: dto.VariablesMap):
-        cable_loss = Expression.evaluate(
-            self.data_transfer_object.cable_loss,
-            variables=variables_map.variables,
-            fill_length=len(variables_map.time_vector),
-        )
-
-        max_usage_from_shore = Expression.evaluate(
-            self.data_transfer_object.max_usage_from_shore,
-            variables=variables_map.variables,
-            fill_length=len(variables_map.time_vector),
-        )
-        result_power_supply_onshore = np.zeros_like(power_requirement).astype(float)
-        result_max_usage_from_shore = np.zeros_like(max_usage_from_shore).astype(float)
-
-        for model in self.temporal_generator_set_model.models:
-            if Period.intersects(model.period, variables_map.period):
-                start_index, end_index = model.period.get_timestep_indices(variables_map.time_vector)
-                if (
-                    self.data_transfer_object.user_defined_category[model.period.start]
-                    == ConsumerUserDefinedCategoryType.POWER_FROM_SHORE
-                ):
-                    result_power_supply_onshore[start_index:end_index] = (power_requirement + cable_loss)[
-                        start_index:end_index
-                    ]
-                else:
-                    result_max_usage_from_shore[start_index:end_index] = 0.0
-                result_max_usage_from_shore[start_index:end_index] = max_usage_from_shore[start_index:end_index]
-        return result_power_supply_onshore, result_max_usage_from_shore
