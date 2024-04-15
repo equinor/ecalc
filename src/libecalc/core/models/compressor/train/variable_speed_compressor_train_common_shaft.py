@@ -32,7 +32,6 @@ from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train
     get_single_speed_equivalent,
 )
 from libecalc.core.models.results.compressor import (
-    CompressorTrainCommonShaftFailureStatus,
     StageTargetPressureStatus,
 )
 from libecalc.dto.types import FixedSpeedPressureControl
@@ -674,9 +673,6 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
 
             if not train_result_max_recirculation.discharge_pressure < outlet_pressure:
-                train_result_max_recirculation.failure_status = (
-                    CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                )
                 msg = (
                     f"Compressor train with inlet pressure {inlet_pressure} and speed {speed} is not able"
                     f"to reach the required discharge pressure {outlet_pressure} even with full recirculation. "
