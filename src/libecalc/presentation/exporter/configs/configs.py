@@ -3,7 +3,6 @@ from typing import List
 
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
-from libecalc.dto.types import PowerFromShoreOutputType
 from libecalc.presentation.exporter.aggregators import (
     Aggregator,
     InstallationAggregator,
@@ -21,6 +20,8 @@ from libecalc.presentation.exporter.queries import (
     EmissionQuery,
     FuelConsumerPowerConsumptionQuery,
     FuelQuery,
+    MaxUsageFromShoreQuery,
+    PowerSupplyOnshoreQuery,
 )
 
 """
@@ -639,18 +640,16 @@ class LTPConfig(ResultConfig):
                     name="powerSupplyOnshore",
                     title="Power Supply Onshore",
                     unit=Unit.GIGA_WATT_HOURS,
-                    query=ElectricityGeneratedQuery(
+                    query=PowerSupplyOnshoreQuery(
                         producer_categories=["POWER-FROM-SHORE"],
-                        power_from_shore_output=PowerFromShoreOutputType.POWER_SUPPLY_ONSHORE,
                     ),
                 ),
                 Applier(
                     name="fromShorePeakMaximum",
                     title="Max Usage from Shore",
                     unit=Unit.GIGA_WATT_HOURS,
-                    query=ElectricityGeneratedQuery(
+                    query=MaxUsageFromShoreQuery(
                         producer_categories=["POWER-FROM-SHORE"],
-                        power_from_shore_output=PowerFromShoreOutputType.MAX_USAGE_FROM_SHORE,
                     ),
                 ),
                 Applier(

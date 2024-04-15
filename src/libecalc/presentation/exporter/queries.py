@@ -6,16 +6,18 @@ from typing import DefaultDict, Dict, List, Optional
 import libecalc.dto
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.decorators.feature_flags import Feature
+from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.time_utils import Frequency, resample_time_steps
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesRate,
+    TimeSeriesStreamDayRate,
     TimeSeriesVolumes,
 )
 from libecalc.core.result import GeneratorSetResult
-from libecalc.dto.types import PowerFromShoreOutputType
+from libecalc.expression import Expression
 
 
 class Query(abc.ABC):
@@ -237,15 +239,9 @@ class EmissionQuery(Query):
 class ElectricityGeneratedQuery(Query):
     """GenSet only (ie el producers)."""
 
-    def __init__(
-        self,
-        installation_category: Optional[str] = None,
-        producer_categories: Optional[List[str]] = None,
-        power_from_shore_output: Optional[PowerFromShoreOutputType] = None,
-    ):
+    def __init__(self, installation_category: Optional[str] = None, producer_categories: Optional[List[str]] = None):
         self.installation_category = installation_category
         self.producer_categories = producer_categories
-        self.power_from_shore_output = power_from_shore_output
 
     def query(
         self,
@@ -283,15 +279,11 @@ class ElectricityGeneratedQuery(Query):
                             fuel_consumer_result: GeneratorSetResult = installation_graph.get_energy_result(
                                 fuel_consumer.id
                             )
-                            power_result = fuel_consumer_result.power
-
-                            if self.power_from_shore_output == PowerFromShoreOutputType.POWER_SUPPLY_ONSHORE:
-                                power_result = fuel_consumer_result.power_supply_onshore
-                            if self.power_from_shore_output == PowerFromShoreOutputType.MAX_USAGE_FROM_SHORE:
-                                power_result = fuel_consumer_result.max_usage_from_shore
 
                             cumulative_volumes_gwh = (
-                                TimeSeriesRate.from_timeseries_stream_day_rate(power_result, regularity=regularity)
+                                TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    fuel_consumer_result.power, regularity=regularity
+                                )
                                 .for_period(period)
                                 .to_volumes()
                             )
@@ -309,6 +301,169 @@ class ElectricityGeneratedQuery(Query):
                 reindexed_result = (
                     TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit_in)
                     .to_unit(Unit.GIGA_WATT_HOURS)
+                    .reindex(time_steps)
+                    .fill_nan(0)
+                )
+
+                aggregated_result_volume = {
+                    reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                }
+        return aggregated_result_volume if aggregated_result_volume else None
+
+
+class PowerSupplyOnshoreQuery(Query):
+    """GenSet only (ie el producers)."""
+
+    def __init__(self, installation_category: Optional[str] = None, producer_categories: Optional[List[str]] = None):
+        self.installation_category = installation_category
+        self.producer_categories = producer_categories
+
+    def query(
+        self,
+        installation_graph: GraphResult,
+        unit: Unit,
+        frequency: Frequency,
+    ) -> Optional[Dict[datetime, float]]:
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
+
+        installation_time_steps = installation_graph.timesteps
+        time_steps = resample_time_steps(
+            frequency=frequency,
+            time_steps=installation_time_steps,
+        )
+
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
+        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result_volume = {}
+        unit_in = None
+
+        if self.installation_category is None or installation_dto.user_defined_category == self.installation_category:
+            for fuel_consumer in installation_dto.fuel_consumers:
+                if isinstance(fuel_consumer, libecalc.dto.GeneratorSet):
+                    temporal_category = TemporalModel(fuel_consumer.user_defined_category)
+                    for period, category in temporal_category.items():
+                        if self.producer_categories is None or category in self.producer_categories:
+                            fuel_consumer_result: GeneratorSetResult = installation_graph.get_energy_result(
+                                fuel_consumer.id
+                            )
+
+                            cable_loss = Expression.evaluate(
+                                fuel_consumer.cable_loss,
+                                variables=installation_graph.variables_map.variables,
+                                fill_length=len(installation_graph.variables_map.time_vector),
+                            )
+
+                            fuel_consumer_result.power.values = fuel_consumer_result.power.values + cable_loss
+
+                            cumulative_volumes_gwh = (
+                                TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    fuel_consumer_result.power, regularity=regularity
+                                )
+                                .for_period(period)
+                                .to_volumes()
+                            )
+
+                            unit_in = cumulative_volumes_gwh.unit
+
+                            for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
+                                aggregated_result[timestep] += cumulative_volume_gwh
+
+            if aggregated_result:
+                sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                date_keys = list(sorted_result.keys())
+
+                reindexed_result = (
+                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit_in)
+                    .to_unit(Unit.GIGA_WATT_HOURS)
+                    .reindex(time_steps)
+                    .fill_nan(0)
+                )
+
+                aggregated_result_volume = {
+                    reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                }
+        return aggregated_result_volume if aggregated_result_volume else None
+
+
+class MaxUsageFromShoreQuery(Query):
+    """GenSet only (ie el producers)."""
+
+    def __init__(self, installation_category: Optional[str] = None, producer_categories: Optional[List[str]] = None):
+        self.installation_category = installation_category
+        self.producer_categories = producer_categories
+
+    def query(
+        self,
+        installation_graph: GraphResult,
+        unit: Unit,
+        frequency: Frequency,
+    ) -> Optional[Dict[datetime, float]]:
+        installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
+
+        installation_time_steps = installation_graph.timesteps
+        time_steps = resample_time_steps(
+            frequency=frequency,
+            time_steps=installation_time_steps,
+        )
+
+        regularity = TimeSeriesFloat(
+            timesteps=installation_time_steps,
+            values=TemporalExpression.evaluate(
+                temporal_expression=TemporalModel(installation_dto.regularity),
+                variables_map=installation_graph.variables_map,
+            ),
+            unit=Unit.NONE,
+        )
+
+        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result_volume = {}
+        unit_in = None
+
+        if self.installation_category is None or installation_dto.user_defined_category == self.installation_category:
+            for fuel_consumer in installation_dto.fuel_consumers:
+                if isinstance(fuel_consumer, libecalc.dto.GeneratorSet):
+                    temporal_category = TemporalModel(fuel_consumer.user_defined_category)
+                    for period, category in temporal_category.items():
+                        if self.producer_categories is None or category in self.producer_categories:
+                            installation_graph.get_energy_result(fuel_consumer.id)
+
+                            max_usage_from_shore = TimeSeriesStreamDayRate(
+                                values=array_to_list(
+                                    Expression.evaluate(
+                                        fuel_consumer.max_usage_from_shore,
+                                        variables=installation_graph.variables_map.variables,
+                                        fill_length=len(installation_graph.variables_map.time_vector),
+                                    )
+                                ),
+                                unit=Unit.MEGA_WATT,
+                                timesteps=installation_graph.variables_map.time_vector,
+                            )
+
+                            results = TimeSeriesRate.from_timeseries_stream_day_rate(
+                                max_usage_from_shore, regularity=regularity
+                            ).for_period(period)
+
+                            unit_in = results.unit
+
+                            for timestep, result in results.datapoints():
+                                aggregated_result[timestep] += result
+
+            if aggregated_result:
+                sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
+                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                date_keys = list(sorted_result.keys())
+
+                reindexed_result = (
+                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit_in)
                     .reindex(time_steps)
                     .fill_nan(0)
                 )

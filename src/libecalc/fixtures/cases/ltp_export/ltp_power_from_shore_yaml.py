@@ -3,12 +3,16 @@ from pathlib import Path
 import yaml
 
 from libecalc.dto import Asset
+from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.model import PyYamlYamlModel, YamlModel
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 
 
 def ltp_pfs_yaml_factory(
     regularity: float,
+    cable_loss: ExpressionType,
+    max_usage_from_shore: ExpressionType,
+    load_direct_consumer: float,
 ) -> Asset:
     input_text = f"""
     START: 2025-01-01
@@ -46,15 +50,15 @@ def ltp_pfs_yaml_factory(
         CATEGORY:
           2025-01-01: TURBINE-GENERATOR
           2027-01-01: POWER-FROM-SHORE
-        CABLE_LOSS: 0.2
-        MAX_USAGE_FROM_SHORE: 10
+        CABLE_LOSS: {cable_loss}
+        MAX_USAGE_FROM_SHORE: {max_usage_from_shore}
 
         CONSUMERS: # electrical energy consumers
         - NAME: base_load
           CATEGORY: BASE-LOAD
           ENERGY_USAGE_MODEL:
             TYPE: DIRECT
-            LOAD: 10
+            LOAD: {load_direct_consumer}
 
 
     """

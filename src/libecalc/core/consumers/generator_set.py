@@ -50,22 +50,6 @@ class Genset:
         fuel_rate = self.evaluate_fuel_rate(power_requirement, variables_map=variables_map)
         power_capacity_margin = self.evaluate_power_capacity_margin(power_requirement, variables_map=variables_map)
 
-        # Check if Power From Shore, if so do necessary calculations.
-        if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE in self.data_transfer_object.user_defined_category.values():
-            # cable_loss = Expression.evaluate(
-            #     self.data_transfer_object.cable_loss, variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            # )
-            # power_supply_onshore = power_requirement + cable_loss
-            # max_usage_from_shore = Expression.evaluate(
-            #     self.data_transfer_object.max_usage_from_shore, variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            # )
-            power_supply_onshore, max_usage_from_shore = self.evaluate_power_from_shore(
-                power_requirement=power_requirement, variables_map=variables_map
-            )
-        else:
-            power_supply_onshore = None
-            max_usage_from_shore = None
-
         # Convert fuel_rate to calendar day rate
         # fuel_rate = Rates.to_calendar_day(stream_day_rates=fuel_rate, regularity=regularity)
         # TODO: Ok to not convert to calendar day here? Seems that all legacy stuff needs to be dealt with anyways...
@@ -102,20 +86,6 @@ class Genset:
                 values=array_to_list(fuel_rate),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             ),
-            power_supply_onshore=TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
-                values=array_to_list(power_supply_onshore),
-                unit=Unit.MEGA_WATT,
-            )
-            if power_supply_onshore is not None
-            else None,
-            max_usage_from_shore=TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
-                values=array_to_list(max_usage_from_shore),
-                unit=Unit.MEGA_WATT,
-            )
-            if max_usage_from_shore is not None
-            else None,
         )
 
     def evaluate_fuel_rate(

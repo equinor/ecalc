@@ -3,6 +3,7 @@ from datetime import datetime
 import pandas as pd
 import pytest
 from libecalc import dto
+from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
@@ -435,10 +436,33 @@ def test_electrical_and_mechanical_power_installation():
 
 def test_power_from_shore():
     """Test power from shore output for LTP export."""
-    [
-        datetime(2027, 1, 1),
-        datetime(2028, 1, 1),
-    ]
-    regularity = 0.2
 
-    ltp_pfs_yaml_factory(regularity=regularity)
+    time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
+
+    variables = dto.VariablesMap(time_vector=time_vector_yearly, variables={})
+    regularity = 0.2
+    load = 10
+    cable_loss = 0.8
+    max_from_shore = 12
+
+    model = ltp_pfs_yaml_factory(
+        regularity=regularity, cable_loss=cable_loss, max_usage_from_shore=max_from_shore, load_direct_consumer=load
+    )
+
+    ltp_result = get_consumption(model=model, variables=variables, time_vector=time_vector_yearly)
+    power_from_shore_consumption = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=1)
+    power_supply_onshore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=2)
+    max_usage_from_shore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=3)
+
+    delta_days = calculate_delta_days(time_vector_yearly)[2:5]
+
+    # Check that power from shore consumption is correct
+    assert power_from_shore_consumption == sum([load * days * regularity * 24 / 1000 for days in delta_days])
+
+    # Check that power supply onshore is power from shore consumption + cable loss
+    assert power_supply_onshore == power_from_shore_consumption + sum(
+        [cable_loss * days * regularity * 24 / 1000 for days in delta_days]
+    )
+
+    # Check that max usage from shore is just a report of the input
+    assert max_usage_from_shore == max_from_shore * 3
