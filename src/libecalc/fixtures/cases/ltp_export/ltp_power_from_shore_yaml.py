@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import yaml
 
 from libecalc.dto import Asset
-from libecalc.presentation.yaml.model import PyYamlYamlModel
+from libecalc.presentation.yaml.model import PyYamlYamlModel, YamlModel
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 
 
@@ -11,24 +13,24 @@ def ltp_pfs_yaml_factory(
     input_text = f"""
     START: 2025-01-01
     END: 2030-01-01
-    FACILITY_INPUT:
+    FACILITY_INPUTS:
       - NAME: generator_energy_function
-        FILE: data/einput/genset_17MW.csv
+        FILE: 'genset_17MW.csv'
         TYPE: ELECTRICITY2FUEL
       - NAME: pfs_energy_function
-        FILE: data/einput/onshore_power.csv
+        FILE: 'onshore_power.csv'
         TYPE: ELECTRICITY2FUEL
     FUEL_TYPES:
-    - NAME: fuel1
-      EMISSIONS:
-      - NAME: co2
-        FACTOR: 2
-      - NAME: ch4
-        FACTOR: 0.005
-      - NAME: nmvoc
-        FACTOR: 0.002
-      - NAME: nox
-        FACTOR: 0.001
+      - NAME: fuel1
+        EMISSIONS:
+        - NAME: co2
+          FACTOR: 2
+        - NAME: ch4
+          FACTOR: 0.005
+        - NAME: nmvoc
+          FACTOR: 0.002
+        - NAME: nox
+          FACTOR: 0.001
 
     INSTALLATIONS:
     - NAME: minimal_installation
@@ -62,5 +64,7 @@ def ltp_pfs_yaml_factory(
         internal_datamodel=yaml_text,
         instantiated_through_read=True,
     )
-    yaml_model = map_yaml_to_dto(configuration=configuration, resources={}, name="test")
+    path = Path("/Users/FKB/PycharmProjects/ecalc-engine/libecalc/src/libecalc/fixtures/cases/ltp_export/data/einput")
+    resources = YamlModel._read_resources(yaml_configuration=configuration, working_directory=path)
+    yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources, name="test")
     return yaml_model
