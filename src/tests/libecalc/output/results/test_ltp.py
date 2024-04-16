@@ -454,6 +454,7 @@ def test_power_from_shore():
     power_supply_onshore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=2)
     max_usage_from_shore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=3)
 
+    # In the temporal model, the category is POWER_FROM_SHORE the last three years, within the period 2025 - 2030:
     delta_days = calculate_delta_days(time_vector_yearly)[2:5]
 
     # Check that power from shore consumption is correct
