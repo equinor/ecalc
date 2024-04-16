@@ -361,7 +361,7 @@ class PowerSupplyOnshoreQuery(Query):
                                 fill_length=len(installation_graph.variables_map.time_vector),
                             )
 
-                            fuel_consumer_result.power.values = fuel_consumer_result.power.values + cable_loss
+                            fuel_consumer_result.power.values = fuel_consumer_result.power.values * (1 + cable_loss)
 
                             cumulative_volumes_gwh = (
                                 TimeSeriesRate.from_timeseries_stream_day_rate(

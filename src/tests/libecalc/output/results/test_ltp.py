@@ -442,7 +442,7 @@ def test_power_from_shore():
     variables = dto.VariablesMap(time_vector=time_vector_yearly, variables={})
     regularity = 0.2
     load = 10
-    cable_loss = 0.8
+    cable_loss = 0.1
     max_from_shore = 12
 
     model = ltp_pfs_yaml_factory(
@@ -460,9 +460,7 @@ def test_power_from_shore():
     assert power_from_shore_consumption == sum([load * days * regularity * 24 / 1000 for days in delta_days])
 
     # Check that power supply onshore is power from shore consumption + cable loss
-    assert power_supply_onshore == power_from_shore_consumption + sum(
-        [cable_loss * days * regularity * 24 / 1000 for days in delta_days]
-    )
+    assert power_supply_onshore == sum([load * (1 + cable_loss) * days * regularity * 24 / 1000 for days in delta_days])
 
     # Check that max usage from shore is just a report of the input
     assert max_usage_from_shore == max_from_shore * 3
