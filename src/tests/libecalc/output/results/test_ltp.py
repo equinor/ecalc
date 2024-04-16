@@ -439,20 +439,33 @@ def test_power_from_shore():
 
     time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
 
-    variables = dto.VariablesMap(time_vector=time_vector_yearly, variables={})
+    dto.VariablesMap(time_vector=time_vector_yearly, variables={})
     regularity = 0.2
     load = 10
     cable_loss = 0.1
     max_from_shore = 12
 
-    model = ltp_pfs_yaml_factory(
+    model, variables_map = ltp_pfs_yaml_factory(
         regularity=regularity, cable_loss=cable_loss, max_usage_from_shore=max_from_shore, load_direct_consumer=load
     )
 
-    ltp_result = get_consumption(model=model, variables=variables, time_vector=time_vector_yearly)
+    model_cable_loss_csv, variables_map_csv = ltp_pfs_yaml_factory(
+        regularity=regularity,
+        cable_loss="CABLE_LOSS;CABLE_LOSS_FACTOR",
+        max_usage_from_shore=max_from_shore,
+        load_direct_consumer=load,
+    )
+
+    ltp_result = get_consumption(model=model, variables=variables_map, time_vector=time_vector_yearly)
+    ltp_result_csv = get_consumption(
+        model=model_cable_loss_csv, variables=variables_map_csv, time_vector=time_vector_yearly
+    )
+
     power_from_shore_consumption = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=1)
     power_supply_onshore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=2)
     max_usage_from_shore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=3)
+
+    power_supply_onshore_csv = get_sum_ltp_column(ltp_result=ltp_result_csv, installation_nr=0, ltp_column_nr=2)
 
     # In the temporal model, the category is POWER_FROM_SHORE the last three years, within the period 2025 - 2030:
     delta_days = calculate_delta_days(time_vector_yearly)[2:5]
@@ -465,3 +478,6 @@ def test_power_from_shore():
 
     # Check that max usage from shore is just a report of the input
     assert max_usage_from_shore == max_from_shore * 3
+
+    # Check that reading cable loss from csv-file gives same result as using constant
+    assert power_supply_onshore == power_supply_onshore_csv

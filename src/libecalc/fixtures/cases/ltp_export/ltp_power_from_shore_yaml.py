@@ -2,9 +2,11 @@ from pathlib import Path
 
 import yaml
 
-from libecalc.dto import Asset
+from libecalc.common.time_utils import Frequency
+from libecalc.dto import Asset, ResultOptions, VariablesMap
 from libecalc.expression.expression import ExpressionType
-from libecalc.fixtures.cases.ltp_export.data import einput
+from libecalc.fixtures.cases.ltp_export import data
+from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.model import PyYamlYamlModel, YamlModel
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 
@@ -14,16 +16,20 @@ def ltp_pfs_yaml_factory(
     cable_loss: ExpressionType,
     max_usage_from_shore: ExpressionType,
     load_direct_consumer: float,
-) -> Asset:
+) -> [Asset, VariablesMap]:
     input_text = f"""
     START: 2025-01-01
     END: 2030-01-01
+    TIME_SERIES:
+      - NAME: CABLE_LOSS
+        TYPE: DEFAULT
+        FILE: sim/cable_loss.csv
     FACILITY_INPUTS:
       - NAME: generator_energy_function
-        FILE: 'genset_17MW.csv'
+        FILE: 'einput/genset_17MW.csv'
         TYPE: ELECTRICITY2FUEL
       - NAME: pfs_energy_function
-        FILE: 'onshore_power.csv'
+        FILE: 'einput/onshore_power.csv'
         TYPE: ELECTRICITY2FUEL
     FUEL_TYPES:
       - NAME: fuel1
@@ -70,7 +76,17 @@ def ltp_pfs_yaml_factory(
         instantiated_through_read=True,
     )
 
-    path = Path(einput.__path__._path[0])
+    path = Path(data.__path__._path[0])
     resources = YamlModel._read_resources(yaml_configuration=configuration, working_directory=path)
+    variables = map_yaml_to_variables(
+        configuration,
+        resources=resources,
+        result_options=ResultOptions(
+            start=configuration.start,
+            end=configuration.end,
+            output_frequency=Frequency.YEAR,
+        ),
+    )
+
     yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources, name="test")
-    return yaml_model
+    return yaml_model, variables
