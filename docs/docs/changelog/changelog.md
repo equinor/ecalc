@@ -1,5 +1,34 @@
 # Changelog
 
+## [8.13.0](https://github.com/equinor/ecalc/compare/v8.12.0...v8.13.0) (2024-04-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* add type and multiple emissions for venting emitters ([#424](https://github.com/equinor/ecalc/issues/424))
+
+### Bug Fixes
+
+* a few things that were left out when the failure_status were refactored ([#432](https://github.com/equinor/ecalc/issues/432)) ([1e4acce](https://github.com/equinor/ecalc/commit/1e4acced3c41b628b133811c345a5488e5eeea8d))
+
+
+### Documentation
+
+* add changelog for 8.12 release ([effaf85](https://github.com/equinor/ecalc/commit/effaf851241fa9a88143b8187767a6faeb6fd316))
+* correct links for LOAD and FUELRATE keywords ([#428](https://github.com/equinor/ecalc/issues/428)) ([1df541a](https://github.com/equinor/ecalc/commit/1df541ae858104f23814c7c495fddb177f9c5e54))
+* update changelog and migration guide for v8.4 ([#430](https://github.com/equinor/ecalc/issues/430)) ([5f74621](https://github.com/equinor/ecalc/commit/5f7462190a4311db941fb44506228571363a56d5))
+
+
+### Miscellaneous Chores
+
+* add type and multiple emissions for venting emitters ([#424](https://github.com/equinor/ecalc/issues/424)) ([4603dc4](https://github.com/equinor/ecalc/commit/4603dc4a6940661ca8c5d14778c1cdf65a941f76))
+* update documentation to reflect that None is not a valid choice for pressure control ([#427](https://github.com/equinor/ecalc/issues/427)) ([6ff1f2a](https://github.com/equinor/ecalc/commit/6ff1f2a63632c66df49781ea0060f8b487ae20e5))
+
+
+### Tests
+
+* add test for total power ([#433](https://github.com/equinor/ecalc/issues/433)) ([a79e44e](https://github.com/equinor/ecalc/commit/a79e44e3bbdaf5b72d539ea491f8414599c37b3c))
+
 ## [8.12.0](https://github.com/equinor/ecalc/compare/v8.11.0...v8.12.0) (2024-04-04)
 
 
