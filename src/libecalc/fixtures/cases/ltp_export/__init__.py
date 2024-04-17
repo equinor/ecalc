@@ -4,6 +4,9 @@ import pytest
 
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.case_utils import YamlCaseLoader
+from libecalc.fixtures.cases.ltp_export.ltp_power_from_shore_yaml import (
+    ltp_pfs_yaml_factory,
+)
 
 """
 Test project for LTP Export

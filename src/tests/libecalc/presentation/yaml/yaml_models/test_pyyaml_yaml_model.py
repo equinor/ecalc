@@ -72,3 +72,6 @@ class TestYamlValidation:
                 ),
             }
         )
+
+    def test_valid_dto_cases(self, valid_example_case_dto_case):
+        valid_example_case_dto_case.ecalc_model.model_validate(valid_example_case_dto_case.ecalc_model)

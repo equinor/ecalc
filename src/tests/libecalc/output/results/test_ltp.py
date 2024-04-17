@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -6,6 +7,7 @@ from libecalc import dto
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.fixtures.cases import ltp_export
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
     expected_ch4_from_diesel,
@@ -33,9 +35,6 @@ from libecalc.fixtures.cases.ltp_export.installation_setup import (
 )
 from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
     ltp_oil_loaded_yaml_factory,
-)
-from libecalc.fixtures.cases.ltp_export.ltp_power_from_shore_yaml import (
-    ltp_pfs_yaml_factory,
 )
 from libecalc.fixtures.cases.ltp_export.utilities import (
     get_consumption,
@@ -434,7 +433,7 @@ def test_electrical_and_mechanical_power_installation():
     assert power_fuel_driven_compressor == power_mechanical_installation
 
 
-def test_power_from_shore():
+def test_power_from_shore(ltp_pfs_yaml_factory):
     """Test power from shore output for LTP export."""
 
     time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
@@ -445,20 +444,28 @@ def test_power_from_shore():
     cable_loss = 0.1
     max_from_shore = 12
 
-    model, variables_map = ltp_pfs_yaml_factory(
-        regularity=regularity, cable_loss=cable_loss, max_usage_from_shore=max_from_shore, load_direct_consumer=load
+    dto_case = ltp_pfs_yaml_factory(
+        regularity=regularity,
+        cable_loss=cable_loss,
+        max_usage_from_shore=max_from_shore,
+        load_direct_consumer=load,
+        path=Path(ltp_export.__path__[0]),
     )
 
-    model_cable_loss_csv, variables_map_csv = ltp_pfs_yaml_factory(
+    dto_case.ecalc_model.model_validate(dto_case.ecalc_model)
+    dto_case_csv = ltp_pfs_yaml_factory(
         regularity=regularity,
         cable_loss="CABLE_LOSS;CABLE_LOSS_FACTOR",
         max_usage_from_shore=max_from_shore,
         load_direct_consumer=load,
+        path=Path(ltp_export.__path__[0]),
     )
 
-    ltp_result = get_consumption(model=model, variables=variables_map, time_vector=time_vector_yearly)
+    ltp_result = get_consumption(
+        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=time_vector_yearly
+    )
     ltp_result_csv = get_consumption(
-        model=model_cable_loss_csv, variables=variables_map_csv, time_vector=time_vector_yearly
+        model=dto_case_csv.ecalc_model, variables=dto_case.variables, time_vector=time_vector_yearly
     )
 
     power_from_shore_consumption = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=1)
