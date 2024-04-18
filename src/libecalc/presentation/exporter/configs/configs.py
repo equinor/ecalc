@@ -20,6 +20,8 @@ from libecalc.presentation.exporter.queries import (
     EmissionQuery,
     FuelConsumerPowerConsumptionQuery,
     FuelQuery,
+    MaxUsageFromShoreQuery,
+    PowerSupplyOnshoreQuery,
 )
 
 """
@@ -631,6 +633,22 @@ class LTPConfig(ResultConfig):
                     title="Total Electricity Consumed From Power-From-Shore",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=ElectricityGeneratedQuery(
+                        producer_categories=["POWER-FROM-SHORE"],
+                    ),
+                ),
+                Applier(
+                    name="powerSupplyOnshore",
+                    title="Power Supply Onshore",
+                    unit=Unit.GIGA_WATT_HOURS,
+                    query=PowerSupplyOnshoreQuery(
+                        producer_categories=["POWER-FROM-SHORE"],
+                    ),
+                ),
+                Applier(
+                    name="fromShorePeakMaximum",
+                    title="Max Usage from Shore",
+                    unit=Unit.GIGA_WATT_HOURS,
+                    query=MaxUsageFromShoreQuery(
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
