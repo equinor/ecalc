@@ -1,11 +1,12 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, model_validator
 from typing_extensions import Annotated
 
 from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
+from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import (
     YamlElectricityConsumer,
@@ -39,6 +40,14 @@ class YamlGeneratorSet(YamlBase):
         description="Specifies the correlation between the electric power delivered and the fuel burned by a "
         "generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/ELECTRICITY2FUEL",
     )
+    cable_loss: Optional[ExpressionType] = Field(
+        None, title="CABLE_LOSS", description="Cable loss from shore, fraction of from shore consumption"
+    )
+    max_usage_from_shore: Optional[ExpressionType] = Field(
+        None,
+        title="MAX_USAGE_FROM_SHORE",
+        description="The peak load/effect that is expected for one hour, per year (MW)",
+    )
     consumers: List[
         Annotated[
             Union[
@@ -53,3 +62,21 @@ class YamlGeneratorSet(YamlBase):
         title="CONSUMERS",
         description="Consumers getting electrical power from the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/CONSUMERS",
     )
+
+    @model_validator(mode="after")
+    def check_power_from_shore(self):
+        if self.cable_loss is not None or self.max_usage_from_shore is not None:
+            if isinstance(self.category, ConsumerUserDefinedCategoryType):
+                if self.category is not ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
+                    raise ValueError(
+                        f"{self.cable_loss.title} and {self.max_usage_from_shore.title} are only valid for the "
+                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}, not for "
+                        f"{self.category}."
+                    )
+            else:
+                if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in self.category.values():
+                    raise ValueError(
+                        f"{self.cable_loss.title} and {self.max_usage_from_shore.title} are only valid for the "
+                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}."
+                    )
+        return self

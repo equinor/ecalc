@@ -300,6 +300,14 @@ class GeneratorSet(BaseEquipment):
             Field(discriminator="component_type"),
         ]
     ] = Field(default_factory=list)
+    cable_loss: Optional[ExpressionType] = Field(
+        None,
+        title="CABLE_LOSS",
+        description="Power loss in cables from shore. " "Used to calculate onshore delivery/power supply onshore.",
+    )
+    max_usage_from_shore: Optional[ExpressionType] = Field(
+        None, title="MAX_USAGE_FROM_SHORE", description="The peak load/effect that is expected for one hour, per year."
+    )
     _validate_genset_temporal_models = field_validator("generator_set_model", "fuel")(validate_temporal_model)
 
     @field_validator("user_defined_category", mode="before")

@@ -1,10 +1,13 @@
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 import pytest
 from libecalc import dto
+from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.fixtures.cases import ltp_export
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
     expected_ch4_from_diesel,
@@ -428,3 +431,61 @@ def test_electrical_and_mechanical_power_installation():
     # Verify that electrical power equals genset power, and mechanical power equals power from gas driven compressor:
     assert power_generator_set == power_electrical_installation
     assert power_fuel_driven_compressor == power_mechanical_installation
+
+
+def test_power_from_shore(ltp_pfs_yaml_factory):
+    """Test power from shore output for LTP export."""
+
+    time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
+
+    dto.VariablesMap(time_vector=time_vector_yearly, variables={})
+    regularity = 0.2
+    load = 10
+    cable_loss = 0.1
+    max_from_shore = 12
+
+    dto_case = ltp_pfs_yaml_factory(
+        regularity=regularity,
+        cable_loss=cable_loss,
+        max_usage_from_shore=max_from_shore,
+        load_direct_consumer=load,
+        path=Path(ltp_export.__path__[0]),
+    )
+
+    dto_case.ecalc_model.model_validate(dto_case.ecalc_model)
+
+    dto_case_csv = ltp_pfs_yaml_factory(
+        regularity=regularity,
+        cable_loss="CABLE_LOSS;CABLE_LOSS_FACTOR",
+        max_usage_from_shore=max_from_shore,
+        load_direct_consumer=load,
+        path=Path(ltp_export.__path__[0]),
+    )
+
+    ltp_result = get_consumption(
+        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=time_vector_yearly
+    )
+    ltp_result_csv = get_consumption(
+        model=dto_case_csv.ecalc_model, variables=dto_case.variables, time_vector=time_vector_yearly
+    )
+
+    power_from_shore_consumption = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=1)
+    power_supply_onshore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=2)
+    max_usage_from_shore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=3)
+
+    power_supply_onshore_csv = get_sum_ltp_column(ltp_result=ltp_result_csv, installation_nr=0, ltp_column_nr=2)
+
+    # In the temporal model, the category is POWER_FROM_SHORE the last three years, within the period 2025 - 2030:
+    delta_days = calculate_delta_days(time_vector_yearly)[2:5]
+
+    # Check that power from shore consumption is correct
+    assert power_from_shore_consumption == sum([load * days * regularity * 24 / 1000 for days in delta_days])
+
+    # Check that power supply onshore is power from shore consumption * (1 + cable loss)
+    assert power_supply_onshore == sum([load * (1 + cable_loss) * days * regularity * 24 / 1000 for days in delta_days])
+
+    # Check that max usage from shore is just a report of the input
+    assert max_usage_from_shore == max_from_shore * 3
+
+    # Check that reading cable loss from csv-file gives same result as using constant
+    assert power_supply_onshore == power_supply_onshore_csv
