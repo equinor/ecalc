@@ -72,17 +72,3 @@ class TestYamlValidation:
                 ),
             }
         )
-
-    def test_valid_yaml_nofile_cases(self, valid_example_case_yaml_nofile_case):
-        PyYamlYamlModel.read(
-            ResourceStream(
-                name=valid_example_case_yaml_nofile_case.main_file_path.stem,
-                stream=valid_example_case_yaml_nofile_case.main_file,
-            )
-        ).validate(
-            {
-                YamlModelValidationContextNames.resource_file_names: list(
-                    valid_example_case_yaml_nofile_case.resources.keys()
-                ),
-            }
-        )

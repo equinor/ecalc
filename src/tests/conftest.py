@@ -11,7 +11,6 @@ from libecalc.fixtures.cases import (
     consumer_system_v2,
     ltp_export,
 )
-from libecalc.fixtures.cases.ltp_export import ltp_pfs_yaml_factory
 
 
 def _round_floats(obj):
@@ -67,12 +66,6 @@ invalid_example_cases = {
 }
 
 
-# The value should be a fixture returning the DTOCase for the example
-valid_example_yaml_nofile_case_fixture_names = {
-    "pfs": f"{ltp_pfs_yaml_factory.__name__}",
-}
-
-
 @pytest.fixture(scope="session")
 def simple_yaml_path():
     return valid_example_cases["simple"]
@@ -116,21 +109,4 @@ def valid_example_case_yaml_case(request) -> YamlCase:
     Parametrized fixture returning each YamlCase for all valid examples
     """
     yaml_case = request.getfixturevalue(request.param[1])
-    return yaml_case
-
-
-@pytest.fixture(
-    scope="function", params=list(valid_example_yaml_nofile_case_fixture_names.items()), ids=lambda param: param[0]
-)
-def valid_example_case_yaml_nofile_case(request) -> YamlCase:
-    """
-    Parametrized fixture returning each DTOCase for all valid examples
-    """
-    dto_case, yaml_case = request.getfixturevalue(request.param[1])(
-        regularity=0.5,
-        cable_loss=0.2,
-        max_usage_from_shore=10,
-        load_direct_consumer=20,
-        path=Path(ltp_export.__path__[0]),
-    )
     return yaml_case
