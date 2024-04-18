@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 from libecalc import dto
@@ -7,6 +8,7 @@ from libecalc.common.utils.rates import RateType
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
+from libecalc.fixtures.cases import venting_emitters
 from libecalc.fixtures.cases.ltp_export.utilities import (
     get_consumption,
     get_sum_ltp_column,
@@ -173,17 +175,9 @@ def test_venting_emitters_direct_multiple_emissions_ltp():
     Check that multiple emissions are calculated correctly for venting emitter of type DIRECT_EMISSION.
     """
 
-    time_vector = [
-        datetime(2027, 1, 1),
-        datetime(2028, 1, 1),
-        datetime(2029, 1, 1),
-    ]
-    delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
-
-    variables = dto.VariablesMap(time_vector=time_vector, variables={})
     regularity = 0.2
     emission_rates = [10, 5]
-    venting_emitter_multiple_emissions = venting_emitter_yaml_factory(
+    dto_case = venting_emitter_yaml_factory(
         emission_rates=emission_rates,
         regularity=regularity,
         units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
@@ -192,9 +186,17 @@ def test_venting_emitters_direct_multiple_emissions_ltp():
         emission_keyword_name="EMISSIONS",
         categories=["COLD-VENTING-FUGITIVE"],
         names=["Venting emitter 1"],
+        path=Path(venting_emitters.__path__[0]),
     )
 
-    ltp_result = get_consumption(model=venting_emitter_multiple_emissions, variables=variables, time_vector=time_vector)
+    delta_days = [
+        (time_j - time_i).days
+        for time_i, time_j in zip(dto_case.variables.time_vector[:-1], dto_case.variables.time_vector[1:])
+    ]
+
+    ltp_result = get_consumption(
+        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
+    )
 
     ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     co2_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
@@ -207,19 +209,13 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
     """
     Check that multiple emissions are calculated correctly for venting emitter of type OIL_VOLUME.
     """
-    time_vector = [
-        datetime(2027, 1, 1),
-        datetime(2028, 1, 1),
-        datetime(2029, 1, 1),
-    ]
-    delta_days = [(time_j - time_i).days for time_i, time_j in zip(time_vector[:-1], time_vector[1:])]
 
-    variables = dto.VariablesMap(time_vector=time_vector, variables={})
     regularity = 0.2
     emission_factors = [0.1, 0.1]
     oil_rates = [100]
 
-    venting_emitter_multiple_emissions = venting_emitter_yaml_factory(
+    path = Path(venting_emitters.__path__[0])
+    dto_case = venting_emitter_yaml_factory(
         regularity=regularity,
         units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
         emission_names=["ch4", "nmvoc"],
@@ -229,12 +225,22 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
         names=["Venting emitter 1"],
         emission_factors=emission_factors,
         oil_rates=oil_rates,
+        path=path,
     )
 
-    ltp_result = get_consumption(model=venting_emitter_multiple_emissions, variables=variables, time_vector=time_vector)
+    delta_days = [
+        (time_j - time_i).days
+        for time_i, time_j in zip(dto_case.variables.time_vector[:-1], dto_case.variables.time_vector[1:])
+    ]
+
+    ltp_result = get_consumption(
+        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
+    )
 
     ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     nmvoc_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
+    oil_volume = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
 
     assert ch4_emissions == sum(oil_rates[0] * days * regularity * emission_factors[0] / 1000 for days in delta_days)
     assert nmvoc_emissions == sum(oil_rates[0] * days * regularity * emission_factors[1] / 1000 for days in delta_days)
+    assert oil_volume == pytest.approx(sum(oil_rates[0] * days * regularity for days in delta_days) / 1000, abs=1e-5)
