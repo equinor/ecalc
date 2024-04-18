@@ -19,6 +19,9 @@ from libecalc.common.utils.rates import (
 from libecalc.core.result import GeneratorSetResult
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingType,
+)
 
 
 class Query(abc.ABC):
@@ -179,7 +182,7 @@ class VolumeQuery(Query):
                     if (
                         self.consumer_categories is None
                         or venting_emitter.user_defined_category in self.consumer_categories
-                    ):
+                    ) and venting_emitter.type == YamlVentingType.OIL_VOLUME:
                         oil_volumes_values = Expression.evaluate(
                             convert_expression(venting_emitter.volume.rate.value),
                             variables=installation_graph.variables_map.variables,
