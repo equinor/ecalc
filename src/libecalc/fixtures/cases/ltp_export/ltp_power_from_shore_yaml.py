@@ -1,3 +1,4 @@
+from io import StringIO
 from pathlib import Path
 
 import pytest
@@ -6,7 +7,7 @@ import yaml
 from libecalc.common.time_utils import Frequency
 from libecalc.dto import ResultOptions
 from libecalc.expression.expression import ExpressionType
-from libecalc.fixtures.case_types import DTOCase
+from libecalc.fixtures.case_types import DTOCase, YamlCase
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.model import PyYamlYamlModel, YamlModel
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
@@ -20,7 +21,7 @@ def ltp_pfs_yaml_factory():
         max_usage_from_shore: ExpressionType,
         load_direct_consumer: float,
         path: Path,
-    ) -> DTOCase:
+    ) -> [DTOCase, YamlCase]:
         input_text = f"""
         START: 2025-01-01
         END: 2030-01-01
@@ -92,8 +93,10 @@ def ltp_pfs_yaml_factory():
                 output_frequency=Frequency.YEAR,
             ),
         )
-
+        file_string = StringIO(input_text)
         yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources, name="ltp_export")
-        return DTOCase(ecalc_model=yaml_model, variables=variables)
+        yaml_case = YamlCase(resources=resources, main_file=file_string, main_file_path=path)
+        dto_case = DTOCase(ecalc_model=yaml_model, variables=variables)
+        return dto_case, yaml_case
 
     return _ltp_pfs_yaml_factory

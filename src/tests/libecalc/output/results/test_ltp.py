@@ -444,7 +444,7 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
     cable_loss = 0.1
     max_from_shore = 12
 
-    dto_case = ltp_pfs_yaml_factory(
+    dto_case, yaml_case = ltp_pfs_yaml_factory(
         regularity=regularity,
         cable_loss=cable_loss,
         max_usage_from_shore=max_from_shore,
@@ -453,7 +453,7 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
     )
 
     dto_case.ecalc_model.model_validate(dto_case.ecalc_model)
-    dto_case_csv = ltp_pfs_yaml_factory(
+    dto_case_csv, yaml_case_csv = ltp_pfs_yaml_factory(
         regularity=regularity,
         cable_loss="CABLE_LOSS;CABLE_LOSS_FACTOR",
         max_usage_from_shore=max_from_shore,
