@@ -1,11 +1,15 @@
+from pathlib import Path
 from typing import List
 
 import yaml
 
+from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.dto import Asset
-from libecalc.presentation.yaml.model import PyYamlYamlModel
+from libecalc.dto import ResultOptions
+from libecalc.fixtures.case_types import DTOCase
+from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
+from libecalc.presentation.yaml.model import PyYamlYamlModel, YamlModel
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
@@ -18,6 +22,7 @@ def venting_emitter_yaml_factory(
     emission_names: List[str],
     regularity: float,
     names: List[str],
+    path: Path,
     emission_rates: List[float] = None,
     emitter_types: List[str] = None,
     categories: List[str] = None,
@@ -27,7 +32,7 @@ def venting_emitter_yaml_factory(
     units_oil_rates: List[Unit] = None,
     include_emitters: bool = True,
     include_fuel_consumers: bool = True,
-) -> Asset:
+) -> DTOCase:
     if categories is None:
         categories = ["STORAGE"] * len(names)
     if emitter_types is None:
@@ -50,14 +55,18 @@ def venting_emitter_yaml_factory(
     """
 
     input_text = f"""
+        FACILITY_INPUTS:
+          - NAME: generator_energy_function
+            FILE: '../ltp_export/data/einput/genset_17MW.csv'
+            TYPE: ELECTRICITY2FUEL
         FUEL_TYPES:
         - NAME: fuel
           EMISSIONS:
           - NAME: co2
             FACTOR: 2
 
-        START: 2020-01-01
-        END: 2023-01-01
+        START: 2027-01-01
+        END: 2029-01-01
 
         INSTALLATIONS:
         - NAME: minimal_installation
@@ -81,8 +90,19 @@ def venting_emitter_yaml_factory(
         internal_datamodel=yaml_text,
         instantiated_through_read=True,
     )
-    yaml_model = map_yaml_to_dto(configuration=configuration, resources={}, name="test")
-    return yaml_model
+    resources = YamlModel._read_resources(yaml_configuration=configuration, working_directory=path)
+    variables = map_yaml_to_variables(
+        configuration,
+        resources=resources,
+        result_options=ResultOptions(
+            start=configuration.start,
+            end=configuration.end,
+            output_frequency=Frequency.YEAR,
+        ),
+    )
+
+    yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources, name="venting_emitters")
+    return DTOCase(ecalc_model=yaml_model, variables=variables)
 
 
 def create_fuel_consumers(include_fuel_consumers: bool) -> str:

@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import pytest
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.fixtures.cases import venting_emitters
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
@@ -22,6 +25,7 @@ def test_wrong_keyword_name_emitters():
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION2",
             names=["Venting emitter 1"],
+            path=Path(venting_emitters.__path__[0]),
         )
 
     assert ("EMISSION2:\tThis is not a valid keyword") in str(exc.value)
@@ -42,6 +46,7 @@ def test_wrong_unit_emitters():
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSIONS",
             names=["Venting emitter 1"],
+            path=Path(venting_emitters.__path__[0]),
         )
 
     assert (
