@@ -48,7 +48,6 @@ valid_example_cases = {
 
 # The value should be the name of a fixture returning the YamlCase for the example
 valid_example_yaml_case_fixture_names = {
-    "pfs": f"{ltp_pfs_yaml_factory.__name__}",
     "simple": "simple_yaml",
     "simple_temporal": "simple_temporal_yaml",
     "advanced": "advanced_yaml",
