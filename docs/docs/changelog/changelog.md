@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.14.0](https://github.com/equinor/ecalc/compare/v8.13.0...v8.14.0) (2024-04-18)
+
+
+### Features
+
+* new PfS columns ([#429](https://github.com/equinor/ecalc/issues/429)) ([a6b198e](https://github.com/equinor/ecalc/commit/a6b198efa45a6caf7464d2d1dc0d2509d5d76541))
+
+
+### Miscellaneous Chores
+
+* update libeCalc deps for 8.14 release ([#436](https://github.com/equinor/ecalc/issues/436)) ([3184a30](https://github.com/equinor/ecalc/commit/3184a30decb1299a3fe80760d81933b43fa5fef0))
+
 ## [8.13.0](https://github.com/equinor/ecalc/compare/v8.12.0...v8.13.0) (2024-04-15)
 
 
