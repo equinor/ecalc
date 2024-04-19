@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.15.0](https://github.com/equinor/ecalc/compare/v8.14.0...v8.15.0) (2024-04-19)
+
+
+### Bug Fixes
+
+* add volume query for venting emitters oil type ([8cca29a](https://github.com/equinor/ecalc/commit/8cca29a3ec49ba16915ea86ce8c030f879750242))
+
+
+### Miscellaneous Chores
+
+* check that the emitter type is oil_volume ([1f9e00b](https://github.com/equinor/ecalc/commit/1f9e00b8f6504832f785be3dbda7eeedc15bbab7))
+
 ## [8.14.0](https://github.com/equinor/ecalc/compare/v8.13.0...v8.14.0) (2024-04-18)
 
 
