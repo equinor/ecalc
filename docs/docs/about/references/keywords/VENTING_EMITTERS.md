@@ -81,7 +81,9 @@ VENTING_EMITTERS:
 ~~~~~~~~
 
 ## eCalc from version 8.13: Description
-The attributes [NAME](/about/references/keywords/NAME.md), [CATEGORY](/about/references/keywords/CATEGORY.md) and [TYPE](/about/references/keywords/TYPE.md) are required. The venting emitter type can be either DIRECT_EMISSION or OIL_VOLUME.
+The keywords [NAME](/about/references/keywords/NAME.md), [CATEGORY](/about/references/keywords/CATEGORY.md) and [TYPE](/about/references/keywords/TYPE.md) are required. The venting emitter type can be either DIRECT_EMISSION or OIL_VOLUME.
+
+The keywords [EMISSIONS](/about/references/keywords/EMISSIONS.md) or [VOLUME](/about/references/keywords/VOLUME.md) are required, dependent on which venting emitter type is used. 
 
 Venting emitter of [TYPE](/about/references/keywords/TYPE.md) DIRECT_EMISSION: Specify emission rates directly.
 
