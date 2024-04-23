@@ -26,6 +26,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
+    YamlOilVolumeRate,
 )
 
 
@@ -101,9 +102,9 @@ def test_venting_emitter_oil_volume(variables_map):
         category=ConsumerUserDefinedCategoryType.LOADING,
         type=YamlVentingType.OIL_VOLUME.value,
         volume=YamlVentingVolume(
-            rate=YamlEmissionRate(
+            rate=YamlOilVolumeRate(
                 value="TSC1;Oil_rate",
-                unit=Unit.KILO_PER_DAY,
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 type=RateType.STREAM_DAY,
             ),
             emissions=[
@@ -218,6 +219,7 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
     dto_case = venting_emitter_yaml_factory(
         regularity=regularity,
         units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
+        units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY, Unit.STANDARD_CUBIC_METER_PER_DAY],
         emission_names=["ch4", "nmvoc"],
         emitter_types=["OIL_VOLUME"],
         rate_types=[RateType.STREAM_DAY],
@@ -243,4 +245,4 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
 
     assert ch4_emissions == sum(oil_rates[0] * days * regularity * emission_factors[0] / 1000 for days in delta_days)
     assert nmvoc_emissions == sum(oil_rates[0] * days * regularity * emission_factors[1] / 1000 for days in delta_days)
-    assert oil_volume == pytest.approx(sum(oil_rates[0] * days * regularity for days in delta_days) / 1000, abs=1e-5)
+    assert oil_volume == pytest.approx(sum(oil_rates[0] * days * regularity for days in delta_days), abs=1e-5)
