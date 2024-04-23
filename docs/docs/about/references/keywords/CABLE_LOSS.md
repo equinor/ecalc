@@ -11,7 +11,7 @@ Fraction, describing power loss from shore. Used to calculate actual power suppl
 
 ~~~~~~~~yaml
 
-CABLE_LOSS: <file or value>
+CABLE_LOSS: <expression or value>
 ~~~~~~~~
 
 ## Examples

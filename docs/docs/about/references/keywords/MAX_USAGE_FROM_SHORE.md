@@ -11,7 +11,7 @@ The peak load/effect that is expected for one hour, per year (MW). Relevant only
 
 ~~~~~~~~yaml
 
-MAX_USAGE_FROM_SHORE: <file or value>
+MAX_USAGE_FROM_SHORE: <expression or value>
 ~~~~~~~~
 
 ## Examples
