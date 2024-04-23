@@ -211,7 +211,6 @@ class VolumeQuery(Query):
 
                 reindexed_result = (
                     TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit_in)
-                    .to_unit(Unit.KILO)
                     .to_unit(unit)
                     .reindex(time_steps)
                     .fill_nan(0)
