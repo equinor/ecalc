@@ -218,6 +218,7 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
     dto_case = venting_emitter_yaml_factory(
         regularity=regularity,
         units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
+        units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY, Unit.STANDARD_CUBIC_METER_PER_DAY],
         emission_names=["ch4", "nmvoc"],
         emitter_types=["OIL_VOLUME"],
         rate_types=[RateType.STREAM_DAY],
@@ -243,4 +244,4 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
 
     assert ch4_emissions == sum(oil_rates[0] * days * regularity * emission_factors[0] / 1000 for days in delta_days)
     assert nmvoc_emissions == sum(oil_rates[0] * days * regularity * emission_factors[1] / 1000 for days in delta_days)
-    assert oil_volume == pytest.approx(sum(oil_rates[0] * days * regularity for days in delta_days) / 1000, abs=1e-5)
+    assert oil_volume == pytest.approx(sum(oil_rates[0] * days * regularity for days in delta_days), abs=1e-5)

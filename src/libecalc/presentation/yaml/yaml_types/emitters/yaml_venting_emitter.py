@@ -30,6 +30,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
+    YamlOilVolumeRate,
 )
 
 
@@ -50,7 +51,7 @@ class YamlVentingVolumeEmission(YamlBase):
 
 
 class YamlVentingVolume(YamlBase):
-    rate: YamlEmissionRate = Field(..., title="RATE", description="The oil loading/storage volume or volume/rate")
+    rate: YamlOilVolumeRate = Field(..., title="RATE", description="The oil loading/storage volume or volume/rate")
     emissions: List[YamlVentingVolumeEmission] = Field(
         ...,
         title="EMISSIONS",
@@ -222,7 +223,9 @@ class YamlOilTypeEmitter(YamlBase):
                 .tolist()
             )
             emission_rate = [oil_rate * factor for oil_rate, factor in zip(oil_rates, factors)]
-            emission_rate = Unit.to(self.volume.rate.unit, Unit.TONS_PER_DAY)(emission_rate)
+
+            # Emission factor is kg/Sm3 and oil rate/volume is Sm3/d. Hence, the emission rate is in kg/d:
+            emission_rate = Unit.to(Unit.KILO_PER_DAY, Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,

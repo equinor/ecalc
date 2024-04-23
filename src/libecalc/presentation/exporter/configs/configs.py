@@ -603,8 +603,8 @@ class LTPConfig(ResultConfig):
                 ),
                 Applier(
                     name="loadedAndStoredOil",  # TODO: Get correct Centuries name here
-                    title="Total Oil Loaded/Stored new",
-                    unit=Unit.TONS,
+                    title="Total Oil Loaded/Stored",
+                    unit=Unit.STANDARD_CUBIC_METER,
                     query=VolumeQuery(
                         installation_category="FIXED",
                         consumer_categories=["LOADING"],
