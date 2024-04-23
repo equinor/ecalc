@@ -11,13 +11,13 @@ New definition of VENTING_EMITTERS from eCalc v8.13!
 
 | Required   | Child of                  | Children/Options                   |
 |------------|---------------------------|------------------------------------|
-| Yes        | `INSTALLATIONS`      | `NAME` <br /> `EMISSION_NAME`  <br />  `CATEGORY`  <br />  `EMITTER_MODEL`    |
+| Yes        | `INSTALLATIONS`      | `NAME` <br /> `EMISSION_NAME`  <br />  `CATEGORY`  <br />  `EMITTER_MODEL`   <br />  `EMISSIONS`  <br />  `VOLUME` |
 
 :::important
-- eCalc version 8.13: Updated definition of VENTING_EMITTERS. New mandatory keyword TYPE is defining the venting emitter type. Based on the selected type, the new keywords EMISSIONS (TYPE: DIRECT_EMISSION) or VOLUME (TYPE: OIL_VOLUME) should be specified.
-- eCalc version 8.8: Updated definition of VENTING_EMITTERS. New keyword [EMISSION](/about/references/keywords/EMISSION.md) is replacing [EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) and [EMISSION_NAME](/about/references/keywords/EMISSION_NAME.md). Now possible to define `UNIT` and `TYPE` for emission rate.  
+- eCalc version 8.13: Updated definition of `VENTING_EMITTERS`. New mandatory keyword [TYPE](/about/references/keywords/TYPE.md) is defining the venting emitter type. Based on the selected type, the new keywords [EMISSIONS](/about/references/keywords/EMISSIONS.md) (`TYPE`: `DIRECT_EMISSION`) or [VOLUME](/about/references/keywords/VOLUME.md) (`TYPE`: `OIL_VOLUME`) should be specified.
+- eCalc version 8.8: Updated definition of `VENTING_EMITTERS`. New keyword [EMISSION](/about/references/keywords/EMISSION.md) is replacing [EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) and [EMISSION_NAME](/about/references/keywords/EMISSION_NAME.md). Now possible to define `UNIT` and `TYPE` for emission rate.  
 - eCalc version 8.7: [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md) keyword is replacing the [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md) keyword.
-- eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
+- eCalc version 8.6 and earlier: Use `DIRECT_EMITTERS` as before.
 :::
 
 
@@ -81,11 +81,11 @@ VENTING_EMITTERS:
 ~~~~~~~~
 
 ## eCalc from version 8.13: Description
-The keywords [NAME](/about/references/keywords/NAME.md), [CATEGORY](/about/references/keywords/CATEGORY.md) and [TYPE](/about/references/keywords/TYPE.md) are required. The venting emitter type can be either DIRECT_EMISSION or OIL_VOLUME.
+The keywords [NAME](/about/references/keywords/NAME.md), [CATEGORY](/about/references/keywords/CATEGORY.md) and [TYPE](/about/references/keywords/TYPE.md) are required. The venting emitter type can be either `DIRECT_EMISSION` or `OIL_VOLUME`.
 
 The keywords [EMISSIONS](/about/references/keywords/EMISSIONS.md) or [VOLUME](/about/references/keywords/VOLUME.md) are required, dependent on which venting emitter type is used. 
 
-Venting emitter of [TYPE](/about/references/keywords/TYPE.md) DIRECT_EMISSION: Specify emission rates directly.
+Venting emitter of [TYPE](/about/references/keywords/TYPE.md) `DIRECT_EMISSION`: Specify emission rates directly.
 
 ## Format
 ~~~~~~~~yaml
@@ -117,7 +117,7 @@ VENTING_EMITTERS:
           TYPE: STREAM_DAY
 ~~~~~~~~
 
-Venting emitter of [TYPE](/about/references/keywords/TYPE.md) OIL_VOLUME: Specify oil loading/storage volumes, and emission factors - to calculate emissions as fractions of the volume.
+Venting emitter of [TYPE](/about/references/keywords/TYPE.md) `OIL_VOLUME`: Specify oil loading/storage volumes, and emission factors - to calculate emissions as fractions of the volume.
 
 ## Format
 ~~~~~~~~yaml
