@@ -1,7 +1,7 @@
 # VENTING_EMITTERS
 
 <span className="major-change-new-feature"> 
-New definition of VENTING_EMITTERS from eCalc v8.8!
+New definition of VENTING_EMITTERS from eCalc v8.13!
 </span> 
 <br></br>
 
@@ -14,6 +14,7 @@ New definition of VENTING_EMITTERS from eCalc v8.8!
 | Yes        | `INSTALLATIONS`      | `NAME` <br /> `EMISSION_NAME`  <br />  `CATEGORY`  <br />  `EMITTER_MODEL`    |
 
 :::important
+- eCalc version 8.13: Updated definition of VENTING_EMITTERS. New mandatory keyword TYPE is defining the venting emitter type. Based on the selected type, the new keywords EMISSIONS (TYPE: DIRECT_EMISSION) or VOLUME (TYPE: OIL_VOLUME) should be specified.
 - eCalc version 8.8: Updated definition of VENTING_EMITTERS. New keyword [EMISSION](/about/references/keywords/EMISSION.md) is replacing [EMITTER_MODEL](/about/references/keywords/EMITTER_MODEL.md) and [EMISSION_NAME](/about/references/keywords/EMISSION_NAME.md). Now possible to define `UNIT` and `TYPE` for emission rate.  
 - eCalc version 8.7: [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md) keyword is replacing the [DIRECT_EMITTERS](/about/references/keywords/DIRECT_EMITTERS.md) keyword.
 - eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
@@ -77,4 +78,72 @@ VENTING_EMITTERS:
     CATEGORY: COLD-VENTING-FUGITIVE
     EMISSION:
       <emission data>
+~~~~~~~~
+
+## eCalc from version 8.13: Description
+The keywords [NAME](/about/references/keywords/NAME.md), [CATEGORY](/about/references/keywords/CATEGORY.md) and [TYPE](/about/references/keywords/TYPE.md) are required. The venting emitter type can be either DIRECT_EMISSION or OIL_VOLUME.
+
+The keywords [EMISSIONS](/about/references/keywords/EMISSIONS.md) or [VOLUME](/about/references/keywords/VOLUME.md) are required, dependent on which venting emitter type is used. 
+
+Venting emitter of [TYPE](/about/references/keywords/TYPE.md) DIRECT_EMISSION: Specify emission rates directly.
+
+## Format
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: <emitter name>
+    CATEGORY: <category>
+    TYPE: DIRECT_EMISSION
+    EMISSIONS:
+      <emission data>
+
+~~~~~~~~
+
+## Example
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: SomeVentingEmitter
+    CATEGORY: COLD-VENTING-FUGITIVE
+    TYPE: DIRECT_EMISSION
+    EMISSIONS:
+      - NAME: co2
+        RATE:
+          VALUE: 4
+          UNIT: kg/d
+          TYPE: STREAM_DAY
+      - NAME: ch4
+        RATE:
+          VALUE: 2
+          UNIT: kg/d
+          TYPE: STREAM_DAY
+~~~~~~~~
+
+Venting emitter of [TYPE](/about/references/keywords/TYPE.md) OIL_VOLUME: Specify oil loading/storage volumes, and emission factors - to calculate emissions as fractions of the volume.
+
+## Format
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: <emitter name>
+    CATEGORY: <category>
+    TYPE: OIL_VOLUME
+    VOLUME:
+      <oil volumes/rates and emission factors>
+
+~~~~~~~~
+
+## Example
+~~~~~~~~yaml
+VENTING_EMITTERS:
+  - NAME: SomeVentingEmitter
+    CATEGORY: COLD-VENTING-FUGITIVE
+    TYPE: OIL_VOLUME
+    VOLUME:
+      RATE:
+        VALUE: 10
+        UNIT: Sm3/d
+        TYPE: STREAM_DAY
+      EMISSIONS:
+      - NAME: co2
+        EMISSION_FACTOR: 0.04
+      - NAME: ch4
+        EMISSION_FACTOR: 0.02
 ~~~~~~~~
