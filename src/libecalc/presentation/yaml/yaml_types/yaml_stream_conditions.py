@@ -29,6 +29,13 @@ class YamlEmissionRate(YamlTimeSeries):
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
 
+class YamlOilVolumeRate(YamlTimeSeries):
+    model_config = ConfigDict(title="Rate")
+
+    unit: Literal[Unit.STANDARD_CUBIC_METER_PER_DAY]
+    type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
+
+
 class YamlPressure(YamlTimeSeries):
     model_config = ConfigDict(title="Pressure")
 
