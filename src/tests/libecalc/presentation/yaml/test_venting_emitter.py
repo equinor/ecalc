@@ -222,6 +222,20 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
         units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY, Unit.STANDARD_CUBIC_METER_PER_DAY],
         emission_names=["ch4", "nmvoc"],
         emitter_types=["OIL_VOLUME"],
+        rate_types=[RateType.CALENDAR_DAY],
+        categories=["LOADING"],
+        names=["Venting emitter 1"],
+        emission_factors=emission_factors,
+        oil_rates=oil_rates,
+        path=path,
+    )
+
+    dto_case_stream_day = venting_emitter_yaml_factory(
+        regularity=regularity,
+        units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
+        units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY, Unit.STANDARD_CUBIC_METER_PER_DAY],
+        emission_names=["ch4", "nmvoc"],
+        emitter_types=["OIL_VOLUME"],
         rate_types=[RateType.STREAM_DAY],
         categories=["LOADING"],
         names=["Venting emitter 1"],
@@ -239,10 +253,23 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
         model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
     )
 
+    ltp_result_stream_day = get_consumption(
+        model=dto_case_stream_day.ecalc_model,
+        variables=dto_case_stream_day.variables,
+        time_vector=dto_case_stream_day.variables.time_vector,
+    )
+
     ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
     nmvoc_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
     oil_volume = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
 
-    assert ch4_emissions == sum(oil_rates[0] * days * regularity * emission_factors[0] / 1000 for days in delta_days)
-    assert nmvoc_emissions == sum(oil_rates[0] * days * regularity * emission_factors[1] / 1000 for days in delta_days)
-    assert oil_volume == pytest.approx(sum(oil_rates[0] * days * regularity for days in delta_days), abs=1e-5)
+    oil_volume_stream_day = get_sum_ltp_column(ltp_result_stream_day, installation_nr=0, ltp_column_nr=2)
+
+    assert ch4_emissions == sum(oil_rates[0] * days * emission_factors[0] / 1000 for days in delta_days)
+    assert nmvoc_emissions == sum(oil_rates[0] * days * emission_factors[1] / 1000 for days in delta_days)
+    assert oil_volume == pytest.approx(sum(oil_rates[0] * days for days in delta_days), abs=1e-5)
+
+    # Check that oil volume is including regularity correctly:
+    # Oil volume (input rate in stream day) / oil volume (input rates calendar day) = regularity.
+    # Given that the actual rate input values are the same.
+    assert oil_volume_stream_day / oil_volume == regularity
