@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.15.1](https://github.com/equinor/ecalc/compare/v8.15.0...v8.15.1) (2024-04-23)
+
+
+### Miscellaneous Chores
+
+* change volume-unit venting emitters ([#442](https://github.com/equinor/ecalc/issues/442)) ([d25428f](https://github.com/equinor/ecalc/commit/d25428f43a9223b941ac5a9476b4a03b8e3fd653))
+
 ## [8.15.0](https://github.com/equinor/ecalc/compare/v8.14.0...v8.15.0) (2024-04-19)
 
 
