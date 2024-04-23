@@ -26,6 +26,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
+    YamlOilVolumeRate,
 )
 
 
@@ -101,9 +102,9 @@ def test_venting_emitter_oil_volume(variables_map):
         category=ConsumerUserDefinedCategoryType.LOADING,
         type=YamlVentingType.OIL_VOLUME.value,
         volume=YamlVentingVolume(
-            rate=YamlEmissionRate(
+            rate=YamlOilVolumeRate(
                 value="TSC1;Oil_rate",
-                unit=Unit.KILO_PER_DAY,
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 type=RateType.STREAM_DAY,
             ),
             emissions=[
