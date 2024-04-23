@@ -36,6 +36,10 @@ will depend on where [TYPE](/about/references/keywords/TYPE.md) is used:
 - `COMPRESSOR_WITH_TURBINE`
 - `SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN`
 
+### Use in [VENTING_EMITTERS](/about/references/keywords/VENTING_EMITTERS.md) from v8.13
+- `DIRECT_EMISSION`
+- `OIL_VOLUME`
+
 ## Format
 ~~~~~~~~yaml
 TYPE: <type>
