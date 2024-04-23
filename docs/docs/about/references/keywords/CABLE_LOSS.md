@@ -5,7 +5,7 @@
 
 ## Description
 
-Fraction, describing power loss from shore. Used to calculate actual power supply onshore.
+Fraction, describing power loss from shore. Used to calculate actual power supply onshore. Relevant only for generatorsets of [CATEGORY](/about/references/keywords/CATEGORY.md) `POWER-FROM-SHORE`.
 
 ## Format
 

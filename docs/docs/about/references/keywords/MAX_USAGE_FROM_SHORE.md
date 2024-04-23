@@ -5,7 +5,7 @@
 
 ## Description
 
-The peak load/effect that is expected for one hour, per year (MW).
+The peak load/effect that is expected for one hour, per year (MW). Relevant only for generatorsets of [CATEGORY](/about/references/keywords/CATEGORY.md) `POWER-FROM-SHORE`.
 
 ## Format
 
