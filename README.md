@@ -11,7 +11,7 @@
 # eCalc™
 eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing.
 
-> **Note**
+> **Notessss**
 >
 > eCalc™ is a work in progress and is by no means considered a finished and final product. We currently recommend to use the YAML API when using eCalc, and only
 > fallback to the Python API when it is strictly needed.
