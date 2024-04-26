@@ -13,6 +13,9 @@ jobs:
   publish-docs:
     runs-on: ubuntu-latest
 
+    environment:
+      name: docs-prod
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -31,7 +34,7 @@ jobs:
 
     - name: Install deps
       run: poetry install --no-interaction
-    
+
     - name: Generate CLI reference
       run: |
         cd src
@@ -56,8 +59,6 @@ jobs:
         poetry run python make-api-reference.py
 
     - name: Push static files to Github Pages branch
-      environment:
-        name: docs-prod
       run: |
         cd docs/build
         CREATED_FROM_REF=$(git rev-parse --short HEAD)
