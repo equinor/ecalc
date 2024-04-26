@@ -56,6 +56,8 @@ jobs:
         poetry run python make-api-reference.py
 
     - name: Push static files to Github Pages branch
+      environment:
+        name: docs-prod
       run: |
         cd docs/build
         CREATED_FROM_REF=$(git rev-parse --short HEAD)
