@@ -135,7 +135,7 @@ Any emissions that do not fall within the defined categories can still be consid
 
 #### Generator Set
 
-As eCalc™ does not indepthly model gas turbine generators, alternative methods are used. 
+As eCalc™ does not model gas turbine generators in depth, alternative methods are used. 
 Here, fuel consumed and power generated is related in tabular form. These are typically linear relationships, and if more than one generator is used, "generator switching" is modelled by adding another generator curve on top of the existing.
 
 This means that the facility will operate in the most efficient manner, i.e. meaning that if one generator will satisfy the power demand, only one generator will always be used. 
