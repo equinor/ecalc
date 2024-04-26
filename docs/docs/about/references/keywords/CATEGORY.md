@@ -62,7 +62,7 @@ CATEGORY: <CATEGORY>
 ## Example
 
 ~~~~~~~~yaml
-- NAME: name_of_my_electrical_consumer
+- NAME: name_of_electrical_consumer
   CATEGORY: FIXED-PRODUCTION-LOAD
   ENERGY_USAGE_MODEL:
     LOAD: 5
