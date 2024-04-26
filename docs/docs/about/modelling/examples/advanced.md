@@ -4,7 +4,7 @@ title: Advanced model
 description: An advanced model using consumer systems and two installations
 ---
 # Advanced model example
-This is a model very similar to [Simple example](/about/modelling/examples/simple.md). The main difference is the use of more advanced
+This is a model very similar to [Simple example](/about/modelling/examples/simple.mdx). The main difference is the use of more advanced
 energy usage models and consumer systems, and the addition of a second installation.
 
 Both installations exports oil (`OIL_PROD`) and gas (`GAS_PROD`).

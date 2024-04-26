@@ -1,8 +1,13 @@
----
-sidebar_position: 1
-title: Simple model
-description: A simple model with a single installation
----
+import CodeLinesFromFile from "../../../../src/components/CodeLinesFromFile";
+import CodeBlock from '@theme/CodeBlock';
+import compressorSampledCsv from '!!raw-loader!./simple/compressor_sampled.csv';
+import compressorSampledWithTurbineCsv from '!!raw-loader!./simple/compressor_sampled_with_turbine.csv';
+import genset from '!!raw-loader!./simple/genset.csv';
+import productionData from '!!raw-loader!./simple/production_data.csv';
+import pumpChart from '!!raw-loader!./simple/pump_chart.csv';
+import pumpSampled from '!!raw-loader!./simple/pump_sampled.csv';
+import yamlModel from '!!raw-loader!./simple/model.yaml';
+
 # Simple model example
 The following is an example with one installation called `Installation A` that exports oil (`OIL_PROD`) and gas (`GAS_PROD`).
 The installation emits CO<sub>2</sub>.
@@ -67,12 +72,7 @@ The reservoir variables, in this case, are found in a CSV (Comma separated file)
 We give the time-series data a name that can be referenced as variables elsewhere in the form `<NAME>:<NAME OF COLUMN>`.
 See [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) for further details.
 
-~~~~~~~~yaml title="model.yaml"
-TIME_SERIES:
-  - NAME: SIM
-    FILE: production_data.csv
-    TYPE: DEFAULT
-~~~~~~~~
+<CodeLinesFromFile title="model.yaml" start={1} end={4} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## FACILITY_INPUTS
 We specify CSV input data for processing equipment using FACILITY_INPUTS. This is used for generatorsets,
@@ -85,40 +85,13 @@ Note that more complicated energy models are defined under the [MODELS-keyword](
 
 See the input data further down to understand the input formats.
 
-~~~~~~~~yaml title="model.yaml"
-FACILITY_INPUTS:
-  - NAME: genset
-    FILE: genset.csv
-    TYPE: ELECTRICITY2FUEL
-  - NAME: compressor_sampled
-    FILE: compressor_sampled.csv
-    TYPE: COMPRESSOR_TABULAR
-  - NAME: compressor_with_turbine_sampled
-    FILE: compressor_sampled_with_turbine.csv
-    TYPE: COMPRESSOR_TABULAR
-  - NAME: pump_sampled
-    FILE: pump_sampled.csv
-    TYPE: TABULAR
-  - NAME: pump_chart
-    FILE: pump_chart.csv
-    TYPE: PUMP_CHART_SINGLE_SPEED
-    UNITS:
-      HEAD: M
-      RATE: AM3_PER_HOUR
-      EFFICIENCY: PERCENTAGE
-~~~~~~~~
+<CodeLinesFromFile title="model.yaml" start={5} end={24} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## FUEL_TYPES
 In this example there is only one [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) - `fuel_gas`. The emissions we model with the fuel is CO<sub>2</sub>. The CO<sub>2</sub> factor
 is 2.19 kg CO2 per Sm<sup>3</sup> fuel gas burned.
 
-~~~~~~~~yaml title="model.yaml"
-FUEL_TYPES:
-  - NAME: fuel_gas
-    EMISSIONS:
-      - NAME: CO2
-        FACTOR: 2.19 #CO2/Sm3 fuel gas burned
-~~~~~~~~
+<CodeLinesFromFile title="model.yaml" start={26} end={30} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## VARIABLES
 To run the model it is recommended to specify [VARIABLES](/about/references/keywords/VARIABLES.md),
@@ -127,26 +100,7 @@ by allowing descriptive variable names and avoid duplications.
 
 For our model, we specify the following variables:
 
-~~~~~~~~yaml title="model.yaml"
-VARIABLES:
-  hydrocarbon_export_sm3_per_day:
-    VALUE: SIM;OIL_PROD {+} SIM;GAS_PROD {/} 1000  # divide the gas rate by 1000 to get oil equivalent
-  sea_water_injection_rate_m3_per_day:
-    VALUE: SIM;WATER_INJ {-} SIM;WATER_PROD {+} SIM;WATER_PROD {*} (SIM;WATER_PROD < 1500) {+} (SIM;WATER_PROD {-} 17000) {*} (SIM;WATER_PROD > 17000) {*} (SIM;WATER_PROD < 18500)
-  gas_export_rate_sm3_per_day:
-    VALUE: SIM;GAS_PROD
-  gas_injection_rate_sm3_per_day:
-    VALUE: SIM;GAS_INJ {+} SIM;GAS_LIFT
-  produced_water_reinjection_condition:
-    VALUE: SIM;WATER_PROD > 1500
-  produced_water_reinjection_total_system_rate_m3_per_day:
-    VALUE: SIM;WATER_PROD
-  flare_fuel_rate_sm3_day:
-    1995-10-01:
-      VALUE: 10000
-    2005-01-01:
-      VALUE: 7000
-~~~~~~~~
+<CodeLinesFromFile title="model.yaml" start={32} end={49} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 We reference the [TIME_SERIES](#time_series) `SIM` using the column names from the CSV file. Here we use for example
 `SIM:OIL_PROD` (Field Oil Production Rate) `SIM:GAS_PROD` (Field Gas Sales Rate).
@@ -227,45 +181,21 @@ We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/a
 
 `Base production load` has a constant load of 11.8 MW:
 
-~~~~~~~~yaml
-          - NAME: Base production load
-            CATEGORY: BASE-LOAD
-            ENERGY_USAGE_MODEL:
-              TYPE: DIRECT
-              LOAD: 11.8 # MW
-~~~~~~~~
+<CodeLinesFromFile title="model.yaml" start={60} end={64} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Gas injection compressor` is represented by a tabulated (sampled) energy usage model defining the relationship
 between the gas injection rate [Sm<sup>3</sup>/day] and the corresponding power requirement. The gas rate is already defined
 in the variable [gas_injection_rate_sm3_per_day](#variables) as `SIM;GAS_INJ {+} SIM;GAS_LIFT`:
-~~~~~~~~yaml
-          - NAME: Gas injection compressor
-            CATEGORY: COMPRESSOR
-            ENERGY_USAGE_MODEL:
-              TYPE: COMPRESSOR
-              ENERGYFUNCTION: compressor_sampled
-              RATE: $var.gas_injection_rate_sm3_per_day
-              SUCTION_PRESSURE: 50 #not used but a number is needed for eCalc
-              DISCHARGE_PRESSURE: 200 #not used but a number is needed for eCalc
-~~~~~~~~
+
+<CodeLinesFromFile title="model.yaml" start={65} end={72} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Produced water reinjection pump` is variable and its energy function is dependent on the field's water
 production rate (`WATER_PROD`) that is set in the variable [produced_water_reinjection_condition](#variables) as `SIM;WATER_PROD`.
 The pump only runs when the variables [produced_water_reinjection_condition](#variables) evaluates to true as `SIM;WATER_PROD > 1500`.
 This is when the water production is above 1500 Sm3/day. Fluid density, suction pressure and discharge pressure
 is also defined:
-~~~~~~~~yaml
-          - NAME: Produced water reinjection pump
-            CATEGORY: PUMP
-            ENERGY_USAGE_MODEL:
-              TYPE: PUMP
-              CONDITION: $var.produced_water_reinjection_condition
-              ENERGYFUNCTION: pump_chart
-              RATE: $var.produced_water_reinjection_total_system_rate_m3_per_day
-              FLUID_DENSITY: 1010
-              SUCTION_PRESSURE: 10  # [bara]
-              DISCHARGE_PRESSURE: 200  # [bara]
-~~~~~~~~
+
+<CodeLinesFromFile title="model.yaml" start={73} end={82} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Sea water injection pump` has an energy function that is dependent on the seawater injection rate.
 This rate is not modeled explicitly in the reservoir input source, but it may be computed
@@ -283,230 +213,32 @@ from the injection (`WATER_INJ`) and production (`WATER_PROD`) rate by the follo
 This is specified as the variable [sea_water_injection_rate_m3_per_day](#variables) above and is defined as:
 
 The model is specified:
-~~~~~~~~yaml
-          - NAME: Sea water injection pump
-            CATEGORY: PUMP
-            ENERGY_USAGE_MODEL:
-              TYPE: TABULATED
-              ENERGYFUNCTION: pump_sampled
-              VARIABLES:
-                - NAME: RATE
-                  EXPRESSION: $var.sea_water_injection_rate_m3_per_day
-~~~~~~~~
+
+<CodeLinesFromFile title="model.yaml" start={83} end={90} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 The flare is changing on the 1st of January 2005. Therefore, we need to use a different constant
 fuel consumption value before and after this date. This is done using the variable [flare_fuel_rate_sm3_day](#variables)
 above.
 
 The model is specified:
-~~~~~~~~yaml
-      - NAME: Flare
-        CATEGORY: FLARE
-        ENERGY_USAGE_MODEL:
-          TYPE: DIRECT
-          FUELRATE: $var.flare_fuel_rate_sm3_day
-~~~~~~~~
+
+<CodeLinesFromFile title="model.yaml" start={92} end={96} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 Gasexport is a variable fuel consumer whose energy function depends on the field gas sales rate (`GAS_PROD`) defined
 in the variable [gas_export_rate_sm3_per_day](#variables) as `SIM;GAS_PROD`. Even though it is not used in the eCalc model, suction and discharge pressure needs to be specified in order for the model to run. 
 
 The model is specified:
-~~~~~~~~yaml
-      - NAME: Gas export compressor
-        CATEGORY: COMPRESSOR
-        ENERGY_USAGE_MODEL:
-          TYPE: GAS-DRIVEN-COMPRESSOR
-          ENERGYFUNCTION: compressor_with_turbine_sampled
-          RATE: $var.gas_export_rate_sm3_per_day
-          SUCTION_PRESSURE: 50 #not used but a number is needed for eCalc
-          DISCHARGE_PRESSURE: 200 #not used but a number is needed for eCalc
-~~~~~~~~
+
+<CodeLinesFromFile title="model.yaml" start={97} end={104} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## Full eCalc YAML model
-~~~~~~~~yaml title="model.yaml"
-TIME_SERIES:
-  - NAME: SIM
-    FILE: production_data.csv
-    TYPE: DEFAULT
-FACILITY_INPUTS:
-  - NAME: genset
-    FILE: genset.csv
-    TYPE: ELECTRICITY2FUEL
-  - NAME: compressor_sampled
-    FILE: compressor_sampled.csv
-    TYPE: COMPRESSOR_TABULAR
-  - NAME: compressor_with_turbine_sampled
-    FILE: compressor_sampled_with_turbine.csv
-    TYPE: COMPRESSOR_TABULAR
-  - NAME: pump_sampled
-    FILE: pump_sampled.csv
-    TYPE: TABULAR
-  - NAME: pump_chart
-    FILE: pump_chart.csv
-    TYPE: PUMP_CHART_SINGLE_SPEED
-    UNITS:
-      HEAD: M
-      RATE: AM3_PER_HOUR
-      EFFICIENCY: PERCENTAGE
 
-FUEL_TYPES:
-  - NAME: fuel_gas
-    EMISSIONS:
-      - NAME: CO2
-        FACTOR: 2.19  # CO2/Sm3 fuel gas burned
-
-VARIABLES:
-  hydrocarbon_export_sm3_per_day:
-    VALUE: SIM;OIL_PROD {+} SIM;GAS_PROD {/} 1000  # divide the gas rate by 1000 to get oil equivalent
-  sea_water_injection_rate_m3_per_day:
-    VALUE: SIM;WATER_INJ {-} SIM;WATER_PROD {+} SIM;WATER_PROD {*} (SIM;WATER_PROD < 1500) {+} (SIM;WATER_PROD {-} 17000) {*} (SIM;WATER_PROD > 17000) {*} (SIM;WATER_PROD < 18500)
-  gas_export_rate_sm3_per_day:
-    VALUE: SIM;GAS_PROD
-  gas_injection_rate_sm3_per_day:
-    VALUE: SIM;GAS_INJ {+} SIM;GAS_LIFT
-  produced_water_reinjection_condition:
-    VALUE: SIM;WATER_PROD > 1500
-  produced_water_reinjection_total_system_rate_m3_per_day:
-    VALUE: SIM;WATER_PROD
-  flare_fuel_rate_sm3_day:
-    1995-10-01:
-      VALUE: 10000
-    2005-01-01:
-      VALUE: 7000
-
-INSTALLATIONS:
-  - NAME: Installation A
-    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
-    FUEL: fuel_gas
-    GENERATORSETS:
-      - NAME: Generator set A
-        ELECTRICITY2FUEL: genset
-        CATEGORY: TURBINE-GENERATOR
-        CONSUMERS:
-          - NAME: Base production load
-            CATEGORY: BASE-LOAD
-            ENERGY_USAGE_MODEL:
-              TYPE: DIRECT
-              LOAD: 11.8 # MW
-          - NAME: Gas injection compressor
-            CATEGORY: COMPRESSOR
-            ENERGY_USAGE_MODEL:
-              TYPE: COMPRESSOR
-              ENERGYFUNCTION: compressor_sampled
-              RATE: $var.gas_injection_rate_sm3_per_day
-              SUCTION_PRESSURE: 50 #not used but a number is needed for eCalc
-              DISCHARGE_PRESSURE: 200 #not used but a number is needed for eCalc
-          - NAME: Produced water reinjection pump
-            CATEGORY: PUMP
-            ENERGY_USAGE_MODEL:
-              TYPE: PUMP
-              CONDITION: $var.produced_water_reinjection_condition
-              ENERGYFUNCTION: pump_chart
-              RATE: $var.produced_water_reinjection_total_system_rate_m3_per_day
-              FLUID_DENSITY: 1010
-              SUCTION_PRESSURE: 10  # bara
-              DISCHARGE_PRESSURE: 200  # bara
-          - NAME: Sea water injection pump
-            CATEGORY: PUMP
-            ENERGY_USAGE_MODEL:
-              TYPE: TABULATED
-              ENERGYFUNCTION: pump_sampled
-              VARIABLES:
-                - NAME: RATE
-                  EXPRESSION: $var.sea_water_injection_rate_m3_per_day
-    FUELCONSUMERS:
-      - NAME: Flare
-        CATEGORY: FLARE
-        ENERGY_USAGE_MODEL:
-          TYPE: DIRECT
-          FUELRATE: $var.flare_fuel_rate_sm3_day
-      - NAME: Gas export compressor
-        CATEGORY: GAS-DRIVEN-COMPRESSOR
-        ENERGY_USAGE_MODEL:
-          TYPE: COMPRESSOR
-          ENERGYFUNCTION: compressor_with_turbine_sampled
-          RATE: $var.gas_export_rate_sm3_per_day
-          SUCTION_PRESSURE: 50 #not used but a number is needed for eCalc
-          DISCHARGE_PRESSURE: 200 #not used but a number is needed for eCalc
-~~~~~~~~
+<CodeBlock title="model.yaml" language="yaml">{yamlModel}</CodeBlock>
 
 ## Input files
-~~~~~~~~text title="compressor_sampled.csv"
-RATE,POWER
-#[Sm3/day],[MW]
-0,0
-1,4.1
-100000000,4.1
-200000000,4.1
-210000000,4.1
-220000000,4.4
-230000000,4.8
-240000000,5.1
-250000000,5.4
-260000000,5.8
-270000000,6.1
-280000000,6.4
-290000000,6.8
-300000000,7.1
-500000000,14.2
-~~~~~~~~
-
-~~~~~~~~text title="compressor_sampled_with_turbine.csv"
-RATE,FUEL
-#[Sm3/day],[Sm3/day]
-0,0
-0.1,50000
-3000000,50000
-3500000,130000
-7000000,170000
-~~~~~~~~
-
-~~~~~~~~text title="genset.csv"
-POWER,FUEL
-#[MW],[Sm3/day]
-0,     0
-0.1,   65000
-10.0,  75000
-20.0,  126000
-40.0,  250000
-100.0, 750000
-~~~~~~~~
-
-~~~~~~~~text title="pump_chart.csv"
-SPEED,RATE,HEAD,EFFICIENCY
-3250,250,2640,59
-3250,360,2490,68
-3250,500,2342,77
-3250,600,2210,80
-3250,667,2068,78
-3250,735,1870,74
-~~~~~~~~
-
-~~~~~~~~text title="pump_sampled.csv"
-RATE,POWER
-#[Sm3/day],[MW]
-0,0
-1,3
-8500,4
-9000,4
-17000,6
-17500,9
-36000,13
-~~~~~~~~
-
-~~~~~~~~text title="production_data.csv"
-Dates,                  OIL_PROD,  GAS_PROD,    WATER_PROD, WATER_INJ,  GAS_INJ,    GAS_LIFT
-#,                      Sm3/d,     Sm3/d,       m3/d,       m3/d,       Sm3/d,      Sm3/d
-2020-01-01 00:00:00,    9000,       3500000,    18000,      34000,      2200000,    130000
-2021-01-01 00:00:00,    8000,       3600000,    19000,      33000,      2200000,    170000
-2022-01-01 00:00:00,    7000,       3700000,    15000,      30000,      2200000,    210000
-2023-01-01 00:00:00,    6000,       3800000,    16000,      33000,      2300000,    240000
-2024-01-01 00:00:00,    6000,       3900000,    14000,      35000,      2300000,    280000
-2024-12-01 00:00:00,    6000,       4000000,    15000,      36000,      2400000,    310000
-2026-01-01 00:00:00,    7000,       4100000,    18000,      36000,      2400000,    350000
-2027-01-01 00:00:00,    6000,       4500000,    15000,      38000,      2400000,    390000
-2028-01-01 00:00:00,    6000,       3500000,    12000,      33000,      2400000,    430000
-2029-01-01 00:00:00,    5000,       2500000,    14000,      36000,      2400000,    460000
-2030-01-01 00:00:00,    6000,       2000000,    16000,      35000,      2400000,    500000
-2031-01-01 00:00:00,    4000,       3000000,    14000,      33000,      2400000,    530000
-~~~~~~~~
+<CodeBlock title="compressor_sampled.csv">{compressorSampledCsv}</CodeBlock>
+<CodeBlock title="compressor_sampled_with_turbine.csv">{compressorSampledWithTurbineCsv}</CodeBlock>
+<CodeBlock title="genset.csv">{genset}</CodeBlock>
+<CodeBlock title="pump_chart.csv">{pumpChart}</CodeBlock>
+<CodeBlock title="pump_sampled.csv">{pumpSampled}</CodeBlock>
+<CodeBlock title="production_data.csv">{productionData}</CodeBlock>
