@@ -26,7 +26,7 @@ from libecalc.core.models.results import (
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.dto.types import ChartAreaFlag
+from libecalc.dto.types import ChartAreaFlag, PumpFailureStatus
 from libecalc.expression import Expression
 
 
@@ -159,6 +159,7 @@ def pump_model_result() -> PumpModelResult:
         discharge_pressure=[1.0, 2.0, 3.0],
         fluid_density=[1.0, 2.0, 3.0],
         operational_head=[1000, 1000, 1000],
+        failure_status=[PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE],
     )
 
 
@@ -173,6 +174,7 @@ def pump_model_result_2() -> PumpModelResult:
         suction_pressure=[4.0, 5.0, 6.0],
         discharge_pressure=[4.0, 5.0, 6.0],
         fluid_density=[4.0, 5.0, 6.0],
+        failure_status=[PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE, PumpFailureStatus.NO_FAILURE],
     )
 
 

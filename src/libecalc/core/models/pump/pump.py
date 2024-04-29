@@ -14,7 +14,7 @@ from libecalc.core.models.base import BaseModel
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.results import PumpModelResult
 from libecalc.domain.stream_conditions import StreamConditions
-from libecalc.dto.types import PumpFlag
+from libecalc.dto.types import PumpFailureStatus
 
 EPSILON = 1e-15
 
@@ -139,6 +139,8 @@ class PumpVariableSpeed(PumpModel):
         :param discharge_pressures:
         :param fluid_density:
         """
+        failure_status = np.array([PumpFailureStatus.NO_FAILURE.value] * len(rate))
+
         stream_day_rate = np.where(rate > 0, rate, np.nan)
 
         # Reservoir rates: m3/day, pumpchart rates: m3/h
@@ -175,30 +177,49 @@ class PumpVariableSpeed(PumpModel):
             f"Filtered out {len(rates_m3_per_hour) - len(points_in_envelope)} "
             f"points due to being outside envelope for current pump."
         )
+        failure_status = np.where(
+            rates_m3_per_hour > self.pump_chart.maximum_rate,
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE.value,
+            failure_status,
+        )
+        failure_status = np.where(
+            heads > maximum_head_at_rate, PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE.value, failure_status
+        )
+        failure_status = np.where(
+            (heads > maximum_head_at_rate) & (rates_m3_per_hour > self.pump_chart.maximum_rate),
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE.value,
+            failure_status,
+        )
+
+        # is_valid = np.where(pump_flags == PumpFlag.INVALID_ABOVE_MAXIMUM_PUMP_RATE.value, False, True)
+        # is_valid = np.where(pump_flags == PumpFlag.INVALID_ABOVE_MAXIMUM_HEAD_AT_RATE.value, False, is_valid)
+        # is_valid = np.where(
+        #    pump_flags == PumpFlag.INVALID_ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE.value, False, is_valid
+        # )
 
         power_before_efficiency_is_applied = np.full_like(rates_m3_per_hour, fill_value=np.nan)
         power_after_efficiency_is_applied = power_before_efficiency_is_applied.copy()
-        if points_in_envelope.size:
-            logger.debug(f"Calculating power and efficiency for {len(points_in_envelope)} points inside envelope.")
-            # Calculate power for points within working area of pump(s)
-            power_before_efficiency_is_applied[points_in_envelope] = self._calculate_power(
-                densities=fluid_density[points_in_envelope],
-                heads_joule_per_kg=heads[points_in_envelope],
-                rates=rates_m3_per_hour[points_in_envelope],
-                efficiencies=1,
+
+        logger.debug(f"Calculating power and efficiency for {len(points_in_envelope)} points inside envelope.")
+        # Calculate power for points within working area of pump(s)
+        power_before_efficiency_is_applied = self._calculate_power(
+            densities=fluid_density,
+            heads_joule_per_kg=heads,
+            rates=rates_m3_per_hour,
+            efficiencies=1,
+        )
+
+        if not self.pump_chart.is_100_percent_efficient:
+            # If we do not have 100% (...) efficiency for pumps,
+            # interpolate and find efficiency based on input pump chart
+
+            efficiencies = np.full_like(power_after_efficiency_is_applied, fill_value=np.nan)
+            efficiencies = self.pump_chart.efficiency_as_function_of_rate_and_head(
+                rates=rates_m3_per_hour,
+                heads=heads,
             )
 
-            if not self.pump_chart.is_100_percent_efficient:
-                # If we do not have 100% (...) efficiency for pumps,
-                # interpolate and find efficiency based on input pump chart
-
-                efficiencies = np.full_like(power_after_efficiency_is_applied, fill_value=np.nan)
-                efficiencies[points_in_envelope] = self.pump_chart.efficiency_as_function_of_rate_and_head(
-                    rates=rates_m3_per_hour[points_in_envelope],
-                    heads=heads[points_in_envelope],
-                )
-
-                power_after_efficiency_is_applied = power_before_efficiency_is_applied / efficiencies
+            power_after_efficiency_is_applied = power_before_efficiency_is_applied / efficiencies
 
         # Ensure that the pump does not run when rate is <= 0, while keeping intermediate calculated data for QA.
         power = np.where(rate > 0, power_after_efficiency_is_applied, 0)
@@ -208,6 +229,7 @@ class PumpVariableSpeed(PumpModel):
             constant=self._energy_usage_adjustment_constant,
             factor=self._energy_usage_adjustment_factor,
         )
+
         pump_result = PumpModelResult(
             energy_usage=list(power_out),
             energy_usage_unit=Unit.MEGA_WATT,
@@ -218,6 +240,7 @@ class PumpVariableSpeed(PumpModel):
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_density),
             operational_head=list(operational_heads),
+            failure_status=list(failure_status),
         )
 
         return pump_result
@@ -289,16 +312,15 @@ class PumpSingleSpeed(PumpModel):
         :param discharge_pressures:
         :param fluid_density:
         """
+        failure_status = np.array([PumpFailureStatus.NO_FAILURE.name] * len(rate))
+
         # Ensure that the pump does not run when rate is <= 0.
         stream_day_rate = np.where(rate > 0, rate, 0)
-        pump_flags = np.where(rate > 0, PumpFlag.INTERNAL_POINT.value, PumpFlag.NEGATIVE_RATE.value)
+
         # Reservoir rates: m3/day, pumpchart rates: m3/h
         rates_m3_per_hour = stream_day_rate / UnitConstants.HOURS_PER_DAY
 
         # Rates less than min to min rate (recirc)
-        pump_flags = np.where(
-            rates_m3_per_hour < self.pump_chart.minimum_rate, PumpFlag.RESIRC_LESS_THAN_MINIMUM_RATE.value, pump_flags
-        )
         rates_m3_per_hour = np.fmax(rates_m3_per_hour, self.pump_chart.minimum_rate)
 
         # Head [J/kg]
@@ -309,28 +331,27 @@ class PumpSingleSpeed(PumpModel):
 
         # Allowed calculation points is where required head is less than or equal to actual pump head
         # and rates are less than or equal to maximum pump rate
-        pump_flags = np.where(
-            rates_m3_per_hour > self.pump_chart.maximum_rate, PumpFlag.INVALID_ABOVE_MAXIMUM_PUMP_RATE.value, pump_flags
+        failure_status = np.where(
+            rates_m3_per_hour > self.pump_chart.maximum_rate,
+            PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE.value,
+            failure_status,
         )
 
-        pump_flags = np.where(
+        failure_status = np.where(
             operational_heads > actual_heads + self._head_margin,
-            PumpFlag.INVALID_REQUIRED_HEAD_ABOVE_ACTUAL_HEAD.value,
-            pump_flags,
+            PumpFailureStatus.REQUIRED_HEAD_ABOVE_ACTUAL_HEAD.value,
+            failure_status,
         )
 
-        allowed_points = np.argwhere(
-            (rates_m3_per_hour <= self.pump_chart.maximum_rate)
-            & (operational_heads <= actual_heads + self._head_margin)
-        )[:, 0]
+        # is_valid = np.where(pump_flags == PumpFlag.INVALID_ABOVE_MAXIMUM_PUMP_RATE.name, False, True)
+        # is_valid = np.where(pump_flags == PumpFlag.INVALID_REQUIRED_HEAD_ABOVE_ACTUAL_HEAD.name, False, is_valid)
 
-        efficiency = self.pump_chart.efficiency_as_function_of_rate(rates_m3_per_hour[allowed_points])
+        efficiency = self.pump_chart.efficiency_as_function_of_rate(rates_m3_per_hour)
 
-        power = np.full_like(rates_m3_per_hour, fill_value=np.nan)
-        power[allowed_points] = self._calculate_power(
-            densities=fluid_density[allowed_points],
-            heads_joule_per_kg=actual_heads[allowed_points],
-            rates=rates_m3_per_hour[allowed_points],
+        power = self._calculate_power(
+            densities=fluid_density,
+            heads_joule_per_kg=actual_heads,
+            rates=rates_m3_per_hour,
             efficiencies=efficiency,
         )
 
@@ -353,6 +374,7 @@ class PumpSingleSpeed(PumpModel):
             discharge_pressure=list(discharge_pressures),
             fluid_density=list(fluid_density),
             operational_head=list(operational_heads),
+            failure_status=list(failure_status),
         )
 
         return pump_result
