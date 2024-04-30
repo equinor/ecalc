@@ -41,7 +41,7 @@ const config: Config = {
       'classic',
       ({
         docs: {
-          sidebarPath: './sidebars.js',
+          sidebarPath: './sidebars.ts',
           editUrl:
             'https://github.com/equinor/ecalc/tree/main/documentation/',
           remarkPlugins: [math],
