@@ -1251,16 +1251,17 @@ class GraphResult:
 
         # When only venting emitters are specified, without a generator set: the installation result is empty.
         # Ensure that the installation regularity is found, even if only venting emitters are defined:
-        regularity_emitters = {
-            installation.id: TimeSeriesFloat(
-                values=TemporalExpression.evaluate(
-                    temporal_expression=TemporalModel(installation.regularity), variables_map=self.variables_map
-                ),
-                unit=Unit.NONE,
-                timesteps=self.variables_map.time_vector,
-            )
-            for installation in asset.installations
-        }
+        if not installation_results:
+            regularities = {
+                installation.id: TimeSeriesFloat(
+                    values=TemporalExpression.evaluate(
+                        temporal_expression=TemporalModel(installation.regularity), variables_map=self.variables_map
+                    ),
+                    unit=Unit.NONE,
+                    timesteps=self.variables_map.time_vector,
+                )
+                for installation in asset.installations
+            }
 
         time_series_zero = TimeSeriesRate(
             values=[0] * self.variables_map.length,
@@ -1281,7 +1282,7 @@ class GraphResult:
                         component_level=ComponentLevel.CONSUMER,
                         parent=installation.id,
                         emissions=self._parse_emissions(
-                            self.emission_results[venting_emitter.id], regularity_emitters[installation.id]
+                            self.emission_results[venting_emitter.id], regularities[installation.id]
                         ),
                         timesteps=self.variables_map.time_vector,
                         is_valid=TimeSeriesBoolean(
@@ -1306,7 +1307,7 @@ class GraphResult:
 
         emission_dto_results = self.convert_to_timeseries(
             self.emission_results,
-            regularity_emitters,
+            regularities,
         )
         asset_aggregated_emissions = aggregate_emissions(list(emission_dto_results.values()))
 
