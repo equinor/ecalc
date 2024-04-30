@@ -17,10 +17,11 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
     RateType,
+    TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
 from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
-from libecalc.dto.utils.validators import ComponentNameStr
+from libecalc.dto.utils.validators import ComponentNameStr, convert_expression
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
@@ -234,6 +235,31 @@ class YamlOilTypeEmitter(YamlBase):
                 unit=Unit.TONS_PER_DAY,
             )
         return emissions
+
+    def get_oil_rates(
+        self,
+        variables_map: VariablesMap,
+        regularity: TimeSeriesFloat,
+    ) -> TimeSeriesStreamDayRate:
+        oil_rates = Expression.evaluate(
+            convert_expression(self.volume.rate.value),
+            variables=variables_map.variables,
+            fill_length=len(variables_map.time_vector),
+        )
+
+        if self.volume.rate.type == RateType.CALENDAR_DAY:
+            oil_rates = Rates.to_stream_day(
+                calendar_day_rates=np.asarray(oil_rates),
+                regularity=regularity.values,
+            ).tolist()
+
+        oil_rates = self.volume.rate.unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
+
+        return TimeSeriesStreamDayRate(
+            timesteps=variables_map.time_vector,
+            values=oil_rates,
+            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+        )
 
     @field_validator("category", mode="before")
     def check_user_defined_category(cls, category, info: ValidationInfo):
