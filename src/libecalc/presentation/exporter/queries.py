@@ -17,7 +17,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesVolumes,
 )
 from libecalc.core.result import GeneratorSetResult
-from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
@@ -183,17 +182,9 @@ class VolumeQuery(Query):
                         self.consumer_categories is None
                         or venting_emitter.user_defined_category in self.consumer_categories
                     ) and venting_emitter.type == YamlVentingType.OIL_VOLUME:
-                        oil_volumes_values = Expression.evaluate(
-                            convert_expression(venting_emitter.volume.rate.value),
-                            variables=installation_graph.variables_map.variables,
-                            fill_length=len(installation_graph.variables_map.time_vector),
+                        oil_volumes = venting_emitter.get_oil_rates(
+                            variables_map=installation_graph.variables_map, regularity=regularity
                         )
-                        oil_volumes = TimeSeriesStreamDayRate(
-                            timesteps=installation_time_steps,
-                            unit=venting_emitter.volume.rate.unit,
-                            values=list(oil_volumes_values),
-                        )
-
                         emission_volumes = TimeSeriesRate.from_timeseries_stream_day_rate(
                             oil_volumes, regularity=regularity
                         ).to_volumes()
