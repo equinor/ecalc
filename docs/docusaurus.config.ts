@@ -128,8 +128,11 @@ const config: Config = {
     } satisfies Preset.ThemeConfig,
   stylesheets: [
     {
-      href: `${baseUrl}/katex/katex.min.css`,
+      href: 'https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js',
       type: 'text/css',
+      integrity:
+        'sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd',
+      crossorigin: 'anonymous',
     },
   ],
   themes: [

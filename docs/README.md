@@ -137,3 +137,10 @@ $ mkdocs serve
 ```
 
 This will open a browser.
+
+## Updating docs
+
+### Stuff that breaks/things to check
+
+- Equations -> Check that the katex css linked in `docusaurus.config.ts` is updated. See docs for more info https://docusaurus.io/docs/markdown-features/math-equations and https://github.com/KaTeX/KaTeX for more up to date cdn instructions.
+- Mermaid diagrams
