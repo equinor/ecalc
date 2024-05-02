@@ -7,6 +7,7 @@ from libecalc import dto
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.dto.result.results import EcalcModelResult
 from libecalc.fixtures.cases import ltp_export, venting_emitters
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
@@ -309,6 +310,12 @@ def test_only_venting_emitters_no_fuelconsumers():
     venting_emitter_results = get_consumption(
         model=dto_case.ecalc_model, variables=variables, time_vector=time_vector_yearly
     )
+
+    # Verify that eCalc, is not failing in get_asset_result, with only venting emitters -
+    # when installation result is empty, i.e. with no genset and fuel consumers:
+    assert isinstance(get_consumption_asset_result(model=dto_case.ecalc_model, variables=variables), EcalcModelResult)
+
+    # Verify correct emissions:
     emissions_ch4 = get_sum_ltp_column(venting_emitter_results, installation_nr=0, ltp_column_nr=0)
     assert emissions_ch4 == (emission_rate / 1000) * 365 * regularity
 
