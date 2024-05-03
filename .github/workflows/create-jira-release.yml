@@ -1,0 +1,25 @@
+name: Create Jira release
+
+on:
+  workflow_call:
+    secrets:
+      JIRA_RELEASE_WEBHOOK:
+        required: true
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+jobs:
+  create-jira-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect and report issues to jira
+        run: |
+          ./scripts/create-jira-release.sh ${{ inputs.tag }} ${{ secrets.JIRA_RELEASE_WEBHOOK }}
