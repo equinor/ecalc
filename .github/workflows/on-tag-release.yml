@@ -1,0 +1,12 @@
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  create-jira-release:
+    secrets:
+      jira_release_webhook: ${{ secrets.JIRA_RELEASE_WEBHOOK }}
+    uses: equinor/ecalc/.github/workflows/create-jira-release.yml@main
+    with:
+      tag: ${GITHUB_REF#refs/tags/}
