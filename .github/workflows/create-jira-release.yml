@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Collect and report issues to jira
         run: |
           ./scripts/create-jira-release.sh ${{ inputs.tag }} ${{ secrets.JIRA_RELEASE_WEBHOOK }}
