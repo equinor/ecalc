@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.15.2](https://github.com/equinor/ecalc/compare/v8.15.1...v8.15.2) (2024-05-03)
+
+
+### Bug Fixes
+
+* update yaml oil type venting emitter ([689443f](https://github.com/equinor/ecalc/commit/689443f566f67e4874a0e8a089d0c61d32895d38))
+
 ## [8.15.1](https://github.com/equinor/ecalc/compare/v8.15.0...v8.15.1) (2024-04-23)
 
 
