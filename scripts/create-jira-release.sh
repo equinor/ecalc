@@ -9,7 +9,7 @@ webhook_url=$2
 mapfile -t tags < <(git tag | sort -Vr)
 
 echo "Found tags:"
-echo "${#tags[@]}"
+echo "${tags[@]}"
 
 # Loop array to find previous tag
 for ((i=0; i < "${#tags[@]}"; i++)); do
