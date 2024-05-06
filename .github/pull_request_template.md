@@ -1,11 +1,11 @@
 ## Have you remembered and considered?
 
-- [ ] Update documentation, if relevant
-- [ ] Update manual changelog, if relevant
-- [ ] Update migration guide, if relevant
-- [ ] Tagged commit with `BREAKING:` in footer or `!` in header if breaking
-- [ ] Considered to add tests
-- [ ] Used conventional commits syntax
+- [ ] I have remembered to update documentation
+- [ ] I have remembered to update manual changelog (`docs/docs/changelog/next.md`)
+- [ ] I have remembered to update migration guide (`docs/docs/migration_guides/`)
+- [ ] I have committed with `BREAKING:` in footer or `!` in header, if breaking
+- [ ] I have added tests (if not, comment why)
+- [ ] I have used conventional commits syntax (if you squash, make sure that conventional commit is used)
 
 ## Why is this pull request needed?
 
