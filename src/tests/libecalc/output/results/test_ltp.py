@@ -314,7 +314,7 @@ def test_only_venting_emitters_no_fuelconsumers():
         model=dto_case_emitters.ecalc_model, variables=variables, time_vector=time_vector_yearly
     )
 
-    # Verify that eCalc, is not failing in get_asset_result, with only venting emitters -
+    # Verify that eCalc is not failing in get_asset_result with only venting emitters -
     # when installation result is empty, i.e. with no genset and fuel consumers:
     assert isinstance(
         get_consumption_asset_result(model=dto_case_emitters.ecalc_model, variables=variables), EcalcModelResult
@@ -343,10 +343,10 @@ def test_only_venting_emitters_no_fuelconsumers():
         installations=[dto_case_emitters.ecalc_model.installations[0], dto_case_fuel.ecalc_model.installations[0]],
     )
 
-    # Verify that eCalc, is not failing in get_asset_result, with only venting emitters -
+    # Verify that eCalc is not failing in get_asset_result, with only venting emitters -
     # when installation result is empty for one installation, i.e. with no genset and fuel consumers.
     # Include asset with two installations, one with only emitters and one with only fuel consumers -
-    # ensure that graph_result returns a result:
+    # ensure that get_asset_result returns a result:
 
     assert isinstance(
         get_consumption_asset_result(model=asset_multi_installations, variables=variables), EcalcModelResult
