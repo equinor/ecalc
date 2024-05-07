@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.15.3](https://github.com/equinor/ecalc/compare/v8.15.2...v8.15.3) (2024-05-07)
+
+
+### Bug Fixes
+
+* ensure regularity is evaluated for all installations when only venting emitters ([#468](https://github.com/equinor/ecalc/issues/468)) ([#469](https://github.com/equinor/ecalc/issues/469)) ([a5ff24e](https://github.com/equinor/ecalc/commit/a5ff24ec6fbe8e0f0ff020c5439160ae16bab730))
+
+
+### Miscellaneous Chores
+
+* update README.md ([89c717f](https://github.com/equinor/ecalc/commit/89c717f5218340d0bda40cbe8d0205c4a7b1ba28))
+
 ## [8.15.2](https://github.com/equinor/ecalc/compare/v8.15.1...v8.15.2) (2024-05-03)
 
 
