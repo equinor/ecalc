@@ -1249,9 +1249,10 @@ class GraphResult:
 
             sub_components.append(obj)
 
-        # When only venting emitters are specified, without a generator set: the installation result is empty.
-        # Ensure that the installation regularity is found, even if only venting emitters are defined:
-        if not installation_results:
+        # When only venting emitters are specified, without a generator set: the installation result
+        # is empty for this installation. Ensure that the installation regularity is found, even if only
+        # venting emitters are defined for one installation:
+        if len(installation_results) < len(asset.installations):
             regularities = {
                 installation.id: TimeSeriesFloat(
                     values=TemporalExpression.evaluate(
