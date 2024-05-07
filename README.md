@@ -114,4 +114,3 @@ In the examples you will find examples using both the YAML specifications and Py
 ## Documentation
 
 The documentation can be found at https://equinor.github.io/ecalc
-
