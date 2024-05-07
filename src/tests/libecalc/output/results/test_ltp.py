@@ -296,7 +296,8 @@ def test_only_venting_emitters_no_fuelconsumers():
 
     variables = dto.VariablesMap(time_vector=time_vector, variables={})
 
-    dto_case = venting_emitter_yaml_factory(
+    # Installation with only venting emitters:
+    dto_case_emitters = venting_emitter_yaml_factory(
         emission_rates=[emission_rate],
         regularity=regularity,
         units=[Unit.KILO_PER_DAY],
@@ -305,19 +306,60 @@ def test_only_venting_emitters_no_fuelconsumers():
         include_emitters=True,
         include_fuel_consumers=False,
         names=["Venting emitter 1"],
+        installation_name="Venting emitter installation",
         path=Path(venting_emitters.__path__[0]),
     )
+
     venting_emitter_results = get_consumption(
-        model=dto_case.ecalc_model, variables=variables, time_vector=time_vector_yearly
+        model=dto_case_emitters.ecalc_model, variables=variables, time_vector=time_vector_yearly
     )
 
     # Verify that eCalc, is not failing in get_asset_result, with only venting emitters -
     # when installation result is empty, i.e. with no genset and fuel consumers:
-    assert isinstance(get_consumption_asset_result(model=dto_case.ecalc_model, variables=variables), EcalcModelResult)
+    assert isinstance(
+        get_consumption_asset_result(model=dto_case_emitters.ecalc_model, variables=variables), EcalcModelResult
+    )
 
     # Verify correct emissions:
     emissions_ch4 = get_sum_ltp_column(venting_emitter_results, installation_nr=0, ltp_column_nr=0)
     assert emissions_ch4 == (emission_rate / 1000) * 365 * regularity
+
+    # Installation with only fuel consumers:
+    dto_case_fuel = venting_emitter_yaml_factory(
+        emission_rates=[emission_rate],
+        regularity=regularity,
+        units=[Unit.KILO_PER_DAY],
+        emission_names=["ch4"],
+        rate_types=[RateType.STREAM_DAY],
+        include_emitters=False,
+        include_fuel_consumers=True,
+        names=["Venting emitter 1"],
+        installation_name="Fuel consumer installation",
+        path=Path(venting_emitters.__path__[0]),
+    )
+
+    asset_multi_installations = dto.Asset(
+        name="Multi installations",
+        installations=[dto_case_emitters.ecalc_model.installations[0], dto_case_fuel.ecalc_model.installations[0]],
+    )
+
+    # Verify that eCalc, is not failing in get_asset_result, with only venting emitters -
+    # when installation result is empty for one installation, i.e. with no genset and fuel consumers.
+    # Include asset with two installations, one with only emitters and one with only fuel consumers -
+    # ensure that graph_result returns a result:
+
+    assert isinstance(
+        get_consumption_asset_result(model=asset_multi_installations, variables=variables), EcalcModelResult
+    )
+
+    asset_ltp_result = get_consumption(
+        model=asset_multi_installations, variables=variables, time_vector=time_vector_yearly
+    )
+    # Check that the results are the same: For the case with only one installation (only venting emitters),
+    # compared to the multi-installation case with two installations. The fuel-consumer installation should
+    # give no CH4-contribution (only CO2)
+    emissions_ch4_asset = get_sum_ltp_column(asset_ltp_result, installation_nr=0, ltp_column_nr=0)
+    assert emissions_ch4 == emissions_ch4_asset
 
 
 def test_no_emitters_or_fuelconsumers():
