@@ -27,6 +27,7 @@ def venting_emitter_yaml_factory(
     emitter_types: List[str] = None,
     categories: List[str] = None,
     emission_keyword_name: str = "EMISSIONS",
+    installation_name: str = "minimal_installation",
     emission_factors: List[float] = None,
     oil_rates: List[float] = None,
     units_oil_rates: List[Unit] = None,
@@ -46,14 +47,6 @@ def venting_emitter_yaml_factory(
     if emission_rates is None:
         emission_rates = [10] * len(names)
 
-    f"""
-        {create_venting_emitters_yaml(
-        categories=categories, rate_types=rate_types, emitter_names=names, emission_names=emission_names,
-        emission_rates=emission_rates, units=units, emission_keyword_name=emission_keyword_name, include_emitters=include_emitters,
-        emitter_types=emitter_types, oil_rates=oil_rates, emission_factors=emission_factors, units_oil_rates=units_oil_rates,
-    )}
-    """
-
     input_text = f"""
         FACILITY_INPUTS:
           - NAME: generator_energy_function
@@ -69,7 +62,7 @@ def venting_emitter_yaml_factory(
         END: 2029-01-01
 
         INSTALLATIONS:
-        - NAME: minimal_installation
+        - NAME: {installation_name}
           HCEXPORT: 0
           FUEL: fuel
           CATEGORY: FIXED
