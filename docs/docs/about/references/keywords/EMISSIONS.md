@@ -44,6 +44,8 @@ EMISSIONS:
 ~~~~~~~~
 
 ## For venting emitters (type: DIRECT_EMISSION)
+Note that the emission name is case-insensitive.
+
 ### Format
 ~~~~~~~~yaml
 EMISSIONS:
@@ -67,6 +69,8 @@ EMISSIONS:
       TYPE: STREAM_DAY
 ~~~~~~~~
 ## For venting emitters (type: OIL_VOLUME)
+Note that the emission name is case-insensitive.
+
 ### Format
 ~~~~~~~~yaml
 EMISSIONS:
