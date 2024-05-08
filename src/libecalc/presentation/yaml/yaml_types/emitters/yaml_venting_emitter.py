@@ -50,6 +50,11 @@ class YamlVentingVolumeEmission(YamlBase):
         None, title="EMISSION_FACTOR", description="Loading/storage volume-emission factor"
     )
 
+    @field_validator("name", mode="before")
+    def check_name(cls, name, info: ValidationInfo):
+        """Make name case-insensitive"""
+        return name.lower()
+
 
 class YamlVentingVolume(YamlBase):
     rate: YamlOilVolumeRate = Field(..., title="RATE", description="The oil loading/storage volume or volume/rate")
@@ -67,6 +72,11 @@ class YamlVentingEmission(YamlBase):
         description="Name of emission",
     )
     rate: YamlEmissionRate = Field(..., title="RATE", description="The emission rate")
+
+    @field_validator("name", mode="before")
+    def check_name(cls, name, info: ValidationInfo):
+        """Make name case-insensitive"""
+        return name.lower()
 
 
 class YamlDirectTypeEmitter(YamlBase):

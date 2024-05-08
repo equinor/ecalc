@@ -273,3 +273,53 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
     # Oil volume (input rate in stream day) / oil volume (input rates calendar day) = regularity.
     # Given that the actual rate input values are the same.
     assert oil_volume_stream_day / oil_volume == regularity
+
+
+def test_venting_emitters_direct_uppercase_emissions_name():
+    """
+    Check emission names are case-insensitive for venting emitters of type DIRECT_EMISSION.
+    """
+
+    regularity = 0.2
+    emission_rates = [10, 5]
+    dto_case = venting_emitter_yaml_factory(
+        emission_rates=emission_rates,
+        regularity=regularity,
+        units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
+        emission_names=["CO2", "nmVOC"],
+        rate_types=[RateType.STREAM_DAY],
+        emission_keyword_name="EMISSIONS",
+        categories=["COLD-VENTING-FUGITIVE"],
+        names=["Venting emitter 1"],
+        path=Path(venting_emitters.__path__[0]),
+    )
+
+    assert dto_case.ecalc_model.installations[0].venting_emitters[0].emissions[0].name == "co2"
+    assert dto_case.ecalc_model.installations[0].venting_emitters[0].emissions[1].name == "nmvoc"
+
+
+def test_venting_emitters_volume_uppercase_emissions_name():
+    """
+    Check emission names are case-insensitive for venting emitters of type OIL_VOLUME.
+    """
+
+    regularity = 0.2
+    emission_factors = [0.1, 0.1]
+    oil_rates = [100]
+
+    dto_case = venting_emitter_yaml_factory(
+        regularity=regularity,
+        units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
+        units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY, Unit.STANDARD_CUBIC_METER_PER_DAY],
+        emission_names=["CO2", "nmVOC"],
+        emitter_types=["OIL_VOLUME"],
+        rate_types=[RateType.CALENDAR_DAY],
+        categories=["LOADING"],
+        names=["Venting emitter 1"],
+        emission_factors=emission_factors,
+        oil_rates=oil_rates,
+        path=Path(venting_emitters.__path__[0]),
+    )
+
+    assert dto_case.ecalc_model.installations[0].venting_emitters[0].volume.emissions[0].name == "co2"
+    assert dto_case.ecalc_model.installations[0].venting_emitters[0].volume.emissions[1].name == "nmvoc"
