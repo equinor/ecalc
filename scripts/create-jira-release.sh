@@ -25,7 +25,7 @@ mapfile -t issues < <(git log "$previous_tag".."$release_version" | grep -oP 'EC
 issues_json=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${issues[@]}")
 
 # Create webhook body
-body=$(jq --arg version "$release_version" --argjson issues_json "$issues_json" -Rn '{"issues": $issues_json|unique, "version": $version}')
+body=$(jq --arg version "$release_version" --argjson issues_json "$issues_json" -Rn '{"issues_list": $issues_json|unique, "version": $version}')
 
 echo "$body"
 
