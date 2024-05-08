@@ -5,6 +5,15 @@ on:
       - main
 
 jobs:
+
+  deploy-dummy:
+    runs-on: ubuntu-latest
+    environment:
+      name: libecalc-test
+    steps:
+      - name: dummy
+        run: echo "Deployed"
+
   pre-ci:
     uses: ./.github/workflows/pre-ci.yml
 
