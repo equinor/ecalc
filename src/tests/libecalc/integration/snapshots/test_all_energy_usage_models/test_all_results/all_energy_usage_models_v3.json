@@ -23508,8 +23508,8 @@
             }
         },
         "methane_venting": {
-            "CH4": {
-                "name": "CH4",
+            "ch4": {
+                "name": "ch4",
                 "rate": {
                     "timesteps": [
                         "2017-01-01 00:00:00",
