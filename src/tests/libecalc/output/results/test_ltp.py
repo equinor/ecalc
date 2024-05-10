@@ -463,9 +463,7 @@ def test_electrical_and_mechanical_power_installation():
     )
 
     asset_result = get_consumption_asset_result(model=asset, variables=variables)
-    power_fuel_driven_compressor = asset_result.get_component_by_name(
-        "single_1d_compressor_sampled"
-    ).power_cumulative.values[-1]
+    power_fuel_driven_compressor = asset_result.get_component_by_name("compressor").power_cumulative.values[-1]
     power_generator_set = asset_result.get_component_by_name("genset").power_cumulative.values[-1]
 
     # Extract cumulative electrical-, mechanical- and total power.
