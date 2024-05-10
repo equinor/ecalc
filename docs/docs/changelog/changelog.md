@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.15.4](https://github.com/equinor/ecalc/compare/v8.15.3...v8.15.4) (2024-05-10)
+
+
+### Bug Fixes
+
+* make venting emitters emission names case insensitive  ([#477](https://github.com/equinor/ecalc/issues/477)) ([ff5b911](https://github.com/equinor/ecalc/commit/ff5b911070999d057631ee78e4fe57f0bf410c15))
+
 ## [8.15.3](https://github.com/equinor/ecalc/compare/v8.15.2...v8.15.3) (2024-05-07)
 
 
