@@ -487,6 +487,58 @@ def test_electrical_and_mechanical_power_installation():
     assert power_fuel_driven_compressor == power_mechanical_installation
 
 
+def test_electrical_and_mechanical_power_asset():
+    """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
+    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+    installation_name_1 = "INSTALLATION_1"
+    installation_name_2 = "INSTALLATION_2"
+
+    asset = dto.Asset(
+        name="Asset 1",
+        installations=[
+            installation_compressor_dto(
+                [simple_direct_el_consumer(name="direct_el_consumer 1")],
+                installation_name=installation_name_1,
+                genset_name="generator 1",
+                compressor_name="gas driven compressor 1",
+            ),
+            installation_compressor_dto(
+                [simple_direct_el_consumer(name="direct_el_consumer 2")],
+                installation_name=installation_name_2,
+                genset_name="generator 2",
+                compressor_name="gas driven compressor 2",
+            ),
+        ],
+    )
+
+    asset_result = get_consumption_asset_result(model=asset, variables=variables)
+    power_electrical_installation_1 = asset_result.get_component_by_name(
+        installation_name_1
+    ).power_electrical_cumulative.values[-1]
+
+    power_mechanical_installation_1 = asset_result.get_component_by_name(
+        installation_name_1
+    ).power_mechanical_cumulative.values[-1]
+
+    power_electrical_installation_2 = asset_result.get_component_by_name(
+        installation_name_2
+    ).power_electrical_cumulative.values[-1]
+
+    power_mechanical_installation_2 = asset_result.get_component_by_name(
+        installation_name_2
+    ).power_mechanical_cumulative.values[-1]
+
+    asset_power_electrical = asset_result.get_component_by_name("Asset 1").power_electrical_cumulative.values[-1]
+
+    asset_power_mechanical = asset_result.get_component_by_name("Asset 1").power_mechanical_cumulative.values[-1]
+
+    # Verify that electrical power is correct at asset level
+    assert asset_power_electrical == power_electrical_installation_1 + power_electrical_installation_2
+
+    # Verify that mechanical power is correct at asset level:
+    assert asset_power_mechanical == power_mechanical_installation_1 + power_mechanical_installation_2
+
+
 def test_power_from_shore(ltp_pfs_yaml_factory):
     """Test power from shore output for LTP export."""
 
