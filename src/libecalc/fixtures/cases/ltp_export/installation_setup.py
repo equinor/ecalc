@@ -198,9 +198,9 @@ def no_el_consumption() -> dto.ElectricityConsumer:
     )
 
 
-def simple_direct_el_consumer() -> dto.ElectricityConsumer:
+def simple_direct_el_consumer(name: str = "direct_consumer") -> dto.ElectricityConsumer:
     return dto.ElectricityConsumer(
-        name="direct_consumer",
+        name=name,
         component_type=dto.base.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
@@ -260,9 +260,9 @@ def boiler_heater() -> dto.FuelConsumer:
     )
 
 
-def compressor() -> dto.FuelConsumer:
+def compressor(name: str = "single_1d_compressor_sampled") -> dto.FuelConsumer:
     return dto.FuelConsumer(
-        name="single_1d_compressor_sampled",
+        name=name,
         component_type=dto.base.ComponentType.COMPRESSOR,
         fuel={datetime(2027, 1, 1): fuel_turbine()},
         user_defined_category={
@@ -307,9 +307,11 @@ def generator_set_offshore_wind_temporal_model() -> dto.GeneratorSet:
     )
 
 
-def generator_set_compressor_temporal_model(consumers: List[dto.ElectricityConsumer]) -> dto.GeneratorSet:
+def generator_set_compressor_temporal_model(
+    consumers: List[dto.ElectricityConsumer], name: str = "genset"
+) -> dto.GeneratorSet:
     return dto.GeneratorSet(
-        name="genset",
+        name=name,
         user_defined_category={date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
         fuel={date1: fuel_turbine()},
         generator_set_model={date1: generator_set_fuel()},
@@ -464,12 +466,20 @@ def installation_offshore_wind_dto() -> dto.Installation:
     )
 
 
-def installation_compressor_dto(el_consumers: List[dto.ElectricityConsumer]) -> dto.Installation:
+def installation_compressor_dto(
+    el_consumers: List[dto.ElectricityConsumer],
+    installation_name: str = "INSTALLATION_A",
+    genset_name: str = "genset",
+    compressor_name: str = "compressor",
+) -> dto.Installation:
     return dto.Installation(
-        name="INSTALLATION_A",
+        name=installation_name,
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
-        fuel_consumers=[generator_set_compressor_temporal_model(el_consumers), compressor()],
+        fuel_consumers=[
+            generator_set_compressor_temporal_model(el_consumers, name=genset_name),
+            compressor(name=compressor_name),
+        ],
         user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
     )
 
