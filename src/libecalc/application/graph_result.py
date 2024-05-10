@@ -1321,8 +1321,46 @@ class GraphResult:
             else None
         )
 
+        asset_power_electrical_core = (
+            reduce(
+                operator.add,
+                [
+                    installation.power_electrical
+                    for installation in installation_results
+                    if installation.power_electrical is not None
+                ],
+            )
+            if installation_results
+            else None
+        )
+
+        asset_power_mechanical_core = (
+            reduce(
+                operator.add,
+                [
+                    installation.power_mechanical
+                    for installation in installation_results
+                    if installation.power_mechanical is not None
+                ],
+            )
+            if installation_results
+            else None
+        )
+
         asset_power_cumulative = (
             asset_power_core.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative() if installation_results else None
+        )
+
+        asset_power_electrical_cumulative = (
+            asset_power_electrical_core.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+            if asset_power_electrical_core
+            else None
+        )
+
+        asset_power_mechanical_cumulative = (
+            asset_power_mechanical_core.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative()
+            if asset_power_mechanical_core
+            else None
         )
 
         asset_energy_usage_core = (
@@ -1352,6 +1390,10 @@ class GraphResult:
             ),
             power=asset_power_core,
             power_cumulative=asset_power_cumulative,
+            power_electrical=asset_power_electrical_core,
+            power_electrical_cumulative=asset_power_electrical_cumulative,
+            power_mechanical=asset_power_mechanical_core,
+            power_mechanical_cumulative=asset_power_mechanical_cumulative,
             energy_usage=asset_energy_usage_core,
             energy_usage_cumulative=asset_energy_usage_cumulative,
             hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
