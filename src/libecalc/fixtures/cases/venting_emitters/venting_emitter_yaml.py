@@ -149,7 +149,7 @@ def create_venting_emitters_yaml(
                       RATE:
                         VALUE: {emission_rate}
                         UNIT:  {unit}
-                        TYPE: {rate_type}
+                        TYPE: {rate_type.value}
                     """
                     emissions = emissions + emission
             else:
@@ -158,7 +158,7 @@ def create_venting_emitters_yaml(
                 RATE:
                   VALUE: {oil_rate}
                   UNIT: {unit_oil_rate}
-                  TYPE: {rate_type}
+                  TYPE: {rate_type.value}
                 EMISSIONS:
                 """
                 for emission_name, emission_factor in zip(emission_names, emission_factors):

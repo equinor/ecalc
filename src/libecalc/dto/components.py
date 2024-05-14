@@ -51,7 +51,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 def check_model_energy_usage_type(model_data: Dict[datetime, ConsumerFunction], energy_type: EnergyUsageType):
     for model in model_data.values():
         if model.energy_usage_type != energy_type:
-            raise ValueError(f"Model does not consume {energy_type}")
+            raise ValueError(f"Model does not consume {energy_type.value}")
     return model_data
 
 
