@@ -44,7 +44,10 @@ python = ">=3.8,<3.12"
 pydantic = "<3"
 PyYAML = "^6.0"
 numpy = "~1.24.0"
-pandas = "^1" # due to Komodo compatibility
+pandas = [
+    {version = ">= 1.5, < 2.1", python="<3.9"},
+    {version = "~2", python=">=3.9"},
+]
 scipy = "^1.10"
 "ruamel.yaml" = "^0.17.21"
 Shapely = "^2.0"
