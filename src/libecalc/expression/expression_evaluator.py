@@ -145,9 +145,7 @@ def eval_additions(tokens):
     values = []
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        if tokens.count("{+}") or tokens.count(
-            "{-}"
-        ):  # Fixme: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+        if any(ops in token if hasattr(token, "__iter__") else ops == token for token in tokens for ops in add_ops):
             ind = 0
             seqstart = 0
             signNext = 1.0
@@ -178,9 +176,7 @@ def eval_mults(tokens):
     np.seterr(divide="ignore", invalid="ignore")
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        if tokens.count("{*}") or tokens.count(
-            "{/}"
-        ):  # Fixme: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+        if any(ops in token if hasattr(token, "__iter__") else ops == token for token in tokens for ops in mult_ops):
             ind = 0
             seqstart = 0
             opnext = "mult"
@@ -219,9 +215,7 @@ def eval_powers(tokens):
     """Evaluate exponential calculations in expression"""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        if tokens.count(
-            "{^}"
-        ):  # Fixme: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+        if any("{^}" in token if hasattr(token, "__iter__") else "{^}" == token for token in tokens):
             if len(tokens) != 3:
                 raise ValueError("Number of tokens needs to be 3 for evalPowers, quotient, {^} and exponent")
             quotient = eval_value([tokens[0]])
