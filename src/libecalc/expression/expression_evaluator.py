@@ -12,6 +12,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 
 from libecalc.common.logger import logger
+from libecalc.core.utils.array_type import PydanticNDArray
 
 """
 Module for expression parsing used in Energy/CO2/emissions calculator
@@ -405,7 +406,7 @@ class Operators(Enum):
 
 class Token(BaseModel):
     tag: TokenTag
-    value: Union[float, int, bool, NDArray[np.float64], str] = Field(union_mode="left_to_right")
+    value: Union[float, int, bool, PydanticNDArray, str] = Field(union_mode="left_to_right")
 
     def __str__(self):
         return str(self.value)
