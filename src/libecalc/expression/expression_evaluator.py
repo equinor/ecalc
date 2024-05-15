@@ -406,7 +406,7 @@ class Operators(Enum):
 
 class Token(BaseModel):
     tag: TokenTag
-    value: Union[float, int, bool, PydanticNDArray[np.float64], str] = Field(union_mode="left_to_right")
+    value: Union[float, int, bool, PydanticNDArray, str] = Field(union_mode="left_to_right")
 
     def __str__(self):
         return str(self.value)
