@@ -58,7 +58,7 @@ def create_direct_consumers_yaml(
           ENERGY_USAGE_MODEL:
             TYPE: DIRECT
             FUELRATE: {fuel_rate}
-            CONSUMPTION_RATE_TYPE: {rate_type}
+            CONSUMPTION_RATE_TYPE: {rate_type.value}
         """
         consumers = consumers + consumer
     return consumers
