@@ -31,7 +31,7 @@ class ConsumerSystemComponentResult(BaseModel):
         return self.consumer_model_result.energy_usage
 
     @property
-    def power(self) -> PydanticNDArray:
+    def power(self) -> PydanticNDArray[np.float64]:
         if self.consumer_model_result.power is not None:
             return np.asarray(self.consumer_model_result.power)
         else:
@@ -59,7 +59,7 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     @property
-    def total_energy_usage(self) -> PydanticNDArray:
+    def total_energy_usage(self) -> PydanticNDArray[np.float64]:
         total_energy_usage = np.sum(
             [np.asarray(result.energy_usage) for result in self.consumer_results],
             axis=0,
@@ -67,7 +67,7 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
         return np.array(total_energy_usage)
 
     @property
-    def total_power(self) -> PydanticNDArray:
+    def total_power(self) -> PydanticNDArray[np.float64]:
         total_power = np.sum(
             [np.asarray(result.power) for result in self.consumer_results],
             axis=0,
@@ -75,7 +75,7 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
         return np.array(total_power)
 
     @property
-    def indices_outside_capacity(self) -> PydanticNDArray:
+    def indices_outside_capacity(self) -> PydanticNDArray[np.float64]:
         invalid_indices = np.full_like(self.total_energy_usage, fill_value=0)
 
         for result in self.consumer_results:
@@ -111,12 +111,12 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
 
     typ: Literal[ConsumerFunctionType.SYSTEM] = ConsumerFunctionType.SYSTEM  # type: ignore[valid-type]
 
-    operational_setting_used: PydanticNDArray  # integers in the range of number of operational settings
+    operational_setting_used: PydanticNDArray[np.float64]  # integers in the range of number of operational settings
     operational_settings: List[List[ConsumerSystemOperationalSetting]]
     operational_settings_results: List[List[ConsumerSystemOperationalSettingResult]]
     consumer_results: List[List[ConsumerSystemComponentResult]]
     cross_over_used: Optional[
-        PydanticNDArray
+        PydanticNDArray[np.float64]
     ] = None  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
 
     def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
