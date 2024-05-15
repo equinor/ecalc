@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.15.5](https://github.com/equinor/ecalc/compare/v8.15.4...v8.15.5) (2024-05-15)
+
+
+### Bug Fixes
+
+* use custom type pydantic class to wrap ndarray and avoid validation problem ([#487](https://github.com/equinor/ecalc/issues/487)) ([#488](https://github.com/equinor/ecalc/issues/488)) ([1e96a4f](https://github.com/equinor/ecalc/commit/1e96a4f9beba18762aa0a428602ffc3b00d2229a))
+
 ## [8.15.4](https://github.com/equinor/ecalc/compare/v8.15.3...v8.15.4) (2024-05-10)
 
 
