@@ -621,6 +621,13 @@ def test_max_usage_from_shore(ltp_pfs_yaml_factory):
 
     max_usage_from_shore_2027 = float(ltp_result_csv.query_results[0].query_results[3].values[datetime(2027, 1, 1)])
 
-    # In the input csv-file max usage from shore is 250 (1.12.2026) and 290 (1.6.2027).
+    # In the input csv-file max usage from shore is 250 (1.12.2026), 290 (1.6.2027) and 283 (1.1.2028).
     # Ensure that the correct value is set for January 2027:
     assert max_usage_from_shore_2027 == 250.0
+
+    # Ensure that values in 2027, 2028 and 2029 are correct, based on input file:
+    assert [float(max_pfs) for max_pfs in ltp_result_csv.query_results[0].query_results[3].values.values()][2:5] == [
+        250,
+        283,
+        283,
+    ]
