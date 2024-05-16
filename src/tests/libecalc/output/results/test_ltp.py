@@ -596,3 +596,31 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
 
     # Verify correct unit for max usage from shore
     assert ltp_result.query_results[0].query_results[3].unit == Unit.MEGA_WATT
+
+def test_max_usage_from_shore(ltp_pfs_yaml_factory):
+    """Test power from shore output for LTP export."""
+
+    time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
+
+    dto.VariablesMap(time_vector=time_vector_yearly, variables={})
+    regularity = 0.2
+    load = 10
+    cable_loss = 0.1
+
+    dto_case_csv = ltp_pfs_yaml_factory(
+        regularity=regularity,
+        cable_loss=cable_loss,
+        max_usage_from_shore="MAX_USAGE_FROM_SHORE;MAX_USAGE_FROM_SHORE",
+        load_direct_consumer=load,
+        path=Path(ltp_export.__path__[0]),
+    )
+
+    ltp_result_csv = get_consumption(
+        model=dto_case_csv.ecalc_model, variables=dto_case_csv.variables, time_vector=time_vector_yearly
+    )
+
+    max_usage_from_shore_2027 = float(ltp_result_csv.query_results[0].query_results[3].values[datetime(2027, 1, 1)])
+
+    # In the input csv-file max usage from shore is 250 (1.12.2026) and 290 (1.6.2027).
+    # Ensure that the correct value is set for January 2027:
+    assert max_usage_from_shore_2027 == 250.0
