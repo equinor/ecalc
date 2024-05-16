@@ -548,10 +548,10 @@ class MaxUsageFromShoreQuery(Query):
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (
-                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
+                    TimeSeriesFloat(timesteps=date_keys, values=list(sorted_result.values()), unit=unit_in)
                     .reindex(time_steps)
                     .fill_nan(0)
-                )
+                )[:-1]
 
                 aggregated_result_volume = {
                     reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
