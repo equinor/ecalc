@@ -547,6 +547,9 @@ class MaxUsageFromShoreQuery(Query):
                 sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
+                # Max usage from shore is time series float (values), and contains one more item
+                # than time steps for volumes. Number of values for max usage from shore should
+                # be the same as number of volume-time steps, hence [:-1]
                 reindexed_result = (
                     TimeSeriesFloat(timesteps=date_keys, values=list(sorted_result.values()), unit=unit_in)
                     .reindex(time_steps)
