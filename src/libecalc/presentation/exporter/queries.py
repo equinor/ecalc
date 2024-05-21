@@ -551,7 +551,7 @@ class MaxUsageFromShoreQuery(Query):
                 # than time steps for volumes. Number of values for max usage from shore should
                 # be the same as number of volume-time steps, hence [:-1]
                 reindexed_result = (
-                    TimeSeriesFloat(timesteps=date_keys, values=list(sorted_result.values()), unit=unit_in)
+                    TimeSeriesFloat(timesteps=date_keys, values=list(sorted_result.values()), unit=unit)
                     .reindex(time_steps)
                     .fill_nan(0)
                 )[:-1]

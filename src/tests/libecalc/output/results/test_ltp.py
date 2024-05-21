@@ -597,6 +597,7 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
     # Verify correct unit for max usage from shore
     assert ltp_result.query_results[0].query_results[3].unit == Unit.MEGA_WATT
 
+
 def test_max_usage_from_shore(ltp_pfs_yaml_factory):
     """Test power from shore output for LTP export."""
 
