@@ -511,7 +511,6 @@ class MaxUsageFromShoreQuery(Query):
 
         aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
         aggregated_result_volume = {}
-        unit_in = None
 
         if self.installation_category is None or installation_dto.user_defined_category == self.installation_category:
             for fuel_consumer in installation_dto.fuel_consumers:
@@ -532,15 +531,13 @@ class MaxUsageFromShoreQuery(Query):
                                         fill_length=len(installation_graph.variables_map.time_vector),
                                     )
                                 ),
-                                unit=Unit.MEGA_WATT,
+                                unit=unit,
                                 timesteps=installation_graph.variables_map.time_vector,
                             )
 
                             results = TimeSeriesRate.from_timeseries_stream_day_rate(
                                 max_usage_from_shore, regularity=regularity
                             ).for_period(period)
-
-                            unit_in = results.unit
 
                             for timestep, result in results.datapoints():
                                 aggregated_result[timestep] += result
@@ -551,7 +548,7 @@ class MaxUsageFromShoreQuery(Query):
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (
-                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit_in)
+                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
                     .reindex(time_steps)
                     .fill_nan(0)
                 )

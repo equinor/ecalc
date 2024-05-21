@@ -657,7 +657,7 @@ class LTPConfig(ResultConfig):
                 Applier(
                     name="fromShorePeakMaximum",
                     title="Max Usage from Shore",
-                    unit=Unit.GIGA_WATT_HOURS,
+                    unit=Unit.MEGA_WATT,
                     query=MaxUsageFromShoreQuery(
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
