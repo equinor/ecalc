@@ -593,3 +593,6 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
 
     # Check that reading cable loss from csv-file gives same result as using constant
     assert power_supply_onshore == power_supply_onshore_csv
+
+    # Verify correct unit for max usage from shore
+    assert ltp_result.query_results[0].query_results[3].unit == Unit.MEGA_WATT
