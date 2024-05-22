@@ -28,6 +28,9 @@ def ltp_pfs_yaml_factory():
           - NAME: CABLE_LOSS
             TYPE: DEFAULT
             FILE: data/sim/cable_loss.csv
+          - NAME: MAX_USAGE_FROM_SHORE
+            TYPE: DEFAULT
+            FILE: data/sim/max_usage_from_shore.csv
         FACILITY_INPUTS:
           - NAME: generator_energy_function
             FILE: 'data/einput/genset_17MW.csv'
