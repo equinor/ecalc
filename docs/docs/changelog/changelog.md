@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.15.6](https://github.com/equinor/ecalc/compare/v8.15.5...v8.15.6) (2024-05-22)
+
+
+### Bug Fixes
+
+* max power from shore values and units ([#492](https://github.com/equinor/ecalc/issues/492)) ([887a698](https://github.com/equinor/ecalc/commit/887a6980844a59b12ec42dc2e7255a3c609eb0a3))
+
 ## [8.15.5](https://github.com/equinor/ecalc/compare/v8.15.4...v8.15.5) (2024-05-15)
 
 
