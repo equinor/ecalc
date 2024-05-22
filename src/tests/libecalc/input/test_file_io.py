@@ -7,6 +7,7 @@ from typing import IO
 import pytest
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
+from libecalc.presentation.yaml.validation_errors import DataValidationError
 from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
@@ -270,6 +271,21 @@ class TestReadYaml:
 
         dump_yaml = PyYamlYamlModel.dump_and_load_yaml(main_yaml=main_yaml, resources=resources)
         assert dump_yaml == yaml_resource.stream.getvalue()
+
+    def test_detect_duplicate_keys_in_yaml(self):
+        main_text = """VARIABLES:
+          key1: a
+          key2: b
+          key1: c"""
+
+        main_yaml = yaml_entities.ResourceStream(
+            stream=StringIO(main_text),
+            name="main.yaml",
+        )
+
+        with pytest.raises(DataValidationError) as ve:
+            PyYamlYamlModel.read_yaml(main_yaml=main_yaml)
+        assert "Duplicate key" in str(ve.value)
 
 
 def valid_ecalc_file(

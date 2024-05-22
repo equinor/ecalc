@@ -145,6 +145,19 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                 )
 
         def load(self, yaml_file: ResourceStream):
+            class UniqueKeyLoader(self.__loader):  # type: ignore[name-defined]
+                def construct_mapping(self, node, deep=False):
+                    mapping = set()
+                    for key_node, _ in node.value:
+                        each_key = self.construct_object(key_node, deep=deep)
+                        if each_key in mapping:
+                            raise DataValidationError(
+                                data=None,
+                                message=f"Duplicate key: {each_key!r} is found in {key_node.start_mark.name} on line {key_node.start_mark.line + 1}",
+                            )
+                        mapping.add(each_key)
+                    return super().construct_mapping(node, deep)
+
             if re.search(COMPONENT_NAME_PATTERN, Path(yaml_file.name).stem) is None:
                 raise EcalcError(
                     title="Bad Yaml file name",
@@ -152,7 +165,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                     f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}",
                 )
             try:
-                return yaml.load(yaml_file, Loader=self.__loader)  # noqa: S506 - loader should be SafeLoader
+                return yaml.load(yaml_file, Loader=UniqueKeyLoader)  # noqa: S506 - loader should be SafeLoader
             except KeyError as e:
                 raise EcalcError(
                     title="Bad Yaml file", message=f"Error occurred while loading yaml file, key {e} not found"
