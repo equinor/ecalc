@@ -547,11 +547,14 @@ class MaxUsageFromShoreQuery(Query):
                 sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
+                # Max usage from shore is time series float (values), and contains one more item
+                # than time steps for volumes. Number of values for max usage from shore should
+                # be the same as number of volume-time steps, hence [:-1]
                 reindexed_result = (
-                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
+                    TimeSeriesFloat(timesteps=date_keys, values=list(sorted_result.values()), unit=unit)
                     .reindex(time_steps)
                     .fill_nan(0)
-                )
+                )[:-1]
 
                 aggregated_result_volume = {
                     reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
