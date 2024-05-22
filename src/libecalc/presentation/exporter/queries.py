@@ -511,7 +511,6 @@ class MaxUsageFromShoreQuery(Query):
 
         aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
         aggregated_result_volume = {}
-        unit_in = None
 
         if self.installation_category is None or installation_dto.user_defined_category == self.installation_category:
             for fuel_consumer in installation_dto.fuel_consumers:
@@ -532,15 +531,13 @@ class MaxUsageFromShoreQuery(Query):
                                         fill_length=len(installation_graph.variables_map.time_vector),
                                     )
                                 ),
-                                unit=Unit.MEGA_WATT,
+                                unit=unit,
                                 timesteps=installation_graph.variables_map.time_vector,
                             )
 
                             results = TimeSeriesRate.from_timeseries_stream_day_rate(
                                 max_usage_from_shore, regularity=regularity
                             ).for_period(period)
-
-                            unit_in = results.unit
 
                             for timestep, result in results.datapoints():
                                 aggregated_result[timestep] += result
@@ -550,11 +547,14 @@ class MaxUsageFromShoreQuery(Query):
                 sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
+                # Max usage from shore is time series float (values), and contains one more item
+                # than time steps for volumes. Number of values for max usage from shore should
+                # be the same as number of volume-time steps, hence [:-1]
                 reindexed_result = (
-                    TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit_in)
+                    TimeSeriesFloat(timesteps=date_keys, values=list(sorted_result.values()), unit=unit)
                     .reindex(time_steps)
                     .fill_nan(0)
-                )
+                )[:-1]
 
                 aggregated_result_volume = {
                     reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
