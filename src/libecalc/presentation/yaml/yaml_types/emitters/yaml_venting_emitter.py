@@ -263,7 +263,7 @@ class YamlOilTypeEmitter(YamlBase):
                 regularity=regularity.values,
             ).tolist()
 
-        oil_rates = self.volume.rate.unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
+        oil_rates = Unit[self.volume.rate.unit].to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
         return TimeSeriesStreamDayRate(
             timesteps=variables_map.time_vector,

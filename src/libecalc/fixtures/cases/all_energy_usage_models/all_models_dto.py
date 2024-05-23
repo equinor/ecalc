@@ -989,7 +989,9 @@ def methane_venting(regularity) -> YamlVentingEmitter:
         emissions=[
             YamlVentingEmission(
                 name="CH4",
-                rate=YamlEmissionRate(value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY, type=RateType.STREAM_DAY),
+                rate=YamlEmissionRate(
+                    value="FLARE;METHANE_RATE", unit=Unit.KILO_PER_DAY.name, type=RateType.STREAM_DAY
+                ),
             )
         ],
     )

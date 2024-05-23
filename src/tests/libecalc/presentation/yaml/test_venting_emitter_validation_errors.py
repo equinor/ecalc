@@ -20,7 +20,7 @@ def test_wrong_keyword_name_emitters():
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
-            units=[Unit.KILO_PER_DAY],
+            units=[Unit.KILO_PER_DAY.name],
             emission_names=["ch4"],
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION2",
@@ -41,7 +41,7 @@ def test_wrong_unit_emitters():
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
-            units=[Unit.STANDARD_CUBIC_METER_PER_DAY],
+            units=[Unit.STANDARD_CUBIC_METER_PER_DAY.name],
             emission_names=["ch4"],
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSIONS",
@@ -50,6 +50,6 @@ def test_wrong_unit_emitters():
         )
 
     assert (
-        "Venting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
-        "<Unit.KILO_PER_DAY: 'kg/d'> or <Unit.TONS_PER_DAY: 't/d'>"
+        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tValue error, Unit for venting emitters "
+        f"emission rate can not be {Unit.STANDARD_CUBIC_METER_PER_DAY.name}. Allowed units are: {Unit.KILO_PER_DAY.name}, {Unit.TONS_PER_DAY.name}."
     ) in str(exc.value)

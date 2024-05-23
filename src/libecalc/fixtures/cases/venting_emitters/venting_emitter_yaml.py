@@ -30,7 +30,7 @@ def venting_emitter_yaml_factory(
     installation_name: str = "minimal_installation",
     emission_factors: List[float] = None,
     oil_rates: List[float] = None,
-    units_oil_rates: List[Unit] = None,
+    units_oil_rates: List[str] = None,
     include_emitters: bool = True,
     include_fuel_consumers: bool = True,
 ) -> DTOCase:

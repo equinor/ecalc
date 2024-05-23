@@ -33,7 +33,8 @@ class YamlEmissionRate(YamlTimeSeries):
         allowed_units = [Unit.KILO_PER_DAY.name, Unit.TONS_PER_DAY.name]
         if unit not in allowed_units:
             raise ValueError(
-                f"Unit for venting emitter emission rate can only be {', '.join(allowed_units)}, " f"not {unit}"
+                f"Unit for venting emitters emission rate can not be {unit}. "
+                f"Allowed units are: {', '.join(allowed_units)}."
             )
         return unit
 
@@ -41,7 +42,7 @@ class YamlEmissionRate(YamlTimeSeries):
 class YamlOilVolumeRate(YamlTimeSeries):
     model_config = ConfigDict(title="Rate")
 
-    str: Unit = Unit.STANDARD_CUBIC_METER_PER_DAY.name
+    unit: str = Unit.STANDARD_CUBIC_METER_PER_DAY.name
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
     @field_validator("unit")
@@ -49,7 +50,8 @@ class YamlOilVolumeRate(YamlTimeSeries):
         allowed_units = [Unit.STANDARD_CUBIC_METER_PER_DAY.name]
         if unit not in allowed_units:
             raise ValueError(
-                f"Unit for venting emitter oil rate can only be {', '.join(allowed_units)}, " f"not {unit}"
+                f"Unit for venting emitters oil rate can not be {unit}. "
+                f"Allowed units are: {', '.join(allowed_units)}."
             )
         return unit
 
