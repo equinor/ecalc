@@ -51,5 +51,31 @@ def test_wrong_unit_emitters():
 
     assert (
         "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tValue error, Unit for venting emitters "
-        f"emission rate can not be {Unit.STANDARD_CUBIC_METER_PER_DAY.name}. Allowed units are: {Unit.KILO_PER_DAY.name}, {Unit.TONS_PER_DAY.name}."
+        f"emission rate can not be {Unit.STANDARD_CUBIC_METER_PER_DAY.name}. Allowed units are: "
+        f"{Unit.KILO_PER_DAY.name}, {Unit.TONS_PER_DAY.name}."
+    ) in str(exc.value)
+
+
+def test_wrong_unit_format_emitters():
+    """Test error messages for yaml validation with wrong unit format."""
+
+    regularity = 0.2
+    emission_rate = 10
+
+    with pytest.raises(DtoValidationError) as exc:
+        venting_emitter_yaml_factory(
+            emission_rates=[emission_rate],
+            regularity=regularity,
+            units=["kg/d"],
+            emission_names=["ch4"],
+            rate_types=[RateType.STREAM_DAY],
+            emission_keyword_name="EMISSIONS",
+            names=["Venting emitter 1"],
+            path=Path(venting_emitters.__path__[0]),
+        )
+
+    assert (
+        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tValue error, Unit for venting emitters "
+        f"emission rate can not be {Unit.KILO_PER_DAY.value}. Allowed units are: {Unit.KILO_PER_DAY.name}, "
+        f"{Unit.TONS_PER_DAY.name}."
     ) in str(exc.value)
