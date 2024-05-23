@@ -127,13 +127,14 @@ class CompressorTrainStage(BaseModel):
             if isinstance(self.compressor_chart, VariableSpeedCompressorChart)
             else self.compressor_chart.maximum_rate
         )
+        available_capacity_for_actual_rate_m3_per_hour = max(
+            0, compressor_maximum_actual_rate_m3_per_hour - actual_rate_m3_per_hour
+        )  #  if the actual_rate_m3_per_hour is above capacity, the available capacity should be zero, not negative
 
         additional_rate_m3_per_hour = 0.0
         # Add contribution from asv_rate_fraction (potentially used for pressure control)
         if asv_rate_fraction:
-            additional_rate_m3_per_hour = asv_rate_fraction * (
-                compressor_maximum_actual_rate_m3_per_hour - actual_rate_m3_per_hour
-            )
+            additional_rate_m3_per_hour = asv_rate_fraction * available_capacity_for_actual_rate_m3_per_hour
         # Add contribution from asv_additional_mass_rate (potentially used for pressure control)
         if asv_additional_mass_rate:
             additional_rate_m3_per_hour = asv_additional_mass_rate / inlet_density_kg_per_m3
