@@ -664,7 +664,15 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 train_results.stage_results[-1] = choked_stage_results
 
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
-            # first check if full recirculation gives low enough discharge pressure
+            # first check if there is room for recirculation
+            train_result_no_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
+                mass_rate_kg_per_hour=mass_rate_kg_per_hour,
+                inlet_pressure_bara=inlet_pressure,
+                speed=speed,
+            )
+            if not train_result_no_recirculation.within_capacity:
+                return train_result_no_recirculation
+            # then check if full recirculation gives low enough discharge pressure
             train_result_max_recirculation = self.calculate_compressor_train_given_rate_ps_speed(
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                 inlet_pressure_bara=inlet_pressure,
