@@ -2,6 +2,7 @@ import enum
 from typing import Literal, Optional
 
 from pydantic import ConfigDict, Field
+from typing_extensions import assert_never
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -32,11 +33,8 @@ class YamlEmissionRateUnits(enum.Enum):
             return Unit.KILO_PER_DAY
         elif self == YamlEmissionRateUnits.TONS_PER_DAY:
             return Unit.TONS_PER_DAY
-        else:
-            raise ValueError(
-                f"Unit for venting emitters emission rate can not be {self}. "
-                f"Allowed units are: {self.KILO_PER_DAY} and {self.TONS_PER_DAY}."
-            )
+
+        assert_never(self)
 
 
 class YamlEmissionRate(YamlTimeSeries):
@@ -51,11 +49,8 @@ class YamlOilRateUnits(enum.Enum):
     def to_unit(self) -> Unit:
         if self == YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY:
             return Unit.STANDARD_CUBIC_METER_PER_DAY
-        else:
-            raise ValueError(
-                f"Unit for venting emitters oil rate can not be {self}. "
-                f"Allowed units are: {self.STANDARD_CUBIC_METER_PER_DAY}."
-            )
+
+        assert_never(self)
 
 
 class YamlOilVolumeRate(YamlTimeSeries):
