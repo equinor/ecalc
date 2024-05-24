@@ -18,7 +18,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 
 def venting_emitter_yaml_factory(
     rate_types: List[RateType],
-    units: List[Unit],
+    units: List[str],
     emission_names: List[str],
     regularity: float,
     names: List[str],
@@ -30,7 +30,7 @@ def venting_emitter_yaml_factory(
     installation_name: str = "minimal_installation",
     emission_factors: List[float] = None,
     oil_rates: List[float] = None,
-    units_oil_rates: List[Unit] = None,
+    units_oil_rates: List[str] = None,
     include_emitters: bool = True,
     include_fuel_consumers: bool = True,
 ) -> DTOCase:
@@ -120,7 +120,7 @@ def create_venting_emitters_yaml(
     emitter_names: List[str],
     emission_names: List[str],
     emission_rates: List[float],
-    units: List[Unit],
+    units: List[str],
     units_oil_rates: List[Unit],
     emission_keyword_name: str,
     emission_factors: List[float],

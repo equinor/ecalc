@@ -20,7 +20,7 @@ def test_wrong_keyword_name_emitters():
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
-            units=[Unit.KILO_PER_DAY],
+            units=[Unit.KILO_PER_DAY.name],
             emission_names=["ch4"],
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION2",
@@ -41,7 +41,7 @@ def test_wrong_unit_emitters():
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
-            units=[Unit.STANDARD_CUBIC_METER_PER_DAY],
+            units=[Unit.STANDARD_CUBIC_METER_PER_DAY.name],
             emission_names=["ch4"],
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSIONS",
@@ -50,6 +50,30 @@ def test_wrong_unit_emitters():
         )
 
     assert (
-        "Venting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
-        "<Unit.KILO_PER_DAY: 'kg/d'> or <Unit.TONS_PER_DAY: 't/d'>"
+        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
+        f"'{Unit.KILO_PER_DAY.name}' or '{Unit.TONS_PER_DAY.name}'"
+    ) in str(exc.value)
+
+
+def test_wrong_unit_format_emitters():
+    """Test error messages for yaml validation with wrong unit format."""
+
+    regularity = 0.2
+    emission_rate = 10
+
+    with pytest.raises(DtoValidationError) as exc:
+        venting_emitter_yaml_factory(
+            emission_rates=[emission_rate],
+            regularity=regularity,
+            units=["kg/d"],
+            emission_names=["ch4"],
+            rate_types=[RateType.STREAM_DAY],
+            emission_keyword_name="EMISSIONS",
+            names=["Venting emitter 1"],
+            path=Path(venting_emitters.__path__[0]),
+        )
+
+    assert (
+        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
+        f"'{Unit.KILO_PER_DAY.name}' or '{Unit.TONS_PER_DAY.name}'"
     ) in str(exc.value)
