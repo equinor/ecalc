@@ -50,9 +50,8 @@ def test_wrong_unit_emitters():
         )
 
     assert (
-        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tValue error, Unit for venting emitters "
-        f"emission rate can not be {Unit.STANDARD_CUBIC_METER_PER_DAY.name}. Allowed units are: "
-        f"{Unit.KILO_PER_DAY.name}, {Unit.TONS_PER_DAY.name}."
+        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
+        f"'{Unit.KILO_PER_DAY.name}' or '{Unit.TONS_PER_DAY.name}'"
     ) in str(exc.value)
 
 
@@ -75,7 +74,6 @@ def test_wrong_unit_format_emitters():
         )
 
     assert (
-        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tValue error, Unit for venting emitters "
-        f"emission rate can not be {Unit.KILO_PER_DAY.value}. Allowed units are: {Unit.KILO_PER_DAY.name}, "
-        f"{Unit.TONS_PER_DAY.name}."
+        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
+        f"'{Unit.KILO_PER_DAY.name}' or '{Unit.TONS_PER_DAY.name}'"
     ) in str(exc.value)

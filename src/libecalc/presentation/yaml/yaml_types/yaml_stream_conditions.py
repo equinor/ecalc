@@ -1,6 +1,7 @@
+import enum
 from typing import Literal, Optional
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -22,38 +23,46 @@ class YamlRate(YamlTimeSeries):
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
 
+class YamlEmissionRateUnits(enum.Enum):
+    KILO_PER_DAY = "KILO_PER_DAY"
+    TONS_PER_DAY = "TONS_PER_DAY"
+
+    def to_unit(self) -> Unit:
+        if self == YamlEmissionRateUnits.KILO_PER_DAY:
+            return Unit.KILO_PER_DAY
+        elif self == YamlEmissionRateUnits.TONS_PER_DAY:
+            return Unit.TONS_PER_DAY
+        else:
+            raise ValueError(
+                f"Unit for venting emitters emission rate can not be {self}. "
+                f"Allowed units are: {self.KILO_PER_DAY} and {self.TONS_PER_DAY}."
+            )
+
+
 class YamlEmissionRate(YamlTimeSeries):
     model_config = ConfigDict(title="Rate")
-
-    unit: str = Unit.KILO_PER_DAY.name
+    unit: YamlEmissionRateUnits = YamlEmissionRateUnits.KILO_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
-    @field_validator("unit")
-    def validate_unit(cls, unit):
-        allowed_units = [Unit.KILO_PER_DAY.name, Unit.TONS_PER_DAY.name]
-        if unit not in allowed_units:
+
+class YamlOilRateUnits(enum.Enum):
+    STANDARD_CUBIC_METER_PER_DAY = "STANDARD_CUBIC_METER_PER_DAY"
+
+    def to_unit(self) -> Unit:
+        if self == YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY:
+            return Unit.STANDARD_CUBIC_METER_PER_DAY
+        else:
             raise ValueError(
-                f"Unit for venting emitters emission rate can not be {unit}. "
-                f"Allowed units are: {', '.join(allowed_units)}."
+                f"Unit for venting emitters oil rate can not be {self}. "
+                f"Allowed units are: {self.STANDARD_CUBIC_METER_PER_DAY}."
             )
-        return unit
 
 
 class YamlOilVolumeRate(YamlTimeSeries):
     model_config = ConfigDict(title="Rate")
 
-    unit: str = Unit.STANDARD_CUBIC_METER_PER_DAY.name
+    unit: YamlOilRateUnits = YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
-
-    @field_validator("unit")
-    def validate_unit(cls, unit):
-        allowed_units = [Unit.STANDARD_CUBIC_METER_PER_DAY.name]
-        if unit not in allowed_units:
-            raise ValueError(
-                f"Unit for venting emitters oil rate can not be {unit}. "
-                f"Allowed units are: {', '.join(allowed_units)}."
-            )
-        return unit
 
 
 class YamlPressure(YamlTimeSeries):

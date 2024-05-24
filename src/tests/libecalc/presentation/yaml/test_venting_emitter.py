@@ -26,6 +26,8 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
+    YamlEmissionRateUnits,
+    YamlOilRateUnits,
     YamlOilVolumeRate,
 )
 
@@ -63,7 +65,7 @@ def test_venting_emitter(variables_map):
                 name="ch4",
                 rate=YamlEmissionRate(
                     value="TSC1;Methane_rate {*} 1.02",
-                    unit=Unit.KILO_PER_DAY.name,
+                    unit=YamlEmissionRateUnits.KILO_PER_DAY,
                     type=RateType.STREAM_DAY,
                 ),
             )
@@ -104,7 +106,7 @@ def test_venting_emitter_oil_volume(variables_map):
         volume=YamlVentingVolume(
             rate=YamlOilVolumeRate(
                 value="TSC1;Oil_rate",
-                unit=Unit.STANDARD_CUBIC_METER_PER_DAY.name,
+                unit=YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY,
                 type=RateType.STREAM_DAY,
             ),
             emissions=[
