@@ -1,6 +1,8 @@
+import enum
 from typing import Literal, Optional
 
 from pydantic import ConfigDict, Field
+from typing_extensions import assert_never
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -22,17 +24,39 @@ class YamlRate(YamlTimeSeries):
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
 
+class YamlEmissionRateUnits(enum.Enum):
+    KILO_PER_DAY = "KILO_PER_DAY"
+    TONS_PER_DAY = "TONS_PER_DAY"
+
+    def to_unit(self) -> Unit:
+        if self == YamlEmissionRateUnits.KILO_PER_DAY:
+            return Unit.KILO_PER_DAY
+        elif self == YamlEmissionRateUnits.TONS_PER_DAY:
+            return Unit.TONS_PER_DAY
+
+        assert_never(self)
+
+
 class YamlEmissionRate(YamlTimeSeries):
     model_config = ConfigDict(title="Rate")
-
-    unit: Literal[Unit.KILO_PER_DAY, Unit.TONS_PER_DAY] = Unit.KILO_PER_DAY
+    unit: YamlEmissionRateUnits = YamlEmissionRateUnits.KILO_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
+
+
+class YamlOilRateUnits(enum.Enum):
+    STANDARD_CUBIC_METER_PER_DAY = "STANDARD_CUBIC_METER_PER_DAY"
+
+    def to_unit(self) -> Unit:
+        if self == YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY:
+            return Unit.STANDARD_CUBIC_METER_PER_DAY
+
+        assert_never(self)
 
 
 class YamlOilVolumeRate(YamlTimeSeries):
     model_config = ConfigDict(title="Rate")
 
-    unit: Literal[Unit.STANDARD_CUBIC_METER_PER_DAY]
+    unit: YamlOilRateUnits = YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
 

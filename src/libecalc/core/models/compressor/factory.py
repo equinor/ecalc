@@ -131,4 +131,4 @@ def _invalid_compressor_model_type(compressor_model_dto: Any) -> None:
 def create_compressor_model(compressor_model_dto: dto.CompressorModel) -> CompressorModel:
     return facility_model_map.get(compressor_model_dto.typ, _invalid_compressor_model_type)(
         compressor_model_dto=compressor_model_dto,
-    )  # type: ignore[call-arg]
+    )

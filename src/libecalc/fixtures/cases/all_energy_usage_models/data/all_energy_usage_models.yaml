@@ -621,5 +621,5 @@ INSTALLATIONS:
           - NAME: CH4
             RATE:
               VALUE: FLARE;METHANE_RATE
-              UNIT: kg/d
+              UNIT: KILO_PER_DAY
               TYPE: STREAM_DAY

@@ -11,7 +11,7 @@ from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 def ltp_oil_loaded_yaml_factory(
     emission_factor: float,
     rate_types: List[RateType],
-    fuel_rates: [float],
+    fuel_rates: List[float],
     emission_name: str,
     regularity: float,
     categories: List[str],

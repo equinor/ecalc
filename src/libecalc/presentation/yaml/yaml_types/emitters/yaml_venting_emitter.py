@@ -136,8 +136,8 @@ class YamlDirectTypeEmitter(YamlBase):
                 emission_rate = Rates.to_stream_day(
                     calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
                 ).tolist()
-
-            emission_rate = Unit.to(emission.rate.unit, Unit.TONS_PER_DAY)(emission_rate)
+            unit = emission.rate.unit.to_unit()
+            emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
@@ -233,7 +233,8 @@ class YamlOilTypeEmitter(YamlBase):
                 .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
                 .tolist()
             )
-            oil_rates = Unit.to(self.volume.rate.unit, Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
+            unit = self.volume.rate.unit.to_unit()
+            oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
             emission_rate = [oil_rate * factor for oil_rate, factor in zip(oil_rates, factors)]
 
             # Emission factor is kg/Sm3 and oil rate/volume is Sm3/d. Hence, the emission rate is in kg/d:
@@ -263,7 +264,8 @@ class YamlOilTypeEmitter(YamlBase):
                 regularity=regularity.values,
             ).tolist()
 
-        oil_rates = self.volume.rate.unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
+        unit = self.volume.rate.unit.to_unit()
+        oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
         return TimeSeriesStreamDayRate(
             timesteps=variables_map.time_vector,
