@@ -10,13 +10,13 @@ env:
 
 # TODO: BuildX and publish to use as in order for web to always be able to fetch image to matching branch?
 jobs:
-
   run-tests-with-coverage:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
+        platform: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
 
       - name: Get Test Coverage score
         id: total
-        if: matrix.python-version == '3.8'
+        if: matrix.python-version == '3.8' && matrix.platform == 'ubuntu-latest'
         run: |
           poetry run python -m coverage report --fail-under 50
           poetry run python -m coverage html -d build/
@@ -57,7 +57,7 @@ jobs:
         run: poetry build
 
       - name: Push coverage report to coverage-report branch
-        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.8'
+        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.8' && matrix.platform == 'ubuntu-latest'
         run: |
           cd build
           CREATED_FROM_REF=$(git rev-parse --short HEAD)
