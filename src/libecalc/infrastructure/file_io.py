@@ -15,7 +15,11 @@ import numpy as np
 import pandas
 import pandas as pd
 
-from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
+from libecalc.common.errors.exceptions import (
+    EcalcError,
+    EcalcErrorType,
+    InvalidResourceHeaderException,
+)
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import Resource, YamlTimeseriesType
 
@@ -387,7 +391,7 @@ def unpack_zip(file: IO) -> Tuple[List[ValidEcalcFile], List[InvalidEcalcFile]]:
         raise EcalcError(title="Bad zip file", message="An error occurred while unpacking the zip file") from e
 
 
-def _validate_headers(headers: List[str]):
+def _validate_headers(headers: List[str], name: str = ""):
     for header in headers:
         if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header):
             raise ValueError(
@@ -396,7 +400,7 @@ def _validate_headers(headers: List[str]):
                 "[ _ - # + : . , /] "
             )
         elif re.match(r"^Unnamed: \d+$", header):
-            raise ValueError("CSV input file must include header")
+            raise InvalidResourceHeaderException(f"One or more headers are missing in input-file {name}")
 
 
 def _validate_not_nan(columns: List[List]):
@@ -409,11 +413,11 @@ def _validate_not_nan(columns: List[List]):
                 )
 
 
-def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> Resource:
+def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True, name: str = "") -> Resource:
     headers = df.columns.tolist()
     headers = [header.strip() for header in headers]
     if validate_headers:
-        _validate_headers(headers)
+        _validate_headers(headers, name)
     df.columns = df.columns.str.strip()
     columns = [df[header].tolist() for header in headers]
     return Resource(
@@ -449,7 +453,7 @@ def read_resource_from_string(resource_string: str, validate_headers: bool = Tru
     return resource
 
 
-def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> Resource:
+def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame, name: str = "") -> Resource:
     # TODO: This might give a different result than calculator-cli since we are not yet
     #  filtering on columns that are actually used. I.e. an unused column might have a number where all used columns
     #  have nan. This method would include that row. Although it is unlikely.
@@ -459,11 +463,11 @@ def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> Resou
     # Drop columns if all values are na
     resource_df = resource_df.dropna(axis=1, how="all")
 
-    return _dataframe_to_resource(resource_df)
+    return _dataframe_to_resource(resource_df, name=name)
 
 
 def read_timeseries_resource(
-    resource_input: Union[Path, BytesIO, str], timeseries_type: YamlTimeseriesType
+    resource_input: Union[Path, BytesIO, str], timeseries_type: YamlTimeseriesType, name: str = ""
 ) -> Resource:
     """Read timeseries resource from filepath with timeseries specific manipulation/validation.
 
@@ -481,7 +485,7 @@ def read_timeseries_resource(
     else:
         raise ValueError(f"Invalid timeseries type '{timeseries_type}' for resource '{resource_input}'")
 
-    return convert_dataframe_to_timeseries_resource(resource_df=resource_df)
+    return convert_dataframe_to_timeseries_resource(resource_df=resource_df, name=name)
 
 
 def read_facility_resource(resource_input: Union[Path, BytesIO, str]) -> Resource:
