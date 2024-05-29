@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import IO
 
 import pytest
+from libecalc.common.errors.exceptions import InvalidResourceHeaderException
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
 from libecalc.presentation.yaml.validation_errors import DataValidationError
@@ -158,9 +159,9 @@ class TestReadFacilityResource:
             )
 
     def test_missing_headers(self, tmp_path_fixture):
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(InvalidResourceHeaderException) as e:
             file_io.read_facility_resource(create_csv_from_line(tmp_path_fixture, "HEADER1        ,,HEADER3"))
-        assert str(e.value) == "CSV input file must include header"
+        assert str(e.value) == "Missing header(s) in CSV input file: One or more headers are missing in input-file "
 
 
 @pytest.fixture
