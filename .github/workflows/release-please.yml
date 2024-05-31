@@ -63,11 +63,11 @@ jobs:
     uses: equinor/ecalc/.github/workflows/publish.yml@main
     secrets:
         pypi_token: ${{ secrets.PYPI_TOKEN }}
-    if: ${{ needs.release-please.outputs.release_created && env.VERSIONING_STRATEGY != 'prerelease' }}
+    if: ${{ needs.release-please.outputs.release_created && inputs.versioning_strategy != 'prerelease' }}
 
   create-jira-release:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created && env.VERSIONING_STRATEGY != 'prerelease' }}
+    if: ${{ needs.release-please.outputs.release_created && inputs.versioning_strategy != 'prerelease' }}
     secrets:
       jira_release_webhook: ${{ secrets.JIRA_RELEASE_WEBHOOK }}
     uses: equinor/ecalc/.github/workflows/create-jira-release.yml@main
