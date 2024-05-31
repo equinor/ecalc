@@ -14,11 +14,15 @@ from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRateUnits,
+    YamlOilRateUnits,
+)
 
 
 def venting_emitter_yaml_factory(
     rate_types: List[RateType],
-    units: List[str],
+    units: List[YamlEmissionRateUnits],
     emission_names: List[str],
     regularity: float,
     names: List[str],
@@ -30,7 +34,7 @@ def venting_emitter_yaml_factory(
     installation_name: str = "minimal_installation",
     emission_factors: List[float] = None,
     oil_rates: List[float] = None,
-    units_oil_rates: List[str] = None,
+    units_oil_rates: List[YamlOilRateUnits] = None,
     include_emitters: bool = True,
     include_fuel_consumers: bool = True,
 ) -> DTOCase:
@@ -120,8 +124,8 @@ def create_venting_emitters_yaml(
     emitter_names: List[str],
     emission_names: List[str],
     emission_rates: List[float],
-    units: List[str],
-    units_oil_rates: List[Unit],
+    units: List[YamlEmissionRateUnits],
+    units_oil_rates: List[YamlOilRateUnits],
     emission_keyword_name: str,
     emission_factors: List[float],
     oil_rates: List[float],
@@ -148,7 +152,7 @@ def create_venting_emitters_yaml(
                     - NAME: {emission_name}
                       RATE:
                         VALUE: {emission_rate}
-                        UNIT:  {unit}
+                        UNIT:  {unit.value}
                         TYPE: {rate_type.value}
                     """
                     emissions = emissions + emission
@@ -157,7 +161,7 @@ def create_venting_emitters_yaml(
                 emissions = f"""
                 RATE:
                   VALUE: {oil_rate}
-                  UNIT: {unit_oil_rate}
+                  UNIT: {unit_oil_rate.value}
                   TYPE: {rate_type.value}
                 EMISSIONS:
                 """
