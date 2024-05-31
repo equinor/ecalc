@@ -14,6 +14,7 @@ on:
           - always-bump-patch
           - always-bump-minor
           - always-bump-major
+          - prerelease
 
   # Workflow call is used for called from another workflow
   workflow_call:
@@ -45,7 +46,7 @@ jobs:
             src/libecalc/version.py
       - uses: actions/checkout@v4
       - name: Create vX.Y release branch (for simpler patching) - if normal release (not patching)
-        if: ${{ steps.release.outputs.release_created && env.VERSIONING_STRATEGY != 'always-bump-patch' }}
+        if: ${{ steps.release.outputs.release_created && env.VERSIONING_STRATEGY != 'always-bump-patch' && env.VERSIONING_STRATEGY != 'prerelease' }}
         run: |
             git checkout -b release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }} ${{ steps.release.outputs.sha }}
             git push -u origin release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}
@@ -62,11 +63,11 @@ jobs:
     uses: equinor/ecalc/.github/workflows/publish.yml@main
     secrets:
         pypi_token: ${{ secrets.PYPI_TOKEN }}
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release-please.outputs.release_created && env.VERSIONING_STRATEGY != 'prerelease' }}
 
   create-jira-release:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release-please.outputs.release_created && env.VERSIONING_STRATEGY != 'prerelease' }}
     secrets:
       jira_release_webhook: ${{ secrets.JIRA_RELEASE_WEBHOOK }}
     uses: equinor/ecalc/.github/workflows/create-jira-release.yml@main
