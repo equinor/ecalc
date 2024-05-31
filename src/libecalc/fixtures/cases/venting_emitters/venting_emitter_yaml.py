@@ -152,7 +152,7 @@ def create_venting_emitters_yaml(
                     - NAME: {emission_name}
                       RATE:
                         VALUE: {emission_rate}
-                        UNIT:  {unit.value}
+                        UNIT:  {unit.value if isinstance(unit, YamlEmissionRateUnits) else unit}
                         TYPE: {rate_type.value}
                     """
                     emissions = emissions + emission
