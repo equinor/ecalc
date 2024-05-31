@@ -73,7 +73,7 @@ class YamlModel:
             return read_func(resource_name, *args)
         except (InvalidResourceHeaderException, ValueError) as exc:
             logger.error(str(exc))
-            raise EcalcError("Failed re read resource", f"Failed to read {resource_name}: {str(exc)}") from exc
+            raise EcalcError("Failed to read resource", f"Failed to read {resource_name.name}: {str(exc)}") from exc
 
     @staticmethod
     def _read_resources(yaml_configuration: PyYamlYamlModel, working_directory: Path) -> Dict[str, Resource]:

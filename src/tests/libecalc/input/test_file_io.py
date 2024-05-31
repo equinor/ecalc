@@ -5,9 +5,11 @@ from pathlib import Path
 from typing import IO
 
 import pytest
-from libecalc.common.errors.exceptions import InvalidResourceHeaderException
+from libecalc.common.errors.exceptions import EcalcError, InvalidResourceHeaderException
+from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
+from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.validation_errors import DataValidationError
 from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -355,3 +357,54 @@ class TestZipUpload:
 
         assert relative_paths[arbitrary_include_file.original_filename] == "../resources/file.yaml"
         assert relative_paths[main_yaml.original_filename] == "main.yaml"
+
+
+class TestReadFullModel:
+    def test_time_series_missing_headers(self):
+        time_series_yaml_text = {
+            "TIME_SERIES": [
+                {
+                    "NAME": "SIM1",
+                    "TYPE": "MISCELLANEOUS",
+                    "FILE": "sim/base_profile_missing_header_oil_prod.csv",
+                    "INTERPOLATION_TYPE": "LEFT",
+                },
+            ]
+        }
+
+        test = PyYamlYamlModel(
+            internal_datamodel=time_series_yaml_text,
+            instantiated_through_read=True,
+        )
+        with pytest.raises(EcalcError) as e:
+            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
+
+        assert str(e.value) == (
+            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: "
+            "Missing header(s): One or more headers are missing in time series or "
+            "facilities resource"
+        )
+
+    def test_facility_input_missing_headers(self):
+        time_series_yaml_text = {
+            "FACILITY_INPUTS": [
+                {
+                    "NAME": "tabular",
+                    "TYPE": "TABULAR",
+                    "FILE": "einput/tabular_missing_header_fuel.csv",
+                },
+            ]
+        }
+
+        test = PyYamlYamlModel(
+            internal_datamodel=time_series_yaml_text,
+            instantiated_through_read=True,
+        )
+        with pytest.raises(EcalcError) as e:
+            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
+
+        assert str(e.value) == (
+            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: "
+            "Missing header(s): One or more headers are missing in time series or "
+            "facilities resource"
+        )
