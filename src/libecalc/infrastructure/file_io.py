@@ -15,7 +15,11 @@ import numpy as np
 import pandas
 import pandas as pd
 
-from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
+from libecalc.common.errors.exceptions import (
+    EcalcError,
+    EcalcErrorType,
+    InvalidResourceHeaderException,
+)
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import Resource, YamlTimeseriesType
 
@@ -396,7 +400,9 @@ def _validate_headers(headers: List[str]):
                 "[ _ - # + : . , /] "
             )
         elif re.match(r"^Unnamed: \d+$", header):
-            raise ValueError("CSV input file must include header")
+            raise InvalidResourceHeaderException(
+                "One or more headers are missing in time series or facilities resource"
+            )
 
 
 def _validate_not_nan(columns: List[List]):
@@ -459,11 +465,13 @@ def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> Resou
     # Drop columns if all values are na
     resource_df = resource_df.dropna(axis=1, how="all")
 
-    return _dataframe_to_resource(resource_df)
+    return _dataframe_to_resource(resource_df, validate_headers=False)  # Validation of headers done at higher level
 
 
 def read_timeseries_resource(
-    resource_input: Union[Path, BytesIO, str], timeseries_type: YamlTimeseriesType
+    resource_input: Union[Path, BytesIO, str],
+    timeseries_type: YamlTimeseriesType,
+    validate_headers: bool = True,
 ) -> Resource:
     """Read timeseries resource from filepath with timeseries specific manipulation/validation.
 
@@ -481,10 +489,14 @@ def read_timeseries_resource(
     else:
         raise ValueError(f"Invalid timeseries type '{timeseries_type}' for resource '{resource_input}'")
 
+    headers = resource_df.columns.tolist()
+    headers = [header.strip() for header in headers]
+    if validate_headers:
+        _validate_headers(headers)
     return convert_dataframe_to_timeseries_resource(resource_df=resource_df)
 
 
-def read_facility_resource(resource_input: Union[Path, BytesIO, str]) -> Resource:
+def read_facility_resource(resource_input: Union[Path, BytesIO, str], validate_headers: bool = True) -> Resource:
     """Read facility file from filepath with facility file specific validation.
 
     - Facility files are not allowed to have nans
@@ -496,6 +508,10 @@ def read_facility_resource(resource_input: Union[Path, BytesIO, str]) -> Resourc
         resource_df = read_csv(resource_input)
     else:
         raise ValueError("")
+    headers = resource_df.columns.tolist()
+    headers = [header.strip() for header in headers]
+    if validate_headers:
+        _validate_headers(headers)
     resource = _dataframe_to_resource(resource_df)
     _validate_not_nan(resource.data)
     return resource

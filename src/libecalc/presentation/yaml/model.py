@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, Dict
 
-from libecalc.common.errors.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError, InvalidResourceHeaderException
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
 from libecalc.dto import ResultOptions, VariablesMap
@@ -71,9 +71,9 @@ class YamlModel:
     def _read_resource(resource_name: Path, *args, read_func: Callable[..., Resource]):
         try:
             return read_func(resource_name, *args)
-        except ValueError as exc:
+        except (InvalidResourceHeaderException, ValueError) as exc:
             logger.error(str(exc))
-            raise EcalcError("Failed re read resource", f"Failed to read {resource_name}") from exc
+            raise EcalcError("Failed to read resource", f"Failed to read {resource_name.name}: {str(exc)}") from exc
 
     @staticmethod
     def _read_resources(yaml_configuration: PyYamlYamlModel, working_directory: Path) -> Dict[str, Resource]:
