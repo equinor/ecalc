@@ -292,6 +292,55 @@ class TestReadYaml:
             PyYamlYamlModel.read_yaml(main_yaml=main_yaml)
         assert "Duplicate key" in str(ve.value)
 
+    def test_time_series_missing_headers(self):
+        time_series_yaml_text = {
+            "TIME_SERIES": [
+                {
+                    "NAME": "SIM1",
+                    "TYPE": "MISCELLANEOUS",
+                    "FILE": "sim/base_profile_missing_header_oil_prod.csv",
+                    "INTERPOLATION_TYPE": "LEFT",
+                },
+            ]
+        }
+
+        test = PyYamlYamlModel(
+            internal_datamodel=time_series_yaml_text,
+            instantiated_through_read=True,
+        )
+        with pytest.raises(EcalcError) as e:
+            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
+
+        assert str(e.value) == (
+            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: "
+            "Missing header(s): One or more headers are missing in time series or "
+            "facilities resource"
+        )
+
+    def test_facility_input_missing_headers(self):
+        time_series_yaml_text = {
+            "FACILITY_INPUTS": [
+                {
+                    "NAME": "tabular",
+                    "TYPE": "TABULAR",
+                    "FILE": "einput/tabular_missing_header_fuel.csv",
+                },
+            ]
+        }
+
+        test = PyYamlYamlModel(
+            internal_datamodel=time_series_yaml_text,
+            instantiated_through_read=True,
+        )
+        with pytest.raises(EcalcError) as e:
+            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
+
+        assert str(e.value) == (
+            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: "
+            "Missing header(s): One or more headers are missing in time series or "
+            "facilities resource"
+        )
+
 
 def valid_ecalc_file(
     path: Path = Path("example/path/test_file.csv"),
@@ -359,54 +408,3 @@ class TestZipUpload:
 
         assert relative_paths[arbitrary_include_file.original_filename] == "../resources/file.yaml"
         assert relative_paths[main_yaml.original_filename] == "main.yaml"
-
-
-class TestReadFullModel:
-    def test_time_series_missing_headers(self):
-        time_series_yaml_text = {
-            "TIME_SERIES": [
-                {
-                    "NAME": "SIM1",
-                    "TYPE": "MISCELLANEOUS",
-                    "FILE": "sim/base_profile_missing_header_oil_prod.csv",
-                    "INTERPOLATION_TYPE": "LEFT",
-                },
-            ]
-        }
-
-        test = PyYamlYamlModel(
-            internal_datamodel=time_series_yaml_text,
-            instantiated_through_read=True,
-        )
-        with pytest.raises(EcalcError) as e:
-            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
-
-        assert str(e.value) == (
-            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: "
-            "Missing header(s): One or more headers are missing in time series or "
-            "facilities resource"
-        )
-
-    def test_facility_input_missing_headers(self):
-        time_series_yaml_text = {
-            "FACILITY_INPUTS": [
-                {
-                    "NAME": "tabular",
-                    "TYPE": "TABULAR",
-                    "FILE": "einput/tabular_missing_header_fuel.csv",
-                },
-            ]
-        }
-
-        test = PyYamlYamlModel(
-            internal_datamodel=time_series_yaml_text,
-            instantiated_through_read=True,
-        )
-        with pytest.raises(EcalcError) as e:
-            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
-
-        assert str(e.value) == (
-            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: "
-            "Missing header(s): One or more headers are missing in time series or "
-            "facilities resource"
-        )
