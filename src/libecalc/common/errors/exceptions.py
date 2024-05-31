@@ -79,4 +79,4 @@ class InvalidResourceHeaderException(EcalcError):
     """Input CSV is missing one or more headers."""
 
     def __init__(self, message: str):
-        super().__init__("Missing header(s) in CSV input file", message, error_type=EcalcErrorType.CLIENT_ERROR)
+        super().__init__("Missing header(s)", message, error_type=EcalcErrorType.CLIENT_ERROR)

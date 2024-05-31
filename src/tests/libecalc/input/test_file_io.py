@@ -161,7 +161,7 @@ class TestReadFacilityResource:
     def test_missing_headers(self, tmp_path_fixture):
         with pytest.raises(InvalidResourceHeaderException) as e:
             file_io.read_facility_resource(create_csv_from_line(tmp_path_fixture, "HEADER1        ,,HEADER3"))
-        assert str(e.value) == "Missing header(s) in CSV input file: One or more headers are missing in input-file "
+        assert str(e.value) == "Missing header(s): One or more headers are missing in time series resource"
 
 
 @pytest.fixture
