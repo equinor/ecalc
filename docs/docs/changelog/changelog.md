@@ -1,5 +1,72 @@
 # Changelog
 
+## [8.16.0](https://github.com/equinor/ecalc/compare/v8.15.0...v8.16.0) (2024-05-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* New unit-format for venting emitters, aligned to what is used in other parts of yaml-file. ECALC-1059
+
+### Features
+
+* add eletrical- and mechanical power to asset ([#479](https://github.com/equinor/ecalc/issues/479)) ([464047f](https://github.com/equinor/ecalc/commit/464047f4e315c126a8c27c3b5714ba88d4dead64))
+
+
+### Bug Fixes
+
+* detect duplicate keys in yaml file and raise error ([#438](https://github.com/equinor/ecalc/issues/438)) ([cfeb006](https://github.com/equinor/ecalc/commit/cfeb006d2c6a8095eb3a5aee8f546c53f81f3cfa))
+* do not allow for negative recirculation if rate is above max flow rate for a compressor chart ([#403](https://github.com/equinor/ecalc/issues/403)) ([86bf31e](https://github.com/equinor/ecalc/commit/86bf31e8f08dcd1fd60e3dd543a804ed1debe92d))
+* ensure regularity is evaluated for all installations when only venting emitters ([#468](https://github.com/equinor/ecalc/issues/468)) ([0e6b248](https://github.com/equinor/ecalc/commit/0e6b2489c97878a848a486faabfa07895d1483ab))
+* error when only venting emitters are specified for an installation ([#449](https://github.com/equinor/ecalc/issues/449)) ([017560d](https://github.com/equinor/ecalc/commit/017560db79c7f3c858b16eccbf19f23eeaddc98c))
+* max power from shore values ([#490](https://github.com/equinor/ecalc/issues/490)) ([1c7a4a1](https://github.com/equinor/ecalc/commit/1c7a4a1c2186bf65c74488ef9c4b68c7d41ea124))
+* use custom type pydantic class to wrap ndarray and avoid validation problem ([#487](https://github.com/equinor/ecalc/issues/487)) ([ab2877e](https://github.com/equinor/ecalc/commit/ab2877ecf68802b436347ed4295bedc9fc9cb705))
+* wrong unit max power from shore ([#491](https://github.com/equinor/ecalc/issues/491)) ([f881335](https://github.com/equinor/ecalc/commit/f881335e3b1e10c984227eea0a91c076a2736ea2))
+
+
+### Documentation
+
+* added keyword MAXIMUM_POWER in eCalc YAML keyword list. ([#391](https://github.com/equinor/ecalc/issues/391)) ([1322d2b](https://github.com/equinor/ecalc/commit/1322d2b2c84b1f43aafafd62e1bb3d3783d408ba))
+* change changelog order ([0bf6fe6](https://github.com/equinor/ecalc/commit/0bf6fe62ddb707a169941438d97ecc44e5a46c40))
+* dummy change to docs ([ae0347c](https://github.com/equinor/ecalc/commit/ae0347c04931a49fedcf649ed3789f99cd4d3e7c))
+* fix typo ([#451](https://github.com/equinor/ecalc/issues/451)) ([1c6550d](https://github.com/equinor/ecalc/commit/1c6550da951e2ca02b627c4f4dfd6ea9c84bc54b))
+* fix typo ([#454](https://github.com/equinor/ecalc/issues/454)) ([f7caf31](https://github.com/equinor/ecalc/commit/f7caf3133f06bd9f469ffd21c391a42ad0613f25))
+* fix typo ([#455](https://github.com/equinor/ecalc/issues/455)) ([5ef2087](https://github.com/equinor/ecalc/commit/5ef208796639d1cf9f24df915746db84ed1d678c))
+* fix typo ([#456](https://github.com/equinor/ecalc/issues/456)) ([da59577](https://github.com/equinor/ecalc/commit/da595773fe84c8635f4d9c06338148157e4c1f38))
+* load examples from file ([0dc526d](https://github.com/equinor/ecalc/commit/0dc526d3b8e5a7acf905b6e595ac4b21104f25ed))
+* update changelog with fix for max usage from shore ([#494](https://github.com/equinor/ecalc/issues/494)) ([747839b](https://github.com/equinor/ecalc/commit/747839bf10ec64691a08a8bf6c6f80e932302053))
+* update docs, changelog and migration guide ([#441](https://github.com/equinor/ecalc/issues/441)) ([74b7524](https://github.com/equinor/ecalc/commit/74b752444de1af8660fe3d8a32e53f6ae944aef5))
+* Update VENTING_EMITTERS.md ([#447](https://github.com/equinor/ecalc/issues/447)) ([c9b89b5](https://github.com/equinor/ecalc/commit/c9b89b57d55e36426c713c87bf08339e88ba4d7d))
+
+
+### Miscellaneous Chores
+
+* add deploy for jira tracking ([6681607](https://github.com/equinor/ecalc/commit/6681607d0a3c0dfdae0af34d45fee37ef55804c7))
+* add support for pandas v2 ([#481](https://github.com/equinor/ecalc/issues/481)) ([6d0e68f](https://github.com/equinor/ecalc/commit/6d0e68f6c68c0d7dceaadc424f6f68030540a2cf))
+* add test ([cfeb006](https://github.com/equinor/ecalc/commit/cfeb006d2c6a8095eb3a5aee8f546c53f81f3cfa))
+* align format of units ([#495](https://github.com/equinor/ecalc/issues/495)) ([ab43bd7](https://github.com/equinor/ecalc/commit/ab43bd7136628b14ba0bf09d8e189b964ed65d16))
+* change volume-unit venting emitters ([#442](https://github.com/equinor/ecalc/issues/442)) ([06f85e8](https://github.com/equinor/ecalc/commit/06f85e8755f966e0a6beae58bf78bd0e0a8d5e07))
+* create jira release ([f5c8e55](https://github.com/equinor/ecalc/commit/f5c8e55a2a7730a1fe178f4a9b46b050020fd3de))
+* **deps:** bump actions/cache from 4.0.0 to 4.0.2 ([d7a3427](https://github.com/equinor/ecalc/commit/d7a34274cecfe4763951302837089e81c9fdb213))
+* **docs:** update dependencies ([3428d34](https://github.com/equinor/ecalc/commit/3428d34fdcccf13ee8588fdaf4aa09e0cf6096a5))
+* include jira info in pr template ([fed28a6](https://github.com/equinor/ecalc/commit/fed28a6a6053bfb3d1b3a97cc1843cd1e8f99213))
+* Make sure we remember chores for changes ([a017352](https://github.com/equinor/ecalc/commit/a0173526c61dbfc7bd0a05a2f2199a9191d72f78))
+* make sure we support python 3.8 to 3.11 ([#475](https://github.com/equinor/ecalc/issues/475)) ([2e26ce1](https://github.com/equinor/ecalc/commit/2e26ce184dbacaa5b18e0d3499a847cb0ecec541))
+* make venting emitters emission names case insensitive ([#473](https://github.com/equinor/ecalc/issues/473)) ([1c390a6](https://github.com/equinor/ecalc/commit/1c390a62baaa26dc7ceabbf69f6c473d0cdf6822))
+* update changelog ([cfeb006](https://github.com/equinor/ecalc/commit/cfeb006d2c6a8095eb3a5aee8f546c53f81f3cfa))
+* update dependencies ([#459](https://github.com/equinor/ecalc/issues/459)) ([eb5d75c](https://github.com/equinor/ecalc/commit/eb5d75cf6af9d6fece317b9aac887f724d09744c))
+* update jira automation script ([8d8e1cc](https://github.com/equinor/ecalc/commit/8d8e1cc77685fb3a7d16d17f9087fef6b680f770))
+* update jira automation script ([b17e67c](https://github.com/equinor/ecalc/commit/b17e67c479fc46b5c24c25744917dfd5e7320acf))
+* update jira release automation ([84754db](https://github.com/equinor/ecalc/commit/84754dbee7c521b2ea6e6b651ccebbb1ba9a0fbe))
+* update trigger for jira automation ([cf8f5e0](https://github.com/equinor/ecalc/commit/cf8f5e00d16a1a3542d6d848ddb071d2d25e000f))
+* update typer ([d01a55e](https://github.com/equinor/ecalc/commit/d01a55eba902b3362199d194e30f1e1b03f6bb4d)), closes [#483](https://github.com/equinor/ecalc/issues/483)
+* update yaml oil type venting emitter ([#448](https://github.com/equinor/ecalc/issues/448)) ([7997813](https://github.com/equinor/ecalc/commit/7997813d07f094a2539ae3655779940deb239f85))
+
+
+### Continuous Integration
+
+* **docs:** fix environment ([a6c60fa](https://github.com/equinor/ecalc/commit/a6c60fa0c6d6aec2d2d1d05ae935c7c44def3685))
+* **docs:** set deploy environment for easier tracking ([150a41a](https://github.com/equinor/ecalc/commit/150a41aaa1239c5a723e709e5f5e37931997e2b0))
+
 ## [8.15.0](https://github.com/equinor/ecalc/compare/v8.14.0...v8.15.0) (2024-04-19)
 
 
