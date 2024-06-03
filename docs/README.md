@@ -142,5 +142,17 @@ This will open a browser.
 
 ### Stuff that breaks/things to check
 
-- Equations -> Check that the katex css linked in `docusaurus.config.ts` is updated. See docs for more info https://docusaurus.io/docs/markdown-features/math-equations and https://github.com/KaTeX/KaTeX for more up to date cdn instructions.
+- Katex equations  
+  
+  **Problem:**  
+  Katex equations are duplicated.
+
+  **Solution:**  
+  Check that the katex css linked in `docusaurus.config.ts` is updated. See docs for more info https://docusaurus.io/docs/markdown-features/math-equations and https://github.com/KaTeX/KaTeX for more up to date cdn instructions.
+
+  **Explanation:**  
+  katex creates a `span` with the css class of `katex-html`, this element 
+  should be hidden by the css. That does not happen if the css isn't loaded 
+  correctly or might happen if the css is outdated.
+
 - Mermaid diagrams
