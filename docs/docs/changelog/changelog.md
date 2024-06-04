@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.15.7](https://github.com/equinor/ecalc/compare/v8.15.6...v8.15.7) (2024-05-31)
+
+
+### Miscellaneous Chores
+
+* add support for pandas v2 ([#481](https://github.com/equinor/ecalc/issues/481)) ([eddcdd8](https://github.com/equinor/ecalc/commit/eddcdd8b0a77f753a774c2ea31577705644dc033))
+* make sure we support python 3.8 to 3.11 ([#475](https://github.com/equinor/ecalc/issues/475)) ([14f6a2a](https://github.com/equinor/ecalc/commit/14f6a2a1edab817488c82be7706f8bd0772ca493))
+* update typer ([d7cfb15](https://github.com/equinor/ecalc/commit/d7cfb15305b0254770029d04162baefda8e8e419)), closes [#483](https://github.com/equinor/ecalc/issues/483)
+
 ## [8.15.6](https://github.com/equinor/ecalc/compare/v8.15.5...v8.15.6) (2024-05-22)
 
 
