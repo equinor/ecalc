@@ -76,7 +76,7 @@ class YamlGeneratorSet(YamlBase):
             else:
                 if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in self.category.values():
                     raise ValueError(
-                        f"{self.cable_loss.title} and {self.max_usage_from_shore.title} are only valid for the "
+                        f"{self.model_fields['cable_loss'].alias} and {self.model_fields['max_usage_from_shore'].alias} are only valid for the "
                         f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}."
                     )
         return self
