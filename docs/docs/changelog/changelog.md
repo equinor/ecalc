@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.17.0](https://github.com/equinor/ecalc/compare/v8.16.0...v8.17.0) (2024-06-04)
+
+
+### Miscellaneous Chores
+
+* add support to manually create prereleases ([#501](https://github.com/equinor/ecalc/issues/501)) ([6a1afa3](https://github.com/equinor/ecalc/commit/6a1afa3c69865a816264d27f6272e08456ec0661))
+* **docs:** update documentation ([9cf339b](https://github.com/equinor/ecalc/commit/9cf339b6335b7146f44c27a1268f5ac198b850be))
+* fix katex equations ([d19b75e](https://github.com/equinor/ecalc/commit/d19b75e2e929b4984b17540d0bc164a1d7222799))
+* improve error message for missing header in input csv files ([#498](https://github.com/equinor/ecalc/issues/498)) ([b146eb4](https://github.com/equinor/ecalc/commit/b146eb41828475e0e07786ddfd021dd95da6ec01))
+* make prerelease behave differently ([#503](https://github.com/equinor/ecalc/issues/503)) ([f234f8e](https://github.com/equinor/ecalc/commit/f234f8ed9f8f1da26349563bb342e3a8d1bbf239))
+* make prerelease behave differently with input vars ([#504](https://github.com/equinor/ecalc/issues/504)) ([ca27794](https://github.com/equinor/ecalc/commit/ca277940d06bc57e5967cfe2de104a1c20172e3c))
+
 ## [8.16.0](https://github.com/equinor/ecalc/compare/v8.15.0...v8.16.0) (2024-05-31)
 
 
