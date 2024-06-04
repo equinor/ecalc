@@ -45,6 +45,7 @@ EMISSIONS:
 
 ## For venting emitters (type: DIRECT_EMISSION)
 Note that the emission name is case-insensitive.
+The keywords [NAME](/about/references/keywords/NAME.md) and [RATE](/about/references/keywords/RATE.md) are required.
 
 ### Format
 ~~~~~~~~yaml
@@ -70,6 +71,7 @@ EMISSIONS:
 ~~~~~~~~
 ## For venting emitters (type: OIL_VOLUME)
 Note that the emission name is case-insensitive.
+The keywords [NAME](/about/references/keywords/NAME.md) and `EMISSION_FACTOR` are required.
 
 ### Format
 ~~~~~~~~yaml

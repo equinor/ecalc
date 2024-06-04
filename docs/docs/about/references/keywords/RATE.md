@@ -44,20 +44,27 @@ RATE: SIM1:GAS_PROD
 ~~~~~~~~
 
 ## Use in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
-The attribute `VALUE` is required, while `UNIT` and `TYPE` are optional. Allowed values for
-`UNIT` are kg/d and t/d, while STREAM_DAY and CALENDAR_DAY are valid for `TYPE`.
+The keywords `VALUE` and [CATEGORY](/about/references/keywords/CATEGORY.md) are required, while [UNIT](/about/references/keywords/UNIT.md) and [TYPE](/about/references/keywords/TYPE.md) are optional. 
 
+For venting emitters of `TYPE` `DIRECT_EMISSION`:
+Allowed values for `UNIT` are KG_PER_DAY and TONS_PER_DAY, while STREAM_DAY and CALENDAR_DAY are valid for `TYPE`.
+
+For venting emitters of `TYPE` `OIL_VOLUME`:
+Only allowed value for `UNIT` is SM3_PER_DAY
+
+Example with venting emitter of `TYPE` `DIRECT_EMISSION`:
 ### Format
 ~~~~~~~~yaml
 VENTING_EMITTERS:
   - NAME: <emitter name>
     CATEGORY: <category>
-    EMISSION:
-      NAME: <emission name>
-      RATE:
-        VALUE: <emission rate>
-        UNIT: <emission rate unit, default kg/d>
-        TYPE: <emission rate type, default STREAM_DAY>
+    TYPE: <emission type>
+    EMISSIONS:
+      - NAME: <emission name>
+        RATE:
+          VALUE: <emission rate>
+          UNIT: <emission rate unit, default KG_PER_DAY>
+          TYPE: <emission rate type, default STREAM_DAY>
 ~~~~~~~~
 
 
@@ -67,10 +74,11 @@ VENTING_EMITTERS:
 VENTING_EMITTERS:
   - NAME: SomeVentingEmitter
     CATEGORY: COLD-VENTING-FUGITIVE
-    EMISSION:
-      NAME: CH4
-      RATE:
-        VALUE: 4
-        UNIT: kg/d
-        TYPE: STREAM_DAY
+    TYPE: DIRECT_EMISSION
+    EMISSIONS:
+      - NAME: CH4
+        RATE:
+          VALUE: 4
+          UNIT: KG_PER_DAY
+          TYPE: STREAM_DAY
 ~~~~~~~~
