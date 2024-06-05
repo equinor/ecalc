@@ -90,3 +90,40 @@ class TestGeneratorSet:
                 consumers=[fuel_consumer],
                 fuel={},
             )
+
+    def test_power_from_shore_wrong_category(self):
+        """
+        Check that CABLE_LOSS and MAX_USAGE_FROM_SHORE are only allowed if generator set category is POWER-FROM-SHORE
+        """
+
+        # Check for CABLE_LOSS
+        with pytest.raises(ValueError) as exc_info:
+            dto.GeneratorSet(
+                name="Test",
+                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.BOILER},
+                generator_set_model={},
+                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                consumers=[],
+                fuel={},
+                cable_loss=0,
+            )
+
+        assert (
+            "CABLE_LOSS and MAX_USAGE_FROM_SHORE are only valid for the category POWER-FROM-SHORE, not for BOILER"
+        ) in str(exc_info.value)
+
+        # Check for MAX_USAGE_FROM_SHORE
+        with pytest.raises(ValueError) as exc_info:
+            dto.GeneratorSet(
+                name="Test",
+                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.BOILER},
+                generator_set_model={},
+                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                consumers=[],
+                fuel={},
+                max_usage_from_shore=20,
+            )
+
+        assert (
+            "CABLE_LOSS and MAX_USAGE_FROM_SHORE are only valid for the category POWER-FROM-SHORE, not for BOILER"
+        ) in str(exc_info.value)
