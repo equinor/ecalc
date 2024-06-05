@@ -108,9 +108,9 @@ class TestGeneratorSet:
                 cable_loss=0,
             )
 
-        assert "CABLE_LOSS and MAX_USAGE_FROM_SHORE are only valid for the category POWER-FROM-SHORE" in str(
-            exc_info.value
-        )
+        assert (
+            "CABLE_LOSS and MAX_USAGE_FROM_SHORE are only valid for the category POWER-FROM-SHORE, " "not for BOILER"
+        ) in str(exc_info.value)
 
         # Check for MAX_USAGE_FROM_SHORE
         with pytest.raises(ValueError) as exc_info:
@@ -124,6 +124,6 @@ class TestGeneratorSet:
                 max_usage_from_shore=20,
             )
 
-        assert "CABLE_LOSS and MAX_USAGE_FROM_SHORE are only valid for the category POWER-FROM-SHORE" in str(
-            exc_info.value
-        )
+        assert (
+            "CABLE_LOSS and MAX_USAGE_FROM_SHORE are only valid for the category POWER-FROM-SHORE, " "not for BOILER"
+        ) in str(exc_info.value)
