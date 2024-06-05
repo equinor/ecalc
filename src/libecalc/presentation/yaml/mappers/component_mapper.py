@@ -6,7 +6,7 @@ from pydantic import TypeAdapter, ValidationError
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
+from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumerType, ConsumptionType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
@@ -219,12 +219,9 @@ class GeneratorSetMapper:
         user_defined_category = define_time_model_for_period(
             data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
         )
-        cable_loss = None
-        max_usage_from_shore = None
 
-        if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE in user_defined_category.values():
-            cable_loss = convert_expression(data.get(EcalcYamlKeywords.cable_loss))
-            max_usage_from_shore = convert_expression(data.get(EcalcYamlKeywords.max_usage_from_shore))
+        cable_loss = convert_expression(data.get(EcalcYamlKeywords.cable_loss))
+        max_usage_from_shore = convert_expression(data.get(EcalcYamlKeywords.max_usage_from_shore))
 
         try:
             generator_set_name = data.get(EcalcYamlKeywords.name)
