@@ -11,3 +11,6 @@
 
 # Documentation
 /docs/ @equinor/ecalc-technical-doc-writers
+
+# Changelog
+/docs/docs/changelog/ @equinor/ecalc-ops-team
