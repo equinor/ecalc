@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.16.1](https://github.com/equinor/ecalc/compare/v8.16.0...v8.16.1) (2024-06-06)
+
+
+### Miscellaneous Chores
+
+* refine unit format alignment ([#506](https://github.com/equinor/ecalc/issues/506)) ([#515](https://github.com/equinor/ecalc/issues/515)) ([0ba4371](https://github.com/equinor/ecalc/commit/0ba4371f8cab0b4320ece10711559252a195de82))
+
 ## [8.16.0](https://github.com/equinor/ecalc/compare/v8.15.0...v8.16.0) (2024-05-31)
 
 
