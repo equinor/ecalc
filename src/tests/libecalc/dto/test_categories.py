@@ -3,7 +3,6 @@ from datetime import datetime
 
 import pytest
 from libecalc import dto
-from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.components import (
     ComponentType,
@@ -19,6 +18,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
+    YamlEmissionRateUnits,
 )
 from pydantic import ValidationError
 
@@ -26,7 +26,8 @@ from pydantic import ValidationError
 class TestCategories:
     def test_venting_emitter_categories(self):
         emission = YamlVentingEmission(
-            name="CH4", rate=YamlEmissionRate(value=4, type=RateType.STREAM_DAY, unit=Unit.KILO_PER_DAY.name)
+            name="CH4",
+            rate=YamlEmissionRate(value=4, type=RateType.STREAM_DAY, unit=YamlEmissionRateUnits.KILO_PER_DAY),
         )
 
         # Check that illegal category raises error
