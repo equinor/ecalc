@@ -25,7 +25,7 @@ class YamlRate(YamlTimeSeries):
 
 
 class YamlEmissionRateUnits(enum.Enum):
-    KILO_PER_DAY = "KILO_PER_DAY"
+    KILO_PER_DAY = "KG_PER_DAY"
     TONS_PER_DAY = "TONS_PER_DAY"
 
     def to_unit(self) -> Unit:
@@ -44,7 +44,7 @@ class YamlEmissionRate(YamlTimeSeries):
 
 
 class YamlOilRateUnits(enum.Enum):
-    STANDARD_CUBIC_METER_PER_DAY = "STANDARD_CUBIC_METER_PER_DAY"
+    STANDARD_CUBIC_METER_PER_DAY = "SM3_PER_DAY"
 
     def to_unit(self) -> Unit:
         if self == YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY:

@@ -47,6 +47,9 @@ from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
 )
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRateUnits,
+)
 
 time_vector_installation = [
     datetime(2027, 1, 1),
@@ -221,7 +224,7 @@ def test_venting_emitters():
     dto_sd_kg_per_day = venting_emitter_yaml_factory(
         emission_rates=[emission_rate],
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY],
         emission_names=["ch4"],
         rate_types=[RateType.STREAM_DAY],
         names=["Venting emitter 1"],
@@ -232,7 +235,7 @@ def test_venting_emitters():
         emission_rates=[emission_rate],
         regularity=regularity,
         rate_types=[RateType.STREAM_DAY],
-        units=[Unit.TONS_PER_DAY.name],
+        units=[YamlEmissionRateUnits.TONS_PER_DAY],
         emission_names=["ch4"],
         names=["Venting emitter 1"],
         path=Path(venting_emitters.__path__[0]),
@@ -242,7 +245,7 @@ def test_venting_emitters():
         emission_rates=[emission_rate],
         regularity=regularity,
         rate_types=[RateType.CALENDAR_DAY],
-        units=[Unit.KILO_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY],
         emission_names=["ch4"],
         names=["Venting emitter 1"],
         path=Path(venting_emitters.__path__[0]),
@@ -300,7 +303,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     dto_case_emitters = venting_emitter_yaml_factory(
         emission_rates=[emission_rate],
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY],
         emission_names=["ch4"],
         rate_types=[RateType.STREAM_DAY],
         include_emitters=True,
@@ -328,7 +331,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     dto_case_fuel = venting_emitter_yaml_factory(
         emission_rates=[emission_rate],
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY],
         emission_names=["ch4"],
         rate_types=[RateType.STREAM_DAY],
         include_emitters=False,
@@ -374,7 +377,7 @@ def test_no_emitters_or_fuelconsumers():
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
-            units=[Unit.KILO_PER_DAY],
+            units=[YamlEmissionRateUnits.KILO_PER_DAY],
             emission_names=["ch4"],
             rate_types=[RateType.STREAM_DAY],
             include_emitters=False,
