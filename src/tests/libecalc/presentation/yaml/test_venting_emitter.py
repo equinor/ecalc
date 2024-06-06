@@ -183,7 +183,7 @@ def test_venting_emitters_direct_multiple_emissions_ltp():
     dto_case = venting_emitter_yaml_factory(
         emission_rates=emission_rates,
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY.name, Unit.KILO_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY, YamlEmissionRateUnits.KILO_PER_DAY],
         emission_names=["co2", "ch4"],
         rate_types=[RateType.STREAM_DAY],
         emission_keyword_name="EMISSIONS",
@@ -220,8 +220,8 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
     path = Path(venting_emitters.__path__[0])
     dto_case = venting_emitter_yaml_factory(
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY.name, Unit.KILO_PER_DAY.name],
-        units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY.name, Unit.STANDARD_CUBIC_METER_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY, YamlEmissionRateUnits.KILO_PER_DAY],
+        units_oil_rates=[YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY, YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY],
         emission_names=["ch4", "nmvoc"],
         emitter_types=["OIL_VOLUME"],
         rate_types=[RateType.CALENDAR_DAY],
@@ -234,8 +234,8 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
 
     dto_case_stream_day = venting_emitter_yaml_factory(
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
-        units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY.name, Unit.STANDARD_CUBIC_METER_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY, YamlEmissionRateUnits.KILO_PER_DAY],
+        units_oil_rates=[YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY, YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY],
         emission_names=["ch4", "nmvoc"],
         emitter_types=["OIL_VOLUME"],
         rate_types=[RateType.STREAM_DAY],
@@ -287,7 +287,7 @@ def test_venting_emitters_direct_uppercase_emissions_name():
     dto_case = venting_emitter_yaml_factory(
         emission_rates=emission_rates,
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY.name, Unit.KILO_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY, YamlEmissionRateUnits.KILO_PER_DAY],
         emission_names=["CO2", "nmVOC"],
         rate_types=[RateType.STREAM_DAY],
         emission_keyword_name="EMISSIONS",
@@ -311,8 +311,8 @@ def test_venting_emitters_volume_uppercase_emissions_name():
 
     dto_case = venting_emitter_yaml_factory(
         regularity=regularity,
-        units=[Unit.KILO_PER_DAY, Unit.KILO_PER_DAY],
-        units_oil_rates=[Unit.STANDARD_CUBIC_METER_PER_DAY.name, Unit.STANDARD_CUBIC_METER_PER_DAY.name],
+        units=[YamlEmissionRateUnits.KILO_PER_DAY, YamlEmissionRateUnits.KILO_PER_DAY],
+        units_oil_rates=[YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY, YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY],
         emission_names=["CO2", "nmVOC"],
         emitter_types=["OIL_VOLUME"],
         rate_types=[RateType.CALENDAR_DAY],
