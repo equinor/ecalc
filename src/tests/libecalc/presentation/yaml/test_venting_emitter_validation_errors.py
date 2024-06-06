@@ -1,13 +1,16 @@
 from pathlib import Path
 
 import pytest
-from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.fixtures.cases import venting_emitters
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRateUnits,
+    YamlOilRateUnits,
+)
 
 
 def test_wrong_keyword_name_emitters():
@@ -20,7 +23,7 @@ def test_wrong_keyword_name_emitters():
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
-            units=[Unit.KILO_PER_DAY.name],
+            units=[YamlEmissionRateUnits.KILO_PER_DAY],
             emission_names=["ch4"],
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSION2",
@@ -41,7 +44,7 @@ def test_wrong_unit_emitters():
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
-            units=[Unit.STANDARD_CUBIC_METER_PER_DAY.name],
+            units=[YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY],
             emission_names=["ch4"],
             rate_types=[RateType.STREAM_DAY],
             emission_keyword_name="EMISSIONS",
@@ -51,7 +54,7 @@ def test_wrong_unit_emitters():
 
     assert (
         "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
-        f"'{Unit.KILO_PER_DAY.name}' or '{Unit.TONS_PER_DAY.name}'"
+        f"'{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
     ) in str(exc.value)
 
 
@@ -75,5 +78,5 @@ def test_wrong_unit_format_emitters():
 
     assert (
         "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
-        f"'{Unit.KILO_PER_DAY.name}' or '{Unit.TONS_PER_DAY.name}'"
+        f"'{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
     ) in str(exc.value)
