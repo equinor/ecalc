@@ -43,8 +43,9 @@ EMISSIONS:
     FACTOR: 2.5  # [kg/Sm3]
 ~~~~~~~~
 
-## For venting emitters (type: DIRECT_EMISSION)
+## For venting emitters (type: DIRECT_EMISSION, from eCalc v8.13)
 Note that the emission name is case-insensitive.
+The keywords [NAME](/about/references/keywords/NAME.md) and [RATE](/about/references/keywords/RATE.md) are required.
 
 ### Format
 ~~~~~~~~yaml
@@ -68,8 +69,9 @@ EMISSIONS:
       UNIT: kg/d
       TYPE: STREAM_DAY
 ~~~~~~~~
-## For venting emitters (type: OIL_VOLUME)
+## For venting emitters (type: OIL_VOLUME, from eCalc v8.13)
 Note that the emission name is case-insensitive.
+The keywords [NAME](/about/references/keywords/NAME.md) and `EMISSION_FACTOR` are required.
 
 ### Format
 ~~~~~~~~yaml
