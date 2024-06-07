@@ -9,12 +9,13 @@ from pydantic import ValidationError as PydanticValidationError
 from typing_extensions import Self, deprecated
 from yaml import SafeLoader
 
-from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
 from libecalc.dto.utils.validators import (
     COMPONENT_NAME_ALLOWED_CHARS,
     COMPONENT_NAME_PATTERN,
 )
+from libecalc.presentation.yaml.file_context import FileMark
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
@@ -29,6 +30,11 @@ from libecalc.presentation.yaml.yaml_entities import (
     YamlTimeseriesType,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.exceptions import (
+    DuplicateKeyError,
+    FileContext,
+    YamlError,
+)
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
@@ -151,25 +157,28 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
                     for key_node, _ in node.value:
                         each_key = self.construct_object(key_node, deep=deep)
                         if each_key in mapping:
-                            raise DataValidationError(
-                                data=None,
-                                message=f"Duplicate key: {each_key!r} is found in {key_node.start_mark.name} on line {key_node.start_mark.line + 1}",
+                            raise DuplicateKeyError(
+                                key=each_key,
+                                file_context=FileContext(
+                                    name=key_node.start_mark.name,
+                                    start=FileMark(
+                                        line_number=key_node.start_mark.line + 1,
+                                        column_number=key_node.start_mark.column + 1,
+                                    ),
+                                ),
                             )
                         mapping.add(each_key)
                     return super().construct_mapping(node, deep)
 
             if re.search(COMPONENT_NAME_PATTERN, Path(yaml_file.name).stem) is None:
-                raise EcalcError(
-                    title="Bad Yaml file name",
-                    message=f"The model file, {yaml_file.name}, contains illegal special characters. "
+                raise YamlError(
+                    problem=f"The model file, {yaml_file.name}, contains illegal special characters. "
                     f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}",
                 )
             try:
                 return yaml.load(yaml_file, Loader=UniqueKeyLoader)  # noqa: S506 - loader should be SafeLoader
             except KeyError as e:
-                raise EcalcError(
-                    title="Bad Yaml file", message=f"Error occurred while loading yaml file, key {e} not found"
-                ) from e
+                raise YamlError(problem=f"Error occurred while loading yaml file, key {e} not found") from e
 
         def dump_and_load(self, yaml_file: ResourceStream):
             return yaml.dump(self.load(yaml_file), Dumper=PyYamlYamlModel.IndentationDumper, sort_keys=False)
@@ -211,13 +220,37 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         base_dir: Optional[Path] = None,
         resources: Optional[Dict[str, TextIO]] = None,
     ) -> YamlDict:
-        return PyYamlYamlModel._read_yaml_helper(
-            yaml_file=main_yaml,
-            loader=PyYamlYamlModel.SafeLineLoader,
-            enable_include=enable_include,
-            base_dir=base_dir,
-            resources=resources,
-        )
+        try:
+            return PyYamlYamlModel._read_yaml_helper(
+                yaml_file=main_yaml,
+                loader=PyYamlYamlModel.SafeLineLoader,
+                enable_include=enable_include,
+                base_dir=base_dir,
+                resources=resources,
+            )
+        except yaml.YAMLError as e:
+            file_context = None
+            if hasattr(e, "problem_mark"):
+                mark = e.problem_mark
+                if mark is not None:
+                    file_context = FileContext(
+                        name=mark.name,
+                        start=FileMark(
+                            line_number=mark.line + 1,
+                            column_number=mark.column + 1,
+                        ),
+                    )
+
+            problem = "Invalid YAML file"
+            if hasattr(e, "problem"):
+                optional_problem = e.problem
+                if optional_problem is not None:
+                    problem = optional_problem
+
+            raise YamlError(
+                problem=problem,
+                file_context=file_context,
+            ) from e
 
     # start of validation/parsing methods
 

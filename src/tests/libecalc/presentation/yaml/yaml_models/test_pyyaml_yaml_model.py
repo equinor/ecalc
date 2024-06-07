@@ -33,13 +33,13 @@ class TestYamlValidation:
 
         assert len(errors) == 3
 
-        assert errors[0].details["type"] == "union_tag_not_found"
+        assert "Unable to extract tag" in errors[0].message
         assert errors[0].location.keys == ["TIME_SERIES", 0]
 
-        assert errors[1].details["type"] == "missing"
+        assert "This keyword is missing, it is required" in errors[1].message
         assert errors[1].location.keys == ["FUEL_TYPES"]
 
-        assert errors[2].details["type"] == "missing"
+        assert "This keyword is missing, it is required" in errors[2].message
         assert errors[2].location.keys == ["INSTALLATIONS"]
 
     def test_invalid_expression_token(self, minimal_model_yaml_factory):
@@ -51,8 +51,6 @@ class TestYamlValidation:
 
         errors = exc_info.value.errors()
         assert len(errors) == 1
-        assert errors[0].details["type"] == "expression_reference_not_found"
-        assert errors[0].details["ctx"]["expression_references"] == ["SIM1;NOTHING"]
         assert errors[0].message == "Expression reference(s) SIM1;NOTHING does not exist."
 
     def test_expression_token_validation_ignored_if_no_context(self, minimal_model_yaml_factory):

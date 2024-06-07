@@ -15,6 +15,7 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from typer.testing import CliRunner
 
@@ -671,7 +672,7 @@ class TestYamlFile:
         stream = StringIO("")
         yaml_stream = ResourceStream(name=yaml_wrong_name.name, stream=stream)
 
-        with pytest.raises(EcalcError) as ee:
+        with pytest.raises(YamlError) as ee:
             yaml_reader.load(yaml_file=yaml_stream)
 
         assert (

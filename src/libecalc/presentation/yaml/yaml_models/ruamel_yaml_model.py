@@ -2,14 +2,14 @@ import io
 from pathlib import Path
 from typing import Any, Dict, Optional, TextIO
 
-from ruamel.yaml import YAML
+from ruamel.yaml import YAML, YAMLError
 
 from libecalc.common.errors.exceptions import (
-    EcalcError,
-    EcalcErrorType,
     ProgrammingError,
 )
+from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel
 
 
@@ -126,12 +126,31 @@ class RuamelYamlModel(YamlModel):
                 resources=resources, enable_include=enable_include, base_dir=base_dir
             ).load(yaml_file)
         except KeyError as ke:
-            raise EcalcError(
-                title="Bad Yaml file", message=f"Error occurred while loading yaml file, key {ke} not found"
-            ) from ke
+            raise YamlError(problem=f"Error occurred while loading yaml file, key {ke} not found") from ke
+        except YAMLError as e:
+            file_context = None
+            if hasattr(e, "problem_mark"):
+                mark = e.problem_mark
+                if mark is not None:
+                    file_context = FileContext(
+                        name=mark.name,
+                        start=FileMark(
+                            line_number=mark.line + 1,
+                            column_number=mark.column + 1,
+                        ),
+                    )
+
+            problem = "Invalid YAML file"
+            if hasattr(e, "problem"):
+                optional_problem = e.problem
+                if optional_problem is not None:
+                    problem = optional_problem
+
+            raise YamlError(
+                problem=problem,
+                file_context=file_context,
+            ) from e
         except Exception as e:
-            raise EcalcError(
-                error_type=EcalcErrorType.CLIENT_ERROR,
-                title="Error loading yaml",
-                message="We are not able to load the yaml due to an error: " + str(e),
+            raise YamlError(
+                problem="We are not able to load the yaml due to an error: " + str(e),
             ) from e

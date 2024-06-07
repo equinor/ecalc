@@ -12,6 +12,7 @@ from typing_extensions import Self
 from yaml import Dumper, Mark
 
 from libecalc.common.logger import logger
+from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.yaml_entities import Resource, YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
@@ -180,33 +181,11 @@ class Location:
 
 
 @dataclass
-class FileMark:
-    line_number: int
-    column_number: int
-
-
-@dataclass
-class FileContext:
-    start: FileMark
-    end: FileMark
-
-
-@dataclass
 class ModelValidationError:
-    details: ErrorDetails
     data: Optional[Dict]
-
-    @property
-    def location(self) -> Location:
-        return Location.from_pydantic_loc(self.details["loc"])
-
-    @property
-    def message(self):
-        return self.details["msg"]
-
-    @property
-    def input(self):
-        return self.details["input"]
+    location: Location
+    message: str
+    file_context: FileContext
 
     @property
     def yaml(self) -> Optional[str]:
@@ -214,27 +193,6 @@ class ModelValidationError:
             return None
 
         return yaml.dump(self.data, sort_keys=False).strip()
-
-    @property
-    def file_context(self) -> Optional[FileContext]:
-        if hasattr(self.data, "end_mark") and hasattr(self.data, "start_mark"):
-            # This only works with our implementation of pyyaml read
-            # In the future, we can move this logic into PyYamlYamlModel with a better interface in YamlValidator.
-            # Specifically with our own definition of the returned data in each property in YamlValidator.
-            start_mark = self.data.start_mark
-            end_mark = self.data.end_mark
-            return FileContext(
-                start=FileMark(
-                    line_number=start_mark.line + 1,
-                    column_number=start_mark.column,
-                ),
-                end=FileMark(
-                    line_number=end_mark.line + 1,
-                    column_number=end_mark.column,
-                ),
-            )
-
-        return None
 
     def __str__(self):
         msg = self.location.as_dot_separated()
@@ -286,10 +244,13 @@ class DtoValidationError(DataValidationError):
     def errors(self) -> List[ModelValidationError]:
         errors = []
         for error in custom_errors(e=self.validation_error, custom_messages=CUSTOM_MESSAGES):
+            data = self._get_context_data(loc=error["loc"])
             errors.append(
                 ModelValidationError(
-                    details=error,
-                    data=self._get_context_data(loc=error["loc"]),
+                    location=Location.from_pydantic_loc(error["loc"]),
+                    message=error["msg"],
+                    file_context=FileContext.from_yaml_dict(data),
+                    data=data,
                 )
             )
         return errors
