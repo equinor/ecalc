@@ -10,8 +10,8 @@ from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.validation_errors import DataValidationError
 from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
+from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
@@ -288,7 +288,7 @@ class TestReadYaml:
             name="main.yaml",
         )
 
-        with pytest.raises(DataValidationError) as ve:
+        with pytest.raises(DuplicateKeyError) as ve:
             PyYamlYamlModel.read_yaml(main_yaml=main_yaml)
         assert "Duplicate key" in str(ve.value)
 
