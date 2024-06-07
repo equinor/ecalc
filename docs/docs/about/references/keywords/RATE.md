@@ -43,13 +43,13 @@ RATE: SIM1:GAS_PROD
         ...
 ~~~~~~~~
 
-## Use in EMISSION for VENTING_EMITTERS (from eCalc v8.8)
+## Use in EMISSIONS for VENTING_EMITTERS (from eCalc v8.8)
 The keywords `VALUE` and [CATEGORY](/about/references/keywords/CATEGORY.md) are required, while [UNIT](/about/references/keywords/UNIT.md) and [TYPE](/about/references/keywords/TYPE.md) are optional. 
 
-For venting emitters of `TYPE` `DIRECT_EMISSION`:
+For venting emitters of `TYPE` `DIRECT_EMISSION` (from eCalc v8.13):
 Allowed values for `UNIT` are KG_PER_DAY and TONS_PER_DAY, while STREAM_DAY and CALENDAR_DAY are valid for `TYPE`.
 
-For venting emitters of `TYPE` `OIL_VOLUME`:
+For venting emitters of `TYPE` `OIL_VOLUME` (from eCalc v8.13):
 Only allowed value for `UNIT` is SM3_PER_DAY
 
 Example with venting emitter of `TYPE` `DIRECT_EMISSION`:
