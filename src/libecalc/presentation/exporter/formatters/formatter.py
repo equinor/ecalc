@@ -1,73 +1,89 @@
 import abc
-from typing import Dict, List
+from datetime import datetime
+from typing import Dict, Iterator, List, Optional, Protocol, Tuple, Union
 
-from libecalc.presentation.exporter.dto.dtos import FilteredResult
+from libecalc.common.units import Unit
+from libecalc.domain.tabular.tabular import Tabular
+
+RowIndex = Union[str, int, float, datetime]
+ColumnIndex = Union[str]
+
+
+class ColumnWithoutUnit(Protocol):
+    @property
+    @abc.abstractmethod
+    def id(self) -> str:
+        ...
+
+    @property
+    @abc.abstractmethod
+    def title(self) -> str:
+        ...
+
+
+class ColumnWithUnit(ColumnWithoutUnit, Protocol):
+    @property
+    @abc.abstractmethod
+    def unit(self) -> Optional[Unit]:
+        ...
+
+
+Column = Union[ColumnWithUnit, ColumnWithoutUnit]
+
+
+class Formattable(Tabular[RowIndex, ColumnIndex], Protocol):
+    @abc.abstractmethod
+    def get_column(self, column_id: ColumnIndex) -> Column:
+        ...
+
+
+class FormattableGroup(Protocol):
+    @property
+    @abc.abstractmethod
+    def groups(self) -> Iterator[Tuple[str, Formattable]]:
+        ...
 
 
 class Formatter(abc.ABC):
     @abc.abstractmethod
-    def format(self, filtered_result: FilteredResult) -> Dict[str, List[str]]:
+    def format(self, table: Formattable) -> List[str]:
         """Format data to line-based ascii/string based format. Rename once we add
         support for binary and other structures...
         :return:
         """
-        pass
+        ...
+
+    @abc.abstractmethod
+    def format_group(self, groups: FormattableGroup) -> Dict[str, List[str]]:
+        ...
 
 
-class CSVFormatter(Formatter):
-    """TODO: Should be agnostic about result, and just
-    get e.g a pandas dataframe or a "column based serializeable".
-    """
-
+class CSVFormatter:
     def __init__(self, separation_character: str = ","):
         self.separation_character = separation_character
 
-    def format(self, filtered_result: FilteredResult) -> Dict[str, List[str]]:
-        """TODO: opposite wrapping, in order to inject this to config..instead
-            the result and the mapper should only be added to the inner most class...then we just call what we have injected...
-            instead of sending it down....
+    @staticmethod
+    def _format_column_info(column: Column) -> str:
+        info_str = f"{column.title}"
 
-        TODO: Better with pandas implementation...?! or mirror the dict before doing this...
-        """
+        if hasattr(column, "unit"):
+            info_str += f"[{column.unit}]"
+        return info_str
+
+    def format(self, tabular: Formattable) -> List[str]:
+        columns = [tabular.get_column(column_id) for column_id in tabular.column_ids]
+        rows: List[str] = [
+            self.separation_character.join([column.id for column in columns]),
+            "#" + self.separation_character.join([self._format_column_info(column) for column in columns]),
+        ]
+
+        for row_id in tabular.row_ids:
+            row = [str(tabular.get_value(row_id, column.id)) for column in columns]
+            rows.append(self.separation_character.join(row))
+        return rows
+
+    def format_groups(self, grouped_tabular: FormattableGroup) -> Dict[str, List[str]]:
         csv_formatted_lists_per_installation: Dict[str, List[str]] = {}
-        # TODO: For each aggregator...or disallow for csv...
-        for installation_result in filtered_result.query_results:
-            csv_formatted_results: List[str] = []
-
-            # headers
-            # TODO: This column is _just_ as much defined as well, ie the format of this...a part of config/definition..
-            csv_formatted_results.append(
-                self.separation_character.join([data_result.name for data_result in filtered_result.data_series])
-                + self.separation_character
-                + self.separation_character.join(
-                    [single_result.name for single_result in installation_result.query_results]
-                )
-            )
-            csv_formatted_results.append(
-                "#"
-                + self.separation_character.join(
-                    [f"{data_result.title}" for data_result in filtered_result.data_series]
-                )
-                + self.separation_character
-                + self.separation_character.join(
-                    [
-                        f"{single_result.title}[{single_result.unit.value}]"
-                        for single_result in installation_result.query_results
-                    ]
-                )
-            )
-
-            for index, time in enumerate(filtered_result.time_vector):
-                csv_formatted_results.append(
-                    self.separation_character.join(
-                        [str(data_result.values[index]) for data_result in filtered_result.data_series]
-                    )
-                    + self.separation_character
-                    + self.separation_character.join(
-                        [str(single_result.values[time]) for single_result in installation_result.query_results]
-                    )
-                )
-
-            csv_formatted_lists_per_installation[installation_result.group_name] = csv_formatted_results
-
+        for group_name, tabular in grouped_tabular.groups:
+            csv_formatted_lists_per_installation[group_name] = self.format(tabular)
         return csv_formatted_lists_per_installation
