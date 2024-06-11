@@ -153,7 +153,7 @@ def export_tsv(
     prognosis_filter = config.filter(frequency=frequency)
     result = prognosis_filter.filter(results, resampled_timevector)
 
-    row_based_data: Dict[str, List[str]] = CSVFormatter(separation_character="\t").format(filtered_result=result)
+    row_based_data: Dict[str, List[str]] = CSVFormatter(separation_character="\t").format_groups(result)
 
     exporter = Exporter()
     exporter.add_handler(
