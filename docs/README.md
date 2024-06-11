@@ -142,7 +142,7 @@ This will open a browser.
 
 ### Stuff that breaks/things to check
 
-- Katex equations  
+- Katex equations - check that equations renders _once_ (not twice, _once_)  
   
   **Problem:**  
   Katex equations are duplicated.
@@ -155,4 +155,12 @@ This will open a browser.
   should be hidden by the css. That does not happen if the css isn't loaded 
   correctly or might happen if the css is outdated.
 
-- Mermaid diagrams
+- Mermaid diagrams - check that diagrams renders correctly
+
+- Search - check that links in search work, including anchors/subsections
+  
+  **Problem:**
+  Search linking to anchors (`some/url#subsection) did not work
+  
+  **Solution:**
+  Update `docusaurus-search-local`
