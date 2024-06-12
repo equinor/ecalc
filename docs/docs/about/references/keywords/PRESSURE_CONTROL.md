@@ -9,7 +9,7 @@
 - INDIVIDUAL_ASV_RATE
 - COMMON_ASV
 
-Further description on how each pressure control method works can be found in [COMPRESSOR MODELLING](/about/modelling/setup/models/compressor_modelling/compressor_models_types/index.md)
+Further description on how each pressure control method works can be found in [Fixed speed pressure control](/about/modelling/setup/models/compressor_modelling/fixed_speed_pressure_control/index.md)
 
 ## Format
 

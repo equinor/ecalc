@@ -1,7 +1,7 @@
 ---
-title: Compressor charts
+title: Compressor chart
 sidebar_position: 2
-description: Introduction into compressor charts
+description: Introduction to compressor chart
 ---
 
 # Compressor chart
@@ -157,14 +157,17 @@ Unified generic compressor chart:
 
 ![](generic_unified_compressor_chart.png)
 
-The compressor chart is created by scaling the unified generic compressor chart in the figure above with a design actual 
-rate and head. Note that the rate is here in the units *am3/hr* which is NOT EQUAL to *Sm3/hr*. 
-The units *am3/hr* refers to the volumetric rate at inlet conditions (inlet pressure and temperature), and it will differ from the inputted standard rates
-due to the difference in density.
-The design polytropic head is given in either *kJ/kg*, *m* or J/kg, `UNITS`.
-
-The generic compressor chart is currently accompanied by a fixed polytropic efficiency (polytropic efficiency
+The compressor chart is created by scaling the unified generic compressor chart in the figure above with a
+[DESIGN_RATE](/about/references/keywords/DESIGN_RATE.md) and a [DESIGN_HEAD](/about/references/keywords/DESIGN_HEAD.md).
+The generic compressor chart is currently accompanied by a fixed
+[POLYTROPIC_EFFICIENCY](/about/references/keywords/POLYTROPIC_EFFICIENCY.md) (polytropic efficiency
 variations within the chart may be supported in the future).
+
+The [UNITS](/about/references/keywords/UNITS.md) for the `RATE`, `HEAD` and `EFFICIENCY` must also be defined. Note that
+the only rate unit available here is *am3/hr* which is NOT EQUAL to *Sm3/hr*. The units *am3/hr* refers to the 
+volumetric rate at inlet conditions (inlet pressure and temperature), and it will differ from the inputted standard
+rates due to the difference in density. The design polytropic head is given in either *kJ/kg*, *m* or J/kg.
+
 
 ### Format
 ~~~~~~~~yaml
@@ -226,6 +229,11 @@ The generic chart from input is also based on the unified generic compressor cha
 However, in this case the design point is not specified when setting up the model, instead it is estimated at run time and is entirely based on the inputted data set. 
 An algorithm is used to set a design point such that all the input data is within the capacity. 
 Even if there is a large spread in the data, all data points will solve. High rate/head data points will just be covered by the curve; whilst low rate points outside the minimum flow point will have recirculation. 
+The generic compressor chart is currently accompanied by a fixed
+[POLYTROPIC_EFFICIENCY](/about/references/keywords/POLYTROPIC_EFFICIENCY.md) (polytropic efficiency
+variations within the chart may be supported in the future).
+
+The [UNITS](/about/references/keywords/UNITS.md) for the `EFFICIENCY` must also be defined.
 
 This method has one major potential downside in comparison to the `Generic compressor chart with predefined design point`. As all data points will be covered by the compressor curve, if there is an extremely large or unrealistic head or rate value, the other more "normal" data points will be impacted and will either result in a large head adjustment (via upstream/downstream choking) or it will have a large recirculation rate. This has the potential to skew the entire data set solely due to one unrealistic data point.  Thus, if this generic chart is utilised it is important to make sure that unrealistic data is filtered out.
 
