@@ -76,11 +76,11 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 
           ide4_A -. yes .-> ide4_A_1{"`Invalid Compressors?`"};
           ide4_A_1 -. yes .-> ide4_A_1_1(["`Either head or rate is too high`"]);
-          ide4_A_1_1 --> ide4_A_1_2(["`Plot operational points and adjust charts to fit historical data`"]);
+          ide4_A_1_1 --> ide4_A_1_2(["`Based on the qaulity and uncertianty of data, user can either adjust history operational points or charts to fit history data`"]);
     
           ide4_A -. yes .-> ide4_A_3{"`Invalid Pumps?`"};
           ide4_A_3 -. yes .-> ide4_A_3_1(["`Either head or rate is too high`"]);
-          ide4_A_3_1 --> ide4_A_3_2(["`Plot operational points and adjust charts to fit historical data`"]);
+          ide4_A_3_1 --> ide4_A_3_2(["`Based on the qaulity and uncertianty of data, user can either adjust history operational points or charts to fit hisotry data`"]);
     
           ide4_A -. yes .-> ide4_A_4{"`Invalid Generator Set?`"};
           ide4_A_4 -. yes .-> ide4_A_4_1(["`Check maximum and minimum facility power consumption values are within the range of the specified generator set`"]);
@@ -120,7 +120,7 @@ All subsurface profiles must be in calendar day rate Sm<sup>3</sup>/day and with
 To simplify certain models, there could be some common assumptions made. Here are some examples:
 
 - **Base Load**: As eCalc™ is not simulating the whole facility there are often energy consumers that are not modelled. 
-Typically these energy consumers, related to things such as the energy consumption of living quarters and direct energy consumers dependent on there being production/injection, are often constant loads.
+Typically these energy consumers, related to things such as the energy consumption of living quarters and direct energy consumers, which are not varying with the amount of their production/injection, are often constant loads.
 These smaller constant loads are then grouped into a larger term, called the "baseload". This is assumed to be constant and independent of the production rate of the facility.
 - **Recompressor**: The main function of a recompressor is to compressor gas from separator pressures back up to the inlet separator pressure.
 If this compressor is small and has little fluctuation in its load, or its processed gas rate and composition are unknown,
