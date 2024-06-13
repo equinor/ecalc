@@ -37,6 +37,7 @@ valid_example_cases = {
     "simple": (Path(simple.__file__).parent / "model.yaml").absolute(),
     "simple_temporal": (Path(simple.__file__).parent / "model_temporal.yaml").absolute(),
     "advanced": (Path(advanced.__file__).parent / "model.yaml").absolute(),
+    "advanced_docs": (Path("../../../docs/docs/about/modelling/examples/advanced/model.yaml")).absolute(),
     "ltp": (Path(ltp_export.__file__).parent / "data" / "ltp_export.yaml").absolute(),
     "all_energy_usage_models": (
         Path(all_energy_usage_models.__file__).parent / "data" / "all_energy_usage_models.yaml"
@@ -50,6 +51,7 @@ valid_example_yaml_case_fixture_names = {
     "simple": "simple_yaml",
     "simple_temporal": "simple_temporal_yaml",
     "advanced": "advanced_yaml",
+    "advanced_docs": "advanced_docs_yaml",
     "ltp": "ltp_export_yaml",
     "all_energy_usage_models": "all_energy_usage_models_yaml",
     "consumer_system_v2": "consumer_system_v2_yaml",
@@ -94,6 +96,11 @@ def simple_duplicate_emissions_yaml_path():
 @pytest.fixture(scope="session")
 def advanced_yaml_path():
     return valid_example_cases["advanced"]
+
+
+@pytest.fixture(scope="session")
+def advanced_docs_yaml_path():
+    return valid_example_cases["advanced_docs"]
 
 
 @pytest.fixture

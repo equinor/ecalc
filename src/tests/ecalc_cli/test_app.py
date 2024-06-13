@@ -759,3 +759,22 @@ class TestYamlFile:
             "Energy model type cannot change over time within a single consumer. "
             "The model type is changed for gasinj: ['DIRECT', 'COMPRESSOR']" in str(exc_info.value)
         )
+
+
+class TestExamplesDocs:
+    @pytest.mark.snapshot
+    def test_advanced_example_docs(self, advanced_docs_yaml_path, tmp_path, snapshot):
+        run_name_prefix = "test"
+        runner.invoke(
+            main.app,
+            _get_args(
+                model_file=advanced_docs_yaml_path, csv=True, output_folder=tmp_path, name_prefix=run_name_prefix
+            ),
+            catch_exceptions=False,
+        )
+
+        run_csv_output_file = tmp_path / f"{run_name_prefix}.csv"
+        assert run_csv_output_file.is_file()
+        with open(run_csv_output_file) as csv_file:
+            csv_data = csv_file.read()
+            snapshot.assert_match(csv_data, snapshot_name=run_csv_output_file.name)
