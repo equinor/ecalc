@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, Iterator, List, Tuple, Union
 
 from libecalc.common.units import Unit
-from libecalc.presentation.exporter.formatters.exceptions import ColumnNotFound
+from libecalc.domain.tabular.exceptions import ColumnNotFound
 from libecalc.presentation.exporter.formatters.formatter import (
     ColumnIndex,
     Formattable,
