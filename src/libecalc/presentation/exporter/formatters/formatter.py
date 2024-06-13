@@ -12,11 +12,6 @@ ColumnIndex = Union[str]
 class ColumnWithoutUnit(Protocol):
     @property
     @abc.abstractmethod
-    def id(self) -> str:
-        ...
-
-    @property
-    @abc.abstractmethod
     def title(self) -> str:
         ...
 
@@ -71,14 +66,17 @@ class CSVFormatter:
         return info_str
 
     def format(self, tabular: Formattable) -> List[str]:
-        columns = [tabular.get_column(column_id) for column_id in tabular.column_ids]
+        column_ids = tabular.column_ids
         rows: List[str] = [
-            self.separation_character.join([column.id for column in columns]),
-            "#" + self.separation_character.join([self._format_column_info(column) for column in columns]),
+            self.separation_character.join(list(column_ids)),
+            "#"
+            + self.separation_character.join(
+                [self._format_column_info(tabular.get_column(column_id)) for column_id in column_ids]
+            ),
         ]
 
         for row_id in tabular.row_ids:
-            row = [str(tabular.get_value(row_id, column.id)) for column in columns]
+            row = [str(tabular.get_value(row_id, column_id)) for column_id in column_ids]
             rows.append(self.separation_character.join(row))
         return rows
 
