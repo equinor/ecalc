@@ -30,9 +30,7 @@ class Filter:
         energy_calculator_result: GraphResult,
         time_vector: List[datetime],
     ) -> FilteredResult:
-        data_series_collection = [
-            generator.generate(energy_calculator_result, time_vector) for generator in self.generators
-        ]
+        data_series_collection = [generator.generate(time_vector) for generator in self.generators]
         query_result_collection = self.aggregator.aggregate(energy_calculator_result)
 
         return FilteredResult(

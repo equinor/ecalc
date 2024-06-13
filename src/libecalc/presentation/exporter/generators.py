@@ -2,8 +2,6 @@ import abc
 from datetime import datetime
 from typing import List
 
-from libecalc.application.graph_result import GraphResult
-from libecalc.dto.result import EcalcModelResult
 from libecalc.presentation.exporter.dto.dtos import DataSeries
 
 
@@ -11,7 +9,6 @@ class Generator(abc.ABC):
     @abc.abstractmethod
     def generate(
         self,
-        energy_calculator_result: GraphResult,
         time_vector: List[datetime],
     ) -> DataSeries:
         pass
@@ -30,7 +27,6 @@ class TimeIndexGenerator(Generator):
 
     def generate(
         self,
-        energy_calculator_result: EcalcModelResult,
         time_vector: List[datetime],
     ) -> DataSeries:
         return DataSeries(
