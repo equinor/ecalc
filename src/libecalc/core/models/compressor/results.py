@@ -278,7 +278,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                 if result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour is not None
             ]
             outlet_stream_condition[i].standard_rate_sm3_per_day = [
-                result_list[t].stage_results[i].standard_rate_sm3_per_day
+                result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
