@@ -33,4 +33,4 @@ The supported types are:
 - `COMPRESSOR_WITH_TURBINE`
 
 
-The documentation of each of these is found on the [Compressor Modelling](/about/modelling/setup/models/compressor_modelling/compressor_models_types/index.md) page.
+The documentation of each of these is found on the [Models](/about/modelling/setup/models/index.md) page.
