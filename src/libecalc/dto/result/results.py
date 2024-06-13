@@ -177,6 +177,8 @@ class TurbineModelResult(EcalcResultBaseModel):
 class CompressorStreamConditionResult(EcalcResultBaseModel):
     actual_rate_m3_per_hr: TimeSeriesRate
     actual_rate_before_asv_m3_per_hr: TimeSeriesRate
+    standard_rate_sm3_per_day: TimeSeriesRate
+    standard_rate_before_asv_sm3_per_day: TimeSeriesRate
     kappa: TimeSeriesFloat
     density_kg_per_m3: TimeSeriesRate
     pressure: TimeSeriesFloat
