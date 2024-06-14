@@ -10,7 +10,7 @@
 | Yes        | `ENERGY_USAGE_MODEL`      | None                               |
 
 ## Description
-Reference to an compressor train model defined in [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) or 
+Reference to a compressor train model defined in [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) or 
 [MODELS](/about/references/keywords/MODELS.md) used for [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) 
 TYPE [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
 

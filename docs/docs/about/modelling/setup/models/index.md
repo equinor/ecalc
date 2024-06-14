@@ -24,7 +24,7 @@ MODELS:
 The supported types are:
 
 - `FLUID` described in more detail in [Fluid model](/about/modelling/setup/models/fluid_model.md)
-- `COMPRESSOR_CHART`
+- `COMPRESSOR_CHART` described in more detail in [Compressor chart](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md)
 - `SINGLE_SPEED_COMPRESSOR_TRAIN`
 - `SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN`
 - `VARIABLE_SPEED_COMPRESSOR_TRAIN`
