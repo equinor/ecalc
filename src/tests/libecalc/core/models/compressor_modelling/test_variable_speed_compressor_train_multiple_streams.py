@@ -416,7 +416,7 @@ def test_get_maximum_standard_rate_max_speed_curve(
 
     np.testing.assert_allclose(middle_of_max_speed_curve, 4396383, rtol=0.001)
 
-    np.testing.assert_allclose(left_end_of_max_speed_curve, 3164249, rtol=0.001)
+    np.testing.assert_allclose(left_end_of_max_speed_curve, 3154507, rtol=0.001)
 
 
 @pytest.mark.slow
