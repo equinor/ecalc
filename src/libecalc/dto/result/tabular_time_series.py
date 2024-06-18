@@ -1,6 +1,6 @@
 from abc import ABC
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import pandas as pd
 from typing_extensions import Self
@@ -20,6 +20,13 @@ from libecalc.dto.result.base import EcalcResultBaseModel
 class TabularTimeSeries(ABC, EcalcResultBaseModel):
     name: str
     timesteps: List[datetime]
+
+    def get_time_series(self) -> Dict[str, TimeSeries]:
+        time_series_collection = {}
+        for attribute_name, attribute_value in self.__dict__.items():
+            if isinstance(attribute_value, TimeSeries):
+                time_series_collection[attribute_name] = time_series_collection
+        return time_series_collection
 
     def to_dataframe(
         self,

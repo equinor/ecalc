@@ -4,6 +4,10 @@ from typing import Dict, Iterator, List, Optional, Protocol, Tuple, Union
 
 from libecalc.common.units import Unit
 from libecalc.domain.tabular.tabular import Tabular
+from libecalc.presentation.exporter.formatters.exceptions import (
+    IncompatibleData,
+    IncorrectInput,
+)
 
 RowIndex = Union[str, int, float, datetime]
 ColumnIndex = Union[str]
@@ -32,56 +36,124 @@ class Formattable(Tabular[RowIndex, ColumnIndex], Protocol):
         ...
 
 
-class FormattableGroup(Protocol):
-    @property
-    @abc.abstractmethod
-    def groups(self) -> Iterator[Tuple[str, Formattable]]:
-        ...
-
-
 class Formatter(abc.ABC):
     @abc.abstractmethod
-    def format(self, table: Formattable) -> List[str]:
-        """Format data to line-based ascii/string based format. Rename once we add
-        support for binary and other structures...
-        :return:
+    def format(self, tabular: Formattable, header_prefix: str = None) -> List[str]:
         """
-        ...
+
+        Args:
+            header_prefix: string that will be added to the header with a '.' between prefix and regular header. {header_prefix}.{header}
+            tabular: the data that should be formatted
+
+        Returns: formatted rows as a list of string
+
+        """
 
     @abc.abstractmethod
-    def format_group(self, groups: FormattableGroup) -> Dict[str, List[str]]:
-        ...
+    def format_many(self, formattables: Iterator[Tuple[str, Formattable]]) -> List[str]:
+        """
+        Combine several formattable objects into a single csv
+        Args:
+            formattables: list of tuples that should be formatted, the first item will be used as prefix in the resulting row headers.
+
+        Returns:
+
+        """
 
 
-class CSVFormatter:
-    def __init__(self, separation_character: str = ","):
+Rows = List[str]
+
+
+class CSVFormatter(Formatter):
+    def __init__(self, separation_character: str = ",", use_column_id_in_header: bool = False):
+        """
+        Format tabular data into rows
+        Args:
+            separation_character: the separator used between items in a row
+            use_column_id_in_header: when True, a comment with column title and unit will be added instead of including it in the header
+        """
         self.separation_character = separation_character
+        self._use_column_id_in_header = use_column_id_in_header
 
     @staticmethod
-    def _format_column_info(column: Column) -> str:
-        info_str = f"{column.title}"
+    def _format_column_info(column: Column, header_prefix: Optional[str]) -> str:
+        info_str = ""
+        if header_prefix is not None:
+            info_str += f"{header_prefix}."
+
+        info_str += f"{column.title}"
 
         if hasattr(column, "unit"):
             info_str += f"[{column.unit}]"
         return info_str
 
-    def format(self, tabular: Formattable) -> List[str]:
+    def _get_column_info_row(
+        self, column_ids: List[ColumnIndex], columns: Dict[ColumnIndex, Column], header_prefix: Optional[str]
+    ) -> str:
+        return self.separation_character.join(
+            [self._format_column_info(columns[column_id], header_prefix) for column_id in column_ids]
+        )
+
+    def _get_header(
+        self, column_ids: List[ColumnIndex], columns: Dict[ColumnIndex, Column], header_prefix: Optional[str]
+    ) -> List[str]:
+        """
+        Create the header rows.
+        Returns: one or more header rows
+        """
+        if self._use_column_id_in_header:
+            return [
+                self.separation_character.join(list(column_ids)),
+                "#" + self._get_column_info_row(column_ids, columns, header_prefix),
+            ]
+        else:
+            return [self._get_column_info_row(column_ids, columns, header_prefix)]
+
+    def format(self, tabular: Formattable, header_prefix: str = None) -> Rows:
+        """
+
+        Args:
+            header_prefix: string that will be added to the header with a '.' between prefix and regular header. {header_prefix}.{header}
+            tabular: the data that should be formatted
+
+        Returns: formatted rows as a list of string
+
+        """
         column_ids = tabular.column_ids
-        rows: List[str] = [
-            self.separation_character.join(list(column_ids)),
-            "#"
-            + self.separation_character.join(
-                [self._format_column_info(tabular.get_column(column_id)) for column_id in column_ids]
-            ),
-        ]
+        columns = {column_id: tabular.get_column(column_id) for column_id in column_ids}
+
+        rows: List[str] = self._get_header(column_ids, columns, header_prefix)
 
         for row_id in tabular.row_ids:
             row = [str(tabular.get_value(row_id, column_id)) for column_id in column_ids]
             rows.append(self.separation_character.join(row))
         return rows
 
-    def format_groups(self, grouped_tabular: FormattableGroup) -> Dict[str, List[str]]:
-        csv_formatted_lists_per_installation: Dict[str, List[str]] = {}
-        for group_name, tabular in grouped_tabular.groups:
-            csv_formatted_lists_per_installation[group_name] = self.format(tabular)
-        return csv_formatted_lists_per_installation
+    def format_many(self, formattables: Iterator[Tuple[str, Formattable]]) -> Rows:
+        """
+        Combine several formattable objects into a single csv
+        Args:
+            formattables: list of tuples that should be formatted, the first item will be used as prefix in the resulting row headers.
+
+        Returns:
+
+        """
+
+        formatted = [self.format(tabular, header_prefix=name) for name, tabular in formattables]
+
+        if len(formatted) == 0:
+            raise IncorrectInput()
+        elif len(formatted) == 1:
+            return formatted[0]
+
+        [first, *rest] = formatted
+
+        if not all(len(rows) == len(first) for rows in rest):
+            raise IncompatibleData()
+
+        combined_rows = []
+        for row_index in range(len(first)):
+            separate_rows = [rows[row_index] for rows in formatted]
+            combined_rows.append(self.separation_character.join(separate_rows))
+
+        return combined_rows

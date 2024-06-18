@@ -7,7 +7,6 @@ from libecalc.domain.tabular.exceptions import ColumnNotFound
 from libecalc.presentation.exporter.formatters.formatter import (
     ColumnIndex,
     Formattable,
-    FormattableGroup,
     RowIndex,
 )
 
@@ -87,7 +86,7 @@ class FormattableGroupedQuery(Formattable):
 
 
 @dataclass
-class FilteredResult(FormattableGroup):
+class FilteredResult:
     data_series: List[DataSeries]
     query_results: List[GroupedQueryResult]
     time_vector: List[datetime]

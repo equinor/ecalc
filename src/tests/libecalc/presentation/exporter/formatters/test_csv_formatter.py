@@ -42,8 +42,8 @@ class Data(Formattable):
 
 
 class TestCSVFormatter:
-    def test_format_comma(self):
-        formatter = CSVFormatter()
+    def test_format_comma_with_column_comment(self):
+        formatter = CSVFormatter(use_column_id_in_header=True)
         rows = formatter.format(
             Data(
                 rows=["row1", "row2"],
@@ -59,8 +59,8 @@ class TestCSVFormatter:
             "5,5",
         ]
 
-    def test_format_tabs(self):
-        formatter = CSVFormatter(separation_character="\t")
+    def test_format_tabs_with_column_comment(self):
+        formatter = CSVFormatter(separation_character="\t", use_column_id_in_header=True)
         rows = formatter.format(
             Data(
                 rows=["row1", "row2"],
@@ -74,4 +74,59 @@ class TestCSVFormatter:
             "#COL1[t]\tCOL2[t]",
             "5\t5",
             "5\t5",
+        ]
+
+    def test_format_comma(self):
+        formatter = CSVFormatter(use_column_id_in_header=False)
+        rows = formatter.format(
+            Data(
+                rows=["row1", "row2"],
+                columns=["col1", "col2"],
+                value=5,
+            )
+        )
+
+        assert rows == [
+            "COL1[t],COL2[t]",
+            "5,5",
+            "5,5",
+        ]
+
+    def test_format_tabs(self):
+        formatter = CSVFormatter(separation_character="\t")
+        rows = formatter.format(
+            Data(
+                rows=["row1", "row2"],
+                columns=["col1", "col2"],
+                value=5,
+            )
+        )
+
+        assert rows == [
+            "COL1[t]\tCOL2[t]",
+            "5\t5",
+            "5\t5",
+        ]
+
+    def test_format_many(self):
+        formatter = CSVFormatter(separation_character="\t")
+
+        first = Data(
+            rows=["row1", "row2"],
+            columns=["col1", "col2"],
+            value=5,
+        )
+
+        second = Data(
+            rows=["row1", "row2"],
+            columns=["col1", "col2"],
+            value=6,
+        )
+
+        combined = formatter.format_many([("first", first), ("second", second)])
+
+        assert combined == [
+            "first.COL1[t]\tfirst.COL2[t]\tsecond.COL1[t]\tsecond.COL2[t]",
+            "5\t5\t6\t6",
+            "5\t5\t6\t6",
         ]
