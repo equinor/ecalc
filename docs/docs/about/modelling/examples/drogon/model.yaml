@@ -1,0 +1,113 @@
+TIME_SERIES:
+  - NAME: SIM1
+    FILE: drogon_mean.csv
+    TYPE: DEFAULT
+FACILITY_INPUTS:
+  - NAME: genset_a_power_fuel
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
+  - NAME: wi_200
+    FILE: wi_200bar_ssp.csv
+    TYPE: PUMP_CHART_SINGLE_SPEED
+    UNITS:
+        HEAD: M
+        RATE: AM3_PER_HOUR
+        EFFICIENCY: PERCENTAGE
+MODELS:
+  - NAME: drogon_fluid
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: COMPOSITION
+    EOS_MODEL: PR
+    COMPOSITION:
+      water: 0.0
+      nitrogen: 0.510676386339746
+      CO2: 2.44965511776504
+      methane: 75.6328106126248
+      ethane: 10.9074631209139
+      propane: 8.11875087121037
+      i_butane: 0.849146377471569
+      n_butane: 1.34903656604691
+      i_pentane: 0.104982143381498
+      n_pentane: 0.071218218251483
+      n_hexane: 0.0063
+  - NAME: generic_from_input_compressor_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: GENERIC_FROM_INPUT
+    POLYTROPIC_EFFICIENCY: 0.8
+    UNITS:
+      EFFICIENCY: FRACTION
+  - NAME: simplified_compressor_train_model
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: drogon_fluid
+    COMPRESSOR_TRAIN:
+      MAXIMUM_PRESSURE_RATIO_PER_STAGE: 3.5
+      COMPRESSOR_CHART: generic_from_input_compressor_chart
+      INLET_TEMPERATURE: 19.3
+FUEL_TYPES:
+  - NAME: fuel_gas
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: co2_fuel_gas
+        FACTOR: 2.416  #CO2/Sm3 fuel gas burned
+INSTALLATIONS:
+  - NAME: drogon_installation
+    CATEGORY: FIXED
+    HCEXPORT: SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000
+    FUEL: fuel_gas
+    GENERATORSETS:
+      - NAME: main_power
+        ELECTRICITY2FUEL: genset_a_power_fuel
+        CATEGORY: TURBINE-GENERATOR
+        CONSUMERS:
+          - NAME: wi_lp
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP_SYSTEM
+              PUMPS:
+                - NAME: pump_a_lp
+                  CHART: wi_200
+                - NAME: pump_b_lp
+                  CHART: wi_200
+              TOTAL_SYSTEM_RATE: SIM1;WATER_INJ
+              FLUID_DENSITY: 1025
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS:
+                    - 1
+                    - 0
+                  SUCTION_PRESSURE: 12
+                  DISCHARGE_PRESSURE: 200
+                - RATE_FRACTIONS:
+                    - 0.5
+                    - 0.5
+                  SUCTION_PRESSURE: 12
+                  DISCHARGE_PRESSURE: 200
+
+          - NAME: gas export compressor train
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              TYPE: COMPRESSOR_SYSTEM
+              COMPRESSORS:
+                - NAME: train1_2
+                  COMPRESSOR_MODEL: simplified_compressor_train_model
+              TOTAL_SYSTEM_RATE: SIM1;GAS_PROD
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS:
+                    - 1
+                  SUCTION_PRESSURE: 13
+                  DISCHARGE_PRESSURE: 421
+
+          - NAME: boosterpump
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 2
+          - NAME: baseload
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 9
+          - NAME: re-compressors
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 2
