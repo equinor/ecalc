@@ -162,7 +162,7 @@ class PumpModelResult(ConsumerModelResultBase):
     is_valid: TimeSeriesBoolean
 
 
-class TurbineModelResult(EcalcResultBaseModel):
+class TurbineModelResult(TabularTimeSeries):
     energy_usage_unit: Unit
     power_unit: Unit
     efficiency: TimeSeriesFloat
@@ -174,20 +174,20 @@ class TurbineModelResult(EcalcResultBaseModel):
     power: TimeSeriesRate
 
 
-class CompressorStreamConditionResult(EcalcResultBaseModel):
+class CompressorStreamConditionResult(TabularTimeSeries):
     actual_rate_m3_per_hr: TimeSeriesRate
     actual_rate_before_asv_m3_per_hr: TimeSeriesRate
     standard_rate_sm3_per_day: TimeSeriesRate
     standard_rate_before_asv_sm3_per_day: TimeSeriesRate
     kappa: TimeSeriesFloat
-    density_kg_per_m3: TimeSeriesRate
+    density_kg_per_m3: TimeSeriesFloat
     pressure: TimeSeriesFloat
     pressure_before_choking: TimeSeriesFloat
     temperature_kelvin: TimeSeriesFloat
     z: TimeSeriesFloat
 
 
-class CompressorModelStageResult(EcalcResultBaseModel):
+class CompressorModelStageResult(TabularTimeSeries):
     chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]]
     chart_area_flags: List[str]
     energy_usage_unit: Unit

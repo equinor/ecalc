@@ -634,14 +634,12 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.NONE,
                                 ),
-                                density_kg_per_m3=TimeSeriesRate(
+                                density_kg_per_m3=TimeSeriesFloat(
                                     timesteps=model.timesteps,
                                     values=stage_result.inlet_stream_condition.density_kg_per_m3
                                     if stage_result.inlet_stream_condition.density_kg_per_m3 is not None
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.KG_M3,
-                                    rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 pressure=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -671,6 +669,7 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.NONE,
                                 ),
+                                timesteps=model.timesteps,
                             ),
                             outlet_stream_condition=CompressorStreamConditionResult(
                                 actual_rate_m3_per_hr=TimeSeriesRate(
@@ -717,14 +716,12 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.NONE,
                                 ),
-                                density_kg_per_m3=TimeSeriesRate(
+                                density_kg_per_m3=TimeSeriesFloat(
                                     timesteps=model.timesteps,
                                     values=stage_result.outlet_stream_condition.density_kg_per_m3
                                     if stage_result.outlet_stream_condition.density_kg_per_m3 is not None
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.KG_M3,
-                                    rate_type=RateType.STREAM_DAY,
-                                    regularity=regularity.for_timesteps(model.timesteps).values,
                                 ),
                                 pressure=TimeSeriesFloat(
                                     timesteps=model.timesteps,
@@ -754,7 +751,9 @@ class GraphResult:
                                     else [math.nan] * len(model.timesteps),
                                     unit=Unit.NONE,
                                 ),
+                                timesteps=model.timesteps,
                             ),
+                            timesteps=model.timesteps,
                         )
 
                         model_stage_results.append(model_stage_result)
@@ -818,6 +817,7 @@ class GraphResult:
                                 rate_type=RateType.STREAM_DAY,
                                 regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
+                            timesteps=model.timesteps,
                         )
                         if model.turbine_result is not None
                         else None
