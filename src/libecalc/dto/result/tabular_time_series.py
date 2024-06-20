@@ -5,7 +5,6 @@ from typing import List, Optional
 import pandas as pd
 from typing_extensions import Self
 
-import libecalc.dto as dto
 from libecalc.common.time_utils import Frequency, resample_time_steps
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -98,7 +97,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
             return self.model_copy()
         resampled = self.model_copy()
         for attribute, values in self.__dict__.items():
-            if isinstance(values, TimeSeries):
+            if isinstance(values, TimeSeries) or isinstance(values, TabularTimeSeries):
                 resampled.__setattr__(attribute, values.resample(freq=freq))
 
             elif isinstance(values, list):
@@ -112,11 +111,6 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                     # NOTE: Operational settings are not resampled. Should add support?
                     pass
 
-            # Resampling compressor stream results:
-            elif isinstance(values, dto.result.results.CompressorStreamConditionResult):
-                for stream_attribute, stream_values in values:
-                    if isinstance(stream_values, TimeSeries):
-                        values.__setattr__(stream_attribute, stream_values.resample(freq=freq))
             else:
                 # NOTE: turbine_result is not resampled. Should add support?
                 pass
