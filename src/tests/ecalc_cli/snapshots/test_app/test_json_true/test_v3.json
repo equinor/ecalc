@@ -1516,7 +1516,7 @@
               null
             ]
           },
-          "name": "Stage 0",
+          "name": "Stage 1",
           "outlet_stream_condition": {
             "actual_rate_before_asv_m3_per_hr": {
               "timesteps": [
@@ -3149,7 +3149,7 @@
               null
             ]
           },
-          "name": "Stage 0",
+          "name": "Stage 1",
           "outlet_stream_condition": {
             "actual_rate_before_asv_m3_per_hr": {
               "timesteps": [

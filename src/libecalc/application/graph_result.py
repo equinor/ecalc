@@ -743,7 +743,7 @@ class GraphResult:
                                 timesteps=model.timesteps,
                                 name="Outlet stream condition",
                             ),
-                            name=f"Stage {i}",
+                            name=f"Stage {i + 1}",
                             timesteps=model.timesteps,
                         )
 
