@@ -809,6 +809,7 @@ class GraphResult:
                                 regularity=regularity.for_timesteps(model.timesteps).values,
                             ),
                             timesteps=model.timesteps,
+                            name=model.name,
                         )
                         if model.turbine_result is not None
                         else None
