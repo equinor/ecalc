@@ -19,7 +19,7 @@ from libecalc.dto.result.base import EcalcResultBaseModel
 
 
 class TabularTimeSeries(ABC, EcalcResultBaseModel):
-    name: Optional[str] = None
+    name: str
     timesteps: List[datetime]
 
     def to_dataframe(

@@ -107,8 +107,6 @@ class Unit(str, Enum):
     POLYTROPIC_HEAD_METER_LIQUID_COLUMN = "N.m/kg"
 
     ACTUAL_VOLUMETRIC_M3_PER_HOUR = "Am3/h"
-    ACTUAL_VOLUMETRIC_M3_PER_DAY = "Am3/d"
-    ACTUAL_VOLUMETRIC_M3 = "Am3"
     STANDARD_CUBIC_METER_PER_DAY = "Sm3/d"
 
     SPEED_RPM = "RPM"
@@ -210,8 +208,6 @@ class Unit(str, Enum):
             return Unit.KILO_PER_DAY
         elif self == Unit.LITRES:
             return Unit.LITRES_PER_DAY
-        elif self == Unit.ACTUAL_VOLUMETRIC_M3:
-            return Unit.ACTUAL_VOLUMETRIC_M3_PER_DAY
         else:
             raise NotImplementedError(f"Unknown unit for cumulative calculation '{self}'")
 
@@ -229,9 +225,5 @@ class Unit(str, Enum):
             return Unit.KILO
         elif self == Unit.LITRES_PER_DAY:
             return Unit.LITRES
-        elif self == Unit.KILO_PER_HOUR:
-            return Unit.KILO
-        elif self == Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR:
-            return Unit.ACTUAL_VOLUMETRIC_M3
         else:
             raise NotImplementedError(f"Unknown unit for rate calculation '{self}'")

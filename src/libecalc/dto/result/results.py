@@ -175,8 +175,8 @@ class TurbineModelResult(TabularTimeSeries):
 
 
 class CompressorStreamConditionResult(TabularTimeSeries):
-    actual_rate_m3_per_hr: TimeSeriesRate
-    actual_rate_before_asv_m3_per_hr: TimeSeriesRate
+    actual_rate_m3_per_hr: TimeSeriesFloat
+    actual_rate_before_asv_m3_per_hr: TimeSeriesFloat
     standard_rate_sm3_per_day: TimeSeriesRate
     standard_rate_before_asv_sm3_per_day: TimeSeriesRate
     kappa: TimeSeriesFloat
@@ -202,8 +202,8 @@ class CompressorModelStageResult(TabularTimeSeries):
     polytropic_head_kJ_per_kg: TimeSeriesFloat
     asv_recirculation_loss_mw: TimeSeriesRate
     energy_usage: TimeSeriesRate
-    mass_rate_kg_per_hr: TimeSeriesRate
-    mass_rate_before_asv_kg_per_hr: TimeSeriesRate
+    mass_rate_kg_per_hr: TimeSeriesFloat
+    mass_rate_before_asv_kg_per_hr: TimeSeriesFloat
     power: TimeSeriesRate
     pressure_is_choked: TimeSeriesBoolean
     rate_exceeds_maximum: TimeSeriesBoolean

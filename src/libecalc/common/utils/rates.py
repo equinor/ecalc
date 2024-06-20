@@ -1038,11 +1038,6 @@ class TimeSeriesRate(TimeSeries[float]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        # Resampling everything requires resampling of e.g. stage results, inlet/outlet stream conditions.
-        # These include rates per hour, not only per day. Need to check this and convert to per day:
-        if self.unit in [Unit.KILO_PER_HOUR, Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR]:
-            self.values = [v * 24 for v in self.values]
-
         # make resampled calendar day volumes via cumulative calendar day volumes
         calendar_day_volumes = (
             TimeSeriesVolumesCumulative(
