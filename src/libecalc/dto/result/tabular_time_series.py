@@ -112,7 +112,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                     # NOTE: Operational settings are not resampled. Should add support?
                     pass
 
-            # Resampling compressor stream results must be done separately:
+            # Resampling compressor stream results:
             elif isinstance(values, dto.result.results.CompressorStreamConditionResult):
                 for stream_attribute, stream_values in values:
                     if isinstance(stream_values, TimeSeries):
