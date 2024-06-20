@@ -1,6 +1,8 @@
 import re
 from typing import Optional
 
+import packaging.version
+
 from libecalc.dto.base import EcalcBaseModel
 
 VERSION_FORMAT = r"^(\d+)(\.\d+)?(\.\d+)?$"
@@ -28,13 +30,13 @@ class Version(EcalcBaseModel):
         :return:
         """
         if version_string is None:
-            return Version()
+            return cls()
 
         pattern = re.compile(VERSION_FORMAT)
         match = pattern.match(version_string)
 
         if match is None:
-            return Version()
+            return cls()
 
         if len(match.groups()):
             # NOTE! Group 0 is full (matched) expression
@@ -44,10 +46,46 @@ class Version(EcalcBaseModel):
             return cls(major=major, minor=minor, patch=patch)
         else:
             # ignore wrong format for now, assume not set
-            return Version()
+            return cls()
 
     def __str__(self) -> str:
         return f"{self.major}.{self.minor}.{self.patch}"
 
     def __repr__(self) -> str:
         return f"Major: {self.major}\nMinor: {self.minor}\nPatch: {self.patch}"
+
+    def __gt__(self, other):
+        if not isinstance(other, Version):
+            return NotImplemented
+
+        return packaging.version.Version(str(self)).__gt__(packaging.version.Version(str(other)))
+
+    def __ge__(self, other):
+        if not isinstance(other, Version):
+            return NotImplemented
+
+        return packaging.version.Version(str(self)).__ge__(packaging.version.Version(str(other)))
+
+    def __le__(self, other):
+        if not isinstance(other, Version):
+            return NotImplemented
+
+        return packaging.version.Version(str(self)).__le__(packaging.version.Version(str(other)))
+
+    def __lt__(self, other):
+        if not isinstance(other, Version):
+            return NotImplemented
+
+        return packaging.version.Version(str(self)).__lt__(packaging.version.Version(str(other)))
+
+    def __eq__(self, other):
+        if not isinstance(other, Version):
+            return NotImplemented
+
+        return packaging.version.Version(str(self)).__eq__(packaging.version.Version(str(other)))
+
+    def __ne__(self, other):
+        if not isinstance(other, Version):
+            return NotImplemented
+
+        return packaging.version.Version(str(self)).__ne__(packaging.version.Version(str(other)))
