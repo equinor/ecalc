@@ -22,6 +22,7 @@ PydanticLoc = Tuple[PydanticKey, ...]
 CUSTOM_MESSAGES = {
     "missing": "This keyword is missing, it is required",
     "extra_forbidden": "This is not a valid keyword",
+    "string_pattern_mismatch": "The string/name contains illegal characters. Allowed characters are: {pattern}",
 }
 
 
