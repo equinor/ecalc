@@ -1,7 +1,5 @@
 import re
-from typing import Optional
-
-import packaging.version
+from typing import Optional, Tuple
 
 from libecalc.dto.base import EcalcBaseModel
 
@@ -54,38 +52,42 @@ class Version(EcalcBaseModel):
     def __repr__(self) -> str:
         return f"Major: {self.major}\nMinor: {self.minor}\nPatch: {self.patch}"
 
+    @property
+    def _version_tuple(self) -> Tuple[int, int, int]:
+        return self.major, self.minor, self.patch
+
     def __gt__(self, other):
         if not isinstance(other, Version):
             return NotImplemented
 
-        return packaging.version.Version(str(self)).__gt__(packaging.version.Version(str(other)))
+        return self._version_tuple > other._version_tuple
 
     def __ge__(self, other):
         if not isinstance(other, Version):
             return NotImplemented
 
-        return packaging.version.Version(str(self)).__ge__(packaging.version.Version(str(other)))
-
-    def __le__(self, other):
-        if not isinstance(other, Version):
-            return NotImplemented
-
-        return packaging.version.Version(str(self)).__le__(packaging.version.Version(str(other)))
+        return self._version_tuple >= other._version_tuple
 
     def __lt__(self, other):
         if not isinstance(other, Version):
             return NotImplemented
 
-        return packaging.version.Version(str(self)).__lt__(packaging.version.Version(str(other)))
+        return self._version_tuple < other._version_tuple
+
+    def __le__(self, other):
+        if not isinstance(other, Version):
+            return NotImplemented
+
+        return self._version_tuple <= other._version_tuple
 
     def __eq__(self, other):
         if not isinstance(other, Version):
             return NotImplemented
 
-        return packaging.version.Version(str(self)).__eq__(packaging.version.Version(str(other)))
+        return self._version_tuple == other._version_tuple
 
     def __ne__(self, other):
         if not isinstance(other, Version):
             return NotImplemented
 
-        return packaging.version.Version(str(self)).__ne__(packaging.version.Version(str(other)))
+        return self._version_tuple != other._version_tuple

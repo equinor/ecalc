@@ -36,6 +36,8 @@ version_comparisons = [
     ("1.1.1", "1.1.2"),
     ("1.1.2", "1.1.1"),
     ("1.1.1", "1.1.1"),
+    ("100.1.1", "1.1.1"),
+    ("1.1.1", "1.1.111"),
 ]
 
 
@@ -57,6 +59,8 @@ less_than_expected = [
     True,
     False,
     False,
+    False,
+    True,
 ]
 
 
@@ -66,6 +70,8 @@ def test_comparison_less_than(first, second, expected):
 
 
 greater_than_expected = [
+    False,
+    True,
     False,
     True,
     False,
@@ -89,6 +95,8 @@ equal_expected = [
     False,
     False,
     True,
+    False,
+    False,
 ]
 
 
@@ -103,6 +111,8 @@ def test_comparison_not_equal(first, second):
 
 
 less_than_or_equal_expected = [
+    True,
+    False,
     True,
     False,
     True,
@@ -126,6 +136,8 @@ greater_than_or_equal_expected = [
     False,
     True,
     True,
+    True,
+    False,
 ]
 
 
