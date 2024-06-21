@@ -268,7 +268,11 @@ class TestTimeSeries:
                     interpolation_type=None,
                 )
             )
-        assert "String should match pattern '^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$'" in str(ve.value)
+        assert (
+            "SIM1:\nDEFAULT.headers[0]:\t"
+            "The string/name contains illegal characters. "
+            "Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
+        ) in str(ve.value)
 
     @pytest.mark.parametrize(
         "header",
@@ -321,7 +325,11 @@ class TestTimeSeries:
                     interpolation_type=None,
                 )
             )
-        assert "String should match pattern '^[A-Za-z][A-Za-z0-9_]*$'" in str(ve.value)
+        assert (
+            f"\n{resource_name}:\nDEFAULT.name:\t"
+            f"The string/name contains illegal characters. "
+            f"Allowed characters are: ^[A-Za-z][A-Za-z0-9_]*$"
+        ) in str(ve.value)
 
     def test_interpretation_of_interpolation_type_for_default_resource(self):
         """Check default interpolation for DEFAULT time series."""
