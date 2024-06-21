@@ -97,7 +97,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
             return self.model_copy()
         resampled = self.model_copy()
         for attribute, values in self.__dict__.items():
-            if isinstance(values, TimeSeries):
+            if isinstance(values, TimeSeries) or isinstance(values, TabularTimeSeries):
                 resampled.__setattr__(attribute, values.resample(freq=freq))
 
             elif isinstance(values, list):
@@ -110,6 +110,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                 else:
                     # NOTE: Operational settings are not resampled. Should add support?
                     pass
+
             else:
                 # NOTE: turbine_result is not resampled. Should add support?
                 pass
