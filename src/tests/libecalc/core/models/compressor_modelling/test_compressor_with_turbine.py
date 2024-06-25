@@ -1,6 +1,6 @@
+import libecalc.dto.models.compressor.turbine
 import numpy as np
 import pytest
-from libecalc import dto
 from libecalc.core.models.compressor.base import CompressorWithTurbineModel
 
 
@@ -8,8 +8,8 @@ from libecalc.core.models.compressor.base import CompressorWithTurbineModel
 def compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine_dto(
     variable_speed_compressor_train_two_compressors_one_stream_dto,
     turbine_dto,
-) -> dto.CompressorWithTurbine:
-    return dto.CompressorWithTurbine(
+) -> libecalc.dto.models.compressor.turbine.CompressorWithTurbine:
+    return libecalc.dto.models.compressor.turbine.CompressorWithTurbine(
         compressor_train=variable_speed_compressor_train_two_compressors_one_stream_dto,
         turbine=turbine_dto,
         energy_usage_adjustment_constant=1.0,

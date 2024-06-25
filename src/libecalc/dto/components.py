@@ -31,7 +31,7 @@ from libecalc.dto.models import (
     FuelEnergyUsageModel,
     GeneratorSetSampled,
 )
-from libecalc.dto.models.compressor import CompressorModel
+from libecalc.dto.models.compressor.compressor_model import CompressorModel
 from libecalc.dto.models.pump import PumpModel
 from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType
 from libecalc.dto.utils.validators import (

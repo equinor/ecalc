@@ -2,6 +2,8 @@ from typing import Any, Dict, List, Union
 
 from pydantic import ValidationError
 
+import libecalc.dto.models.compressor.turbine
+import libecalc.dto.models.energy_model
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
@@ -604,7 +606,7 @@ def _turbine_mapper(model_config: Dict, input_models: Dict[str, Any], resources:
 
 def _compressor_with_turbine_mapper(
     model_config: Dict, input_models: Dict[str, Any], resources: Resources
-) -> dto.CompressorWithTurbine:
+) -> libecalc.dto.models.compressor.turbine.CompressorWithTurbine:
     compressor_train_model_reference = model_config.get(EcalcYamlKeywords.models_compressor_model)
     turbine_model_reference = model_config.get(EcalcYamlKeywords.models_turbine_model)
     compressor_train_model = resolve_reference(
@@ -623,7 +625,7 @@ def _compressor_with_turbine_mapper(
             raise ValueError(f"{attr_reference} not found in input models")
     energy_usage_adjustment_constant = model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0)
 
-    return dto.CompressorWithTurbine(
+    return libecalc.dto.models.compressor.turbine.CompressorWithTurbine(
         compressor_train=compressor_train_model,
         turbine=turbine_model,
         energy_usage_adjustment_constant=energy_usage_adjustment_constant,
@@ -654,7 +656,9 @@ class ModelMapper:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
         return model_creator(model_config=model, input_models=input_models, resources=resources)
 
-    def from_yaml_to_dto(self, model_config: Dict, input_models: Dict[str, Any]) -> dto.EnergyModel:
+    def from_yaml_to_dto(
+        self, model_config: Dict, input_models: Dict[str, Any]
+    ) -> libecalc.dto.models.energy_model.EnergyModel:
         try:
             model_data = ModelMapper.create_model(
                 model=model_config, input_models=input_models, resources=self.__resources

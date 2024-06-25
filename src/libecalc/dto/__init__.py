@@ -11,18 +11,15 @@ from libecalc.dto.models import (
     ChartCurve,
     CompressorChart,
     CompressorConsumerFunction,
-    CompressorModel,
     CompressorSampled,
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
-    CompressorWithTurbine,
     ConsumerFunction,
     DirectConsumerFunction,
     ElectricEnergyUsageModel,
-    EnergyModel,
     EnergyModelSampled,
     FluidComposition,
     FluidModel,
@@ -53,6 +50,7 @@ from libecalc.dto.models.compressor import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.dto.models.compressor.turbine import CompressorWithTurbine
 from libecalc.dto.result_options import ResultOptions
 from libecalc.dto.types import FuelType, TimeSeriesType
 from libecalc.dto.variables import VariablesMap

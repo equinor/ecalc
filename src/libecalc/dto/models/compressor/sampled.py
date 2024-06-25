@@ -3,7 +3,7 @@ from typing import List, Literal, Optional
 from pydantic import Field, model_validator
 from typing_extensions import Annotated
 
-from libecalc.dto.models.base import EnergyModel
+from libecalc.dto.models.energy_model import EnergyModel
 from libecalc.dto.types import EnergyModelType, EnergyUsageType
 
 

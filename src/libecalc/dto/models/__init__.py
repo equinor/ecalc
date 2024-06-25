@@ -6,12 +6,10 @@ from typing_extensions import Annotated
 from libecalc.dto.models.compressor import (
     CompressorChart,
     CompressorConsumerFunction,
-    CompressorModel,
     CompressorSampled,
     CompressorStage,
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
-    CompressorWithTurbine,
     FluidComposition,
     FluidModel,
     FluidStream,
@@ -23,7 +21,6 @@ from libecalc.dto.models.compressor import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 
-from .base import ConsumerFunction, EnergyModel
 from .chart import (
     ChartCurve,
     GenericChartFromDesignPoint,
@@ -31,6 +28,7 @@ from .chart import (
     SingleSpeedChart,
     VariableSpeedChart,
 )
+from .consumer_function import ConsumerFunction
 from .consumer_system import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,

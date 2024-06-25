@@ -1,6 +1,11 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Union
 
+from pydantic import ValidationError
+
+import libecalc.dto.models.compressor
+import libecalc.dto.models.compressor.compressor_model
+import libecalc.dto.models.energy_model
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -52,7 +57,7 @@ def _all_equal(items: Set) -> bool:
 
 
 def _get_compressor_train_energy_usage_type(
-    compressor_train: dto.CompressorModel,
+    compressor_train: libecalc.dto.models.compressor.compressor_model.CompressorModel,
 ) -> EnergyUsageType:
     typ = compressor_train.typ
 
@@ -87,13 +92,15 @@ def _compressor_system_mapper(
             value=compressor.get(EcalcYamlKeywords.compressor_system_compressor_sampled_data),
             references=references.models,
         )
-
-        compressors.append(
-            dto.CompressorSystemCompressor(
-                name=compressor.get(EcalcYamlKeywords.name),
-                compressor_train=compressor_train,
+        try:
+            compressors.append(
+                dto.CompressorSystemCompressor(
+                    name=compressor.get(EcalcYamlKeywords.name),
+                    compressor_train=compressor_train,
+                )
             )
-        )
+        except ValidationError:
+            pass
         compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train)
         compressor_power_usage_type.add(compressor_train_energy_usage_type)
 
@@ -339,7 +346,9 @@ class ConsumerFunctionMapper:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
         return model_creator(model, references)
 
-    def from_yaml_to_dto(self, data: dto.EnergyModel) -> Optional[Dict[datetime, dto.ConsumerFunction]]:
+    def from_yaml_to_dto(
+        self, data: libecalc.dto.models.energy_model.EnergyModel
+    ) -> Optional[Dict[datetime, dto.ConsumerFunction]]:
         if data is None:
             return None
 

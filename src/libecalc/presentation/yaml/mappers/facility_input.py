@@ -2,6 +2,7 @@ from typing import Dict, List, Union
 
 from pydantic import TypeAdapter, ValidationError
 
+import libecalc.dto.models.energy_model
 from libecalc import dto
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import GeneratorSetSampled, TabulatedData
@@ -182,7 +183,7 @@ class FacilityInputMapper:
     def __init__(self, resources: Resources):
         self.__resources = resources
 
-    def from_yaml_to_dto(self, data: Dict) -> dto.EnergyModel:
+    def from_yaml_to_dto(self, data: Dict) -> libecalc.dto.models.energy_model.EnergyModel:
         resource = self.__resources.get(data.get(EcalcYamlKeywords.file), Resource(headers=[], data=[]))
         typ = energy_model_type_map.get(data.get(EcalcYamlKeywords.type))
 

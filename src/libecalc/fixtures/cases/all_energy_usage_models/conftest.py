@@ -3,6 +3,7 @@ from typing import Dict
 
 import pytest
 
+import libecalc.dto.models.compressor.turbine
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.expression import Expression
@@ -163,7 +164,7 @@ def compressor_sampled_1d():
 
 @pytest.fixture
 def compressor_with_turbine(turbine_dto, simplified_variable_speed_compressor_train_known_stages):
-    return dto.CompressorWithTurbine(
+    return libecalc.dto.models.compressor.turbine.CompressorWithTurbine(
         compressor_train=simplified_variable_speed_compressor_train_known_stages,
         turbine=turbine_dto,
         energy_usage_adjustment_constant=0.0,
@@ -186,7 +187,7 @@ def turbine_dto() -> dto.Turbine:
 def compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2(
     turbine_dto,
     predefined_variable_speed_compressor_chart_dto,
-) -> dto.CompressorWithTurbine:
+) -> libecalc.dto.models.compressor.turbine.CompressorWithTurbine:
     dto_stage = dto.CompressorStage(
         compressor_chart=predefined_variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
@@ -194,7 +195,7 @@ def compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_
         pressure_drop_before_stage=0,
         control_margin=0,
     )
-    return dto.CompressorWithTurbine(
+    return libecalc.dto.models.compressor.turbine.CompressorWithTurbine(
         turbine=turbine_dto,
         compressor_train=dto.VariableSpeedCompressorTrain(
             fluid_model=dto.FluidModel(

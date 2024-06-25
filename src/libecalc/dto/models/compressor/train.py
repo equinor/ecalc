@@ -3,7 +3,6 @@ from typing import List, Literal, Optional
 from pydantic import Field, field_validator
 from typing_extensions import Annotated
 
-from libecalc.dto.models.base import EnergyModel
 from libecalc.dto.models.compressor.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.dto.models.compressor.fluid import (
     FluidModel,
@@ -13,6 +12,7 @@ from libecalc.dto.models.compressor.stage import (
     CompressorStage,
     MultipleStreamsCompressorStage,
 )
+from libecalc.dto.models.energy_model import EnergyModel
 from libecalc.dto.types import EnergyModelType, FixedSpeedPressureControl
 
 

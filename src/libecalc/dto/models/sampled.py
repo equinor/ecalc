@@ -1,6 +1,6 @@
 from typing import List
 
-from libecalc.dto.models.base import EnergyModel
+from libecalc.dto.models.energy_model import EnergyModel
 
 
 class EnergyModelSampled(EnergyModel):

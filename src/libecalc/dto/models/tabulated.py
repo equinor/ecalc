@@ -3,7 +3,7 @@ from typing import List, Literal, Optional
 from pydantic import field_validator
 
 from libecalc.dto.base import EcalcBaseModel
-from libecalc.dto.models.base import ConsumerFunction
+from libecalc.dto.models.consumer_function import ConsumerFunction
 from libecalc.dto.models.sampled import EnergyModelSampled
 from libecalc.dto.types import ConsumerType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression

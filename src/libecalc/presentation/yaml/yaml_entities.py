@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, TextIO, Union
 
+import libecalc.dto.models.energy_model
 from libecalc import dto
 
 
@@ -16,7 +17,7 @@ Resources = Dict[str, Resource]
 
 @dataclass
 class References:
-    models: Dict[str, dto.EnergyModel] = None
+    models: Dict[str, libecalc.dto.models.energy_model.EnergyModel] = None
     fuel_types: Dict[str, dto.types.FuelType] = None
 
 

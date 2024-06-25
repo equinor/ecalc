@@ -5,7 +5,7 @@ from typing_extensions import Annotated, Self
 
 from libecalc.dto.types import EnergyModelType
 
-from .base import EnergyModel
+from .energy_model import EnergyModel
 
 
 class Turbine(EnergyModel):

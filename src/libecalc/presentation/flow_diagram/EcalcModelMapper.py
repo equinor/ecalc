@@ -6,6 +6,7 @@ from libecalc.common.time_utils import Period, Periods
 from libecalc.dto import (
     CompressorConsumerFunction,
     CompressorTrainSimplifiedWithKnownStages,
+    CompressorWithTurbine,
     ElectricEnergyUsageModel,
     FuelEnergyUsageModel,
     SingleSpeedCompressorTrain,
@@ -13,7 +14,6 @@ from libecalc.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.dto.base import ComponentType
-from libecalc.dto.models.compressor import CompressorWithTurbine
 from libecalc.dto.types import ConsumerType
 from libecalc.presentation.flow_diagram.fde_models import (
     Edge,

@@ -15,11 +15,3 @@ class ConsumerFunction(EcalcBaseModel):
 
     _convert_condition_to_expression = field_validator("condition", mode="before")(convert_expression)
     model_config = ConfigDict(use_enum_values=True)
-
-
-class EnergyModel(EcalcBaseModel):
-    """Generic/template/protocol. Only for sub classing, not direct use."""
-
-    energy_usage_adjustment_constant: float
-    energy_usage_adjustment_factor: float
-    model_config = ConfigDict(use_enum_values=True)

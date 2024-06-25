@@ -1,5 +1,8 @@
 from typing import Any
 
+import libecalc.dto.models.compressor
+import libecalc.dto.models.compressor.compressor_model
+import libecalc.dto.models.compressor.turbine
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.base import (
@@ -52,7 +55,7 @@ def _create_compressor_train_simplified_with_known_stages(
 
 
 def _create_compressor_with_turbine(
-    compressor_model_dto: dto.CompressorWithTurbine,
+    compressor_model_dto: libecalc.dto.models.compressor.turbine.CompressorWithTurbine,
 ) -> CompressorWithTurbineModel:
     return CompressorWithTurbineModel(
         data_transfer_object=compressor_model_dto,
@@ -128,7 +131,9 @@ def _invalid_compressor_model_type(compressor_model_dto: Any) -> None:
         raise TypeError(msg) from e
 
 
-def create_compressor_model(compressor_model_dto: dto.CompressorModel) -> CompressorModel:
+def create_compressor_model(
+    compressor_model_dto: libecalc.dto.models.compressor.compressor_model.CompressorModel,
+) -> CompressorModel:
     return facility_model_map.get(compressor_model_dto.typ, _invalid_compressor_model_type)(
         compressor_model_dto=compressor_model_dto,
     )

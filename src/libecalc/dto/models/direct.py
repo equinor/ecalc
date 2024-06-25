@@ -4,7 +4,7 @@ from pydantic import field_validator, model_validator
 from typing_extensions import Self
 
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.models.base import ConsumerFunction
+from libecalc.dto.models.consumer_function import ConsumerFunction
 from libecalc.dto.types import ConsumerType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
