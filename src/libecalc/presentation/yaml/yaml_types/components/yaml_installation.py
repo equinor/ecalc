@@ -29,7 +29,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
-class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelconsumers or gensets
+class YamlInstallation(YamlBase):
     model_config = ConfigDict(title="Installation")
 
     name: ComponentNameStr = Field(
@@ -82,7 +82,7 @@ class YamlInstallation(YamlBase):  # TODO: conditional required, either fuelcons
     )
 
     @model_validator(mode="after")
-    def check_fuel_consumers_or_venting_emitters_exist(self):
+    def check_some_consumer_or_emitter(self):
         try:
             if self.fuel_consumers or self.venting_emitters or self.generator_sets:
                 return self
