@@ -5,7 +5,7 @@ from pydantic import Field, field_validator
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.base import ConsumerFunction
-from libecalc.dto.models.compressor import CompressorModel
+from libecalc.dto.models.compressor import CompressorInSystemModel
 from libecalc.dto.models.compressor.train import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
@@ -18,7 +18,7 @@ from libecalc.expression import Expression
 
 class CompressorSystemCompressor(EcalcBaseModel):
     name: str
-    compressor_train: CompressorModel = Field(..., discriminator="typ")
+    compressor_train: CompressorInSystemModel = Field(..., discriminator="typ")
 
 
 class SystemOperationalSetting(EcalcBaseModel):

@@ -16,17 +16,33 @@ from libecalc.dto.types import ConsumerType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 
+CompressorWithTurbineModel = Union[
+    CompressorSampled,
+    CompressorTrainSimplifiedWithUnknownStages,
+    CompressorTrainSimplifiedWithKnownStages,
+    VariableSpeedCompressorTrain,
+    SingleSpeedCompressorTrain,
+    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+]
+
+CompressorWithTurbineInSystemModel = Union[
+    CompressorSampled,
+    CompressorTrainSimplifiedWithUnknownStages,
+    CompressorTrainSimplifiedWithKnownStages,
+    VariableSpeedCompressorTrain,
+    SingleSpeedCompressorTrain,
+]
+
 
 class CompressorWithTurbine(EnergyModel):
     typ: Literal[EnergyModelType.COMPRESSOR_WITH_TURBINE] = EnergyModelType.COMPRESSOR_WITH_TURBINE
-    compressor_train: Union[
-        CompressorSampled,
-        CompressorTrainSimplifiedWithKnownStages,
-        CompressorTrainSimplifiedWithUnknownStages,
-        SingleSpeedCompressorTrain,
-        VariableSpeedCompressorTrain,
-        VariableSpeedCompressorTrainMultipleStreamsAndPressures,
-    ] = Field(..., discriminator="typ")
+    compressor_train: CompressorWithTurbineModel = Field(..., discriminator="typ")
+    turbine: Turbine
+
+
+class CompressorWithTurbineInSystem(EnergyModel):
+    typ: Literal[EnergyModelType.COMPRESSOR_WITH_TURBINE] = EnergyModelType.COMPRESSOR_WITH_TURBINE
+    compressor_train: CompressorWithTurbineInSystemModel = Field(..., discriminator="typ")
     turbine: Turbine
 
 
@@ -38,6 +54,16 @@ CompressorModel = Union[
     VariableSpeedCompressorTrain,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+]
+
+
+CompressorInSystemModel = Union[
+    CompressorSampled,
+    CompressorTrainSimplifiedWithUnknownStages,
+    CompressorTrainSimplifiedWithKnownStages,
+    CompressorWithTurbineInSystemModel,
+    VariableSpeedCompressorTrain,
+    SingleSpeedCompressorTrain,
 ]
 
 
