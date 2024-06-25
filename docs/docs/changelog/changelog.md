@@ -1,5 +1,52 @@
 # Changelog
 
+## [8.18.0](https://github.com/equinor/ecalc/compare/v8.17.0...v8.18.0) (2024-06-25)
+
+
+### Features
+
+* make version comparable ([8ea5b2f](https://github.com/equinor/ecalc/commit/8ea5b2f735d9a9a6755a5e8983a322036e62dc21))
+
+
+### Bug Fixes
+
+* avoid usage of packaging ([4121f5b](https://github.com/equinor/ecalc/commit/4121f5b1c3d6cf44c29de3305cd6f369beb55ae5))
+* **docs:** issue with anchor links in search ([70b4f8e](https://github.com/equinor/ecalc/commit/70b4f8ecce2002b8c85f6d818d1ebf55afc1e5d7))
+* error message for new pfs columns ([#511](https://github.com/equinor/ecalc/issues/511)) ([7b4ea11](https://github.com/equinor/ecalc/commit/7b4ea1111fc0a6fd5f2f51861b8efb513df63d91))
+* implement YamlModel specific errors ([f0c317a](https://github.com/equinor/ecalc/commit/f0c317a39d27066c6aafc003c673ab0a78bd8b73))
+
+
+### Documentation
+
+* change TURBINE_LOAD to TURBINE_LOADS ([#520](https://github.com/equinor/ecalc/issues/520)) ([9b2bf1e](https://github.com/equinor/ecalc/commit/9b2bf1ef6ea8952ace9eeca7dca087f4efe26a68))
+* clean up documentation around compressor modelling including adding some missing keywords ([#528](https://github.com/equinor/ecalc/issues/528)) ([26d4aba](https://github.com/equinor/ecalc/commit/26d4aba00397fa6e1811d7e521418a55bcacd8e5))
+* corrected the WATER_PROD rate to meet the max pump chart capacity ([#531](https://github.com/equinor/ecalc/issues/531)) ([0cfe517](https://github.com/equinor/ecalc/commit/0cfe517b849901169362b8383a20b4ed6618c0ae))
+* update advanced model ([#522](https://github.com/equinor/ecalc/issues/522)) ([e8d4b34](https://github.com/equinor/ecalc/commit/e8d4b341003db3dc5331894150705c3913d2c6e5))
+* update changelog and migration guide ([#509](https://github.com/equinor/ecalc/issues/509)) ([e5311d1](https://github.com/equinor/ecalc/commit/e5311d1b776186f04fa8d354859b96c06e0863c7))
+* update documentation about fluid models adding missing yaml keywords ([#524](https://github.com/equinor/ecalc/issues/524)) ([8bd68a1](https://github.com/equinor/ecalc/commit/8bd68a1e2a73ebc27221d6521fbe221e97d9389d))
+* update drogon to use input files ([#530](https://github.com/equinor/ecalc/issues/530)) ([b6d632e](https://github.com/equinor/ecalc/commit/b6d632ec2adf176f09193b833a286451ae2295aa))
+
+
+### Miscellaneous Chores
+
+* align cli validation for power from shore ([#513](https://github.com/equinor/ecalc/issues/513)) ([94e46b8](https://github.com/equinor/ecalc/commit/94e46b8a3d4bd08c624cc1bbb1e1c962f4bbd52c))
+* codeowners for changelog ([#514](https://github.com/equinor/ecalc/issues/514)) ([f835d20](https://github.com/equinor/ecalc/commit/f835d205109eadadf2abe6466116766b40a14f1f))
+* improve error messages for invalid characters in variables names ([#536](https://github.com/equinor/ecalc/issues/536)) ([325bfec](https://github.com/equinor/ecalc/commit/325bfec9aec994e68219fecd3be8061c8b019fd0))
+* make sure all time series are resampled ([#533](https://github.com/equinor/ecalc/issues/533)) ([9684fe5](https://github.com/equinor/ecalc/commit/9684fe51bb43e4fac08a4919b780666c30b0c60f))
+* move exporter tests ([5df5f36](https://github.com/equinor/ecalc/commit/5df5f361261bd776d81daa7e99952e3cb73f1035))
+* refine unit format alignment ([#506](https://github.com/equinor/ecalc/issues/506)) ([ca14c22](https://github.com/equinor/ecalc/commit/ca14c220363c18a5eb74800185f53224eb6469f9))
+* update dependencies ([f6c2ac4](https://github.com/equinor/ecalc/commit/f6c2ac4fc7877cabc152ef1d4a91d2370428d62f))
+* upgrade dependencies ([#529](https://github.com/equinor/ecalc/issues/529)) ([5416871](https://github.com/equinor/ecalc/commit/5416871c379aa44b1e89f1a869495c275b542662))
+
+
+### Code Refactoring
+
+* move tabular exceptions into tabular domain ([4922989](https://github.com/equinor/ecalc/commit/492298964bb075dee70967491930affdf02afafd))
+* remove AssetTSVPrognosis ([c2d9dc9](https://github.com/equinor/ecalc/commit/c2d9dc90a202d388f097d844169e3f426bb6043e))
+* remove result from generator ([9a2f9a9](https://github.com/equinor/ecalc/commit/9a2f9a9c643b2d4936986663dadb38c61643027a))
+* remove unnecessary id for column ([30dfe19](https://github.com/equinor/ecalc/commit/30dfe1927220c099f99ab0e582a81ef0ea2673f3))
+* separate formatter from exporter ([2cc9c8f](https://github.com/equinor/ecalc/commit/2cc9c8f4012d4ef60210e7981c1e7403751fe927))
+
 ## [8.17.0](https://github.com/equinor/ecalc/compare/v8.16.0...v8.17.0) (2024-06-04)
 
 
