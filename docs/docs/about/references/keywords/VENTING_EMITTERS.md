@@ -108,12 +108,12 @@ VENTING_EMITTERS:
       - NAME: co2
         RATE:
           VALUE: 4
-          UNIT: kg/d
+          UNIT: KG_PER_DAY
           TYPE: STREAM_DAY
       - NAME: ch4
         RATE:
           VALUE: 2
-          UNIT: kg/d
+          UNIT: KG_PER_DAY
           TYPE: STREAM_DAY
 ~~~~~~~~
 
@@ -139,7 +139,7 @@ VENTING_EMITTERS:
     VOLUME:
       RATE:
         VALUE: 10
-        UNIT: Sm3/d
+        UNIT: SM3_PER_DAY
         TYPE: STREAM_DAY
       EMISSIONS:
       - NAME: co2
