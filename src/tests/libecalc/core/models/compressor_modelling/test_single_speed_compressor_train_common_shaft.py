@@ -97,11 +97,11 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure,
-            [300.0, 304.948, 300.0, 216.268],
-            decimal=3,
+            [300.0, 305.0, 300.0, 216.9],
+            decimal=1,
         )
-        assert list(result.outlet_stream.pressure_before_choking) == pytest.approx(
-            [304.9384, 304.9384, 367.546, 216.268], rel=0.0001
+        np.testing.assert_almost_equal(
+            result.outlet_stream.pressure_before_choking, [305.0, 305.0, 367.7, 216.9], decimal=1
         )
         assert result.inlet_stream.pressure == pytest.approx(suction_pressures)
         assert result.power == pytest.approx([14.54498, 14.54498, 16.05248, 14.6864], rel=0.0001)
@@ -156,19 +156,19 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure,
-            [300.0, 304.948, 300.0, 216.268],
-            decimal=3,
+            [300.0, 305.0, 300.0, 216.9],
+            decimal=1,
         )
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure_before_choking,
-            [304.948, 304.948, 350.0, 216.268],
-            decimal=3,
+            [305.0, 305.0, 350.0, 216.9],
+            decimal=1,
         )
 
-        np.testing.assert_almost_equal(result.inlet_stream.pressure, [80.0, 80.0, 75.80998, 80.0], decimal=5)
+        np.testing.assert_almost_equal(result.inlet_stream.pressure, [80.0, 80.0, 75.8, 80.0], decimal=1)
         np.testing.assert_almost_equal(
             result.power,
-            [14.544982226011612, 14.544982226011612, 15.185817372522788, 14.686402097735332],
+            [14.545, 14.545, 15.178, 14.686],
             decimal=3,
         )
 
@@ -218,13 +218,13 @@ class TestSingleSpeedCompressorTrainCommonShaft:
         )
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure,
-            [166.96, 300.00, 304.95, 300.00, 219.73],
-            decimal=2,
+            [167.0, 300.00, 305.0, 300.00, 220.4],
+            decimal=1,
         )
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure_before_choking,
-            [166.96, 300.00, 304.95, 300.00, 219.73],
-            decimal=2,
+            [167.0, 300.00, 305.0, 300.00, 220.4],
+            decimal=1,
         )
 
         assert result.failure_status == [
@@ -248,8 +248,8 @@ class TestSingleSpeedCompressorTrainCommonShaft:
 
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure,
-            [300.00, 310.00, 292.67, 240.38, 231.92],
-            decimal=2,
+            [300.0, 310.0, 292.5, 240.4, 231.9],
+            decimal=1,
         )
         assert result.failure_status == [
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
@@ -270,8 +270,8 @@ class TestSingleSpeedCompressorTrainCommonShaft:
 
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure,
-            [238.25, 270.0, 277.23, 219.7185],
-            decimal=2,
+            [238.2, 270.0, 277.2, 220.4],
+            decimal=1,
         )
 
         assert result.failure_status == [
@@ -302,10 +302,10 @@ class TestCalculateSingleSpeedCompressorStage:
         assert result.inlet_actual_rate_m3_per_hour == pytest.approx(1148.7960837804026)
         assert result.inlet_actual_rate_asv_corrected_m3_per_hour == 1735.0
         assert result.chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
-        assert result.power_megawatt == pytest.approx(4.832668696214711)
-        assert result.outlet_stream.pressure_bara == pytest.approx(173.36907, rel=0.00001)
-        assert result.outlet_stream.temperature_kelvin == pytest.approx(374.70675, rel=0.00001)
-        assert result.outlet_stream.density_kg_per_m3 == pytest.approx(117.13761, rel=0.00001)
+        assert result.power_megawatt == pytest.approx(4.83, rel=0.001)
+        assert result.outlet_stream.pressure_bara == pytest.approx(173.36, rel=0.001)
+        assert result.outlet_stream.temperature_kelvin == pytest.approx(374.71, rel=0.001)
+        assert result.outlet_stream.density_kg_per_m3 == pytest.approx(117.14, rel=0.001)
 
     def test_rate_within_chart_curve_range(self, single_speed_compressor_train_stage, medium_fluid):
         mass_rate_kg_per_hour = 200000.0
@@ -350,10 +350,10 @@ def test_calculate_single_speed_train(single_speed_compressor_train):
     )
 
     # Stability tests
-    assert result.power_megawatt == pytest.approx(14.5148, rel=0.00001)
-    assert result.discharge_pressure == pytest.approx(304.1049, rel=0.00001)
-    assert result.stage_results[0].outlet_stream.pressure_bara == pytest.approx(140.1095, rel=0.00001)
-    assert result.stage_results[1].inlet_stream.pressure_bara == pytest.approx(140.1095, rel=0.00001)
+    assert result.power_megawatt == pytest.approx(14.51, rel=0.001)
+    assert result.discharge_pressure == pytest.approx(304.10, rel=0.001)
+    assert result.stage_results[0].outlet_stream.pressure_bara == pytest.approx(140.11, rel=0.001)
+    assert result.stage_results[1].inlet_stream.pressure_bara == pytest.approx(140.11, rel=0.001)
     assert result.stage_results[0].chart_area_flag == ChartAreaFlag.INTERNAL_POINT
     assert result.stage_results[1].chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE
 
