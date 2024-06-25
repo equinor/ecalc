@@ -33,7 +33,7 @@ VOLUME:
     VOLUME:
       RATE:
         VALUE: 10
-        UNIT: Sm3/d
+        UNIT: SM3_PER_DAY
         TYPE: STREAM_DAY
       EMISSIONS:
       - NAME: co2

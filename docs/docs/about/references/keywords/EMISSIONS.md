@@ -61,12 +61,12 @@ EMISSIONS:
   - NAME: co2
     RATE:
       VALUE: 4
-      UNIT: kg/d
+      UNIT: KG_PER_DAY
       TYPE: STREAM_DAY
   - NAME: ch4
     RATE:
       VALUE: 2
-      UNIT: kg/d
+      UNIT: KG_PER_DAY
       TYPE: STREAM_DAY
 ~~~~~~~~
 ## For venting emitters (type: OIL_VOLUME, from eCalc v8.13)
