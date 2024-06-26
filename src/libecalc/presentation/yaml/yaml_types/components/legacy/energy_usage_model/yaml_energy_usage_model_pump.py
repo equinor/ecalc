@@ -8,6 +8,9 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    PumpEnergyUsageModelModelReference,
+)
 
 
 class YamlEnergyUsageModelPump(EnergyUsageModelCommon):
@@ -16,7 +19,7 @@ class YamlEnergyUsageModelPump(EnergyUsageModelCommon):
         title="TYPE",
         description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
     )
-    energy_function: str = Field(
+    energy_function: PumpEnergyUsageModelModelReference = Field(
         ...,
         title="ENERGY_FUNCTION",
         description="The pump energy function, reference to a pump type facility model defined in FACILITY_INPUTS",

@@ -9,6 +9,10 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    CompressorEnergyUsageModelModelReference,
+    PumpEnergyUsageModelModelReference,
+)
 
 
 class YamlCompressorSystemCompressor(YamlBase):
@@ -17,7 +21,7 @@ class YamlCompressorSystemCompressor(YamlBase):
         title="NAME",
         description="Name of the compressor",
     )
-    compressor_model: str = Field(
+    compressor_model: CompressorEnergyUsageModelModelReference = Field(
         ...,
         title="COMPRESSOR_MODEL",
         description="Reference to a compressor type facility model defined in FACILITY_INPUTS",
@@ -99,7 +103,7 @@ class YamlPumpSystemPump(YamlBase):
         title="NAME",
         description="Name of the pump",
     )
-    chart: str = Field(
+    chart: PumpEnergyUsageModelModelReference = Field(
         ...,
         title="COMPRESSOR_MODEL",
         description="Reference to a pump type facility model defined in FACILITY_INPUTS",

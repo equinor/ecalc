@@ -6,8 +6,8 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
     YamlInstallation,
 )
-from libecalc.presentation.yaml.yaml_types.facility_type.yaml_facility_type import (
-    YamlFacilityType,
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlFacilityModel,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlModel
@@ -33,7 +33,7 @@ class YamlAsset(YamlBase):
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
     )
-    facility_inputs: List[YamlFacilityType] = Field(
+    facility_inputs: List[YamlFacilityModel] = Field(
         None,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
