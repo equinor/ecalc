@@ -3,7 +3,7 @@ from typing import List, Literal
 from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelReference
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 
@@ -24,7 +24,7 @@ class YamlTurbine(YamlBase):
         },
     )
 
-    name: ModelReference = Field(
+    name: ModelName = Field(
         ...,
         description="Name of the model. See documentation for more information.",
         title="NAME",

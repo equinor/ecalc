@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelReference
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 
@@ -33,7 +33,7 @@ class YamlPredefinedFluidModel(YamlBase):
     eos_model: YamlEosModel = YamlEosModel.SRK
     fluid_model_type: Literal[YamlFluidModelType.PREDEFINED] = YamlFluidModelType.PREDEFINED
     gas_type: YamlPredefinedFluidType = None
-    name: ModelReference = Field(
+    name: ModelName = Field(
         ...,
         description="Name of the model. See documentation for more information.",
         title="NAME",
@@ -69,7 +69,7 @@ class YamlCompositionFluidModel(YamlBase):
     )
     eos_model: Optional[YamlEosModel] = YamlEosModel.SRK
     fluid_model_type: Literal[YamlFluidModelType.COMPOSITION] = YamlFluidModelType.COMPOSITION
-    name: ModelReference = Field(
+    name: ModelName = Field(
         ...,
         description="Name of the model. See documentation for more information.",
         title="NAME",

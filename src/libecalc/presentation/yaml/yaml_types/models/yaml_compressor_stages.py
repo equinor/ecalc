@@ -4,7 +4,12 @@ from typing import List, Optional, Union
 from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    CompressorStageModelReference,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
+    YamlPressureControl,
+)
 
 
 class YamlControlMarginUnits(enum.Enum):
@@ -31,7 +36,7 @@ class YamlCompressorStage(YamlBase):
         description="Inlet temperature in Celsius for stage",
         title="INLET_TEMPERATURE",
     )
-    compressor_chart: str = Field(
+    compressor_chart: CompressorStageModelReference = Field(
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",
@@ -78,7 +83,7 @@ class YamlUnknownCompressorStages(YamlBase):
         description="Inlet temperature in Celsius for stage",
         title="INLET_TEMPERATURE",
     )
-    compressor_chart: str = Field(
+    compressor_chart: CompressorStageModelReference = Field(
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",

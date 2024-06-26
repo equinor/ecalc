@@ -8,6 +8,9 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    MultipleStreamsEnergyUsageModelModelReference,
+)
 
 
 class YamlEnergyUsageModelCompressorTrainMultipleStreams(EnergyUsageModelCommon):
@@ -21,7 +24,7 @@ class YamlEnergyUsageModelCompressorTrainMultipleStreams(EnergyUsageModelCommon)
         title="RATE_UNIT",
         description="Defaults to SM3_PER_DAY, only SM3_PER_DAY implemented for now",
     )
-    compressor_train_model: str = Field(
+    compressor_train_model: MultipleStreamsEnergyUsageModelModelReference = Field(
         ...,
         title="COMPRESSOR_TRAIN_MODEL",
         description="The compressor train model, reference to a compressor type model defined in MODELS",
