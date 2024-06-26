@@ -1,8 +1,13 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field
+from pydantic import AfterValidator, Field
+from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    check_field_model_reference,
+)
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
     YamlCompressorStageMultipleStreams,
     YamlCompressorStages,
@@ -12,6 +17,17 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
     YamlModelType,
     YamlPressureControl,
 )
+
+FluidModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlModelType.FLUID,
+            ]
+        )
+    ),
+]
 
 
 class YamlCompressorTrainBase(YamlBase):
@@ -59,7 +75,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
-    fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
         raise NotImplementedError
@@ -92,7 +108,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
-    fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
         raise NotImplementedError
@@ -115,7 +131,7 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         "Default false. Use with caution. This will increase runtime significantly.",
         title="CALCULATE_MAX_RATE",
     )
-    fluid_model: str = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
+    fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
     power_adjustment_constant: float = Field(
         0.0,
         description="Constant to adjust power usage in MW",
@@ -129,7 +145,9 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 class YamlMultipleStreamsStream(YamlBase):
     type: Literal["INGOING", "OUTGOING"]
     name: str
-    fluid_model: str = Field(None, description="Reference to a fluid model", title="FLUID_MODEL")
+    fluid_model: Optional[FluidModelReference] = Field(
+        None, description="Reference to a fluid model", title="FLUID_MODEL"
+    )
 
 
 class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressorTrainBase):
