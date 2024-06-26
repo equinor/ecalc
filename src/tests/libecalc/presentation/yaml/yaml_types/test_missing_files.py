@@ -1,5 +1,5 @@
 import pytest
-from libecalc.presentation.yaml.yaml_types.facility_type.yaml_facility_type import (
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlGeneratorSetModel,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (

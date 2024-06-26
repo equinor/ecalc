@@ -42,6 +42,7 @@ class YamlValidator(abc.ABC):
     def variables(self) -> Dict[str, YamlVariable]:
         pass
 
+    @property
     @abc.abstractmethod
     def facility_inputs(self):
         pass
@@ -51,6 +52,7 @@ class YamlValidator(abc.ABC):
     def time_series(self) -> List[YamlTimeSeriesCollection]:
         pass
 
+    @property
     @abc.abstractmethod
     def models(self):
         pass
