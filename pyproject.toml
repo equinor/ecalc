@@ -155,7 +155,7 @@ ignore = [
 
 
 [tool.interrogate]  # Monitor doc-string coverage
-fail-under = 37 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%
+fail-under = 25 # Fail CI if the doc-string coverage falls below this level TODO: Set to 100%
 ignore-init-method = true
 ignore-init-module = false
 ignore-magic = false

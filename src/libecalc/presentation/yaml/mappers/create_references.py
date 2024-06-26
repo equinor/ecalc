@@ -21,10 +21,10 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
     facility_input_mapper = FacilityInputMapper(resources=resources)
     facility_inputs_from_files = {
         facility_input.get(EcalcYamlKeywords.name): facility_input_mapper.from_yaml_to_dto(facility_input)
-        for facility_input in configuration.facility_inputs
+        for facility_input in configuration.facility_inputs_raise_if_invalid
     }
     models = create_model_references(
-        models_yaml_config=configuration.models,
+        models_yaml_config=configuration.models_raise_if_invalid,
         facility_inputs=facility_inputs_from_files,
         resources=resources,
     )

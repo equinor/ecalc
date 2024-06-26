@@ -17,6 +17,9 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_syste
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    GeneratorSetModelReference,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
@@ -34,7 +37,7 @@ class YamlGeneratorSet(YamlBase):
         title="FUEL",
         description="The fuel used by the generator set." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
-    electricity2fuel: YamlTemporalModel[str] = Field(
+    electricity2fuel: YamlTemporalModel[GeneratorSetModelReference] = Field(
         ...,
         title="ELECTRICITY2FUEL",
         description="Specifies the correlation between the electric power delivered and the fuel burned by a "
