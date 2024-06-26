@@ -1,3 +1,4 @@
+import enum
 from typing import Literal, Union
 
 from pydantic import Field, field_validator
@@ -7,6 +8,14 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_validators.file_validators import (
     file_exists_validator,
 )
+
+
+class YamlFacilityModelType(str, enum.Enum):
+    ELECTRICITY2FUEL = "ELECTRICITY2FUEL"
+    TABULAR = "TABULAR"
+    COMPRESSOR_TABULAR = "COMPRESSOR_TABULAR"
+    PUMP_CHART_SINGLE_SPEED = "PUMP_CHART_SINGLE_SPEED"
+    PUMP_CHART_VARIABLE_SPEED = "PUMP_CHART_VARIABLE_SPEED"
 
 
 def FacilityTypeField():
@@ -30,7 +39,7 @@ class YamlFacilityAdjustment(YamlBase):
     )
 
 
-class YamlFacilityTypeBase(YamlBase):
+class YamlFacilityModelBase(YamlBase):
     name: str = Field(
         ...,
         title="NAME",
@@ -50,16 +59,16 @@ class YamlFacilityTypeBase(YamlBase):
     validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
 
 
-class YamlGeneratorSetModel(YamlFacilityTypeBase):
-    type: Literal["ELECTRICITY2FUEL"] = FacilityTypeField()
+class YamlGeneratorSetModel(YamlFacilityModelBase):
+    type: Literal[YamlFacilityModelType.ELECTRICITY2FUEL] = FacilityTypeField()
 
 
-class YamlTabularModel(YamlFacilityTypeBase):
-    type: Literal["TABULAR"] = FacilityTypeField()
+class YamlTabularModel(YamlFacilityModelBase):
+    type: Literal[YamlFacilityModelType.TABULAR] = FacilityTypeField()
 
 
-class YamlCompressorTabularModel(YamlFacilityTypeBase):
-    type: Literal["COMPRESSOR_TABULAR"] = FacilityTypeField()
+class YamlCompressorTabularModel(YamlFacilityModelBase):
+    type: Literal[YamlFacilityModelType.COMPRESSOR_TABULAR] = FacilityTypeField()
 
 
 class YamlPumpChartUnits(YamlBase):
@@ -80,7 +89,7 @@ class YamlPumpChartUnits(YamlBase):
     )
 
 
-class YamlPumpChartBase(YamlFacilityTypeBase):
+class YamlPumpChartBase(YamlFacilityModelBase):
     head_margin: float = Field(
         None,
         title="HEAD_MARGIN",
@@ -92,14 +101,14 @@ class YamlPumpChartBase(YamlFacilityTypeBase):
 
 
 class YamlPumpChartSingleSpeed(YamlPumpChartBase):
-    type: Literal["PUMP_CHART_SINGLE_SPEED"] = FacilityTypeField()
+    type: Literal[YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED] = FacilityTypeField()
 
 
 class YamlPumpChartVariableSpeed(YamlPumpChartBase):
-    type: Literal["PUMP_CHART_VARIABLE_SPEED"] = FacilityTypeField()
+    type: Literal[YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED] = FacilityTypeField()
 
 
-YamlFacilityType = Annotated[
+YamlFacilityModel = Annotated[
     Union[
         YamlGeneratorSetModel,
         YamlTabularModel,

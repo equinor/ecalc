@@ -15,6 +15,9 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    CompressorV2ModelReference,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 CompressorModel = Union[YamlCompressorWithTurbine]
@@ -30,7 +33,7 @@ class YamlCompressor(YamlConsumerBase):
         alias="TYPE",
     )
 
-    energy_usage_model: YamlTemporalModel[str]
+    energy_usage_model: YamlTemporalModel[CompressorV2ModelReference]
 
     def to_dto(
         self,

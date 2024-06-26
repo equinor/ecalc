@@ -14,6 +14,9 @@ from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    PumpV2ModelReference,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
@@ -27,7 +30,7 @@ class YamlPump(YamlConsumerBase):
         alias="TYPE",
     )
 
-    energy_usage_model: YamlTemporalModel[str]
+    energy_usage_model: YamlTemporalModel[PumpV2ModelReference]
 
     def to_dto(
         self,

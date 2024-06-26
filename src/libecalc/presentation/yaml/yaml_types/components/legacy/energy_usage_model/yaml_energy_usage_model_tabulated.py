@@ -9,6 +9,9 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    TabulatedEnergyUsageModelModelReference,
+)
 
 
 class YamlTabulatedVariable(YamlBase):
@@ -30,7 +33,7 @@ class YamlEnergyUsageModelTabulated(EnergyUsageModelCommon):
         title="TYPE",
         description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
     )
-    energy_function: str = Field(
+    energy_function: TabulatedEnergyUsageModelModelReference = Field(
         ...,
         title="ENERGY_FUNCTION",
         description="The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS",
