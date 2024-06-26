@@ -58,15 +58,19 @@ class TestYamlValidation:
         PyYamlYamlModel.read(ResourceStream(name=yaml_model.name, stream=StringIO(yaml_model.source))).validate({})
 
     def test_valid_cases(self, valid_example_case_yaml_case):
-        PyYamlYamlModel.read(
+        yaml_model = PyYamlYamlModel.read(
             ResourceStream(
                 name=valid_example_case_yaml_case.main_file_path.stem,
                 stream=valid_example_case_yaml_case.main_file,
             )
-        ).validate(
+        )
+        yaml_model.validate(
             {
                 YamlModelValidationContextNames.resource_file_names: list(
                     valid_example_case_yaml_case.resources.keys()
                 ),
+                YamlModelValidationContextNames.model_types: {
+                    model.name: model for model in [*yaml_model.facility_inputs, *yaml_model.models]
+                },
             }
         )

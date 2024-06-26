@@ -1,6 +1,7 @@
 from typing import List, Literal
 
-from pydantic import Field
+from pydantic import AfterValidator, Field
+from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
@@ -9,6 +10,30 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlFacilityModelType,
+)
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    check_field_model_reference,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
+
+CompressorModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.COMPRESSOR_TABULAR,
+                YamlModelType.COMPRESSOR_WITH_TURBINE,
+                YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,
+                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN,
+                YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
+            ]
+        )
+    ),
+]
 
 
 class YamlCompressorSystemCompressor(YamlBase):
@@ -17,7 +42,7 @@ class YamlCompressorSystemCompressor(YamlBase):
         title="NAME",
         description="Name of the compressor",
     )
-    compressor_model: str = Field(
+    compressor_model: CompressorModelReference = Field(
         ...,
         title="COMPRESSOR_MODEL",
         description="Reference to a compressor type facility model defined in FACILITY_INPUTS",
@@ -93,13 +118,27 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
     )
 
 
+PumpModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED,
+                YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED,
+            ]
+        )
+    ),
+]
+
+
 class YamlPumpSystemPump(YamlBase):
     name: str = Field(
         ...,
         title="NAME",
         description="Name of the pump",
     )
-    chart: str = Field(
+    chart: PumpModelReference = Field(
         ...,
         title="COMPRESSOR_MODEL",
         description="Reference to a pump type facility model defined in FACILITY_INPUTS",

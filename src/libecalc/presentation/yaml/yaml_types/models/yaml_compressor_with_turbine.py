@@ -1,15 +1,34 @@
 from typing import Literal
 
-from pydantic import Field
+from pydantic import AfterValidator, Field
+from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelReference
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    check_field_model_reference,
+)
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
+
+TurbineModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlModelType.TURBINE,
+            ]
+        )
+    ),
+]
+
+CompressorModelReference = str  # Specific type is handled when referencing the CompressorWithTurbine type, since allowed compressor models varies between components.
 
 
 class YamlCompressorWithTurbine(YamlBase):
-    compressor_model: str = Field(..., description="Reference to a compressor model", title="COMPRESSOR_MODEL")
-    name: ModelReference = Field(
+    compressor_model: CompressorModelReference = Field(
+        ..., description="Reference to a compressor model", title="COMPRESSOR_MODEL"
+    )
+    name: ModelName = Field(
         ...,
         description="Name of the model. See documentation for more information.",
         title="NAME",
@@ -19,7 +38,7 @@ class YamlCompressorWithTurbine(YamlBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
-    turbine_model: str = Field(..., description="Reference to a turbine model", title="TURBINE_MODEL")
+    turbine_model: TurbineModelReference = Field(..., description="Reference to a turbine model", title="TURBINE_MODEL")
     type: Literal[YamlModelType.COMPRESSOR_WITH_TURBINE] = Field(
         ...,
         description="Defines the type of model. See documentation for more information.",

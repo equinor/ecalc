@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import AfterValidator, ConfigDict, Field, model_validator
 from typing_extensions import Annotated
 
 from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
@@ -17,7 +17,25 @@ from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_syste
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,
 )
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlFacilityModelType,
+)
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    check_field_model_reference,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+
+ModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.ELECTRICITY2FUEL,
+            ]
+        )
+    ),
+]
 
 
 class YamlGeneratorSet(YamlBase):
@@ -34,7 +52,7 @@ class YamlGeneratorSet(YamlBase):
         title="FUEL",
         description="The fuel used by the generator set." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
-    electricity2fuel: YamlTemporalModel[str] = Field(
+    electricity2fuel: YamlTemporalModel[ModelReference] = Field(
         ...,
         title="ELECTRICITY2FUEL",
         description="Specifies the correlation between the electric power delivered and the fuel burned by a "

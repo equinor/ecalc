@@ -37,6 +37,10 @@ from libecalc.presentation.yaml.yaml_models.exceptions import (
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlFacilityModel,
+)
+from libecalc.presentation.yaml.yaml_types.models import YamlModel as YamlModelsModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -340,8 +344,31 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         return self._internal_datamodel.get(EcalcYamlKeywords.variables, {})
 
     @property
-    def facility_inputs(self):
+    @deprecated("Deprecated, facility_inputs in combination with validate should be used instead")
+    def facility_inputs_raise_if_invalid(self):
         return self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, [])
+
+    @property
+    def facility_inputs(self) -> List[YamlFacilityModel]:
+        facility_inputs = []
+        for facility_input in self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, []):
+            try:
+                facility_inputs.append(TypeAdapter(YamlFacilityModel).validate_python(facility_input))
+            except PydanticValidationError:
+                pass
+
+        return facility_inputs
+
+    @property
+    def models(self) -> List[YamlModelsModel]:
+        models = []
+        for model in self._internal_datamodel.get(EcalcYamlKeywords.models, []):
+            try:
+                models.append(TypeAdapter(YamlModelsModel).validate_python(model))
+            except PydanticValidationError:
+                pass
+
+        return models
 
     @property
     @deprecated("Deprecated, time_series in combination with validate should be used instead")
@@ -373,7 +400,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         return time_series
 
     @property
-    def models(self):
+    def models_raise_if_invalid(self):
         return self._internal_datamodel.get(EcalcYamlKeywords.models, [])
 
     @property
