@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Dict, Literal, Optional, Union
 
-from pydantic import AfterValidator, ConfigDict, Field
-from typing_extensions import Annotated
+from pydantic import ConfigDict, Field
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -15,31 +14,13 @@ from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModelType,
-)
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorWithTurbine
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
-    check_field_model_reference,
+    CompressorV2ModelReference,
 )
-from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 CompressorModel = Union[YamlCompressorWithTurbine]
-
-ModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            allowed_types=[
-                YamlFacilityModelType.TABULAR,
-                YamlFacilityModelType.COMPRESSOR_TABULAR,
-                YamlModelType.COMPRESSOR_CHART,
-            ]
-        )
-    ),
-]
 
 
 class YamlCompressor(YamlConsumerBase):
@@ -52,7 +33,7 @@ class YamlCompressor(YamlConsumerBase):
         alias="TYPE",
     )
 
-    energy_usage_model: YamlTemporalModel[ModelReference]
+    energy_usage_model: YamlTemporalModel[CompressorV2ModelReference]
 
     def to_dto(
         self,

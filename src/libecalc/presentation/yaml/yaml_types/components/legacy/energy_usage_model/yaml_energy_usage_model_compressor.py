@@ -1,7 +1,6 @@
 from typing import Literal
 
-from pydantic import AfterValidator, Field
-from typing_extensions import Annotated
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
     EnergyUsageModelCommon,
@@ -9,31 +8,9 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
     YamlExpressionType,
 )
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModelType,
-)
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
-    check_field_model_reference,
+    CompressorEnergyUsageModelModelReference,
 )
-from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
-
-ModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            allowed_types=[
-                YamlFacilityModelType.TABULAR,
-                YamlFacilityModelType.COMPRESSOR_TABULAR,
-                YamlModelType.COMPRESSOR_WITH_TURBINE,
-                YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,
-                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN,
-                YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
-                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
-            ]
-        )
-    ),
-]
 
 
 class YamlEnergyUsageModelCompressor(EnergyUsageModelCommon):
@@ -42,7 +19,7 @@ class YamlEnergyUsageModelCompressor(EnergyUsageModelCommon):
         title="TYPE",
         description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
     )
-    energy_function: ModelReference = Field(
+    energy_function: CompressorEnergyUsageModelModelReference = Field(
         ...,
         title="ENERGY_FUNCTION",
         description="The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS",

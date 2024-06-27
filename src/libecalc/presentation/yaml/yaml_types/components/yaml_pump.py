@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Dict, Literal, Optional
 
-from pydantic import AfterValidator, ConfigDict, Field
-from typing_extensions import Annotated
+from pydantic import ConfigDict, Field
 
 from libecalc import dto
 from libecalc.common.time_utils import Period, define_time_model_for_period
@@ -15,27 +14,10 @@ from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import (
     YamlConsumerBase,
 )
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModelType,
-)
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
-    check_field_model_reference,
+    PumpV2ModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
-
-ModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            [
-                YamlFacilityModelType.TABULAR,
-                YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED,
-                YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED,
-            ]
-        )
-    ),
-]
 
 
 class YamlPump(YamlConsumerBase):
@@ -48,7 +30,7 @@ class YamlPump(YamlConsumerBase):
         alias="TYPE",
     )
 
-    energy_usage_model: YamlTemporalModel[ModelReference]
+    energy_usage_model: YamlTemporalModel[PumpV2ModelReference]
 
     def to_dto(
         self,

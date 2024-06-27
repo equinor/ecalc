@@ -11,7 +11,7 @@ class CompressorWithTurbineModel(Model, Protocol):
     compressor_model: ModelName
 
 
-ModelType = Union[Model, CompressorWithTurbineModel]
+ModelContext = Union[Model, CompressorWithTurbineModel]
 
 
 class YamlModelValidationContextNames:
@@ -25,7 +25,7 @@ YamlModelValidationContext = TypedDict(
     {
         YamlModelValidationContextNames.resource_file_names: List[str],  # type: ignore
         YamlModelValidationContextNames.expression_tokens: List[str],
-        YamlModelValidationContextNames.model_types: Dict[ModelName, ModelType],
+        YamlModelValidationContextNames.model_types: Dict[ModelName, ModelContext],
     },
     total=True,
 )

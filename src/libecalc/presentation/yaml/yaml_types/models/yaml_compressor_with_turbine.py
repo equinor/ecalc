@@ -1,25 +1,13 @@
 from typing import Literal
 
-from pydantic import AfterValidator, Field
-from typing_extensions import Annotated
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
-    check_field_model_reference,
+    TurbineModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
-
-TurbineModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            allowed_types=[
-                YamlModelType.TURBINE,
-            ]
-        )
-    ),
-]
 
 CompressorModelReference = str  # Specific type is handled when referencing the CompressorWithTurbine type, since allowed compressor models varies between components.
 

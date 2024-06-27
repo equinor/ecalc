@@ -1,12 +1,10 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import AfterValidator, Field
-from typing_extensions import Annotated
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
-    check_field_model_reference,
+    FluidModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
     YamlCompressorStageMultipleStreams,
@@ -17,17 +15,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
     YamlModelType,
     YamlPressureControl,
 )
-
-FluidModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            allowed_types=[
-                YamlModelType.FLUID,
-            ]
-        )
-    ),
-]
 
 
 class YamlCompressorTrainBase(YamlBase):

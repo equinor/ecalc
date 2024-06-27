@@ -1,25 +1,23 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import Any, Dict, List
 
+from pydantic import AfterValidator
 from pydantic_core import PydanticCustomError
 from pydantic_core.core_schema import ValidationInfo
+from typing_extensions import Annotated
 
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlFacilityModelType,
+)
+from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_validation_context import (
+    ModelContext,
     YamlModelValidationContextNames,
 )
 
-if TYPE_CHECKING:
-    from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-        YamlFacilityModel,
-    )
-    from libecalc.presentation.yaml.yaml_types.models import YamlModel
-    from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
-
-    ModelType = Union[YamlModel, YamlFacilityModel]
-
 
 class InvalidModelReferenceError(ValueError):
-    def __init__(self, model_reference: "ModelName"):
+    def __init__(self, model_reference: ModelName):
         self.model_reference = model_reference
 
 
@@ -28,15 +26,15 @@ class ModelReferenceNotFound(InvalidModelReferenceError):
 
 
 class InvalidModelReferenceType(InvalidModelReferenceError):
-    def __init__(self, model_reference: "ModelName", model: "ModelType"):
+    def __init__(self, model_reference: ModelName, model: ModelContext):
         self.model = model
         super().__init__(model_reference=model_reference)
 
 
 def check_model_reference(
     model_reference: Any,
-    available_models: Dict["ModelName", "ModelType"],
-    allowed_types: List["ModelType"],
+    available_models: Dict["ModelName", ModelContext],
+    allowed_types: List[str],
 ) -> str:
     if model_reference not in available_models:
         raise ModelReferenceNotFound(model_reference=model_reference)
@@ -49,7 +47,7 @@ def check_model_reference(
     return model_reference
 
 
-def check_field_model_reference(allowed_types: List["ModelType"]):
+def check_field_model_reference(allowed_types: List[str]):
     allowed_model_types = [
         allowed_type for allowed_type in allowed_types if allowed_type != YamlModelType.COMPRESSOR_WITH_TURBINE
     ]
@@ -94,3 +92,148 @@ def check_field_model_reference(allowed_types: List["ModelType"]):
             ) from e
 
     return check_model_reference_wrapper
+
+
+CompressorV2ModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.COMPRESSOR_TABULAR,
+                YamlModelType.COMPRESSOR_CHART,
+            ]
+        )
+    ),
+]
+
+GeneratorSetModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.ELECTRICITY2FUEL,
+            ]
+        )
+    ),
+]
+PumpV2ModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            [
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED,
+                YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED,
+            ]
+        )
+    ),
+]
+CompressorEnergyUsageModelModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.COMPRESSOR_TABULAR,
+                YamlModelType.COMPRESSOR_WITH_TURBINE,
+                YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,
+                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN,
+                YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
+                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
+            ]
+        )
+    ),
+]
+SystemCompressorModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.COMPRESSOR_TABULAR,
+                YamlModelType.COMPRESSOR_WITH_TURBINE,
+                YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,
+                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN,
+                YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
+            ]
+        )
+    ),
+]
+SystemPumpModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED,
+                YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED,
+            ]
+        )
+    ),
+]
+MultipleStreamsEnergyUsageModelModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlModelType.COMPRESSOR_WITH_TURBINE,
+                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
+            ]
+        )
+    ),
+]
+PumpEnergyUsageModelModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+                YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED,
+                YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED,
+            ]
+        )
+    ),
+]
+TabulatedEnergyUsageModelModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlFacilityModelType.TABULAR,
+            ]
+        )
+    ),
+]
+CompressorStageModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlModelType.COMPRESSOR_CHART,
+                YamlFacilityModelType.COMPRESSOR_TABULAR,
+                YamlFacilityModelType.TABULAR,
+            ]
+        )
+    ),
+]
+FluidModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlModelType.FLUID,
+            ]
+        )
+    ),
+]
+TurbineModelReference = Annotated[
+    ModelName,
+    AfterValidator(
+        check_field_model_reference(
+            allowed_types=[
+                YamlModelType.TURBINE,
+            ]
+        )
+    ),
+]

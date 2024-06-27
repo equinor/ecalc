@@ -1,19 +1,13 @@
 import enum
 from typing import List, Optional, Union
 
-from pydantic import AfterValidator, Field
-from typing_extensions import Annotated
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModelType,
-)
-from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
-    check_field_model_reference,
+    CompressorStageModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
-    YamlModelType,
     YamlPressureControl,
 )
 
@@ -36,27 +30,13 @@ class YamlInterstageControlPressure(YamlBase):
     )
 
 
-CompressorChartModelReference = Annotated[
-    ModelName,
-    AfterValidator(
-        check_field_model_reference(
-            allowed_types=[
-                YamlModelType.COMPRESSOR_CHART,
-                YamlFacilityModelType.COMPRESSOR_TABULAR,
-                YamlFacilityModelType.TABULAR,
-            ]
-        )
-    ),
-]
-
-
 class YamlCompressorStage(YamlBase):
     inlet_temperature: float = Field(
         ...,
         description="Inlet temperature in Celsius for stage",
         title="INLET_TEMPERATURE",
     )
-    compressor_chart: CompressorChartModelReference = Field(
+    compressor_chart: CompressorStageModelReference = Field(
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",
@@ -103,7 +83,7 @@ class YamlUnknownCompressorStages(YamlBase):
         description="Inlet temperature in Celsius for stage",
         title="INLET_TEMPERATURE",
     )
-    compressor_chart: CompressorChartModelReference = Field(
+    compressor_chart: CompressorStageModelReference = Field(
         ...,
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",
