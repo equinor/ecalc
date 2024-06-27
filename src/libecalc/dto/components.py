@@ -324,18 +324,24 @@ class GeneratorSet(BaseEquipment):
     @model_validator(mode="after")
     def check_power_from_shore(self):
         if self.cable_loss is not None or self.max_usage_from_shore is not None:
+            feedback_text = f"{self.model_fields['cable_loss'].title} and {self.model_fields['max_usage_from_shore'].title} are only valid"
+            if self.cable_loss is None:
+                feedback_text = f"{self.model_fields['max_usage_from_shore'].title} is only valid"
+            if self.max_usage_from_shore is None:
+                feedback_text = f"{self.model_fields['cable_loss'].title} is only valid"
+
             if isinstance(self.user_defined_category, ConsumerUserDefinedCategoryType):
                 if self.user_defined_category is not ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
                     raise ValueError(
-                        f"{self.model_fields['cable_loss'].title} and {self.model_fields['max_usage_from_shore'].title} "
-                        f"are only valid for the category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}, not for "
+                        f"{feedback_text} only valid for the "
+                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}, not for "
                         f"{self.user_defined_category}."
                     )
             else:
                 if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in self.user_defined_category.values():
                     raise ValueError(
-                        f"{self.model_fields['cable_loss'].title} and {self.model_fields['max_usage_from_shore'].title} "
-                        f"are only valid for the category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}, not for "
+                        f"{feedback_text} only valid for the "
+                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}, not for "
                         f"{self.user_defined_category[datetime(1900, 1,1)].value}."
                     )
         return self
