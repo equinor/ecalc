@@ -140,7 +140,6 @@ CompressorEnergyUsageModelModelReference = Annotated[
                 YamlModelType.SINGLE_SPEED_COMPRESSOR_TRAIN,
                 YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN,
                 YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
-                YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES,
             ]
         )
     ),
