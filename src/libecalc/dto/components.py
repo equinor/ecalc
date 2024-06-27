@@ -333,14 +333,14 @@ class GeneratorSet(BaseEquipment):
             if isinstance(self.user_defined_category, ConsumerUserDefinedCategoryType):
                 if self.user_defined_category is not ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
                     raise ValueError(
-                        f"{feedback_text} only valid for the "
+                        f"{feedback_text} for the "
                         f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}, not for "
                         f"{self.user_defined_category}."
                     )
             else:
                 if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in self.user_defined_category.values():
                     raise ValueError(
-                        f"{feedback_text} only valid for the "
+                        f"{feedback_text} for the "
                         f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}, not for "
                         f"{self.user_defined_category[datetime(1900, 1,1)].value}."
                     )

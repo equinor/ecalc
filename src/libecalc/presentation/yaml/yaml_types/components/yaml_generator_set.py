@@ -75,14 +75,13 @@ class YamlGeneratorSet(YamlBase):
             if isinstance(self.category, ConsumerUserDefinedCategoryType):
                 if self.category is not ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
                     raise ValueError(
-                        f"{feedback_text} only valid for the "
+                        f"{feedback_text} for the "
                         f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}, not for "
                         f"{self.category}."
                     )
             else:
                 if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in self.category.values():
                     raise ValueError(
-                        f"{feedback_text} only valid for the "
-                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}."
+                        f"{feedback_text} for the " f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}."
                     )
         return self
