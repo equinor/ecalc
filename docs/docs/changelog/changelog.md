@@ -1,5 +1,22 @@
 # Changelog
 
+## [8.18.1](https://github.com/equinor/ecalc/compare/v8.18.0...v8.18.1) (2024-06-28)
+
+
+### Features
+
+* validate model references and types ([dd8d701](https://github.com/equinor/ecalc/commit/dd8d701a5ac546407e6dcd0549991c3c73dff106))
+
+
+### Documentation
+
+* wrong units venting emitters docs ([#537](https://github.com/equinor/ecalc/issues/537)) ([650a4a3](https://github.com/equinor/ecalc/commit/650a4a3a4fe776c5fd46ec98690d0a5603b995b3))
+
+
+### Code Refactoring
+
+* add ModelReference type ([11cb65b](https://github.com/equinor/ecalc/commit/11cb65b26f70454dd16a52c8931c716e21532c38))
+
 ## [8.18.0](https://github.com/equinor/ecalc/compare/v8.17.0...v8.18.0) (2024-06-25)
 
 
