@@ -75,7 +75,7 @@ typer = "^0.12.3"
 pytest-snapshot = "^0.9"
 pytest = "^7.3"
 coverage = {version="^7.2.5", extras=["toml"]}
-pdoc = "^13.1.1"
+pdoc = "^14.5.1"
 nbconvert = "^7.4.0"
 pytest-xdist = "^3.3.0"
 
