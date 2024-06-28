@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Union
 
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
+from libecalc.dto.utils.validators import ExpressionType
 
 
 def validate_generator_set_power_from_shore(
-    cable_loss: Union[int, float],
-    max_usage_from_shore: Union[int, float],
+    cable_loss: ExpressionType,
+    max_usage_from_shore: ExpressionType,
     model_fields: dict,
     category: Union[dict, ConsumerUserDefinedCategoryType],
 ):
