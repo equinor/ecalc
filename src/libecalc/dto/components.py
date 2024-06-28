@@ -42,6 +42,9 @@ from libecalc.dto.utils.validators import (
 )
 from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.ltp_validation import (
+    validate_generator_set_power_from_shore,
+)
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
@@ -323,27 +326,13 @@ class GeneratorSet(BaseEquipment):
 
     @model_validator(mode="after")
     def check_power_from_shore(self):
-        if self.cable_loss is not None or self.max_usage_from_shore is not None:
-            feedback_text = f"{self.model_fields['cable_loss'].title} and {self.model_fields['max_usage_from_shore'].title} are only valid"
-            if self.cable_loss is None:
-                feedback_text = f"{self.model_fields['max_usage_from_shore'].title} is only valid"
-            if self.max_usage_from_shore is None:
-                feedback_text = f"{self.model_fields['cable_loss'].title} is only valid"
+        _check_power_from_shore_attributes = validate_generator_set_power_from_shore(
+            cable_loss=self.cable_loss,
+            max_usage_from_shore=self.max_usage_from_shore,
+            model_fields=self.model_fields,
+            category=self.user_defined_category,
+        )
 
-            if isinstance(self.user_defined_category, ConsumerUserDefinedCategoryType):
-                if self.user_defined_category is not ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
-                    raise ValueError(
-                        f"{feedback_text} for the "
-                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}, not for "
-                        f"{self.user_defined_category}."
-                    )
-            else:
-                if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in self.user_defined_category.values():
-                    raise ValueError(
-                        f"{feedback_text} for the "
-                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}, not for "
-                        f"{self.user_defined_category[datetime(1900, 1,1)].value}."
-                    )
         return self
 
     def get_graph(self) -> ComponentGraph:
