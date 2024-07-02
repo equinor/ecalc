@@ -60,34 +60,51 @@ def check_field_model_reference(allowed_types: List[str]):
 
         models_context = info.context.get(YamlModelValidationContextNames.model_types)
         try:
-            model_reference = check_model_reference(
-                model_reference,
-                available_models=models_context,
-                allowed_types=allowed_types,
-            )
+            try:
+                model_reference = check_model_reference(
+                    model_reference,
+                    available_models=models_context,
+                    allowed_types=allowed_types,
+                )
+
+            except InvalidModelReferenceType as e:
+                raise PydanticCustomError(
+                    "model_reference_type_invalid",
+                    "Model '{model_reference}' with type {model_type} is not allowed",
+                    {
+                        "model_reference": e.model_reference,
+                        "model_type": e.model.type,
+                    },
+                ) from e
+
+            # Also check compressor models in turbine
             model = models_context[model_reference]
             if model.type == YamlModelType.COMPRESSOR_WITH_TURBINE:
                 # Handle the compressor_model in turbine, it should be limited to the specified types.
-                check_model_reference(
-                    model.compressor_model,
-                    allowed_types=allowed_model_types,
-                    available_models=models_context,
-                )
+                try:
+                    check_model_reference(
+                        model.compressor_model,
+                        allowed_types=allowed_model_types,
+                        available_models=models_context,
+                    )
+
+                except InvalidModelReferenceType as e:
+                    raise PydanticCustomError(
+                        "model_reference_type_invalid",
+                        "Turbine '{turbine_reference}' with compressor model '{model_reference}' of type {model_type} is not allowed",
+                        {
+                            "turbine_reference": model_reference,
+                            "model_reference": e.model_reference,
+                            "model_type": e.model.type,
+                        },
+                    ) from e
+
         except ModelReferenceNotFound as e:
             raise PydanticCustomError(
                 "model_reference_not_found",
                 "Model '{model_reference}' not found",
                 {
                     "model_reference": e.model_reference,
-                },
-            ) from e
-        except InvalidModelReferenceType as e:
-            raise PydanticCustomError(
-                "model_reference_type_invalid",
-                "Model '{model_reference}' with type {model_type} is not allowed",
-                {
-                    "model_reference": e.model_reference,
-                    "model_type": e.model.type,
                 },
             ) from e
 
