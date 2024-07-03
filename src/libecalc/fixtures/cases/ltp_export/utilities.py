@@ -31,29 +31,6 @@ def get_consumption(
     return ltp_result
 
 
-def get_consumption_asset_result(
-    model: Union[dto.Installation, dto.Asset],
-    variables: dto.VariablesMap,
-):
-    model = model
-    graph = model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
-
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
-    emission_results = energy_calculator.evaluate_emissions(variables, consumer_results)
-
-    results_core = GraphResult(
-        graph=graph,
-        variables_map=variables,
-        consumer_results=consumer_results,
-        emission_results=emission_results,
-    )
-
-    results_dto = results_core.get_asset_result()
-
-    return results_dto
-
-
 def get_sum_ltp_column(ltp_result, installation_nr, ltp_column_nr) -> float:
     ltp_sum = sum(
         float(v) for (k, v) in ltp_result.query_results[installation_nr].query_results[ltp_column_nr].values.items()

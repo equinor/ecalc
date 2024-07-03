@@ -1,9 +1,12 @@
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 import pytest
 from libecalc import dto
+from libecalc.application.energy_calculator import EnergyCalculator
+from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -39,12 +42,12 @@ from libecalc.fixtures.cases.ltp_export.loading_storage_ltp_yaml import (
 )
 from libecalc.fixtures.cases.ltp_export.utilities import (
     get_consumption,
-    get_consumption_asset_result,
     get_sum_ltp_column,
 )
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
+from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
@@ -60,6 +63,29 @@ time_vector_installation = [
 ]
 
 time_vector_yearly = pd.date_range(datetime(2027, 1, 1), datetime(2029, 1, 1), freq="YS").to_pydatetime().tolist()
+
+
+def calculate_asset_result(
+    model: Union[dto.Installation, dto.Asset],
+    variables: dto.VariablesMap,
+):
+    model = model
+    graph = model.get_graph()
+    energy_calculator = EnergyCalculator(graph=graph)
+
+    consumer_results = energy_calculator.evaluate_energy_usage(variables)
+    emission_results = energy_calculator.evaluate_emissions(variables, consumer_results)
+
+    results_core = GraphResult(
+        graph=graph,
+        variables_map=variables,
+        consumer_results=consumer_results,
+        emission_results=emission_results,
+    )
+
+    results_dto = get_asset_result(results_core)
+
+    return results_dto
 
 
 def test_emissions_diesel_fixed_and_mobile():
@@ -320,7 +346,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     # Verify that eCalc is not failing in get_asset_result with only venting emitters -
     # when installation result is empty, i.e. with no genset and fuel consumers:
     assert isinstance(
-        get_consumption_asset_result(model=dto_case_emitters.ecalc_model, variables=variables), EcalcModelResult
+        calculate_asset_result(model=dto_case_emitters.ecalc_model, variables=variables), EcalcModelResult
     )
 
     # Verify correct emissions:
@@ -351,9 +377,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     # Include asset with two installations, one with only emitters and one with only fuel consumers -
     # ensure that get_asset_result returns a result:
 
-    assert isinstance(
-        get_consumption_asset_result(model=asset_multi_installations, variables=variables), EcalcModelResult
-    )
+    assert isinstance(calculate_asset_result(model=asset_multi_installations, variables=variables), EcalcModelResult)
 
     asset_ltp_result = get_consumption(
         model=asset_multi_installations, variables=variables, time_vector=time_vector_yearly
@@ -465,7 +489,7 @@ def test_electrical_and_mechanical_power_installation():
         ],
     )
 
-    asset_result = get_consumption_asset_result(model=asset, variables=variables)
+    asset_result = calculate_asset_result(model=asset, variables=variables)
     power_fuel_driven_compressor = asset_result.get_component_by_name("compressor").power_cumulative.values[-1]
     power_generator_set = asset_result.get_component_by_name("genset").power_cumulative.values[-1]
 
@@ -512,7 +536,7 @@ def test_electrical_and_mechanical_power_asset():
         ],
     )
 
-    asset_result = get_consumption_asset_result(model=asset, variables=variables)
+    asset_result = calculate_asset_result(model=asset, variables=variables)
     power_electrical_installation_1 = asset_result.get_component_by_name(
         installation_name_1
     ).power_electrical_cumulative.values[-1]

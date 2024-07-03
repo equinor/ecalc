@@ -7,6 +7,7 @@ from libecalc.application.graph_result import EcalcModelResult, GraphResult
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.dto.result.results import CompressorModelResult
+from libecalc.presentation.json_result.mapper import get_asset_result
 
 
 @pytest.fixture
@@ -21,12 +22,14 @@ def result(compressor_systems_and_compressor_train_temporal_dto) -> EcalcModelRe
         variables_map=variables,
         consumer_results=consumer_results,
     )
-    result = GraphResult(
-        graph=graph,
-        consumer_results=consumer_results,
-        variables_map=variables,
-        emission_results=emission_results,
-    ).get_asset_result()
+    result = get_asset_result(
+        GraphResult(
+            graph=graph,
+            consumer_results=consumer_results,
+            variables_map=variables,
+            emission_results=emission_results,
+        )
+    )
 
     return result
 

@@ -12,8 +12,9 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.result.emission import PartialEmissionResult
-from libecalc.dto.utils.aggregators import aggregate_emissions
 from libecalc.expression import Expression
+from libecalc.presentation.json_result.aggregators import aggregate_emissions
+from libecalc.presentation.json_result.mapper import get_asset_result
 
 
 def get_installation(
@@ -175,7 +176,7 @@ class TestAggregateEmissions:
             emission_results=emission_results,
         )
 
-        ecalc_result = graph_result.get_asset_result()
+        ecalc_result = get_asset_result(graph_result)
 
         # Extract eCalc results for total asset and for individual installations
         ecalc_asset_emissions = ecalc_result.component_result.emissions["co2"].rate.values
