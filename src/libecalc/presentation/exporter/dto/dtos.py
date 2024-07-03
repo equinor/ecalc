@@ -18,6 +18,9 @@ class DataSeries:
     title: str
     values: List[Union[str, float]]
 
+    def get_title(self) -> str:
+        return self.title
+
     @property
     def id(self) -> str:
         return self.name
@@ -35,6 +38,9 @@ class QueryResult:
     title: str
     unit: Unit  # Needed! in order to know how to handler further....parse
     values: Dict[datetime, float]
+
+    def get_title(self) -> str:
+        return f"{self.title}[{self.unit}]"
 
     @property
     def id(self) -> str:
