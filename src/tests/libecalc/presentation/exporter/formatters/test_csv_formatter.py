@@ -13,7 +13,10 @@ from libecalc.presentation.exporter.formatters.formatter import (
 class Column:
     id: str
     title: str
-    unit: Unit
+    unit: Unit = Unit.TONS
+
+    def get_title(self) -> str:
+        return f"{self.title}[{self.unit}]"
 
 
 @dataclass
@@ -26,7 +29,6 @@ class Data(Formattable):
         return Column(
             id=column_id,
             title=column_id.upper(),
-            unit=Unit.TONS,
         )
 
     @property

@@ -1,35 +1,15 @@
 import abc
 from datetime import datetime
-from typing import Dict, Iterator, List, Optional, Protocol, Tuple, Union
+from typing import Dict, Iterator, List, Protocol, Tuple, Union
 
-from libecalc.common.units import Unit
-from libecalc.domain.tabular.tabular import Tabular
+from libecalc.domain.tabular.tabular import HasColumns, Tabular
 
 RowIndex = Union[str, int, float, datetime]
 ColumnIndex = Union[str]
 
 
-class ColumnWithoutUnit(Protocol):
-    @property
-    @abc.abstractmethod
-    def title(self) -> str:
-        ...
-
-
-class ColumnWithUnit(ColumnWithoutUnit, Protocol):
-    @property
-    @abc.abstractmethod
-    def unit(self) -> Optional[Unit]:
-        ...
-
-
-Column = Union[ColumnWithUnit, ColumnWithoutUnit]
-
-
-class Formattable(Tabular[RowIndex, ColumnIndex], Protocol):
-    @abc.abstractmethod
-    def get_column(self, column_id: ColumnIndex) -> Column:
-        ...
+class Formattable(Tabular, HasColumns, Protocol):
+    ...
 
 
 class FormattableGroup(Protocol):
@@ -57,22 +37,12 @@ class CSVFormatter:
     def __init__(self, separation_character: str = ","):
         self.separation_character = separation_character
 
-    @staticmethod
-    def _format_column_info(column: Column) -> str:
-        info_str = f"{column.title}"
-
-        if hasattr(column, "unit"):
-            info_str += f"[{column.unit}]"
-        return info_str
-
     def format(self, tabular: Formattable) -> List[str]:
         column_ids = tabular.column_ids
         rows: List[str] = [
             self.separation_character.join(list(column_ids)),
             "#"
-            + self.separation_character.join(
-                [self._format_column_info(tabular.get_column(column_id)) for column_id in column_ids]
-            ),
+            + self.separation_character.join([tabular.get_column(column_id).get_title() for column_id in column_ids]),
         ]
 
         for row_id in tabular.row_ids:
