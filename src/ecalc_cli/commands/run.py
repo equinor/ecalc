@@ -9,6 +9,7 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
+from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.model import YamlModel
 
 from ecalc_cli.errors import EcalcCLIError
@@ -148,7 +149,7 @@ def run(
 
     output_prefix: Path = output_folder / name_prefix
 
-    results_dto = results_core.get_asset_result()
+    results_dto = get_asset_result(results_core)
 
     if output_frequency != Frequency.NONE:
         # Note: LTP can't use this resampled-result yet, because of differences in methodology.

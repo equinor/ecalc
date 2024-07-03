@@ -5,6 +5,7 @@ from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.dto import VariablesMap
 from libecalc.dto.result import EcalcModelResult
+from libecalc.presentation.json_result.mapper import get_asset_result
 
 
 @pytest.fixture
@@ -21,12 +22,14 @@ def minimal_asset_result(minimal_model_dto_factory):
         variables_map=variables,
         consumer_results=consumer_results,
     )
-    return GraphResult(
-        graph=graph,
-        consumer_results=consumer_results,
-        variables_map=variables,
-        emission_results=emission_results,
-    ).get_asset_result()
+    return get_asset_result(
+        GraphResult(
+            graph=graph,
+            consumer_results=consumer_results,
+            variables_map=variables,
+            emission_results=emission_results,
+        )
+    )
 
 
 def test_is_valid_is_boolean(minimal_asset_result: EcalcModelResult):

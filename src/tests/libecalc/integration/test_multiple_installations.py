@@ -6,6 +6,7 @@ from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
+from libecalc.presentation.json_result.mapper import get_asset_result
 
 
 @pytest.fixture
@@ -36,7 +37,7 @@ def test_asset_with_multiple_installations(asset_with_two_installations):
         emission_results=emission_results,
     )
 
-    asset_result = graph_result.get_asset_result()
+    asset_result = get_asset_result(graph_result)
     assert asset_result.component_result.energy_usage == TimeSeriesRate(
         values=[150, 150, 150],
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,

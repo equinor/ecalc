@@ -6,6 +6,7 @@ from libecalc.application.graph_result import EnergyCalculatorResult, GraphResul
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.result import EcalcModelResult
+from libecalc.presentation.json_result.mapper import get_asset_result
 
 from ecalc_cli.logger import logger
 
@@ -97,9 +98,11 @@ class Cache:
         cache_data = CacheData.model_validate_json(cached_text)
         graph = cache_data.component_dto.get_graph()
 
-        return GraphResult(
-            graph=graph,
-            emission_results=cache_data.results.emission_results,
-            consumer_results=cache_data.results.consumer_results,
-            variables_map=cache_data.results.variables_map,
-        ).get_asset_result()
+        return get_asset_result(
+            GraphResult(
+                graph=graph,
+                emission_results=cache_data.results.emission_results,
+                consumer_results=cache_data.results.consumer_results,
+                variables_map=cache_data.results.variables_map,
+            )
+        )
