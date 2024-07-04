@@ -11,10 +11,10 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.result.emission import EmissionResult
-from libecalc.dto.result.emission import PartialEmissionResult
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions
 from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.json_result.result.emission import PartialEmissionResult
 
 
 def get_installation(

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
+from _operator import attrgetter
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
@@ -25,9 +25,14 @@ from libecalc.core.models.results.compressor import (
 )
 from libecalc.dto.base import ComponentType
 from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
-from libecalc.dto.result.base import EcalcResultBaseModel
-from libecalc.dto.result.emission import EmissionIntensityResult, EmissionResult
-from libecalc.dto.result.tabular_time_series import TabularTimeSeries
+from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
+from libecalc.presentation.json_result.result.emission import (
+    EmissionIntensityResult,
+    EmissionResult,
+)
+from libecalc.presentation.json_result.result.tabular_time_series import (
+    TabularTimeSeries,
+)
 
 
 class NodeInfo(EcalcResultBaseModel):

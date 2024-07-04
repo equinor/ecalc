@@ -14,7 +14,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
-from libecalc.dto.result.base import EcalcResultBaseModel
+from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 
 
 class TabularTimeSeries(ABC, EcalcResultBaseModel):

@@ -13,7 +13,9 @@ from libecalc.common.utils.rates import (
     TimeSeriesVolumesCumulative,
 )
 from libecalc.core.result.emission import EmissionResult as EmissionCoreResult
-from libecalc.dto.result.tabular_time_series import TabularTimeSeries
+from libecalc.presentation.json_result.result.tabular_time_series import (
+    TabularTimeSeries,
+)
 
 
 class EmissionResult(TabularTimeSeries):

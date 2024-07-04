@@ -1,20 +1,25 @@
 from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
-from pydantic import ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.logger import logger
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.units import Unit
 from libecalc.dto.base import ComponentType
-from libecalc.dto.result import ComponentResult, EcalcModelResult
-from libecalc.dto.result.base import EcalcResultBaseModel
-from libecalc.dto.result.types import opt_float
+from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
+
+opt_float = Optional[float]
 
 
-class SimpleBase(EcalcResultBaseModel):
-    model_config = ConfigDict(extra="ignore")
+class SimpleBase(BaseModel):
+    model_config = ConfigDict(
+        extra="ignore",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
 
 
 class SimpleEmissionResult(SimpleBase):

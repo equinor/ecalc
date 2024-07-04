@@ -4,8 +4,8 @@ import pytest
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.dto import VariablesMap
-from libecalc.dto.result import EcalcModelResult
 from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.json_result.result import EcalcModelResult
 
 
 @pytest.fixture

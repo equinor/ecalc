@@ -2,15 +2,22 @@ from __future__ import annotations
 
 from enum import Enum
 
+from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
 
 from libecalc.common.logger import logger
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.utils.rates import TimeSeries
 from libecalc.dto import SingleSpeedChart, VariableSpeedChart
-from libecalc.dto.base import EcalcBaseModel
 
 
-class EcalcResultBaseModel(EcalcBaseModel):
+class EcalcResultBaseModel(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
+
     def extend(self, other: Self) -> Self:
         """This is used when merging different time slots when the energy function of a consumer changes over time.
         Append method covering all the basics. All additional extend methods needs to be covered in

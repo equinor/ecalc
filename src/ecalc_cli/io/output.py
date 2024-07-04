@@ -8,13 +8,15 @@ from libecalc import dto
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_time_steps
-from libecalc.dto.result import EcalcModelResult as EcalcModelResultDTO
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
 from libecalc.presentation.exporter.exporter import Exporter
 from libecalc.presentation.exporter.formatters.formatter import CSVFormatter
 from libecalc.presentation.exporter.handlers.handler import MultiFileHandler
 from libecalc.presentation.flow_diagram.EcalcModelMapper import EcalcModelMapper
+from libecalc.presentation.json_result.result import (
+    EcalcModelResult as EcalcModelResultDTO,
+)
 
 from ecalc_cli.errors import EcalcCLIError
 
