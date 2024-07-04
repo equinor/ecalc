@@ -5,8 +5,8 @@ from libecalc import dto
 from libecalc.application.graph_result import EnergyCalculatorResult, GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.base import EcalcBaseModel
-from libecalc.dto.result import EcalcModelResult
 from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.json_result.result import EcalcModelResult
 
 from ecalc_cli.logger import logger
 

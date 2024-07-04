@@ -10,7 +10,6 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.result.results import EcalcModelResult
 from libecalc.fixtures.cases import ltp_export, venting_emitters
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
@@ -48,6 +47,7 @@ from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
 from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
