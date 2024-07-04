@@ -12,7 +12,6 @@ from tempfile import TemporaryFile
 from typing import IO, Dict, List, Protocol, TextIO, Tuple, Union
 
 import numpy as np
-import pandas
 import pandas as pd
 
 from libecalc.common.errors.exceptions import (
@@ -428,7 +427,7 @@ def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> R
     )
 
 
-def read_csv(csv_data: Union[str, TextIO, BytesIO]) -> pandas.DataFrame:
+def read_csv(csv_data: Union[str, TextIO, BytesIO]) -> pd.DataFrame:
     """Wrapper of pandas read csv function
 
     Settings used:
