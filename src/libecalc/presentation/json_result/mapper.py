@@ -5,8 +5,9 @@ from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
+from pydantic import TypeAdapter
+
 import libecalc
-from libecalc import dto
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureType
@@ -29,20 +30,23 @@ from libecalc.common.utils.rates import (
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.dto.base import ComponentType
-from libecalc.dto.result.emission import EmissionIntensityResult, PartialEmissionResult
-from libecalc.dto.result.results import (
+from libecalc.expression import Expression
+from libecalc.presentation.json_result.aggregators import (
+    aggregate_emissions,
+    aggregate_is_valid,
+)
+from libecalc.presentation.json_result.result.emission import (
+    EmissionIntensityResult,
+    PartialEmissionResult,
+)
+from libecalc.presentation.json_result.result.results import (
+    AssetResult,
     CompressorModelResult,
     CompressorModelStageResult,
     CompressorStreamConditionResult,
     PumpModelResult,
     TurbineModelResult,
 )
-from libecalc.expression import Expression
-from libecalc.presentation.json_result.aggregators import (
-    aggregate_emissions,
-    aggregate_is_valid,
-)
-from pydantic import TypeAdapter
 
 
 def get_operational_setting_used_id(timestep: datetime, operational_settings_used: TimeSeriesInt) -> int:
@@ -160,7 +164,9 @@ def _compute_intensity(
     return emission_intensities
 
 
-def _to_full_result(emissions: Dict[str, PartialEmissionResult]) -> Dict[str, libecalc.dto.result.EmissionResult]:
+def _to_full_result(
+    emissions: Dict[str, PartialEmissionResult]
+) -> Dict[str, libecalc.presentation.json_result.result.EmissionResult]:
     """
     From the partial result, generate cumulatives for the full emissions result per installation
     Args:
@@ -170,7 +176,7 @@ def _to_full_result(emissions: Dict[str, PartialEmissionResult]) -> Dict[str, li
 
     """
     return {
-        key: libecalc.dto.result.EmissionResult(
+        key: libecalc.presentation.json_result.result.EmissionResult(
             name=key,
             timesteps=emissions[key].timesteps,
             rate=emissions[key].rate,
@@ -216,7 +222,7 @@ def _convert_to_timeseries(
 
 def _parse_emissions(
     emissions: Dict[str, EmissionResult], regularity: TimeSeriesFloat
-) -> Dict[str, libecalc.dto.result.EmissionResult]:
+) -> Dict[str, libecalc.presentation.json_result.result.EmissionResult]:
     """
     Convert emissions from core result format to dto result format.
 
@@ -229,7 +235,7 @@ def _parse_emissions(
 
     """
     return {
-        key: libecalc.dto.result.EmissionResult(
+        key: libecalc.presentation.json_result.result.EmissionResult(
             name=key,
             timesteps=emissions[key].timesteps,
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(
@@ -266,8 +272,8 @@ def _compute_aggregated_power(
 
 
 def _evaluate_installations(
-    graph_result: GraphResult, variables_map: dto.VariablesMap
-) -> List[libecalc.dto.result.InstallationResult]:
+    graph_result: GraphResult, variables_map: libecalc.dto.VariablesMap
+) -> List[libecalc.presentation.json_result.result.InstallationResult]:
     """
     All subcomponents have already been evaluated, here we basically collect and aggregate the results
 
@@ -364,7 +370,7 @@ def _evaluate_installations(
         )
 
         installation_results.append(
-            libecalc.dto.result.InstallationResult(
+            libecalc.presentation.json_result.result.InstallationResult(
                 id=installation.id,
                 name=installation_node_info.name,
                 parent=asset.id,
@@ -402,11 +408,11 @@ def _evaluate_installations(
     return installation_results
 
 
-def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
+def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_result.result.results.EcalcModelResult:
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
 
-    if not isinstance(asset, dto.Asset):
+    if not isinstance(asset, libecalc.dto.Asset):
         raise ProgrammingError("Need an asset graph to get asset result")
 
     installation_results = _evaluate_installations(
@@ -956,7 +962,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
         else:
             models.extend(
                 [
-                    TypeAdapter(libecalc.dto.result.ConsumerModelResult).validate_python(
+                    TypeAdapter(libecalc.presentation.json_result.result.ConsumerModelResult).validate_python(
                         {
                             **model.model_dump(),
                             "parent": consumer_id,
@@ -987,9 +993,9 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
                 ]
             )
 
-        obj: libecalc.dto.result.ComponentResult
+        obj: libecalc.presentation.json_result.result.ComponentResult
         if consumer_node_info.component_type == ComponentType.GENERATOR_SET:
-            obj = dto.result.results.GeneratorSetResult(
+            obj = libecalc.presentation.json_result.result.results.GeneratorSetResult(
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
@@ -1028,7 +1034,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
                 is_valid=consumer_result.component_result.is_valid,
             )
         elif consumer_node_info.component_type == ComponentType.PUMP:
-            obj = dto.result.results.PumpResult(
+            obj = libecalc.presentation.json_result.result.results.PumpResult(
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
@@ -1071,7 +1077,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
                 streams=consumer_result.component_result.streams,
             )
         elif consumer_node_info.component_type == ComponentType.COMPRESSOR:
-            obj = dto.result.results.CompressorResult(
+            obj = libecalc.presentation.json_result.result.results.CompressorResult(
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
@@ -1113,7 +1119,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
                 streams=consumer_result.component_result.streams,
             )
         elif consumer_node_info.component_type == ComponentType.ASSET:
-            obj = dto.result.results.AssetResult(
+            obj = libecalc.presentation.json_result.result.results.AssetResult(
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
@@ -1153,7 +1159,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
                 is_valid=consumer_result.component_result.is_valid,
             )
         elif consumer_node_info.component_type == ComponentType.INSTALLATION:
-            obj = dto.result.results.InstallationResult(
+            obj = libecalc.presentation.json_result.result.results.InstallationResult(
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
@@ -1190,7 +1196,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
                 is_valid=consumer_result.component_result.is_valid,
             )
         elif consumer_node_info.component_type == ComponentType.CONSUMER_SYSTEM_V2:
-            obj = dto.result.ConsumerSystemResult(
+            obj = libecalc.presentation.json_result.result.ConsumerSystemResult(
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
                 timesteps=consumer_result.component_result.timesteps,
@@ -1236,7 +1242,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
                 if consumer_id in graph_result.emission_results
                 else {}
             )
-            obj = TypeAdapter(libecalc.dto.result.ComponentResult).validate_python(
+            obj = TypeAdapter(libecalc.presentation.json_result.result.ComponentResult).validate_python(
                 {
                     **consumer_result.component_result.model_dump(exclude={"typ"}),
                     "name": consumer_node_info.name,
@@ -1301,7 +1307,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
         for venting_emitter in installation.venting_emitters:
             energy_usage = time_series_zero
             sub_components.append(
-                libecalc.dto.result.VentingEmitterResult(
+                libecalc.presentation.json_result.result.VentingEmitterResult(
                     id=venting_emitter.id,
                     name=venting_emitter.name,
                     componentType=venting_emitter.component_type,
@@ -1401,7 +1407,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
     asset_energy_usage_cumulative = asset_energy_usage_core.to_volumes().cumulative()
 
     asset_node_info = graph_result.graph.get_node_info(asset_id)
-    asset_result_dto = libecalc.dto.result.AssetResult(
+    asset_result_dto = AssetResult(
         id=asset.id,
         name=asset_node_info.name,
         component_level=asset_node_info.component_level,
@@ -1433,7 +1439,7 @@ def get_asset_result(graph_result: GraphResult) -> dto.result.EcalcModelResult:
     )
 
     return Numbers.format_results_to_precision(
-        libecalc.dto.result.EcalcModelResult(
+        libecalc.presentation.json_result.result.results.EcalcModelResult(
             component_result=asset_result_dto,
             sub_components=sub_components,
             models=models,

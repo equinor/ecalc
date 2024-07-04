@@ -9,7 +9,7 @@ from orjson import orjson
 
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.logger import logger
-from libecalc.dto.result import ComponentResult, EcalcModelResult
+from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
 from libecalc.presentation.simple_result import SimpleResultData
 
 

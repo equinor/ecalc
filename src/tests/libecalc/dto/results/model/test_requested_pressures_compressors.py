@@ -6,8 +6,8 @@ from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import EcalcModelResult, GraphResult
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
-from libecalc.dto.result.results import CompressorModelResult
 from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.json_result.result.results import CompressorModelResult
 
 
 @pytest.fixture

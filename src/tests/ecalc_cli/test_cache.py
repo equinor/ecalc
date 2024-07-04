@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 from ecalc_cli.io.cache import Cache, CacheData
-from libecalc.dto.result import EcalcModelResult
+from libecalc.presentation.json_result.result import EcalcModelResult
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ from libecalc.common.list.list_utils import transpose
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
 )
-from libecalc.dto.result.emission import PartialEmissionResult
+from libecalc.presentation.json_result.result.emission import PartialEmissionResult
 
 
 class HasIsValid(Protocol):
