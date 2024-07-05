@@ -375,7 +375,7 @@ def _evaluate_installations(
                 name=installation_node_info.name,
                 parent=asset.id,
                 component_level=installation_node_info.component_level,
-                componentType=installation_node_info.component_type,
+                componentType=installation_node_info.component_type.value,
                 timesteps=variables_map.time_vector,
                 is_valid=TimeSeriesBoolean(
                     timesteps=variables_map.time_vector,
@@ -861,7 +861,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         CompressorModelResult(
                             parent=consumer_id,
                             name=model.name,
-                            componentType=model.component_type,
+                            componentType=model.component_type.value,
                             component_level=ComponentLevel.MODEL,
                             energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
                                 model.energy_usage, regularity=regularity
@@ -902,7 +902,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         PumpModelResult(
                             parent=consumer_id,
                             name=model.name,
-                            componentType=model.component_type,
+                            componentType=model.component_type.value,
                             component_level=ComponentLevel.MODEL,
                             energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
                                 model.energy_usage, regularity=regularity
@@ -966,7 +966,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         {
                             **model.model_dump(),
                             "parent": consumer_id,
-                            "componentType": model.component_type,
+                            "componentType": model.component_type.value,
                             "component_level": ComponentLevel.MODEL,
                             "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
                                 model.energy_usage, regularity=regularity
@@ -999,7 +999,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type,
+                componentType=consumer_node_info.component_type.value,
                 emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
                 if consumer_id in graph_result.emission_results
                 else {},
@@ -1038,7 +1038,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type,
+                componentType=consumer_node_info.component_type.value,
                 emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
                 if consumer_id in graph_result.emission_results
                 else {},
@@ -1081,7 +1081,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type,
+                componentType=consumer_node_info.component_type.value,
                 emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
                 if consumer_id in graph_result.emission_results
                 else {},
@@ -1123,7 +1123,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type,
+                componentType=consumer_node_info.component_type.value,
                 emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
                 if consumer_id in graph_result.emission_results
                 else {},
@@ -1163,7 +1163,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type,
+                componentType=consumer_node_info.component_type.value,
                 emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
                 if consumer_id in graph_result.emission_results
                 else {},
@@ -1203,10 +1203,10 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type,
+                componentType=consumer_node_info.component_type.value,
                 consumer_type=graph_result.graph.get_node_info(
                     graph_result.graph.get_successors(consumer_id)[0]
-                ).component_type,
+                ).component_type.value,
                 emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
                 if consumer_id in graph_result.emission_results
                 else {},
@@ -1248,7 +1248,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     "name": consumer_node_info.name,
                     "parent": graph_result.graph.get_predecessor(consumer_id),
                     "component_level": consumer_node_info.component_level,
-                    "componentType": consumer_node_info.component_type,
+                    "componentType": consumer_node_info.component_type.value,
                     "emissions": emissions,
                     "energy_usage_cumulative": TimeSeriesRate.from_timeseries_stream_day_rate(
                         consumer_result.component_result.energy_usage, regularity=regularity
@@ -1310,7 +1310,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 libecalc.presentation.json_result.result.VentingEmitterResult(
                     id=venting_emitter.id,
                     name=venting_emitter.name,
-                    componentType=venting_emitter.component_type,
+                    componentType=venting_emitter.component_type.value,
                     component_level=ComponentLevel.CONSUMER,
                     parent=installation.id,
                     emissions=_parse_emissions(
@@ -1411,7 +1411,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         id=asset.id,
         name=asset_node_info.name,
         component_level=asset_node_info.component_level,
-        componentType=asset_node_info.component_type,
+        componentType=asset_node_info.component_type.value,
         timesteps=graph_result.variables_map.time_vector,
         is_valid=TimeSeriesBoolean(
             timesteps=graph_result.variables_map.time_vector,
