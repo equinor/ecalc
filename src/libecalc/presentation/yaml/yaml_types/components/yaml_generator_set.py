@@ -7,6 +7,9 @@ from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.expression.expression import ExpressionType
+from libecalc.presentation.yaml.ltp_validation import (
+    validate_generator_set_power_from_shore,
+)
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import (
     YamlElectricityConsumer,
@@ -68,18 +71,10 @@ class YamlGeneratorSet(YamlBase):
 
     @model_validator(mode="after")
     def check_power_from_shore(self):
-        if self.cable_loss is not None or self.max_usage_from_shore is not None:
-            if isinstance(self.category, ConsumerUserDefinedCategoryType):
-                if self.category is not ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
-                    raise ValueError(
-                        f"{self.model_fields['cable_loss'].title} and {self.model_fields['max_usage_from_shore'].title} are only valid for the "
-                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}, not for "
-                        f"{self.category}."
-                    )
-            else:
-                if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in self.category.values():
-                    raise ValueError(
-                        f"{self.model_fields['cable_loss'].title} and {self.model_fields['max_usage_from_shore'].title} are only valid for the "
-                        f"category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE}."
-                    )
+        _check_power_from_shore_attributes = validate_generator_set_power_from_shore(
+            cable_loss=self.cable_loss,
+            max_usage_from_shore=self.max_usage_from_shore,
+            model_fields=self.model_fields,
+            category=self.category,
+        )
         return self
