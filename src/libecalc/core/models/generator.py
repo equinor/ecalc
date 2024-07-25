@@ -10,10 +10,16 @@ class GeneratorModelSampled:
         self,
         data_transfer_object: dto.GeneratorSetSampled,
     ):
+        fuel_values = data_transfer_object.fuel_values
+        if data_transfer_object.energy_usage_adjustment_factor is not None:
+            fuel_values = list(np.array(fuel_values) * data_transfer_object.energy_usage_adjustment_factor)
+        if data_transfer_object.energy_usage_adjustment_constant is not None:
+            fuel_values = list(np.array(fuel_values) + data_transfer_object.energy_usage_adjustment_constant)
+
         self._func = interp1d(
             data_transfer_object.power_values,
-            data_transfer_object.fuel_values,
-            fill_value=(min(data_transfer_object.fuel_values), max(data_transfer_object.fuel_values)),
+            fuel_values,
+            fill_value=(min(fuel_values), max(fuel_values)),
             bounds_error=False,
         )
 
