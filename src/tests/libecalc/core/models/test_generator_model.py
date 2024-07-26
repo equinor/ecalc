@@ -50,3 +50,24 @@ class TestGeneratorModelSampled:
         )
         capacity_margin = el2fuel_function.evaluate_power_capacity_margin(np.array([0, 1, 2, 3, 4, 5]))
         np.testing.assert_allclose(capacity_margin, np.asarray([3, 2, 1, 0, -1, -2]))
+
+    def test_energy_adjustment(self):
+        # Testing adjustment of energy usage according to factor and constant specified in facility input.
+
+        fuel_values = [1, 2, 3]
+        power_values = [1, 2, 3]
+        adjustment_factor = 1.5
+        adjustment_constant = 0.5
+
+        el2fuel = GeneratorModelSampled(
+            data_transfer_object=dto.GeneratorSetSampled(
+                data=[fuel_values, power_values],
+                headers=["FUEL", "POWER"],
+                energy_usage_adjustment_factor=adjustment_factor,
+                energy_usage_adjustment_constant=adjustment_constant,
+            )
+        )
+
+        expected_adjusted_fuel = list(np.array(fuel_values) * adjustment_factor + adjustment_constant)
+
+        assert el2fuel.evaluate(np.asarray(power_values)).tolist() == expected_adjusted_fuel
