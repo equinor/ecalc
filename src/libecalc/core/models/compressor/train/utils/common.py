@@ -7,7 +7,6 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_outlet_pressure_campbell,
 )
 
-OUTLET_PRESSURE_CONVERGENCE_TOLERANCE = 1e-2
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 POWER_CALCULATION_TOLERANCE = 1e-3
 RATE_CALCULATION_TOLERANCE = 1e-3
@@ -122,7 +121,7 @@ def calculate_outlet_pressure_and_stream(
 
         diff = abs(outlet_pressure_previous - outlet_pressure_this_stage_bara) / outlet_pressure_this_stage_bara
 
-        converged = diff < OUTLET_PRESSURE_CONVERGENCE_TOLERANCE
+        converged = diff < PRESSURE_CALCULATION_TOLERANCE
 
         i += 1
 
@@ -137,7 +136,7 @@ def calculate_outlet_pressure_and_stream(
                 f" molar_mass_kg_per_mol: {inlet_stream.molar_mass_kg_per_mol}."
                 f" inlet_temperature_kelvin: {inlet_stream.temperature_kelvin}."
                 f" inlet_pressure_bara: {inlet_stream.pressure_bara}."
-                f" Final diff between target and result was {diff}, while expected convergence diff criteria is set to diff lower than {OUTLET_PRESSURE_CONVERGENCE_TOLERANCE}"
+                f" Final diff between target and result was {diff}, while expected convergence diff criteria is set to diff lower than {PRESSURE_CALCULATION_TOLERANCE}"
                 f" NOTE! We will use as the closest result we got for target for further calculations."
                 " This should normally not happen. Please contact eCalc support."
             )
