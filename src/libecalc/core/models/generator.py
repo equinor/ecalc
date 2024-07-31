@@ -3,6 +3,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc import dto
+from libecalc.common.list.adjustment import transform_linear
 
 
 class GeneratorModelSampled:
@@ -10,15 +11,15 @@ class GeneratorModelSampled:
         self,
         data_transfer_object: dto.GeneratorSetSampled,
     ):
-        fuel_values = data_transfer_object.fuel_values
-        if data_transfer_object.energy_usage_adjustment_factor is not None:
-            fuel_values = list(np.array(fuel_values) * data_transfer_object.energy_usage_adjustment_factor)
-        if data_transfer_object.energy_usage_adjustment_constant is not None:
-            fuel_values = list(np.array(fuel_values) + data_transfer_object.energy_usage_adjustment_constant)
+        fuel_values = transform_linear(
+            np.array(data_transfer_object.fuel_values),
+            constant=data_transfer_object.energy_usage_adjustment_constant,
+            factor=data_transfer_object.energy_usage_adjustment_factor,
+        )
 
         self._func = interp1d(
             data_transfer_object.power_values,
-            fuel_values,
+            fuel_values.tolist(),
             fill_value=(min(fuel_values), max(fuel_values)),
             bounds_error=False,
         )
