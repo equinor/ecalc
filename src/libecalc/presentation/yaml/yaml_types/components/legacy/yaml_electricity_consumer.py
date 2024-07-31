@@ -42,7 +42,7 @@ class YamlElectricityConsumer(YamlBase):
     )
 
     @model_validator(mode="before")
-    def check_energy_usage_models(self):
-        model = self[EcalcYamlKeywords.energy_usage_model]
-        _check_multiple_energy_usage_models = validate_energy_usage_models(model, self[EcalcYamlKeywords.name])
-        return self
+    def check_energy_usage_models(cls, data):
+        model = data[EcalcYamlKeywords.energy_usage_model]
+        _check_multiple_energy_usage_models = validate_energy_usage_models(model, data[EcalcYamlKeywords.name])
+        return data
