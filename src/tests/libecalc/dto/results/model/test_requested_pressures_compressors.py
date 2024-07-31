@@ -4,9 +4,13 @@ from typing import List
 import pytest
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import EcalcModelResult, GraphResult
+from libecalc.common.component_info.compressor import CompressorPressureType
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
-from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.json_result.mapper import (
+    get_asset_result,
+    get_requested_compressor_pressures_test,
+)
 from libecalc.presentation.json_result.result.results import CompressorModelResult
 
 
@@ -22,6 +26,7 @@ def result(compressor_systems_and_compressor_train_temporal_dto) -> EcalcModelRe
         variables_map=variables,
         consumer_results=consumer_results,
     )
+
     result = get_asset_result(
         GraphResult(
             graph=graph,
@@ -116,3 +121,26 @@ def test_requested_pressures_compressor_system_temporal_model(result: EcalcModel
     assert requested_inlet_pressure_train2_upgr == 45
     assert requested_outlet_pressure_train1_upgr == 240
     assert requested_outlet_pressure_train2_upgr == 245
+
+
+def test_for_bug(compressor_systems_and_compressor_train_temporal_dto):
+    graph = compressor_systems_and_compressor_train_temporal_dto.ecalc_model.get_graph()
+    compressor_system = graph.get_node("compressor_system_variable_speed_compressor_trains_multiple_pressures")
+
+    energy_usage_model = compressor_system.energy_usage_model
+
+    variables = compressor_systems_and_compressor_train_temporal_dto.variables
+    energy_calculator = EnergyCalculator(graph=graph)
+    consumer_results = energy_calculator.evaluate_energy_usage(variables)
+    operational_settings_used = consumer_results[
+        "compressor_system_variable_speed_compressor_trains_multiple_pressures"
+    ].component_result.operational_settings_used
+
+    model_timesteps = [datetime(2018, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
+    get_requested_compressor_pressures_test(
+        energy_usage_model=energy_usage_model,
+        pressure_type=CompressorPressureType.INLET_PRESSURE,
+        model_timesteps=model_timesteps,
+        name="train1",
+        operational_settings_used=operational_settings_used,
+    )
