@@ -742,7 +742,7 @@ class TestYamlFile:
         Returns:
 
         """
-        with pytest.raises(EcalcError) as exc_info:
+        with pytest.raises(ValueError) as exc_info:
             runner.invoke(
                 main.app,
                 _get_args(
@@ -757,5 +757,5 @@ class TestYamlFile:
 
         assert (
             "Energy model type cannot change over time within a single consumer. "
-            "The model type is changed for gasinj: ['DIRECT', 'COMPRESSOR']" in str(exc_info.value)
+            "The model type is changed for 'gasinj': DIRECT, COMPRESSOR" in str(exc_info.value)
         )
