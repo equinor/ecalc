@@ -3,6 +3,9 @@ from typing import Dict, List
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import get_duplicates
+from libecalc.presentation.yaml.energy_model_validation import (
+    validate_energy_usage_models,
+)
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper
@@ -96,22 +99,12 @@ def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
     """
     for consumers in consumers_installations:
         for consumer in consumers:
-            energy_models = []
-
             # Check if key exists: ENERGY_USAGE_MODEL.
             # Consumer system v2 has different structure/naming: test fails when looking for key ENERGY_USAGE_MODEL
             if EcalcYamlKeywords.energy_usage_model in consumer:
-                for model in consumer[EcalcYamlKeywords.energy_usage_model].values():
-                    if isinstance(model, dict):
-                        for key, value in model.items():
-                            if key == EcalcYamlKeywords.type and value not in energy_models:
-                                energy_models.append(value)
-            if len(energy_models) > 1:
-                raise EcalcError(
-                    title="Invalid model",
-                    message="Energy model type cannot change over time within a single consumer."
-                    f" The model type is changed for {consumer[EcalcYamlKeywords.name]}: {energy_models}",
-                )
+                model = consumer[EcalcYamlKeywords.energy_usage_model]
+                if isinstance(model, dict):
+                    validate_energy_usage_models(model, consumer[EcalcYamlKeywords.name])
 
 
 def create_model_references(models_yaml_config, facility_inputs: Dict, resources: Resources):
