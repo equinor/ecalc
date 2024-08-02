@@ -123,7 +123,7 @@ def test_requested_pressures_compressor_system_temporal_model(result: EcalcModel
     assert requested_outlet_pressure_train2_upgr == 245
 
 
-def test_for_bug(compressor_systems_and_compressor_train_temporal_dto):
+def test_model_timestep_not_in_energy_usage_model(compressor_systems_and_compressor_train_temporal_dto):
     graph = compressor_systems_and_compressor_train_temporal_dto.ecalc_model.get_graph()
     compressor_system = graph.get_node("compressor_system_variable_speed_compressor_trains_multiple_pressures")
 
@@ -136,7 +136,9 @@ def test_for_bug(compressor_systems_and_compressor_train_temporal_dto):
         "compressor_system_variable_speed_compressor_trains_multiple_pressures"
     ].component_result.operational_settings_used
 
-    model_timesteps = [datetime(2018, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
+    model_timesteps = [datetime(2018, 1, 1), datetime(2021, 7, 1), datetime(2022, 1, 1)]
+
+    # Ensure that method do not fail if model timesteps do not correspond exactly to dates in temporal model
     get_requested_compressor_pressures(
         energy_usage_model=energy_usage_model,
         pressure_type=CompressorPressureType.INLET_PRESSURE,
