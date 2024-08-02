@@ -136,7 +136,15 @@ def test_model_timestep_not_in_energy_usage_model(compressor_systems_and_compres
         "compressor_system_variable_speed_compressor_trains_multiple_pressures"
     ].component_result.operational_settings_used
 
-    model_timesteps = [datetime(2018, 1, 1), datetime(2021, 7, 1), datetime(2022, 1, 1)]
+    # Set some model time steps different from dates in temporal model
+    model_timesteps = [
+        datetime(2018, 1, 1),
+        datetime(2018, 6, 23, 17, 20, 50),
+        datetime(2018, 7, 5, 12, 20, 50),
+        datetime(2022, 1, 1),
+    ]
+
+    operational_settings_used.timesteps = model_timesteps
 
     # Ensure that method do not fail if model timesteps do not correspond exactly to dates in temporal model
     get_requested_compressor_pressures(
