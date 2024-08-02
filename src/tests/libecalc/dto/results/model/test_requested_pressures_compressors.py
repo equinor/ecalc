@@ -9,7 +9,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.presentation.json_result.mapper import (
     get_asset_result,
-    get_requested_compressor_pressures_test,
+    get_requested_compressor_pressures,
 )
 from libecalc.presentation.json_result.result.results import CompressorModelResult
 
@@ -137,7 +137,7 @@ def test_for_bug(compressor_systems_and_compressor_train_temporal_dto):
     ].component_result.operational_settings_used
 
     model_timesteps = [datetime(2018, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
-    get_requested_compressor_pressures_test(
+    get_requested_compressor_pressures(
         energy_usage_model=energy_usage_model,
         pressure_type=CompressorPressureType.INLET_PRESSURE,
         model_timesteps=model_timesteps,
