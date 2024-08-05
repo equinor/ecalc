@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.9'
 
-      - uses: snok/install-poetry@v1.3.4
+      - uses: snok/install-poetry@v1.4.1
         with:
           virtualenvs-create: true
 
