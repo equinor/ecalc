@@ -68,6 +68,18 @@ class Period:
                 f"Period: {self.start}:{self.end} - timesteps: {timesteps}"
             ) from e
 
+    def get_timesteps(self, timesteps: List[datetime]) -> List[datetime]:
+        """
+        Finds all timesteps from global time that are within the period.
+        Returns empty list if no timesteps are outside period.
+        """
+        timesteps_included_in_period = [self.__contains__(timestep) for timestep in timesteps]
+        timesteps_in_period = [
+            timestep for timestep, included in zip(timesteps, timesteps_included_in_period) if included
+        ]
+
+        return timesteps_in_period
+
 
 @dataclass
 class Periods:

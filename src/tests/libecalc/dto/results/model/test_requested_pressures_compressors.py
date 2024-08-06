@@ -138,19 +138,24 @@ def test_model_timestep_not_in_energy_usage_model(compressor_systems_and_compres
 
     # Set some model time steps different from dates in temporal model
     model_timesteps = [
-        datetime(2018, 1, 1),
+        datetime(2017, 1, 1),
+        datetime(2018, 1, 5),
         datetime(2018, 6, 23, 17, 20, 50),
-        datetime(2018, 7, 5, 12, 20, 50),
         datetime(2022, 1, 1),
     ]
 
     operational_settings_used.timesteps = model_timesteps
 
     # Ensure that method do not fail if model timesteps do not correspond exactly to dates in temporal model
-    get_requested_compressor_pressures(
+    requested_inlet_pressures = get_requested_compressor_pressures(
         energy_usage_model=energy_usage_model,
         pressure_type=CompressorPressureType.INLET_PRESSURE,
         model_timesteps=model_timesteps,
         name="train1",
         operational_settings_used=operational_settings_used,
     )
+
+    # train1 is only active in first period defined in energy usage model, 1.1.2018 - 1.1.2019,
+    # hence only timesteps within this interval should be included:
+    assert requested_inlet_pressures.models[0].period.start == datetime(2018, 1, 5)
+    assert requested_inlet_pressures.models[0].period.end == datetime(2018, 6, 23, 17, 20, 50)

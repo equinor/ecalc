@@ -82,38 +82,38 @@ def get_requested_compressor_pressures(
     for period, model in TemporalModel(energy_usage_model).items():
         if isinstance(model, CompressorSystemConsumerFunction):
             # Loop timesteps in temporal model, to find correct operational settings used:
-            for timestep in model_timesteps:
-                if timestep >= period.start and timestep <= period.end:
-                    for compressor in model.compressors:
-                        if compressor.name == name:
-                            operational_setting_used_id = get_operational_setting_used_id(
-                                timestep=timestep, operational_settings_used=operational_settings_used
-                            )
+            timesteps_in_period = period.get_timesteps(model_timesteps)
+            for timestep in timesteps_in_period:
+                for compressor in model.compressors:
+                    if compressor.name == name:
+                        operational_setting_used_id = get_operational_setting_used_id(
+                            timestep=timestep, operational_settings_used=operational_settings_used
+                        )
 
-                            operational_setting = model.operational_settings[operational_setting_used_id]
+                        operational_setting = model.operational_settings[operational_setting_used_id]
 
-                            # Find correct compressor in case of different pressures for different components in system:
-                            compressor_nr = int(
-                                [i for i, compressor in enumerate(model.compressors) if compressor.name == name][0]
-                            )
+                        # Find correct compressor in case of different pressures for different components in system:
+                        compressor_nr = int(
+                            [i for i, compressor in enumerate(model.compressors) if compressor.name == name][0]
+                        )
 
-                            if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
-                                if operational_setting.suction_pressures is not None:
-                                    pressures = operational_setting.suction_pressures[compressor_nr]
-                                else:
-                                    pressures = operational_setting.suction_pressure
+                        if pressure_type.value == CompressorPressureType.INLET_PRESSURE:
+                            if operational_setting.suction_pressures is not None:
+                                pressures = operational_setting.suction_pressures[compressor_nr]
                             else:
-                                if operational_setting.discharge_pressures is not None:
-                                    pressures = operational_setting.discharge_pressures[compressor_nr]
-                                else:
-                                    pressures = operational_setting.discharge_pressure
+                                pressures = operational_setting.suction_pressure
+                        else:
+                            if operational_setting.discharge_pressures is not None:
+                                pressures = operational_setting.discharge_pressures[compressor_nr]
+                            else:
+                                pressures = operational_setting.discharge_pressure
 
-                            if pressures is None:
-                                pressures = math.nan
+                        if pressures is None:
+                            pressures = math.nan
 
-                            if not isinstance(pressures, Expression):
-                                pressures = Expression.setup_from_expression(value=pressures)
-                            evaluated_temporal_energy_usage_models[timestep] = pressures
+                        if not isinstance(pressures, Expression):
+                            pressures = Expression.setup_from_expression(value=pressures)
+                        evaluated_temporal_energy_usage_models[timestep] = pressures
         else:
             pressures = model.suction_pressure
 
