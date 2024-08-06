@@ -150,6 +150,10 @@ def test_model_timestep_not_in_energy_usage_model(compressor_systems_and_compres
     ]
 
     compressor_nr = 0
+
+    # Timesteps in operational settings must be equal to model timesteps.
+    # Basically replacing global timesteps, to have them different from
+    # the timesteps in the temporal model.
     operational_settings_used.timesteps = model_timesteps
 
     # Ensure that method do not fail if model timesteps do not correspond exactly to dates in temporal model
