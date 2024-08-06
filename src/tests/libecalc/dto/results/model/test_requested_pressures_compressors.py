@@ -137,13 +137,19 @@ def test_model_timestep_not_in_energy_usage_model(compressor_systems_and_compres
     ].component_result.operational_settings_used
 
     # Set some model time steps different from dates in temporal model
+    global_time_1 = datetime(2017, 1, 1)
+    global_time_2 = datetime(2018, 1, 5)
+    global_time_3 = datetime(2018, 6, 23, 17, 20, 50)
+    global_time_4 = datetime(2022, 1, 1)
+
     model_timesteps = [
-        datetime(2017, 1, 1),
-        datetime(2018, 1, 5),
-        datetime(2018, 6, 23, 17, 20, 50),
-        datetime(2022, 1, 1),
+        global_time_1,
+        global_time_2,
+        global_time_3,
+        global_time_4,
     ]
 
+    compressor_nr = 0
     operational_settings_used.timesteps = model_timesteps
 
     # Ensure that method do not fail if model timesteps do not correspond exactly to dates in temporal model
@@ -157,5 +163,38 @@ def test_model_timestep_not_in_energy_usage_model(compressor_systems_and_compres
 
     # train1 is only active in first period defined in energy usage model, 1.1.2018 - 1.1.2019,
     # hence only timesteps within this interval should be included:
-    assert requested_inlet_pressures.models[0].period.start == datetime(2018, 1, 5)
-    assert requested_inlet_pressures.models[0].period.end == datetime(2018, 6, 23, 17, 20, 50)
+    assert requested_inlet_pressures.models[0].period.start == global_time_2
+    assert requested_inlet_pressures.models[1].period.start == global_time_3
+
+    # Get requested pressures for the two relevant timesteps
+    requested_inlet_pressure_2018_1_5 = requested_inlet_pressures.models[0].model.evaluate(
+        variables=variables.variables, fill_length=len(model_timesteps)
+    )
+    requested_inlet_pressure_2018_6_23 = requested_inlet_pressures.models[1].model.evaluate(
+        variables=variables.variables, fill_length=len(model_timesteps)
+    )
+
+    # Extract the correct operational setting (index) used for the given timesteps.
+    operational_setting_2018_1_5 = operational_settings_used.for_timestep(global_time_2).values[0] - 1
+    operational_setting_2018_6_23 = operational_settings_used.for_timestep(global_time_3).values[0] - 1
+
+    # Get input requested pressures from the relevant compressor and operational settings:
+    train1_inlet_pressures_operational_settings_2 = (
+        compressor_system.energy_usage_model[datetime(2018, 1, 1)]
+        .operational_settings[operational_setting_2018_1_5]
+        .suction_pressures[compressor_nr]
+        .evaluate(variables=variables.variables, fill_length=len(model_timesteps))
+    )
+
+    train1_inlet_pressures_operational_settings_1 = (
+        compressor_system.energy_usage_model[datetime(2018, 1, 1)]
+        .operational_settings[operational_setting_2018_6_23]
+        .suction_pressures[compressor_nr]
+        .evaluate(variables=variables.variables, fill_length=len(model_timesteps))
+    )
+
+    # Verify that extracted pressures for first timestep is correct, using the second operational setting
+    assert list(requested_inlet_pressure_2018_1_5) == list(train1_inlet_pressures_operational_settings_2)
+
+    # Verify that extracted pressures for second timestep is correct, using the first operational setting
+    assert list(requested_inlet_pressure_2018_6_23) == list(train1_inlet_pressures_operational_settings_1)
