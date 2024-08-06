@@ -74,11 +74,8 @@ class Period:
         Returns empty list if no timesteps are outside period.
         """
         timesteps = [timestep for timestep in timesteps if self.__contains__(timestep)]
-        timesteps_in_period = [
-            timestep for timestep, included in zip(timesteps, timesteps_included_in_period) if included
-        ]
 
-        return timesteps_in_period
+        return timesteps
 
 
 @dataclass
