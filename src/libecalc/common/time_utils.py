@@ -70,7 +70,7 @@ class Period:
 
     def get_timesteps(self, timesteps: List[datetime]) -> List[datetime]:
         """
-        Finds all timesteps from global time that are within the period.
+        Get all given timesteps that are within this period.
         Returns empty list if no timesteps are outside period.
         """
         timesteps = [timestep for timestep in timesteps if self.__contains__(timestep)]
