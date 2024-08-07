@@ -53,6 +53,21 @@ class TestPeriod:
         assert datetime(2050, 1, 1) in period
         assert datetime(4000, 1, 1) in period
 
+    def test_all_timesteps_in_period(self):
+        period = Period(start=datetime(2022, 1, 1), end=datetime(2030, 1, 1))
+        timesteps = [datetime(2022, 1, 1), datetime(2023, 1, 1)]
+        assert period.get_timesteps(timesteps) == timesteps
+
+    def test_some_timesteps_in_period(self):
+        period = Period(start=datetime(2022, 1, 1), end=datetime(2030, 1, 1))
+        timesteps = [datetime(2018, 1, 1), datetime(2022, 1, 1), datetime(2023, 1, 1)]
+        assert period.get_timesteps(timesteps) == [timesteps[1], timesteps[2]]
+
+    def test_no_timesteps_in_period(self):
+        period = Period(start=datetime(2022, 1, 1), end=datetime(2030, 1, 1))
+        timesteps = [datetime(2018, 1, 1), datetime(2019, 1, 1)]
+        assert period.get_timesteps(timesteps) == []
+
 
 class TestCreatePeriods:
     def test_single_date(self):
