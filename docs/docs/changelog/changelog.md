@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.20.0](https://github.com/equinor/ecalc/compare/v8.19.0...v8.20.0) (2024-08-07)
+
+
+### Bug Fixes
+
+* read requested pressures in compressor system ([#557](https://github.com/equinor/ecalc/issues/557)) ([8117014](https://github.com/equinor/ecalc/commit/811701428d1927b00480519ee7e3273de84753ce))
+
+
+### Miscellaneous Chores
+
+* update deps ([#560](https://github.com/equinor/ecalc/issues/560)) ([6035a1d](https://github.com/equinor/ecalc/commit/6035a1df1b8472731f62a1eb1dde36918ddcf4b8))
+
 ## [8.19.0](https://github.com/equinor/ecalc/compare/v8.18.1...v8.19.0) (2024-07-31)
 
 
