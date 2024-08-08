@@ -13,7 +13,7 @@ class ChartCurve(EcalcBaseModel):
     speed_rpm: float = Field(..., ge=0)
     rate_actual_m3_hour: List[Annotated[float, Field(ge=0)]]
     polytropic_head_joule_per_kg: List[Annotated[float, Field(ge=0)]]
-    efficiency_fraction: List[Annotated[float, Field(ge=0, le=1)]]
+    efficiency_fraction: List[Annotated[float, Field(gt=0, le=1)]]
 
     @model_validator(mode="after")
     def validate_equal_lengths_and_sort(self) -> Self:
