@@ -1,5 +1,26 @@
 # Changelog
 
+## [8.21.0](https://github.com/equinor/ecalc/compare/v8.20.0...v8.21.0) (2024-08-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* do not allow 0 efficiency in input chart ([#565](https://github.com/equinor/ecalc/issues/565))
+
+### Bug Fixes
+
+* typo get timesteps docstring ([#562](https://github.com/equinor/ecalc/issues/562)) ([9b31d60](https://github.com/equinor/ecalc/commit/9b31d604c917f106601bc9c2dbc8acc7c0091771))
+
+
+### Documentation
+
+* update changelog manually for 8.19 ([#564](https://github.com/equinor/ecalc/issues/564)) ([971b4b3](https://github.com/equinor/ecalc/commit/971b4b3027a9c703906e0b3fa18a0964006baabc))
+
+
+### Miscellaneous Chores
+
+* do not allow 0 efficiency in input chart ([#565](https://github.com/equinor/ecalc/issues/565)) ([a38bb28](https://github.com/equinor/ecalc/commit/a38bb28f33ba55dcf2048b5490d67de989d9debe))
+
 ## [8.20.0](https://github.com/equinor/ecalc/compare/v8.19.0...v8.20.0) (2024-08-07)
 
 
