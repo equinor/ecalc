@@ -1,5 +1,5 @@
 ---
-title: Getting started
+title: Getting Started
 sidebar_position: 2
 description: Getting started with eCalc
 ---
@@ -13,7 +13,7 @@ Currently the *only* officially supported method is the [eCalc CLI](/about/getti
 There are three options to run eCalc models:
 
 - [eCalc CLI](/about/getting_started/cli/index.md)
-- [eCalc Python library](/about/getting_started/library/index.md)
+- [eCalc Python Library](/about/getting_started/library/index.md)
 
 ## What method should I choose?
 
