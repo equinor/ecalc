@@ -133,24 +133,42 @@ class CompressorConsumerFunction(ConsumerFunction):
         compressor_train_result: CompressorTrainResult
         # Do not input regularity to compressor function. Handled outside
         # intermediate_pressure will only be different from None when we have a MultipleStreamsAndPressures train
-        if intermediate_pressure is not None:
-            compressor_train_result = self._compressor_function.evaluate_rate_ps_pint_pd(
-                rate=stream_day_rate_after_condition,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-                intermediate_pressure=intermediate_pressure,
-            )
-        else:
-            compressor_train_result = self._compressor_function.evaluate_rate_ps_pd(
-                rate=stream_day_rate_after_condition,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
 
         power_loss_factor = get_power_loss_factor_from_expression(
             variables_map=variables_map,
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
+
+        if isinstance(self._compressor_function, CompressorWithTurbineModel):
+            if intermediate_pressure is not None:
+                compressor_train_result = self._compressor_function.evaluate_rate_ps_pint_pd(
+                    rate=stream_day_rate_after_condition,
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                    intermediate_pressure=intermediate_pressure,
+                    power_loss_factor=power_loss_factor,
+                )
+            else:
+                compressor_train_result = self._compressor_function.evaluate_rate_ps_pd(
+                    rate=stream_day_rate_after_condition,
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                    power_loss_factor=power_loss_factor,
+                )
+        else:
+            if intermediate_pressure is not None:
+                compressor_train_result = self._compressor_function.evaluate_rate_ps_pint_pd(
+                    rate=stream_day_rate_after_condition,
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                    intermediate_pressure=intermediate_pressure,
+                )
+            else:
+                compressor_train_result = self._compressor_function.evaluate_rate_ps_pd(
+                    rate=stream_day_rate_after_condition,
+                    suction_pressure=suction_pressure,
+                    discharge_pressure=discharge_pressure,
+                )
 
         consumer_function_result = ConsumerFunctionResult(
             time_vector=np.array(variables_map.time_vector),
@@ -159,11 +177,15 @@ class CompressorConsumerFunction(ConsumerFunction):
             condition=condition,
             energy_usage_before_power_loss_factor=np.asarray(compressor_train_result.energy_usage),
             power_loss_factor=power_loss_factor,
-            energy_usage=apply_power_loss_factor(
+            energy_usage=compressor_train_result.energy_usage
+            if isinstance(self._compressor_function, CompressorWithTurbineModel)
+            else apply_power_loss_factor(
                 energy_usage=np.asarray(compressor_train_result.energy_usage),
                 power_loss_factor=power_loss_factor,
             ),
-            power=apply_power_loss_factor(
+            power=compressor_train_result.power
+            if isinstance(self._compressor_function, CompressorWithTurbineModel)
+            else apply_power_loss_factor(
                 energy_usage=np.asarray(compressor_train_result.power),
                 power_loss_factor=power_loss_factor,
             )

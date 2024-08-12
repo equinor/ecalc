@@ -10,6 +10,9 @@ from numpy.typing import NDArray
 from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
+from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
+    apply_power_loss_factor,
+)
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.compressor.train.utils.common import (
     POWER_CALCULATION_TOLERANCE,
@@ -86,13 +89,21 @@ class CompressorWithTurbineModel(CompressorModel):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        power_loss_factor: NDArray[np.float64] = None,
     ) -> CompressorTrainResult:
+        compressor_energy_function_result = self.compressor_model.evaluate_rate_ps_pd(
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+        )
+
+        compressor_energy_function_result.power = apply_power_loss_factor(
+            energy_usage=np.asarray(compressor_energy_function_result.power),
+            power_loss_factor=power_loss_factor,
+        ).tolist()
+
         return self.evaluate_turbine_based_on_compressor_model_result(
-            compressor_energy_function_result=self.compressor_model.evaluate_rate_ps_pd(
-                rate=rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
+            compressor_energy_function_result=compressor_energy_function_result
         )
 
     def evaluate_streams(
@@ -112,14 +123,22 @@ class CompressorWithTurbineModel(CompressorModel):
         suction_pressure: NDArray[np.float64],
         intermediate_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
+        power_loss_factor: NDArray[np.float64] = None,
     ) -> CompressorTrainResult:
+        compressor_energy_function_result = self.compressor_model.evaluate_rate_ps_pint_pd(
+            rate=rate,
+            suction_pressure=suction_pressure,
+            discharge_pressure=discharge_pressure,
+            intermediate_pressure=intermediate_pressure,
+        )
+
+        compressor_energy_function_result.power = apply_power_loss_factor(
+            energy_usage=np.asarray(compressor_energy_function_result.power),
+            power_loss_factor=power_loss_factor,
+        ).tolist()
+
         return self.evaluate_turbine_based_on_compressor_model_result(
-            compressor_energy_function_result=self.compressor_model.evaluate_rate_ps_pint_pd(
-                rate=rate,
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-                intermediate_pressure=intermediate_pressure,
-            )
+            compressor_energy_function_result=compressor_energy_function_result
         )
 
     def evaluate_turbine_based_on_compressor_model_result(
