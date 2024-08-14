@@ -71,6 +71,8 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
         for reference_id, variable in variables.items()
     ]
     processed_variables = {**variables_map.variables}
+    processed_variables_extrapolated = {**variables_map.variables_extrapolated}
+    processed_variables_interpolated = {**variables_map.variables_interpolated}
 
     did_process_variable = True
     while len(variables_to_process) > 0 and did_process_variable:
@@ -80,6 +82,26 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
                 required_variable in processed_variables for required_variable in variable.required_variables
             )
             if is_required_variables_processed:
+                processed_variables_extrapolated[variable.reference_id] = [
+                    any(required_variables)
+                    for required_variables in zip(
+                        [False] * len(variables_map.time_vector),
+                        *[
+                            processed_variables_extrapolated[required_variable]
+                            for required_variable in variable.required_variables
+                        ],
+                    )
+                ]
+                processed_variables_interpolated[variable.reference_id] = [
+                    any(required_variables)
+                    for required_variables in zip(
+                        [False] * len(variables_map.time_vector),
+                        *[
+                            processed_variables_interpolated[required_variable]
+                            for required_variable in variable.required_variables
+                        ],
+                    )
+                ]
                 processed_variables[variable.reference_id] = variable.process(
                     variables=processed_variables,
                     time_vector=variables_map.time_vector,
@@ -103,7 +125,12 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
             f"Missing references are {', '.join(missing_references)}"
         )
 
-    return VariablesMap(variables=processed_variables, time_vector=variables_map.time_vector)
+    return VariablesMap(
+        variables=processed_variables,
+        variables_extrapolated=processed_variables_extrapolated,
+        variables_interpolated=processed_variables_interpolated,
+        time_vector=variables_map.time_vector,
+    )
 
 
 def map_yaml_to_variables(
@@ -125,10 +152,16 @@ def map_yaml_to_variables(
     )
 
     variables = {}
+    variables_extrapolated = {}
+    variables_interpolated = {}
     for timeseries_collection in timeseries_collections:
         timeseries_list = timeseries_collection.time_series
         for timeseries in timeseries_list:
-            variables[timeseries.reference_id] = fit_time_series_to_time_vector(
+            (
+                variables[timeseries.reference_id],
+                variables_extrapolated[timeseries.reference_id],
+                variables_interpolated[timeseries.reference_id],
+            ) = fit_time_series_to_time_vector(
                 time_series=timeseries,
                 time_vector=global_time_vector,
                 extrapolate_outside_defined_time_interval=timeseries_collection.extrapolate_outside_defined_time_interval,
@@ -137,5 +170,10 @@ def map_yaml_to_variables(
 
     return _evaluate_variables(
         configuration.variables_raise_if_invalid,
-        variables_map=VariablesMap(variables=variables, time_vector=global_time_vector),
+        variables_map=VariablesMap(
+            variables=variables,
+            variables_interpolated=variables_interpolated,
+            variables_extrapolated=variables_extrapolated,
+            time_vector=global_time_vector,
+        ),
     )

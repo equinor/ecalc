@@ -56,3 +56,26 @@ class TemporalExpression:
                 )
                 result[start_index:end_index] = evaluated_expression
         return result
+
+    @staticmethod
+    def extrapolated(
+        temporal_expression: TemporalModel[Expression],
+        variables_map: VariablesMap,
+    ) -> List[float]:
+        result = variables_map.false()
+        for period, expression in temporal_expression.items():
+            if Period.intersects(period, variables_map.period):
+                start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
+                variables_map_for_this_period = variables_map.get_subset(start_index=start_index, end_index=end_index)
+                extrapolated_this_period = [
+                    any(variables)
+                    for variables in zip(
+                        [False] * len(variables_map_for_this_period.time_vector),
+                        *[
+                            variables_map_for_this_period.variables_extrapolated[variable]
+                            for variable in expression.variables
+                        ],
+                    )
+                ]
+                result[start_index:end_index] = extrapolated_this_period
+        return result

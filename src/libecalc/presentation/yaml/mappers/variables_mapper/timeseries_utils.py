@@ -38,7 +38,7 @@ def _get_interpolation_kind(rate_interpolation_type: InterpolationType) -> str:
 
 def _interpolate(
     time_series: TimeSeries, time_vector: List[datetime], rate_interpolation_type: InterpolationType
-) -> List[float]:
+) -> Tuple[List[float], List[bool]]:
     interpolation_kind = _get_interpolation_kind(
         rate_interpolation_type=rate_interpolation_type,
     )
@@ -56,7 +56,8 @@ def _interpolate(
 
     interpolator = interp1d(x=setup_times, y=setup_y, kind=interpolation_kind)
     target_times = [(time - start_time).total_seconds() for time in time_vector]
-    return list(interpolator(target_times))
+    value_is_interpolated = [value not in target_times for value in list(set(setup_times).intersection(target_times))]
+    return list(interpolator(target_times)), value_is_interpolated
 
 
 def fit_time_series_to_time_vector(
@@ -64,7 +65,7 @@ def fit_time_series_to_time_vector(
     time_vector: List[datetime],
     extrapolate_outside_defined_time_interval: bool,
     interpolation_type: InterpolationType,
-) -> List[float]:
+) -> Tuple[List[float], List[bool], List[bool]]:
     start, end = time_series.time_vector[0], time_series.time_vector[-1]
     number_of_entries_before, entries_between, number_of_entries_after = _split_time_vector(
         time_vector, start=start, end=end
@@ -76,12 +77,22 @@ def fit_time_series_to_time_vector(
         extrapolation_after_value = 0.0
 
     before_values = [0.0] * number_of_entries_before
-    between_values = _interpolate(
+    between_values, between_values_are_interpolated = _interpolate(
         time_series=time_series, time_vector=entries_between, rate_interpolation_type=interpolation_type
     )
     after_values = [extrapolation_after_value] * number_of_entries_after
 
-    return [*before_values, *between_values, *after_values]
+    values_are_extrapolated = [
+        *[True] * number_of_entries_before,
+        *[False] * len(between_values),
+        *[True] * number_of_entries_after,
+    ]
+    values_are_interpolated = [
+        *[False] * number_of_entries_before,
+        *between_values_are_interpolated,
+        *[False] * number_of_entries_after,
+    ]
+    return [*before_values, *between_values, *after_values], values_are_extrapolated, values_are_interpolated
 
 
 def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.time_utils.Frequency) -> Set[datetime]:
