@@ -24890,6 +24890,130 @@
                 25807.0,
                 23196.0
             ]
+        },
+        "variables_extrapolated": {
+            "$var.salt_water_injection": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "FLARE;FLARE_RATE": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "FLARE;METHANE_RATE": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;GAS_LIFT": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;GAS_PROD": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;OIL_PROD": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;POWERLOSS_CONSTANT": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;REGULARITY": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;WATER_INJ": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;WATER_PROD": [
+                false,
+                false,
+                false,
+                false
+            ]
+        },
+        "variables_interpolated": {
+            "$var.salt_water_injection": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "FLARE;FLARE_RATE": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "FLARE;METHANE_RATE": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;GAS_LIFT": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;GAS_PROD": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;OIL_PROD": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;POWERLOSS_CONSTANT": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;REGULARITY": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;WATER_INJ": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "SIM1;WATER_PROD": [
+                false,
+                false,
+                false,
+                false
+            ]
         }
     }
 }
