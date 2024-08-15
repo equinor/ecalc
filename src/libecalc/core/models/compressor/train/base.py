@@ -134,7 +134,10 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
         power_mw = np.array([result.power_megawatt for result in train_results])
         power_mw_adjusted = np.where(
-            power_mw > 0, power_mw + self.data_transfer_object.energy_usage_adjustment_constant, power_mw
+            power_mw > 0,
+            power_mw * self.data_transfer_object.energy_usage_adjustment_factor
+            + self.data_transfer_object.energy_usage_adjustment_constant,
+            power_mw,
         )
 
         max_standard_rate = np.full_like(rate, fill_value=INVALID_MAX_RATE, dtype=float)

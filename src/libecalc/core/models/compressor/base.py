@@ -130,6 +130,7 @@ class CompressorWithTurbineModel(CompressorModel):
             load_adjusted = np.where(
                 np.asarray(compressor_energy_function_result.power) > 0,
                 np.asarray(compressor_energy_function_result.power)
+                * self.data_transfer_object.energy_usage_adjustment_factor
                 + self.data_transfer_object.energy_usage_adjustment_constant,
                 np.asarray(compressor_energy_function_result.power),
             )

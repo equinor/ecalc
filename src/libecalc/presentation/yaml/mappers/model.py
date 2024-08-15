@@ -366,7 +366,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
         streams=streams,
         stages=stages,
         energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
-        energy_usage_adjustment_factor=1.0,
+        energy_usage_adjustment_factor=model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1),
         calculate_max_rate=model_config.get(EcalcYamlKeywords.calculate_max_rate, False),
         pressure_control=pressure_control,
         maximum_power=model_config.get(EcalcYamlKeywords.models_maximum_power, None),
@@ -450,7 +450,7 @@ def _single_speed_compressor_train_mapper(
         pressure_control=pressure_control,
         maximum_discharge_pressure=maximum_discharge_pressure,
         energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
-        energy_usage_adjustment_factor=1.0,
+        energy_usage_adjustment_factor=model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1),
         calculate_max_rate=model_config.get(EcalcYamlKeywords.calculate_max_rate, False),
         maximum_power=model_config.get(EcalcYamlKeywords.models_maximum_power, None),
     )
@@ -520,7 +520,7 @@ def _variable_speed_compressor_train_mapper(
         fluid_model=fluid_model,
         stages=stages,
         energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
-        energy_usage_adjustment_factor=1.0,
+        energy_usage_adjustment_factor=model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1),
         calculate_max_rate=model_config.get(EcalcYamlKeywords.calculate_max_rate, False),
         pressure_control=pressure_control,
         maximum_power=model_config.get(EcalcYamlKeywords.models_maximum_power, None),
@@ -560,7 +560,7 @@ def _simplified_variable_speed_compressor_train_mapper(
                 for stage in stages
             ],
             energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
-            energy_usage_adjustment_factor=1.0,
+            energy_usage_adjustment_factor=model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1),
             calculate_max_rate=model_config.get(EcalcYamlKeywords.calculate_max_rate, False),
             maximum_power=model_config.get(EcalcYamlKeywords.models_maximum_power, None),
         )
@@ -579,7 +579,7 @@ def _simplified_variable_speed_compressor_train_mapper(
                 remove_liquid_after_cooling=True,
             ),
             energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
-            energy_usage_adjustment_factor=1.0,
+            energy_usage_adjustment_factor=model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1),
             calculate_max_rate=model_config.get(EcalcYamlKeywords.calculate_max_rate, False),
             maximum_pressure_ratio_per_stage=train_spec.get(
                 EcalcYamlKeywords.models_type_compressor_train_maximum_pressure_ratio_per_stage
@@ -590,7 +590,7 @@ def _simplified_variable_speed_compressor_train_mapper(
 
 def _turbine_mapper(model_config: Dict, input_models: Dict[str, Any], resources: Resources) -> dto.Turbine:
     energy_usage_adjustment_constant = model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0)
-
+    energy_usage_adjustment_factor = model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1)
     return dto.Turbine(
         lower_heating_value=model_config.get(EcalcYamlKeywords.fuel_lower_heating_value),
         turbine_loads=model_config.get(EcalcYamlKeywords.models_turbine_efficiency_table_load_values),
@@ -598,7 +598,7 @@ def _turbine_mapper(model_config: Dict, input_models: Dict[str, Any], resources:
             EcalcYamlKeywords.models_turbine_efficiency_table_efficiency_values
         ),
         energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=1.0,
+        energy_usage_adjustment_factor=energy_usage_adjustment_factor,
     )
 
 
@@ -622,12 +622,13 @@ def _compressor_with_turbine_mapper(
         if attr is None:
             raise ValueError(f"{attr_reference} not found in input models")
     energy_usage_adjustment_constant = model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0)
+    energy_usage_adjustment_factor = model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1)
 
     return dto.CompressorWithTurbine(
         compressor_train=compressor_train_model,
         turbine=turbine_model,
         energy_usage_adjustment_constant=energy_usage_adjustment_constant,
-        energy_usage_adjustment_factor=1.0,
+        energy_usage_adjustment_factor=energy_usage_adjustment_factor,
     )
 
 

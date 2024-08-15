@@ -62,6 +62,11 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
+    power_adjustment_factor: float = Field(
+        1.0,
+        description="Factor to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_FACTOR",
+    )
     fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
@@ -95,6 +100,11 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
+    power_adjustment_factor: float = Field(
+        1.0,
+        description="Factor to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_FACTOR",
+    )
     fluid_model: FluidModelReference = Field(..., description="Reference to a fluid model", title="FLUID_MODEL")
 
     def to_dto(self):
@@ -123,6 +133,11 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         0.0,
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
+    )
+    power_adjustment_factor: float = Field(
+        1.0,
+        description="Factor to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_FACTOR",
     )
 
     def to_dto(self):
@@ -163,6 +178,11 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
         0.0,
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
+    )
+    power_adjustment_factor: float = Field(
+        1.0,
+        description="Factor to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_FACTOR",
     )
 
     def to_dto(self):
