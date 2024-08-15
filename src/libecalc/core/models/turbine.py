@@ -40,6 +40,7 @@ class TurbineModel(BaseModel):
         )
 
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
+        # Why do we divide by the factor here, and not pure linear adjustment?
         load_adjusted = np.where(
             load > 0,
             (load + self.data_transfer_object.energy_usage_adjustment_constant)
