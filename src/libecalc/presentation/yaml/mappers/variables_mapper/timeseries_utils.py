@@ -56,7 +56,7 @@ def _interpolate(
 
     interpolator = interp1d(x=setup_times, y=setup_y, kind=interpolation_kind)
     target_times = [(time - start_time).total_seconds() for time in time_vector]
-    value_is_interpolated = [value not in target_times for value in list(set(setup_times).intersection(target_times))]
+    value_is_interpolated = [value not in setup_times for value in target_times]
     return list(interpolator(target_times)), value_is_interpolated
 
 

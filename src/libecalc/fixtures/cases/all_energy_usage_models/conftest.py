@@ -31,7 +31,40 @@ def all_energy_usage_models_variables():
         datetime(2019, 1, 1, 0, 0),
         datetime(2020, 1, 1, 0, 0),
     ]
-    return dto.VariablesMap(time_vector=time_vector, variables=variables)
+    variables_extrapolated = {
+        **{
+            "SIM1;OIL_PROD": [False, False, False, False],
+            "SIM1;WATER_PROD": [False, False, False, False],
+            "SIM1;GAS_PROD": [False, False, False, False],
+            "SIM1;WATER_INJ": [False, False, False, False],
+            "SIM1;GAS_LIFT": [False, False, False, False],
+            "SIM1;REGULARITY": [False, False, False, False],
+            "SIM1;POWERLOSS_CONSTANT": [False, False, False, False],
+            "FLARE;FLARE_RATE": [False, False, False, False],
+            "FLARE;METHANE_RATE": [False, False, False, False],
+            "$var.salt_water_injection": [False, False, False, False],
+        },
+    }
+    variables_interpolated = {
+        **{
+            "SIM1;OIL_PROD": [False, False, False, False],
+            "SIM1;WATER_PROD": [False, False, False, False],
+            "SIM1;GAS_PROD": [False, False, False, False],
+            "SIM1;WATER_INJ": [False, False, False, False],
+            "SIM1;GAS_LIFT": [False, False, False, False],
+            "SIM1;REGULARITY": [False, False, False, False],
+            "SIM1;POWERLOSS_CONSTANT": [False, False, False, False],
+            "FLARE;FLARE_RATE": [False, False, False, False],
+            "FLARE;METHANE_RATE": [False, False, False, False],
+            "$var.salt_water_injection": [False, False, False, False],
+        },
+    }
+    return dto.VariablesMap(
+        time_vector=time_vector,
+        variables=variables,
+        variables_extrapolated=variables_extrapolated,
+        variables_interpolated=variables_interpolated,
+    )
 
 
 @pytest.fixture

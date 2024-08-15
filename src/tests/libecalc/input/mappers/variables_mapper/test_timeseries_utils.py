@@ -243,7 +243,11 @@ class TestFitTimeSeriesToTimeVector:
         ]
 
         rate_time_series = time_series[0]
-        fitted_rate_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_rate_time_series,
+            fitted_rate_time_series_extrapolated,
+            fitted_rate_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.LINEAR,
@@ -252,9 +256,14 @@ class TestFitTimeSeriesToTimeVector:
 
         # Interpolate based on interpolation type
         assert fitted_rate_time_series == [1, 2, 2.4136986301369863, 3, 4]
+        assert fitted_rate_time_series_interpolated == [False, False, True, False, False]
 
         non_rate_time_series = time_series[1]
-        fitted_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_time_series,
+            fitted_time_series_extrapolated,
+            fitted_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=non_rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.RIGHT,
@@ -263,6 +272,7 @@ class TestFitTimeSeriesToTimeVector:
 
         # Interpolate based on interpolation type
         assert fitted_time_series == [2.0, 4.0, 4.0, 6.0, 8.0]
+        assert fitted_rate_time_series_interpolated == [False, False, True, False, False]
 
     def test_interpolate_left(self, miscellaneous_time_series_collection_yearly):
         time_series = miscellaneous_time_series_collection_yearly.time_series
@@ -277,7 +287,11 @@ class TestFitTimeSeriesToTimeVector:
 
         rate_time_series = time_series[0]
 
-        fitted_rate_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_rate_time_series,
+            fitted_rate_time_series_extrapolated,
+            fitted_rate_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.LEFT,
@@ -286,9 +300,14 @@ class TestFitTimeSeriesToTimeVector:
 
         # Interpolate based on interpolation type
         assert fitted_rate_time_series == [1, 2, 3, 3, 4]
+        assert fitted_rate_time_series_interpolated == [False, False, True, False, False]
 
         non_rate_time_series = time_series[1]
-        fitted_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_time_series,
+            fitted_time_series_extrapolated,
+            fitted_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=non_rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.LEFT,
@@ -297,6 +316,7 @@ class TestFitTimeSeriesToTimeVector:
 
         # Interpolate based on interpolation type
         assert fitted_time_series == [2.0, 4.0, 6.0, 6.0, 8.0]
+        assert fitted_time_series_interpolated == [False, False, True, False, False]
 
     def test_interpolate_right(self, miscellaneous_time_series_collection_yearly):
         time_series = miscellaneous_time_series_collection_yearly.time_series
@@ -310,7 +330,11 @@ class TestFitTimeSeriesToTimeVector:
         ]
 
         rate_time_series = time_series[0]
-        fitted_rate_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_rate_time_series,
+            fitted_rate_time_series_extrapolated,
+            fitted_rate_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.RIGHT,
@@ -319,9 +343,14 @@ class TestFitTimeSeriesToTimeVector:
 
         # Interpolate based on interpolation type
         assert fitted_rate_time_series == [1, 2, 2, 3, 4]
+        assert fitted_rate_time_series_interpolated == [False, False, True, False, False]
 
         non_rate_time_series = time_series[1]
-        fitted_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_time_series,
+            fitted_time_series_extrapolated,
+            fitted_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=non_rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.RIGHT,
@@ -330,6 +359,7 @@ class TestFitTimeSeriesToTimeVector:
 
         # Interpolate based on interpolation type
         assert fitted_time_series == [2.0, 4.0, 4.0, 6.0, 8.0]
+        assert fitted_time_series_interpolated == [False, False, True, False, False]
 
     def test_extrapolate_outside_true(self, miscellaneous_time_series_collection_yearly):
         time_series = miscellaneous_time_series_collection_yearly.time_series
@@ -343,7 +373,11 @@ class TestFitTimeSeriesToTimeVector:
         ]
 
         rate_time_series = time_series[0]
-        fitted_rate_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_rate_time_series,
+            fitted_rate_time_series_extrapolated,
+            fitted_rate_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=rate_time_series,
             time_vector=time_vector,
             extrapolate_outside_defined_time_interval=True,
@@ -351,16 +385,22 @@ class TestFitTimeSeriesToTimeVector:
         )
         # Rate should use extrapolate_outside_defined_time_interval to decide extrapolation
         assert fitted_rate_time_series == [0, 1, 2, 3, 4, 4]
+        assert fitted_rate_time_series_extrapolated == [True, False, False, False, False, True]
 
         # Check that Non-rate behaves like rate
         non_rate_time_series = time_series[1]
-        fitted_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_time_series,
+            fitted_time_series_extrapolated,
+            fitted_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=non_rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.RIGHT,
             extrapolate_outside_defined_time_interval=True,
         )
         assert fitted_time_series == [0, 2.0, 4.0, 6.0, 8.0, 8.0]
+        assert fitted_time_series_extrapolated == [True, False, False, False, False, True]
 
     def test_extrapolate_outside_false(self, miscellaneous_time_series_collection_yearly):
         time_series = miscellaneous_time_series_collection_yearly.time_series
@@ -374,7 +414,11 @@ class TestFitTimeSeriesToTimeVector:
         ]
 
         rate_time_series = time_series[0]
-        fitted_rate_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_rate_time_series,
+            fitted_rate_time_series_extrapolated,
+            fitted_rate_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=rate_time_series,
             time_vector=time_vector,
             extrapolate_outside_defined_time_interval=False,
@@ -382,16 +426,22 @@ class TestFitTimeSeriesToTimeVector:
         )
         # Rate should use extrapolate_outside_defined_time_interval to decide extrapolation
         assert fitted_rate_time_series == [0, 1.0, 2.0, 3.0, 4.0, 0.0]
+        assert fitted_rate_time_series_extrapolated == [True, False, False, False, False, True]
 
         # Check that Non-rate behaves like rate
         non_rate_time_series = time_series[1]
-        fitted_time_series = fit_time_series_to_time_vector(
+        (
+            fitted_time_series,
+            fitted_time_series_extrapolated,
+            fitted_time_series_interpolated,
+        ) = fit_time_series_to_time_vector(
             time_series=non_rate_time_series,
             time_vector=time_vector,
             interpolation_type=InterpolationType.RIGHT,
             extrapolate_outside_defined_time_interval=False,
         )
         assert fitted_time_series == [0.0, 2.0, 4.0, 6.0, 8.0, 0.0]
+        assert fitted_time_series_extrapolated == [True, False, False, False, False, True]
 
     def test_interpolate_to_shorter_global_time_vector(self, miscellaneous_time_series_collection_yearly):
         time_series = miscellaneous_time_series_collection_yearly.time_series
@@ -405,21 +455,21 @@ class TestFitTimeSeriesToTimeVector:
         ]
 
         for i in range(1, 5):
-            fitted_rate_time_series = fit_time_series_to_time_vector(
+            fitted_rate_time_series, _, _ = fit_time_series_to_time_vector(
                 time_series=rate_time_series,
                 time_vector=time_vector[0:i],
                 extrapolate_outside_defined_time_interval=True,
                 interpolation_type=InterpolationType.RIGHT,
             )
             assert fitted_rate_time_series == [0, 2, 3, 4][0:i]
-            fitted_rate_time_series_shifted_left = fit_time_series_to_time_vector(
+            fitted_rate_time_series_shifted_left, _, _ = fit_time_series_to_time_vector(
                 time_series=rate_time_series,
                 time_vector=time_vector[0:i],
                 extrapolate_outside_defined_time_interval=True,
                 interpolation_type=InterpolationType.LEFT,
             )
             assert fitted_rate_time_series_shifted_left == [0, 2, 4, 4][0:i]
-            fitted_rate_time_series_shifted_linear = fit_time_series_to_time_vector(
+            fitted_rate_time_series_shifted_linear, _, _ = fit_time_series_to_time_vector(
                 time_series=rate_time_series,
                 time_vector=time_vector[0:i],
                 extrapolate_outside_defined_time_interval=True,
@@ -428,7 +478,7 @@ class TestFitTimeSeriesToTimeVector:
             assert fitted_rate_time_series_shifted_linear == [0, 2, 3.4972677595628414, 4][0:i]
 
         for rate_interp_type in [InterpolationType.LEFT, InterpolationType.RIGHT, InterpolationType.LINEAR]:
-            fitted_rate_time_series_outside_interval_no_extrapolation = fit_time_series_to_time_vector(
+            fitted_rate_time_series_outside_interval_no_extrapolation, _, _ = fit_time_series_to_time_vector(
                 time_series=rate_time_series,
                 time_vector=[time_vector[-1]],
                 extrapolate_outside_defined_time_interval=False,
@@ -461,7 +511,7 @@ class TestFitTimeSeriesToTimeVector:
                     time_vector=[time_vector[i]],
                     extrapolate_outside_defined_time_interval=True,
                     interpolation_type=InterpolationType.RIGHT,
-                )[0]
+                )[0][0]
             )
             fitted_rate_time_series_left_with_extrapolation.append(
                 fit_time_series_to_time_vector(
@@ -469,7 +519,7 @@ class TestFitTimeSeriesToTimeVector:
                     time_vector=[time_vector[i]],
                     extrapolate_outside_defined_time_interval=True,
                     interpolation_type=InterpolationType.LEFT,
-                )[0]
+                )[0][0]
             )
             fitted_rate_time_series_linear_with_extrapolation.append(
                 fit_time_series_to_time_vector(
@@ -477,7 +527,7 @@ class TestFitTimeSeriesToTimeVector:
                     time_vector=[time_vector[i]],
                     extrapolate_outside_defined_time_interval=True,
                     interpolation_type=InterpolationType.LINEAR,
-                )[0]
+                )[0][0]
             )
 
         assert fitted_rate_time_series_right_with_extrapolation == expected_with_extrapolation
@@ -494,7 +544,7 @@ class TestFitTimeSeriesToTimeVector:
                     time_vector=[time_vector[i]],
                     extrapolate_outside_defined_time_interval=False,
                     interpolation_type=InterpolationType.RIGHT,
-                )[0]
+                )[0][0]
             )
             fitted_rate_time_series_left_without_extrapolation.append(
                 fit_time_series_to_time_vector(
@@ -502,7 +552,7 @@ class TestFitTimeSeriesToTimeVector:
                     time_vector=[time_vector[i]],
                     extrapolate_outside_defined_time_interval=False,
                     interpolation_type=InterpolationType.LEFT,
-                )[0]
+                )[0][0]
             )
             fitted_rate_time_series_linear_without_extrapolation.append(
                 fit_time_series_to_time_vector(
@@ -510,7 +560,7 @@ class TestFitTimeSeriesToTimeVector:
                     time_vector=[time_vector[i]],
                     extrapolate_outside_defined_time_interval=False,
                     interpolation_type=InterpolationType.LINEAR,
-                )[0]
+                )[0][0]
             )
 
         assert fitted_rate_time_series_right_without_extrapolation == expected_without_extrapolation
