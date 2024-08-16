@@ -1,7 +1,8 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     FluidModelReference,
@@ -124,6 +125,18 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
+
+    @model_validator(mode="after")
+    def validate_compressor_model(self):
+        compressor_train = self.compressor_train
+        for stage in compressor_train.stages:
+            if stage.control_margin:
+                raise ValueError(
+                    f"{self.name}: {EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}"
+                    f" is not allowed for {self.type}"
+                )
+
+        return self
 
     def to_dto(self):
         raise NotImplementedError
