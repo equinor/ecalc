@@ -135,10 +135,9 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
                     raise ValueError(
                         f"{self.name}: {EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}"
                         f" is not allowed for {self.type}. "
-                        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} is only supported for "
-                        f"{EcalcYamlKeywords.models_type_compressor_train_single_speed}, "
-                        f"{EcalcYamlKeywords.models_type_compressor_train_variable_speed} and "
-                        f"{EcalcYamlKeywords.models_type_compressor_train_variable_speed_multiple_streams_and_pressures}."
+                        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} "
+                        f"is only supported for the following train-types: "
+                        f"{', '.join(YamlCompatibleTrainsControlMargin)}."
                     )
         return self
 
@@ -191,4 +190,10 @@ YamlCompressorTrain = Union[
     YamlSimplifiedVariableSpeedCompressorTrain,
     YamlSingleSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+]
+
+YamlCompatibleTrainsControlMargin = [
+    EcalcYamlKeywords.models_type_compressor_train_single_speed,
+    EcalcYamlKeywords.models_type_compressor_train_variable_speed,
+    EcalcYamlKeywords.models_type_compressor_train_variable_speed_multiple_streams_and_pressures,
 ]
