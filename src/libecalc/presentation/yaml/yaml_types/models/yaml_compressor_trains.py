@@ -134,7 +134,7 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
                 if stage.control_margin:
                     raise ValueError(
                         f"{self.name}: {EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}"
-                        f" is not allowed for {self.type}. "
+                        f" is not allowed for {self.type.value}. "
                         f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} "
                         f"is only supported for the following train-types: "
                         f"{', '.join(YamlCompatibleTrainsControlMargin)}."
