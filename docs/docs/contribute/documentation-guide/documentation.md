@@ -12,7 +12,7 @@ It is entirely possible to make changes by using your web browser alone. However
 changes, we recommend that you run the documentation locally with the following prerequisites:
 
 * *Linux or macOS*: For [Windows you can run Ubuntu or similar in WSL 2](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
-* *Git*: [Set up Git](../guides/01-git.md#setting-up-git)
+* *Git*: [Set up Git](../guides/git.md#setting-up-git)
 * *Node*: Download from nodejs.org or use [nvm](https://github.com/nvm-sh/nvm)
 
 :::info
@@ -22,7 +22,7 @@ This has some limitations such as missing navigation bar, and it does not previe
 
 ## Contributing
 
-As a contributor you will have to use Git. Please find the [Git Documentation](../guides/01-git.md) for more details about git.
+As a contributor you will have to use Git. Please find the [Git Documentation](../guides/git.md) for more details about git.
 
 
 ## How it works
@@ -32,7 +32,7 @@ From Docusaurus own documentation:
 
 While Docusaurus is rich on features, we use it mostly to host markdown pages. The main bulk of the documentation is located in `documentation/docs`. This is where you as a collaborator are encouraged to make changes.
 
-For a quick intro to Markdown, see our [Markdown section](02-markdown.md).
+For a quick intro to Markdown, see our [Markdown section](markdown.md).
 
 ## Special features
 

@@ -103,7 +103,7 @@ git add .
 ```
 
 ### Commit changes
-Commit any files you've added with git add, and also commit any files you've changed since then:	
+Commit any files you've added with git add, and also commit any files you've changed since then:
 ```shell
 git commit -m "<change type>: <description"
 ```
@@ -127,15 +127,15 @@ Here's a quick guide:
     ```shell
     git clone git@github.com:equinor/ecalc.git
     ```
-2. Create a branch locally with a succinct but descriptive name and prefixed with change type. 
+2. Create a branch locally with a succinct but descriptive name and prefixed with change type.
     ```shell
     git checkout -b <change type>/<issue number>-<description of change>
     ```
-3. Add the changed files 
+3. Add the changed files
     ```shell
     git add <path to changed file(s)>
     ```
-4. Commit your changes using the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) formatting for the commit messages. 
+4. Commit your changes using the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) formatting for the commit messages.
     ```shell
     git commit -m "<change type>: <description>"
     ```
@@ -152,7 +152,7 @@ Here's a quick guide:
 
 ### Fork the repository
 
-For external developers, you will [contribute to the project through forking](https://docs.github.com/en/get-started/quickstart/contributing-to-projects). 
+For external developers, you will [contribute to the project through forking](https://docs.github.com/en/get-started/quickstart/contributing-to-projects).
 
 Here's a quick guide:
 
@@ -165,17 +165,17 @@ Here's a quick guide:
     ```shell
     git remote add upstream git@github.com:equinor/template-fastapi-react.git
     ```
-4. Create a branch locally with a succinct but descriptive name and prefixed with change type. 
+4. Create a branch locally with a succinct but descriptive name and prefixed with change type.
     ```shell
     git checkout -b <change type>/<issue number>-<description>
     ```
-5. Make the changes in the created branch. 
+5. Make the changes in the created branch.
 6. Add and run tests for your changes if needed (we only take pull requests with passing tests).
-7. Add the changed files 
+7. Add the changed files
     ```shell
     git add <path to changed file(s)>
     ```
-8. Commit your changes using the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) formatting for the commit messages. 
+8. Commit your changes using the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) formatting for the commit messages.
     ```shell
     git commit -m "<change type>: <description>"
     ```
@@ -188,8 +188,8 @@ Here's a quick guide:
     ```shell
     git push origin feature/my-new-feature
     ```
-11. Submit a [Pull Request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork). Please provide us with some explanation of why you made the changes you made. For new features make sure to explain a standard use case to us. 
+11. Submit a [Pull Request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests creating-a-pull-request-from-a-fork). Please provide us with some explanation of why you made the changes you made. For new features make sure to explain a standard use case to us.
 
 That's it... thank you for your contribution!
 
-After your pull request is merged, you can safely delete your branch. 
+After your pull request is merged, you can safely delete your branch.
