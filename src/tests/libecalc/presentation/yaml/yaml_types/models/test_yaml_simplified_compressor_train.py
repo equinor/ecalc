@@ -6,6 +6,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
     YamlCompatibleTrainsControlMargin,
+    YamlCompatibleTrainsPressureDropAheadOfStage,
     YamlSimplifiedVariableSpeedCompressorTrain,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
@@ -34,4 +35,30 @@ def test_control_margin_not_allowed():
         f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} is only "
         f"supported for the following train-types: "
         f"{', '.join(YamlCompatibleTrainsControlMargin)}"
+    ) in str(exc.value)
+
+
+def test_pressure_drop_ahead_of_stage_not_allowed():
+    stage = YamlCompressorStage(
+        compressor_chart="compressor_chart1",
+        inlet_temperature=25,
+        pressure_drop_ahead_of_stage=2.0,
+    )
+
+    stages = YamlCompressorStages(stages=[stage])
+
+    with pytest.raises(ValueError) as exc:
+        YamlSimplifiedVariableSpeedCompressorTrain(
+            name="simplified_train1",
+            type=YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
+            compressor_train=stages,
+            fluid_model="fluid_model1",
+        )
+
+    assert (
+        f"simplified_train1: {EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage} "
+        f"is not allowed for {EcalcYamlKeywords.models_type_compressor_train_simplified}. "
+        f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage} is only "
+        f"supported for the following train-types: "
+        f"{', '.join(YamlCompatibleTrainsPressureDropAheadOfStage)}"
     ) in str(exc.value)

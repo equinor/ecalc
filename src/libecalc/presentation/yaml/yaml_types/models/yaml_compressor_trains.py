@@ -127,7 +127,7 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
     )
 
     @model_validator(mode="after")
-    def check_control_margin(self):
+    def check_control_margin_and_pressure_drop_ahead_of_stage(self):
         compressor_train = self.compressor_train
         if not isinstance(compressor_train, YamlUnknownCompressorStages):
             for stage in compressor_train.stages:
@@ -139,6 +139,15 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
                         f"is only supported for the following train-types: "
                         f"{', '.join(YamlCompatibleTrainsControlMargin)}."
                     )
+                if stage.pressure_drop_ahead_of_stage is not None:
+                    raise ValueError(
+                        f"{self.name}: {EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}"
+                        f" is not allowed for {self.type.value}. "
+                        f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage} "
+                        f"is only supported for the following train-types: "
+                        f"{', '.join(YamlCompatibleTrainsPressureDropAheadOfStage)}."
+                    )
+
         return self
 
     def to_dto(self):
@@ -193,6 +202,12 @@ YamlCompressorTrain = Union[
 ]
 
 YamlCompatibleTrainsControlMargin = [
+    EcalcYamlKeywords.models_type_compressor_train_single_speed,
+    EcalcYamlKeywords.models_type_compressor_train_variable_speed,
+    EcalcYamlKeywords.models_type_compressor_train_variable_speed_multiple_streams_and_pressures,
+]
+
+YamlCompatibleTrainsPressureDropAheadOfStage = [
     EcalcYamlKeywords.models_type_compressor_train_single_speed,
     EcalcYamlKeywords.models_type_compressor_train_variable_speed,
     EcalcYamlKeywords.models_type_compressor_train_variable_speed_multiple_streams_and_pressures,
