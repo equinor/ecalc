@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult

@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 
 import pandas as pd
+
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult

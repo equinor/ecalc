@@ -1,7 +1,8 @@
 from datetime import datetime
 
-import libecalc.common.time_utils
 import pytest
+
+import libecalc.common.time_utils
 from libecalc.common.time_utils import Frequency
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection import (

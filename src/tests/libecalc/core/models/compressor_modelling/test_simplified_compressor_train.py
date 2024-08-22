@@ -2,6 +2,8 @@ from typing import List, Tuple
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
+
 from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -16,7 +18,6 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
 )
-from numpy.typing import NDArray
 
 
 @pytest.fixture

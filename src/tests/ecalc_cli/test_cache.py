@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from ecalc_cli.io.cache import Cache, CacheData
 from libecalc.presentation.json_result.result import EcalcModelResult
 

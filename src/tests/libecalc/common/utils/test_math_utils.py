@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Dict, Optional, Tuple, Type, TypeVar
 
 import pytest
+
 from libecalc.common.errors.exceptions import (
     DifferentLengthsError,
     EcalcError,

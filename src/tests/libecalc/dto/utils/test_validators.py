@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 import pytest
+
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.time_utils import convert_date_to_datetime, default_temporal_model
 from libecalc.dto.utils.validators import convert_expression

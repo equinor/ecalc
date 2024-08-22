@@ -1,4 +1,5 @@
 import numpy as np
+
 from libecalc.core.models import ModelInputFailureStatus, validate_model_input
 
 

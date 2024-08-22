@@ -1,4 +1,5 @@
 import pytest
+
 from libecalc.common.string.string_utils import (
     generate_id,
     get_duplicates,

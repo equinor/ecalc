@@ -6,11 +6,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-from libecalc import dto
-from libecalc.common.decorators.capturer import Capturer
-from libecalc.common.logger import logger
-from libecalc.dto import FluidComposition
-from libecalc.dto.types import EoSModel
 from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
 
@@ -23,6 +18,11 @@ from ecalc_neqsim_wrapper.mappings import (
     map_eos_model_to_neqsim,
     map_fluid_composition_to_neqsim,
 )
+from libecalc import dto
+from libecalc.common.decorators.capturer import Capturer
+from libecalc.common.logger import logger
+from libecalc.dto import FluidComposition
+from libecalc.dto.types import EoSModel
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325

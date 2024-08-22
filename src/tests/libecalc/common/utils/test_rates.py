@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy as np
 import pytest
+
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit

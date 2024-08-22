@@ -1,12 +1,13 @@
 from datetime import datetime
 
 import pytest
+from pydantic import TypeAdapter, ValidationError
+
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.yaml_variable import (
     YamlSingleVariable,
     YamlVariables,
 )
-from pydantic import TypeAdapter, ValidationError
 
 
 class TestVariables:

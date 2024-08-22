@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import pytest
+
 from libecalc.common.graph import Graph, NodeID
 
 

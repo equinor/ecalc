@@ -2,9 +2,10 @@ import datetime
 from typing import List, Union
 
 import pytest
+from pydantic import BaseModel, TypeAdapter
+
 from libecalc.expression import Expression
 from libecalc.expression.expression import InvalidExpressionError
-from pydantic import BaseModel, TypeAdapter
 
 
 class TestExpression:

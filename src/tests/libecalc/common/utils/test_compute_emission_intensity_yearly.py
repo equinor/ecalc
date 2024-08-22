@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Tuple
 
 import numpy as np
+
 from libecalc.common.units import Unit
 from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,

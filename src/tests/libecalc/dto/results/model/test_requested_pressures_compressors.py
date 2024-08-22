@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 
 import pytest
+
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import EcalcModelResult, GraphResult
 from libecalc.common.component_info.compressor import CompressorPressureType

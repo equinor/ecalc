@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
+
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,

@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, Optional
 
 import pytest
+
 from libecalc.dto import TimeSeriesType
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection import (

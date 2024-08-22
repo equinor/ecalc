@@ -1,4 +1,5 @@
 import pytest
+
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc import dto
 from libecalc.dto.types import EoSModel

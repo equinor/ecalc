@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import pytest
+
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     InvalidModelReferenceError,
     ModelReferenceNotFound,

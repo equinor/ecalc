@@ -1,10 +1,11 @@
 import pytest
+from yaml import Mark
+
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     _mark_error_lines,
 )
 from libecalc.presentation.yaml.yaml_entities import YamlDict
-from yaml import Mark
 
 
 class TestDictValidationError:

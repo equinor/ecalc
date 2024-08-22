@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytest
+
 from libecalc.common.time_utils import Frequency
 
 START_DATE = datetime(2020, 1, 1)

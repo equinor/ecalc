@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 
 

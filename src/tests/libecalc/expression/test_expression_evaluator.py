@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from libecalc.expression.expression_evaluator import (
     TokenTag,
     count_parentheses,
