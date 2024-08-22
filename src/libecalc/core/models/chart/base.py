@@ -130,7 +130,7 @@ class ChartCurve:
         """Compute the closest distance from a point (rate,head) to the (interpolated) curve and corresponding
         efficiency for that closest point.
         """
-        head_linestring = LineString([(x, y) for x, y in zip(self.rate_values, self.head_values)])
+        head_linestring = LineString(list(zip(self.rate_values, self.head_values)))
         p = Point(rate, head)
 
         distance = p.distance(head_linestring)
