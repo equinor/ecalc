@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, List
 
 import libecalc.common.time_utils
+from ecalc_cli.errors import EcalcCLIError
 from libecalc import dto
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
@@ -17,8 +18,6 @@ from libecalc.presentation.flow_diagram.EcalcModelMapper import EcalcModelMapper
 from libecalc.presentation.json_result.result import (
     EcalcModelResult as EcalcModelResultDTO,
 )
-
-from ecalc_cli.errors import EcalcCLIError
 
 
 def write_output(output: str, output_file: Path = None):

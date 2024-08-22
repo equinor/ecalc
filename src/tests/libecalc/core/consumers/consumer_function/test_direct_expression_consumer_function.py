@@ -1,8 +1,9 @@
 from datetime import datetime
 
-import libecalc.common.utils.rates
 import numpy as np
 import pytest
+
+import libecalc.common.utils.rates
 from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression_consumer_function import (

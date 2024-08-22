@@ -3,12 +3,11 @@ from __future__ import annotations
 from enum import Enum
 from typing import Dict
 
+from ecalc_neqsim_wrapper import neqsim
 from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.dto.types import EoSModel
-
-from ecalc_neqsim_wrapper import neqsim
 
 
 class NeqsimEoSModelType(Enum):

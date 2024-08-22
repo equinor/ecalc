@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc.common.time_utils import (
     Period,
     Periods,

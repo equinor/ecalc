@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,

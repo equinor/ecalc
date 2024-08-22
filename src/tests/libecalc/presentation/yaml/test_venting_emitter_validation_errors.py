@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from libecalc.common.utils.rates import RateType
 from libecalc.fixtures.cases import venting_emitters
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (

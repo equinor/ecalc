@@ -1,4 +1,5 @@
 import pytest
+
 from libecalc import dto
 from libecalc.common.units import Unit
 

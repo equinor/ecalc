@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.utils.common import (
     calculate_asv_corrected_rate,

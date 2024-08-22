@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import numpy as np
+
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,

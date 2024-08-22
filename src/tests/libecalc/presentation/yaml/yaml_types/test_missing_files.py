@@ -1,4 +1,6 @@
 import pytest
+from pydantic import TypeAdapter, ValidationError
+
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlGeneratorSetModel,
 )
@@ -12,7 +14,6 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
 from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContextNames,
 )
-from pydantic import TypeAdapter, ValidationError
 
 
 @pytest.fixture

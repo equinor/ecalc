@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc import dto
 from libecalc.common.utils.rates import RateType
 from libecalc.dto import VariablesMap

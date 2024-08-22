@@ -22,6 +22,11 @@ from typing import (
 import numpy
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
+from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic_core.core_schema import ValidationInfo
+from typing_extensions import Self
+
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
@@ -33,10 +38,6 @@ from libecalc.common.time_utils import (
     resample_time_steps,
 )
 from libecalc.common.units import Unit
-from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict, field_validator
-from pydantic_core.core_schema import ValidationInfo
-from typing_extensions import Self
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
 

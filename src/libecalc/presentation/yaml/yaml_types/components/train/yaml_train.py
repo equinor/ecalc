@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Dict, Generic, List, Literal, Optional, TypeVar
 
+from pydantic import Field
+
 from libecalc import dto
 from libecalc.common.time_utils import Period
 from libecalc.dto.base import ComponentType
@@ -13,7 +15,6 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
     YamlCompressor,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlStream
-from pydantic import Field
 
 TYamlConsumer = TypeVar("TYamlConsumer", bound=YamlCompressor)
 

@@ -1,5 +1,7 @@
 import numpy as np
 import pytest
+from pytest import approx
+
 from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.core.models.compressor.train.chart import (
@@ -7,7 +9,6 @@ from libecalc.core.models.compressor.train.chart import (
     VariableSpeedCompressorChart,
 )
 from libecalc.dto.types import ChartAreaFlag
-from pytest import approx
 
 
 @pytest.fixture

@@ -1,4 +1,5 @@
 import pytest
+
 from libecalc.core.models.compressor.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,

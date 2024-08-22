@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from _operator import attrgetter
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from _operator import attrgetter
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated

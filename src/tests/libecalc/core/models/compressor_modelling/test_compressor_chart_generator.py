@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from libecalc.core.models.compressor.train.chart.chart_creator import (
     CompressorChartCreator,
 )

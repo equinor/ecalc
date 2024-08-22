@@ -1,8 +1,8 @@
 from typing import Dict
 
-from ecalc_cli.logger import logger
 from pydantic import ValidationError
 
+from ecalc_cli.logger import logger
 from libecalc import dto
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords

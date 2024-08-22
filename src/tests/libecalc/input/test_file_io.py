@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import IO
 
 import pytest
+
 from libecalc.common.errors.exceptions import EcalcError, InvalidResourceHeaderException
 from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io

@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+
 from libecalc.core.models.compressor.sampled.compressor_model_sampled_1d import (
     CompressorModelSampled1D,
 )

@@ -4,6 +4,7 @@ from typing import List
 from unittest.mock import Mock
 
 import pytest
+
 from libecalc import dto
 from libecalc.fixtures import DTOCase
 from libecalc.presentation.flow_diagram.EcalcModelMapper import (

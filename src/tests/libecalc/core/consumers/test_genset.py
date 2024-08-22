@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.common.units import Unit
