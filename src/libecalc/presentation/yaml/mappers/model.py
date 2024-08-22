@@ -26,6 +26,7 @@ from libecalc.presentation.yaml.yaml_entities import Resource, Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
     YamlCompatibleTrainsControlMargin,
+    YamlCompatibleTrainsPressureDropAheadOfStage,
 )
 
 
@@ -554,6 +555,15 @@ def _simplified_variable_speed_compressor_train_mapper(
                     f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} "
                     f"is only supported for the following train-types: "
                     f"{', '.join(YamlCompatibleTrainsControlMargin)}."
+                )
+            if stage.get(EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage):
+                name = model_config.get(EcalcYamlKeywords.name)
+                raise ValueError(
+                    f"{name}: {EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}"
+                    f" is not allowed for {model_config.get(EcalcYamlKeywords.type)}. "
+                    f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage} "
+                    f"is only supported for the following train-types: "
+                    f"{', '.join(YamlCompatibleTrainsPressureDropAheadOfStage)}."
                 )
         return dto.CompressorTrainSimplifiedWithKnownStages(
             fluid_model=fluid_model,
