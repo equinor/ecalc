@@ -1,5 +1,7 @@
 import numpy as np
 import pytest
+from pytest import approx
+
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -10,7 +12,6 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.dto.types import EoSModel
-from pytest import approx
 
 
 @pytest.fixture

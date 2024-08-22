@@ -1,6 +1,7 @@
 from typing import Dict
 
 import pytest
+
 from libecalc import dto
 from libecalc.dto.types import EnergyModelType
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper

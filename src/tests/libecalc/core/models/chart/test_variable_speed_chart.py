@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from libecalc import dto
 from libecalc.core.models.chart import VariableSpeedChart
 

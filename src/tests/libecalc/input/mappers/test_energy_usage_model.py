@@ -1,8 +1,9 @@
 import io
 from datetime import datetime
 
-import libecalc.common.utils.rates
 import pytest
+
+import libecalc.common.utils.rates
 from libecalc import dto
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit

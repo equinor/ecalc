@@ -1,6 +1,7 @@
 import pytest
-from libecalc import dto
 from pydantic import ValidationError
+
+from libecalc import dto
 
 
 def test_composition(caplog):

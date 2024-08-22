@@ -3,6 +3,7 @@ import io
 import numpy as np
 import pandas as pd
 import pytest
+
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.train.chart import SingleSpeedCompressorChart

@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType

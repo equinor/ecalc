@@ -1,9 +1,10 @@
 import pytest
+from pydantic import ValidationError
+
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
     YamlSystemComponentConditions,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlCrossover
-from pydantic import ValidationError
 
 
 class TestSystemComponentConditions:

@@ -2,6 +2,8 @@ import typing
 from datetime import datetime
 
 import pytest
+from pydantic import ValidationError
+
 from libecalc import dto
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.components import (
@@ -20,7 +22,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
     YamlEmissionRateUnits,
 )
-from pydantic import ValidationError
 
 
 class TestCategories:

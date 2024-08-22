@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import numpy as np
 import pandas as pd
+
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesCalendarDayRate,

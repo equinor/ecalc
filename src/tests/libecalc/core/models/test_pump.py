@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from libecalc import dto
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.pump import PumpSingleSpeed, PumpVariableSpeed

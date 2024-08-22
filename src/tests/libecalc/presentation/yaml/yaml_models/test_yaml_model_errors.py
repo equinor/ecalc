@@ -1,6 +1,7 @@
 from io import StringIO
 
 import pytest
+
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlModelType

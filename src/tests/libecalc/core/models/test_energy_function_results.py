@@ -1,7 +1,8 @@
 from datetime import datetime
 
-import libecalc.dto as dto
 import numpy as np
+
+import libecalc.dto as dto
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,

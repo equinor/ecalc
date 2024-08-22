@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc import dto
 from libecalc.common.errors.exceptions import InvalidReferenceException
 from libecalc.common.time_utils import Period

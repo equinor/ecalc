@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 import pytest
+
 from libecalc.common.version import Version
 
 data = [

@@ -1,13 +1,13 @@
 from pathlib import Path
 
-import libecalc.version
 import typer
-from libecalc.presentation.yaml.validation_errors import DataValidationError
 
+import libecalc.version
 from ecalc_cli.commands import show
 from ecalc_cli.commands.run import run
 from ecalc_cli.commands.selftest import selftest
 from ecalc_cli.logger import CLILogConfigurator, LogLevel, logger
+from libecalc.presentation.yaml.validation_errors import DataValidationError
 
 app = typer.Typer(name="ecalc")
 

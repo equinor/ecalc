@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft import (

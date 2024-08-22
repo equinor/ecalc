@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Dict
 
 import pytest
+from pydantic import ValidationError
+
 from libecalc import dto
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
-from pydantic import ValidationError
 
 regularity = {datetime(2000, 1, 1): Expression.setup_from_expression(1)}
 

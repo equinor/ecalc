@@ -1,11 +1,12 @@
 from datetime import datetime
 
 import pytest
+from pydantic import ValidationError
+
 from libecalc import dto
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
-from pydantic import ValidationError
 
 
 class TestElectricityConsumer:

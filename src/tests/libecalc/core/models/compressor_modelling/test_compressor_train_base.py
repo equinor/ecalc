@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
+
 from libecalc import dto
 from libecalc.core.models.compressor.train.base import CompressorTrainModel
 

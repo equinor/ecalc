@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import List
 
 import pytest
+from pydantic import BaseModel
+
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.units import Unit
@@ -9,7 +11,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from pydantic import BaseModel
 
 
 class MergeableObject(BaseModel):

@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 import pytest
+
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
 

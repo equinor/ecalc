@@ -1,4 +1,5 @@
 import numpy as np
+
 from libecalc.core.models.turbine import TurbineModel
 
 

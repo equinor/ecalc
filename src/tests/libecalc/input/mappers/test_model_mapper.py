@@ -3,6 +3,7 @@ from io import StringIO
 from typing import Any, Dict
 
 import pytest
+
 from libecalc import dto
 from libecalc.common.time_utils import Period
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper

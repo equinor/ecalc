@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 from libecalc.common.units import Unit
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.domain.stream_conditions import Pressure, Rate, StreamConditions

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict
 
 import pytest
+
 from libecalc.common.math.numbers import Numbers
 from libecalc.examples import advanced, simple
 from libecalc.fixtures import YamlCase

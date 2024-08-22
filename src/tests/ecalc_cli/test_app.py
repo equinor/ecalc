@@ -9,6 +9,8 @@ from typing import Literal, NamedTuple
 import pandas as pd
 import pytest
 import yaml
+from typer.testing import CliRunner
+
 from ecalc_cli import main
 from ecalc_cli.commands import show
 from libecalc.common.errors.exceptions import EcalcError
@@ -17,7 +19,6 @@ from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from typer.testing import CliRunner
 
 runner = CliRunner()
 

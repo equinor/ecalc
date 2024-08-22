@@ -1,17 +1,10 @@
 from datetime import datetime
 from pathlib import Path
 
+import typer
+
 import libecalc.common.time_utils
 import libecalc.version
-import typer
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import GraphResult
-from libecalc.common.math.numbers import Numbers
-from libecalc.common.run_info import RunInfo
-from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
-from libecalc.presentation.json_result.mapper import get_asset_result
-from libecalc.presentation.yaml.model import YamlModel
-
 from ecalc_cli.errors import EcalcCLIError
 from ecalc_cli.io.cache import Cache
 from ecalc_cli.io.output import (
@@ -23,6 +16,13 @@ from ecalc_cli.io.output import (
 )
 from ecalc_cli.logger import logger
 from ecalc_cli.types import DateFormat, Frequency
+from libecalc.application.energy_calculator import EnergyCalculator
+from libecalc.application.graph_result import GraphResult
+from libecalc.common.math.numbers import Numbers
+from libecalc.common.run_info import RunInfo
+from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
+from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.yaml.model import YamlModel
 
 
 def run(

@@ -2,6 +2,7 @@ from collections import namedtuple
 from typing import NamedTuple
 
 import pytest
+
 from libecalc import dto
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 

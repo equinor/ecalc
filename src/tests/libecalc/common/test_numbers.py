@@ -1,4 +1,5 @@
 import pytest
+
 from libecalc.common.math.numbers import Numbers
 
 data = [

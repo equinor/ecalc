@@ -2,6 +2,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.spatial import ConvexHull
+
 from libecalc.core.models.compressor.sampled.compressor_model_sampled_3d import (
     CompressorModelSampled3D,
 )
@@ -18,7 +20,6 @@ from libecalc.core.models.compressor.sampled.convex_hull_common import (
     _compute_simplices_in_new_pointset,
     get_lower_upper_qhull,
 )
-from scipy.spatial import ConvexHull
 
 VARIABLE_ORDER_3D = [RATE_NAME, PS_NAME, PD_NAME]
 

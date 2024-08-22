@@ -1,4 +1,5 @@
 import pytest
+
 from libecalc.common.units import Unit
 from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.core.models.results.compressor import (
