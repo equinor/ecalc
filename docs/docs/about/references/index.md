@@ -1,5 +1,5 @@
 ---
-title: YAML Keywords
-sidebar_position: 999
-description: Getting started with eCalc
+title: Keywords and References
+sidebar_position: 2
+description: Keywords and reference documents
 ---

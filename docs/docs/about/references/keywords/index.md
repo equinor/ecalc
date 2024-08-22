@@ -1,5 +1,5 @@
 ---
-title: YAML Keywords
+title: eCalc Keywords
 sidebar_position: 2
 description: eCalc KEYWORDS
 ---

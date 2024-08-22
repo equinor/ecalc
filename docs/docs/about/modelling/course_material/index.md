@@ -2,7 +2,7 @@
 sidebar_position: 8
 description: Examples of eCalc usage
 ---
-# Course material
+# Course Material
 Here you find modelling course material.
 
 - [Simple model example with invalid timesteps](/about/modelling/course_material/simple_invalid_timesteps.mdx)
