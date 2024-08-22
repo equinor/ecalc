@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field, model_validator
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -8,8 +8,10 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
     FluidModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
+    YamlCompressorStage,
     YamlCompressorStageMultipleStreams,
     YamlCompressorStages,
+    YamlCompressorStageWithMarginAndPressureDrop,
     YamlUnknownCompressorStages,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
@@ -37,7 +39,7 @@ class YamlSingleSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    compressor_train: YamlCompressorStages = Field(
+    compressor_train: YamlCompressorStages[YamlCompressorStageWithMarginAndPressureDrop] = Field(
         ...,
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
@@ -75,7 +77,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    compressor_train: YamlCompressorStages = Field(
+    compressor_train: YamlCompressorStages[YamlCompressorStageWithMarginAndPressureDrop] = Field(
         ...,
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
@@ -108,7 +110,7 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    compressor_train: Union[YamlCompressorStages, YamlUnknownCompressorStages] = Field(
+    compressor_train: Union[YamlCompressorStages[YamlCompressorStage], YamlUnknownCompressorStages] = Field(
         ...,
         description="Compressor train definition",
         title="COMPRESSOR_TRAIN",
@@ -125,30 +127,6 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
-
-    @model_validator(mode="after")
-    def check_control_margin_and_pressure_drop_ahead_of_stage(self):
-        compressor_train = self.compressor_train
-        if not isinstance(compressor_train, YamlUnknownCompressorStages):
-            for stage in compressor_train.stages:
-                if stage.control_margin:
-                    raise ValueError(
-                        f"{self.name}: {EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}"
-                        f" is not allowed for {self.type.value}. "
-                        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} "
-                        f"is only supported for the following train-types: "
-                        f"{', '.join(YamlCompatibleTrainsControlMargin)}."
-                    )
-                if stage.pressure_drop_ahead_of_stage is not None:
-                    raise ValueError(
-                        f"{self.name}: {EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}"
-                        f" is not allowed for {self.type.value}. "
-                        f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage} "
-                        f"is only supported for the following train-types: "
-                        f"{', '.join(YamlCompatibleTrainsPressureDropAheadOfStage)}."
-                    )
-
-        return self
 
     def to_dto(self):
         raise NotImplementedError

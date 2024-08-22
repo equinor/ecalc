@@ -1,64 +1,64 @@
+from io import StringIO
+
 import pytest
+from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
-    YamlCompressorStage,
-    YamlCompressorStages,
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_validation_context import (
+    YamlModelValidationContextNames,
 )
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
-    YamlCompatibleTrainsControlMargin,
-    YamlCompatibleTrainsPressureDropAheadOfStage,
-    YamlSimplifiedVariableSpeedCompressorTrain,
-)
-from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 
-def test_control_margin_not_allowed():
-    stage = YamlCompressorStage(
-        compressor_chart="compressor_chart1",
-        inlet_temperature=25,
-        control_margin=10,
+def yaml_resource_with_control_margin_and_pressure_drop():
+    yaml_with_control_margin_and_pressure_drop = """
+    MODELS:
+        - NAME: simplified_compressor_train
+          TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+          FLUID_MODEL: fluid_model
+          COMPRESSOR_TRAIN:
+            STAGES:
+              - COMPRESSOR_CHART: chart1
+                INLET_TEMPERATURE: 30
+                CONTROL_MARGIN: 10
+                CONTROL_MARGIN_UNIT: PERCENTAGE
+                PRESSURE_DROP_AHEAD_OF_STAGE: 2
+        """
+    return ResourceStream(
+        name="yaml_with_control_margin_and_pressure_drop", stream=StringIO(yaml_with_control_margin_and_pressure_drop)
     )
 
-    stages = YamlCompressorStages(stages=[stage])
 
-    with pytest.raises(ValueError) as exc:
-        YamlSimplifiedVariableSpeedCompressorTrain(
-            name="simplified_train1",
-            type=YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
-            compressor_train=stages,
-            fluid_model="fluid_model1",
+def test_control_margin_and_pressure_drop_not_allowed():
+    with pytest.raises(DtoValidationError) as exc_info:
+        PyYamlYamlModel.read(yaml_resource_with_control_margin_and_pressure_drop()).validate(
+            {
+                YamlModelValidationContextNames.resource_file_names: [],
+            }
         )
 
+    errors = exc_info.value.errors()
+
+    # Control margin is not allowed:
     assert (
-        f"simplified_train1: {EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} "
-        f"is not allowed for {EcalcYamlKeywords.models_type_compressor_train_simplified}. "
-        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin} is only "
-        f"supported for the following train-types: "
-        f"{', '.join(YamlCompatibleTrainsControlMargin)}"
-    ) in str(exc.value)
+        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN."
+        f"YamlCompressorStages[YamlCompressorStage].STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}:	"
+        f"This is not a valid keyword"
+    ) in str(errors[1])
 
-
-def test_pressure_drop_ahead_of_stage_not_allowed():
-    stage = YamlCompressorStage(
-        compressor_chart="compressor_chart1",
-        inlet_temperature=25,
-        pressure_drop_ahead_of_stage=2.0,
-    )
-
-    stages = YamlCompressorStages(stages=[stage])
-
-    with pytest.raises(ValueError) as exc:
-        YamlSimplifiedVariableSpeedCompressorTrain(
-            name="simplified_train1",
-            type=YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN,
-            compressor_train=stages,
-            fluid_model="fluid_model1",
-        )
-
+    # Control margin unit is not allowed:
     assert (
-        f"simplified_train1: {EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage} "
-        f"is not allowed for {EcalcYamlKeywords.models_type_compressor_train_simplified}. "
-        f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage} is only "
-        f"supported for the following train-types: "
-        f"{', '.join(YamlCompatibleTrainsPressureDropAheadOfStage)}"
-    ) in str(exc.value)
+        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN."
+        f"YamlCompressorStages[YamlCompressorStage].STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit}:	"
+        f"This is not a valid keyword"
+    ) in str(errors[2])
+
+    # Pressure drop ahead of stage is not allowed:
+    assert (
+        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN."
+        f"YamlCompressorStages[YamlCompressorStage].STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}:	"
+        f"This is not a valid keyword"
+    ) in str(errors[3])

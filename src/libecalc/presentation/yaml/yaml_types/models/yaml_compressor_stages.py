@@ -1,5 +1,5 @@
 import enum
-from typing import List, Optional, Union
+from typing import Generic, List, Optional, TypeVar, Union
 
 from pydantic import Field
 
@@ -41,6 +41,9 @@ class YamlCompressorStage(YamlBase):
         description="Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS",
         title="COMPRESSOR_CHART",
     )
+
+
+class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
     pressure_drop_ahead_of_stage: Optional[float] = Field(
         None,
         description="Pressure drop before compression stage [in bar]",
@@ -58,7 +61,7 @@ class YamlCompressorStage(YamlBase):
     )
 
 
-class YamlCompressorStageMultipleStreams(YamlCompressorStage):
+class YamlCompressorStageMultipleStreams(YamlCompressorStageWithMarginAndPressureDrop):
     stream: Union[str, List[str]] = Field(
         None,
         description="Reference to stream from STREAMS.",
@@ -90,9 +93,20 @@ class YamlUnknownCompressorStages(YamlBase):
     )
 
 
-class YamlCompressorStages(YamlBase):
-    stages: List[YamlCompressorStage] = Field(
+TStage = TypeVar("TStage", bound=Union[YamlCompressorStage, YamlCompressorStageWithMarginAndPressureDrop])
+
+
+class YamlCompressorStages(YamlBase, Generic[TStage]):
+    stages: List[TStage] = Field(
         ...,
         description="List of compressor stages",
         title="STAGES",
     )
+
+
+# class YamlCompressorStages(YamlBase):
+#     stages: List[YamlCompressorStageWithMarginAndPressureDrop] = Field(
+#         ...,
+#         description="List of compressor stages",
+#         title="STAGES",
+#     )
