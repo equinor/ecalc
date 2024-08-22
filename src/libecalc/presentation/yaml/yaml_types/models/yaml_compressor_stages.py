@@ -102,11 +102,3 @@ class YamlCompressorStages(YamlBase, Generic[TStage]):
         description="List of compressor stages",
         title="STAGES",
     )
-
-
-# class YamlCompressorStages(YamlBase):
-#     stages: List[YamlCompressorStageWithMarginAndPressureDrop] = Field(
-#         ...,
-#         description="List of compressor stages",
-#         title="STAGES",
-#     )
