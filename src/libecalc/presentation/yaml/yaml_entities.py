@@ -51,7 +51,7 @@ def _create_node_class(cls):
         def __new__(self, *args, **kwargs):
             return cls.__new__(self, *args)
 
-    node_class.__name__ = "%s_node" % cls.__name__
+    node_class.__name__ = f"{cls.__name__}_node"
     return node_class
 
 
