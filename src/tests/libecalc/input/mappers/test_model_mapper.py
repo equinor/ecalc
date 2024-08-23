@@ -5,13 +5,14 @@ from typing import Any, Dict
 import pytest
 
 from libecalc import dto
-from libecalc.common.time_utils import Period
-from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
-from libecalc.presentation.yaml.mappers.create_references import create_references
+from libecalc.common.time_utils import Frequency, Period
 from libecalc.presentation.yaml.mappers.model import ModelMapper
+from libecalc.presentation.yaml.model import ConfigurationService, YamlModel
 from libecalc.presentation.yaml.yaml_entities import Resource, ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from tests.libecalc.input.test_yaml_model import DirectResourceService
 
 
 class TestModelMapper:
@@ -288,6 +289,15 @@ def dated_model_data(dated_model_source: str) -> Dict[str, Any]:
     )
 
 
+class DictConfigurationService(ConfigurationService):
+    def __init__(self, data: Dict, name: str = "test"):
+        self._data = data
+        self._name = name
+
+    def get_configuration(self) -> YamlValidator:
+        return PyYamlYamlModel(internal_datamodel=self._data, name=self._name, instantiated_through_read=True)
+
+
 def parse_model(model_data, start: datetime, end: datetime) -> dto.Asset:
     period = Period(
         start=start,
@@ -296,10 +306,12 @@ def parse_model(model_data, start: datetime, end: datetime) -> dto.Asset:
     model_data[EcalcYamlKeywords.start] = period.start
     model_data[EcalcYamlKeywords.end] = period.end
 
-    configuration = PyYamlYamlModel(internal_datamodel=model_data, instantiated_through_read=True)
-    references = create_references(configuration, resources={})
-    model_mapper = EcalcModelMapper(references=references, target_period=period)
-    return model_mapper.from_yaml_to_dto(configuration, name="test")
+    configuration_service = DictConfigurationService(model_data)
+    resource_service = DirectResourceService(resources={})
+    model = YamlModel(
+        configuration_service=configuration_service, resource_service=resource_service, output_frequency=Frequency.NONE
+    )
+    return model.dto
 
 
 class TestDatedModelFilter:

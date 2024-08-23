@@ -10,22 +10,22 @@ from libecalc.common.errors.exceptions import (
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration
 
 
-class RuamelYamlModel(YamlModel):
+class RuamelYamlModel(YamlConfiguration):
     """Implementation of yaml model using Ruamel library
     Validation has currently not been implemented.
     """
 
-    def __init__(self, internal_datamodel: Dict[str, Any], instantiated_through_read: bool = False):
+    def __init__(self, internal_datamodel: Dict[str, Any], name: str, instantiated_through_read: bool = False):
         """To avoid mistakes, make sure that this is only instantiated through read method/named constructor
         :param instantiated_through_read: set to True to allow to use constructor.
         """
         if not instantiated_through_read:
             raise ProgrammingError(f"{self.__class__} can only be instantiated through read() method/named constructor")
 
-        super().__init__(internal_datamodel=internal_datamodel)
+        super().__init__(internal_datamodel=internal_datamodel, name=name)
 
     def dump(self) -> str:
         """Dumps the model to a string buffer and returns it
@@ -107,7 +107,7 @@ class RuamelYamlModel(YamlModel):
         internal_datamodel = RuamelYamlModel._load(
             yaml_file=main_yaml, resources=resources, enable_include=enable_include, base_dir=base_dir
         )
-        self = cls(internal_datamodel=internal_datamodel, instantiated_through_read=True)
+        self = cls(internal_datamodel=internal_datamodel, name=main_yaml.name, instantiated_through_read=True)
         return self
 
     @staticmethod
@@ -154,3 +154,7 @@ class RuamelYamlModel(YamlModel):
             raise YamlError(
                 problem="We are not able to load the yaml due to an error: " + str(e),
             ) from e
+
+    @property
+    def name(self):
+        return self._name

@@ -35,7 +35,7 @@ from libecalc.presentation.yaml.yaml_models.exceptions import (
     FileContext,
     YamlError,
 )
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlValidator
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
@@ -54,19 +54,23 @@ from libecalc.presentation.yaml.yaml_validation_context import (
 )
 
 
-class PyYamlYamlModel(YamlValidator, YamlModel):
+class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     """Implementation of yaml model using PyYaml library
     Keeping comments and horizontal lists on loading currently not supported!
     """
 
-    def __init__(self, internal_datamodel: Dict[str, Any], instantiated_through_read: bool = False):
+    @classmethod
+    def get_validator(cls, *args, **kwargs) -> "YamlValidator":
+        return cls.read(*args, **kwargs)
+
+    def __init__(self, internal_datamodel: Dict[str, Any], name: str, instantiated_through_read: bool = False):
         """To avoid mistakes, make sure that this is only instantiated through read method/named constructor
         :param instantiated_through_read: set to True to allow to use constructor.
         """
         if not instantiated_through_read:
             raise ProgrammingError(f"{self.__class__} can only be instantiated through read() method/named constructor")
 
-        super().__init__(internal_datamodel=internal_datamodel)
+        super().__init__(internal_datamodel=internal_datamodel, name=name)
 
     def dump(self) -> str:
         if self._internal_datamodel is None:
@@ -85,7 +89,7 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
         internal_datamodel = PyYamlYamlModel.read_yaml(
             main_yaml=main_yaml, resources=resources, base_dir=base_dir, enable_include=enable_include
         )
-        self = cls(internal_datamodel=internal_datamodel, instantiated_through_read=True)
+        self = cls(internal_datamodel=internal_datamodel, name=main_yaml.name, instantiated_through_read=True)
         return self
 
     class SafeLineLoader(SafeLoader):
@@ -257,6 +261,9 @@ class PyYamlYamlModel(YamlValidator, YamlModel):
             ) from e
 
     # start of validation/parsing methods
+    @property
+    def name(self):
+        return self._name
 
     @property
     def facility_resource_names(self) -> List[str]:
