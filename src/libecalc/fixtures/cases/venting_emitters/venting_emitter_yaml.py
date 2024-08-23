@@ -9,8 +9,9 @@ from libecalc.common.utils.rates import RateType
 from libecalc.dto import ResultOptions
 from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
-from libecalc.presentation.yaml.model import PyYamlYamlModel, YamlModel
+from libecalc.presentation.yaml.model import FileResourceService
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
 )
@@ -85,9 +86,10 @@ def venting_emitter_yaml_factory(
     yaml_text = yaml.safe_load(input_text)
     configuration = PyYamlYamlModel(
         internal_datamodel=yaml_text,
+        name="venting_emitters",
         instantiated_through_read=True,
     )
-    resources = YamlModel._read_resources(yaml_configuration=configuration, working_directory=path)
+    resources = FileResourceService._read_resources(configuration=configuration, working_directory=path)
     variables = map_yaml_to_variables(
         configuration,
         resources=resources,
@@ -98,7 +100,7 @@ def venting_emitter_yaml_factory(
         ),
     )
 
-    yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources, name="venting_emitters")
+    yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources)
     return DTOCase(ecalc_model=yaml_model, variables=variables)
 
 

@@ -2,7 +2,7 @@ import abc
 import datetime
 import enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TextIO, Type
+from typing import Any, Dict, Iterable, List, Optional, TextIO, Type
 
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import (
@@ -25,14 +25,21 @@ class YamlValidator(abc.ABC):
     gets details of the model. Currently only PyYaml implementation.
     """
 
+    @property
+    @abc.abstractmethod
+    def name(self): ...
+
+    @property
     @abc.abstractmethod
     def facility_resource_names(self) -> List[str]:
         pass
 
+    @property
     @abc.abstractmethod
     def timeseries_resources(self) -> List[YamlTimeseriesResource]:
         pass
 
+    @property
     @abc.abstractmethod
     def all_resource_names(self) -> List[str]:
         pass
@@ -61,18 +68,22 @@ class YamlValidator(abc.ABC):
     def fuel_types(self):
         pass
 
+    @property
     @abc.abstractmethod
-    def installations(self):
+    def installations(self) -> Iterable:
         pass
 
+    @property
     @abc.abstractmethod
     def start(self) -> Optional[datetime.datetime]:
         pass
 
+    @property
     @abc.abstractmethod
     def end(self) -> Optional[datetime.datetime]:
         pass
 
+    @property
     @abc.abstractmethod
     def dates(self):
         pass
@@ -90,7 +101,7 @@ class YamlReader(abc.ABC):
         base_dir: Optional[Path] = None,
         resources: Optional[Dict[str, TextIO]] = None,
         enable_include: bool = False,
-    ) -> "YamlModel":
+    ) -> "YamlConfiguration":
         """Named constructor for the yaml model, the way to instantiate the yaml model. We currently
         only allow a yaml model to be constructed by reading a yaml file.
 
@@ -107,6 +118,20 @@ class YamlReader(abc.ABC):
         """
         pass
 
+    @classmethod
+    @abc.abstractmethod
+    def get_validator(
+        cls,
+        main_yaml: ResourceStream,
+        base_dir: Optional[Path] = None,
+        resources: Optional[Dict[str, TextIO]] = None,
+        enable_include: bool = False,
+    ) -> "YamlValidator": ...
+
+    """
+    Get yaml validator
+    """
+
 
 class YamlDumper(abc.ABC):
     @abc.abstractmethod
@@ -120,7 +145,7 @@ class YamlDumper(abc.ABC):
         pass
 
 
-class YamlModelType(str, enum.Enum):
+class ReaderType(str, enum.Enum):
     """Which yaml model to use. User should in general define capabilities, and get an appropriate yaml model, but for
     now we define implementation.
     """
@@ -129,7 +154,7 @@ class YamlModelType(str, enum.Enum):
     PYYAML = "PYYAML"  # Support for validation, does not conserve comments and makes vertical lists
 
 
-class YamlModel(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
+class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
     """Default yaml model specification, that a yaml model implementation
     MUST HAVE reader/loader and dumper/representer behaviour.
 
@@ -144,35 +169,36 @@ class YamlModel(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
         None  # to temporary store a loaded yaml model. Format is defined by implementation
     )
 
-    def __init__(self, internal_datamodel: Dict[str, Any]):
+    def __init__(self, internal_datamodel: Dict[str, Any], name: str):
         self._internal_datamodel = internal_datamodel
+        self._name = name
 
     class Builder:
         """Inner class to build yaml models."""
 
         @staticmethod
-        def get_yaml_model(yaml_model_type: YamlModelType) -> Type["YamlModel"]:
+        def get_yaml_reader(reader_type: ReaderType) -> Type["YamlReader"]:
             """Note! Returns the type of the YamlModel, and hence NOT an instantiation. That must be
             done later through that type/class's way to do that. (in general through read()).
 
-            :param yaml_model_type:
+            :param reader_type:
             :return:
             """
-            if yaml_model_type == YamlModelType.RUAMEL:
+            if reader_type == ReaderType.RUAMEL:
                 # Imported here to avoid circular dependency. The __init__/central module trick didn't work
                 from libecalc.presentation.yaml.yaml_models.ruamel_yaml_model import (
                     RuamelYamlModel,
                 )
 
                 return RuamelYamlModel
-            elif yaml_model_type == YamlModelType.PYYAML:
+            elif reader_type == ReaderType.PYYAML:
                 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import (
                     PyYamlYamlModel,
                 )
 
                 return PyYamlYamlModel
 
-            raise NotImplementedError(f"Unknown yaml model implementation provided: {str(yaml_model_type)}")
+            raise NotImplementedError(f"Unknown yaml model implementation provided: {str(reader_type)}")
 
     class UpdateStatus(enum.Enum):
         """Update status for updating resource files when loading yaml and attempting to match
@@ -190,7 +216,7 @@ class YamlModel(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
             old_name: new_name
         :return:
         """
-        update_statuses: Dict[str, YamlModel.UpdateStatus] = {}
+        update_statuses: Dict[str, YamlConfiguration.UpdateStatus] = {}
 
         for old_name, new_name in mappings.items():
             update_statuses[old_name] = self.update_resource_name(old_name, new_name)
@@ -221,12 +247,12 @@ class YamlModel(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
 
         if names_updated == 0:
             logger.warning(f"No resource was found with name: {old_name}")
-            return YamlModel.UpdateStatus.ZERO_UPDATES
+            return YamlConfiguration.UpdateStatus.ZERO_UPDATES
         elif names_updated > 1:
             logger.warning(f"More than one resource was updated ({old_name} found {names_updated} times)")
-            return YamlModel.UpdateStatus.MANY_UPDATES
+            return YamlConfiguration.UpdateStatus.MANY_UPDATES
         else:
-            return YamlModel.UpdateStatus.ONE_UPDATE
+            return YamlConfiguration.UpdateStatus.ONE_UPDATE
 
     def __update_resource(self, resource_type: str, field: str, old_value: any, new_value: any) -> int:
         """Update a nested dict object in the yaml config data.

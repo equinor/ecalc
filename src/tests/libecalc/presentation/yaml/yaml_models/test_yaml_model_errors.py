@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlModel, YamlModelType
+from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration
 
 invalid_models = [
     (
@@ -31,9 +31,9 @@ VARIABLES:
 
 
 @pytest.mark.parametrize("invalid_model,description", invalid_models)
-@pytest.mark.parametrize("yaml_model_type", YamlModelType)
-def test_invalid_models(invalid_model: str, description: str, yaml_model_type: YamlModelType):
-    yaml_reader = YamlModel.Builder.get_yaml_model(yaml_model_type)
+@pytest.mark.parametrize("yaml_model_type", ReaderType)
+def test_invalid_models(invalid_model: str, description: str, yaml_model_type: ReaderType):
+    yaml_reader = YamlConfiguration.Builder.get_yaml_reader(yaml_model_type)
     with pytest.raises(YamlError) as exc_info:
         yaml_reader.read(ResourceStream(name=description, stream=StringIO(invalid_model)))
 

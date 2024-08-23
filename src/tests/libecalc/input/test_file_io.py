@@ -10,7 +10,7 @@ from libecalc.common.errors.exceptions import EcalcError, InvalidResourceHeaderE
 from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
-from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.model import FileResourceService
 from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -307,10 +307,13 @@ class TestReadYaml:
 
         test = PyYamlYamlModel(
             internal_datamodel=time_series_yaml_text,
+            name="test",
             instantiated_through_read=True,
         )
         with pytest.raises(EcalcError) as e:
-            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
+            FileResourceService._read_resources(
+                configuration=test, working_directory=Path(input_file_examples.__path__[0])
+            )
 
         assert str(e.value) == (
             "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: "
@@ -331,10 +334,13 @@ class TestReadYaml:
 
         test = PyYamlYamlModel(
             internal_datamodel=time_series_yaml_text,
+            name="test",
             instantiated_through_read=True,
         )
         with pytest.raises(EcalcError) as e:
-            YamlModel._read_resources(yaml_configuration=test, working_directory=Path(input_file_examples.__path__[0]))
+            FileResourceService._read_resources(
+                configuration=test, working_directory=Path(input_file_examples.__path__[0])
+            )
 
         assert str(e.value) == (
             "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: "

@@ -107,9 +107,15 @@ dependencies.
 
 ```bash
 pip install libecalc[notebooks]
-```
+``` 
 
 In the examples you will find examples using both the YAML specifications and Python models. See /examples
+
+Run jupyter:
+
+```bash
+jupyter notebook examples
+```
 
 ## Documentation
 
