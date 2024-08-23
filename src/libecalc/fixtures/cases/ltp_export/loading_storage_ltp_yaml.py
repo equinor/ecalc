@@ -4,8 +4,8 @@ import yaml
 
 from libecalc.common.utils.rates import RateType
 from libecalc.dto import Asset
-from libecalc.presentation.yaml.model import PyYamlYamlModel
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 
 def ltp_oil_loaded_yaml_factory(
@@ -40,9 +40,10 @@ def ltp_oil_loaded_yaml_factory(
     yaml_text = yaml.safe_load(input_text)
     configuration = PyYamlYamlModel(
         internal_datamodel=yaml_text,
+        name="test",
         instantiated_through_read=True,
     )
-    yaml_model = map_yaml_to_dto(configuration=configuration, resources={}, name="test")
+    yaml_model = map_yaml_to_dto(configuration=configuration, resources={})
     return yaml_model
 
 

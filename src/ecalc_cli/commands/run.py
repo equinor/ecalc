@@ -22,7 +22,7 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.json_result.mapper import get_asset_result
-from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.model import FileConfigurationService, FileResourceService, YamlModel
 
 
 def run(
@@ -109,7 +109,13 @@ def run(
     logger.info(f"eCalc™ simulation starting. Running {run_info}")
     validate_arguments(model_file=model_file, output_folder=output_folder)
 
-    model = YamlModel(path=model_file, output_frequency=output_frequency)
+    configuration_service = FileConfigurationService(configuration_path=model_file)
+    resource_service = FileResourceService(working_directory=model_file.parent)
+    model = YamlModel(
+        configuration_service=configuration_service,
+        resource_service=resource_service,
+        output_frequency=output_frequency,
+    )
 
     if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
         logger.warning(

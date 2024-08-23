@@ -111,6 +111,7 @@ def map_yaml_to_variables(
     resources: Resources,
     result_options: dto.ResultOptions,
 ) -> dto.VariablesMap:
+    # TODO: Replace configuration type with YamlValidator
     timeseries_collections = [
         TimeSeriesCollectionMapper(resources).from_yaml_to_dto(timeseries.model_dump(by_alias=True))
         for timeseries in configuration.time_series_raise_if_invalid

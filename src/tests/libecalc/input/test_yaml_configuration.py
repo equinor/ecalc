@@ -15,6 +15,7 @@ class TestYamlConfiguration:
                     {EcalcYamlKeywords.name: "filepath.csv", EcalcYamlKeywords.type: "INVALID"}
                 ]
             },
+            name="test_case",
             instantiated_through_read=True,
         )
         with pytest.raises(DataValidationError) as exc_info:
@@ -35,7 +36,7 @@ class TestYamlConfiguration:
                 "FUELCONSUMERS": [{datetime(2020, 2, 17): "CONSUMER3"}],
             }
         }
-        configuration = PyYamlYamlModel(internal_datamodel=yaml_dict, instantiated_through_read=True)
+        configuration = PyYamlYamlModel(internal_datamodel=yaml_dict, name="test_case", instantiated_through_read=True)
         dates = configuration.dates
 
         assert len(dates) == 3
@@ -59,7 +60,7 @@ class TestYamlConfiguration:
             ],
         }
 
-        configuration = PyYamlYamlModel(internal_datamodel=yaml_dict, instantiated_through_read=True)
+        configuration = PyYamlYamlModel(internal_datamodel=yaml_dict, name="test_case", instantiated_through_read=True)
 
         assert [
             resource in configuration.facility_resource_names

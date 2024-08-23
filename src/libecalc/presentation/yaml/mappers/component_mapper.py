@@ -20,7 +20,7 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
@@ -310,10 +310,10 @@ class EcalcModelMapper:
         self.__references = references
         self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(self, configuration: PyYamlYamlModel, name: str) -> dto.Asset:
+    def from_yaml_to_dto(self, configuration: YamlValidator) -> dto.Asset:
         try:
             ecalc_model = dto.Asset(
-                name=name,
+                name=configuration.name,
                 installations=[
                     self.__installation_mapper.from_yaml_to_dto(installation)
                     for installation in configuration.installations
