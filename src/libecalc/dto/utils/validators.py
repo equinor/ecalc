@@ -18,7 +18,7 @@ ExpressionType = Union[str, int, float, Expression]
 
 
 def convert_expression(
-    value: Optional[Union[ExpressionType, Dict[date, ExpressionType]]]
+    value: Optional[Union[ExpressionType, Dict[date, ExpressionType]]],
 ) -> Optional[Union[Expression, Dict[date, Expression]]]:
     if value is None or isinstance(value, Expression):
         return value
@@ -28,7 +28,7 @@ def convert_expression(
 
 
 def convert_expressions(
-    value: Optional[List[Optional[Union[ExpressionType, Dict[date, ExpressionType]]]]]
+    value: Optional[List[Optional[Union[ExpressionType, Dict[date, ExpressionType]]]]],
 ) -> Optional[List[Optional[Union[Expression, Dict[date, Expression]]]]]:
     if value is None:
         return value

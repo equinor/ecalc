@@ -26,9 +26,9 @@ class CompressorTrain(EnergyModel):
 
 
 class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
-    typ: Literal[
+    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES] = (
         EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES
-    ] = EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_KNOWN_STAGES
+    )
 
     # Not in use:
     pressure_control: Optional[FixedSpeedPressureControl] = None  # Not relevant for simplified trains.
@@ -50,9 +50,9 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
     Will be constrained by a maximum pressure ratio per stage.
     """
 
-    typ: Literal[
+    typ: Literal[EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES] = (
         EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
-    ] = EnergyModelType.COMPRESSOR_TRAIN_SIMPLIFIED_WITH_UNKNOWN_STAGES
+    )
     stage: CompressorStage
     maximum_pressure_ratio_per_stage: Annotated[float, Field(ge=0)]
 
@@ -74,9 +74,9 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
 class SingleSpeedCompressorTrain(CompressorTrain):
     """Single speed train has a control mechanism for max discharge pressure."""
 
-    typ: Literal[
+    typ: Literal[EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT] = (
         EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
-    ] = EnergyModelType.SINGLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
+    )
     maximum_discharge_pressure: Optional[Annotated[float, Field(ge=0)]] = None
 
     @field_validator("stages")
@@ -92,9 +92,9 @@ class SingleSpeedCompressorTrain(CompressorTrain):
 
 
 class VariableSpeedCompressorTrain(CompressorTrain):
-    typ: Literal[
+    typ: Literal[EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT] = (
         EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
-    ] = EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_COMMON_SHAFT
+    )
 
     @field_validator("stages")
     @classmethod
@@ -129,9 +129,9 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
     and the dto similar.
     """
 
-    typ: Literal[
+    typ: Literal[EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES] = (
         EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
-    ] = EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
+    )
     streams: List[MultipleStreamsAndPressureStream]
     stages: List[MultipleStreamsCompressorStage]
 

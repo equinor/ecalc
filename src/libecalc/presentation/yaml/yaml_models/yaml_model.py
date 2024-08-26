@@ -78,8 +78,7 @@ class YamlValidator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate(self, context: YamlModelValidationContext) -> YamlAsset:
-        ...
+    def validate(self, context: YamlModelValidationContext) -> YamlAsset: ...
 
 
 class YamlReader(abc.ABC):
@@ -141,9 +140,9 @@ class YamlModel(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
     is compatible across, but this must be handled and verified properly.
     """
 
-    _internal_datamodel: Dict[
-        str, Any
-    ] = None  # to temporary store a loaded yaml model. Format is defined by implementation
+    _internal_datamodel: Dict[str, Any] = (
+        None  # to temporary store a loaded yaml model. Format is defined by implementation
+    )
 
     def __init__(self, internal_datamodel: Dict[str, Any]):
         self._internal_datamodel = internal_datamodel

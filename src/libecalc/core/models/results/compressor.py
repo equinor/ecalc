@@ -81,12 +81,12 @@ class CompressorStageResult(EnergyModelBaseResult):
     power: Optional[List[Optional[float]]] = None
     power_unit: Optional[Unit] = None
 
-    mass_rate_kg_per_hr: Optional[
-        List[Optional[float]]
-    ] = None  # The gross mass rate passing through a compressor stage
-    mass_rate_before_asv_kg_per_hr: Optional[
-        List[Optional[float]]
-    ] = None  # The net mass rate through a compressor stage
+    mass_rate_kg_per_hr: Optional[List[Optional[float]]] = (
+        None  # The gross mass rate passing through a compressor stage
+    )
+    mass_rate_before_asv_kg_per_hr: Optional[List[Optional[float]]] = (
+        None  # The net mass rate through a compressor stage
+    )
 
     inlet_stream_condition: CompressorStreamCondition
     outlet_stream_condition: CompressorStreamCondition

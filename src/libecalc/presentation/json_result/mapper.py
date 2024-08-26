@@ -158,7 +158,7 @@ def _compute_intensity(
 
 
 def _to_full_result(
-    emissions: Dict[str, PartialEmissionResult]
+    emissions: Dict[str, PartialEmissionResult],
 ) -> Dict[str, libecalc.presentation.json_result.result.EmissionResult]:
     """
     From the partial result, generate cumulatives for the full emissions result per installation

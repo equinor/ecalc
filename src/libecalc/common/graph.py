@@ -10,8 +10,7 @@ NodeID = str
 
 class NodeWithID(Protocol):
     @property
-    def id(self) -> NodeID:
-        ...
+    def id(self) -> NodeID: ...
 
 
 TNode = TypeVar("TNode", bound=NodeWithID)

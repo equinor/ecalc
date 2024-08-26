@@ -129,9 +129,7 @@ class TestSingleSpeedCompressorTrainCommonShaft:
             discharge_pressure=target_discharge_pressures,
         )
 
-        single_speed_compressor_train_common_shaft_downstream_choking.data_transfer_object.energy_usage_adjustment_constant = (
-            energy_usage_adjustment_constant
-        )
+        single_speed_compressor_train_common_shaft_downstream_choking.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant
         result = single_speed_compressor_train_common_shaft_downstream_choking.evaluate_rate_ps_pd(
             rate=np.asarray([5800000.0, 5800000.0, 1000.0, 8189000.0]),
             suction_pressure=np.asarray(suction_pressures),

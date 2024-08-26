@@ -116,8 +116,7 @@ class ConsumerModelResultBase(ABC, CommonResultBase):
 
     @property
     @abstractmethod
-    def component_type(self):
-        ...
+    def component_type(self): ...
 
     name: str
 

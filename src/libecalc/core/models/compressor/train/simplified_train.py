@@ -174,9 +174,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             else:
                 # Static efficiency regardless of rate and head. This happens if Generic chart from input is used.
                 def efficiency_as_function_of_rate_and_head(rates, heads):
-                    return np.full_like(
-                        rates, fill_value=stage.polytropic_efficiency, dtype=float
-                    )
+                    return np.full_like(rates, fill_value=stage.polytropic_efficiency, dtype=float)
 
             polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = calculate_enthalpy_change_head_iteration(
                 inlet_streams=inlet_streams,
