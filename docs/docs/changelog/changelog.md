@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.20.1](https://github.com/equinor/ecalc/compare/v8.20.0...v8.20.1) (2024-08-26)
+
+
+### Miscellaneous Chores
+
+* make sure that pressure calculation tolerances are the same at different places in the code ([#577](https://github.com/equinor/ecalc/issues/577)) ([55bf4fc](https://github.com/equinor/ecalc/commit/55bf4fc4a1bfe796f45714315c361b3e7af5d51c))
+
 ## [8.20.0](https://github.com/equinor/ecalc/compare/v8.19.0...v8.20.0) (2024-08-07)
 
 
