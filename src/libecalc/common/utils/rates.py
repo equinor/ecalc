@@ -112,7 +112,7 @@ class Rates:
 
     @staticmethod
     def compute_cumulative(
-        volumes: Union[List[float], NDArray[np.float64][float, numpy.dtype[numpy.float64]]]
+        volumes: Union[List[float], NDArray[np.float64][float, numpy.dtype[numpy.float64]]],
     ) -> NDArray[np.float64][float, numpy.dtype[numpy.float64]]:
         """
         Compute cumulative volumes from a list of periodic volumes
@@ -185,8 +185,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
         return all(self_value < other_value for self_value, other_value in zip(self.values, other.values))
 
     @abstractmethod
-    def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self:
-        ...
+    def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self: ...
 
     def extend(self, other: TimeSeries) -> Self:
         if self.unit != other.unit:

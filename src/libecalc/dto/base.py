@@ -84,5 +84,4 @@ class Component(EcalcBaseModel, ABC):
 
     @property
     @abstractmethod
-    def id(self) -> str:
-        ...
+    def id(self) -> str: ...

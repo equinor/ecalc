@@ -62,8 +62,7 @@ class ComponentResultBase(CommonResultBase, NodeInfo):
     emissions: Dict[str, EmissionResult]
 
 
-class EquipmentResultBase(ComponentResultBase):
-    ...
+class EquipmentResultBase(ComponentResultBase): ...
 
 
 class AssetResult(ComponentResultBase):

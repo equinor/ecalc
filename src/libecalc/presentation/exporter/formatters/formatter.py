@@ -8,15 +8,13 @@ RowIndex = Union[str, int, float, datetime]
 ColumnIndex = Union[str]
 
 
-class Formattable(Tabular, HasColumns, Protocol):
-    ...
+class Formattable(Tabular, HasColumns, Protocol): ...
 
 
 class FormattableGroup(Protocol):
     @property
     @abc.abstractmethod
-    def groups(self) -> Iterator[Tuple[str, Formattable]]:
-        ...
+    def groups(self) -> Iterator[Tuple[str, Formattable]]: ...
 
 
 class Formatter(abc.ABC):
@@ -29,8 +27,7 @@ class Formatter(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def format_group(self, groups: FormattableGroup) -> Dict[str, List[str]]:
-        ...
+    def format_group(self, groups: FormattableGroup) -> Dict[str, List[str]]: ...
 
 
 class CSVFormatter:

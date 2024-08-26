@@ -73,16 +73,14 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def evaluate_consumers(
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> List[ConsumerSystemComponentResult]:
-        ...
+    ) -> List[ConsumerSystemComponentResult]: ...
 
     @abstractmethod
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
         variables_map: VariablesMap,
-    ) -> ConsumerSystemOperationalSetting:
-        ...
+    ) -> ConsumerSystemOperationalSetting: ...
 
     def evaluate(
         self,

@@ -11,8 +11,7 @@ from libecalc.dto.base import ComponentType
 
 
 @overload
-def create_consumer(consumer: dto.components.CompressorComponent, timestep: datetime) -> Compressor:
-    ...
+def create_consumer(consumer: dto.components.CompressorComponent, timestep: datetime) -> Compressor: ...
 
 
 @overload

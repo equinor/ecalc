@@ -37,8 +37,7 @@ class ConsumerFunctionResultBase(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod
-    def extend(self, other: object) -> ConsumerFunctionResultBase:
-        ...
+    def extend(self, other: object) -> ConsumerFunctionResultBase: ...
 
 
 class ConsumerFunctionResult(ConsumerFunctionResultBase):

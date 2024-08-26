@@ -8,5 +8,4 @@ from libecalc.dto.base import EcalcBaseModel
 
 class OperationalSettings(ABC, EcalcBaseModel):
     @abstractmethod
-    def get_subset_for_timestep(self, timestep: datetime) -> Self:
-        ...
+    def get_subset_for_timestep(self, timestep: datetime) -> Self: ...

@@ -71,8 +71,7 @@ class InvalidReferenceException(EcalcError):
         super().__init__("Invalid reference", message, error_type=EcalcErrorType.CLIENT_ERROR)
 
 
-class InvalidDateException(EcalcError):
-    ...
+class InvalidDateException(EcalcError): ...
 
 
 class InvalidResourceHeaderException(EcalcError):
