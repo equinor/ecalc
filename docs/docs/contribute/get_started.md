@@ -22,7 +22,7 @@ The threshold for contributing is low, and we appreciate any contribution great 
 :::
 
 ## Prerequisites
-* See [Documentation guide](documentation-guide/01-documentation.md) for how to get started with contributions to this 
+* See [Documentation guide](documentation-guide/documentation.md) for how to get started with contributions to this 
   documentation.
 
 ## How to contribute
@@ -37,8 +37,8 @@ to explain the change without referring to an issue.
 ### Make a Pull Request
 To contribute to the project, you will have to make the change and create a Pull Request on GitHub. How you do this depends on your role.
 
-1. Equinor internal contributors, you may open a [Pull Request directly](guides/git#pull-requests),
-2. Independent contributors, you will [Fork the repository](guides/git#fork-the-repository).
+1. Equinor internal contributors, you may open a [Pull Request directly](guides/git.md#pull-requests),
+2. Independent contributors, you will [Fork the repository](guides/git.md#fork-the-repository).
 
 ### Get code review {#get-code-review}
 Once a Pull Request has been made, we will give you feedback and maybe suggest changes.
@@ -53,7 +53,7 @@ Here you will find more information about the
 * Work on your own fork of the main repo
 * Use a separate branch for each issue you’re working on
 * Use conventional commit. See our [Git commit format](#git-commit-format) for details,
-  and our [Git guide](guides/01-git.md) for our full guide
+  and our [Git guide](guides/git.md) for our full guide
 * Please include [unit tests](https://en.wikipedia.org/wiki/Unit_testing) with all your code changes
 * We follow [Trunk Based Development](https://trunkbaseddevelopment.com/) style of working with short-lived feature
   branches.
@@ -70,7 +70,7 @@ is the issue you're fixing. Therefore, an example would be `closes #42` would cl
 
 ## Git commit format
 Git commits are required to follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/). Please see
-our [Conventional Commit Guide](guides/02-conventional-commits.md) for examples.
+our [Conventional Commit Guide](guides/conventional_commits.md) for examples.
 
 ## Readability
 We use the [pre-commit hooks](https://pre-commit.com/) in order to ensure uniform formatting and to exclude potential code issues.

@@ -15,4 +15,4 @@ Feel free to create issues for bug reports or questions about the code. For ques
 
 There are a few things you need to know.
 
-We wrote a [Contribution Guide](/contribute/get-started) to help you get started.
+We wrote a [Contribution Guide](docs/docs/contribute/get_started.md) to help you get started.
