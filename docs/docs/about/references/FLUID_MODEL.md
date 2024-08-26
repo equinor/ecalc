@@ -2,7 +2,7 @@
 
 ## Description
 
-This keyword is necessary when defining a compressor model. It relates to a defined fluid model in the `MODELS` section. How a fluid model is defined is described in further detail in [FLUID MODEL](/about/modelling/setup/models/fluid_model).
+This keyword is necessary when defining a compressor model. It relates to a defined fluid model in the `MODELS` section. How a fluid model is defined is described in further detail in [FLUID MODEL](/about/modelling/setup/models/fluid_model.md).
 
 ## Format
 
