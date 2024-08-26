@@ -6,11 +6,11 @@ sidebar_position: 7
 # DIRECT ENERGY USAGE MODEL
 
 This energy model usage type allows for defining energy usage directly with an expression. It needs to be either
-accompanied by [LOAD](/about/references/keywords/LOAD.md) (for electrical consumers) or [FUELRATE](/about/references/keywords/FUELRATE.md) (for fuel consumers). The energy usage will be
+accompanied by [LOAD](/about/references/LOAD.md) (for electrical consumers) or [FUELRATE](/about/references/FUELRATE.md) (for fuel consumers). The energy usage will be
 equal to the result of the expression given for `LOAD`/`FUELRATE`.
 
-When a model is run with [REGULARITY](/about/references/keywords/REGULARITY.md), there is an option to specify whether the direct consumer is of stream day
-or calendar day energy usage rate with [CONSUMPTION_RATE_TYPE](/about/references/keywords/CONSUMPTION_RATE_TYPE.md).
+When a model is run with [REGULARITY](/about/references/REGULARITY.md), there is an option to specify whether the direct consumer is of stream day
+or calendar day energy usage rate with [CONSUMPTION_RATE_TYPE](/about/references/CONSUMPTION_RATE_TYPE.md).
 
 #### Format
 

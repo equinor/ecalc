@@ -5,20 +5,20 @@ description: Guide on how to use installations
 ---
 
 :::note
-The [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) keyword is **mandatory** within the eCalc™ YAML file.
+The [INSTALLATIONS](/about/references/INSTALLATIONS.md) keyword is **mandatory** within the eCalc™ YAML file.
 :::
 
-In [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) the system of energy consumers is described. Installations, in this setting, are typically the different platforms and production units for a field, group of fields, or area. Mobile units (such as drilling rigs) are also modelled as an installation.
+In [INSTALLATIONS](/about/references/INSTALLATIONS.md) the system of energy consumers is described. Installations, in this setting, are typically the different platforms and production units for a field, group of fields, or area. Mobile units (such as drilling rigs) are also modelled as an installation.
 
 * Essentially installations on which fuel is burned to generate energy for the consumers.
 
-The structure of the keywords under [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md)
+The structure of the keywords under [INSTALLATIONS](/about/references/INSTALLATIONS.md)
 is linked to the structure in the general consumer overview for an installation.
 
-[CATEGORY](/about/references/keywords/CATEGORY.md) is optional, and generally reserved for use with LTP.
+[CATEGORY](/about/references/CATEGORY.md) is optional, and generally reserved for use with LTP.
 
 ### Referring to time series
-In the installations set up, one may refer to variables from [TIME_SERIES](/about/references/keywords/TIME_SERIES.md)
+In the installations set up, one may refer to variables from [TIME_SERIES](/about/references/TIME_SERIES.md)
 in many places by using `expressions` to build up custom, or changing, configurations.
 
 Referring to variables is done on the format:
@@ -33,7 +33,7 @@ See [TIME SERIES](/about/modelling/setup/time_series.md) for more examples
 
 ### Time intervals for variables/expressions and models
 
-For various reasons, the data in the [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) section may vary in time.
+For various reasons, the data in the [INSTALLATIONS](/about/references/INSTALLATIONS.md) section may vary in time.
 The consumers may need to be modeled differently due to rebuilds or degeneration. It could be that the user wants to
 make a simple model for some periods and a more detailed model for others (e.g., a rate only model early time periods and a pressure
 dependent model in the field's late life).
@@ -46,9 +46,9 @@ this date and the next entered date. See `Time intervals` for an example.
 When time dependency is used, the values before the first time default to 0 (zero)
 :::
 
-* [HCEXPORT](/about/references/keywords/HCEXPORT.md) is zero before the first time given.
-* [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) will have 0 fuel usage before the first time defined, despite a non-zero power load.
-* [FUEL](/about/references/keywords/FUEL.md): The fuel rate will be 0 before the first entered date.
+* [HCEXPORT](/about/references/HCEXPORT.md) is zero before the first time given.
+* [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) will have 0 fuel usage before the first time defined, despite a non-zero power load.
+* [FUEL](/about/references/FUEL.md): The fuel rate will be 0 before the first entered date.
 * Consumer energy consumption will be 0 before the first defined time.
 
 ## Format
@@ -90,7 +90,7 @@ INSTALLATIONS
 SIM;OIL_PROD
 ~~~~~~~~
 
-`SIM` is the key defined in [TIME_SERIES](/about/references/keywords/TIME_SERIES.md).
+`SIM` is the key defined in [TIME_SERIES](/about/references/TIME_SERIES.md).
 
 The user can define expressions of variables,
 see `expressions` for details. The following is an example of using expressions:
@@ -103,7 +103,7 @@ SIM1;WATER_PROD:FIELD_A {+} SIM2;WATER_PROD:FIELD_B
 This is not a problem and handled by eCalc automatically.
 
 ### Time intervals
-This example uses the [HCEXPORT](/about/references/keywords/HCEXPORT.md) keyword.
+This example uses the [HCEXPORT](/about/references/HCEXPORT.md) keyword.
 
 **Example: same expression for the entire time frame**
 

@@ -6,20 +6,20 @@ description: Using generator sets in calculations
 
 # Generator sets in calculations
 
-The [GENERATORSETS](/about/references/keywords/GENERATORSETS.md) keyword is optional. However, the only requirement is that each
-installation must have defined either [GENERATORSETS](/about/references/keywords/GENERATORSETS.md) or
-[FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md).
+The [GENERATORSETS](/about/references/GENERATORSETS.md) keyword is optional. However, the only requirement is that each
+installation must have defined either [GENERATORSETS](/about/references/GENERATORSETS.md) or
+[FUELCONSUMERS](/about/references/FUELCONSUMERS.md).
 
-Under [GENERATORSETS](/about/references/keywords/GENERATORSETS.md) one or several `generator sets` 
+Under [GENERATORSETS](/about/references/GENERATORSETS.md) one or several `generator sets` 
 (a 'set' of an engine of some sort and a generator) are specified in a list.
 
-Each generator set requires three sub-keywords, [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md)
-and [CONSUMERS](/about/references/keywords/CONSUMERS.md) and [CATEGORY](/about/references/keywords/CATEGORY.md).
-Optionally, [FUEL](/about/references/keywords/FUEL.md) may be used to override the default fuel type specification for
+Each generator set requires three sub-keywords, [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md)
+and [CONSUMERS](/about/references/CONSUMERS.md) and [CATEGORY](/about/references/CATEGORY.md).
+Optionally, [FUEL](/about/references/FUEL.md) may be used to override the default fuel type specification for
 the installation. If not specified, it will inherit that of the installation.
 
 :::tip What happens when fuel is specified?
-When [FUEL](/about/references/keywords/FUEL.md) is defined for a generator set, there is no merging between the installation fuel
+When [FUEL](/about/references/FUEL.md) is defined for a generator set, there is no merging between the installation fuel
 definition and the generator set fuel definition, but a complete override of the configuration.
 :::
 
@@ -38,11 +38,11 @@ GENERATORSETS:
 
 ## Electricity2fuel function
 ### Description
-The behavior of a generator set is described by an [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md)
+The behavior of a generator set is described by an [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md)
 table, which relates the burned fuel rate to delivered power, including the power generation efficiency at different loads.
 It also defines the operational envelope of the generator set.
 
-[ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) may be modeled with a constant function through time or
+[ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) may be modeled with a constant function through time or
 with different power vs. fuel relations for different time intervals.
 
 ### Format
@@ -61,10 +61,10 @@ ELECTRICITY2FUEL:
 ## Power from shore
 ### Description
 :::note
-Power from shore is currently handled in eCalc™ by defining a dummy [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) model with zero fuel usage, and applying the `POWER-FROM-SHORE` category. This is an intermediate solution and will be dealt with differently in the future.
+Power from shore is currently handled in eCalc™ by defining a dummy [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) model with zero fuel usage, and applying the `POWER-FROM-SHORE` category. This is an intermediate solution and will be dealt with differently in the future.
 :::
 ### Example
-Make an [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) input file with zero fuel usage.
+Make an [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) input file with zero fuel usage.
 
 ~~~~~~~~text
 POWER, FUEL
@@ -73,8 +73,8 @@ POWER, FUEL
 50, 0
 ~~~~~~~~
 
-Specify [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) under 
-[FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md).
+Specify [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) under 
+[FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md).
 
 ~~~~~~~~yaml
 FACILITY_INPUTS:
@@ -83,8 +83,8 @@ FACILITY_INPUTS:
    FILE: genset_pfs.csv
 ~~~~~~~~
 
-Use the `POWER-FROM-SHORE` category and the [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) 
-specified under [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md).
+Use the `POWER-FROM-SHORE` category and the [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) 
+specified under [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md).
 
 ~~~~~~~~yaml
 GENERATORSETS:
@@ -114,12 +114,12 @@ GENERATORSETS:
 ### Description
 :::note
 Heaters and boilers should be modeled in eCalc™ as 
-[GENERATORSETS](/about/references/keywords/GENERATORSETS.md), applying the [HEATER](/about/references/keywords/CATEGORY.md) and [BOILER](/about/references/keywords/CATEGORY.md) categories. This is an intermediate solution and may be dealt with differently in the future.
+[GENERATORSETS](/about/references/GENERATORSETS.md), applying the [HEATER](/about/references/CATEGORY.md) and [BOILER](/about/references/CATEGORY.md) categories. This is an intermediate solution and may be dealt with differently in the future.
 :::
 
 ### Example: Boiler as generator set
 Specify the correlation between energy delivered and fuel consumed under 
-[FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md):
+[FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md):
 ~~~~~~~~yaml
 FACILITY_INPUTS:
  - NAME: boiler_energy_fuel
@@ -127,8 +127,8 @@ FACILITY_INPUTS:
    FILE: boiler_energy_fuel.csv
 ~~~~~~~~
 
-Use the `BOILER` category and the [ELECTRICITY2FUEL](/about/references/keywords/ELECTRICITY2FUEL.md) 
-specified under [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md):
+Use the `BOILER` category and the [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) 
+specified under [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md):
 
 ~~~~~~~~yaml
 GENERATORSETS:
