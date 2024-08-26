@@ -1,5 +1,37 @@
 # Changelog
 
+## [8.21.0](https://github.com/equinor/ecalc/compare/v8.20.0...v8.21.0) (2024-08-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* do not allow pressure drop ahead of stage for simplified trains ([#570](https://github.com/equinor/ecalc/issues/570))
+* do not allow control margin for simplified variable speed train ([#569](https://github.com/equinor/ecalc/issues/569))
+* do not allow 0 efficiency in input chart ([#565](https://github.com/equinor/ecalc/issues/565))
+
+### Bug Fixes
+
+* typo get timesteps docstring ([#562](https://github.com/equinor/ecalc/issues/562)) ([9b31d60](https://github.com/equinor/ecalc/commit/9b31d604c917f106601bc9c2dbc8acc7c0091771))
+
+
+### Documentation
+
+* update broken links and rename files ([#573](https://github.com/equinor/ecalc/issues/573)) ([090edbe](https://github.com/equinor/ecalc/commit/090edbee98ee2fca2002c05ac2a36c93507cd5d2))
+* update changelog manually for 8.19 ([#564](https://github.com/equinor/ecalc/issues/564)) ([971b4b3](https://github.com/equinor/ecalc/commit/971b4b3027a9c703906e0b3fa18a0964006baabc))
+
+
+### Miscellaneous Chores
+
+* do not allow 0 efficiency in input chart ([#565](https://github.com/equinor/ecalc/issues/565)) ([a38bb28](https://github.com/equinor/ecalc/commit/a38bb28f33ba55dcf2048b5490d67de989d9debe))
+* do not allow control margin for simplified variable speed train ([#569](https://github.com/equinor/ecalc/issues/569)) ([82d7e58](https://github.com/equinor/ecalc/commit/82d7e58d276b359e4a9e462e280ed39e0b43441d))
+* do not allow pressure drop ahead of stage for simplified trains ([#570](https://github.com/equinor/ecalc/issues/570)) ([06ef021](https://github.com/equinor/ecalc/commit/06ef021491c43c31e487da37415037186cc65332))
+* make sure that pressure calculation tolerances are the same at different places in the code ([#532](https://github.com/equinor/ecalc/issues/532)) ([736984d](https://github.com/equinor/ecalc/commit/736984d590f1c9d713b68559ced9c1ccf9056c90))
+* ruff manual fixes ([d02b41b](https://github.com/equinor/ecalc/commit/d02b41b0413ee6b66ae42c7f4a8a111e22ff5439))
+* run ruff on all files ([d5ea430](https://github.com/equinor/ecalc/commit/d5ea430d1dcbed9ecf07deaf675a0332c9fb5eec))
+* run ruff-format all files ([6880e12](https://github.com/equinor/ecalc/commit/6880e12c5e993637b2a985f8f04eb41301f917b7))
+* update dependencies through devcalc ([6243717](https://github.com/equinor/ecalc/commit/62437171f02d49333fe96f740085a3ade2abbddf))
+* update ruff and replace black ([a2a3e03](https://github.com/equinor/ecalc/commit/a2a3e035645fcdbc9dbbefa2b9a715579717485c))
+
 ## [8.20.0](https://github.com/equinor/ecalc/compare/v8.19.0...v8.20.0) (2024-08-07)
 
 
