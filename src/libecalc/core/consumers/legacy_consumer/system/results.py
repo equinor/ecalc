@@ -115,9 +115,9 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
     operational_settings: List[List[ConsumerSystemOperationalSetting]]
     operational_settings_results: List[List[ConsumerSystemOperationalSettingResult]]
     consumer_results: List[List[ConsumerSystemComponentResult]]
-    cross_over_used: Optional[
-        PydanticNDArray
-    ] = None  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
+    cross_over_used: Optional[PydanticNDArray] = (
+        None  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
+    )
 
     def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
         if not isinstance(self, type(other)):

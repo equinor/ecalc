@@ -64,8 +64,7 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
         return self
 
 
-class CompressorSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingExpressions):
-    ...
+class CompressorSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingExpressions): ...
 
 
 class PumpSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingExpressions):
@@ -144,8 +143,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
         return self.__class__(**data)
 
 
-class CompressorSystemOperationalSetting(ConsumerSystemOperationalSetting):
-    ...
+class CompressorSystemOperationalSetting(ConsumerSystemOperationalSetting): ...
 
 
 class PumpSystemOperationalSetting(ConsumerSystemOperationalSetting):

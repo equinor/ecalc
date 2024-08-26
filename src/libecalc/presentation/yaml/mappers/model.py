@@ -535,7 +535,10 @@ def _simplified_variable_speed_compressor_train_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
-) -> Union[dto.CompressorTrainSimplifiedWithKnownStages, dto.CompressorTrainSimplifiedWithUnknownStages,]:
+) -> Union[
+    dto.CompressorTrainSimplifiedWithKnownStages,
+    dto.CompressorTrainSimplifiedWithUnknownStages,
+]:
     fluid_model_reference: str = model_config.get(EcalcYamlKeywords.models_type_fluid_model)
     fluid_model = input_models.get(fluid_model_reference)
     if fluid_model is None:

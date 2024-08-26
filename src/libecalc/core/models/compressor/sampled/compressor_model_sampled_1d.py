@@ -97,7 +97,9 @@ class CompressorModelSampled1D:
         if not all_variable_values_unique:
             seen = set()
             duplicates = [
-                x for x in sorted_sampled_data[self._x_column_name] if x in seen or seen.add(x)  # type: ignore[func-returns-value]
+                x
+                for x in sorted_sampled_data[self._x_column_name]
+                if x in seen or seen.add(x)  # type: ignore[func-returns-value]
             ]
             msg = (
                 f"1D compressor sampled data require unique variable input values. "

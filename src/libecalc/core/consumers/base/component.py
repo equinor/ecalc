@@ -13,17 +13,16 @@ class BaseConsumer(ABC):
         self,
         variables_map: VariablesMap,
         temporal_operational_settings,
-    ) -> EcalcModelResult:
-        ...
+    ) -> EcalcModelResult: ...
 
 
 class BaseConsumerWithoutOperationalSettings(ABC):
     id: str
 
     @abstractmethod
-    def get_max_rate(self, inlet_stream: TimeSeriesStreamConditions, target_pressure: TimeSeriesFloat) -> List[float]:
-        ...
+    def get_max_rate(
+        self, inlet_stream: TimeSeriesStreamConditions, target_pressure: TimeSeriesFloat
+    ) -> List[float]: ...
 
     @abstractmethod
-    def evaluate(self, **kwargs) -> EcalcModelResult:
-        ...
+    def evaluate(self, **kwargs) -> EcalcModelResult: ...

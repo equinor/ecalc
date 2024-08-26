@@ -1,6 +1,7 @@
 """
 Point in time stream conditions
 """
+
 from __future__ import annotations
 
 import dataclasses

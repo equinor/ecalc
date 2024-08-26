@@ -1,6 +1,7 @@
 """
 Custom pydantic type to allow for serialization and validation of ndarray
 """
+
 import numpy as np
 from pydantic import BeforeValidator, PlainSerializer
 from typing_extensions import Annotated
