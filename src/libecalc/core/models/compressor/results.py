@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
@@ -11,7 +11,7 @@ from libecalc.core.models.results.compressor import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainCommonShaftFailureStatus,
-    StageTargetPressureStatus,
+    TargetPressureStatus,
 )
 from libecalc.dto.types import ChartAreaFlag
 
@@ -51,15 +51,11 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     power_megawatt: float
 
     chart_area_flag: ChartAreaFlag
-    target_pressure_status: StageTargetPressureStatus
 
     rate_has_recirculation: Optional[bool] = None
     rate_exceeds_maximum: Optional[bool] = None
     pressure_is_choked: Optional[bool] = None
     head_exceeds_maximum: Optional[bool] = None
-
-    inlet_pressure_before_choking: float
-    outlet_pressure_before_choking: float
 
     point_is_valid: bool
     model_config = ConfigDict(extra="forbid")
@@ -89,18 +85,12 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
             rate_exceeds_maximum=False,
             pressure_is_choked=False,
             head_exceeds_maximum=False,
-            inlet_pressure_before_choking=np.nan,
-            outlet_pressure_before_choking=np.nan,
             point_is_valid=True,
-            target_pressure_status=StageTargetPressureStatus.NOT_CALCULATED,
         )
 
     @property
     def is_valid(self) -> bool:
-        return self.within_capacity and self.target_pressure_status in (
-            StageTargetPressureStatus.TARGET_PRESSURES_MET,
-            StageTargetPressureStatus.NOT_CALCULATED,
-        )
+        return self.within_capacity
 
     @property
     def within_capacity(self) -> bool:
@@ -138,15 +128,18 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     mass rate [kg/hour]
     """
 
+    inlet_stream: Optional[dto.FluidStream] = None
+    outlet_stream: Optional[dto.FluidStream] = None
     speed: float
     stage_results: List[CompressorTrainStageResultSingleTimeStep]
     above_maximum_power: bool = False
+    target_pressure_status: TargetPressureStatus
 
     @staticmethod
     def from_result_list_to_dto(
         result_list: List[CompressorTrainResultSingleTimeStep],
         compressor_charts: Optional[List[Union[dto.SingleSpeedChart, dto.VariableSpeedChart]]],
-    ) -> List[CompressorStageResult]:
+    ) -> Tuple[CompressorStreamCondition, CompressorStreamCondition, List[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 
         # Create empty compressor stage results and inlet/outlet stream conditions. This is to ensure correct
@@ -154,12 +147,15 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
         compressor_stage_result = [
             CompressorStageResult.create_empty(len(result_list)) for i in range(number_of_stages)
         ]
-        inlet_stream_condition = [
+        inlet_stream_condition_per_stage = [
             CompressorStreamCondition.create_empty(len(result_list)) for i in range(number_of_stages)
         ]
-        outlet_stream_condition = [
+        outlet_stream_condition_per_stage = [
             CompressorStreamCondition.create_empty(len(result_list)) for i in range(number_of_stages)
         ]
+
+        inlet_stream_condition_train = CompressorStreamCondition.create_empty(len(result_list))
+        outlet_stream_condition_train = CompressorStreamCondition.create_empty(len(result_list))
 
         for i in range(number_of_stages):
             compressor_stage_result[i].energy_usage = [
@@ -187,62 +183,57 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             # For inlet- and outlet stream condition it is necessary to check if inlet- or outlet
             # streams exist. They may not exist, e.g. in case of zero rate etc. In this case, nan should
             # be set, to ensure match between timesteps and values.
-            inlet_stream_condition[i].pressure = [
+            inlet_stream_condition_per_stage[i].pressure = [
                 result_list[t].stage_results[i].inlet_stream.pressure_bara
                 if result_list[t].stage_results[i].inlet_stream is not None
                 and result_list[t].stage_results[i].inlet_stream.pressure_bara is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            inlet_stream_condition[i].pressure_before_choking = [
-                result_list[t].stage_results[i].inlet_pressure_before_choking
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].inlet_pressure_before_choking is not None
-            ]
             # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
-            inlet_stream_condition[i].actual_rate_m3_per_hr = [
+            inlet_stream_condition_per_stage[i].actual_rate_m3_per_hr = [
                 result_list[t].stage_results[i].inlet_actual_rate_asv_corrected_m3_per_hour
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].inlet_actual_rate_asv_corrected_m3_per_hour is not None
             ]
-            inlet_stream_condition[i].actual_rate_before_asv_m3_per_hr = [
+            inlet_stream_condition_per_stage[i].actual_rate_before_asv_m3_per_hr = [
                 result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].inlet_actual_rate_m3_per_hour is not None
             ]
             #
-            inlet_stream_condition[i].standard_rate_sm3_per_day = [
+            inlet_stream_condition_per_stage[i].standard_rate_sm3_per_day = [
                 result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day is not None
             ]
-            inlet_stream_condition[i].standard_rate_before_asv_sm3_per_day = [
+            inlet_stream_condition_per_stage[i].standard_rate_before_asv_sm3_per_day = [
                 result_list[t].stage_results[i].standard_rate_sm3_per_day
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
-            inlet_stream_condition[i].density_kg_per_m3 = [
+            inlet_stream_condition_per_stage[i].density_kg_per_m3 = [
                 result_list[t].stage_results[i].inlet_stream.density_kg_per_m3
                 if result_list[t].stage_results[i].inlet_stream is not None
                 and result_list[t].stage_results[i].inlet_stream.density_kg_per_m3 is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            inlet_stream_condition[i].kappa = [
+            inlet_stream_condition_per_stage[i].kappa = [
                 result_list[t].stage_results[i].inlet_stream.kappa
                 if result_list[t].stage_results[i].inlet_stream is not None
                 and result_list[t].stage_results[i].inlet_stream.kappa is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            inlet_stream_condition[i].z = [
+            inlet_stream_condition_per_stage[i].z = [
                 result_list[t].stage_results[i].inlet_stream.z
                 if result_list[t].stage_results[i].inlet_stream is not None
                 and result_list[t].stage_results[i].inlet_stream.z is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            inlet_stream_condition[i].temperature_kelvin = [
+            inlet_stream_condition_per_stage[i].temperature_kelvin = [
                 result_list[t].stage_results[i].inlet_stream.temperature_kelvin
                 if result_list[t].stage_results[i].inlet_stream is not None
                 and result_list[t].stage_results[i].inlet_stream.temperature_kelvin is not None
@@ -250,60 +241,55 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                 for t in range(len(result_list))
             ]
 
-            outlet_stream_condition[i].pressure = [
+            outlet_stream_condition_per_stage[i].pressure = [
                 result_list[t].stage_results[i].outlet_stream.pressure_bara
                 if result_list[t].stage_results[i].outlet_stream is not None
                 and result_list[t].stage_results[i].outlet_stream.pressure_bara is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            outlet_stream_condition[i].pressure_before_choking = [
-                result_list[t].stage_results[i].outlet_pressure_before_choking
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].outlet_pressure_before_choking is not None
-            ]
-            outlet_stream_condition[i].actual_rate_m3_per_hr = [
+            outlet_stream_condition_per_stage[i].actual_rate_m3_per_hr = [
                 result_list[t].stage_results[i].outlet_actual_rate_asv_corrected_m3_per_hour
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].outlet_actual_rate_asv_corrected_m3_per_hour is not None
             ]
-            outlet_stream_condition[i].actual_rate_before_asv_m3_per_hr = [
+            outlet_stream_condition_per_stage[i].actual_rate_before_asv_m3_per_hr = [
                 result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].outlet_actual_rate_m3_per_hour is not None
             ]
-            outlet_stream_condition[i].standard_rate_sm3_per_day = [
+            outlet_stream_condition_per_stage[i].standard_rate_sm3_per_day = [
                 result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].standard_rate_asv_corrected_sm3_per_day is not None
             ]
-            outlet_stream_condition[i].standard_rate_before_asv_sm3_per_day = [
+            outlet_stream_condition_per_stage[i].standard_rate_before_asv_sm3_per_day = [
                 result_list[t].stage_results[i].standard_rate_sm3_per_day
                 for t in range(len(result_list))
                 if result_list[t].stage_results[i].standard_rate_sm3_per_day is not None
             ]
-            outlet_stream_condition[i].density_kg_per_m3 = [
+            outlet_stream_condition_per_stage[i].density_kg_per_m3 = [
                 result_list[t].stage_results[i].outlet_stream.density_kg_per_m3
                 if result_list[t].stage_results[i].outlet_stream is not None
                 and result_list[t].stage_results[i].outlet_stream.density_kg_per_m3 is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            outlet_stream_condition[i].kappa = [
+            outlet_stream_condition_per_stage[i].kappa = [
                 result_list[t].stage_results[i].outlet_stream.kappa
                 if result_list[t].stage_results[i].outlet_stream is not None
                 and result_list[t].stage_results[i].outlet_stream.kappa is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            outlet_stream_condition[i].z = [
+            outlet_stream_condition_per_stage[i].z = [
                 result_list[t].stage_results[i].outlet_stream.z
                 if result_list[t].stage_results[i].outlet_stream is not None
                 and result_list[t].stage_results[i].outlet_stream.z is not None
                 else np.nan
                 for t in range(len(result_list))
             ]
-            outlet_stream_condition[i].temperature_kelvin = [
+            outlet_stream_condition_per_stage[i].temperature_kelvin = [
                 result_list[t].stage_results[i].outlet_stream.temperature_kelvin
                 if result_list[t].stage_results[i].outlet_stream is not None
                 and result_list[t].stage_results[i].outlet_stream.temperature_kelvin is not None
@@ -311,8 +297,8 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                 for t in range(len(result_list))
             ]
 
-            compressor_stage_result[i].inlet_stream_condition = inlet_stream_condition[i]
-            compressor_stage_result[i].outlet_stream_condition = outlet_stream_condition[i]
+            compressor_stage_result[i].inlet_stream_condition = inlet_stream_condition_per_stage[i]
+            compressor_stage_result[i].outlet_stream_condition = outlet_stream_condition_per_stage[i]
 
             compressor_stage_result[i].polytropic_enthalpy_change_kJ_per_kg = [
                 result_list[t].stage_results[i].polytropic_enthalpy_change_kJ_per_kg
@@ -373,14 +359,120 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             ]
             compressor_stage_result[i].fluid_composition = {}
             compressor_stage_result[i].chart = compressor_charts[i] if compressor_charts is not None else None
-        return compressor_stage_result
+
+            inlet_stream_condition_train.pressure = [
+                result_list[t].inlet_stream.pressure_bara
+                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.pressure_bara is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
+            inlet_stream_condition_train.actual_rate_m3_per_hr = [
+                result_list[t].stage_results[0].mass_rate_kg_per_hour / result_list[t].inlet_stream.density_kg_per_m3
+                for t in range(len(result_list))
+                if result_list[t].stage_results[0].mass_rate_kg_per_hour is not None
+                and result_list[t].inlet_stream is not None
+            ]
+            inlet_stream_condition_train.actual_rate_before_asv_m3_per_hr = [
+                result_list[t].stage_results[0].mass_rate_kg_per_hour / result_list[t].inlet_stream.density_kg_per_m3
+                for t in range(len(result_list))
+                if result_list[t].stage_results[0].mass_rate_kg_per_hour is not None
+                and result_list[t].inlet_stream is not None
+            ]  #
+            inlet_stream_condition_train.standard_rate_sm3_per_day = [
+                compressor_stage_result[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
+                for t in range(len(result_list))
+            ]
+            inlet_stream_condition_train.standard_rate_before_asv_sm3_per_day = (
+                inlet_stream_condition_train.standard_rate_sm3_per_day
+            )
+            inlet_stream_condition_train.density_kg_per_m3 = [
+                result_list[t].inlet_stream.density_kg_per_m3
+                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.density_kg_per_m3 is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            inlet_stream_condition_train.kappa = [
+                result_list[t].inlet_stream.kappa
+                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.kappa is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            inlet_stream_condition_train.z = [
+                result_list[t].inlet_stream.z
+                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.z is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            inlet_stream_condition_train.temperature_kelvin = [
+                result_list[t].inlet_stream.temperature_kelvin
+                if result_list[t].inlet_stream is not None
+                and result_list[t].inlet_stream.temperature_kelvin is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+
+            outlet_stream_condition_train.pressure = [
+                result_list[t].outlet_stream.pressure_bara
+                if result_list[t].outlet_stream is not None and result_list[t].outlet_stream.pressure_bara is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
+            outlet_stream_condition_train.actual_rate_m3_per_hr = [
+                result_list[t].stage_results[-1].mass_rate_kg_per_hour / result_list[t].outlet_stream.density_kg_per_m3
+                for t in range(len(result_list))
+                if result_list[t].stage_results[-1].mass_rate_kg_per_hour is not None
+                and result_list[t].outlet_stream is not None
+            ]
+            outlet_stream_condition_train.actual_rate_before_asv_m3_per_hr = [
+                result_list[t].stage_results[-1].mass_rate_kg_per_hour / result_list[t].outlet_stream.density_kg_per_m3
+                for t in range(len(result_list))
+                if result_list[t].stage_results[-1].mass_rate_kg_per_hour is not None
+                and result_list[t].outlet_stream is not None
+            ]  #
+            outlet_stream_condition_train.standard_rate_sm3_per_day = [
+                compressor_stage_result[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
+                for t in range(len(result_list))
+            ]
+            outlet_stream_condition_train.standard_rate_before_asv_sm3_per_day = (
+                outlet_stream_condition_train.standard_rate_sm3_per_day
+            )
+            outlet_stream_condition_train.density_kg_per_m3 = [
+                result_list[t].outlet_stream.density_kg_per_m3
+                if result_list[t].outlet_stream is not None
+                and result_list[t].outlet_stream.density_kg_per_m3 is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            outlet_stream_condition_train.kappa = [
+                result_list[t].outlet_stream.kappa
+                if result_list[t].outlet_stream is not None and result_list[t].outlet_stream.kappa is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            outlet_stream_condition_train.z = [
+                result_list[t].outlet_stream.z
+                if result_list[t].outlet_stream is not None and result_list[t].outlet_stream.z is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+            outlet_stream_condition_train.temperature_kelvin = [
+                result_list[t].outlet_stream.temperature_kelvin
+                if result_list[t].outlet_stream is not None
+                and result_list[t].outlet_stream.temperature_kelvin is not None
+                else np.nan
+                for t in range(len(result_list))
+            ]
+
+        return inlet_stream_condition_train, outlet_stream_condition_train, compressor_stage_result
 
     model_config = ConfigDict(extra="forbid")
 
     @property
     def failure_status(self):
         if not all(r.is_valid for r in self.stage_results):
-            for i, stage in enumerate(self.stage_results):
+            for stage in self.stage_results:
                 if not stage.is_valid:
                     if not stage.within_capacity:
                         if stage.chart_area_flag in (
@@ -393,26 +485,14 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                             ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
                         ):
                             return CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
-                    elif stage.target_pressure_status == StageTargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE:
-                        if i == 0:  # first stage
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-                        else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
-                    elif stage.target_pressure_status == StageTargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
-                        if i == 0:  # first stage
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_SUCTION_PRESSURE_TOO_HIGH
-                        else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
-                    elif stage.target_pressure_status == StageTargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
-                        if i == len(self.stage_results) - 1:  # last stage
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-                        else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
-                    elif stage.target_pressure_status == StageTargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE:
-                        if i == len(self.stage_results) - 1:  # last stage
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
-                        else:
-                            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
+        if self.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE:
+            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+        elif self.target_pressure_status == TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
+            return CompressorTrainCommonShaftFailureStatus.TARGET_SUCTION_PRESSURE_TOO_HIGH
+        elif self.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
+            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
+        elif self.target_pressure_status == TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE:
+            return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
         elif self.above_maximum_power:
             return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
 
@@ -456,25 +536,17 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def discharge_pressure(self) -> float:
-        if self.stage_results[-1].outlet_stream is not None:
-            return self.stage_results[-1].outlet_stream.pressure_bara
+        if self.outlet_stream is not None:
+            return self.outlet_stream.pressure_bara
         else:
             return np.nan
-
-    @property
-    def discharge_pressure_before_choking(self) -> float:
-        return self.stage_results[-1].outlet_pressure_before_choking
 
     @property
     def suction_pressure(self) -> float:
-        if self.stage_results[0].inlet_stream is not None:
-            return self.stage_results[0].inlet_stream.pressure_bara
+        if self.inlet_stream is not None:
+            return self.inlet_stream.pressure_bara
         else:
             return np.nan
-
-    @property
-    def suction_pressure_before_choking(self) -> float:
-        return self.stage_results[0].inlet_pressure_before_choking
 
     @property
     def mass_rate_kg_per_hour(self) -> float:
@@ -494,36 +566,36 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def inlet_density(self) -> float:
-        if self.stage_results[0].inlet_stream is not None:
-            return self.stage_results[0].inlet_stream.density_kg_per_m3
+        if self.inlet_stream is not None:
+            return self.inlet_stream.density_kg_per_m3
         else:
             return np.nan
 
     @property
     def inlet_z(self) -> float:
-        if self.stage_results[0].inlet_stream is not None:
-            return self.stage_results[0].inlet_stream.z
+        if self.inlet_stream is not None:
+            return self.inlet_stream.z
         else:
             return np.nan
 
     @property
     def inlet_kappa(self) -> float:
-        if self.stage_results[0].inlet_stream is not None:
-            return self.stage_results[0].inlet_stream.kappa
+        if self.inlet_stream is not None:
+            return self.inlet_stream.kappa
         else:
             return np.nan
 
     @property
     def inlet_temperature_kelvin(self) -> float:
-        if self.stage_results[0].inlet_stream is not None:
-            return self.stage_results[0].inlet_stream.temperature_kelvin
+        if self.inlet_stream is not None:
+            return self.inlet_stream.temperature_kelvin
         else:
             return np.nan
 
     @property
     def inlet_fluid_composition(self) -> dto.FluidComposition:
-        if self.stage_results[0].inlet_stream is not None:
-            return self.stage_results[0].inlet_stream.composition
+        if self.inlet_stream is not None:
+            return self.inlet_stream.composition
         else:
             return dto.FluidComposition()
 
@@ -533,36 +605,36 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def outlet_density(self) -> float:
-        if self.stage_results[-1].outlet_stream is not None:
-            return self.stage_results[-1].outlet_stream.density_kg_per_m3
+        if self.outlet_stream is not None:
+            return self.outlet_stream.density_kg_per_m3
         else:
             return np.nan
 
     @property
     def outlet_kappa(self) -> float:
-        if self.stage_results[-1].outlet_stream is not None:
-            return self.stage_results[-1].outlet_stream.kappa
+        if self.outlet_stream is not None:
+            return self.outlet_stream.kappa
         else:
             return np.nan
 
     @property
     def outlet_z(self) -> float:
-        if self.stage_results[-1].outlet_stream is not None:
-            return self.stage_results[-1].outlet_stream.z
+        if self.outlet_stream is not None:
+            return self.outlet_stream.z
         else:
             return np.nan
 
     @property
     def outlet_temperature_kelvin(self) -> float:
-        if self.stage_results[-1].outlet_stream is not None:
-            return self.stage_results[-1].outlet_stream.temperature_kelvin
+        if self.outlet_stream is not None:
+            return self.outlet_stream.temperature_kelvin
         else:
             return np.nan
 
     @property
     def outlet_fluid_composition(self) -> dto.FluidComposition:
-        if self.stage_results[-1].outlet_stream is not None:
-            return self.stage_results[-1].outlet_stream.composition
+        if self.outlet_stream is not None:
+            return self.outlet_stream.composition
         else:
             return dto.FluidComposition()
 
@@ -606,7 +678,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     @property
     def pressure_is_choked(self) -> bool:
         # Small margin when checking for choke in order to avoid false positives.
-        return self.discharge_pressure < (self.discharge_pressure_before_choking - 1e-5) or any(
+        return self.discharge_pressure < (self.stage_results[-1].discharge_pressure - 1e-5) or any(
             stage.pressure_is_choked for stage in self.stage_results
         )
 
@@ -622,6 +694,9 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     @classmethod
     def create_empty(cls, number_of_stages: int) -> CompressorTrainResultSingleTimeStep:
         return cls(
+            inlet_stream=None,
+            outlet_stream=None,
             speed=np.nan,
             stage_results=[CompressorTrainStageResultSingleTimeStep.create_empty()] * number_of_stages,
+            target_pressure_status=TargetPressureStatus.NOT_CALCULATED,
         )

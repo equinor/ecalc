@@ -635,13 +635,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.BARA,
                             ),
-                            pressure_before_choking=TimeSeriesFloat(
-                                timesteps=model.timesteps,
-                                values=stage_result.inlet_stream_condition.pressure_before_choking
-                                if stage_result.inlet_stream_condition.pressure_before_choking is not None
-                                else [math.nan] * len(model.timesteps),
-                                unit=Unit.BARA,
-                            ),
                             temperature_kelvin=TimeSeriesFloat(
                                 timesteps=model.timesteps,
                                 values=stage_result.inlet_stream_condition.temperature_kelvin
@@ -710,13 +703,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                                 timesteps=model.timesteps,
                                 values=stage_result.outlet_stream_condition.pressure
                                 if stage_result.outlet_stream_condition.pressure is not None
-                                else [math.nan] * len(model.timesteps),
-                                unit=Unit.BARA,
-                            ),
-                            pressure_before_choking=TimeSeriesFloat(
-                                timesteps=model.timesteps,
-                                values=stage_result.outlet_stream_condition.pressure_before_choking
-                                if stage_result.outlet_stream_condition.pressure_before_choking is not None
                                 else [math.nan] * len(model.timesteps),
                                 unit=Unit.BARA,
                             ),
@@ -1103,7 +1089,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     consumer_result.component_result.recirculation_loss, regularity=regularity
                 ),
                 rate_exceeds_maximum=consumer_result.component_result.rate_exceeds_maximum,
-                outlet_pressure_before_choking=consumer_result.component_result.outlet_pressure_before_choking,
                 timesteps=consumer_result.component_result.timesteps,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,

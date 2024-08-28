@@ -8,7 +8,6 @@ from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
-    TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.base import BaseConsumerWithoutOperationalSettings
@@ -65,14 +64,6 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             unit=model_result.energy_usage_unit,
         )
 
-        outlet_pressure_before_choke = TimeSeriesFloat(
-            values=model_result.outlet_pressure_before_choking
-            if model_result.outlet_pressure_before_choking
-            else [np.nan],
-            timesteps=[current_timestep],
-            unit=Unit.BARA,
-        )
-
         component_result = core_results.CompressorResult(
             timesteps=[current_timestep],
             power=TimeSeriesStreamDayRate(
@@ -93,7 +84,6 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                 timesteps=[current_timestep],
                 unit=Unit.NONE,
             ),
-            outlet_pressure_before_choking=outlet_pressure_before_choke,
             streams=[
                 TimeSeriesStreamConditions.from_stream_condition(total_requested_inlet_stream),
                 *[

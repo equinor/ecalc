@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from enum import Enum
 from math import isnan
 from typing import Dict, List, Optional, Union
@@ -37,7 +36,7 @@ class CompressorTrainCommonShaftFailureStatus(str, Enum):
     NOT_CALCULATED = "NOT_CALCULATED"
 
 
-class StageTargetPressureStatus(str, Enum):
+class TargetPressureStatus(str, Enum):
     NOT_CALCULATED = "NOT_CALCULATED"
     BELOW_TARGET_SUCTION_PRESSURE = "BELOW_TARGET_SUCTION_PRESSURE"
     ABOVE_TARGET_SUCTION_PRESSURE = "ABOVE_TARGET_SUCTION_PRESSURE"
@@ -48,7 +47,6 @@ class StageTargetPressureStatus(str, Enum):
 
 class CompressorStreamCondition(EnergyModelBaseResult):
     pressure: Optional[List[Optional[float]]] = None
-    pressure_before_choking: Optional[List[Optional[float]]] = None
     actual_rate_m3_per_hr: Optional[List[Optional[float]]] = None
     actual_rate_before_asv_m3_per_hr: Optional[List[Optional[float]]] = None
     standard_rate_sm3_per_day: Optional[List[Optional[float]]] = None
@@ -63,7 +61,6 @@ class CompressorStreamCondition(EnergyModelBaseResult):
         nans = [np.nan] * number_of_timesteps
         return cls(
             pressure=nans,
-            pressure_before_choking=nans,
             actual_rate_m3_per_hr=nans,
             actual_rate_before_asv_m3_per_hr=nans,
             standard_rate_sm3_per_day=nans,
@@ -139,12 +136,23 @@ class CompressorStageResult(EnergyModelBaseResult):
             chart=None,
         )
 
+    @property
+    def outlet_stream(self) -> CompressorStreamCondition:
+        return self.outlet_stream_condition
+
+    @property
+    def inlet_stream(self) -> CompressorStreamCondition:
+        return self.inlet_stream_condition
+
 
 class CompressorTrainResult(EnergyFunctionResult):
     """The compressor train result component."""
 
     rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]]]
     max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]] = None
+
+    inlet_stream_condition: CompressorStreamCondition
+    outlet_stream_condition: CompressorStreamCondition
 
     stage_results: List[CompressorStageResult]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
@@ -232,11 +240,11 @@ class CompressorTrainResult(EnergyFunctionResult):
 
     @property
     def inlet_stream(self) -> CompressorStreamCondition:
-        return self.stage_results[0].inlet_stream_condition
+        return self.inlet_stream_condition
 
     @property
     def outlet_stream(self) -> CompressorStreamCondition:
-        return self.stage_results[-1].outlet_stream_condition
+        return self.outlet_stream_condition
 
     @property
     def mass_rate_kg_per_hr(self) -> List[float]:
@@ -254,14 +262,3 @@ class CompressorTrainResult(EnergyFunctionResult):
     @property
     def rate_exceeds_maximum(self) -> List[bool]:
         return list(np.any([stage.rate_exceeds_maximum for stage in self.stage_results], axis=0))
-
-    @property
-    def outlet_pressure_before_choking(self) -> Optional[List[float]]:
-        return (
-            [
-                pressure if pressure is not None else math.nan
-                for pressure in self.stage_results[-1].outlet_stream_condition.pressure_before_choking
-            ]
-            if self.stage_results[-1].outlet_stream_condition.pressure_before_choking is not None
-            else None
-        )

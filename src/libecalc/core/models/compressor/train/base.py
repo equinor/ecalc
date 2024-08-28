@@ -15,8 +15,14 @@ from libecalc.core.models import (
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.fluid import FluidStream
+from libecalc.core.models.compressor.train.utils.common import (
+    PRESSURE_CALCULATION_TOLERANCE,
+)
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.core.models.results import CompressorTrainResult
+from libecalc.core.models.results.compressor import (
+    TargetPressureStatus,
+)
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTrainDTO
 from libecalc.dto.models.compressor.train import (
@@ -159,12 +165,18 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 )
                 max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
 
-        stage_results = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
+        (
+            inlet_stream_conditions,
+            outlet_stream_conditions,
+            stage_results,
+        ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
         )
 
         return CompressorTrainResult(
+            inlet_stream_condition=inlet_stream_conditions,
+            outlet_stream_condition=outlet_stream_conditions,
             energy_usage=list(power_mw_adjusted),
             energy_usage_unit=Unit.MEGA_WATT,
             power=list(power_mw_adjusted),
@@ -228,3 +240,30 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             discharge_pressure, suction_pressure, out=np.ones_like(suction_pressure), where=suction_pressure != 0
         )
         return pressure_ratios ** (1.0 / len(self.stages))
+
+    def check_target_pressures(
+        self,
+        calculated_suction_pressure: float,
+        calculated_discharge_pressure: float,
+    ) -> TargetPressureStatus:
+        """
+
+        Args:
+            calculated_suction_pressure:
+            calculated_discharge_pressure:
+
+        Returns:
+
+        """
+        if self._target_suction_pressure:
+            if (calculated_suction_pressure / self._target_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
+            if (self._target_suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
+        if self._target_discharge_pressure:
+            if (calculated_discharge_pressure / self._target_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
+            if (self._target_discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
+
+        return TargetPressureStatus.TARGET_PRESSURES_MET

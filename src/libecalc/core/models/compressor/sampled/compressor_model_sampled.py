@@ -258,6 +258,8 @@ class CompressorModelSampled(CompressorModel):
         # Note that actual rates are not available since it is not possible to convert from standard rates to
         # actual rates when information about fluid composition (density in particular) is not available
         result = CompressorTrainResult(
+            inlet_stream_condition=inlet_stream_condition,
+            outlet_stream_condition=outlet_stream_condition,
             energy_usage=energy_usage,
             energy_usage_unit=Unit.MEGA_WATT if self.function_values_are_power else Unit.STANDARD_CUBIC_METER_PER_DAY,
             power=array_to_list(interpolated_consumer_values) if self.function_values_are_power else turbine_power,

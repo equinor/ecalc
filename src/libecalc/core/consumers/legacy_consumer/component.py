@@ -186,23 +186,9 @@ class Consumer(BaseConsumer):
                         new_time_vector=timesteps,
                     )
                 )
-                outlet_pressure_before_choking = (
-                    aggregated_result.energy_function_result.outlet_pressure_before_choking
-                    if aggregated_result.energy_function_result.outlet_pressure_before_choking is not None
-                    else [math.nan] * len(timesteps)
-                )
-
-                outlet_pressure_before_choking = array_to_list(
-                    self.reindex_time_vector(
-                        values=outlet_pressure_before_choking,
-                        time_vector=aggregated_result.time_vector,
-                        new_time_vector=timesteps,
-                    )
-                )
             else:
                 recirculation_loss = [math.nan] * len(timesteps)
                 rate_exceeds_maximum = [False] * len(timesteps)
-                outlet_pressure_before_choking = [math.nan] * len(timesteps)
 
             consumer_result = CompressorResult(
                 id=self._consumer_dto.id,
@@ -217,9 +203,6 @@ class Consumer(BaseConsumer):
                 ),
                 rate_exceeds_maximum=TimeSeriesBoolean(
                     timesteps=timesteps, values=rate_exceeds_maximum, unit=Unit.NONE
-                ),
-                outlet_pressure_before_choking=TimeSeriesFloat(
-                    timesteps=timesteps, values=outlet_pressure_before_choking, unit=Unit.BARA
                 ),
             )
 

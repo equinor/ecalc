@@ -140,8 +140,6 @@ class CompressorResult(EquipmentResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
-    outlet_pressure_before_choking: TimeSeriesFloat
-
     streams: Optional[List[TimeSeriesStreamConditions]]  # Optional because only in v2
 
 
@@ -186,7 +184,6 @@ class CompressorStreamConditionResult(TabularTimeSeries):
     kappa: TimeSeriesFloat
     density_kg_per_m3: TimeSeriesFloat
     pressure: TimeSeriesFloat
-    pressure_before_choking: TimeSeriesFloat
     temperature_kelvin: TimeSeriesFloat
     z: TimeSeriesFloat
 
