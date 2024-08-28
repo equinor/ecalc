@@ -97,12 +97,12 @@ class ConsumerMapper:
         default_fuel: Optional[str] = None,
     ) -> dto.components.Consumer:
         component_type = data.get(EcalcYamlKeywords.type)
-        if component_type is not None and component_type != ComponentType.CONSUMER_SYSTEM_V2:
-            # We have type here for v2, check that type is valid
-            raise DataValidationError(
-                data=data,
-                message=f"Invalid component type '{component_type}' for component with name '{data.get(EcalcYamlKeywords.name)}'",
-            )
+        # if component_type is not None and component_type != ComponentType.CONSUMER_SYSTEM_V2:
+        # We have type here for v2, check that type is valid
+        #    raise DataValidationError(
+        #        data=data,
+        #        message=f"Invalid component type '{component_type}' for component with name '{data.get(EcalcYamlKeywords.name)}'",
+        #    )
 
         fuel = None
         if consumes == ConsumptionType.FUEL:

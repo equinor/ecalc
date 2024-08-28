@@ -50,7 +50,11 @@ class EnergyCalculator:
                 consumer = Consumer(consumer_dto=component_dto)
                 consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)
             elif isinstance(component_dto, dto.GeneratorSet):
-                fuel_consumer = Genset(component_dto)
+                fuel_consumer = Genset(
+                    data_transfer_object=component_dto,
+                    generator_set_model=component_dto.generator_set_model,
+                    fuel=component_dto.fuel,
+                )
 
                 power_requirement = elementwise_sum(
                     *[

@@ -1,5 +1,10 @@
+from datetime import datetime
+from typing import Dict, List, Literal, Optional, Union
+
 import numpy as np
 from numpy.typing import NDArray
+from pydantic import Field
+from typing_extensions import Annotated
 
 from libecalc import dto
 from libecalc.common.list.list_utils import array_to_list
@@ -14,16 +19,49 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
+from libecalc.dto.base import (
+    ComponentType,
+)
+from libecalc.dto.models import (
+    GeneratorSetSampled,
+)
+from libecalc.dto.types import FuelType
+from libecalc.dto.utils.validators import ExpressionType
 from libecalc.dto.variables import VariablesMap
 
 
 class Genset:
     def __init__(
         self,
+        fuel: Dict[datetime, FuelType],
         data_transfer_object: dto.GeneratorSet,
+        generator_set_model: Dict[datetime, GeneratorSetSampled],
+        component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
+        consumers: List[
+            Annotated[
+                Union[dto.ElectricityConsumer, dto.components.ConsumerSystem],
+                Field(discriminator="component_type"),
+            ]
+        ] = Field(default_factory=list),
+        cable_loss: Optional[ExpressionType] = Field(
+            None,
+            title="CABLE_LOSS",
+            description="Power loss in cables from shore. " "Used to calculate onshore delivery/power supply onshore.",
+        ),
+        max_usage_from_shore: Optional[ExpressionType] = Field(
+            None,
+            title="MAX_USAGE_FROM_SHORE",
+            description="The peak load/effect that is expected for one hour, per year.",
+        ),
     ):
         logger.debug(f"Creating Genset: {data_transfer_object.name}")
         self.data_transfer_object = data_transfer_object
+        self.temporal_generator_set_model = TemporalModel(
+            {
+                start_time: GeneratorModelSampled(model)
+                for start_time, model in data_transfer_object.generator_set_model.items()
+            }
+        )
         self.temporal_generator_set_model = TemporalModel(
             {
                 start_time: GeneratorModelSampled(model)

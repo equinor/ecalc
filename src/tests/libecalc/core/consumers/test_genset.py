@@ -53,7 +53,11 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
 def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     """Testing what happens when the el-consumers has nan-values in power. -> Genset should not do anything."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
-    genset = Genset(genset_2mw_dto)
+    genset = Genset(
+        data_transfer_object=genset_2mw_dto,
+        generator_set_model=genset_2mw_dto.generator_set_model,
+        fuel=genset_2mw_dto.fuel,
+    )
 
     results = genset.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector),
@@ -81,7 +85,11 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
 def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     """Testing what happens when the power rate is outside of genset capacity. -> Genset will extrapolate (forward fill)."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
-    genset = Genset(genset_2mw_dto)
+    genset = Genset(
+        data_transfer_object=genset_2mw_dto,
+        fuel=genset_2mw_dto.fuel,
+        generator_set_model=genset_2mw_dto.generator_set_model,
+    )
 
     results = genset.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector),
