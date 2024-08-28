@@ -411,11 +411,9 @@ def test_no_emitters_or_fuelconsumers():
             path=Path(venting_emitters.__path__[0]),
         )
 
-    assert (
-        f"\nminimal_installation:\n:\tValue error, Keywords are missing:\n It is required to specify at least one of the keywords "
-        f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} "
-        f"in the model."
-    ) in str(ee.value)
+    error_message = ee.value.extended_message
+    assert "minimal_installation" in error_message
+    assert f"It is required to specify at least one of the keywords {EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model."
 
 
 def test_total_oil_loaded_old_method():

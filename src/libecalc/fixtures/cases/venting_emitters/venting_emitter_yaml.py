@@ -1,17 +1,13 @@
+from io import StringIO
 from pathlib import Path
 from typing import List
-
-import yaml
 
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.dto import ResultOptions
 from libecalc.fixtures.case_types import DTOCase
-from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
-from libecalc.presentation.yaml.model import FileResourceService
-from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.model import FileResourceService, YamlModel
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
 )
@@ -19,6 +15,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
     YamlOilRateUnits,
 )
+from tests.libecalc.input.mappers.test_model_mapper import OverridableStreamConfigurationService
 
 
 def venting_emitter_yaml_factory(
@@ -83,25 +80,18 @@ def venting_emitter_yaml_factory(
 
         """
 
-    yaml_text = yaml.safe_load(input_text)
-    configuration = PyYamlYamlModel(
-        internal_datamodel=yaml_text,
-        name="venting_emitters",
-        instantiated_through_read=True,
+    configuration_service = OverridableStreamConfigurationService(
+        stream=ResourceStream(
+            name="venting_emitters",
+            stream=StringIO(input_text),
+        )
     )
-    resources = FileResourceService._read_resources(configuration=configuration, working_directory=path)
-    variables = map_yaml_to_variables(
-        configuration,
-        resources=resources,
-        result_options=ResultOptions(
-            start=configuration.start,
-            end=configuration.end,
-            output_frequency=Frequency.YEAR,
-        ),
+    resource_service = FileResourceService(working_directory=path)
+    model = YamlModel(
+        configuration_service=configuration_service, resource_service=resource_service, output_frequency=Frequency.YEAR
     )
 
-    yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources)
-    return DTOCase(ecalc_model=yaml_model, variables=variables)
+    return DTOCase(ecalc_model=model.dto, variables=model.variables)
 
 
 def create_fuel_consumers(include_fuel_consumers: bool) -> str:

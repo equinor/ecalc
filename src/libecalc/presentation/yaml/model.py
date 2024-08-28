@@ -1,7 +1,8 @@
 import abc
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Dict, Optional, Protocol
+from textwrap import indent
+from typing import Callable, Dict, List, Optional, Protocol
 
 from libecalc.common.errors.exceptions import EcalcError, InvalidResourceHeaderException
 from libecalc.common.logger import logger
@@ -14,11 +15,18 @@ from libecalc.infrastructure.file_io import (
 )
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
+from libecalc.presentation.yaml.validation_errors import DtoValidationError, ModelValidationError
 from libecalc.presentation.yaml.yaml_entities import (
     Resource,
     ResourceStream,
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
+from libecalc.presentation.yaml.yaml_validation_context import (
+    ModelContext,
+    ModelName,
+    YamlModelValidationContext,
+    YamlModelValidationContextNames,
+)
 
 
 class ResourceService(Protocol):
@@ -81,6 +89,29 @@ class FileConfigurationService(ConfigurationService):
             return main_yaml_model
 
 
+class InvalidResourceException(Exception):
+    pass
+
+
+class ModelValidationException(Exception):
+    def __init__(self, errors: List[ModelValidationError]):
+        self._errors = errors
+        super().__init__("Model is not valid")
+
+    def error_count(self) -> int:
+        return len(self._errors)
+
+    def errors(self) -> List[ModelValidationError]:
+        return self._errors
+
+    def __str__(self):
+        msg = "Validation error\n\n"
+        errors = "\n\n".join(map(str, self._errors))
+        errors = indent(errors, "\t")
+        msg += errors
+        return msg
+
+
 class YamlModel:
     """
     Class representing both the yaml and the resources.
@@ -103,10 +134,10 @@ class YamlModel:
         output_frequency: Frequency,
     ) -> None:
         self._output_frequency = output_frequency
-        configuration = configuration_service.get_configuration()
-        self.resources = resource_service.get_resources(configuration)
-        self.dto = map_yaml_to_dto(configuration=configuration, resources=self.resources)
-        self._configuration = configuration
+        self._configuration = configuration_service.get_configuration()
+        self.resources = resource_service.get_resources(self._configuration)
+        self.is_valid_for_run()
+        self.dto = map_yaml_to_dto(configuration=self._configuration, resources=self.resources)
 
     @property
     def start(self) -> Optional[datetime]:
@@ -133,3 +164,53 @@ class YamlModel:
     @property
     def graph(self) -> ComponentGraph:
         return self.dto.get_graph()
+
+    def _find_resource_from_name(self, filename: str) -> Optional[Resource]:
+        return self.resources.get(filename)
+
+    def _get_token_references(self, yaml_model: YamlValidator) -> List[str]:
+        token_references = []
+        for time_series in yaml_model.time_series:
+            resource = self._find_resource_from_name(time_series.file)
+
+            if resource is None:
+                # Don't add any tokens if the resource is not found
+                continue
+
+            try:
+                headers = resource.headers
+                for header in headers:
+                    token_references.append(f"{time_series.name};{header}")
+            except InvalidResourceException:
+                # Don't add any tokens if resource is invalid (unable to read header)
+                continue
+
+        for reference in yaml_model.variables:
+            token_references.append(f"$var.{reference}")
+
+        return token_references
+
+    @staticmethod
+    def _get_model_types(yaml_model: YamlValidator) -> Dict["ModelName", "ModelContext"]:
+        models = [*yaml_model.models, *yaml_model.facility_inputs]
+        model_types: Dict[ModelName, ModelContext] = {}
+        for model in models:
+            if hasattr(model, "name"):
+                model_types[model.name] = model
+        return model_types
+
+    def _get_validation_context(self, yaml_model: YamlValidator) -> YamlModelValidationContext:
+        return {
+            YamlModelValidationContextNames.resource_file_names: [name for name, resource in self.resources.items()],
+            YamlModelValidationContextNames.expression_tokens: self._get_token_references(yaml_model=yaml_model),
+            YamlModelValidationContextNames.model_types: self._get_model_types(yaml_model=yaml_model),
+        }
+
+    def is_valid_for_run(self) -> bool:
+        try:
+            # Validate model
+            validation_context = self._get_validation_context(yaml_model=self._configuration)
+            self._configuration.validate(validation_context)
+            return True
+        except DtoValidationError as e:
+            raise ModelValidationException(errors=e.errors()) from e
