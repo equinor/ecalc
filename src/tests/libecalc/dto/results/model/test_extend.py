@@ -37,8 +37,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 power=[1, 2, 3],
                 power_unit=Unit.MEGA_WATT,
                 is_valid=[True, True, False],
-                inlet_stream=CompressorStreamCondition(pressure=[10, 20, 30]),
-                outlet_stream=CompressorStreamCondition(pressure=[100, 200, 300]),
+                inlet_stream_condition=CompressorStreamCondition(pressure=[10, 20, 30]),
+                outlet_stream_condition=CompressorStreamCondition(pressure=[100, 200, 300]),
                 fluid_composition={},
                 chart_area_flags=[
                     ChartAreaFlag.INTERNAL_POINT,
@@ -57,8 +57,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 power=[4, 5, 6],
                 power_unit=Unit.MEGA_WATT,
                 is_valid=[True, True, False],
-                inlet_stream=CompressorStreamCondition(pressure=[10, 20, 30]),
-                outlet_stream=CompressorStreamCondition(pressure=[100, 200, 300]),
+                inlet_stream_condition=CompressorStreamCondition(pressure=[10, 20, 30]),
+                outlet_stream_condition=CompressorStreamCondition(pressure=[100, 200, 300]),
                 fluid_composition={},
                 chart_area_flags=[
                     ChartAreaFlag.INTERNAL_POINT,
@@ -72,8 +72,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 asv_recirculation_loss_mw=[0, 0, 0],
             ),
         ],
-        inlet_stream=CompressorStreamCondition(pressure=[10, 20, 30]),
-        outlet_stream=CompressorStreamCondition(pressure=[100, 200, 300]),
+        inlet_stream_condition=CompressorStreamCondition(pressure=[10, 20, 30]),
+        outlet_stream_condition=CompressorStreamCondition(pressure=[100, 200, 300]),
     )
 
 
