@@ -211,6 +211,10 @@ def compressor_model_result() -> CompressorTrainResult:
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         ],
+        inlet_stream_condition=CompressorStreamCondition(
+            actual_rate_m3_per_hr=[1.0, 2.0, 3.0], pressure=[1.0, 2.0, 3.0]
+        ),
+        outlet_stream_condition=CompressorStreamCondition(pressure=[1.0, 2.0, 3.0]),
     )
 
 
@@ -248,6 +252,10 @@ def compressor_model_result_invalid_steps() -> CompressorTrainResult:
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         ],
+        inlet_stream_condition=CompressorStreamCondition(
+            actual_rate_m3_per_hr=[1.0, 2.0, 3.0], pressure=[1.0, 2.0, 3.0]
+        ),
+        outlet_stream_condition=CompressorStreamCondition(pressure=[1.0, 2.0, 3.0]),
     )
 
 

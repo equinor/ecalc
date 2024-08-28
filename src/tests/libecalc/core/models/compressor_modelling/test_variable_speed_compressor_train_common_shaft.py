@@ -215,7 +215,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         )
 
         assert result.outlet_stream.pressure[0] == 40
-        np.testing.assert_allclose(result.outlet_stream.pressure_before_choking, 51, atol=1)
+        np.testing.assert_allclose(result.stage_results[-1].outlet_stream.pressure, 51, atol=1)
         assert all(result.is_valid)
         assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.INTERNAL_POINT
 

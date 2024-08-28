@@ -37,8 +37,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 power=[1, 2, 3],
                 power_unit=Unit.MEGA_WATT,
                 is_valid=[True, True, False],
-                inlet_stream_condition=CompressorStreamCondition(pressure=[10, 20, 30]),
-                outlet_stream_condition=CompressorStreamCondition(pressure=[100, 200, 300]),
+                inlet_stream=CompressorStreamCondition(pressure=[10, 20, 30]),
+                outlet_stream=CompressorStreamCondition(pressure=[100, 200, 300]),
                 fluid_composition={},
                 chart_area_flags=[
                     ChartAreaFlag.INTERNAL_POINT,
@@ -57,8 +57,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 power=[4, 5, 6],
                 power_unit=Unit.MEGA_WATT,
                 is_valid=[True, True, False],
-                inlet_stream_condition=CompressorStreamCondition(pressure=[10, 20, 30]),
-                outlet_stream_condition=CompressorStreamCondition(pressure=[100, 200, 300]),
+                inlet_stream=CompressorStreamCondition(pressure=[10, 20, 30]),
+                outlet_stream=CompressorStreamCondition(pressure=[100, 200, 300]),
                 fluid_composition={},
                 chart_area_flags=[
                     ChartAreaFlag.INTERNAL_POINT,
@@ -72,6 +72,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 asv_recirculation_loss_mw=[0, 0, 0],
             ),
         ],
+        inlet_stream=CompressorStreamCondition(pressure=[10, 20, 30]),
+        outlet_stream=CompressorStreamCondition(pressure=[100, 200, 300]),
     )
 
 
@@ -104,8 +106,8 @@ def test_extend_compressor_model_result(compressor_model_result):
     assert compressor_model_result.stage_results[0].chart_area_flags == [ChartAreaFlag.INTERNAL_POINT] * 6
     assert compressor_model_result.stage_results[1].chart_area_flags == [ChartAreaFlag.INTERNAL_POINT] * 6
 
-    assert compressor_model_result.stage_results[0].inlet_stream_condition.pressure == [10, 20, 30] * 2
-    assert compressor_model_result.stage_results[1].inlet_stream_condition.pressure == [10, 20, 30] * 2
+    assert compressor_model_result.stage_results[0].inlet_stream.pressure == [10, 20, 30] * 2
+    assert compressor_model_result.stage_results[1].inlet_stream.pressure == [10, 20, 30] * 2
 
-    assert compressor_model_result.stage_results[0].outlet_stream_condition.pressure == [100, 200, 300] * 2
-    assert compressor_model_result.stage_results[1].outlet_stream_condition.pressure == [100, 200, 300] * 2
+    assert compressor_model_result.stage_results[0].outlet_stream.pressure == [100, 200, 300] * 2
+    assert compressor_model_result.stage_results[1].outlet_stream.pressure == [100, 200, 300] * 2

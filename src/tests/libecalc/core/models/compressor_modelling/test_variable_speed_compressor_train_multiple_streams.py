@@ -636,9 +636,7 @@ def test_evaluate_variable_speed_compressor_train_multiple_streams_and_pressures
     )
 
     np.testing.assert_allclose(result.stage_results[0].speed, [10850.87, 11118.95, 11321.47], rtol=0.1)
-    np.testing.assert_allclose(
-        result.stage_results[0].outlet_stream_condition.pressure, np.array([30.0, 30.0, 30.0]), rtol=0.001
-    )
+    np.testing.assert_allclose(result.stage_results[0].outlet_stream.pressure, np.array([30.0, 30.0, 30.0]), rtol=0.001)
     np.testing.assert_allclose(
         result.stage_results[1].asv_recirculation_loss_mw, np.array([4.25, 4.41, 4.46]), rtol=0.01
     )
