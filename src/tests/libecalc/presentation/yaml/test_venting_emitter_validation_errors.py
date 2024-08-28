@@ -7,7 +7,7 @@ from libecalc.fixtures.cases import venting_emitters
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
-from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.model import ModelValidationException
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
     YamlOilRateUnits,
@@ -20,7 +20,7 @@ def test_wrong_keyword_name_emitters():
     regularity = 0.2
     emission_rate = 10
 
-    with pytest.raises(DtoValidationError) as exc:
+    with pytest.raises(ModelValidationException) as exc:
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
@@ -32,7 +32,10 @@ def test_wrong_keyword_name_emitters():
             path=Path(venting_emitters.__path__[0]),
         )
 
-    assert ("EMISSION2:\tThis is not a valid keyword") in str(exc.value)
+    error_message = str(exc.value)
+
+    assert "EMISSION2" in error_message
+    assert "This is not a valid keyword" in error_message
 
 
 def test_wrong_unit_emitters():
@@ -41,7 +44,7 @@ def test_wrong_unit_emitters():
     regularity = 0.2
     emission_rate = 10
 
-    with pytest.raises(DtoValidationError) as exc:
+    with pytest.raises(ModelValidationException) as exc:
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
@@ -53,10 +56,14 @@ def test_wrong_unit_emitters():
             path=Path(venting_emitters.__path__[0]),
         )
 
+    error_message = str(exc.value)
+
+    assert "Venting emitter 1" in error_message
+    assert "DIRECT_EMISSION.EMISSIONS[0].RATE.UNIT" in error_message
     assert (
-        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
-        f"'{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
-    ) in str(exc.value)
+        f"Input should be '{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
+        in error_message
+    )
 
 
 def test_wrong_unit_format_emitters():
@@ -65,7 +72,7 @@ def test_wrong_unit_format_emitters():
     regularity = 0.2
     emission_rate = 10
 
-    with pytest.raises(DtoValidationError) as exc:
+    with pytest.raises(ModelValidationException) as exc:
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
@@ -77,7 +84,11 @@ def test_wrong_unit_format_emitters():
             path=Path(venting_emitters.__path__[0]),
         )
 
+    error_message = str(exc.value)
+
+    assert "Venting emitter 1" in error_message
+    assert "DIRECT_EMISSION.EMISSIONS[0].RATE.UNIT" in error_message
     assert (
-        "\nVenting emitter 1:\nDIRECT_EMISSION.EMISSIONS[0].RATE.UNIT:\tInput should be "
-        f"'{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
-    ) in str(exc.value)
+        f"Input should be '{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
+        in error_message
+    )

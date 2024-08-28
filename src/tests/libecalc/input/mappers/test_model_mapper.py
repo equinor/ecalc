@@ -1,6 +1,6 @@
 from datetime import datetime
 from io import StringIO
-from typing import Any, Dict
+from typing import Dict, Optional, cast
 
 import pytest
 
@@ -10,8 +10,7 @@ from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.model import ConfigurationService, YamlModel
 from libecalc.presentation.yaml.yaml_entities import Resource, ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from tests.libecalc.input.test_yaml_model import DirectResourceService
 
 
@@ -282,31 +281,39 @@ INSTALLATIONS:
 
 
 @pytest.fixture
-def dated_model_data(dated_model_source: str) -> Dict[str, Any]:
-    return PyYamlYamlModel.read_yaml(
-        main_yaml=ResourceStream(stream=StringIO(dated_model_source), name="model.yaml"),
-        enable_include=False,
-    )
+def dated_model_data(dated_model_source: str) -> ResourceStream:
+    return ResourceStream(stream=StringIO(dated_model_source), name="dated_model")
 
 
-class DictConfigurationService(ConfigurationService):
-    def __init__(self, data: Dict, name: str = "test"):
-        self._data = data
-        self._name = name
+class OverridableStreamConfigurationService(ConfigurationService):
+    def __init__(self, stream: ResourceStream, overrides: Optional[Dict] = None):
+        self._overrides = overrides
+        self._stream = stream
 
     def get_configuration(self) -> YamlValidator:
-        return PyYamlYamlModel(internal_datamodel=self._data, name=self._name, instantiated_through_read=True)
+        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
+            main_yaml=self._stream,
+            enable_include=True,
+        )
+
+        if self._overrides is not None:
+            main_yaml_model._internal_datamodel.update(self._overrides)
+        return cast(YamlValidator, main_yaml_model)
 
 
-def parse_model(model_data, start: datetime, end: datetime) -> dto.Asset:
+def parse_model(model_data: ResourceStream, start: datetime, end: datetime) -> dto.Asset:
     period = Period(
         start=start,
         end=end,
     )
-    model_data[EcalcYamlKeywords.start] = period.start
-    model_data[EcalcYamlKeywords.end] = period.end
 
-    configuration_service = DictConfigurationService(model_data)
+    configuration_service = OverridableStreamConfigurationService(
+        model_data,
+        overrides={
+            EcalcYamlKeywords.start: period.start,
+            EcalcYamlKeywords.end: period.end,
+        },
+    )
     resource_service = DirectResourceService(resources={})
     model = YamlModel(
         configuration_service=configuration_service, resource_service=resource_service, output_frequency=Frequency.NONE

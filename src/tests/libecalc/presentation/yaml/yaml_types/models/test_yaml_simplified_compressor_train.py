@@ -11,6 +11,7 @@ from libecalc.presentation.yaml.yaml_validation_context import (
 )
 
 
+@pytest.fixture
 def yaml_resource_with_control_margin_and_pressure_drop():
     yaml_with_control_margin_and_pressure_drop = """
     MODELS:
@@ -30,9 +31,9 @@ def yaml_resource_with_control_margin_and_pressure_drop():
     )
 
 
-def test_control_margin_and_pressure_drop_not_allowed():
+def test_control_margin_and_pressure_drop_not_allowed(yaml_resource_with_control_margin_and_pressure_drop):
     with pytest.raises(DtoValidationError) as exc_info:
-        PyYamlYamlModel.read(yaml_resource_with_control_margin_and_pressure_drop()).validate(
+        PyYamlYamlModel.read(yaml_resource_with_control_margin_and_pressure_drop).validate(
             {
                 YamlModelValidationContextNames.resource_file_names: [],
             }
@@ -41,25 +42,28 @@ def test_control_margin_and_pressure_drop_not_allowed():
     errors = exc_info.value.errors()
 
     # Control margin is not allowed:
+    error_1 = str(errors[1])
+
     assert (
-        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN."
-        f"YamlCompressorStages[YamlCompressorStage].STAGES[0]."
-        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}:	"
-        f"This is not a valid keyword"
-    ) in str(errors[1])
+        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}"
+        in error_1
+    )
+    assert "This is not a valid keyword" in error_1
 
     # Control margin unit is not allowed:
+    error_2 = str(errors[2])
+
     assert (
-        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN."
-        f"YamlCompressorStages[YamlCompressorStage].STAGES[0]."
-        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit}:	"
-        f"This is not a valid keyword"
-    ) in str(errors[2])
+        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit}"
+        in error_2
+    )
+    assert "This is not a valid keyword" in error_2
 
     # Pressure drop ahead of stage is not allowed:
+    error_3 = str(errors[3])
+
     assert (
-        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN."
-        f"YamlCompressorStages[YamlCompressorStage].STAGES[0]."
-        f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}:	"
-        f"This is not a valid keyword"
-    ) in str(errors[3])
+        f"MODELS[0].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}"
+        in error_3
+    )
+    assert "This is not a valid keyword" in error_3

@@ -28,7 +28,7 @@ CUSTOM_MESSAGES = {
 
 
 def _get_position_in_file_message(mark: Mark) -> str:
-    message = f"YAML object starting on line {mark.line + 1}"
+    message = f"Object starting on line {mark.line + 1}"
     if mark.name is not None and mark.name != "":
         message += f" in {mark.name}"
     return message + "\n"
@@ -52,75 +52,9 @@ def list_node_representer(dumper: Dumper, data):
 yaml.add_representer(YamlList, list_node_representer)
 
 
-def _remove_root_key(error_loc: PydanticLoc) -> List[Union[int, str]]:
-    return [key for key in error_loc if key != "__root__"]
-
-
-def _mark_error_lines(yaml_text: str, locs: List[PydanticLoc]) -> str:
-    lines = yaml_text.split("\n")
-    marked_lines = []
-    for line in lines:
-        first_error = locs[0]  # Only marking first error for now
-        error_without_root = _remove_root_key(first_error)
-        first_key = error_without_root[0]
-        if line.strip().startswith(first_key.upper()):
-            marked_lines.append(f"{' >'}{line}")
-        else:
-            marked_lines.append(f"  {line}")
-
-    return "\n".join(marked_lines)
-
-
 class DumpFlowStyle(enum.Enum):
     INLINE = True
     BLOCK = False
-
-
-class DataValidationError(ValidationError):
-    """A general data validation error. Should be used with yaml-read data to output context to the error."""
-
-    def __init__(
-        self,
-        data: Optional[Union[Dict[str, Any], YamlDict]],
-        message: str,
-        error_locs: Optional[List[PydanticLoc]] = None,
-        error_key: Optional[str] = None,
-        dump_flow_style: Optional[DumpFlowStyle] = None,
-    ):
-        super().__init__(message)
-        self.message = message
-        extended_message = "\nError in object\n"
-
-        if data is not None:
-            if error_locs is None and error_key is not None:
-                error_locs = [(error_key,)]
-
-            position_in_file_message = ""
-            try:
-                position_in_file_message = _get_position_in_file_message(data.start_mark)
-            except AttributeError as e:
-                logger.exception(e)
-                pass
-
-            yaml_dump = yaml.dump(
-                data, default_flow_style=dump_flow_style.value if dump_flow_style is not None else None, sort_keys=False
-            ).strip()
-            indented_yaml = indent(yaml_dump, "    ")
-
-            try:
-                if error_locs is not None:
-                    indented_yaml = _mark_error_lines(indented_yaml, error_locs)
-                else:
-                    logger.debug("No error locations to mark")
-            except Exception as e:
-                logger.debug(f"Could not mark error lines: {str(e)}")
-                pass
-
-            data_yaml = f"{indented_yaml}"
-            extended_message += f"\n...\n{data_yaml}\n...\n\n{position_in_file_message}\n"
-
-        extended_message += f"Error Message(s):\n{message}"
-        self.extended_message = extended_message
 
 
 date_repr_pattern = r"datetime\.date\(([0-9]{4}),\s([0-9]{1,2}),\s([0-9]{1,2})\)"
@@ -130,6 +64,9 @@ date_repr_regex = re.compile(date_repr_pattern)
 @dataclass
 class Location:
     keys: List[Union[str, int, date]]
+
+    def is_empty(self) -> bool:
+        return len(self.keys) == 0
 
     def as_dot_separated(self) -> str:
         path = ""
@@ -171,15 +108,75 @@ class Location:
     def from_pydantic_loc(cls, loc: PydanticLoc) -> Self:
         return cls([cls._parse_key(key) for key in loc])
 
-    def as_pydantic_compatible(self) -> PydanticLoc:
-        keys: List[PydanticKey] = []
-        for key in keys:
-            if isinstance(key, date):
-                keys.append(self._date_to_string(key))
-            else:
-                keys.append(key)
 
-        return tuple(keys)
+def _remove_root_key(error_loc: Location) -> List[Union[int, str, date]]:
+    return [key for key in error_loc.keys if key != "__root__"]
+
+
+def _mark_error_lines(yaml_text: str, locs: List[Location]) -> str:
+    lines = yaml_text.split("\n")
+    marked_lines = []
+    for line in lines:
+        first_error = locs[0]  # Only marking first error for now
+        error_without_root = _remove_root_key(first_error)
+        first_key = error_without_root[0]
+        if line.strip().startswith(first_key.upper()):
+            marked_lines.append(f"{' >'}{line}")
+        else:
+            marked_lines.append(f"  {line}")
+
+    return "\n".join(marked_lines)
+
+
+class DataValidationError(ValidationError):
+    """A general data validation error. Should be used with yaml-read data to output context to the error."""
+
+    def __init__(
+        self,
+        data: Optional[Union[Dict[str, Any], YamlDict]],
+        message: str,
+        error_locs: Optional[List[Location]] = None,
+        error_key: Optional[str] = None,
+        dump_flow_style: Optional[DumpFlowStyle] = None,
+    ):
+        super().__init__(message)
+        self.message = message
+
+        if data is not None and data.get(EcalcYamlKeywords.name) is not None:
+            extended_message = f"Validation error in '{data.get(EcalcYamlKeywords.name)}'\n"
+        else:
+            extended_message = "Validation error\n"
+
+        if data is not None:
+            if error_locs is None and error_key is not None:
+                error_locs = [Location(keys=[error_key])]
+
+            position_in_file_message = ""
+            try:
+                position_in_file_message = _get_position_in_file_message(data.start_mark)
+            except AttributeError as e:
+                logger.exception(e)
+                pass
+
+            yaml_dump = yaml.dump(
+                data, default_flow_style=dump_flow_style.value if dump_flow_style is not None else None, sort_keys=False
+            ).strip()
+            indented_yaml = indent(yaml_dump, "    ")
+
+            try:
+                if error_locs is not None:
+                    indented_yaml = _mark_error_lines(indented_yaml, error_locs)
+                else:
+                    logger.debug("No error locations to mark")
+            except Exception as e:
+                logger.debug(f"Could not mark error lines: {str(e)}")
+                pass
+
+            data_yaml = f"{indented_yaml}"
+            extended_message += f"\n...\n{data_yaml}\n...\n\n{position_in_file_message}\n"
+
+        extended_message += f"Error Message(s):\n{message}"
+        self.extended_message = extended_message
 
 
 @dataclass
@@ -187,7 +184,7 @@ class ModelValidationError:
     data: Optional[Dict]
     location: Location
     message: str
-    file_context: FileContext
+    file_context: Optional[FileContext]
 
     @property
     def yaml(self) -> Optional[str]:
@@ -197,8 +194,19 @@ class ModelValidationError:
         return yaml.dump(self.data, sort_keys=False).strip()
 
     def __str__(self):
-        msg = self.location.as_dot_separated()
-        msg += f":\t{self.message}"
+        msg = ""
+        if self.file_context is not None:
+            msg += f"Object starting on line {self.file_context.start.line_number}\n"
+        yaml = self.yaml
+        if yaml is not None:
+            msg += "...\n"
+            msg += yaml
+            msg += "\n...\n\n"
+
+        if not self.location.is_empty():
+            msg += f"Location: {self.location.as_dot_separated()}\n"
+
+        msg += f"Message: {self.message}\n"
         return msg
 
 
@@ -266,21 +274,13 @@ class DtoValidationError(DataValidationError):
         self.data = data
         self.validation_error = validation_error
 
-        name = data.get(EcalcYamlKeywords.name)
-        message_title = f"\n{name}:"
-        messages = [message_title]
+        messages = []
 
         errors = self.errors()
         error_locs = []
-        try:
-            for error in errors:
-                error_locs.append(error.location.as_pydantic_compatible())
-                if data is not None:
-                    messages.append(f"{error}")
-                else:
-                    messages.append(f"{name}:\n{error}")
-        except Exception as e:
-            logger.debug(f"Failed to add location specific error messages: {str(e)}")
+        for error in errors:
+            error_locs.append(error.location)
+            messages.append(f"{error}")
 
         message = "\n".join(messages)
         super().__init__(data, message, error_locs=error_locs, **kwargs)

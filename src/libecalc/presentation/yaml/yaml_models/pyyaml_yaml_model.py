@@ -1,5 +1,6 @@
 import datetime
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, TextIO, Type, Union
 
@@ -435,7 +436,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     def validate(self, context: YamlModelValidationContext) -> Self:
         try:
-            YamlAsset.model_validate(self._internal_datamodel, context=context)
+            YamlAsset.model_validate(deepcopy(self._internal_datamodel), context=context)
             return self
         except PydanticValidationError as e:
             raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
