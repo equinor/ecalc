@@ -223,6 +223,8 @@ class CompressorModelResult(ConsumerModelResultBase):
     maximum_rate: TimeSeriesRate
     stage_results: List[CompressorModelStageResult]
     turbine_result: Optional[TurbineModelResult] = None
+    inlet_stream_condition: CompressorStreamConditionResult
+    outlet_stream_condition: CompressorStreamConditionResult
 
 
 class GenericModelResult(ConsumerModelResultBase):

@@ -360,110 +360,79 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             compressor_stage_result[i].fluid_composition = {}
             compressor_stage_result[i].chart = compressor_charts[i] if compressor_charts is not None else None
 
-            inlet_stream_condition_train.pressure = [
-                result_list[t].inlet_stream.pressure_bara
-                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.pressure_bara is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
-            inlet_stream_condition_train.actual_rate_m3_per_hr = [
-                result_list[t].stage_results[0].mass_rate_kg_per_hour / result_list[t].inlet_stream.density_kg_per_m3
-                for t in range(len(result_list))
-                if result_list[t].stage_results[0].mass_rate_kg_per_hour is not None
-                and result_list[t].inlet_stream is not None
-            ]
-            inlet_stream_condition_train.actual_rate_before_asv_m3_per_hr = [
-                result_list[t].stage_results[0].mass_rate_kg_per_hour / result_list[t].inlet_stream.density_kg_per_m3
-                for t in range(len(result_list))
-                if result_list[t].stage_results[0].mass_rate_kg_per_hour is not None
-                and result_list[t].inlet_stream is not None
-            ]  #
-            inlet_stream_condition_train.standard_rate_sm3_per_day = [
-                compressor_stage_result[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
-                for t in range(len(result_list))
-            ]
-            inlet_stream_condition_train.standard_rate_before_asv_sm3_per_day = (
-                inlet_stream_condition_train.standard_rate_sm3_per_day
-            )
-            inlet_stream_condition_train.density_kg_per_m3 = [
-                result_list[t].inlet_stream.density_kg_per_m3
-                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.density_kg_per_m3 is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            inlet_stream_condition_train.kappa = [
-                result_list[t].inlet_stream.kappa
-                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.kappa is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            inlet_stream_condition_train.z = [
-                result_list[t].inlet_stream.z
-                if result_list[t].inlet_stream is not None and result_list[t].inlet_stream.z is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            inlet_stream_condition_train.temperature_kelvin = [
-                result_list[t].inlet_stream.temperature_kelvin
-                if result_list[t].inlet_stream is not None
-                and result_list[t].inlet_stream.temperature_kelvin is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
+        inlet_stream_condition_train.pressure = [
+            result_list[t].inlet_stream.pressure_bara if result_list[t].inlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
+        inlet_stream_condition_train.actual_rate_before_asv_m3_per_hr = (
+            inlet_stream_condition_train.actual_rate_m3_per_hr
+        ) = [
+            result_list[t].inlet_actual_rate if result_list[t].inlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        inlet_stream_condition_train.standard_rate_sm3_per_day = [
+            compressor_stage_result[0].inlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
+            if result_list[t].inlet_stream is not None
+            else np.nan
+            for t in range(len(result_list))
+        ]
+        inlet_stream_condition_train.standard_rate_before_asv_sm3_per_day = (
+            inlet_stream_condition_train.standard_rate_sm3_per_day
+        )
+        inlet_stream_condition_train.density_kg_per_m3 = [
+            result_list[t].inlet_stream.density_kg_per_m3 if result_list[t].inlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        inlet_stream_condition_train.kappa = [
+            result_list[t].inlet_stream.kappa if result_list[t].inlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        inlet_stream_condition_train.z = [
+            result_list[t].inlet_stream.z if result_list[t].inlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        inlet_stream_condition_train.temperature_kelvin = [
+            result_list[t].inlet_stream.temperature_kelvin if result_list[t].inlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
 
-            outlet_stream_condition_train.pressure = [
-                result_list[t].outlet_stream.pressure_bara
-                if result_list[t].outlet_stream is not None and result_list[t].outlet_stream.pressure_bara is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
-            outlet_stream_condition_train.actual_rate_m3_per_hr = [
-                result_list[t].stage_results[-1].mass_rate_kg_per_hour / result_list[t].outlet_stream.density_kg_per_m3
-                for t in range(len(result_list))
-                if result_list[t].stage_results[-1].mass_rate_kg_per_hour is not None
-                and result_list[t].outlet_stream is not None
-            ]
-            outlet_stream_condition_train.actual_rate_before_asv_m3_per_hr = [
-                result_list[t].stage_results[-1].mass_rate_kg_per_hour / result_list[t].outlet_stream.density_kg_per_m3
-                for t in range(len(result_list))
-                if result_list[t].stage_results[-1].mass_rate_kg_per_hour is not None
-                and result_list[t].outlet_stream is not None
-            ]  #
-            outlet_stream_condition_train.standard_rate_sm3_per_day = [
-                compressor_stage_result[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_train.standard_rate_before_asv_sm3_per_day = (
-                outlet_stream_condition_train.standard_rate_sm3_per_day
-            )
-            outlet_stream_condition_train.density_kg_per_m3 = [
-                result_list[t].outlet_stream.density_kg_per_m3
-                if result_list[t].outlet_stream is not None
-                and result_list[t].outlet_stream.density_kg_per_m3 is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_train.kappa = [
-                result_list[t].outlet_stream.kappa
-                if result_list[t].outlet_stream is not None and result_list[t].outlet_stream.kappa is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_train.z = [
-                result_list[t].outlet_stream.z
-                if result_list[t].outlet_stream is not None and result_list[t].outlet_stream.z is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
-            outlet_stream_condition_train.temperature_kelvin = [
-                result_list[t].outlet_stream.temperature_kelvin
-                if result_list[t].outlet_stream is not None
-                and result_list[t].outlet_stream.temperature_kelvin is not None
-                else np.nan
-                for t in range(len(result_list))
-            ]
+        outlet_stream_condition_train.pressure = [
+            result_list[t].outlet_stream.pressure_bara if result_list[t].outlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
+        outlet_stream_condition_train.actual_rate_before_asv_m3_per_hr = (
+            outlet_stream_condition_train.actual_rate_m3_per_hr
+        ) = [
+            result_list[t].outlet_actual_rate if result_list[t].outlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        outlet_stream_condition_train.standard_rate_sm3_per_day = [
+            compressor_stage_result[0].outlet_stream_condition.standard_rate_before_asv_sm3_per_day[t]
+            if result_list[t].outlet_stream is not None
+            else np.nan
+            for t in range(len(result_list))
+        ]
+        outlet_stream_condition_train.standard_rate_before_asv_sm3_per_day = (
+            outlet_stream_condition_train.standard_rate_sm3_per_day
+        )
+        outlet_stream_condition_train.density_kg_per_m3 = [
+            result_list[t].outlet_stream.density_kg_per_m3 if result_list[t].outlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        outlet_stream_condition_train.kappa = [
+            result_list[t].outlet_stream.kappa if result_list[t].outlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        outlet_stream_condition_train.z = [
+            result_list[t].outlet_stream.z if result_list[t].outlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
+        outlet_stream_condition_train.temperature_kelvin = [
+            result_list[t].outlet_stream.temperature_kelvin if result_list[t].outlet_stream is not None else np.nan
+            for t in range(len(result_list))
+        ]
 
         return inlet_stream_condition_train, outlet_stream_condition_train, compressor_stage_result
 
@@ -553,16 +522,11 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
         return self.stage_results[0].mass_rate_kg_per_hour
 
     @property
-    def mass_rate_asv_corrected_kg_per_hour(self) -> float:
-        return self.stage_results[0].mass_rate_asv_corrected_kg_per_hour
-
-    @property
-    def inlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
-        return self.stage_results[0].inlet_actual_rate_asv_corrected_m3_per_hour
-
-    @property
     def inlet_actual_rate(self) -> float:
-        return self.stage_results[0].inlet_actual_rate_m3_per_hour
+        if self.inlet_stream is not None:
+            return self.mass_rate_kg_per_hour / self.inlet_stream.density_kg_per_m3
+        else:
+            return np.nan
 
     @property
     def inlet_density(self) -> float:
@@ -601,7 +565,10 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
     @property
     def outlet_actual_rate(self) -> float:
-        return self.stage_results[-1].outlet_actual_rate_m3_per_hour
+        if self.outlet_stream is not None:
+            return self.stage_results[-1].mass_rate_kg_per_hour / self.outlet_stream.density_kg_per_m3
+        else:
+            return np.nan
 
     @property
     def outlet_density(self) -> float:

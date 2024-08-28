@@ -18,6 +18,7 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.results import TurbineResult
 from libecalc.core.models.results.compressor import (
     CompressorStageResult,
+    CompressorStreamCondition,
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.core.result.base import EcalcResultBaseModel
@@ -139,6 +140,9 @@ class CompressorModelResult(ConsumerModelResultBase):
     stage_results: List[CompressorStageResult]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
     turbine_result: Optional[TurbineResult] = None
+
+    inlet_stream_condition: CompressorStreamCondition
+    outlet_stream_condition: CompressorStreamCondition
 
     @property
     def component_type(self):

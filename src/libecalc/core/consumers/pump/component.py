@@ -96,8 +96,8 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             streams=[
                 TimeSeriesStreamConditions.from_stream_condition(total_requested_inlet_stream),
                 *[
-                    TimeSeriesStreamConditions.from_stream_condition(inlet_stream_conditions)
-                    for inlet_stream_conditions in inlet_streams
+                    TimeSeriesStreamConditions.from_stream_condition(inlet_stream_condition)
+                    for inlet_stream_condition in inlet_streams
                 ],
                 TimeSeriesStreamConditions.from_stream_condition(outlet_stream),
             ],
