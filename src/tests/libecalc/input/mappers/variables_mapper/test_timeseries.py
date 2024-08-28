@@ -269,11 +269,16 @@ class TestTimeSeries:
                     interpolation_type=None,
                 )
             )
+
+        error_message = str(ve.value.extended_message)
+        assert "SIM1" in error_message
         assert (
-            "SIM1:\nDEFAULT.headers[0]:\t"
-            "The string/name contains illegal characters. "
-            "Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
-        ) in str(ve.value)
+            "DEFAULT.headers[0]" in error_message
+        )  # This should probably not be required, does not make sense to user as it isn't related to the yaml path/location.
+        assert (
+            "The string/name contains illegal characters. Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
+            in error_message
+        )
 
     @pytest.mark.parametrize(
         "header",
@@ -326,11 +331,14 @@ class TestTimeSeries:
                     interpolation_type=None,
                 )
             )
+
+        error_message = str(ve.value.extended_message)
+
+        assert resource_name in error_message
         assert (
-            f"\n{resource_name}:\nDEFAULT.name:\t"
-            f"The string/name contains illegal characters. "
-            f"Allowed characters are: ^[A-Za-z][A-Za-z0-9_]*$"
-        ) in str(ve.value)
+            "The string/name contains illegal characters. Allowed characters are: ^[A-Za-z][A-Za-z0-9_]*$"
+            in error_message
+        )
 
     def test_interpretation_of_interpolation_type_for_default_resource(self):
         """Check default interpolation for DEFAULT time series."""
