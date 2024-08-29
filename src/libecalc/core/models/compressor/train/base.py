@@ -245,25 +245,36 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         self,
         calculated_suction_pressure: float,
         calculated_discharge_pressure: float,
+        calculated_intermediate_pressure: Optional[float] = None,
     ) -> TargetPressureStatus:
-        """
+        """Check to see how the calculated pressures compare to the required pressures
 
         Args:
-            calculated_suction_pressure:
-            calculated_discharge_pressure:
+            calculated_suction_pressure: The calculated suction pressure
+            calculated_discharge_pressure: The calculated discharge pressure
+            calculated_intermediate_pressure: The calculated intermediate pressure
 
         Returns:
-
+            TargetPressureStatus
         """
-        if self._target_suction_pressure:
-            if (calculated_suction_pressure / self._target_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+        if self.target_suction_pressure:
+            if (calculated_suction_pressure / self.target_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
-            if (self._target_suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if (self.target_suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
-        if self._target_discharge_pressure:
-            if (calculated_discharge_pressure / self._target_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+        if self.target_discharge_pressure:
+            if (calculated_discharge_pressure / self.target_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
-            if (self._target_discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+            if (self.target_discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
                 return TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
+        if self.target_intermediate_pressure:
+            if (
+                calculated_intermediate_pressure / self.target_intermediate_pressure
+            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.ABOVE_TARGET_INTERMEDIATE_PRESSURE
+            if (
+                self.target_intermediate_pressure / calculated_intermediate_pressure
+            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.BELOW_TARGET_INTERMEDIATE_PRESSURE
 
         return TargetPressureStatus.TARGET_PRESSURES_MET

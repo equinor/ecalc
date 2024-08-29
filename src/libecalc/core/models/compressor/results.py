@@ -442,18 +442,17 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     def failure_status(self):
         if not all(r.is_valid for r in self.stage_results):
             for stage in self.stage_results:
-                if not stage.is_valid:
-                    if not stage.within_capacity:
-                        if stage.chart_area_flag in (
-                            ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
-                            ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
-                        ):
-                            return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
-                        elif stage.chart_area_flag in (
-                            ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE,
-                            ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
-                        ):
-                            return CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
+                if not stage.within_capacity:
+                    if stage.chart_area_flag in (
+                        ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
+                        ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
+                    ):
+                        return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_FLOW_RATE
+                    elif stage.chart_area_flag in (
+                        ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE,
+                        ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
+                    ):
+                        return CompressorTrainCommonShaftFailureStatus.BELOW_MINIMUM_FLOW_RATE
         if self.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE:
             return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
         elif self.target_pressure_status == TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
@@ -462,6 +461,10 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
         elif self.target_pressure_status == TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE:
             return CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_HIGH
+        elif self.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_INTERMEDIATE_PRESSURE:
+            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_LOW
+        elif self.target_pressure_status == TargetPressureStatus.BELOW_TARGET_INTERMEDIATE_PRESSURE:
+            return CompressorTrainCommonShaftFailureStatus.TARGET_INTERMEDIATE_PRESSURE_TOO_HIGH
         elif self.above_maximum_power:
             return CompressorTrainCommonShaftFailureStatus.ABOVE_MAXIMUM_POWER
 

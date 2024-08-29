@@ -1478,6 +1478,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         target_pressure_status = self.check_target_pressures(
             calculated_suction_pressure=compressor_train_results_to_return_first_part.inlet_stream.pressure_bara,
             calculated_discharge_pressure=compressor_train_results_to_return_last_part.outlet_stream.pressure_bara,
+            calculated_intermediate_pressure=compressor_train_results_to_return_first_part.outlet_stream.pressure_bara,
         )
 
         return CompressorTrainResultSingleTimeStep(
