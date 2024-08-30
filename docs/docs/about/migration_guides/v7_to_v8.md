@@ -116,7 +116,7 @@ INSTALLATIONS:
     ...
 ```
 
-This will make it possible to attribute results to each consumer by name, and removes any an ambiguity
+This will make it possible to attribute results to each consumer by name, and removes any ambiguity
 when interpreting eCalc™ results.
 
 See [INSTALLATION](../references/INSTALLATIONS.md),
