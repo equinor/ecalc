@@ -111,7 +111,7 @@ The [workflow](#workflow) below will outline what is necessary to obtain for eac
 
 ### Required Subsurface Profiles
 
-All subsurface profiles must be in calendar day rate Sm<sup>3</sup>/day and with its PE ([REGULARITY](../../references/keywords/REGULARITY.md)). This data must be inputted as a `TIME-SERIES` and references to how it is used in the facility or by a relevant consumer.
+All subsurface profiles must be in calendar day rate Sm<sup>3</sup>/day and with its PE ([REGULARITY](../../references/REGULARITY.md)). This data must be inputted as a `TIME-SERIES` and references to how it is used in the facility or by a relevant consumer.
 
 ### Facility Information
 
@@ -163,4 +163,4 @@ Before any chart adjustments are made, engineers should first verify who provide
 The term calibration in eCalc™ often refers to the history matching of the facility. Essentially, real operational data is compared against the eCalc™ model results. If they do not correlate various changes are made to the model.
 
 The main workflow with this would be to match every individual consumer, e.g. each pump and compressor. After that, it is the recommended to compare on the facility level (e.g. total power consumed or total fuel used), then various adjustments can be made.
-These adjustments can mean changes to the base load, shifting the compressor curves, or simply by using a [POWERLOSSFACTOR](/about/references/keywords/POWERLOSSFACTOR.md).
+These adjustments can mean changes to the base load, shifting the compressor curves, or simply by using a [POWERLOSSFACTOR](/about/references/POWERLOSSFACTOR.md).

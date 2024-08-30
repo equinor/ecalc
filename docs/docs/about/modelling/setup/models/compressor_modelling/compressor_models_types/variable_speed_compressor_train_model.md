@@ -29,7 +29,7 @@ The points will be treated as follows:
 
 **Format**
 
-The model is defined under the main keyword [MODELS](/about/references/keywords/MODELS.md) in the format
+The model is defined under the main keyword [MODELS](/about/references/MODELS.md) in the format
 
 ~~~~~~~~yaml
 MODELS:

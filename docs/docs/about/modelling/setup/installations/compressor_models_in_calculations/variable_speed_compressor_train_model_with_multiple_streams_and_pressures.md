@@ -29,9 +29,9 @@ ENERGY_USAGE_MODEL:
   POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
 ~~~~~~~~
 
-The number of elements in [RATE_PER_STREAM](/about/references/keywords/RATE_PER_STREAM.md) must correspond to the number of streams defined for the model referenced in
-[COMPRESSOR_TRAIN_MODEL](/about/references/keywords/COMPRESSOR_TRAIN_MODEL.md).
+The number of elements in [RATE_PER_STREAM](/about/references/RATE_PER_STREAM.md) must correspond to the number of streams defined for the model referenced in
+[COMPRESSOR_TRAIN_MODEL](/about/references/COMPRESSOR_TRAIN_MODEL.md).
 
-[INTERSTAGE_CONTROL_PRESSURE](/about/references/keywords/INTERSTAGE_CONTROL_PRESSURE.md) is required if the model referenced in [COMPRESSOR_TRAIN_MODEL](/about/references/keywords/COMPRESSOR_TRAIN_MODEL.md) has has an
-interstage control pressure defined. If there is no interstage control pressure defined in [COMPRESSOR_TRAIN_MODEL](/about/references/keywords/COMPRESSOR_TRAIN_MODEL.md),
-[INTERSTAGE_CONTROL_PRESSURE](/about/references/keywords/INTERSTAGE_CONTROL_PRESSURE.md) should not be defined.
+[INTERSTAGE_CONTROL_PRESSURE](/about/references/INTERSTAGE_CONTROL_PRESSURE.md) is required if the model referenced in [COMPRESSOR_TRAIN_MODEL](/about/references/COMPRESSOR_TRAIN_MODEL.md) has has an
+interstage control pressure defined. If there is no interstage control pressure defined in [COMPRESSOR_TRAIN_MODEL](/about/references/COMPRESSOR_TRAIN_MODEL.md),
+[INTERSTAGE_CONTROL_PRESSURE](/about/references/INTERSTAGE_CONTROL_PRESSURE.md) should not be defined.

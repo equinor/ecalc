@@ -116,14 +116,14 @@ INSTALLATIONS:
     ...
 ```
 
-This will make it possible to attribute results to each consumer by name, and removes any an ambiguity
+This will make it possible to attribute results to each consumer by name, and removes any ambiguity
 when interpreting eCalc™ results.
 
-See [INSTALLATION](../references/keywords/INSTALLATIONS.md),
-[GENERATORSET](../references/keywords/GENERATORSETS.md),
-[CONSUMERS](../references/keywords/CONSUMERS.md),
-[FUELCONSUMERS](../references/keywords/FUELCONSUMERS.md),
-[VENTING_EMITTER](../references/keywords/VENTING_EMITTERS.md)
+See [INSTALLATION](../references/INSTALLATIONS.md),
+[GENERATORSET](../references/GENERATORSETS.md),
+[CONSUMERS](../references/CONSUMERS.md),
+[FUELCONSUMERS](../references/FUELCONSUMERS.md),
+[VENTING_EMITTER](../references/VENTING_EMITTERS.md)
 for more details about the relevant keywords.
 
 :::tip Are you using power from shore?
@@ -278,7 +278,7 @@ INSTALLATIONS:
 #### 5. Not possible to use custom category names, pre-defined categories must be uppercase with hyphen as separator (i.e. FUEL-GAS)
 
 Only a limited pre-defined set of categories is valid input to the CATEGORY-keyword, it is no longer possible to use custom names. 
-The input is case-sensitive and must match exactly with the pre-defined names. See [CLI Docs](../references/keywords/CATEGORY) for full documentation.
+The input is case-sensitive and must match exactly with the pre-defined names. See [CLI Docs](../references/CATEGORY) for full documentation.
 
 ## CLI migration
 

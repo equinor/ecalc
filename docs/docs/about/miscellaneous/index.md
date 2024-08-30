@@ -1,10 +1,10 @@
 ---
-title: Output data
+title: Output Data
 sidebar_position: 1000
 description: Output data
 ---
 
-# Output data
+# Output Data
 
 In general, each model is outputted to a .csv file with what is viewed as necessary information for an operator.
 Further details, if necessary, can be seen in a .json file.

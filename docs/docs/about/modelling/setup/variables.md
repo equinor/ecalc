@@ -5,7 +5,7 @@ description: Variables guide and description
 ---
 
 :::note
-The [VARIABLES](/about/references/keywords/VARIABLES.md) keyword is **optional** for an eCalc™ model to run.
+The [VARIABLES](/about/references/VARIABLES.md) keyword is **optional** for an eCalc™ model to run.
 :::
 
 ## Defining variables

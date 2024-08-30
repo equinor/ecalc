@@ -12,7 +12,7 @@ if __name__ == "__main__":
     """
     here = Path(__file__).parent
     out = here / "temp_api_docs"
-    destination = here / "build" / "docs" / "about" / "references" / "api"
+    destination = here / "build" / "docs" / "about" / "getting_started" / "api"
     if out.exists():
         shutil.rmtree(out)
 

@@ -10,11 +10,11 @@ not equal to the pressure at the inlet/outlet of a compressor system and some de
 
 To avoid forcing the users to define new variables in the simulation files/CSV data and also keep the data in the
 consumer’s energy function consistent, the calculator supports expressions to define variables (and conditions in the
-[CONDITIONS](/about/references/keywords/CONDITIONS.md).
+[CONDITIONS](/about/references/CONDITIONS.md).
 
 :::warning
 When creating new variables from CSV files make sure to choose the right interpolation type!
-See [INTERPOLATION_TYPE](/about/references/keywords/INTERPOLATION_TYPE.md) for more information.
+See [INTERPOLATION_TYPE](/about/references/INTERPOLATION_TYPE.md) for more information.
 :::
 
 ## Available operators
