@@ -56,8 +56,8 @@ fuel usage.
 MODELS:
   - NAME: <name of turbine model, for reference>
     TYPE: COMPRESSOR_WITH_TURBINE
-    COMPRESSOR_MODEL: <reference to compressor train model defined in [MODELS](../references/keywords/MODELS) or [FACILITY_INPUTS](../references/keywords/FACILITY_INPUTS) (of type COMPRESSOR_TABULAR)>
-    TURBINE_MODEL: <reference to a turbine model defined in [MODELS](../references/keywords/MODELS) (of type TURBINE)>
+    COMPRESSOR_MODEL: <reference to compressor train model defined in [MODELS](../references/MODELS) or [FACILITY_INPUTS](../references/FACILITY_INPUTS) (of type COMPRESSOR_TABULAR)>
+    TURBINE_MODEL: <reference to a turbine model defined in [MODELS](../references/MODELS) (of type TURBINE)>
     POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
 ~~~~~~~~
 

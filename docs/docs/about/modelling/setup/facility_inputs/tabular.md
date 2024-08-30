@@ -35,7 +35,7 @@ RATE,     FUEL
 5000000,  168644
 ~~~~~~~~
 
-The entry in [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md):
+The entry in [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md):
 
 ~~~~~~~~yaml
 FACILITY_INPUTS:
@@ -44,7 +44,7 @@ FACILITY_INPUTS:
     TYPE: TABULAR
 ~~~~~~~~
 
-The entry in [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) under a fuel consumer:
+The entry in [INSTALLATIONS](/about/references/INSTALLATIONS.md) under a fuel consumer:
 
 ~~~~~~~~yaml
 INSTALLATIONS:
@@ -60,7 +60,7 @@ INSTALLATIONS:
 ~~~~~~~~
 
 :::note Note
-Note that the name `RATE` in the input file (under [FACILITY_INPUT](/about/modelling/setup/facility_inputs/index.md)) and the variable name `RATE` under [VARIABLES](/about/references/keywords/VARIABLES.md)
+Note that the name `RATE` in the input file (under [FACILITY_INPUT](/about/modelling/setup/facility_inputs/index.md)) and the variable name `RATE` under [VARIABLES](/about/references/VARIABLES.md)
  must be equal!
 :::
 
@@ -94,7 +94,7 @@ Contents of file `energyfunc_3d_rate_ps_pd_power.csv`:
  1.10E+07,               78,              231.6,       22.46
 ~~~~~~~~
 
-The entry in [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md):
+The entry in [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md):
 
 ~~~~~~~~yaml
 FACILITY_INPUTS:
@@ -103,7 +103,7 @@ FACILITY_INPUTS:
     TYPE: TABULAR
 ~~~~~~~~
 
-The entry in [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) under a fuel consumer (for 3-d tabular):
+The entry in [INSTALLATIONS](/about/references/INSTALLATIONS.md) under a fuel consumer (for 3-d tabular):
 
 ~~~~~~~~yaml
 INSTALLATIONS:

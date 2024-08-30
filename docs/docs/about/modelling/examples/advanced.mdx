@@ -57,12 +57,12 @@ The results of a performed characterization of the equipment are listed below:
 
 ## YAML model overview
 The YAML model consist of these main components:
-- Time series inputs - [TIME_SERIES](/about/references/keywords/TIME_SERIES.md)
-- Facility characterization input - [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)
-- Fuel input - [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md)
-- Model specifications - [MODELS](/about/references/keywords/MODELS.md)
-- Model variables - [VARIABLES](/about/references/keywords/VARIABLES.md)
-- Installation topology - [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md)
+- Time series inputs - [TIME_SERIES](/about/references/TIME_SERIES.md)
+- Facility characterization input - [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md)
+- Fuel input - [FUEL_TYPES](/about/references/FUEL_TYPES.md)
+- Model specifications - [MODELS](/about/references/MODELS.md)
+- Model variables - [VARIABLES](/about/references/VARIABLES.md)
+- Installation topology - [INSTALLATIONS](/about/references/INSTALLATIONS.md)
 
 The YAML setup file looks like this:
 
@@ -84,21 +84,21 @@ We will now replace the placeholders for each of the main keywords above.
 ## TIME_SERIES
 The reservoir variables, in this case, are found in a CSV (Comma separated file) `production_data.csv`.
 We give the time-series data a name that can be referenced as variables elsewhere in the form `<NAME>:<NAME OF COLUMN>`.
-See [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) for further details.
+See [TIME_SERIES](/about/references/TIME_SERIES.md) for further details.
 
 <CodeLinesFromFile title="model.yaml" start={5} end={8} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## FACILITY_INPUTS
 We specify CSV input data for processing equipment using FACILITY_INPUTS. This is used for generatorsets,
-tabulated/sampled models and pump charts. See [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) for further details.
+tabulated/sampled models and pump charts. See [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) for further details.
 
 Here we define a tabulated genset, a sampled compressor, and a single speed pump chart.
-Note that more complicated energy models are defined under the [MODELS](/about/references/keywords/MODELS.md)-keyword. 
+Note that more complicated energy models are defined under the [MODELS](/about/references/MODELS.md)-keyword. 
 
 <CodeLinesFromFile title="model.yaml" start={10} end={23} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## FUEL_TYPES
-In this example there are two [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) - `fuel_gas` and `bad_fuel_gas`.
+In this example there are two [FUEL_TYPES](/about/references/FUEL_TYPES.md) - `fuel_gas` and `bad_fuel_gas`.
 These are used for Installation A and Installation B respectively.
 Here we also define emissions in CO<sub>2</sub> and CH<sub>4</sub>:
 
@@ -106,7 +106,7 @@ Here we also define emissions in CO<sub>2</sub> and CH<sub>4</sub>:
 
 ## MODELS
 
-This advanced example requires some energy usage models to be defined under the model section. See [MODELS](/about/references/keywords/MODELS.md) for details.
+This advanced example requires some energy usage models to be defined under the model section. See [MODELS](/about/references/MODELS.md) for details.
 
 Here we specify:
 - Compressor chart based on design points
@@ -117,10 +117,10 @@ Here we specify:
 
 <CodeLinesFromFile title="model.yaml" start={41} end={95} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-See [MODELS](/about/references/keywords/MODELS.md) for further details.
+See [MODELS](/about/references/MODELS.md) for further details.
 
 ## VARIABLES
-To run the model it is recommended to specify [VARIABLES](/about/references/keywords/VARIABLES.md),
+To run the model it is recommended to specify [VARIABLES](/about/references/VARIABLES.md),
 instead of hard coding values in difference places. This makes it easier to develop, maintain and understand the model
 by allowing descriptive variable names and avoid duplications.
 
@@ -148,7 +148,7 @@ We specify:
 - `NAME`: the installation name
 - `HCEXPORT`: Hydrocarbon export in Sm<sup>3</sup>/day by referring to the variable $var.hydrocarbon_export_sm3_per_day specified under [VARIABLES](#variables) above.
 - `FUEl`: Default fuel specified in [FUEL_TYPES](#fuel_types) above. Note the different fuels used by the two installations.
-- `CATEGORY`: FIXED (installation) category is used to group result data for reporting. See [CATEGORY](/about/references/keywords/CATEGORY.md) for details.
+- `CATEGORY`: FIXED (installation) category is used to group result data for reporting. See [CATEGORY](/about/references/CATEGORY.md) for details.
 - `REGULARITY`: Defined by the variable $var.pea specified under [VARIABLES](#variables) above. `REGULARITY` is closely related to the production efficiency (PE) of a facility, and is used to convert between stream day (sd)- and calendar day (cd) rates.
 
 ~~~~~~~~yaml
@@ -255,7 +255,7 @@ The setup for `Installation B` thus becomes:
 ~~~~~~~~
 
 ## ENERGY_USAGE_MODEL
-We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md)s.
+We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)s.
 
 `Fixed production loads A` has a load of 7.6 MW with additional 4.1 MW when the field gas injection rate is positive:
 

@@ -13,17 +13,17 @@ This means that a single speed compressor model needs the following to be define
 
 - A polytropic compressor chart for every compressor stage in the compressor train. For single speed trains, eCalc
   only supports user defined single speed compressor charts.
-- A [FLUID_MODEL](/about/references/keywords/FLUID_MODEL.md).
-- A [PRESSURE_CONTROL](/about/references/keywords/PRESSURE_CONTROL.md).
+- A [FLUID_MODEL](/about/references/FLUID_MODEL.md).
+- A [PRESSURE_CONTROL](/about/references/PRESSURE_CONTROL.md).
 
 The following keywords are optional for a single speed compressor model:
 
-- [MAXIMUM_DISCHARGE_PRESSURE](/about/references/keywords/MAXIMUM_DISCHARGE_PRESSURE.md)
-- [POWER_ADJUSTMENT_CONSTANT](/about/references/keywords/POWER_ADJUSTMENT_CONSTANT.md)
-- [MAXIMUM_POWER](/about/references/keywords/MAXIMUM_POWER.md)
-- [CALCULATE_MAX_RATE](/about/references/keywords/CALCULATE_MAX_RATE.md)
+- [MAXIMUM_DISCHARGE_PRESSURE](/about/references/MAXIMUM_DISCHARGE_PRESSURE.md)
+- [POWER_ADJUSTMENT_CONSTANT](/about/references/POWER_ADJUSTMENT_CONSTANT.md)
+- [MAXIMUM_POWER](/about/references/MAXIMUM_POWER.md)
+- [CALCULATE_MAX_RATE](/about/references/CALCULATE_MAX_RATE.md)
 
-The model is defined under the main keyword [MODELS](/about/references/keywords/MODELS.md) in the format
+The model is defined under the main keyword [MODELS](/about/references/MODELS.md) in the format
 
 ## Format
 

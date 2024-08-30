@@ -13,20 +13,20 @@ The setup file is written in YAML format and needs to follow a strict pattern wh
 The overall system in eCalc is that the user defines inputs from subsurface and facility and
 then establishes a model between these.
 
-On the top level, the required keywords are [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md) which defines the input from facility characterization, [TIME_SERIES](/about/references/keywords/TIME_SERIES.md) which defines time-dependant input parameters (e.g. reservoir profiles), [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md) which defines the various fuel types used in the system, and [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md) which is the top node defining the system of energy consumers. [MODELS](/about/references/keywords/MODELS.md) is optional and may be used for multi-level energy usage models.
+On the top level, the required keywords are [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) which defines the input from facility characterization, [TIME_SERIES](/about/references/TIME_SERIES.md) which defines time-dependant input parameters (e.g. reservoir profiles), [FUEL_TYPES](/about/references/FUEL_TYPES.md) which defines the various fuel types used in the system, and [INSTALLATIONS](/about/references/INSTALLATIONS.md) which is the top node defining the system of energy consumers. [MODELS](/about/references/MODELS.md) is optional and may be used for multi-level energy usage models.
 
 Documentation about how to set up each of these fields are found here, respectively:
 
-- [TIME_SERIES](/about/references/keywords/TIME_SERIES.md): List of input sources, CSV-files, containing all time series data including the
+- [TIME_SERIES](/about/references/TIME_SERIES.md): List of input sources, CSV-files, containing all time series data including the
   reservoir variables.
-- [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md): List of input files from facility characterization. Typically, this can be
+- [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md): List of input files from facility characterization. Typically, this can be
   characteristics for an element in a consumer system or characteristics for a generator set.
-- [FUEL_TYPES](/about/references/keywords/FUEL_TYPES.md): Defining the fuel types being used in the model and the corresponding
+- [FUEL_TYPES](/about/references/FUEL_TYPES.md): Defining the fuel types being used in the model and the corresponding
   emissions.
-- [MODELS](/about/references/keywords/MODELS.md): Used for multi-level models, one model may refer to other models from either
-  [MODELS](/about/references/keywords/MODELS.md) or [FACILITY_INPUTS](/about/references/keywords/FACILITY_INPUTS.md)
-- [VARIABLES](/about/references/keywords/VARIABLES.md): Used for defining variables to be used in expressions throughout the YAML file
-- [INSTALLATIONS](/about/references/keywords/INSTALLATIONS.md): Defining the system of energy consumers on each installation
+- [MODELS](/about/references/MODELS.md): Used for multi-level models, one model may refer to other models from either
+  [MODELS](/about/references/MODELS.md) or [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md)
+- [VARIABLES](/about/references/VARIABLES.md): Used for defining variables to be used in expressions throughout the YAML file
+- [INSTALLATIONS](/about/references/INSTALLATIONS.md): Defining the system of energy consumers on each installation
   (e.g. platform or mobile unit).
 
 
@@ -39,12 +39,12 @@ are the fuel burners. As the figure below shows, there are three main types of f
 - Turbine-driven processes,
 - Flare/vent/other non reservoir dependent burners/emitters.
 
-In eCalc under each installation, there is one keyword ([GENERATORSETS](/about/references/keywords/GENERATORSETS.md))
-specifying the generator sets and one keyword ([FUELCONSUMERS](/about/references/keywords/FUELCONSUMERS.md))
+In eCalc under each installation, there is one keyword ([GENERATORSETS](/about/references/GENERATORSETS.md))
+specifying the generator sets and one keyword ([FUELCONSUMERS](/about/references/FUELCONSUMERS.md))
 specifying processes that require fuel directly (turbine-driven processes and flare/vent).
 
 The processes with electrical motor drives and other electrical loads are modeled at the sublevel
-under [GENERATORSETS](/about/references/keywords/GENERATORSETS.md).
+under [GENERATORSETS](/about/references/GENERATORSETS.md).
 
 ![](ecalc_general_consumer_overview.png)
 

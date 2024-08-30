@@ -13,7 +13,7 @@ compression.
 
 The composition can either be selected from a set of predefined compositions available within eCalc, or the mole
 fraction of each component can be user specified directly. This is controlled through the
-[FLUID_MODEL_TYPE](/about/references/keywords/FLUID_MODEL_TYPE.md) keyword.
+[FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md) keyword.
 
 As the fluid is going through the compressor in a fluid dynamic process, the enthalpy changes, resulting in a new state
 with increased pressure and temperature, and decreased volume. To estimate these changes, an equation-of-state (EOS)
@@ -29,12 +29,12 @@ Available EOS models
 - GERG_SRK
 - GERG_PR
 
-This is controlled through the [EOS_MODEL](/about/references/keywords/EOS_MODEL.md) keyword. If the
-[EOS_MODEL](/about/references/keywords/EOS_MODEL.md) is not specified, it will be defaulted to `SRK`.
+This is controlled through the [EOS_MODEL](/about/references/EOS_MODEL.md) keyword. If the
+[EOS_MODEL](/about/references/EOS_MODEL.md) is not specified, it will be defaulted to `SRK`.
 
 ## Fluid model using predefined composition
-If the [FLUID_MODEL_TYPE](/about/references/keywords/FLUID_MODEL_TYPE.md) is `PREDEFINED` the
-[GAS_TYPE](/about/references/keywords/GAS_TYPE.md) must be defined. Available gas types (with mole weights) are:
+If the [FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md) is `PREDEFINED` the
+[GAS_TYPE](/about/references/GAS_TYPE.md) must be defined. Available gas types (with mole weights) are:
 
 - ULTRA_DRY (17.1 kg/kmol)
 - DRY (18.3 kg/kmol)
@@ -42,7 +42,7 @@ If the [FLUID_MODEL_TYPE](/about/references/keywords/FLUID_MODEL_TYPE.md) is `PR
 - RICH (21.1 kg/kmol)
 - ULTRA_RICH (24.6 kg/kmol)
 
-If no [GAS_TYPE](/about/references/keywords/GAS_TYPE.md) is specified, it will be defaulted to `MEDIUM`.
+If no [GAS_TYPE](/about/references/GAS_TYPE.md) is specified, it will be defaulted to `MEDIUM`.
 
 ### Format
 ~~~~~~~~yaml
@@ -85,8 +85,8 @@ MODELS:
 ~~~~~~~~
 
 ## Fluid model with user-specified composition
-If the [FLUID_MODEL_TYPE](/about/references/keywords/FLUID_MODEL_TYPE.md) is `COMPOSITION` the
-[COMPOSITION](/about/references/keywords/COMPOSITION.md) must be defined. The composition is specified by setting
+If the [FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md) is `COMPOSITION` the
+[COMPOSITION](/about/references/COMPOSITION.md) must be defined. The composition is specified by setting
 the mole fraction of each component. The available components are:
       - water
       - nitrogen

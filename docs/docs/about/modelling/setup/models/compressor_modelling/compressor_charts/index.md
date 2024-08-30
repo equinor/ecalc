@@ -15,7 +15,7 @@ compressor chart
 
 ## User defined single speed compressor chart
 
-The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](/about/references/keywords/CURVE.md)
+The single speed chart type allows a single compressor curve for one speed, using the keyword [CURVE](/about/references/CURVE.md)
 
 ### Format
 ~~~~~~~~yaml
@@ -69,7 +69,7 @@ CURVE:
 ~~~~~~~~
 :::
 ## User defined variable speed compressor chart
-The variable speed chart type allows a fully defined compressor chart with data for two or more speeds, using the keyword [CURVES](/about/references/keywords/CURVES.md). The upper and
+The variable speed chart type allows a fully defined compressor chart with data for two or more speeds, using the keyword [CURVES](/about/references/CURVES.md). The upper and
 lower speed curves will be interpreted as the speed capacity limits for the chart. 
 Whilst the lowest rate points on each of the upper and lower speed curves will define the minimum flow line for the compressor. 
 
@@ -158,12 +158,12 @@ Unified generic compressor chart:
 ![](generic_unified_compressor_chart.png)
 
 The compressor chart is created by scaling the unified generic compressor chart in the figure above with a
-[DESIGN_RATE](/about/references/keywords/DESIGN_RATE.md) and a [DESIGN_HEAD](/about/references/keywords/DESIGN_HEAD.md).
+[DESIGN_RATE](/about/references/DESIGN_RATE.md) and a [DESIGN_HEAD](/about/references/DESIGN_HEAD.md).
 The generic compressor chart is currently accompanied by a fixed
-[POLYTROPIC_EFFICIENCY](/about/references/keywords/POLYTROPIC_EFFICIENCY.md) (polytropic efficiency
+[POLYTROPIC_EFFICIENCY](/about/references/POLYTROPIC_EFFICIENCY.md) (polytropic efficiency
 variations within the chart may be supported in the future).
 
-The [UNITS](/about/references/keywords/UNITS.md) for the `RATE`, `HEAD` and `EFFICIENCY` must also be defined. Note that
+The [UNITS](/about/references/UNITS.md) for the `RATE`, `HEAD` and `EFFICIENCY` must also be defined. Note that
 the only rate unit available here is *am3/hr* which is NOT EQUAL to *Sm3/hr*. The units *am3/hr* refers to the 
 volumetric rate at inlet conditions (inlet pressure and temperature), and it will differ from the inputted standard
 rates due to the difference in density. The design polytropic head is given in either *kJ/kg*, *m* or J/kg.
@@ -230,10 +230,10 @@ However, in this case the design point is not specified when setting up the mode
 An algorithm is used to set a design point such that all the input data is within the capacity. 
 Even if there is a large spread in the data, all data points will solve. High rate/head data points will just be covered by the curve; whilst low rate points outside the minimum flow point will have recirculation. 
 The generic compressor chart is currently accompanied by a fixed
-[POLYTROPIC_EFFICIENCY](/about/references/keywords/POLYTROPIC_EFFICIENCY.md) (polytropic efficiency
+[POLYTROPIC_EFFICIENCY](/about/references/POLYTROPIC_EFFICIENCY.md) (polytropic efficiency
 variations within the chart may be supported in the future).
 
-The [UNITS](/about/references/keywords/UNITS.md) for the `EFFICIENCY` must also be defined.
+The [UNITS](/about/references/UNITS.md) for the `EFFICIENCY` must also be defined.
 
 This method has one major potential downside in comparison to the `Generic compressor chart with predefined design point`. As all data points will be covered by the compressor curve, if there is an extremely large or unrealistic head or rate value, the other more "normal" data points will be impacted and will either result in a large head adjustment (via upstream/downstream choking) or it will have a large recirculation rate. This has the potential to skew the entire data set solely due to one unrealistic data point.  Thus, if this generic chart is utilised it is important to make sure that unrealistic data is filtered out.
 

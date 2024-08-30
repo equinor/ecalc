@@ -12,8 +12,7 @@ It is currently **recommended** to use the CLI instead of the Python library dir
 The current recommended way to use eCalc is through the CLI (Command Line Interpreter). This is a part of the
 eCalc Python library, and should be accessible from the command line as `ecalc`.
 
-See all commands and options in the [CLI reference](/about/references/cli_reference.md)
-
+See all commands and options in the [CLI reference](/about/getting_started/cli/cli_reference.md)
 
 ## Example Usage
 
@@ -68,4 +67,3 @@ $ ecalc run -n myfield_myproject /somelocation/myfield.yml
 ~~~~~~~~bash
 $ ecalc run --log DEBUG /somelocation/myfield.yml
 ~~~~~~~~
-

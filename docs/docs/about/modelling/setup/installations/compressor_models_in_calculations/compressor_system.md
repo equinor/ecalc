@@ -6,8 +6,8 @@ description: COMPRESSOR_SYSTEM Energy Usage Model
 
 # COMPRESSOR_SYSTEM energy usage model
 
-When [COMPRESSOR_SYSTEM](/about/references/keywords/COMPRESSOR_SYSTEM.md) is specified under [ENERGY_USAGE_MODEL](/about/references/keywords/ENERGY_USAGE_MODEL.md) a fully defined compressor model (with charts) can be used. Here, the following are allowed under the
-[COMPRESSOR_SYSTEM](/about/references/keywords/COMPRESSOR_SYSTEM.md) keyword:
+When [COMPRESSOR_SYSTEM](/about/references/COMPRESSOR_SYSTEM.md) is specified under [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) a fully defined compressor model (with charts) can be used. Here, the following are allowed under the
+[COMPRESSOR_SYSTEM](/about/references/COMPRESSOR_SYSTEM.md) keyword:
 
 - [Simplified variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/simplified_variable_speed_compressor_train_model.md),
 - [Variable speed compressor train model](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md) 

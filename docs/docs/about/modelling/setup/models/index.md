@@ -5,10 +5,10 @@ description: Guide on how to use models in eCalc™
 ---
 
 :::note
-The [MODELS](/about/references/keywords/MODELS.md) keyword is **optional** for an eCalc™ model to run. However, it is critical for compressor and turbine modelling.
+The [MODELS](/about/references/MODELS.md) keyword is **optional** for an eCalc™ model to run. However, it is critical for compressor and turbine modelling.
 :::
 
-This part of the setup defines input files that characterize various fluid, compressor and turbine models. These are later used as input in the [INSTALLATIONS](../../../references/keywords/INSTALLATIONS) part of the setup by referencing their [NAME](../../../references/keywords/NAME).
+This part of the setup defines input files that characterize various fluid, compressor and turbine models. These are later used as input in the [INSTALLATIONS](../../../references/INSTALLATIONS) part of the setup by referencing their [NAME](../../../references/NAME).
 
 ## Format
 
