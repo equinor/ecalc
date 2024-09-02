@@ -1,7 +1,7 @@
 ---
 title: v8 to v8.1
 description: v8 to v8.1 migration
-sidebar_position: 1
+sidebar_position: -1
 ---
 
 # v8 to v8.1
