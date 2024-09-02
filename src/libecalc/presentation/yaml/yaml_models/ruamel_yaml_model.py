@@ -10,13 +10,23 @@ from libecalc.common.errors.exceptions import (
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 
 
 class RuamelYamlModel(YamlConfiguration):
     """Implementation of yaml model using Ruamel library
     Validation has currently not been implemented.
     """
+
+    @classmethod
+    def get_validator(
+        cls,
+        main_yaml: ResourceStream,
+        base_dir: Optional[Path] = None,
+        resources: Optional[Dict[str, TextIO]] = None,
+        enable_include: bool = False,
+    ) -> YamlValidator:
+        raise NotImplementedError("get_validator is not implemented for ruamel")
 
     def __init__(self, internal_datamodel: Dict[str, Any], name: str, instantiated_through_read: bool = False):
         """To avoid mistakes, make sure that this is only instantiated through read method/named constructor
