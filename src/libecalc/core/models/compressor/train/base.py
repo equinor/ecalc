@@ -15,8 +15,10 @@ from libecalc.core.models import (
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.compressor.results import CompressorTrainResultSingleTimeStep
 from libecalc.core.models.compressor.train.fluid import FluidStream
+from libecalc.core.models.compressor.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.core.models.results import CompressorTrainResult
+from libecalc.core.models.results.compressor import TargetPressureStatus
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTrainDTO
 from libecalc.dto.models.compressor.train import (
@@ -228,3 +230,39 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             discharge_pressure, suction_pressure, out=np.ones_like(suction_pressure), where=suction_pressure != 0
         )
         return pressure_ratios ** (1.0 / len(self.stages))
+
+    def check_target_pressures(
+        self,
+        calculated_suction_pressure: float,
+        calculated_discharge_pressure: float,
+        calculated_intermediate_pressure: Optional[float] = None,
+    ) -> TargetPressureStatus:
+        """Check to see how the calculated pressures compare to the required pressures
+        Args:
+            calculated_suction_pressure: The calculated suction pressure
+            calculated_discharge_pressure: The calculated discharge pressure
+            calculated_intermediate_pressure: The calculated intermediate pressure
+        Returns:
+            TargetPressureStatus
+        """
+        if self.target_suction_pressure:
+            if (calculated_suction_pressure / self.target_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
+            if (self.target_suction_pressure / calculated_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
+        if self.target_discharge_pressure:
+            if (calculated_discharge_pressure / self.target_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
+            if (self.target_discharge_pressure / calculated_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
+        if self.target_intermediate_pressure:
+            if (
+                calculated_intermediate_pressure / self.target_intermediate_pressure
+            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.ABOVE_TARGET_INTERMEDIATE_PRESSURE
+            if (
+                self.target_intermediate_pressure / calculated_intermediate_pressure
+            ) - 1 > PRESSURE_CALCULATION_TOLERANCE:
+                return TargetPressureStatus.BELOW_TARGET_INTERMEDIATE_PRESSURE
+
+        return TargetPressureStatus.TARGET_PRESSURES_MET

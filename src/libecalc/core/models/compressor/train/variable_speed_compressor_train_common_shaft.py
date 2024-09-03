@@ -31,9 +31,6 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import (
 from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train_common_shaft import (
     get_single_speed_equivalent,
 )
-from libecalc.core.models.results.compressor import (
-    StageTargetPressureStatus,
-)
 from libecalc.dto.types import FixedSpeedPressureControl
 
 EPSILON = 1e-5
@@ -213,17 +210,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         stage_results: List[CompressorTrainStageResultSingleTimeStep] = []
         outlet_stream = train_inlet_stream
-        for i, stage in enumerate(self.stages):
+        for stage in self.stages:
             inlet_stream = outlet_stream
-            # set stage target pressures for first and last stage
-            if i == 0:
-                stage.target_suction_pressure = self.target_suction_pressure
-            else:
-                stage.target_suction_pressure = None
-            if i == self.number_of_compressor_stages - 1:
-                stage.target_discharge_pressure = self.target_discharge_pressure
-            else:
-                stage.target_discharge_pressure = None
             stage_result = stage.evaluate(
                 inlet_stream_stage=inlet_stream,
                 speed=speed,
@@ -239,6 +227,12 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 new_temperature_kelvin=stage_result.outlet_stream.temperature_kelvin,
             )
 
+        # check if target pressures are met
+        target_pressure_status = self.check_target_pressures(
+            calculated_suction_pressure=train_inlet_stream.pressure_bara,
+            calculated_discharge_pressure=outlet_stream.pressure_bara,
+        )
+
         return CompressorTrainResultSingleTimeStep(
             stage_results=stage_results,
             speed=speed,
@@ -246,6 +240,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             > self.maximum_power
             if self.maximum_power
             else False,
+            target_pressure_status=target_pressure_status,
         )
 
     def get_max_standard_rate(
@@ -651,17 +646,21 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     upper_bound_for_inlet_pressure=inlet_pressure,
                 )
                 # Set pressure before upstream choking to the given inlet pressure
-                train_results.stage_results[0].inlet_pressure_before_choking = (
-                    inlet_pressure - self.stages[0].pressure_drop_ahead_of_stage
+                train_results.stage_results[0].inlet_pressure_before_choking = inlet_pressure
+                train_results.target_pressure_status = self.check_target_pressures(
+                    calculated_suction_pressure=train_results.suction_pressure_before_choking,
+                    calculated_discharge_pressure=train_results.discharge_pressure,
                 )
-
             elif self.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
                 choked_stage_results = deepcopy(train_results.stage_results[-1])
                 choked_stage_results.pressure_is_choked = True
                 choked_stage_results.outlet_pressure_before_choking = float(choked_stage_results.discharge_pressure)
                 choked_stage_results.outlet_stream.pressure_bara = outlet_pressure
-                choked_stage_results.target_pressure_status = StageTargetPressureStatus.TARGET_PRESSURES_MET
                 train_results.stage_results[-1] = choked_stage_results
+                train_results.target_pressure_status = self.check_target_pressures(
+                    calculated_suction_pressure=train_results.suction_pressure,
+                    calculated_discharge_pressure=train_results.discharge_pressure,
+                )
 
         elif self.pressure_control == FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE:
             # first check if there is room for recirculation

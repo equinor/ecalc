@@ -29,7 +29,7 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.core.models.results.compressor import (
-    StageTargetPressureStatus,
+    TargetPressureStatus,
 )
 from libecalc.dto.types import ChartAreaFlag
 
@@ -127,6 +127,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
 
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
         compressor_stages_result_per_time_step = []
+        compressor_result_per_time_step = []
         inlet_pressure = suction_pressure.copy()
         for stage in self.stages:
             inlet_temperatures_kelvin = np.full_like(rate, fill_value=stage.inlet_temperature_kelvin, dtype=float)
@@ -142,13 +143,27 @@ class CompressorTrainSimplified(CompressorTrainModel):
             inlet_pressure = inlet_pressure * pressure_ratios_per_stage
 
         # Converting from individual stage results to a train results and adding max rate per time step.
-        return [
-            CompressorTrainResultSingleTimeStep(
-                speed=np.nan,
-                stage_results=[result[time_step].stage_results[0] for result in compressor_stages_result_per_time_step],
+        for time_step in range(len(compressor_stages_result_per_time_step[0])):
+            self.target_suction_pressure = suction_pressure[time_step]
+            self.target_discharge_pressure = discharge_pressure[time_step]
+            compressor_result_per_time_step.append(
+                CompressorTrainResultSingleTimeStep(
+                    speed=np.nan,
+                    stage_results=[
+                        result[time_step].stage_results[0] for result in compressor_stages_result_per_time_step
+                    ],
+                    target_pressure_status=self.check_target_pressures(
+                        calculated_suction_pressure=compressor_stages_result_per_time_step[0][
+                            time_step
+                        ].suction_pressure,
+                        calculated_discharge_pressure=compressor_stages_result_per_time_step[-1][
+                            time_step
+                        ].discharge_pressure,
+                    ),
+                )
             )
-            for time_step in range(len(compressor_stages_result_per_time_step[0]))
-        ]
+
+        return compressor_result_per_time_step
 
     def calculate_compressor_stage_work_given_outlet_pressure(
         self,
@@ -332,9 +347,9 @@ class CompressorTrainSimplified(CompressorTrainModel):
                             outlet_pressure_before_choking=np.nan,  # We do not have this value here
                             # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
                             point_is_valid=~np.isnan(power_mw[i]),  # power_mw is set to np.NaN if invalid step.
-                            target_pressure_status=StageTargetPressureStatus.TARGET_PRESSURES_MET,
                         )
                     ],
+                    target_pressure_status=TargetPressureStatus.TARGET_PRESSURES_MET,
                 )
             )
 
