@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc import dto
+from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
@@ -34,17 +35,21 @@ class TurbineModel(BaseModel):
 
     @property
     def max_power(self) -> Optional[float]:
+        # Max power the compressor can ask for, based on max turbine load
+        # Note: the scaling is opposite to the turbine load adjustment
         return (
-            self._maximum_load * self.data_transfer_object.energy_usage_adjustment_factor
-            - self.data_transfer_object.energy_usage_adjustment_constant
-        )
+            self._maximum_load - self.data_transfer_object.energy_usage_adjustment_constant
+        ) / self.data_transfer_object.energy_usage_adjustment_factor
 
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
-        # Why do we divide by the adjustment factor here, and not pure linear adjustment?
+        # Linear calibration of load
         load_adjusted = np.where(
             load > 0,
-            (load + self.data_transfer_object.energy_usage_adjustment_constant)
-            / self.data_transfer_object.energy_usage_adjustment_factor,
+            transform_linear(
+                values=load,
+                constant=self.data_transfer_object.energy_usage_adjustment_constant,
+                factor=self.data_transfer_object.energy_usage_adjustment_factor,
+            ),
             load,
         )
         lower_heating_value_to_use = (
