@@ -19,7 +19,7 @@ class TestEcalcModelMapper:
     @pytest.mark.snapshot
     def test_all_energy_usage_models(self, all_energy_usage_models_dto: DTOCase, snapshot):
         actual_fd = EcalcModelMapper.from_dto_to_fde(
-            all_energy_usage_models_dto.ecalc_model, result_options=dto.ResultOptions()
+            all_energy_usage_models_dto.ecalc_model, model_period=dto.ResultOptions()
         )
 
         snapshot_name = "all_energy_usage_models_fde.json"
@@ -35,7 +35,7 @@ class TestEcalcModelMapper:
 
     @pytest.mark.snapshot
     def test_case_with_dates(self, installation_with_dates_dto_fd: dto.Asset, snapshot):
-        actual_fd = EcalcModelMapper.from_dto_to_fde(installation_with_dates_dto_fd, result_options=dto.ResultOptions())
+        actual_fd = EcalcModelMapper.from_dto_to_fde(installation_with_dates_dto_fd, model_period=dto.ResultOptions())
         snapshot_name = "actual_fde.json"
         snapshot.assert_match(
             json.dumps(actual_fd.model_dump(), sort_keys=True, indent=4, default=str), snapshot_name=snapshot_name

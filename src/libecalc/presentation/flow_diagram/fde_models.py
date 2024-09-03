@@ -74,6 +74,3 @@ class Node(BaseModel):
     type: Optional[str] = None
     subdiagram: Optional[Union[FlowDiagram, List[FlowDiagram]]] = None
     model_config = ConfigDict(frozen=True)
-
-
-FlowDiagram.update_forward_refs()

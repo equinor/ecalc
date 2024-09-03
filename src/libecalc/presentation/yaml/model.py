@@ -6,8 +6,8 @@ from typing import Callable, Dict, List, Optional, Protocol
 
 from libecalc.common.errors.exceptions import EcalcError, InvalidResourceHeaderException
 from libecalc.common.logger import logger
-from libecalc.common.time_utils import Frequency
-from libecalc.dto import ResultOptions, VariablesMap
+from libecalc.common.time_utils import Frequency, Period
+from libecalc.dto import Asset, ResultOptions, VariablesMap
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.infrastructure.file_io import (
     read_facility_resource,
@@ -134,10 +134,33 @@ class YamlModel:
         output_frequency: Frequency,
     ) -> None:
         self._output_frequency = output_frequency
-        self._configuration = configuration_service.get_configuration()
-        self.resources = resource_service.get_resources(self._configuration)
-        self.is_valid_for_run()
-        self.dto = map_yaml_to_dto(configuration=self._configuration, resources=self.resources)
+        self.configuration_service = configuration_service
+        self.resource_service = resource_service
+
+        self._resources = None
+        self._dto = None
+        self.__configuration = None
+
+    @property
+    def _configuration(self) -> YamlValidator:
+        if self.__configuration is None:
+            self.__configuration = self.configuration_service.get_configuration()
+
+        return self.__configuration
+
+    @property
+    def resources(self):
+        if self._resources is None:
+            self._resources = self.resource_service.get_resources(self._configuration)
+
+        return self._resources
+
+    @property
+    def dto(self) -> Asset:
+        if self._dto is None:
+            self._dto = map_yaml_to_dto(configuration=self._configuration, resources=self.resources)
+
+        return self._dto
 
     @property
     def start(self) -> Optional[datetime]:
@@ -151,6 +174,13 @@ class YamlModel:
     def variables(self) -> VariablesMap:
         return map_yaml_to_variables(
             configuration=self._configuration, resources=self.resources, result_options=self.result_options
+        )
+
+    @property
+    def period(self):
+        return Period(
+            start=self._configuration.start,
+            end=self._configuration.end,
         )
 
     @property

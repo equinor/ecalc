@@ -529,9 +529,9 @@ def _get_sorted_start_dates(ecalc_model: dto.Asset):
     return sorted(_get_timesteps([ecalc_model]))
 
 
-def _get_global_dates(ecalc_model: dto.Asset, result_options: dto.ResultOptions) -> Tuple[datetime, datetime]:
-    user_defined_start_date = result_options.start
-    user_defined_end_date = result_options.end
+def _get_global_dates(ecalc_model: dto.Asset, period: Period) -> Tuple[datetime, datetime]:
+    user_defined_start_date = period.start if period.start != datetime.min else None
+    user_defined_end_date = period.end if period.end != datetime.max else None
 
     if user_defined_start_date is not None and user_defined_end_date is not None:
         return user_defined_start_date, user_defined_end_date
@@ -544,8 +544,8 @@ def _get_global_dates(ecalc_model: dto.Asset, result_options: dto.ResultOptions)
 
 class EcalcModelMapper:
     @staticmethod
-    def from_dto_to_fde(ecalc_model: dto.Asset, result_options: dto.ResultOptions) -> FlowDiagram:
-        global_start_date, global_end_date = _get_global_dates(ecalc_model, result_options)
+    def from_dto_to_fde(ecalc_model: dto.Asset, model_period: Period) -> FlowDiagram:
+        global_start_date, global_end_date = _get_global_dates(ecalc_model, model_period)
         installation_nodes = [
             _create_installation_node(installation, global_end_date) for installation in ecalc_model.installations
         ]

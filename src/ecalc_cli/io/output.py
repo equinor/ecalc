@@ -8,7 +8,7 @@ from ecalc_cli.errors import EcalcCLIError
 from libecalc import dto
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
-from libecalc.common.time_utils import resample_time_steps
+from libecalc.common.time_utils import Period, resample_time_steps
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
 from libecalc.presentation.exporter.exporter import Exporter
@@ -169,12 +169,12 @@ def export_tsv(
     exporter.export(row_based_data)
 
 
-def write_flow_diagram(model_dto: dto.Asset, result_options: dto.ResultOptions, output_folder: Path, name_prefix: str):
+def write_flow_diagram(model_dto: dto.Asset, model_period: Period, output_folder: Path, name_prefix: str):
     """Write FDE diagram to file.
 
     Args:
         model_dto: eCalc model
-        result_options: Result options specifying start, end and frequency
+        model_period: Result options specifying start, end and frequency
         output_folder: Desired output location of FDE diagram
         name_prefix: Name of FDE diagram file
 
@@ -186,7 +186,7 @@ def write_flow_diagram(model_dto: dto.Asset, result_options: dto.ResultOptions, 
     """
     flow_diagram = EcalcModelMapper.from_dto_to_fde(
         ecalc_model=model_dto,
-        result_options=result_options,
+        model_period=model_period,
     )
     flow_diagram_filename = f"{name_prefix}.flow-diagram.json" if name_prefix != "" else "flow-diagram.json"
     flow_diagram_path = output_folder / flow_diagram_filename

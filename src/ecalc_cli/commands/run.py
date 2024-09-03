@@ -116,6 +116,7 @@ def run(
         resource_service=resource_service,
         output_frequency=output_frequency,
     )
+    model.is_valid_for_run()
 
     if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
         logger.warning(
@@ -125,7 +126,7 @@ def run(
     if flow_diagram:
         write_flow_diagram(
             model_dto=model.dto,
-            result_options=model.result_options,
+            model_period=model.result_options,
             output_folder=output_folder,
             name_prefix=name_prefix,
         )
