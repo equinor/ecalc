@@ -332,8 +332,6 @@ class CompressorTrainSimplified(CompressorTrainModel):
                     rate_exceeds_maximum=rate_exceeds_maximum[i],
                     pressure_is_choked=pressure_is_choked[i],
                     head_exceeds_maximum=head_exceeds_maximum[i],
-                    inlet_pressure_before_choking=np.nan,  # We do not have this value here
-                    outlet_pressure_before_choking=np.nan,  # We do not have this value here
                     # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
                     point_is_valid=~np.isnan(power_mw[i]),  # power_mw is set to np.NaN if invalid step.
                 )
