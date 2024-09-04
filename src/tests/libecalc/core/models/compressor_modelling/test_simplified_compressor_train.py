@@ -671,22 +671,16 @@ def test_calculate_compressor_work(medium_fluid):
     )
 
     power_mw = np.array([x.power_megawatt for x in compressor_result])
-    rate_exceeds_maximum = np.array([x.stage_results[0].rate_exceeds_maximum for x in compressor_result])
-    head_exceeds_maximum = np.array([x.stage_results[0].head_exceeds_maximum for x in compressor_result])
-    inlet_actual_rate_before_asv_m3_per_hr = np.array([x.inlet_actual_rate for x in compressor_result])
+    rate_exceeds_maximum = np.array([x.rate_exceeds_maximum for x in compressor_result])
+    head_exceeds_maximum = np.array([x.head_exceeds_maximum for x in compressor_result])
+    inlet_actual_rate_before_asv_m3_per_hr = np.array([x.inlet_actual_rate_m3_per_hour for x in compressor_result])
     inlet_actual_rate_m3_per_hr = np.array([x.inlet_actual_rate_asv_corrected_m3_per_hour for x in compressor_result])
     polytropic_enthalpy_change_before_choke_kJ_per_kg = np.array(
-        [x.polytropic_enthalpy_change_before_choke_kilo_joule_per_kg for x in compressor_result]
+        [x.polytropic_enthalpy_change_before_choke_kJ_per_kg for x in compressor_result]
     )
-    polytropic_enthalpy_change_kJ_per_kg = np.array(
-        [x.polytropic_enthalpy_change_kilo_joule_per_kg for x in compressor_result]
-    )
-    outlet_temperature_kelvin = np.array(
-        [x.stage_results[-1].outlet_stream.temperature_kelvin for x in compressor_result]
-    )
-    outlet_actual_rate_m3_per_hr = np.array(
-        [x.stage_results[-1].outlet_actual_rate_m3_per_hour for x in compressor_result]
-    )
+    polytropic_enthalpy_change_kJ_per_kg = np.array([x.polytropic_enthalpy_change_kJ_per_kg for x in compressor_result])
+    outlet_temperature_kelvin = np.array([x.outlet_stream.temperature_kelvin for x in compressor_result])
+    outlet_actual_rate_m3_per_hr = np.array([x.outlet_actual_rate_m3_per_hour for x in compressor_result])
     assert np.isnan(power_mw[np.argwhere(rate_exceeds_maximum)[:, 0]]).all()
     assert np.isnan(power_mw[np.argwhere(head_exceeds_maximum)[:, 0]]).all()
 
@@ -785,8 +779,8 @@ def test_calculate_compressor_work(medium_fluid):
 
     # All points should now be valid!
     assert ~(np.isnan([x.power_megawatt for x in compressor_result_chart_from_input_data])).all()
-    assert ~np.array([x.stage_results[0].rate_exceeds_maximum for x in compressor_result_chart_from_input_data]).all()
-    assert ~np.array([x.stage_results[0].head_exceeds_maximum for x in compressor_result_chart_from_input_data]).all()
+    assert ~np.array([x.rate_exceeds_maximum for x in compressor_result_chart_from_input_data]).all()
+    assert ~np.array([x.head_exceeds_maximum for x in compressor_result_chart_from_input_data]).all()
 
 
 def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(dry_fluid):
