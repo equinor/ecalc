@@ -154,28 +154,28 @@ def test_simplified_compressor_train_compressor_stage_work(
     )
     # Check some inlet results (thermodynamic checks)
     np.testing.assert_allclose(
-        actual=[time_step.suction_pressure for time_step in results],
+        actual=[time_step.inlet_pressure for time_step in results],
         desired=unisim_test_data.input_stream_data.pressures,
     )
     np.testing.assert_allclose(
-        actual=[time_step.inlet_density for time_step in results],
+        actual=[time_step.inlet_stream.density_kg_per_m3 for time_step in results],
         desired=unisim_test_data.input_stream_data.density,
         rtol=0.02,
     )
     np.testing.assert_allclose(
-        actual=[time_step.inlet_actual_rate for time_step in results],
+        actual=[time_step.inlet_actual_rate_m3_per_hour for time_step in results],
         desired=unisim_test_data.input_stream_data.actual_volume_rate,
         rtol=0.02,
     )
     np.testing.assert_allclose(
-        actual=[time_step.inlet_z for time_step in results],
+        actual=[time_step.inlet_stream.z for time_step in results],
         desired=unisim_test_data.input_stream_data.z_factor,
         rtol=0.01,
     )
 
     # Check polytropic head and power (checking head/power calculations AND iteration of outlet z/kappa)
     np.testing.assert_allclose(
-        actual=[time_step.polytropic_head_kilo_joule_per_kg[0] for time_step in results],
+        actual=[time_step.polytropic_head_kJ_per_kg for time_step in results],
         desired=unisim_test_data.compressor_data.polytropic_heads_kJ_per_kg,
         rtol=0.03,
     )
@@ -185,14 +185,14 @@ def test_simplified_compressor_train_compressor_stage_work(
         rtol=0.03,
     )
     np.testing.assert_allclose(
-        actual=[time_step.outlet_z for time_step in results],
+        actual=[time_step.outlet_stream.z for time_step in results],
         desired=unisim_test_data.output_stream_data.z_factor,
         rtol=0.01,
     )
 
     # Checking outlet stream results based on eCalc head/power/z/kappa calculations
     np.testing.assert_allclose(
-        actual=[time_step.outlet_density for time_step in results],
+        actual=[time_step.outlet_stream.density_kg_per_m3 for time_step in results],
         desired=unisim_test_data.output_stream_data.density,
         rtol=0.02,
     )
@@ -202,7 +202,7 @@ def test_simplified_compressor_train_compressor_stage_work(
         rtol=0.01,
     )
     np.testing.assert_allclose(
-        actual=[time_step.outlet_temperature_kelvin for time_step in results],
+        actual=[time_step.outlet_stream.temperature_kelvin for time_step in results],
         desired=unisim_test_data.output_stream_data.temperatures,
         rtol=0.01,
     )

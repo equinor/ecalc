@@ -28,9 +28,6 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_polytropic_head_campbell,
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
-from libecalc.core.models.results.compressor import (
-    TargetPressureStatus,
-)
 from libecalc.dto.types import ChartAreaFlag
 
 
@@ -131,7 +128,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         inlet_pressure = suction_pressure.copy()
         for stage in self.stages:
             inlet_temperatures_kelvin = np.full_like(rate, fill_value=stage.inlet_temperature_kelvin, dtype=float)
-            compressor_result = self.calculate_compressor_stage_work_given_outlet_pressure(
+            compressor_stage_result = self.calculate_compressor_stage_work_given_outlet_pressure(
                 inlet_pressure=inlet_pressure,
                 mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                 pressure_ratio=pressure_ratios_per_stage,
@@ -139,7 +136,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 stage=stage,
             )
 
-            compressor_stages_result_per_time_step.append(compressor_result)
+            compressor_stages_result_per_time_step.append(compressor_stage_result)
             inlet_pressure = inlet_pressure * pressure_ratios_per_stage
 
         # Converting from individual stage results to a train results and adding max rate per time step.
@@ -149,13 +146,9 @@ class CompressorTrainSimplified(CompressorTrainModel):
             compressor_result_per_time_step.append(
                 CompressorTrainResultSingleTimeStep(
                     speed=np.nan,
-                    stage_results=[
-                        result[time_step].stage_results[0] for result in compressor_stages_result_per_time_step
-                    ],
+                    stage_results=[result[time_step] for result in compressor_stages_result_per_time_step],
                     target_pressure_status=self.check_target_pressures(
-                        calculated_suction_pressure=compressor_stages_result_per_time_step[0][
-                            time_step
-                        ].suction_pressure,
+                        calculated_suction_pressure=compressor_stages_result_per_time_step[0][time_step].inlet_pressure,
                         calculated_discharge_pressure=compressor_stages_result_per_time_step[-1][
                             time_step
                         ].discharge_pressure,
@@ -173,7 +166,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
         inlet_temperature_kelvin: NDArray[np.float64],
         stage: Union[CompressorTrainStage, UndefinedCompressorStage],
         adjust_for_chart: bool = True,
-    ) -> List[CompressorTrainResultSingleTimeStep]:
+    ) -> List[CompressorTrainStageResultSingleTimeStep]:
         outlet_pressure = np.multiply(inlet_pressure, pressure_ratio)
 
         inlet_streams = self.fluid.get_fluid_streams(
@@ -308,48 +301,39 @@ class CompressorTrainSimplified(CompressorTrainModel):
                 chart_area_flag = ChartAreaFlag.INTERNAL_POINT
 
             compressor_result.append(
-                CompressorTrainResultSingleTimeStep(
-                    speed=np.nan,
-                    stage_results=[
-                        CompressorTrainStageResultSingleTimeStep(
-                            inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=inlet_streams[i]),
-                            outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_streams[i]),
-                            inlet_actual_rate_asv_corrected_m3_per_hour=asv_corrected_actual_rate_m3_per_hour[i],
-                            inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour[i],
-                            standard_rate_sm3_per_day=mass_rate_kg_per_hour[i]
-                            * 24.0
-                            / inlet_streams[i].standard_conditions_density,
-                            standard_rate_asv_corrected_sm3_per_day=mass_rate_to_use_kg_per_hour[i]
-                            * 24
-                            / inlet_streams[i].standard_conditions_density,
-                            outlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_to_use_kg_per_hour[i]
-                            / outlet_densities_kg_per_m3[i],
-                            outlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour[i] / outlet_densities_kg_per_m3[i],
-                            mass_rate_kg_per_hour=mass_rate_kg_per_hour[i],
-                            mass_rate_asv_corrected_kg_per_hour=mass_rate_to_use_kg_per_hour[i],
-                            power_megawatt=power_mw[i],
-                            chart_area_flag=chart_area_flag,
-                            polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg[i]
-                            / 1000,
-                            polytropic_enthalpy_change_before_choke_kJ_per_kg=polytropic_enthalpy_change_kilo_joule_per_kg[
-                                i
-                            ],
-                            polytropic_head_kJ_per_kg=(
-                                polytropic_enthalpy_change_to_use_joule_per_kg[i] * polytropic_efficiency[i]
-                            )
-                            / 1000,
-                            polytropic_efficiency=polytropic_efficiency[i],
-                            rate_has_recirculation=rate_has_recirc[i],
-                            rate_exceeds_maximum=rate_exceeds_maximum[i],
-                            pressure_is_choked=pressure_is_choked[i],
-                            head_exceeds_maximum=head_exceeds_maximum[i],
-                            inlet_pressure_before_choking=np.nan,  # We do not have this value here
-                            outlet_pressure_before_choking=np.nan,  # We do not have this value here
-                            # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
-                            point_is_valid=~np.isnan(power_mw[i]),  # power_mw is set to np.NaN if invalid step.
-                        )
-                    ],
-                    target_pressure_status=TargetPressureStatus.TARGET_PRESSURES_MET,
+                CompressorTrainStageResultSingleTimeStep(
+                    inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=inlet_streams[i]),
+                    outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_streams[i]),
+                    inlet_actual_rate_asv_corrected_m3_per_hour=asv_corrected_actual_rate_m3_per_hour[i],
+                    inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour[i],
+                    standard_rate_sm3_per_day=mass_rate_kg_per_hour[i]
+                    * 24.0
+                    / inlet_streams[i].standard_conditions_density,
+                    standard_rate_asv_corrected_sm3_per_day=mass_rate_to_use_kg_per_hour[i]
+                    * 24
+                    / inlet_streams[i].standard_conditions_density,
+                    outlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_to_use_kg_per_hour[i]
+                    / outlet_densities_kg_per_m3[i],
+                    outlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour[i] / outlet_densities_kg_per_m3[i],
+                    mass_rate_kg_per_hour=mass_rate_kg_per_hour[i],
+                    mass_rate_asv_corrected_kg_per_hour=mass_rate_to_use_kg_per_hour[i],
+                    power_megawatt=power_mw[i],
+                    chart_area_flag=chart_area_flag,
+                    polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg[i] / 1000,
+                    polytropic_enthalpy_change_before_choke_kJ_per_kg=polytropic_enthalpy_change_kilo_joule_per_kg[i],
+                    polytropic_head_kJ_per_kg=(
+                        polytropic_enthalpy_change_to_use_joule_per_kg[i] * polytropic_efficiency[i]
+                    )
+                    / 1000,
+                    polytropic_efficiency=polytropic_efficiency[i],
+                    rate_has_recirculation=rate_has_recirc[i],
+                    rate_exceeds_maximum=rate_exceeds_maximum[i],
+                    pressure_is_choked=pressure_is_choked[i],
+                    head_exceeds_maximum=head_exceeds_maximum[i],
+                    inlet_pressure_before_choking=np.nan,  # We do not have this value here
+                    outlet_pressure_before_choking=np.nan,  # We do not have this value here
+                    # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
+                    point_is_valid=~np.isnan(power_mw[i]),  # power_mw is set to np.NaN if invalid step.
                 )
             )
 
