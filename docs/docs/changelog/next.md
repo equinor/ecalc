@@ -15,6 +15,10 @@ sidebar_position: -1002
 
 ## Fixes
 
+- If a compressor train is not able to reach the requested inlet or outlet pressure, both the compressor stages and
+  the compressor train used to be reported as invalid. This is now changed. If the compressor stages are operating within
+  their capacity, they will now be reported as valid even if the compressor train as a whole is not able to reach
+  the requested inlet or outlet pressures.
 
 ## Breaking changes
 
