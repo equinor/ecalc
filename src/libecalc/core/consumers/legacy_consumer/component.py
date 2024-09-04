@@ -245,6 +245,19 @@ class Consumer(BaseConsumer):
             temporal_expression=TemporalModel(self._consumer_dto.regularity),
             variables_map=variables_map,
         )
+        # figure out if regularity has been extrapolated and override if it is extrapolated to 0
+        regularity_extrapolated = TemporalExpression.extrapolated(
+            temporal_expression=TemporalModel(self._consumer_dto.regularity),
+            variables_map=variables_map,
+        )
+        regularity = [
+            1
+            if regularity_this_time_step == 0 and regularity_extrapolated_this_time_step
+            else regularity_this_time_step
+            for regularity_this_time_step, regularity_extrapolated_this_time_step in zip(
+                regularity, regularity_extrapolated
+            )
+        ]
 
         # NOTE! This function may not handle regularity 0
         consumer_function_results = self.evaluate_consumer_temporal_model(

@@ -36,6 +36,8 @@ class TestEvaluateVariables:
                 datetime(2010, 1, 1),
                 datetime(2012, 1, 1),
             ],
+            variables_extrapolated={"SIM1;TEST": [False, False]},
+            variables_interpolated={"SIM1;TEST": [False, False]},
         )
         variables = {"VAR1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2"))}
         evaluated_variables = _evaluate_variables(variables=variables, variables_map=variables_map)
@@ -49,6 +51,8 @@ class TestEvaluateVariables:
                 datetime(2010, 1, 1),
                 datetime(2012, 1, 1),
             ],
+            variables_extrapolated={"SIM1;TEST": [False, False]},
+            variables_interpolated={"SIM1;TEST": [False, False]},
         )
         variables = {
             "VAR5": YamlSingleVariable(value=Expression.setup_from_expression("$var.VAR4 {*} 2")),

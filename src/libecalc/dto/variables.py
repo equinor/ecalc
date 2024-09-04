@@ -32,6 +32,8 @@ class VariablesMap(BaseModel):
 
     time_vector: List[datetime] = Field(default_factory=list)
     variables: Dict[str, List[Annotated[float, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)
+    variables_extrapolated: Dict[str, List[Annotated[bool, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)
+    variables_interpolated: Dict[str, List[Annotated[bool, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)
 
     @property
     def period(self):
@@ -47,8 +49,19 @@ class VariablesMap(BaseModel):
 
     def get_subset(self, start_index: int = 0, end_index: int = -1) -> VariablesMap:
         subset_time_vector = self.time_vector[start_index:end_index]
-        subset_dict = {ref: array[start_index:end_index] for ref, array in self.variables.items()}
-        return VariablesMap(variables=subset_dict, time_vector=subset_time_vector)
+        subset_variables = {ref: array[start_index:end_index] for ref, array in self.variables.items()}
+        subset_variables_extrapolated = {
+            ref: array[start_index:end_index] for ref, array in self.variables_extrapolated.items()
+        }
+        subset_variables_interpolated = {
+            ref: array[start_index:end_index] for ref, array in self.variables_interpolated.items()
+        }
+        return VariablesMap(
+            variables=subset_variables,
+            variables_extrapolated=subset_variables_extrapolated,
+            variables_interpolated=subset_variables_interpolated,
+            time_vector=subset_time_vector,
+        )
 
     def get_subset_from_period(self, period: Period) -> VariablesMap:
         start_index, end_index = period.get_timestep_indices(self.time_vector)
@@ -65,3 +78,6 @@ class VariablesMap(BaseModel):
 
     def zeros(self) -> List[float]:
         return [0.0] * len(self.time_vector)
+
+    def false(self) -> List[bool]:
+        return [False] * len(self.time_vector)

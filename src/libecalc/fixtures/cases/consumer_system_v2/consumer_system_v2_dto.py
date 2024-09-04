@@ -656,5 +656,13 @@ def consumer_system_v2_dto() -> DTOCase:
                 "compressor1;rate": [0.0, 0.0, 0.0, 4000000.0],
                 "$var.compressor1": [0, 0, 0, 4000000],
             },
+            variables_extrapolated={
+                "compressor1;rate": [False, False, False, False],
+                "$var.compressor1": [False, False, False, False],
+            },
+            variables_interpolated={
+                "compressor1;rate": [False, False, False, False],
+                "$var.compressor1": [False, False, False, False],
+            },
         ),
     )

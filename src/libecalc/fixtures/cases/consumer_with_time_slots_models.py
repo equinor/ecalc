@@ -292,5 +292,10 @@ def consumer_with_time_slots_models_dto(
                 )
             ],
         ),
-        variables=dto.VariablesMap(time_vector=time_vector, variables={"RATE": [5000] * number_of_years}),
+        variables=dto.VariablesMap(
+            time_vector=time_vector,
+            variables={"RATE": [5000] * number_of_years},
+            variables_extrapolated={"RATE": [False] * number_of_years},
+            variables_interpolated={"RATE": [False] * number_of_years},
+        ),
     )

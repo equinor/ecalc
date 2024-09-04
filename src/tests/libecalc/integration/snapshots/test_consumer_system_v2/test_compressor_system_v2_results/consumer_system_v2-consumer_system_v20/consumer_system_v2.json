@@ -7891,6 +7891,34 @@
                 0.0,
                 4000000.0
             ]
+        },
+        "variables_extrapolated": {
+            "$var.compressor1": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "compressor1;rate": [
+                false,
+                false,
+                false,
+                false
+            ]
+        },
+        "variables_interpolated": {
+            "$var.compressor1": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "compressor1;rate": [
+                false,
+                false,
+                false,
+                false
+            ]
         }
     }
 }
