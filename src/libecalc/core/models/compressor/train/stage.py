@@ -15,13 +15,9 @@ from libecalc.core.models.compressor.train.chart import (
 )
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.utils.common import (
-    PRESSURE_CALCULATION_TOLERANCE,
     calculate_asv_corrected_rate,
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
-)
-from libecalc.core.models.results.compressor import (
-    StageTargetPressureStatus,
 )
 
 
@@ -36,26 +32,6 @@ class CompressorTrainStage(BaseModel):
     remove_liquid_after_cooling: bool
     pressure_drop_ahead_of_stage: Optional[float] = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    # may be filled at run time
-    _target_discharge_pressure: Optional[float] = None
-    _target_suction_pressure: Optional[float] = None
-
-    @property
-    def target_discharge_pressure(self):
-        return self._target_discharge_pressure
-
-    @target_discharge_pressure.setter
-    def target_discharge_pressure(self, value):
-        self._target_discharge_pressure = value
-
-    @property
-    def target_suction_pressure(self):
-        return self._target_suction_pressure
-
-    @target_suction_pressure.setter
-    def target_suction_pressure(self, value):
-        self._target_suction_pressure = value
 
     def evaluate(
         self,
@@ -194,10 +170,6 @@ class CompressorTrainStage(BaseModel):
             inlet_stream=inlet_stream_compressor,
         )
 
-        target_pressure_status = self.check_target_pressures(
-            inlet_stream=inlet_stream_stage, outlet_stream=outlet_stream
-        )
-
         return CompressorTrainStageResultSingleTimeStep(
             inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=inlet_stream_compressor),
             outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_stream),
@@ -223,33 +195,7 @@ class CompressorTrainStage(BaseModel):
             polytropic_enthalpy_change_before_choke_kJ_per_kg=enthalpy_change_J_per_kg / 1000,
             inlet_pressure_before_choking=inlet_stream_compressor.pressure_bara,
             outlet_pressure_before_choking=outlet_stream.pressure_bara,
-            target_pressure_status=target_pressure_status,
         )
-
-    def check_target_pressures(
-        self, inlet_stream: FluidStream, outlet_stream: FluidStream
-    ) -> StageTargetPressureStatus:
-        """
-
-        Args:
-            inlet_stream:
-            outlet_stream:
-
-        Returns:
-
-        """
-        if self._target_suction_pressure:
-            if (inlet_stream.pressure_bara / self._target_suction_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
-                return StageTargetPressureStatus.ABOVE_TARGET_SUCTION_PRESSURE
-            if (self._target_suction_pressure / inlet_stream.pressure_bara) - 1 > PRESSURE_CALCULATION_TOLERANCE:
-                return StageTargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE
-        if self._target_discharge_pressure:
-            if (outlet_stream.pressure_bara / self._target_discharge_pressure) - 1 > PRESSURE_CALCULATION_TOLERANCE:
-                return StageTargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE
-            if (self._target_discharge_pressure / outlet_stream.pressure_bara) - 1 > PRESSURE_CALCULATION_TOLERANCE:
-                return StageTargetPressureStatus.BELOW_TARGET_DISCHARGE_PRESSURE
-
-        return StageTargetPressureStatus.TARGET_PRESSURES_MET
 
 
 class UndefinedCompressorStage(CompressorTrainStage):
