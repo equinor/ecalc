@@ -215,7 +215,7 @@ class TestVariableSpeedCompressorTrainCommonShaftOneRateTwoPressures:
         )
 
         assert result.outlet_stream.pressure[0] == 40
-        np.testing.assert_allclose(result.outlet_stream.pressure_before_choking, 51, atol=1)
+        np.testing.assert_allclose(result.stage_results[-1].outlet_stream_condition.pressure, 51, atol=1)
         assert all(result.is_valid)
         assert result.stage_results[0].chart_area_flags[0] == ChartAreaFlag.INTERNAL_POINT
 
@@ -352,7 +352,7 @@ def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compre
 
     np.testing.assert_allclose(result.power, expected_power, rtol=0.07)
     np.testing.assert_allclose(result.inlet_stream.temperature_kelvin, expected_inlet_temperature, rtol=0.05)
-    np.testing.assert_allclose(result.inlet_stream.actual_rate_before_asv_m3_per_hr, expected_act_gas_rate, rtol=0.05)
+    np.testing.assert_allclose(result.inlet_stream_condition.actual_rate_m3_per_hr, expected_act_gas_rate, rtol=0.05)
     np.testing.assert_allclose(result.mass_rate_kg_per_hr, expected_inlet_mass_rate, rtol=0.05)
     np.testing.assert_allclose(result.inlet_stream.density_kg_per_m3, expected_inlet_mass_density, rtol=0.05)
     np.testing.assert_allclose(result.inlet_stream.z, expected_inlet_z, rtol=0.05)

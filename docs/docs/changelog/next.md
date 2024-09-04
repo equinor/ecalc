@@ -12,6 +12,15 @@ sidebar_position: -1002
 
 ## New Features
 
+- In the results, the fluid streams entering and leaving a compressor train are now defined separately from the fluid 
+  streams entering and leaving the individual compressor stages (pressure, temperature, composition, density, etc.).
+  This used to be covered only by reporting the inlet/outlet pressures before choking. 
+  If there is any upstream choking, this will happen between the inlet of the compressor train, and the inlet of the
+  first compressor stage. This means that in a situation with upstream choking, the fluid stream entering the compressor
+  train will have higher e.g. pressure and density than the fluid stream entering the first compressor stage. If there
+  is any downstream choking, this will happen between the outlet of the last compressor stage and the outlet of the
+  compressor train. This means that in a situation with downstream choking, the fluid stream leaving the compressor
+  train will have lower e.g. pressure and density than the fluid stream leaving the last compressor stage.
 
 ## Fixes
 

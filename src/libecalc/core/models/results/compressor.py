@@ -148,6 +148,9 @@ class CompressorTrainResult(EnergyFunctionResult):
     rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]]]
     max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]] = None
 
+    inlet_stream_condition: CompressorStreamCondition
+    outlet_stream_condition: CompressorStreamCondition
+
     stage_results: List[CompressorStageResult]
     failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
     turbine_result: Optional[TurbineResult] = None
@@ -234,11 +237,11 @@ class CompressorTrainResult(EnergyFunctionResult):
 
     @property
     def inlet_stream(self) -> CompressorStreamCondition:
-        return self.stage_results[0].inlet_stream_condition
+        return self.inlet_stream_condition
 
     @property
     def outlet_stream(self) -> CompressorStreamCondition:
-        return self.stage_results[-1].outlet_stream_condition
+        return self.outlet_stream_condition
 
     @property
     def mass_rate_kg_per_hr(self) -> List[float]:

@@ -153,6 +153,8 @@ class CompressorTrainSimplified(CompressorTrainModel):
                             time_step
                         ].discharge_pressure,
                     ),
+                    inlet_stream=compressor_stages_result_per_time_step[0][time_step].inlet_stream,
+                    outlet_stream=compressor_stages_result_per_time_step[-1][time_step].outlet_stream,
                 )
             )
 

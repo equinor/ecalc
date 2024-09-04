@@ -72,6 +72,8 @@ def compressor_model_result() -> CompressorTrainResult:
                 asv_recirculation_loss_mw=[0, 0, 0],
             ),
         ],
+        inlet_stream_condition=CompressorStreamCondition(pressure=[10, 20, 30]),
+        outlet_stream_condition=CompressorStreamCondition(pressure=[100, 200, 300]),
     )
 
 

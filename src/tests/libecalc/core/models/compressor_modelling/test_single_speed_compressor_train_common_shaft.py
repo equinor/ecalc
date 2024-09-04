@@ -97,12 +97,12 @@ class TestSingleSpeedCompressorTrainCommonShaft:
             discharge_pressure=target_discharge_pressures,
         )
         np.testing.assert_almost_equal(
-            result.outlet_stream.pressure,
+            result.outlet_stream_condition.pressure,
             [300.0, 305.0, 300.0, 216.9],
             decimal=1,
         )
         np.testing.assert_almost_equal(
-            result.outlet_stream.pressure_before_choking, [305.0, 305.0, 367.7, 216.9], decimal=1
+            result.stage_results[-1].outlet_stream_condition.pressure, [305.0, 305.0, 367.7, 216.9], decimal=1
         )
         assert result.inlet_stream.pressure == pytest.approx(suction_pressures)
         assert result.power == pytest.approx([14.54498, 14.54498, 16.05248, 14.6864], rel=0.0001)
@@ -154,17 +154,20 @@ class TestSingleSpeedCompressorTrainCommonShaft:
             discharge_pressure=target_discharge_pressures,
         )
         np.testing.assert_almost_equal(
-            result.outlet_stream.pressure,
+            result.outlet_stream_condition.pressure,
             [300.0, 305.0, 300.0, 216.9],
             decimal=1,
         )
         np.testing.assert_almost_equal(
-            result.outlet_stream.pressure_before_choking,
+            result.stage_results[-1].outlet_stream_condition.pressure,
             [305.0, 305.0, 350.0, 216.9],
             decimal=1,
         )
 
-        np.testing.assert_almost_equal(result.inlet_stream.pressure, [80.0, 80.0, 75.8, 80.0], decimal=1)
+        np.testing.assert_almost_equal(result.inlet_stream_condition.pressure, [80.0, 80.0, 80.0, 80.0], decimal=1)
+        np.testing.assert_almost_equal(
+            result.stage_results[0].inlet_stream_condition.pressure, [80.0, 80.0, 75.8, 80.0], decimal=1
+        )
         np.testing.assert_almost_equal(
             result.power,
             [14.545, 14.545, 15.178, 14.686],
@@ -191,10 +194,10 @@ class TestSingleSpeedCompressorTrainCommonShaft:
             discharge_pressure=np.asarray([300.0, 310.0, 300.0, 250.0, 100.0]),
         )
         np.testing.assert_almost_equal(
-            suction_pressures_after_upstream_choking, result.inlet_stream.pressure, decimal=1
+            suction_pressures_after_upstream_choking, result.stage_results[0].inlet_stream_condition.pressure, decimal=1
         )
         np.testing.assert_almost_equal(
-            result.inlet_stream.pressure_before_choking,
+            result.inlet_stream_condition.pressure,
             [80, 80.67130816793885, 80, 85.95489987691745, 80],
             decimal=1,
         )
@@ -216,12 +219,12 @@ class TestSingleSpeedCompressorTrainCommonShaft:
             discharge_pressure=target_discharge_pressures,
         )
         np.testing.assert_almost_equal(
-            result.outlet_stream.pressure,
+            result.outlet_stream_condition.pressure,
             [167.0, 300.00, 305.0, 300.00, 220.4],
             decimal=1,
         )
         np.testing.assert_almost_equal(
-            result.outlet_stream.pressure_before_choking,
+            result.stage_results[-1].outlet_stream_condition.pressure,
             [167.0, 300.00, 305.0, 300.00, 220.4],
             decimal=1,
         )
@@ -476,7 +479,7 @@ def test_single_speed_compressor_train_vs_unisim_methane(single_speed_compressor
     expected_outlet_pressure = np.array([91.33181, 98.96722, 82.60081, 70.74829, 146.64472])  # [bar]
 
     np.testing.assert_allclose(result.power, expected_power, rtol=0.05)
-    np.testing.assert_allclose(result.inlet_stream.actual_rate_before_asv_m3_per_hr, expected_act_gas_rate, rtol=0.05)
+    np.testing.assert_allclose(result.inlet_stream_condition.actual_rate_m3_per_hr, expected_act_gas_rate, rtol=0.05)
     np.testing.assert_allclose(result.inlet_stream.temperature_kelvin, expected_inlet_temperature, rtol=0.05)
     np.testing.assert_allclose(result.mass_rate_kg_per_hr, expected_inlet_mass_rate, rtol=0.05)
     np.testing.assert_allclose(result.inlet_stream.density_kg_per_m3, expected_inlet_mass_density, rtol=0.05)
