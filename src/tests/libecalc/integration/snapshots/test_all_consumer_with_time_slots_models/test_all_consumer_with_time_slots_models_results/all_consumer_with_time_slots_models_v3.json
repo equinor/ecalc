@@ -654,8 +654,8 @@
                                 ]
                             },
                             "is_valid": [
-                                false,
-                                false
+                                true,
+                                true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
@@ -1272,11 +1272,11 @@
                                 ]
                             },
                             "is_valid": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
+                                true,
+                                true,
+                                true,
+                                true,
+                                true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
@@ -2018,12 +2018,12 @@
                                 ]
                             },
                             "is_valid": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
@@ -2992,12 +2992,12 @@
                                 ]
                             },
                             "is_valid": [
-                                false,
-                                false,
-                                false,
-                                false,
-                                false,
-                                false
+                                true,
+                                true,
+                                true,
+                                true,
+                                true,
+                                true
                             ],
                             "mass_rate_before_asv_kg_per_hr": [
                                 171.8662,
