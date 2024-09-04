@@ -207,6 +207,9 @@ MODELS:
               - NAME: generic_from_input_compressor_chart
                 TYPE: COMPRESSOR_CHART
                 CHART_TYPE: GENERIC_FROM_INPUT
+                POLYTROPIC_EFFICIENCY: 0.75
+                UNITS:
+                  EFFICIENCY: FRACTION
 
               - NAME: dry_fluid
                 TYPE: FLUID
