@@ -129,6 +129,7 @@ dmypy.json
 # IDEs
 .idea/
 .run
+.vscode/
 
 # Docs
 **/node_modules
