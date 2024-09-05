@@ -137,6 +137,7 @@ MODELS:
     FLUID_MODEL_TYPE: PREDEFINED
     EOS_MODEL: SRK
     GAS_TYPE: MEDIUM
+
   - NAME: simplified_compressor_model
     TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_fluid
@@ -206,11 +207,16 @@ MODELS:
               - NAME: generic_from_input_compressor_chart
                 TYPE: COMPRESSOR_CHART
                 CHART_TYPE: GENERIC_FROM_INPUT
+                POLYTROPIC_EFFICIENCY: 0.75
+                UNITS:
+                  EFFICIENCY: FRACTION
+
               - NAME: dry_fluid
                 TYPE: FLUID
                 FLUID_MODEL_TYPE: PREDEFINED
                 EOS_MODEL: SRK
                 GAS_TYPE: DRY
+
               - NAME: simplified_compressor_train_model
                 TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
                 FLUID_MODEL: dry_fluid
