@@ -53,19 +53,26 @@ def test_turbine_with_power_adjustment_factor(turbine: TurbineModel):
 
 def test_turbine_with_power_adjustment_constant_and_factor(turbine: TurbineModel):
     # Result without any adjustment:
-    result = turbine.evaluate(load=np.asarray([2.352 / 2, 11.399]))
+    load = 10
+    result = turbine.evaluate(load=np.asarray([load]))
 
     # Set adjustment constant and factor
-    energy_usage_adjustment_constant = 10
-    energy_usage_adjustment_factor = 0.9
+    energy_usage_adjustment_constant = 1
+    energy_usage_adjustment_factor = 1.5
     turbine.data_transfer_object.energy_usage_adjustment_factor = energy_usage_adjustment_factor
     turbine.data_transfer_object.energy_usage_adjustment_constant = energy_usage_adjustment_constant
 
     # Result with adjustment:
-    result_adjusted = turbine.evaluate(load=np.asarray([2.352 / 2, 11.399]))
+    result_adjusted = turbine.evaluate(load=np.asarray([load]))
 
-    # Compare: linear transformation is used to adjust (y = a*x + b).
+    power_to_energy_ratio = result.power[0] / result.energy_usage[0]
+    power_to_energy_ratio_adjusted = result_adjusted.power[0] / result_adjusted.energy_usage[0]
+
+    # Verify that adjustment is correct:
     np.testing.assert_allclose(
-        np.asarray(result.load) * energy_usage_adjustment_factor + energy_usage_adjustment_constant,
+        (np.asarray(result.load) - energy_usage_adjustment_constant) / energy_usage_adjustment_factor,
         result_adjusted.load,
     )
+
+    # Verify that turbine uses more energy to deliver same amount of mechanical power
+    assert power_to_energy_ratio_adjusted < power_to_energy_ratio
