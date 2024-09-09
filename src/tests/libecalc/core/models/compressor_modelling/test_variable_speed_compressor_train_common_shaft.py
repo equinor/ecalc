@@ -362,3 +362,24 @@ def test_variable_speed_compressor_train_vs_unisim_methane(variable_speed_compre
     np.testing.assert_allclose(result.outlet_stream.temperature_kelvin, expected_outlet_temperature, rtol=0.05)
     np.testing.assert_allclose(result.outlet_stream.pressure, expected_outlet_pressure, rtol=0.06)
     np.testing.assert_allclose(result.stage_results[0].polytropic_efficiency, expected_efficiency, rtol=0.03)
+
+
+def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor_train_one_compressor):
+    compressor_train = variable_speed_compressor_train_one_compressor
+    adjustment_constant = 10
+    adjustment_factor = 1.5
+    result = compressor_train.evaluate_rate_ps_pd(
+        rate=np.asarray([7000]),
+        suction_pressure=np.asarray([30]),
+        discharge_pressure=np.asarray([100.0]),
+    )
+
+    compressor_train.data_transfer_object.energy_usage_adjustment_factor = adjustment_factor
+    compressor_train.data_transfer_object.energy_usage_adjustment_constant = adjustment_constant
+
+    result_adjusted = compressor_train.evaluate_rate_ps_pd(
+        rate=np.asarray([7000]),
+        suction_pressure=np.asarray([30]),
+        discharge_pressure=np.asarray([100.0]),
+    )
+    assert result_adjusted.power[0] == result.power[0] * 1.5 + adjustment_constant
