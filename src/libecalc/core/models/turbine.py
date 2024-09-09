@@ -44,11 +44,11 @@ class TurbineModel(BaseModel):
 
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
         # Calibration of turbine load:
-        # Adjusted power asked from compressor (a*power + b) should translate to turbine load,
-        # hence solving the inverse, i.e. adjusted load = (load - b) / a
+        # Why not linear transformation? To ensure positive adjustment factor gives loss in turbine?
+        # If a*x + b: positive a will give gain in turbine (better power2load ratio)
         load_adjusted = np.where(
             load > 0,
-            (load - self.data_transfer_object.energy_usage_adjustment_constant)
+            (load + self.data_transfer_object.energy_usage_adjustment_constant)
             / self.data_transfer_object.energy_usage_adjustment_factor,
             load,
         )

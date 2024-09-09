@@ -70,7 +70,7 @@ def test_turbine_with_power_adjustment_constant_and_factor(turbine: TurbineModel
 
     # Verify that adjustment is correct:
     np.testing.assert_allclose(
-        (np.asarray(result.load) - energy_usage_adjustment_constant) / energy_usage_adjustment_factor,
+        (np.asarray(result.load) + energy_usage_adjustment_constant) / energy_usage_adjustment_factor,
         result_adjusted.load,
     )
 
