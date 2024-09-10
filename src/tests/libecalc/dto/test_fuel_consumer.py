@@ -147,7 +147,7 @@ class TestFuelConsumer:
         when same fuel is used across installations.
 
         Even though duplicate fuel type names are not allowed across installations,
-        it should be possible to re-use the same fuel. This test verifies that this still
+        it should be possible to reuse the same fuel. This test verifies that this still
         works.
         """
 
