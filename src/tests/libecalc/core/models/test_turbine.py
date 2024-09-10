@@ -47,8 +47,7 @@ def test_turbine_with_power_adjustment_factor(turbine: TurbineModel):
     # Result with adjustment:
     result_adjusted = turbine.evaluate(load=np.asarray([2.352 / 2, 11.399]))
 
-    # Compare: linear transformation is used to adjust (y = a*x + b. In this case b=0).
-    np.testing.assert_allclose(np.asarray(result.load) * energy_usage_adjustment_factor, result_adjusted.load)
+    np.testing.assert_allclose(np.asarray(result.load) / energy_usage_adjustment_factor, result_adjusted.load)
 
 
 def test_turbine_with_power_adjustment_constant_and_factor(turbine: TurbineModel):
