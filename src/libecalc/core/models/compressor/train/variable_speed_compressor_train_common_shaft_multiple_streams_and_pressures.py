@@ -634,7 +634,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             if allow_asv:
                 min_std_rate_m3_per_day_at_max_speed = EPSILON
                 result_min_std_rate_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                    mass_rate=min_std_rate_m3_per_day_at_max_speed
+                    std_rate_for_stream=min_std_rate_m3_per_day_at_max_speed
                 )
                 if not result_min_std_rate_at_max_speed.is_valid:
                     logger.debug(
@@ -647,13 +647,13 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                     x_min=EPSILON,
                     x_max=min_std_rate_for_stream_m3_per_day_at_max_speed,
                     bool_func=lambda x: _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                        mass_rate=x
+                        std_rate_for_stream=x
                     ).is_valid,
                     convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
                 )
                 result_max_std_rate_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                    mass_rate=max_std_rate_m3_per_day_at_max_speed
+                    std_rate_for_stream=max_std_rate_m3_per_day_at_max_speed
                 )
             else:
                 logger.debug(
