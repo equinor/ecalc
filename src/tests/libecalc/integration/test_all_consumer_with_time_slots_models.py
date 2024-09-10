@@ -8,7 +8,9 @@ import pytest
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.core.consumers.legacy_consumer.component import Consumer
+from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.result import CompressorModelResult, GenericModelResult
 
 
@@ -16,7 +18,19 @@ def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer
     """In case of mismatching time vector when ENERGY_USAGE_MODEL is outside of the vector of the CONSUMER.
     Then we still want a result.
     """
-    el_consumer = Consumer(consumer_dto=time_slot_electricity_consumer_with_changing_model_type)
+    el_consumer = Consumer(
+        id=time_slot_electricity_consumer_with_changing_model_type.id,
+        name=time_slot_electricity_consumer_with_changing_model_type.name,
+        component_type=time_slot_electricity_consumer_with_changing_model_type.component_type,
+        regularity=TemporalModel(time_slot_electricity_consumer_with_changing_model_type.regularity),
+        consumes=time_slot_electricity_consumer_with_changing_model_type.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in time_slot_electricity_consumer_with_changing_model_type.energy_usage_model.items()
+            }
+        ),
+    )
     time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1)]
     result = el_consumer.evaluate(variables_map=dto.VariablesMap(time_vector=time_vector, variables={}))
     consumer_result = result.component_result
@@ -28,7 +42,19 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
     """When using different ENERGY_USAGE_MODELs under a CONSUMER, the detailed energy_functions_results
     will be a list of results and not a merged object.
     """
-    el_consumer = Consumer(consumer_dto=time_slot_electricity_consumer_with_changing_model_type)
+    el_consumer = Consumer(
+        id=time_slot_electricity_consumer_with_changing_model_type.id,
+        name=time_slot_electricity_consumer_with_changing_model_type.name,
+        component_type=time_slot_electricity_consumer_with_changing_model_type.component_type,
+        regularity=TemporalModel(time_slot_electricity_consumer_with_changing_model_type.regularity),
+        consumes=time_slot_electricity_consumer_with_changing_model_type.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in time_slot_electricity_consumer_with_changing_model_type.energy_usage_model.items()
+            }
+        ),
+    )
     input_variables_dict: Dict[str, List[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
 
     result = el_consumer.evaluate(
@@ -72,7 +98,19 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
     """When using same ENERGY_USAGE_MODEL types under a CONSUMER, the detailed energy_functions_results
     will not be a merged result object.
     """
-    el_consumer = Consumer(consumer_dto=time_slot_electricity_consumer_with_same_model_type)
+    el_consumer = Consumer(
+        id=time_slot_electricity_consumer_with_same_model_type.id,
+        name=time_slot_electricity_consumer_with_same_model_type.name,
+        component_type=time_slot_electricity_consumer_with_same_model_type.component_type,
+        regularity=TemporalModel(time_slot_electricity_consumer_with_same_model_type.regularity),
+        consumes=time_slot_electricity_consumer_with_same_model_type.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in time_slot_electricity_consumer_with_same_model_type.energy_usage_model.items()
+            }
+        ),
+    )
     input_variables_dict: Dict[str, List[float]] = {}
 
     result = el_consumer.evaluate(
@@ -112,7 +150,19 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
     """When using compatible TYPEs within a CONSUMER SYSTEM then the result."""
     start_year = 2015
     time_steps = 10
-    el_consumer = Consumer(consumer_dto=time_slots_simplified_compressor_system)
+    el_consumer = Consumer(
+        id=time_slots_simplified_compressor_system.id,
+        name=time_slots_simplified_compressor_system.name,
+        component_type=time_slots_simplified_compressor_system.component_type,
+        regularity=TemporalModel(time_slots_simplified_compressor_system.regularity),
+        consumes=time_slots_simplified_compressor_system.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in time_slots_simplified_compressor_system.energy_usage_model.items()
+            }
+        ),
+    )
     input_variables_dict: Dict[str, List[float]] = {
         "RATE": [1800000 - (x * 100000) for x in range(10)]  # 1 000 000 -> 100 000
     }

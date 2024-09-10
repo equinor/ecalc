@@ -11,13 +11,16 @@ from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import PriorityOptimizer
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
+from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.models.fuel import FuelModel
+from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
@@ -47,10 +50,36 @@ class EnergyCalculator:
 
         for component_dto in component_dtos:
             if isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
-                consumer = Consumer(consumer_dto=component_dto)
+                consumer = Consumer(
+                    id=component_dto.id,
+                    name=component_dto.name,
+                    component_type=component_dto.component_type,
+                    regularity=TemporalModel(component_dto.regularity),
+                    consumes=component_dto.consumes,
+                    energy_usage_model=TemporalModel(
+                        {
+                            start_time: EnergyModelMapper.from_dto_to_domain(model)
+                            for start_time, model in component_dto.energy_usage_model.items()
+                        }
+                    ),
+                )
                 consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)
             elif isinstance(component_dto, dto.GeneratorSet):
-                fuel_consumer = Genset(component_dto)
+                fuel_consumer = Genset(
+                    id=component_dto.id,
+                    name=component_dto.name,
+                    temporal_generator_set_model=TemporalModel(
+                        {
+                            start_time: GeneratorModelSampled(
+                                fuel_values=model.fuel_values,
+                                power_values=model.power_values,
+                                energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
+                                energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
+                            )
+                            for start_time, model in component_dto.generator_set_model.items()
+                        }
+                    ),
+                )
 
                 power_requirement = elementwise_sum(
                     *[
