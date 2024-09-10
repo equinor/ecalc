@@ -28,7 +28,7 @@ Operators allowed: (with {} to allow + - * / in variable names)
     division:   {/}
     power:      {^}
 
-Parenteses are supported: ()
+Parentheses are supported: ()
 
 Logicals are supported and returns 0 or 1
     Larger than:              >
