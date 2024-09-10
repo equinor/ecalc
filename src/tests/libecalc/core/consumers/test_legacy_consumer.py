@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from libecalc import dto
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
@@ -16,6 +17,7 @@ from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
+from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.result import EcalcModelResult
 
 
@@ -34,7 +36,19 @@ def test_compute_consumer_rate():
 
 def test_evaluate_consumer_time_function(direct_el_consumer):
     """Testing using a direct el consumer for simplicity."""
-    consumer = Consumer(direct_el_consumer)
+    consumer = Consumer(
+        id=direct_el_consumer.id,
+        name=direct_el_consumer.name,
+        component_type=direct_el_consumer.component_type,
+        regularity=TemporalModel(direct_el_consumer.regularity),
+        consumes=direct_el_consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in direct_el_consumer.energy_usage_model.items()
+            }
+        ),
+    )
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
     results = consumer.evaluate_consumer_temporal_model(
         variables_map=dto.VariablesMap(time_vector=time_vector), regularity=np.ones_like(time_vector)
@@ -48,7 +62,19 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
 def test_fuel_consumer(tabulated_fuel_consumer):
     """Simple test to assert that the FuelConsumer actually runs as expected."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
-    fuel_consumer = Consumer(tabulated_fuel_consumer)
+    fuel_consumer = Consumer(
+        id=tabulated_fuel_consumer.id,
+        name=tabulated_fuel_consumer.name,
+        component_type=tabulated_fuel_consumer.component_type,
+        regularity=TemporalModel(tabulated_fuel_consumer.regularity),
+        consumes=tabulated_fuel_consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in tabulated_fuel_consumer.energy_usage_model.items()
+            }
+        ),
+    )
 
     result = fuel_consumer.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 0, 0]}),
@@ -73,7 +99,19 @@ def test_fuel_consumer(tabulated_fuel_consumer):
 
 def test_electricity_consumer(direct_el_consumer):
     """Simple test to assert that the FuelConsumer actually runs as expected."""
-    electricity_consumer = Consumer(direct_el_consumer)
+    electricity_consumer = Consumer(
+        id=direct_el_consumer.id,
+        name=direct_el_consumer.name,
+        component_type=direct_el_consumer.component_type,
+        regularity=TemporalModel(direct_el_consumer.regularity),
+        consumes=direct_el_consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in direct_el_consumer.energy_usage_model.items()
+            }
+        ),
+    )
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
     result = electricity_consumer.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector),
@@ -97,7 +135,19 @@ def test_electricity_consumer(direct_el_consumer):
 def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
     """The direct_el_consumer starts after the ElectricityConsumer is finished."""
     time_vector = pd.date_range(datetime(2000, 1, 1), datetime(2005, 1, 1), freq="YS").to_pydatetime().tolist()
-    electricity_consumer = Consumer(direct_el_consumer)
+    electricity_consumer = Consumer(
+        id=direct_el_consumer.id,
+        name=direct_el_consumer.name,
+        component_type=direct_el_consumer.component_type,
+        regularity=TemporalModel(direct_el_consumer.regularity),
+        consumes=direct_el_consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in direct_el_consumer.energy_usage_model.items()
+            }
+        ),
+    )
 
     result = electricity_consumer.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector),
@@ -130,7 +180,19 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
     """
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
     power = np.array([np.nan, np.nan, 1, np.nan, np.nan, np.nan])
-    electricity_consumer = Consumer(direct_el_consumer)
+    electricity_consumer = Consumer(
+        id=direct_el_consumer.id,
+        name=direct_el_consumer.name,
+        component_type=direct_el_consumer.component_type,
+        regularity=TemporalModel(direct_el_consumer.regularity),
+        consumes=direct_el_consumer.consumes,
+        energy_usage_model=TemporalModel(
+            {
+                start_time: EnergyModelMapper.from_dto_to_domain(model)
+                for start_time, model in direct_el_consumer.energy_usage_model.items()
+            }
+        ),
+    )
     consumer_function_result = ConsumerFunctionResult(
         power=power,
         energy_usage=power,

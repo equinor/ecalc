@@ -1,24 +1,28 @@
+from typing import List
+
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc import dto
 from libecalc.common.list.adjustment import transform_linear
 
 
 class GeneratorModelSampled:
     def __init__(
         self,
-        data_transfer_object: dto.GeneratorSetSampled,
+        fuel_values: List[float],
+        power_values: List[float],
+        energy_usage_adjustment_constant: float,
+        energy_usage_adjustment_factor: float,
     ):
         fuel_values = transform_linear(
-            np.array(data_transfer_object.fuel_values),
-            constant=data_transfer_object.energy_usage_adjustment_constant,
-            factor=data_transfer_object.energy_usage_adjustment_factor,
+            np.array(fuel_values),
+            constant=energy_usage_adjustment_constant,
+            factor=energy_usage_adjustment_factor,
         )
 
         self._func = interp1d(
-            data_transfer_object.power_values,
+            power_values,
             fuel_values.tolist(),
             fill_value=(min(fuel_values), max(fuel_values)),
             bounds_error=False,

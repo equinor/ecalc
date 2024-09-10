@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
@@ -20,16 +19,14 @@ from libecalc.dto.variables import VariablesMap
 class Genset:
     def __init__(
         self,
-        data_transfer_object: dto.GeneratorSet,
+        id: str,
+        name: str,
+        temporal_generator_set_model: TemporalModel[GeneratorModelSampled],
     ):
-        logger.debug(f"Creating Genset: {data_transfer_object.name}")
-        self.data_transfer_object = data_transfer_object
-        self.temporal_generator_set_model = TemporalModel(
-            {
-                start_time: GeneratorModelSampled(model)
-                for start_time, model in data_transfer_object.generator_set_model.items()
-            }
-        )
+        logger.debug(f"Creating Genset: {name}")
+        self.id = id
+        self.name = name
+        self.temporal_generator_set_model = temporal_generator_set_model
 
     def evaluate(
         self,
@@ -39,7 +36,7 @@ class Genset:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid timesteps. this will
         probably be changed soon.
         """
-        logger.debug(f"Evaluating Genset: {self.data_transfer_object.name}")
+        logger.debug(f"Evaluating Genset: {self.name}")
 
         if not len(power_requirement) == len(variables_map.time_vector):
             raise ValueError("length of power_requirement does not match the time vector.")
@@ -62,7 +59,7 @@ class Genset:
         fuel_rate = np.nan_to_num(fuel_rate)
 
         return GeneratorSetResult(
-            id=self.data_transfer_object.id,
+            id=self.id,
             timesteps=variables_map.time_vector,
             is_valid=TimeSeriesBoolean(
                 timesteps=variables_map.time_vector,
@@ -87,7 +84,7 @@ class Genset:
         )
 
     def evaluate_fuel_rate(
-        self, power_requirement: NDArray[np.float64], variables_map: dto.VariablesMap
+        self, power_requirement: NDArray[np.float64], variables_map: VariablesMap
     ) -> NDArray[np.float64]:
         result = np.full_like(power_requirement, fill_value=np.nan).astype(float)
         for period, model in self.temporal_generator_set_model.items():
@@ -97,7 +94,7 @@ class Genset:
         return result
 
     def evaluate_power_capacity_margin(
-        self, power_requirement: NDArray[np.float64], variables_map: dto.VariablesMap
+        self, power_requirement: NDArray[np.float64], variables_map: VariablesMap
     ) -> NDArray[np.float64]:
         result = np.zeros_like(power_requirement).astype(float)
         for period, model in self.temporal_generator_set_model.items():

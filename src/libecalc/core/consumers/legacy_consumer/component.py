@@ -6,8 +6,8 @@ from typing import DefaultDict, Iterable, List, Union
 
 import numpy as np
 from numpy.typing import NDArray
+from typing_extensions import assert_never
 
-from libecalc import dto
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
@@ -22,10 +22,8 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
+    ConsumerFunction,
     ConsumerFunctionResult,
-)
-from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import (
-    EnergyModelMapper,
 )
 from libecalc.core.consumers.legacy_consumer.result_mapper import (
     get_consumer_system_models,
@@ -43,9 +41,10 @@ from libecalc.core.result.results import (
     GenericComponentResult,
     PumpResult,
 )
-from libecalc.dto import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
+from libecalc.dto.variables import VariablesMap
+from libecalc.expression import Expression
 
 
 def get_operational_settings_used_from_consumer_result(
@@ -65,31 +64,35 @@ ConsumerResult = Union[ConsumerSystemResult, PumpResult, CompressorResult]
 class Consumer(BaseConsumer):
     def __init__(
         self,
-        consumer_dto: dto.components.Consumer,
-    ):
-        logger.debug(f"Creating Consumer: {consumer_dto.name}")
-        self._consumer_dto = consumer_dto
-        self._consumer_time_function = TemporalModel(
-            {
-                start_time: EnergyModelMapper.from_dto_to_domain(model)
-                for start_time, model in consumer_dto.energy_usage_model.items()
-            }
-        )
+        id: str,
+        name: str,
+        component_type: ComponentType,
+        consumes: ConsumptionType,
+        regularity: TemporalModel[Expression],
+        energy_usage_model: TemporalModel[ConsumerFunction],
+    ) -> None:
+        logger.debug(f"Creating Consumer: {name}")
+        self._id = id
+        self.name = name
+        self.component_type = component_type
+        self.consumes: ConsumptionType = consumes
+        self.regularity = regularity
+        self._consumer_time_function = energy_usage_model
 
     @property
     def id(self):
-        return self._consumer_dto.id
+        return self._id
 
     def map_model_result(self, model_result: Union[ConsumerOrSystemFunctionResult]) -> List[ConsumerModelResult]:
-        if self._consumer_dto.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
+        if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             return get_consumer_system_models(
                 model_result,
-                name=self._consumer_dto.name,
+                name=self.name,
             )
         else:
             return get_single_consumer_models(
                 result=model_result,
-                name=self._consumer_dto.name,
+                name=self.name,
             )
 
     def get_consumer_result(
@@ -100,7 +103,7 @@ class Consumer(BaseConsumer):
         power_usage: TimeSeriesStreamDayRate,
         aggregated_result: Union[ConsumerOrSystemFunctionResult],
     ) -> ConsumerResult:
-        if self._consumer_dto.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
+        if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             operational_settings_used = get_operational_settings_used_from_consumer_result(result=aggregated_result)
             operational_settings_used.values = self.reindex_time_vector(
                 values=operational_settings_used.values,
@@ -111,7 +114,7 @@ class Consumer(BaseConsumer):
             operational_settings_used.timesteps = timesteps
 
             operational_settings_result = get_operational_settings_results_from_consumer_result(
-                aggregated_result, parent_id=self._consumer_dto.id
+                aggregated_result, parent_id=self.id
             )
 
             # convert to 1-based index
@@ -119,7 +122,7 @@ class Consumer(BaseConsumer):
             operational_settings_used.values = [i + 1 for i in operational_settings_used.values]
 
             consumer_result = ConsumerSystemResult(
-                id=self._consumer_dto.id,
+                id=self.id,
                 timesteps=timesteps,
                 is_valid=is_valid,
                 power=power_usage,
@@ -128,7 +131,7 @@ class Consumer(BaseConsumer):
                 operational_settings_results=operational_settings_result,
             )
 
-        elif self._consumer_dto.component_type == ComponentType.PUMP:
+        elif self.component_type == ComponentType.PUMP:
             # Using generic consumer result as pump has no specific results currently
 
             inlet_rate_time_series = TimeSeriesStreamDayRate(
@@ -156,7 +159,7 @@ class Consumer(BaseConsumer):
             ).reindex(new_time_vector=timesteps)
 
             consumer_result = PumpResult(
-                id=self._consumer_dto.id,
+                id=self.id,
                 timesteps=timesteps,
                 is_valid=is_valid,
                 energy_usage=energy_usage,
@@ -166,7 +169,7 @@ class Consumer(BaseConsumer):
                 outlet_pressure_bar=outlet_pressure_time_series,
                 operational_head=operational_head_time_series,
             )
-        elif self._consumer_dto.component_type == ComponentType.COMPRESSOR:
+        elif self.component_type == ComponentType.COMPRESSOR:
             # All energy_function_results should be CompressorTrainResult,
             # if not the consumer should not have COMPRESSOR type.
             if isinstance(aggregated_result.energy_function_result, CompressorTrainResult):
@@ -205,7 +208,7 @@ class Consumer(BaseConsumer):
                 outlet_pressure_before_choking = [math.nan] * len(timesteps)
 
             consumer_result = CompressorResult(
-                id=self._consumer_dto.id,
+                id=self.id,
                 timesteps=timesteps,
                 is_valid=is_valid,
                 energy_usage=energy_usage,
@@ -225,7 +228,7 @@ class Consumer(BaseConsumer):
 
         else:
             consumer_result = GenericComponentResult(
-                id=self._consumer_dto.id,
+                id=self.id,
                 timesteps=timesteps,
                 is_valid=is_valid,
                 energy_usage=energy_usage,
@@ -240,9 +243,9 @@ class Consumer(BaseConsumer):
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid timesteps. this will
         probably be changed soon.
         """
-        logger.debug(f"Evaluating consumer: {self._consumer_dto.name}")
+        logger.debug(f"Evaluating consumer: {self.name}")
         regularity = TemporalExpression.evaluate(
-            temporal_expression=TemporalModel(self._consumer_dto.regularity),
+            temporal_expression=self.regularity,
             variables_map=variables_map,
         )
 
@@ -276,7 +279,7 @@ class Consumer(BaseConsumer):
         # By convention, we change remaining NaN-values to 0 regardless of extrapolation
         energy_usage = np.nan_to_num(energy_usage)
 
-        if self._consumer_dto.consumes == ConsumptionType.FUEL:
+        if self.consumes == ConsumptionType.FUEL:
             power_time_series = None
             if aggregated_consumer_function_result.power is not None:
                 power = self.reindex_time_vector(
@@ -295,7 +298,7 @@ class Consumer(BaseConsumer):
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             )
 
-        elif self._consumer_dto.consumes == ConsumptionType.ELECTRICITY:
+        elif self.consumes == ConsumptionType.ELECTRICITY:
             energy_usage_time_series = TimeSeriesStreamDayRate(
                 timesteps=variables_map.time_vector,
                 values=array_to_list(energy_usage),
@@ -304,7 +307,7 @@ class Consumer(BaseConsumer):
 
             power_time_series = energy_usage_time_series.model_copy()
         else:
-            raise ValueError(f"Consuming '{self._consumer_dto.consumes}' is not implemented.")
+            assert_never(self.consumes)
 
         is_valid = TimeSeriesBoolean(
             timesteps=variables_map.time_vector,
@@ -320,7 +323,7 @@ class Consumer(BaseConsumer):
             aggregated_result=aggregated_consumer_function_result,
         )
 
-        if self._consumer_dto.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
+        if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             model_results = self.map_model_result(aggregated_consumer_function_result)
         else:
             model_results = [self.map_model_result(model_result) for model_result in consumer_function_results]

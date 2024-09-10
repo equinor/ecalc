@@ -5,12 +5,14 @@ import pandas as pd
 
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.consumers.generator_set import Genset
+from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result.results import GenericComponentResult
 
 
@@ -53,7 +55,21 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
 def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     """Testing what happens when the el-consumers has nan-values in power. -> Genset should not do anything."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
-    genset = Genset(genset_2mw_dto)
+    genset = Genset(
+        id=genset_2mw_dto.id,
+        name=genset_2mw_dto.name,
+        temporal_generator_set_model=TemporalModel(
+            {
+                start_time: GeneratorModelSampled(
+                    fuel_values=model.fuel_values,
+                    power_values=model.power_values,
+                    energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
+                    energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
+                )
+                for start_time, model in genset_2mw_dto.generator_set_model.items()
+            }
+        ),
+    )
 
     results = genset.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector),
@@ -81,7 +97,21 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
 def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     """Testing what happens when the power rate is outside of genset capacity. -> Genset will extrapolate (forward fill)."""
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
-    genset = Genset(genset_2mw_dto)
+    genset = Genset(
+        id=genset_2mw_dto.id,
+        name=genset_2mw_dto.name,
+        temporal_generator_set_model=TemporalModel(
+            {
+                start_time: GeneratorModelSampled(
+                    fuel_values=model.fuel_values,
+                    power_values=model.power_values,
+                    energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
+                    energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
+                )
+                for start_time, model in genset_2mw_dto.generator_set_model.items()
+            }
+        ),
+    )
 
     results = genset.evaluate(
         variables_map=dto.VariablesMap(time_vector=time_vector),
