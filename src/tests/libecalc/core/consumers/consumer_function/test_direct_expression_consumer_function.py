@@ -5,12 +5,14 @@ import pytest
 
 import libecalc.common.utils.rates
 from libecalc import dto
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
 from libecalc.dto import VariablesMap
-from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
+from libecalc.dto.base import ComponentType
+from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 
 
@@ -22,7 +24,7 @@ def direct_variables_map():
 
 def test_direct_expression_consumer_function():
     time_series_name = "SIM1"
-    fuelratefunction = dto.DirectConsumerFunction(
+    fuel_rate_function_data = dto.DirectConsumerFunction(
         fuel_rate=Expression.setup_from_expression(time_series_name + ";Flare {+} " + time_series_name + ";Vent"),
         energy_usage_type=dto.types.EnergyUsageType.FUEL,
     )
@@ -32,7 +34,8 @@ def test_direct_expression_consumer_function():
         time_vector=[datetime(2000, 1, 1, 0, 0), datetime(2001, 1, 1, 0, 0)],
         variables={"SIM1;Flare": [10.0, 3.0], "SIM1;Vent": [5.0, 2.0]},
     )
-    result = DirectExpressionConsumerFunction(fuelratefunction).evaluate(
+
+    result = DirectExpressionConsumerFunction(fuel_rate_function_data).evaluate(
         variables_map=variables_map,
         regularity=[1.0] * len(variables_map.time_vector),
     )
@@ -41,14 +44,14 @@ def test_direct_expression_consumer_function():
 
     # Test when used as consumer function for a fuel consumer
     fuel_consumer = Consumer(
-        dto.FuelConsumer(
-            name="Flare",
-            component_type=ComponentType.GENERIC,
-            energy_usage_model={datetime(1900, 1, 1): fuelratefunction},
-            fuel={datetime(1900, 1, 1): dto.types.FuelType(name="standard_fuel", emissions=[])},
-            user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
-            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-        )
+        id="Flare",
+        name="Flare",
+        component_type=ComponentType.GENERIC,
+        energy_usage_model=TemporalModel(
+            {datetime(1900, 1, 1): DirectExpressionConsumerFunction(fuel_rate_function_data)}
+        ),
+        consumes=ConsumptionType.FUEL,
+        regularity=TemporalModel({datetime(1900, 1, 1): Expression.setup_from_expression(1)}),
     )
     result = fuel_consumer.evaluate(variables_map=variables_map)
     consumer_result = result.component_result

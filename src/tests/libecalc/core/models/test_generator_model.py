@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from libecalc import dto
 from libecalc.core.models.generator import GeneratorModelSampled
 
 
@@ -27,12 +26,10 @@ class TestGeneratorModelSampled:
         fuel_values = df["fuel"].tolist()
 
         el2fuel = GeneratorModelSampled(
-            data_transfer_object=dto.GeneratorSetSampled(
-                data=[power_values, fuel_values],
-                headers=["POWER", "FUEL"],
-                energy_usage_adjustment_factor=1,
-                energy_usage_adjustment_constant=0,
-            )
+            fuel_values=fuel_values,
+            power_values=power_values,
+            energy_usage_adjustment_factor=1,
+            energy_usage_adjustment_constant=0,
         )
 
         x_input = np.asarray([-1, 0, 5, 7, 10, 30, 31])
@@ -42,12 +39,10 @@ class TestGeneratorModelSampled:
     def test_capacity_margin(self):
         # Testing the capacity factor when using sampled genset.
         el2fuel_function = GeneratorModelSampled(
-            data_transfer_object=dto.GeneratorSetSampled(
-                data=[[1, 2, 3], [1, 2, 3]],
-                headers=["FUEL", "POWER"],
-                energy_usage_adjustment_factor=1,
-                energy_usage_adjustment_constant=0,
-            )
+            fuel_values=[1, 2, 3],
+            power_values=[1, 2, 3],
+            energy_usage_adjustment_factor=1,
+            energy_usage_adjustment_constant=0,
         )
         capacity_margin = el2fuel_function.evaluate_power_capacity_margin(np.array([0, 1, 2, 3, 4, 5]))
         np.testing.assert_allclose(capacity_margin, np.asarray([3, 2, 1, 0, -1, -2]))
@@ -61,12 +56,10 @@ class TestGeneratorModelSampled:
         adjustment_constant = 0.5
 
         el2fuel = GeneratorModelSampled(
-            data_transfer_object=dto.GeneratorSetSampled(
-                data=[fuel_values, power_values],
-                headers=["FUEL", "POWER"],
-                energy_usage_adjustment_factor=adjustment_factor,
-                energy_usage_adjustment_constant=adjustment_constant,
-            )
+            fuel_values=fuel_values,
+            power_values=power_values,
+            energy_usage_adjustment_factor=adjustment_factor,
+            energy_usage_adjustment_constant=adjustment_constant,
         )
 
         expected_adjusted_fuel = list(np.array(fuel_values) * adjustment_factor + adjustment_constant)
