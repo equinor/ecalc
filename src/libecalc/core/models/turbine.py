@@ -36,7 +36,6 @@ class TurbineModel(BaseModel):
     def max_power(self) -> Optional[float]:
         # Max power the compressor can ask for, based on max turbine load
         # Note: the scaling is opposite to the turbine load adjustment
-        # Why a*x - b and not a*x + b?
         return (
             self._maximum_load * self.data_transfer_object.energy_usage_adjustment_factor
             - self.data_transfer_object.energy_usage_adjustment_constant
@@ -44,8 +43,8 @@ class TurbineModel(BaseModel):
 
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
         # Calibration of turbine load:
-        # Why not linear transformation? To ensure positive adjustment factor gives loss in turbine?
-        # If a*x + b: positive a will give gain in turbine (better power2load ratio)
+        # Linear adjustment a´*x + b´, but where a´=1/a and b´=b/a.
+        # This is probably to ensu
         load_adjusted = np.where(
             load > 0,
             (load + self.data_transfer_object.energy_usage_adjustment_constant)
