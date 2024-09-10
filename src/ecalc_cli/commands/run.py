@@ -103,7 +103,7 @@ def run(
     if name_prefix is None:
         name_prefix = model_file.stem
 
-    output_frequency = libecalc.common.time_utils.Frequency[output_frequency.name]
+    frequency = libecalc.common.time_utils.Frequency[output_frequency.name]
 
     run_info = RunInfo(version=libecalc.version.current_version(), start=datetime.now())
     logger.info(f"eCalc™ simulation starting. Running {run_info}")
@@ -114,7 +114,7 @@ def run(
     model = YamlModel(
         configuration_service=configuration_service,
         resource_service=resource_service,
-        output_frequency=output_frequency,
+        output_frequency=frequency,
     )
 
     if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
@@ -157,11 +157,9 @@ def run(
 
     results_dto = get_asset_result(results_core)
 
-    if output_frequency != Frequency.NONE:
+    if frequency != Frequency.NONE:
         # Note: LTP can't use this resampled-result yet, because of differences in methodology.
-        results_resampled = Numbers.format_results_to_precision(
-            results_dto.resample(output_frequency), precision=precision
-        )
+        results_resampled = Numbers.format_results_to_precision(results_dto.resample(frequency), precision=precision)
     else:
         results_resampled = results_dto.model_copy()
 
@@ -188,7 +186,7 @@ def run(
         write_ltp_export(
             results=results_core,
             output_folder=output_folder,
-            frequency=output_frequency,  # Keep until alternative export option is in place (e.g. stp-export)
+            frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
             name_prefix=name_prefix,
         )
 
@@ -196,7 +194,7 @@ def run(
         write_stp_export(
             results=results_core,
             output_folder=output_folder,
-            frequency=output_frequency,  # Keep until alternative export option is in place (e.g. stp-export)
+            frequency=frequency,  # Keep until alternative export option is in place (e.g. stp-export)
             name_prefix=name_prefix,
         )
 
