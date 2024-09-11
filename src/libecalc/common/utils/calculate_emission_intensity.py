@@ -31,7 +31,7 @@ def compute_emission_intensity_yearly(
     """
     df = pd.DataFrame(
         index=time_vector,
-        data=list(zip(emission_cumulative, hydrocarbon_export_cumulative)),
+        data=list(zip([0.0] + emission_cumulative, [0.0] + hydrocarbon_export_cumulative)),
         columns=["emission_cumulative", "hydrocarbon_cumulative"],
     )
 
@@ -69,15 +69,17 @@ def compute_emission_intensity_by_yearly_buckets(
     hydrocarbon_export_cumulative: TimeSeriesVolumesCumulative,
 ) -> TimeSeriesCalendarDayRate:
     """Legacy code that computes yearly intensity and casts the results back to the original time-vector."""
-    timesteps = emission_cumulative.timesteps
-    yearly_buckets = range(timesteps[0].year, timesteps[-1].year + 1)
+    time_vector = [emission_cumulative.periods[0].start] + [period.end for period in emission_cumulative.periods]
+    yearly_buckets = range(time_vector[0].year, time_vector[-1].year + 1)
+
     yearly_intensity = compute_emission_intensity_yearly(
         emission_cumulative=emission_cumulative.values,
         hydrocarbon_export_cumulative=hydrocarbon_export_cumulative.values,
-        time_vector=timesteps,
+        time_vector=time_vector,
     )
+
     return TimeSeriesCalendarDayRate(
-        timesteps=timesteps,
-        values=[yearly_intensity[yearly_buckets.index(t.year)] for t in timesteps],
+        periods=emission_cumulative.periods,
+        values=[yearly_intensity[yearly_buckets.index(t.year)] for t in time_vector[:-1]],
         unit=Unit.KG_SM3,
     )
