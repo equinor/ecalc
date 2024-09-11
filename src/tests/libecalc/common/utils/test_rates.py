@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.errors.exceptions import ProgrammingError
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
@@ -30,10 +30,14 @@ class TestComputeCumulative:
     def test_compute_cumulative_from_daily_rate(self):
         """Be aware. The rates are assumed to be daily."""
         cumulative = Rates.compute_cumulative_volumes_from_daily_rates(
-            np.array([1, 1, 1, 1, 1]), np.array([datetime(2000, 1, n) for n in range(1, 6)])
+            rates=np.array([1, 1, 1, 1]),
+            periods=Periods.create_periods(
+                times=[datetime(2000, 1, n) for n in range(1, 6)],
+                include_before=False,
+                include_after=False,
+            ).periods,
         )
-        assert cumulative[0] == 0  # First should always be zero.
-        assert cumulative.tolist() == [0, 1, 2, 3, 4]
+        assert cumulative.tolist() == [1, 2, 3, 4]
 
     def test_compute_cumulative_from_rates_and_delta_time(self):
         # Test for correct cumulative calculation
@@ -46,58 +50,73 @@ class TestComputeCumulative:
             datetime(2023, 1, 13),
             datetime(2023, 1, 14),
         ]
-        rates = np.array([1, 1.5, 1.5, 2, 1, 1.3, 1])
-        output = Rates.compute_cumulative_volumes_from_daily_rates(rates, time_steps=time_steps)
-        assert output.tolist() == [0.0, 1.0, 4.0, 5.5, 11.5, 16.5, 17.8]
+        rates = np.array([1, 1.5, 1.5, 2, 1, 1.3])
+        output = Rates.compute_cumulative_volumes_from_daily_rates(
+            rates=rates,
+            periods=Periods.create_periods(
+                times=time_steps,
+                include_before=False,
+                include_after=False,
+            ).periods,
+        )
+        assert output.tolist() == [1.0, 4.0, 5.5, 11.5, 16.5, 17.8]
 
     def test_compute_cumulative_from_rates_and_delta_time_simple_data(self):
         # 3 consecutive days [2022.01.01, 2022.01.03];
-        datetimes = np.array(
-            [
-                datetime(year=2022, month=1, day=1),
-                datetime(year=2022, month=1, day=2),
-                datetime(year=2022, month=1, day=3),
-            ]
-        )
+        datetimes = [
+            datetime(year=2022, month=1, day=1),
+            datetime(year=2022, month=1, day=2),
+            datetime(year=2022, month=1, day=3),
+        ]
 
         # 1 per day
         rate_vector = [1, 1]
 
-        cumulative = Rates.compute_cumulative_volumes_from_daily_rates(rate_vector, time_steps=datetimes)
+        cumulative = Rates.compute_cumulative_volumes_from_daily_rates(
+            rates=rate_vector,
+            periods=Periods.create_periods(
+                times=datetimes,
+                include_before=False,
+                include_after=False,
+            ).periods,
+        )
 
-        # the first interval is always 0, it is manually added to get same length of arrays for further usage...
-        assert np.all(cumulative == np.array([0, 1, 2]))
+        assert np.all(cumulative == np.array([1, 2]))
 
 
 class TestBooleanTimeSeries:
     @pytest.fixture
     def boolean_series(self):
         return TimeSeriesBoolean(
-            values=[False, True, True, False, True, True, False, True],
-            timesteps=[
-                datetime(2019, 7, 1),
-                datetime(2020, 1, 1),
-                datetime(2020, 7, 1),
-                datetime(2021, 1, 1),
-                datetime(2021, 7, 1),
-                datetime(2022, 1, 1),
-                datetime(2022, 7, 1),
-                datetime(2023, 1, 1),
-            ],
+            values=[False, True, True, False, True, True, False],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2019, 7, 1),
+                    datetime(2020, 1, 1),
+                    datetime(2020, 7, 1),
+                    datetime(2021, 1, 1),
+                    datetime(2021, 7, 1),
+                    datetime(2022, 1, 1),
+                    datetime(2022, 7, 1),
+                    datetime(2023, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             unit=Unit.NONE,
         )
 
     @pytest.fixture
     def two_first_timesteps(self, boolean_series):
         return TimeSeriesBoolean(
-            values=boolean_series.values[0:2], timesteps=boolean_series.timesteps[0:2], unit=boolean_series.unit
+            values=boolean_series.values[0:2], periods=boolean_series.periods[0:2], unit=boolean_series.unit
         )
 
     def test_resample_boolean(self, boolean_series):
         # resample including start and end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR)
-        assert yearly_values.values == [False, True, False, False, True]
-        assert yearly_values.timesteps == [
+        assert yearly_values.values == [False, True, False, False]
+        assert yearly_values.all_dates() == [
             datetime(2019, 7, 1),
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
@@ -107,8 +126,8 @@ class TestBooleanTimeSeries:
 
         # resample including start and without end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_end_date=False)
-        assert yearly_values.values == [False, True, False, False]
-        assert yearly_values.timesteps == [
+        assert yearly_values.values == [False, True, False]
+        assert yearly_values.all_dates() == [
             datetime(2019, 7, 1),
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
@@ -117,8 +136,8 @@ class TestBooleanTimeSeries:
 
         # resample without start and including end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False)
-        assert yearly_values.values == [True, False, False, True]
-        assert yearly_values.timesteps == [
+        assert yearly_values.values == [True, False, False]
+        assert yearly_values.all_dates() == [
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
             datetime(2022, 1, 1),
@@ -127,8 +146,8 @@ class TestBooleanTimeSeries:
 
         # resample without start and end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False, include_end_date=False)
-        assert yearly_values.values == [True, False, False]
-        assert yearly_values.timesteps == [
+        assert yearly_values.values == [True, False]
+        assert yearly_values.all_dates() == [
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
             datetime(2022, 1, 1),
@@ -136,7 +155,7 @@ class TestBooleanTimeSeries:
 
     def test_indexing(self, boolean_series):
         first_timestep = TimeSeriesBoolean(
-            values=[boolean_series.values[0]], timesteps=[boolean_series.timesteps[0]], unit=boolean_series.unit
+            values=[boolean_series.values[0]], periods=[boolean_series.periods[0]], unit=boolean_series.unit
         )
         assert boolean_series[0] == first_timestep
 
@@ -174,19 +193,23 @@ class TestBooleanTimeSeries:
 class TestTimeSeriesVolumesCumulative:
     def test_resample_upsampling(self):
         rates = TimeSeriesVolumesCumulative(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2024, 1, 1),
-                datetime(2025, 1, 1),
-                datetime(2026, 1, 1),
-            ],
-            values=[1, 2, 3, 4],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2025, 1, 1),
+                    datetime(2026, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[1, 2, 3],
             unit=Unit.KILO,
         )
 
         rates_monthly = rates.resample(freq=Frequency.MONTH)
-        assert len(rates_monthly) == 3 * 12 + 1  # Including January 2026.
-        assert rates_monthly.values[::12] == [1, 2, 3, 4]  # Ensure original data every 12th month is preserved.
+        assert len(rates_monthly) == 3 * 12
+        assert rates_monthly.values[11::12] == [1, 2, 3]  # Ensure original data every 12th month is preserved.
 
     def test_resample_down_sampling(self):
         """We do not expect to be able to reproduce the cumulative values when down-sampling. This is simply because
@@ -194,110 +217,139 @@ class TestTimeSeriesVolumesCumulative:
         period.
         """
         rates = TimeSeriesVolumesCumulative(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2023, 4, 1),
-                datetime(2023, 7, 1),
-                datetime(2023, 10, 1),
-                datetime(2024, 1, 1),
-                datetime(2024, 4, 1),
-                datetime(2024, 7, 1),
-                datetime(2024, 10, 1),
-            ],
-            values=[1, 2, 3, 4, 5, 6, 7, 8],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 4, 1),
+                    datetime(2023, 7, 1),
+                    datetime(2023, 10, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2024, 4, 1),
+                    datetime(2024, 7, 1),
+                    datetime(2024, 10, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ),
+            values=[1, 2, 3, 4, 5, 6, 7],
             unit=Unit.KILO,
         )
         rates_yearly = rates.resample(freq=Frequency.YEAR, include_end_date=False)
-        assert rates_yearly.values == [1, 5]
+        assert rates_yearly.values == [4]
         rates_yearly = rates.resample(freq=Frequency.YEAR, include_end_date=True)
-        assert rates_yearly.values == [1, 5, 8]
+        assert rates_yearly.values == [4, 7]
 
 
 class TestTimeSeriesVolumesReindex:
     def test_reindex(self):
         volumes = TimeSeriesVolumes(
-            timesteps=[
-                datetime(2022, 1, 1),
-                datetime(2022, 6, 1),
-                datetime(2023, 1, 1),
-                datetime(2023, 6, 1),
-                datetime(2024, 1, 1),
-                datetime(2024, 6, 1),
-                datetime(2025, 1, 1),
-            ],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2022, 1, 1),
+                    datetime(2022, 6, 1),
+                    datetime(2023, 1, 1),
+                    datetime(2023, 6, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2024, 6, 1),
+                    datetime(2025, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ),
             values=[1, 2, 3, 4, 5, 6],
             unit=Unit.KILO_PER_DAY,
         )
 
-        reindexd_volumes = volumes.reindex(
-            time_steps=[
-                datetime(2022, 1, 1),
-                datetime(2023, 1, 1),
-                datetime(2024, 1, 1),
-                datetime(2025, 1, 1),
-            ]
+        reindexed_volumes = volumes.reindex(
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2022, 1, 1),
+                    datetime(2023, 1, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2025, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
         )
-        assert reindexd_volumes.timesteps == [
+        assert reindexed_volumes.all_dates() == [
             datetime(2022, 1, 1),
             datetime(2023, 1, 1),
             datetime(2024, 1, 1),
+            datetime(2025, 1, 1),
         ]
-        assert reindexd_volumes.values == [3, 7, 11]
+        assert reindexed_volumes.values == [3, 7, 11]
 
     def test_reindex_missing_year(self):
         volumes = TimeSeriesVolumes(
-            timesteps=[
-                datetime(2022, 1, 1),
-                datetime(2022, 6, 1),
-                datetime(2023, 2, 1),
-                datetime(2023, 6, 1),
-                datetime(2024, 1, 1),
-                datetime(2024, 6, 1),
-                datetime(2025, 1, 1),
-            ],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2022, 1, 1),
+                    datetime(2022, 6, 1),
+                    datetime(2023, 2, 1),
+                    datetime(2023, 6, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2024, 6, 1),
+                    datetime(2025, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[1, 2, 3, 4, 5, 6],
             unit=Unit.KILO_PER_DAY,
         )
 
         with pytest.raises(ValueError) as exc_info:
             _ = volumes.reindex(
-                time_steps=[
+                periods=Periods.create_periods(
+                    times=[
+                        datetime(2022, 1, 1),
+                        datetime(2023, 1, 1),
+                        datetime(2024, 1, 1),
+                        datetime(2025, 1, 1),
+                    ],
+                    include_before=False,
+                    include_after=False,
+                ).periods,
+            )
+
+        assert str(exc_info.value) == "Could not reindex volumes. Missing date 2023-01-01 00:00:00 in original periods."
+
+    def test_reindex_with_extrapolation(self):
+        volumes = TimeSeriesVolumes(
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 6, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2024, 6, 1),
+                    datetime(2025, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[3, 4, 5, 6],
+            unit=Unit.KILO_PER_DAY,
+        )
+
+        reindexed_volumes = volumes.reindex(
+            periods=Periods.create_periods(
+                times=[
                     datetime(2022, 1, 1),
                     datetime(2023, 1, 1),
                     datetime(2024, 1, 1),
                     datetime(2025, 1, 1),
                 ],
-            )
-
-        assert str(exc_info.value) == "Could not reindex volumes. Missing time step `2023-01-01 00:00:00`."
-
-    def test_reindex_with_extrapolation(self):
-        volumes = TimeSeriesVolumes(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2023, 6, 1),
-                datetime(2024, 1, 1),
-                datetime(2024, 6, 1),
-                datetime(2025, 1, 1),
-            ],
-            values=[3, 4, 5, 6],
-            unit=Unit.KILO_PER_DAY,
+                include_before=False,
+                include_after=False,
+            ).periods,
         )
-
-        reindexd_volumes = volumes.reindex(
-            time_steps=[
-                datetime(2022, 1, 1),
-                datetime(2023, 1, 1),
-                datetime(2024, 1, 1),
-                datetime(2025, 1, 1),
-            ]
-        )
-        assert reindexd_volumes.timesteps == [
+        assert reindexed_volumes.timesteps == [
             datetime(2022, 1, 1),
             datetime(2023, 1, 1),
             datetime(2024, 1, 1),
         ]
-        np.testing.assert_allclose(reindexd_volumes.values, [np.nan, 7, 11])
+        np.testing.assert_allclose(reindexed_volumes.values, [np.nan, 7, 11])
 
 
 class TestTimeSeriesRate:
