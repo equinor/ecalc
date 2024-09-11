@@ -229,10 +229,10 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             raise ValueError(f"Mismatching units: '{self.unit}' != '{other.unit}'")
 
         if Period.intersects(self.period(), other.period()) != 0:
-            raise ValueError("Can not merge two TimeSeries with overlapping periods")
+            raise ValueError("Can not merge two TimeSeries with overlapping periods.")
 
         if self.first_date() != other.last_date() and self.last_date() != other.first_date():
-            raise ValueError("Can not merge two TimeSeries when there is a gap in time between them")
+            raise ValueError("Can not merge two TimeSeries when there is a gap in time between them.")
 
         if self.first_date() < other.last_date():
             first = self
@@ -513,7 +513,7 @@ class TimeSeriesFloat(TimeSeries[float]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        ds = pd.Series(index=self.all_dates(), data=self.values)
+        ds = pd.Series(index=self.start_dates(), data=self.values)
 
         new_time_steps = resample_time_steps(
             self.all_dates(), frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
@@ -523,10 +523,10 @@ class TimeSeriesFloat(TimeSeries[float]):
         return self.__class__(
             periods=Periods.create_periods(
                 times=new_time_steps,
-                include_before=True,
-                include_after=True,
+                include_before=False,
+                include_after=False,
             ).periods,
-            values=[float(x) for x in ds_resampled.values.tolist()],
+            values=[float(x) for x in ds_resampled.values.tolist()[:-1]],
             unit=self.unit,
         )
 
@@ -583,9 +583,15 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         ds_interpolated = ds.reindex(ds.index.union(new_time_steps)).interpolate("slinear")
 
         # New resampled pd.Series
-        ds_resampled = ds_interpolated.reindex(
-            new_time_steps[1:]
-        )  # drop the first value, since we are interested in values at end of period
+        resampled = ds_interpolated.reindex(
+            new_time_steps
+        ).values.tolist()  # drop the first value, since we are interested in values at end of period
+
+        if not include_start_date:
+            dropped_cumulative_volume = resampled[0]
+            resampled = [value - dropped_cumulative_volume for value in resampled[1:]]
+        else:
+            resampled = resampled[1:]
 
         return TimeSeriesVolumesCumulative(
             periods=Periods.create_periods(
@@ -593,7 +599,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
                 include_before=False,
                 include_after=False,
             ).periods,
-            values=ds_resampled.values.tolist(),
+            values=resampled,
             unit=self.unit,
         )
 
@@ -630,7 +636,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         Returns:
             Periodic production volumes
         """
-        period_volumes = np.diff(self.values).tolist()
+        period_volumes = np.diff([0.0] + self.values).tolist()
         return TimeSeriesVolumes(periods=self.periods, values=period_volumes, unit=self.unit)
 
 
@@ -657,9 +663,9 @@ class TimeSeriesVolumes(TimeSeries[float]):
             time-vector.
         """
         new_time_steps = [periods[0].start] + [period.end for period in periods]
-
+        original_time_steps = self.all_dates()
         for time_step in new_time_steps:
-            if time_step not in self.all_dates():
+            if (original_time_steps[0] <= time_step <= original_time_steps[-1]) and time_step not in self.all_dates():
                 raise ValueError(f"Could not reindex volumes. Missing date {time_step} in original periods.")
 
         cumulative_volumes = np.append([0], Rates.compute_cumulative(self.values))
@@ -714,13 +720,9 @@ class TimeSeriesVolumes(TimeSeries[float]):
         if len(self.all_dates()) > 1:
             delta_days = calculate_delta_days(np.asarray(self.all_dates())).tolist()
             average_rates = [volume / days for volume, days in zip(self.values, delta_days)]
-
-            if regularity is not None and isinstance(regularity, list) and len(regularity) == len(self.all_dates()) - 1:
-                regularity.append(0.0)
-            average_rates.append(0.0)
         else:
             average_rates = self.values
-            regularity = [1.0] * len(self.timesteps)
+            regularity = [1.0] * len(self.periods)
 
         return TimeSeriesRate(
             periods=self.periods,
@@ -846,10 +848,10 @@ class TimeSeriesRate(TimeSeries[float]):
     @field_validator("regularity")
     def check_regularity_length(cls, regularity: List[float], info: ValidationInfo) -> List[float]:
         regularity_length = len(regularity)
-        timesteps_length = len(info.data.get("timesteps", []))
-        if regularity_length != timesteps_length:
+        periods_length = len(info.data.get("periods", []))
+        if regularity_length != periods_length:
             raise ProgrammingError(
-                f"Regularity must correspond to nr of timesteps. Length of timesteps ({timesteps_length}) !=  length of regularity ({regularity_length})."
+                f"Regularity must correspond to nr of periods. Length of periods ({periods_length}) !=  length of regularity ({regularity_length})."
             )
 
         return regularity
@@ -928,6 +930,11 @@ class TimeSeriesRate(TimeSeries[float]):
 
         if self.unit != other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != '{other.unit}'")
+
+        if not self.rate_type == other.rate_type:
+            raise ValueError(
+                "Mismatching rate type. Currently you can not merge stream/calendar day rates with calendar/stream day rates."
+            )
 
         if Period.intersects(self.period(), other.period()) != 0:
             raise ValueError("Can not merge two TimeSeries with overlapping periods")

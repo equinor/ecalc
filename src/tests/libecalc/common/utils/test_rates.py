@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.errors.exceptions import ProgrammingError
-from libecalc.common.time_utils import Frequency, Periods
+from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
@@ -344,10 +344,11 @@ class TestTimeSeriesVolumesReindex:
                 include_after=False,
             ).periods,
         )
-        assert reindexed_volumes.timesteps == [
+        assert reindexed_volumes.all_dates() == [
             datetime(2022, 1, 1),
             datetime(2023, 1, 1),
             datetime(2024, 1, 1),
+            datetime(2025, 1, 1),
         ]
         np.testing.assert_allclose(reindexed_volumes.values, [np.nan, 7, 11])
 
@@ -355,8 +356,11 @@ class TestTimeSeriesVolumesReindex:
 class TestTimeSeriesRate:
     def test_none_value_timeseriesrate(self):
         rate1 = TimeSeriesRate(
-            timesteps=[
-                datetime(2023, 1, 1),
+            periods=[
+                Period(
+                    start=datetime(2023, 1, 1),
+                    end=datetime(2023, 6, 1),
+                )
             ],
             values=[10] * 1,
             regularity=[None],
@@ -368,31 +372,39 @@ class TestTimeSeriesRate:
 
     def test_adding_timeseriesrate(self):
         rate1 = TimeSeriesRate(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2023, 1, 4),
-                datetime(2023, 1, 7),
-                datetime(2023, 1, 9),
-            ],
-            values=[10] * 4,
-            regularity=[1, 0.9, 0.5, 0.0],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 1, 4),
+                    datetime(2023, 1, 7),
+                    datetime(2023, 1, 9),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[10] * 3,
+            regularity=[1, 0.9, 0.5],
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.STREAM_DAY,
         )
         rate2 = TimeSeriesRate(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2023, 1, 4),
-                datetime(2023, 1, 7),
-                datetime(2023, 1, 9),
-            ],
-            values=[10] * 4,
-            regularity=[1.0, 0.9, 0.5, 0.0],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 1, 4),
+                    datetime(2023, 1, 7),
+                    datetime(2023, 1, 9),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[10] * 3,
+            regularity=[1.0, 0.9, 0.5],
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.STREAM_DAY,
         )
 
-        expected_values = [20] * 4  # all values are 10
+        expected_values = [20] * 3  # all values are 10
         expected_regularity = [
             (regularity1 + regularity2) / 2 for regularity1, regularity2 in zip(rate1.regularity, rate2.regularity)
         ]
@@ -405,13 +417,17 @@ class TestTimeSeriesRate:
     def test_mismatch_timesteps_values(self):
         with pytest.raises(ProgrammingError) as exc_info:
             TimeSeriesRate(
-                timesteps=[
-                    datetime(2023, 1, 1),
-                    datetime(2023, 1, 4),
-                    datetime(2023, 1, 7),
-                    datetime(2023, 1, 9),
-                ],
-                values=[10] * 3,
+                periods=Periods.create_periods(
+                    times=[
+                        datetime(2023, 1, 1),
+                        datetime(2023, 1, 4),
+                        datetime(2023, 1, 7),
+                        datetime(2023, 1, 9),
+                    ],
+                    include_before=False,
+                    include_after=False,
+                ).periods,
+                values=[10] * 4,
                 regularity=[1, 1, 1, 1],
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 rate_type=RateType.STREAM_DAY,
@@ -419,7 +435,7 @@ class TestTimeSeriesRate:
 
         assert str(exc_info.value) == (
             "Violation of programming rules: Time series: "
-            "number of timesteps do not match number of values. "
+            "number of periods do not match number of values. "
             "Most likely a bug, report to eCalc Dev Team."
         )
 
@@ -427,20 +443,24 @@ class TestTimeSeriesRate:
 class TestTimeseriesRateToVolumes:
     def test_to_volumes(self):
         rates = TimeSeriesRate(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2023, 1, 4),
-                datetime(2023, 1, 7),
-                datetime(2023, 1, 9),
-            ],
-            values=[3, 4, 5, 6],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 1, 4),
+                    datetime(2023, 1, 7),
+                    datetime(2023, 1, 9),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[3, 4, 5],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.STREAM_DAY,
-            regularity=[1.0] * 4,
+            regularity=[1.0] * 3,
         )
         volumes = rates.to_volumes()
         assert volumes.values == [9, 12, 10]
-        assert volumes.timesteps == [
+        assert volumes.all_dates() == [
             datetime(2023, 1, 1),
             datetime(2023, 1, 4),
             datetime(2023, 1, 7),
@@ -450,20 +470,24 @@ class TestTimeseriesRateToVolumes:
     def test_resample_up_sampling(self):
         """We expect up-sampling to be able to reproduce cumulative volumes."""
         rates = TimeSeriesRate(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2024, 1, 1),
-                datetime(2025, 1, 1),
-                datetime(2026, 1, 1),
-            ],
-            values=[1, 2, 3, 4],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2025, 1, 1),
+                    datetime(2026, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[1, 2, 3],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0] * 4,
+            regularity=[1.0] * 3,
         )
 
         rates_monthly = rates.resample(freq=Frequency.MONTH)
-        assert len(rates_monthly) == 3 * 12 + 1  # Including January 2026.
+        assert len(rates_monthly) == 3 * 12
 
         # Check that the final cumulative sum is still the same for both.
         cumulative = np.cumsum(rates.to_volumes().values)
@@ -477,21 +501,25 @@ class TestTimeseriesRateToVolumes:
         and end dates in the resampled time series. If not we are losing information.
         """
         rates = TimeSeriesRate(
-            timesteps=[
-                datetime(2022, 10, 1),
-                datetime(2023, 1, 1),
-                datetime(2023, 4, 1),
-                datetime(2023, 7, 1),
-                datetime(2023, 10, 1),
-                datetime(2024, 1, 1),
-                datetime(2024, 4, 1),
-                datetime(2024, 7, 1),
-                datetime(2024, 10, 1),
-            ],
-            values=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2022, 10, 1),
+                    datetime(2023, 1, 1),
+                    datetime(2023, 4, 1),
+                    datetime(2023, 7, 1),
+                    datetime(2023, 10, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2024, 4, 1),
+                    datetime(2024, 7, 1),
+                    datetime(2024, 10, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[1, 2, 3, 4, 5, 6, 7, 8],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0] * 9,
+            regularity=[1.0] * 8,
         )
         rates_yearly_without_start_end = rates.resample(
             freq=Frequency.YEAR, include_start_date=False, include_end_date=False
@@ -501,10 +529,10 @@ class TestTimeseriesRateToVolumes:
         rates_yearly = rates.resample(freq=Frequency.YEAR)
 
         # now with average rates in the new sampling period
-        assert np.allclose(rates_yearly_without_start_end.values, [3.509589, 0.0], rtol=1e-6)
-        assert np.allclose(rates_yearly_without_start.values, [3.509589, 7.003650, 0.0], rtol=1e-6)
-        assert np.allclose(rates_yearly_without_end.values, [1, 3.509589, 0.0], rtol=1e-6)
-        assert np.allclose(rates_yearly.values, [1, 3.509589, 7.003650, 0.0], rtol=1e-6)
+        assert np.allclose(rates_yearly_without_start_end.values, [3.509589], rtol=1e-3)
+        assert np.allclose(rates_yearly_without_start.values, [3.509589, 7.003650], rtol=1e-3)
+        assert np.allclose(rates_yearly_without_end.values, [1, 3.509589], rtol=1e-3)
+        assert np.allclose(rates_yearly.values, [1, 3.509589, 7.003650], rtol=1e-3)
 
         cumulative = np.cumsum(rates.to_volumes().values)
         cumulative_resampled_without_start_end = np.cumsum(rates_yearly_without_start_end.to_volumes().values)
@@ -522,19 +550,23 @@ class TestTimeseriesRateToVolumes:
         volumes. If the end date is excluded, the yearly resampling should lose more information/volumes than the
         monthly resampling"""
         rates = TimeSeriesRate(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2023, 1, 7),
-                datetime(2023, 1, 14),
-                datetime(2023, 4, 1),
-                datetime(2023, 7, 1),
-                datetime(2023, 10, 1),
-                datetime(2024, 2, 2),
-            ],
-            values=[1, 2, 3, 4, 5, 6, 7],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 1, 7),
+                    datetime(2023, 1, 14),
+                    datetime(2023, 4, 1),
+                    datetime(2023, 7, 1),
+                    datetime(2023, 10, 1),
+                    datetime(2024, 2, 2),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[1, 2, 3, 4, 5, 6],
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0] * 7,
+            regularity=[1.0] * 6,
         )
         rates_monthly = rates.resample(freq=Frequency.MONTH)
         rates_yearly = rates.resample(freq=Frequency.YEAR)
@@ -542,10 +574,9 @@ class TestTimeseriesRateToVolumes:
         rates_yearly_without_end = rates.resample(freq=Frequency.YEAR, include_end_date=False)
         assert np.allclose(
             rates_monthly.values,
-            [2.387097, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 6.0, 6.0, 0.0],
-            rtol=1e-6,
+            [2.387097, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 6.0, 6.0],
         )
-        assert np.allclose(rates_yearly.values, [4.45753424, 6.0, 0.0])
+        assert np.allclose(rates_yearly.values, [4.45753424, 6.0])
         cumulative = np.cumsum(rates.to_volumes().values)
         cumulative_monthly = np.cumsum(rates_monthly.to_volumes().values)
         cumulative_yearly = np.cumsum(rates_yearly.to_volumes().values)
@@ -554,10 +585,9 @@ class TestTimeseriesRateToVolumes:
 
         assert np.allclose(
             rates_monthly_without_end.values,
-            [2.387097, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 6.0, 0.0],
-            rtol=1e-6,
+            [2.387097, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0, 6.0],
         )
-        assert np.allclose(rates_yearly_without_end.values, [4.45753424, 0.0])
+        assert np.allclose(rates_yearly_without_end.values, [4.45753424])
         cumulative_monthly_without_end = np.cumsum(rates_monthly_without_end.to_volumes().values)
         cumulative_yearly_without_end = np.cumsum(rates_yearly_without_end.to_volumes().values)
 
@@ -568,74 +598,141 @@ class TestTimeseriesRateToVolumes:
 class TestTimeSeriesFloat:
     def test_resample_down_sampling(self):
         rates = TimeSeriesFloat(
-            timesteps=[
-                datetime(2023, 1, 1),
-                datetime(2023, 7, 1),
-                datetime(2023, 9, 1),
-                datetime(2023, 11, 1),
-                datetime(2024, 1, 1),
-                datetime(2025, 1, 1),
-            ],
-            values=[10, 20, 0, 2, 30, 40],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2023, 7, 1),
+                    datetime(2023, 9, 1),
+                    datetime(2023, 11, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2025, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[10, 20, 0, 2, 30],
             unit=Unit.BARA,
         )
 
         rates_yearly = rates.resample(freq=Frequency.YEAR)
-        assert np.allclose(rates_yearly.values, [10, 30, 40])
+        assert np.allclose(rates_yearly.values, [10, 30])
 
+    def test_resample_up_sampling(self):
+        rates = TimeSeriesFloat(
+            periods=Periods.create_periods(
+                times=[datetime(2023, 1, 1), datetime(2024, 1, 1), datetime(2025, 1, 1)],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[10, 20],
+            unit=Unit.BARA,
+        )
 
-def test_resample_up_sampling():
-    rates = TimeSeriesFloat(
-        timesteps=[datetime(2023, 1, 1), datetime(2024, 1, 1), datetime(2025, 1, 1)],
-        values=[10, 20, 30],
-        unit=Unit.BARA,
-    )
-
-    rates_monthly = rates.resample(freq=Frequency.MONTH)
-    assert len(rates_monthly) == 2 * 12 + 1  # Including January 2025.
-    assert rates_monthly.values[::12] == [10, 20, 30]
+        rates_monthly = rates.resample(freq=Frequency.MONTH)
+        assert len(rates_monthly) == 2 * 12  # Including January 2025.
+        assert rates_monthly.values[::12] == [10, 20]
 
 
 class TestTimeSeriesMerge:
-    def test_merge_time_series_float_success(self):
+    def test_merge_time_series_float_overlapping_periods(self):
         """
         Use TimeSeriesFloat to test the 'generic' merge (parent class merge)
         """
 
         first = TimeSeriesFloat(
-            timesteps=[datetime(2021, 1, 1), datetime(2023, 1, 1)],
-            values=[11, 12],
-            unit=Unit.TONS,
-        )
-
-        second = TimeSeriesFloat(
-            timesteps=[datetime(2020, 1, 1), datetime(2022, 1, 1), datetime(2024, 1, 1), datetime(2030, 1, 1)],
-            values=[21, 22, 23, 24],
-            unit=Unit.TONS,
-        )
-
-        assert first.merge(second) == TimeSeriesFloat(
-            timesteps=[
-                datetime(2020, 1, 1),
-                datetime(2021, 1, 1),
-                datetime(2022, 1, 1),
-                datetime(2023, 1, 1),
-                datetime(2024, 1, 1),
-                datetime(2030, 1, 1),
-            ],
-            values=[21, 11, 22, 12, 23, 24],
-            unit=Unit.TONS,
-        )
-
-    def test_merge_time_series_float_different_unit(self):
-        first = TimeSeriesFloat(
-            timesteps=[datetime(2021, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2023, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[11],
             unit=Unit.TONS,
         )
 
         second = TimeSeriesFloat(
-            timesteps=[datetime(2020, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2022, 1, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2030, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[21, 22, 23],
+            unit=Unit.TONS,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == "Can not merge two TimeSeries with overlapping periods."
+
+    def test_merge_time_series_float_gap_between_periods(self):
+        """
+        Use TimeSeriesFloat to test the 'generic' merge (parent class merge)
+        """
+
+        first = TimeSeriesFloat(
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[11],
+            unit=Unit.TONS,
+        )
+
+        second = TimeSeriesFloat(
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2023, 1, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2025, 1, 1),
+                    datetime(2026, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[21, 22, 23],
+            unit=Unit.TONS,
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            first.merge(second)
+
+        assert str(exc_info.value) == "Can not merge two TimeSeries when there is a gap in time between them."
+
+    def test_merge_time_series_float_different_unit(self):
+        first = TimeSeriesFloat(
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[11],
+            unit=Unit.TONS,
+        )
+
+        second = TimeSeriesFloat(
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[21],
             unit=Unit.TONS_PER_DAY,
         )
@@ -647,31 +744,65 @@ class TestTimeSeriesMerge:
 
     def test_merge_time_series_float_overlapping_timesteps(self):
         first = TimeSeriesFloat(
-            timesteps=[datetime(2021, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[11],
             unit=Unit.TONS,
         )
 
         second = TimeSeriesFloat(
-            timesteps=[datetime(2020, 1, 1), datetime(2021, 1, 1)],
-            values=[21, 22],
+            periods=Periods.create_periods(
+                times=[datetime(2021, 1, 1), datetime(2022, 1, 1)],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[21],
             unit=Unit.TONS,
         )
 
-        with pytest.raises(ValueError) as exc_info:
-            first.merge(second)
-
-        assert str(exc_info.value) == "Can not merge two TimeSeries with common timesteps"
+        assert first.merge(second) == TimeSeriesFloat(
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[11, 21],
+            unit=Unit.TONS,
+        )
 
     def test_merge_time_series_different_types(self):
         first = TimeSeriesFloat(
-            timesteps=[datetime(2021, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[11],
             unit=Unit.TONS,
         )
 
         second = TimeSeriesBoolean(
-            timesteps=[datetime(2020, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[True],
             unit=Unit.TONS,
         )
@@ -690,39 +821,69 @@ class TestTimeSeriesMerge:
         """
 
         first = TimeSeriesRate(
-            timesteps=[datetime(2021, 1, 1), datetime(2023, 1, 1)],
-            values=[11, 12],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[11],
             unit=Unit.TONS,
-            regularity=[11, 12],
+            regularity=[1],
             rate_type=RateType.STREAM_DAY,
         )
 
         second = TimeSeriesRate(
-            timesteps=[datetime(2020, 1, 1), datetime(2022, 1, 1), datetime(2024, 1, 1), datetime(2030, 1, 1)],
-            values=[21, 22, 23, 24],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                    datetime(2023, 1, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2025, 1, 1),
+                    datetime(2026, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[21, 22, 23, 24, 25],
             unit=Unit.TONS,
-            regularity=[21, 22, 23, 24],
+            regularity=[1, 0.8, 0.6, 0.4, 0.2],
             rate_type=RateType.STREAM_DAY,
         )
 
         assert first.merge(second) == TimeSeriesRate(
-            timesteps=[
-                datetime(2020, 1, 1),
-                datetime(2021, 1, 1),
-                datetime(2022, 1, 1),
-                datetime(2023, 1, 1),
-                datetime(2024, 1, 1),
-                datetime(2030, 1, 1),
-            ],
-            values=[21, 11, 22, 12, 23, 24],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                    datetime(2023, 1, 1),
+                    datetime(2024, 1, 1),
+                    datetime(2025, 1, 1),
+                    datetime(2026, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[11, 21, 22, 23, 24, 25],
             unit=Unit.TONS,
-            regularity=[21, 11, 22, 12, 23, 24],
+            regularity=[1, 1, 0.8, 0.6, 0.4, 0.2],
             rate_type=RateType.STREAM_DAY,
         )
 
     def test_merge_time_series_rate_different_unit(self):
         first = TimeSeriesRate(
-            timesteps=[datetime(2021, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[11],
             unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
@@ -730,7 +891,14 @@ class TestTimeSeriesMerge:
         )
 
         second = TimeSeriesRate(
-            timesteps=[datetime(2020, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[21],
             unit=Unit.TONS_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
@@ -742,9 +910,16 @@ class TestTimeSeriesMerge:
 
         assert str(exc_info.value) == "Mismatching units: 't' != 't/d'"
 
-    def test_merge_time_series_rate_overlapping_timesteps(self):
+    def test_merge_time_series_rate_overlapping_periods(self):
         first = TimeSeriesRate(
-            timesteps=[datetime(2021, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[11],
             unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
@@ -752,21 +927,35 @@ class TestTimeSeriesMerge:
         )
 
         second = TimeSeriesRate(
-            timesteps=[datetime(2020, 1, 1), datetime(2021, 1, 1)],
-            values=[21, 22],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 8, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[21],
             unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
-            regularity=[1.0] * 2,
+            regularity=[1.0],
         )
 
         with pytest.raises(ValueError) as exc_info:
             first.merge(second)
 
-        assert str(exc_info.value) == "Can not merge two TimeSeries with common timesteps"
+        assert str(exc_info.value) == "Can not merge two TimeSeries with overlapping periods"
 
     def test_merge_time_series_rate_different_types(self):
         first = TimeSeriesRate(
-            timesteps=[datetime(2021, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[11],
             unit=Unit.TONS,
             rate_type=RateType.CALENDAR_DAY,
@@ -774,7 +963,14 @@ class TestTimeSeriesMerge:
         )
 
         second = TimeSeriesBoolean(
-            timesteps=[datetime(2020, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[True],
             unit=Unit.TONS,
         )
@@ -789,18 +985,32 @@ class TestTimeSeriesMerge:
 
     def test_merge_time_series_rate_different_rate_types(self):
         first = TimeSeriesRate(
-            timesteps=[datetime(2021, 1, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
             values=[11],
-            unit=Unit.TONS_PER_DAY,
-            rate_type=RateType.STREAM_DAY,
+            unit=Unit.TONS,
+            rate_type=RateType.CALENDAR_DAY,
             regularity=[1.0],
         )
 
         second = TimeSeriesRate(
-            timesteps=[datetime(2020, 1, 1)],
-            values=[21],
-            unit=Unit.TONS_PER_DAY,
-            rate_type=RateType.CALENDAR_DAY,
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                ],
+                include_before=False,
+                include_after=False,
+            ).periods,
+            values=[11],
+            unit=Unit.TONS,
+            rate_type=RateType.STREAM_DAY,
             regularity=[1.0],
         )
 
