@@ -2,14 +2,11 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from datetime import datetime
 from enum import Enum
 from typing import (
     Any,
-    DefaultDict,
     Generic,
-    Iterable,
     Iterator,
     List,
     Optional,
@@ -119,16 +116,13 @@ class Rates:
         """
         Compute cumulative volumes from a list of periodic volumes
 
-        The number of cumulative volumes will always be one more than the number of periodic volumes. The first
-        cumulative volume will always be set zero.
-
         Args:
             volumes: Production volume for time periods
 
         Returns:
             The cumulative sum of the periodic production volumes given as input
         """
-        return np.append([0], np.nancumsum(volumes))
+        return np.nancumsum(volumes)
 
     @staticmethod
     def compute_cumulative_volumes_from_daily_rates(
@@ -139,8 +133,8 @@ class Rates:
         The production rates are assumed to be constant within each period.
 
         Args:
-            rates: Production rates, assumed to be constant for periods
-            periods: The periods for which the given production rates are defined
+            rates: Production rates, assumed to be constant for all periods.
+            periods: The periods for which the given production rates are defined.
 
         Returns:
             The cumulative production volumes
@@ -159,20 +153,19 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
     @field_validator("values", mode="before")
     @classmethod
-    def timesteps_values_one_to_one(cls, v: List[Any], info: ValidationInfo):
+    def period_values_one_to_one(cls, v: List[Any], info: ValidationInfo):
         nr_periods = len(info.data["periods"])
         nr_values = len(v)
 
-        if not cls.__name__ == TimeSeriesVolumes.__name__:
-            if nr_periods != nr_values:
-                if all(math.isnan(i) for i in v):
-                    # TODO: This should probably be solved another place. Temporary solution to make things run
-                    return [math.nan] * len(info.data["periods"])
-                else:
-                    raise ProgrammingError(
-                        "Time series: number of periods do not match number "
-                        "of values. Most likely a bug, report to eCalc Dev Team."
-                    )
+        if nr_periods != nr_values:
+            if all(math.isnan(i) for i in v):
+                # TODO: This should probably be solved another place. Temporary solution to make things run
+                return [math.nan] * len(info.data["periods"])
+            else:
+                raise ProgrammingError(
+                    "Time series: number of periods do not match number "
+                    "of values. Most likely a bug, report to eCalc Dev Team."
+                )
         return v
 
     def __len__(self) -> int:
@@ -200,6 +193,9 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
     def start_dates(self):
         return [period.start for period in self.periods]
+
+    def end_dates(self):
+        return [period.end for period in self.periods]
 
     @abstractmethod
     def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self: ...
@@ -347,26 +343,26 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
                 f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
             )
 
-    def reindex_time_vector(
-        self,
-        new_time_vector: Iterable[datetime],
-        fillna: Union[float, str] = 0.0,
-    ) -> np.ndarray:
-        """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
-        the consumer time vector, we calculate the actual consumer (consumption) rate.
-        """
-        new_values: DefaultDict[datetime, Union[float, str]] = defaultdict(float)
-        new_values.update({t: fillna for t in new_time_vector})
-        for t, v in zip(self.timesteps, self.values):
-            if t in new_values:
-                new_values[t] = v
-            else:
-                logger.warning(
-                    "Reindexing consumer time vector and losing data. This should not happen."
-                    " Please contact eCalc support."
-                )
-
-        return np.array([rate_sum for time, rate_sum in sorted(new_values.items())])
+    # def reindex_time_vector(
+    #     self,
+    #     new_time_vector: Iterable[datetime],
+    #     fillna: Union[float, str] = 0.0,
+    # ) -> np.ndarray:
+    #     """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
+    #     the consumer time vector, we calculate the actual consumer (consumption) rate.
+    #     """
+    #     new_values: DefaultDict[datetime, Union[float, str]] = defaultdict(float)
+    #     new_values.update({t: fillna for t in new_time_vector})
+    #     for t, v in zip(self.timesteps, self.values):
+    #         if t in new_values:
+    #             new_values[t] = v
+    #         else:
+    #             logger.warning(
+    #                 "Reindexing consumer time vector and losing data. This should not happen."
+    #                 " Please contact eCalc support."
+    #             )
+    #
+    #     return np.array([rate_sum for time, rate_sum in sorted(new_values.items())])
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, TimeSeries):
@@ -374,12 +370,12 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
         return bool(
             # Check that all values are either both NaN or equal
             all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
-            and self.timesteps == other.timesteps
+            and self.periods == other.periods
             and self.unit == other.unit
         )
 
-    def append(self, timestep: datetime, value: TimeSeriesValue):
-        self.timesteps.append(timestep)
+    def append(self, period: Period, value: TimeSeriesValue):
+        self.periods.append(period)
         self.values.append(value)
 
 
@@ -460,9 +456,8 @@ class TimeSeriesBoolean(TimeSeries[bool]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        # Always make new time series WITH end date, but remove it later is not needed
         new_time_steps = resample_time_steps(
-            self.all_dates(), frequency=freq, include_start_date=include_start_date, include_end_date=True
+            self.all_dates(), frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
         )
         resampled = []
 
@@ -475,8 +470,8 @@ class TimeSeriesBoolean(TimeSeries[bool]):
         return TimeSeriesBoolean(
             periods=Periods.create_periods(
                 times=new_time_steps,
-                include_before=True,
-                include_after=True,
+                include_before=False,
+                include_after=False,
             ).periods,
             values=resampled,
             unit=self.unit,
@@ -544,6 +539,8 @@ class TimeSeriesFloat(TimeSeries[float]):
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
+    """This will represent the sum of the volumes in all periods up to and including each individual period."""
+
     @field_validator("values", mode="before")
     @classmethod
     def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
@@ -573,7 +570,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        ds = pd.Series(index=self.all_dates(), data=self.values)
+        ds = pd.Series(index=self.all_dates(), data=[0] + self.values)  # cumulative volume always zero at start date
         new_time_steps = resample_time_steps(
             self.all_dates(), frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
         )
@@ -586,13 +583,15 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         ds_interpolated = ds.reindex(ds.index.union(new_time_steps)).interpolate("slinear")
 
         # New resampled pd.Series
-        ds_resampled = ds_interpolated.reindex(new_time_steps)
+        ds_resampled = ds_interpolated.reindex(
+            new_time_steps[1:]
+        )  # drop the first value, since we are interested in values at end of period
 
         return TimeSeriesVolumesCumulative(
             periods=Periods.create_periods(
                 times=new_time_steps,
-                include_before=True,
-                include_after=True,
+                include_before=False,
+                include_after=False,
             ).periods,
             values=ds_resampled.values.tolist(),
             unit=self.unit,
@@ -644,18 +643,6 @@ class TimeSeriesVolumes(TimeSeries[float]):
             return [i if i is not None else math.nan for i in v]
         return v
 
-    @field_validator("values", mode="before")
-    def check_length_timestep_values(cls, v: List[Any], info: ValidationInfo):
-        # Initially timesteps for volumes contains one more item than values
-        # After reindex number of timesteps equals number of values
-        # TODO: Ensure periodical volumes are handled in a consistent way. Why different after reindex?
-        if len(v) not in [len(info.data["timesteps"]), len(info.data["timesteps"]) - 1]:
-            raise ProgrammingError(
-                "Time series: number of timesteps do not match number "
-                "of values. Most likely a bug, report to eCalc Dev Team."
-            )
-        return v
-
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
         msg = (
             f"{self.__class__.__name__} does not have an resample method."
@@ -664,30 +651,31 @@ class TimeSeriesVolumes(TimeSeries[float]):
         logger.warning(msg)
         raise NotImplementedError(msg)
 
-    # def reindex(self, time_steps: List[datetime]) -> Self:
-    #     """
-    #     This is legacy code where the time steps are in reality periods. time_steps[0] and time_steps[1] is period 1
-    #     and corresponds to value[0].
-    #
-    #     Note: we do not allow up-sampling, hence the ValueError if a new value is discovered within the existing
-    #         time-vector.
-    #     """
-    #     for time_step in time_steps:
-    #         if self.timesteps[0] <= time_step <= self.timesteps[-1] and time_step not in self.timesteps:
-    #             raise ValueError(f"Could not reindex volumes. Missing time step `{time_step}`.")
-    #
-    #     cumulative_volumes = Rates.compute_cumulative(self.values)
-    #
-    #     re_indexed_cumulative_values = pd.Series(index=self.timesteps, data=cumulative_volumes).reindex(time_steps)
-    #
-    #     # Diffing cumulative volume in order to go back to volumes per period.
-    #     re_indexed_volumes = re_indexed_cumulative_values.diff().shift(-1)[:-1]
-    #
-    #     return self.__class__(
-    #         timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),
-    #         values=re_indexed_volumes.tolist(),
-    #         unit=self.unit,
-    #     )
+    def reindex(self, periods: List[Period]) -> Self:
+        """
+        Note: we do not allow up-sampling, hence the ValueError if a new value is discovered within the existing
+            time-vector.
+        """
+        new_time_steps = [periods[0].start] + [period.end for period in periods]
+
+        for time_step in new_time_steps:
+            if time_step not in self.all_dates():
+                raise ValueError(f"Could not reindex volumes. Missing date {time_step} in original periods.")
+
+        cumulative_volumes = np.append([0], Rates.compute_cumulative(self.values))
+
+        re_indexed_cumulative_values = pd.Series(index=self.all_dates(), data=cumulative_volumes).reindex(
+            new_time_steps
+        )
+
+        # Diffing cumulative volume in order to go back to volumes per period.
+        re_indexed_volumes = re_indexed_cumulative_values.diff().shift(-1)[:-1]
+
+        return self.__class__(
+            periods=periods,
+            values=re_indexed_volumes.tolist(),
+            unit=self.unit,
+        )
 
     def cumulative(self) -> TimeSeriesVolumesCumulative:
         """
