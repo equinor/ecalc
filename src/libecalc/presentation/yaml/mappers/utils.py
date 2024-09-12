@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
 
-from libecalc.common.errors.exceptions import InvalidReferenceException
+from libecalc.common.errors.exceptions import HeaderNotFound, InvalidReferenceException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.dto.types import (
@@ -12,11 +12,11 @@ from libecalc.dto.types import (
     ChartPolytropicHeadUnit,
     ChartRateUnit,
 )
+from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.validation_errors import (
     ResourceValidationError,
     ValidationValueError,
 )
-from libecalc.presentation.yaml.yaml_entities import Resource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 YAML_UNIT_MAPPING: Dict[str, Unit] = {
@@ -153,7 +153,9 @@ def convert_control_margin_to_fraction(control_margin: Optional[float], input_un
 
 def chart_curves_as_resource_to_dto_format(resource: Resource, resource_name: str) -> List[Dict[str, List[float]]]:
     try:
-        df = pd.DataFrame(data=resource.data, index=resource.headers).transpose().astype(float)
+        resource_headers = resource.get_headers()
+        resource_data = [resource.get_column(header) for header in resource_headers]
+        df = pd.DataFrame(data=resource_data, index=resource_headers).transpose().astype(float)
     except ValueError as e:
         msg = f"Resource {resource_name} contains non-numeric value: {e}"
         logger.error(msg)
@@ -267,7 +269,7 @@ def get_single_speed_chart_data(resource: Resource, resource_name: str) -> Chart
             )
         # Get first speed, all are equal.
         speed = speed_values[0]
-    except ValueError:
+    except HeaderNotFound:
         logger.debug(f"Speed not specified for single speed chart {resource_name}, setting speed to 1.")
         speed = 1
 
@@ -290,9 +292,8 @@ def get_single_speed_chart_data(resource: Resource, resource_name: str) -> Chart
 
 
 def _get_float_column(resource: Resource, header: str, resource_name: str) -> List[float]:
-    column_index = resource.headers.index(header)
-    column = resource.data[column_index]
     try:
+        column = resource.get_column(header)
         column = [float(value) for value in column]
     except ValueError as e:
         msg = f"Resource {resource_name} contains non-numeric value: {e}"

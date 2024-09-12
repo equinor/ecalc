@@ -2,11 +2,12 @@ from io import StringIO
 from pathlib import Path
 from typing import List
 
+from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.fixtures.case_types import DTOCase
-from libecalc.presentation.yaml.model import FileResourceService, YamlModel
+from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,

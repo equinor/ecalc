@@ -6,6 +6,7 @@ import typer
 import libecalc.common.time_utils
 import libecalc.version
 from ecalc_cli.errors import EcalcCLIError
+from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from ecalc_cli.io.cache import Cache
 from ecalc_cli.io.output import (
     write_flow_diagram,
@@ -22,7 +23,8 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.json_result.mapper import get_asset_result
-from libecalc.presentation.yaml.model import FileConfigurationService, FileResourceService, YamlModel
+from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
+from libecalc.presentation.yaml.model import YamlModel
 
 
 def run(

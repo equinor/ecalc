@@ -6,9 +6,10 @@ import pytest
 
 from libecalc import dto
 from libecalc.common.time_utils import Frequency, Period
+from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.mappers.model import ModelMapper
-from libecalc.presentation.yaml.model import ConfigurationService, YamlModel
-from libecalc.presentation.yaml.yaml_entities import Resource, ResourceStream
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from tests.libecalc.input.test_yaml_model import DirectResourceService
@@ -18,7 +19,7 @@ class TestModelMapper:
     @staticmethod
     def test_predefined_variable_speed_compressor_chart_from_yaml_to_dto():
         resources = {
-            "einput/predefined_compressor_chart_curves.csv": Resource(
+            "einput/predefined_compressor_chart_curves.csv": MemoryResource(
                 headers=["SPEED", "RATE", "HEAD", "EFFICIENCY"],
                 data=[
                     [

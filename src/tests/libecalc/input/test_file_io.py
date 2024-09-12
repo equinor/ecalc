@@ -5,12 +5,13 @@ from pathlib import Path
 from typing import IO
 
 import pytest
+from inline_snapshot import snapshot
 
-from libecalc.common.errors.exceptions import EcalcError, InvalidResourceHeaderException
+from ecalc_cli.infrastructure.file_resource_service import FileResourceService
+from libecalc.common.errors.exceptions import EcalcError, HeaderNotFound
 from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
-from libecalc.presentation.yaml.model import FileResourceService
 from libecalc.presentation.yaml.yaml_entities import YamlTimeseriesType
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -161,12 +162,12 @@ class TestReadFacilityResource:
                 "characters [ _ - # + : . , /] "
             )
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_missing_headers(self, tmp_path_fixture):
-        with pytest.raises(InvalidResourceHeaderException) as e:
+        with pytest.raises(HeaderNotFound) as e:
             file_io.read_facility_resource(create_csv_from_line(tmp_path_fixture, "HEADER1        ,,HEADER3"))
-        assert str(e.value) == (
-            "Missing header(s): One or more headers are missing in time series or " "facilities resource"
-        )
+        assert str(e.value) == snapshot("Missing header(s): Header 'Unnamed: 1' not found")
 
 
 @pytest.fixture
@@ -293,6 +294,8 @@ class TestReadYaml:
             PyYamlYamlModel.read_yaml(main_yaml=main_yaml)
         assert "Duplicate key" in str(ve.value)
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_time_series_missing_headers(self):
         time_series_yaml_text = {
             "TIME_SERIES": [
@@ -315,12 +318,12 @@ class TestReadYaml:
                 configuration=test, working_directory=Path(input_file_examples.__path__[0])
             )
 
-        assert str(e.value) == (
-            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: "
-            "Missing header(s): One or more headers are missing in time series or "
-            "facilities resource"
+        assert str(e.value) == snapshot(
+            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: Missing header(s): Header 'Unnamed: 1' not found"
         )
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_facility_input_missing_headers(self):
         time_series_yaml_text = {
             "FACILITY_INPUTS": [
@@ -342,10 +345,8 @@ class TestReadYaml:
                 configuration=test, working_directory=Path(input_file_examples.__path__[0])
             )
 
-        assert str(e.value) == (
-            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: "
-            "Missing header(s): One or more headers are missing in time series or "
-            "facilities resource"
+        assert str(e.value) == snapshot(
+            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: Missing header(s): Header 'Unnamed: 1' not found"
         )
 
 

@@ -17,12 +17,12 @@ from libecalc.presentation.yaml.mappers.utils import (
     get_units_from_chart_config,
     resolve_reference,
 )
+from libecalc.presentation.yaml.resource import Resource, Resources
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
     ValidationValueError,
 )
-from libecalc.presentation.yaml.yaml_entities import Resource, Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
     YamlCompatibleTrainsControlMargin,
@@ -57,14 +57,11 @@ def _pressure_control_mapper(model_config: Dict) -> dto.types.FixedSpeedPressure
 
 
 def _get_curve_data_from_resource(resource: Resource, speed: float = 0.0):
-    rate_index = resource.headers.index(EcalcYamlKeywords.consumer_chart_rate)
-    head_index = resource.headers.index(EcalcYamlKeywords.consumer_chart_head)
-    efficiency_index = resource.headers.index(EcalcYamlKeywords.consumer_chart_efficiency)
     return {
         "speed": speed,
-        "rate": resource.data[rate_index],
-        "head": resource.data[head_index],
-        "efficiency": resource.data[efficiency_index],
+        "rate": resource.get_column(EcalcYamlKeywords.consumer_chart_rate),
+        "head": resource.get_column(EcalcYamlKeywords.consumer_chart_head),
+        "efficiency": resource.get_column(EcalcYamlKeywords.consumer_chart_efficiency),
     }
 
 
@@ -342,7 +339,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
             ),
         )
         mapped_stage.update({"interstage_pressure_control": interstage_pressure_control})
-    return dto.MultipleStreamsCompressorStage.parse_obj(mapped_stage)
+    return dto.MultipleStreamsCompressorStage.model_validate(mapped_stage)
 
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(

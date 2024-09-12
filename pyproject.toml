@@ -95,6 +95,7 @@ markers = [
     "integtest: integration test",
     "slow: slow tests, often snapshot, but not necessarily. > 1 second.",
     "snapshot: snapshot tests, notoriously slow, but not necessarily.",
+    "inlinesnapshot: inline snapshot tests, often used to test error messages",
 ]
 
 [tool.mypy]

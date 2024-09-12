@@ -9,7 +9,8 @@ from libecalc.presentation.yaml.energy_model_validation import (
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper
-from libecalc.presentation.yaml.yaml_entities import References, Resources
+from libecalc.presentation.yaml.resource import Resources
+from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
