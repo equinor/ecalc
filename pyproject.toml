@@ -53,7 +53,7 @@ pandas = [
 ]
 scipy = [
     {version = "~1.10", python="<3.9"},
-    {version = ">= 1.12, < 1.14", python=">=3.9"},
+    {version = ">= 1.12, < 1.15", python=">=3.9"},
 ]
 "ruamel.yaml" = "^0.18"
 Shapely = "^2"
