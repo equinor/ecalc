@@ -105,6 +105,7 @@ See the [Developer Guide](/docs/docs/contribute/get_started.md) for details.
 Jupyter Notebook examples can be found in /examples. In order to run these examples, you need to install the optional
 dependencies.
 
+### Using pip
 ```bash
 pip install libecalc[notebooks]
 ``` 
@@ -115,6 +116,12 @@ Run jupyter:
 
 ```bash
 jupyter notebook examples
+```
+### Using poetry
+
+```shell
+poetry install --extras notebooks
+poetry run jupyter notebook examples
 ```
 
 ## Documentation
