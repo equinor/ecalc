@@ -3,12 +3,12 @@ from pathlib import Path
 import pytest
 import yaml
 
+from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
 from libecalc.dto import ResultOptions
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
-from libecalc.presentation.yaml.model import FileResourceService
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 

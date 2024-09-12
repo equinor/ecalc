@@ -74,8 +74,27 @@ class InvalidReferenceException(EcalcError):
 class InvalidDateException(EcalcError): ...
 
 
-class InvalidResourceHeaderException(EcalcError):
-    """Input CSV is missing one or more headers."""
+class InvalidResource(EcalcError):
+    """
+    Base exception for resource
+    """
 
-    def __init__(self, message: str):
-        super().__init__("Missing header(s)", message, error_type=EcalcErrorType.CLIENT_ERROR)
+    pass
+
+
+class HeaderNotFound(InvalidResource):
+    """Resource is missing header."""
+
+    def __init__(self, header: str):
+        self.header = header
+        super().__init__("Missing header(s)", f"Header '{header}' not found", error_type=EcalcErrorType.CLIENT_ERROR)
+
+
+class ColumnNotFound(InvalidResource):
+    """Resource is missing column"""
+
+    def __init__(self, header: str):
+        self.header = header
+        super().__init__(
+            "Missing column", f"Column matching header '{header}' is missing.", error_type=EcalcErrorType.CLIENT_ERROR
+        )

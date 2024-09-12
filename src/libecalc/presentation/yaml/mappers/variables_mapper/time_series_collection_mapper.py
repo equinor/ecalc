@@ -1,23 +1,24 @@
 import re
 from datetime import datetime
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Union
 
 import pandas
 from pydantic import Field, TypeAdapter, ValidationError
 from typing_extensions import Annotated
 
+from libecalc.common.errors.exceptions import InvalidResource
 from libecalc.dto import TimeSeriesType
 from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection import (
     DefaultTimeSeriesCollection,
     MiscellaneousTimeSeriesCollection,
 )
+from libecalc.presentation.yaml.resource import Resource, Resources
 from libecalc.presentation.yaml.validation_errors import (
+    DataValidationError,
     DtoValidationError,
     DumpFlowStyle,
 )
 from libecalc.presentation.yaml.yaml_entities import (
-    Resource,
-    Resources,
     YamlTimeseriesType,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -53,14 +54,26 @@ def _parse_date(date_input: Union[int, str]) -> datetime:
         return pandas.to_datetime(date_input, dayfirst=True).to_pydatetime()
 
 
-def _setup_time_series_data(
-    date_index: int,
-    time_series_resource: Resource,
-) -> Tuple[List[Union[datetime, pandas.Timestamp]], List[List]]:
-    time_vector = [_parse_date(date_input) for date_input in time_series_resource.data[date_index]]
-    columns = time_series_resource.data[:date_index] + time_series_resource.data[date_index + 1 :]
+def parse_time_vector(time_vector: List[str]) -> List[datetime]:
+    return [_parse_date(date_input) for date_input in time_vector]
 
-    return time_vector, columns
+
+def parse_time_series_from_resource(resource: Resource):
+    time_series_resource_headers = resource.get_headers()
+
+    if len(time_series_resource_headers) == 0:
+        raise InvalidResource("Invalid resource", "Resource must at least have one column")
+
+    if EcalcYamlKeywords.date in time_series_resource_headers:
+        # Find the column named "DATE" and use that as time vector
+        time_vector = resource.get_column(EcalcYamlKeywords.date)
+        headers = [header for header in time_series_resource_headers if header != EcalcYamlKeywords.date]
+    else:
+        # Legacy: support random names for time vector as long as it is the first column
+        time_vector = resource.get_column(time_series_resource_headers[0])
+        headers = time_series_resource_headers[1:]
+
+    return parse_time_vector(time_vector), headers
 
 
 class TimeSeriesCollectionMapper:
@@ -82,22 +95,40 @@ class TimeSeriesCollectionMapper:
             "interpolation_type": data.get(EcalcYamlKeywords.time_series_interpolation_type),
         }
 
+        resource_name = data.get(EcalcYamlKeywords.file)
         time_series_resource = self.__resources.get(
-            data.get(EcalcYamlKeywords.file),
-            Resource(headers=[], data=[]),
+            resource_name,
         )
 
-        if EcalcYamlKeywords.date in time_series_resource.headers:
-            # Find the column named "DATE" and use that as time vector
-            date_index = time_series_resource.headers.index(EcalcYamlKeywords.date)
-            headers = [header for header in time_series_resource.headers if header != EcalcYamlKeywords.date]
-            time_vector, columns = _setup_time_series_data(
-                date_index=date_index, time_series_resource=time_series_resource
+        if time_series_resource is None:
+            resource_name_context = "."
+            if resource_name is not None:
+                resource_name_context = f" with name '{resource_name}'"
+            raise DataValidationError(
+                data,
+                message=f"Could not find resource{resource_name_context}",
+                error_key=EcalcYamlKeywords.file,
+                dump_flow_style=DumpFlowStyle.BLOCK,
             )
-        else:
-            # Legacy: support random names for time vector as long as it is the first column
-            time_vector, columns = _setup_time_series_data(date_index=0, time_series_resource=time_series_resource)
-            headers = time_series_resource.headers[1:]  # Remove date header
+
+        try:
+            time_vector, headers = parse_time_series_from_resource(time_series_resource)
+        except InvalidResource as e:
+            raise DataValidationError(
+                data,
+                message=str(e),
+                error_key=EcalcYamlKeywords.file,
+                dump_flow_style=DumpFlowStyle.BLOCK,
+            ) from e
+
+        columns = []
+
+        for header in headers:
+            try:
+                columns.append(time_series_resource.get_column(header))
+            except InvalidResource:
+                # Validation handled below when creating TimeSeries class
+                pass
 
         time_series["headers"] = headers
         time_series["time_vector"] = time_vector

@@ -17,10 +17,10 @@ import pandas as pd
 from libecalc.common.errors.exceptions import (
     EcalcError,
     EcalcErrorType,
-    InvalidResourceHeaderException,
+    HeaderNotFound,
 )
 from libecalc.common.logger import logger
-from libecalc.presentation.yaml.yaml_entities import Resource, YamlTimeseriesType
+from libecalc.presentation.yaml.yaml_entities import MemoryResource, YamlTimeseriesType
 
 YAML_EXTENSIONS = [".yml", ".yaml"]
 CSV_EXTENSION = ".csv"
@@ -399,9 +399,7 @@ def _validate_headers(headers: List[str]):
                 "[ _ - # + : . , /] "
             )
         elif re.match(r"^Unnamed: \d+$", header):
-            raise InvalidResourceHeaderException(
-                "One or more headers are missing in time series or facilities resource"
-            )
+            raise HeaderNotFound(header=header)
 
 
 def _validate_not_nan(columns: List[List]):
@@ -414,14 +412,14 @@ def _validate_not_nan(columns: List[List]):
                 )
 
 
-def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> Resource:
+def _dataframe_to_resource(df: pd.DataFrame, validate_headers: bool = True) -> MemoryResource:
     headers = df.columns.tolist()
     headers = [header.strip() for header in headers]
     if validate_headers:
         _validate_headers(headers)
     df.columns = df.columns.str.strip()
     columns = [df[header].tolist() for header in headers]
-    return Resource(
+    return MemoryResource(
         headers=headers,
         data=columns,
     )
@@ -446,7 +444,7 @@ def read_csv(csv_data: Union[str, TextIO, BytesIO]) -> pd.DataFrame:
     return pd.read_csv(stream, comment="#", float_precision="round_trip", skipinitialspace=True, thousands=" ")
 
 
-def read_resource_from_string(resource_string: str, validate_headers: bool = True) -> Resource:
+def read_resource_from_string(resource_string: str, validate_headers: bool = True) -> MemoryResource:
     """Read resource from stream without validation."""
     resource_df = read_csv(resource_string)
 
@@ -454,7 +452,7 @@ def read_resource_from_string(resource_string: str, validate_headers: bool = Tru
     return resource
 
 
-def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> Resource:
+def convert_dataframe_to_timeseries_resource(resource_df: pd.DataFrame) -> MemoryResource:
     # TODO: This might give a different result than calculator-cli since we are not yet
     #  filtering on columns that are actually used. I.e. an unused column might have a number where all used columns
     #  have nan. This method would include that row. Although it is unlikely.
@@ -471,7 +469,7 @@ def read_timeseries_resource(
     resource_input: Union[Path, BytesIO, str],
     timeseries_type: YamlTimeseriesType,
     validate_headers: bool = True,
-) -> Resource:
+) -> MemoryResource:
     """Read timeseries resource from filepath with timeseries specific manipulation/validation.
 
     - Timeseries is allowed to have nans
@@ -495,7 +493,7 @@ def read_timeseries_resource(
     return convert_dataframe_to_timeseries_resource(resource_df=resource_df)
 
 
-def read_facility_resource(resource_input: Union[Path, BytesIO, str], validate_headers: bool = True) -> Resource:
+def read_facility_resource(resource_input: Union[Path, BytesIO, str], validate_headers: bool = True) -> MemoryResource:
     """Read facility file from filepath with facility file specific validation.
 
     - Facility files are not allowed to have nans
@@ -514,13 +512,3 @@ def read_facility_resource(resource_input: Union[Path, BytesIO, str], validate_h
     resource = _dataframe_to_resource(resource_df)
     _validate_not_nan(resource.data)
     return resource
-
-
-def read_resource_from_filepath(resource_path: Path) -> Resource:
-    """Read resource from filepath without validation, should only be used as a util for tests/fixtures."""
-    if EcalcFile.is_csv(resource_path):
-        with open(resource_path) as resource_file:
-            resource_df = read_csv(resource_file)
-            return _dataframe_to_resource(resource_df)
-    else:
-        raise ValueError(f"Invalid file extension: {resource_path}")

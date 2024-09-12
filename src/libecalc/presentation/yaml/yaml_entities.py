@@ -3,15 +3,31 @@ from enum import Enum
 from typing import Dict, List, TextIO, Union
 
 from libecalc import dto
+from libecalc.common.errors.exceptions import ColumnNotFound, HeaderNotFound
+from libecalc.presentation.yaml.resource import Resource
 
 
 @dataclass
-class Resource:
+class MemoryResource(Resource):
+    """
+    Resource object where the data is already read and parsed.
+    """
+
     headers: List[str]
     data: List[List[Union[float, int, str]]]
 
+    def get_headers(self) -> List[str]:
+        return self.headers
 
-Resources = Dict[str, Resource]
+    def get_column(self, header: str) -> List[Union[float, int, str]]:
+        try:
+            header_index = self.headers.index(header)
+            return self.data[header_index]
+        except ValueError as e:
+            raise HeaderNotFound(header=header) from e
+        except IndexError as e:
+            # Should validate that header and columns are of equal length, but that is currently done elsewhere.
+            raise ColumnNotFound(header=header) from e
 
 
 @dataclass

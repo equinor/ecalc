@@ -2,16 +2,18 @@ from typing import Dict
 
 from libecalc.common.time_utils import Frequency
 from libecalc.fixtures import DTOCase, YamlCase
-from libecalc.presentation.yaml.model import FileConfigurationService, ResourceService, YamlModel
-from libecalc.presentation.yaml.yaml_entities import Resource
+from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.resource_service import ResourceService
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 
 
 class DirectResourceService(ResourceService):
-    def __init__(self, resources: Dict[str, Resource]):
+    def __init__(self, resources: Dict[str, MemoryResource]):
         self._resources = resources
 
-    def get_resources(self, configuration: YamlValidator) -> Dict[str, Resource]:
+    def get_resources(self, configuration: YamlValidator) -> Dict[str, MemoryResource]:
         return self._resources
 
 
