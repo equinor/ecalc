@@ -13,7 +13,7 @@ from libecalc.presentation.yaml.mappers.variables_mapper.timeseries_utils import
     fit_time_series_to_time_vector,
     get_global_time_vector,
 )
-from libecalc.presentation.yaml.yaml_entities import Resources
+from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.yaml_variable import (
     YamlSingleVariable,

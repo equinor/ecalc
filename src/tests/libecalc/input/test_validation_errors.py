@@ -12,6 +12,7 @@ from libecalc.presentation.yaml.yaml_entities import YamlDict
 
 class TestDictValidationError:
     @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_dict(self):
         error = DataValidationError(data={"KEY": {"SUBKEY1": [1, 2, 3], "SUBKEY2": 1}}, message="SUBKEY1 is not valid")
         assert error.extended_message == snapshot("""\
@@ -29,6 +30,7 @@ SUBKEY1 is not valid\
 """)
 
     @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_dict_node(self):
         data = YamlDict(
             {"KEY": {"SUBKEY1": [1, 2, 3], "SUBKEY2": 1}},

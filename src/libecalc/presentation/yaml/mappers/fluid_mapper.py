@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from libecalc import dto
 from libecalc.common.logger import logger
-from libecalc.presentation.yaml.yaml_entities import Resources
+from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 """

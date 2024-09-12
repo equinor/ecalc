@@ -11,13 +11,13 @@ from libecalc.presentation.yaml.mappers.model import (
     _single_speed_compressor_chart_mapper,
 )
 from libecalc.presentation.yaml.validation_errors import ResourceValidationError
-from libecalc.presentation.yaml.yaml_entities import Resource
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
 @pytest.fixture
 def chart_resource_with_speed():
-    return Resource(
+    return MemoryResource(
         data=[
             [5.0, 5],
             [6, 6],
@@ -35,7 +35,7 @@ def chart_resource_with_speed():
 
 @pytest.fixture
 def chart_resource_without_speed():
-    return Resource(
+    return MemoryResource(
         data=[
             [6, 6],
             [7, 7],
@@ -51,7 +51,7 @@ def chart_resource_without_speed():
 
 @pytest.fixture
 def chart_resource_unequal_speed():
-    return Resource(
+    return MemoryResource(
         data=[
             [5, 6],
             [6, 6],

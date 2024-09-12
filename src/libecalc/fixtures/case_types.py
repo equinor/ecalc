@@ -4,12 +4,12 @@ from pathlib import Path
 from typing import Dict, NamedTuple, TextIO
 
 from libecalc import dto
-from libecalc.presentation.yaml.yaml_entities import Resource
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
 @dataclass
 class YamlCase:
-    resources: Dict[str, Resource]
+    resources: Dict[str, MemoryResource]
     main_file_path: Path
 
     @property

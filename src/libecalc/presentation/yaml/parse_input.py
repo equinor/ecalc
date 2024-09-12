@@ -4,7 +4,7 @@ from libecalc import dto
 from libecalc.common.time_utils import Period
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.create_references import create_references
-from libecalc.presentation.yaml.yaml_entities import Resources
+from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 DEFAULT_START_TIME = datetime(1900, 1, 1)

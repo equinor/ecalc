@@ -1,8 +1,9 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import TypeAdapter, ValidationError
 
 from libecalc import dto
+from libecalc.common.errors.exceptions import InvalidResource
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import GeneratorSetSampled, TabulatedData
 from libecalc.dto.types import ChartType, EnergyModelType, EnergyUsageType
@@ -14,13 +15,13 @@ from libecalc.presentation.yaml.mappers.utils import (
     get_single_speed_chart_data,
     get_units_from_chart_config,
 )
+from libecalc.presentation.yaml.resource import Resource, Resources
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
     DumpFlowStyle,
     ValidationValueError,
 )
-from libecalc.presentation.yaml.yaml_entities import Resource, Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 # Used here to make pydantic understand which object to instantiate.
@@ -45,6 +46,13 @@ def _get_adjustment_factor(data: Dict) -> float:
     return data.get(EcalcYamlKeywords.facility_adjustment, {}).get(EcalcYamlKeywords.facility_adjustment_factor) or 1
 
 
+def _get_column_or_none(resource: Resource, header: str) -> Optional[List[Union[float, int, str]]]:
+    try:
+        return resource.get_column(header)
+    except InvalidResource:
+        return None
+
+
 def _create_compressor_train_sampled_dto_model_data(
     resource: Resource, facility_data, **kwargs
 ) -> CompressorTrainSampledDTO:
@@ -56,31 +64,21 @@ def _create_compressor_train_sampled_dto_model_data(
     power_header = EcalcYamlKeywords.consumer_tabular_power
     fuel_header = EcalcYamlKeywords.consumer_tabular_fuel
 
-    energy_usage_header = fuel_header if fuel_header in resource.headers else power_header
-    energy_usage_index = resource.headers.index(energy_usage_header)
-    rate_index = resource.headers.index(rate_header) if rate_header in resource.headers else None
-    suction_pressure_index = (
-        resource.headers.index(suction_pressure_header) if suction_pressure_header in resource.headers else None
-    )
-    discharge_pressure_index = (
-        resource.headers.index(discharge_pressure_header) if discharge_pressure_header in resource.headers else None
-    )
+    resource_headers = resource.get_headers()
 
-    columns = resource.data
-    rate_values = list(columns[rate_index]) if rate_index is not None else None
-    suction_pressure_values = list(columns[suction_pressure_index]) if suction_pressure_index is not None else None
-    discharge_pressure_values = (
-        list(columns[discharge_pressure_index]) if discharge_pressure_index is not None else None
-    )
-    energy_usage_values = list(columns[energy_usage_index])
+    has_fuel = fuel_header in resource_headers
 
-    # In case of a fuel-driver compressor, the user may provide power interpolation data to emulate turbine power usage in results
+    energy_usage_header = fuel_header if has_fuel else power_header
+
+    rate_values = _get_column_or_none(resource, rate_header)
+    suction_pressure_values = _get_column_or_none(resource, suction_pressure_header)
+    discharge_pressure_values = _get_column_or_none(resource, discharge_pressure_header)
+    energy_usage_values = resource.get_column(energy_usage_header)
+
+    # In case of a fuel-driven compressor, the user may provide power interpolation data to emulate turbine power usage in results
     power_interpolation_values = None
-    if fuel_header in resource.headers:
-        power_interpolation_header = power_header if power_header in resource.headers else None
-        if power_interpolation_header:
-            power_interpolation_index = resource.headers.index(power_interpolation_header)
-            power_interpolation_values = list(columns[power_interpolation_index])
+    if has_fuel:
+        power_interpolation_values = _get_column_or_none(resource, power_header)
 
     return CompressorTrainSampledDTO(
         energy_usage_values=energy_usage_values,
@@ -160,10 +158,13 @@ def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facilit
 def _default_facility_to_dto_model_data(
     resource: Resource, typ: EnergyModelType, facility_data: Dict
 ) -> EnergyModelUnionType:
+    resource_headers = resource.get_headers()
+    resource_data = [resource.get_column(header) for header in resource_headers]
+
     model_data = {
         "typ": typ,
-        "headers": resource.headers,
-        "data": resource.data,
+        "headers": resource_headers,
+        "data": resource_data,
         "energy_usage_adjustment_constant": _get_adjustment_constant(data=facility_data),
         "energy_usage_adjustment_factor": _get_adjustment_factor(data=facility_data),
     }
@@ -183,7 +184,26 @@ class FacilityInputMapper:
         self.__resources = resources
 
     def from_yaml_to_dto(self, data: Dict) -> dto.EnergyModel:
-        resource = self.__resources.get(data.get(EcalcYamlKeywords.file), Resource(headers=[], data=[]))
+        resource_name = data.get(EcalcYamlKeywords.file)
+        resource = self.__resources.get(data.get(EcalcYamlKeywords.file))
+
+        if resource is None:
+            # This should have been validated elsewhere.
+            if resource_name is None:
+                raise DataValidationError(
+                    data,
+                    message=f"Missing file in '{data.get(EcalcYamlKeywords.name)}'",
+                    error_key=EcalcYamlKeywords.file,
+                    dump_flow_style=DumpFlowStyle.BLOCK,
+                )
+
+            raise DataValidationError(
+                data,
+                f"Unable to find resource '{data.get(EcalcYamlKeywords.file)}'",
+                error_key=EcalcYamlKeywords.file,
+                dump_flow_style=DumpFlowStyle.BLOCK,
+            )
+
         typ = energy_model_type_map.get(data.get(EcalcYamlKeywords.type))
 
         try:
@@ -201,3 +221,12 @@ class FacilityInputMapper:
                 error_key=vve.key,
                 dump_flow_style=DumpFlowStyle.BLOCK,
             ) from vve
+        except InvalidResource as e:
+            message = f"Invalid resource '{resource_name}'. Reason: {str(e)}"
+
+            raise DataValidationError(
+                data=data,
+                message=message,
+                error_key=EcalcYamlKeywords.file,
+                dump_flow_style=DumpFlowStyle.BLOCK,
+            ) from e

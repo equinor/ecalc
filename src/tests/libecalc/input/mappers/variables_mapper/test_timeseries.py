@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, Optional
 
 import pytest
+from inline_snapshot import snapshot
 
 from libecalc.dto import TimeSeriesType
 from libecalc.dto.types import InterpolationType
@@ -12,8 +13,8 @@ from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection 
 from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection_mapper import (
     TimeSeriesCollectionMapper,
 )
-from libecalc.presentation.yaml.validation_errors import DtoValidationError
-from libecalc.presentation.yaml.yaml_entities import Resource
+from libecalc.presentation.yaml.validation_errors import DtoValidationError, ValidationError
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
@@ -71,7 +72,7 @@ class TestTimeSeries:
         extrapolate_result,
     ):
         filename = "test.csv"
-        resources = {filename: Resource(headers=["DATE", "OIL_PROD"], data=[["01.01.2017"], [5016]])}
+        resources = {filename: MemoryResource(headers=["DATE", "OIL_PROD"], data=[["01.01.2017"], [5016]])}
 
         timeseries_mapper = TimeSeriesCollectionMapper(resources=resources)
         timeseries_model = timeseries_mapper.from_yaml_to_dto(
@@ -97,7 +98,7 @@ class TestTimeSeries:
     def test_valid_time_series_multiple_columns(self):
         filename = "test_multiple_columns.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", "COLUMN1", "COLUMN2", "COLUMN3"],
                 data=[["01.01.2015", "01.01.2016"], [1, 2], [3, 4], [5, 6]],
             )
@@ -122,7 +123,7 @@ class TestTimeSeries:
     def test_valid_time_series_unsorted(self):
         filename = "test_unsorted.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", "COLUMN1", "COLUMN2"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
             )
@@ -152,58 +153,75 @@ class TestTimeSeries:
         (
             ["DATE", "OIL_PROD", "BVBV"],
             [["01.01.2017"], [5016]],
-            "The number of columns provided do not match for header and data: data: 1, headers: 2",
-        ),
-        # headers, data mismatch (-1)
-        (
-            ["DATE", "OIL_PROD"],
-            [["01.01.2017"], [5016], [232]],
-            "The number of columns provided do not match for header and data: data: 2, headers: 1",
+            snapshot("""\
+Location: MISCELLANEOUS
+Message: Value error, The number of columns provided do not match for header and data: data: 1, headers: 2
+"""),
         ),
         # no data
         (
             ["DATE", "DUMMY"],
             [["01.01.2017"]],
-            "Data vector must at least have one column",
+            snapshot("""\
+Location: MISCELLANEOUS
+Message: Value error, Data vector must at least have one column
+"""),
         ),
         # no time
         (
             ["DATE", "OIL_PROD"],
             [[], [5016]],
-            "Time vectors must have at least one record",
+            snapshot("""\
+Location: MISCELLANEOUS.time_vector
+Message: Value error, Time vectors must have at least one record
+"""),
         ),
         # no headers
         (
             [],
             [["01.01.2017"], [5016]],
-            "Headers must at least have one column",
+            snapshot("Invalid resource: Resource must at least have one column"),
         ),
         # mismatch data, time
         (
             ["DATE", "OIL_PROD"],
             [["01.01.2017", "01.01.2018"], [5016]],
-            "The number of records for times and data do not match: data: 1, time_vector: 2",
+            snapshot("""\
+Location: MISCELLANEOUS
+Message: Value error, The number of records for times and data do not match: data: 1, time_vector: 2
+"""),
         ),
         # mismatch data, time
         (
             ["DATE", "OIL_PROD"],
             [["01.01.2017"], [5016, 5026]],
-            "The number of records for times and data do not match: data: 2, time_vector: 1",
+            snapshot("""\
+Location: MISCELLANEOUS
+Message: Value error, The number of records for times and data do not match: data: 2, time_vector: 1
+"""),
         ),
         # no data cols
         (
             ["DATE", "HEADER"],
             [["01.01.2017"]],
-            "Data vector must at least have one column",
+            snapshot("""\
+Location: MISCELLANEOUS
+Message: Value error, Data vector must at least have one column
+"""),
         ),
         # duplicate dates
         (
             ["DATE", "HEADER"],
             [["01.01.2015", "01.01.2016", "01.01.2017", "01.01.2017"], [5016, 5036, 5026, 5216]],
-            "The list of dates have duplicates. Duplicated dates are currently not supported.",
+            snapshot("""\
+Location: MISCELLANEOUS.time_vector
+Message: Value error, The list of dates have duplicates. Duplicated dates are currently not supported.
+"""),
         ),
     ]
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     @pytest.mark.parametrize(
         "headers, columns, error_message",
         parameterized_invalid_timeseries_data,
@@ -211,14 +229,14 @@ class TestTimeSeries:
     def test_invalid_timeseries(self, headers, columns, error_message):
         filename = "test.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=headers,
                 data=columns,
             )
         }
 
         timeseries_mapper = TimeSeriesCollectionMapper(resources=resources)
-        with pytest.raises(DtoValidationError) as ve:
+        with pytest.raises(ValidationError) as ve:
             timeseries_mapper.from_yaml_to_dto(
                 _create_timeseries_data(
                     typ=TimeSeriesType.MISCELLANEOUS,
@@ -229,11 +247,11 @@ class TestTimeSeries:
                 )
             )
 
-        assert str(error_message) in str(ve.value)
+        assert str(ve.value) == error_message
 
     def test_timeseries_with_int_as_date(self):
         filename = "sim1.csv"
-        resources = {filename: Resource(headers=["DATE", "HEADER1"], data=[[2012, 2013, 2014], [1, 2, 3]])}
+        resources = {filename: MemoryResource(headers=["DATE", "HEADER1"], data=[[2012, 2013, 2014], [1, 2, 3]])}
         timeseries_mapper = TimeSeriesCollectionMapper(resources=resources)
         timeseries_dto = timeseries_mapper.from_yaml_to_dto(
             _create_timeseries_data(typ=TimeSeriesType.DEFAULT, name="SIM1", file=filename)
@@ -251,7 +269,7 @@ class TestTimeSeries:
     def test_invalid_time_series_headers(self, header):
         filename = "test_invalid_headers.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", header, "COLUMN2"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
             )
@@ -287,7 +305,7 @@ class TestTimeSeries:
     def test_valid_time_series_headers(self, header):
         filename = "test_valid_headers.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", header, "COLUMN2"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
             )
@@ -313,7 +331,7 @@ class TestTimeSeries:
     def test_invalid_resource_names(self, resource_name):
         filename = "test_invalid_resource_names.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", "COLUMN1", "COLUMN2"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
             )
@@ -344,7 +362,7 @@ class TestTimeSeries:
         """Check default interpolation for DEFAULT time series."""
         filename = "test_interpretation_of_rate_interpolation_type_for_reservoir_resource.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", "GAS_PROD"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3]],
             )
@@ -379,7 +397,7 @@ class TestTimeSeries:
         """Check that MISCELLANEOUS fails if interpolation not defined."""
         filename = "test_interpretation_of_rate_interpolation_type_for_reservoir_resource.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", "GAS_PROD"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3]],
             )
@@ -402,7 +420,7 @@ class TestTimeSeries:
         """Check that LEFT is used when specified for MISCELLANEOUS."""
         filename = "test_interpretation_of_rate_interpolation_type_for_reservoir_resource.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", "GAS_PROD"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3]],
             )
@@ -424,7 +442,7 @@ class TestTimeSeries:
     def test_error_if_nan_data(self):
         filename = "test_invalid_data.csv"
         resources = {
-            filename: Resource(
+            filename: MemoryResource(
                 headers=["DATE", "COLUMN2"],
                 data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]],
             )
