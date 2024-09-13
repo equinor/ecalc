@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.20.4](https://github.com/equinor/ecalc/compare/v8.20.3...v8.20.4) (2024-09-13)
+
+
+### Miscellaneous Chores
+
+* upgrade scipy and other deps ([#607](https://github.com/equinor/ecalc/issues/607)) ([17471ca](https://github.com/equinor/ecalc/commit/17471caabf00caac7ac94f7730c70c94926f0094))
+
 ## [8.20.3](https://github.com/equinor/ecalc/compare/v8.20.2...v8.20.3) (2024-09-10)
 
 
