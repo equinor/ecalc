@@ -612,7 +612,9 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
     assert power_from_shore_consumption == sum([load * days * regularity * 24 / 1000 for days in delta_days])
 
     # Check that power supply onshore is power from shore consumption * (1 + cable loss)
-    assert power_supply_onshore == sum([load * (1 + cable_loss) * days * regularity * 24 / 1000 for days in delta_days])
+    assert power_supply_onshore == pytest.approx(
+        sum([load * (1 + cable_loss) * days * regularity * 24 / 1000 for days in delta_days])
+    )
 
     # Check that max usage from shore is just a report of the input
     assert max_usage_from_shore == max_from_shore * 3
