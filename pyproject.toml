@@ -52,8 +52,9 @@ pandas = [
     {version = "~2", python=">=3.9"},
 ]
 scipy = [
-    {version = "~1.10", python="<3.9"},
-    {version = ">= 1.12, < 1.14", python=">=3.9"},
+    {version = "~1.10", python="<3.9"}, # scipy 1.10.x is the last release to support Python 3.8
+    {version = ">= 1.11, < 1.14", python="==3.9"},
+    {version = ">= 1.14, < 1.15", python=">=3.10"}, # scipy 1.14.x is first version to not support Python 3.9
 ]
 "ruamel.yaml" = "^0.18"
 Shapely = "^2"
