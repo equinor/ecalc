@@ -809,6 +809,156 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     else None
                 )
 
+                inlet_stream_condition = CompressorStreamConditionResult(
+                    actual_rate_m3_per_hr=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.actual_rate_m3_per_hr
+                        if model.inlet_stream_condition.actual_rate_m3_per_hr is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                    ),
+                    actual_rate_before_asv_m3_per_hr=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=[math.nan] * len(model.timesteps),
+                        unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                    ),  #  not relevant for compressor train, only for stage
+                    standard_rate_sm3_per_day=TimeSeriesRate(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.standard_rate_sm3_per_day
+                        if model.inlet_stream_condition.standard_rate_sm3_per_day is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        rate_type=RateType.STREAM_DAY,
+                        regularity=regularity.for_timesteps(model.timesteps).values,
+                    ),
+                    standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
+                        timesteps=model.timesteps,
+                        values=[math.nan] * len(model.timesteps),
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        rate_type=RateType.STREAM_DAY,
+                        regularity=regularity.for_timesteps(model.timesteps).values,
+                    ),  #  not relevant for compressor train, only for stage
+                    kappa=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.kappa
+                        if model.inlet_stream_condition.kappa is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.NONE,
+                    ),
+                    density_kg_per_m3=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.density_kg_per_m3
+                        if model.inlet_stream_condition.density_kg_per_m3 is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.KG_M3,
+                    ),
+                    pressure=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.pressure
+                        if model.inlet_stream_condition.pressure is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.BARA,
+                    ),
+                    pressure_before_choking=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.pressure_before_choking
+                        if model.inlet_stream_condition.pressure_before_choking is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.BARA,
+                    ),
+                    temperature_kelvin=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.temperature_kelvin
+                        if model.inlet_stream_condition.temperature_kelvin is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.KELVIN,
+                    ),
+                    z=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.inlet_stream_condition.z
+                        if model.inlet_stream_condition.z is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.NONE,
+                    ),
+                    timesteps=model.timesteps,
+                    name="Inlet stream condition",
+                )
+
+                outlet_stream_condition = CompressorStreamConditionResult(
+                    actual_rate_m3_per_hr=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.actual_rate_m3_per_hr
+                        if model.outlet_stream_condition.actual_rate_m3_per_hr is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                    ),
+                    actual_rate_before_asv_m3_per_hr=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=[math.nan] * len(model.timesteps),
+                        unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
+                    ),  #  not relevant for compressor train, only for stage
+                    standard_rate_sm3_per_day=TimeSeriesRate(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.standard_rate_sm3_per_day
+                        if model.outlet_stream_condition.standard_rate_sm3_per_day is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        rate_type=RateType.STREAM_DAY,
+                        regularity=regularity.for_timesteps(model.timesteps).values,
+                    ),
+                    standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
+                        timesteps=model.timesteps,
+                        values=[math.nan] * len(model.timesteps),
+                        unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                        rate_type=RateType.STREAM_DAY,
+                        regularity=regularity.for_timesteps(model.timesteps).values,
+                    ),  #  not relevant for compressor train, only for stage
+                    kappa=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.kappa
+                        if model.outlet_stream_condition.kappa is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.NONE,
+                    ),
+                    density_kg_per_m3=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.density_kg_per_m3
+                        if model.outlet_stream_condition.density_kg_per_m3 is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.KG_M3,
+                    ),
+                    pressure=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.pressure
+                        if model.outlet_stream_condition.pressure is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.BARA,
+                    ),
+                    pressure_before_choking=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.pressure_before_choking
+                        if model.outlet_stream_condition.pressure_before_choking is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.BARA,
+                    ),
+                    temperature_kelvin=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.temperature_kelvin
+                        if model.outlet_stream_condition.temperature_kelvin is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.KELVIN,
+                    ),
+                    z=TimeSeriesFloat(
+                        timesteps=model.timesteps,
+                        values=model.outlet_stream_condition.z
+                        if model.outlet_stream_condition.z is not None
+                        else [math.nan] * len(model.timesteps),
+                        unit=Unit.NONE,
+                    ),
+                    timesteps=model.timesteps,
+                    name="Outlet stream condition",
+                )
+
                 if len(model.rate_sm3_day) > 0 and isinstance(model.rate_sm3_day[0], list):
                     # Handle multi stream
                     # Select the first rate from multi stream, only a workaround until we have more info by using
@@ -882,6 +1032,8 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                             if model.power is not None
                             else None,
                             turbine_result=turbine_result,
+                            inlet_stream_condition=inlet_stream_condition,
+                            outlet_stream_condition=outlet_stream_condition,
                         )
                     ]
                 )

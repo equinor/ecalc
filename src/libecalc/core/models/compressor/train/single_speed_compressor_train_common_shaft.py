@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import List, Optional
 
 import numpy as np
@@ -21,6 +20,7 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
 )
+from libecalc.core.models.results.compressor import TargetPressureStatus
 from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
 
 EPSILON = 1e-5
@@ -197,29 +197,27 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         if self.maximum_discharge_pressure is not None:
             if train_result.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) > self.maximum_discharge_pressure:
-                train_result = self._evaluate_rate_pd(
+                new_train_result = self._evaluate_rate_pd(
                     mass_rate_kg_per_hour=mass_rate_kg_per_hour,
                     outlet_pressure_train_bara=self.maximum_discharge_pressure,
                 )
-                choked_stage_results = deepcopy(train_result.stage_results[0])
-                choked_stage_results.pressure_is_choked = True
-                choked_stage_results.inlet_pressure_before_choking = suction_pressure
-                train_result.stage_results[0] = choked_stage_results
+                train_result.stage_results = new_train_result.stage_results
+                train_result.outlet_stream = new_train_result.outlet_stream
                 train_result.target_pressure_status = self.check_target_pressures(
-                    calculated_suction_pressure=train_result.suction_pressure_before_choking,
-                    calculated_discharge_pressure=train_result.discharge_pressure,
+                    calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
+                    calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
                 )
 
-        if train_result.discharge_pressure * (1 + PRESSURE_CALCULATION_TOLERANCE) > discharge_pressure:
-            # Fixme: Set new outlet pressure (or should we really make new stream - tp_flash?)
-            choked_stage_results = deepcopy(train_result.stage_results[-1])
-            choked_stage_results.pressure_is_choked = True
-            choked_stage_results.outlet_pressure_before_choking = float(choked_stage_results.discharge_pressure)
-            choked_stage_results.outlet_stream.pressure_bara = discharge_pressure
-            train_result.stage_results[-1] = choked_stage_results
+        if train_result.target_pressure_status == TargetPressureStatus.ABOVE_TARGET_DISCHARGE_PRESSURE:
+            new_outlet_stream = FluidStream(
+                fluid_model=train_result.outlet_stream,
+                pressure_bara=discharge_pressure,
+                temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
+            )
+            train_result.outlet_stream = dto.FluidStream.from_fluid_domain_object(fluid_stream=new_outlet_stream)
             train_result.target_pressure_status = self.check_target_pressures(
-                calculated_suction_pressure=train_result.suction_pressure_before_choking,  #  because of the potential maximum discharge pressure
-                calculated_discharge_pressure=train_result.discharge_pressure,
+                calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
+                calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
             )
 
         return train_result
@@ -245,14 +243,16 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             outlet_pressure_train_bara=discharge_pressure,
         )
 
-        if train_result.suction_pressure < suction_pressure * (1 - PRESSURE_CALCULATION_TOLERANCE):
-            choked_stage_results = deepcopy(train_result.stage_results[0])
-            choked_stage_results.pressure_is_choked = True
-            choked_stage_results.inlet_pressure_before_choking = suction_pressure
-            train_result.stage_results[0] = choked_stage_results
+        if train_result.target_pressure_status == TargetPressureStatus.BELOW_TARGET_SUCTION_PRESSURE:
+            new_inlet_stream = FluidStream(
+                fluid_model=train_result.inlet_stream,
+                pressure_bara=suction_pressure,
+                temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
+            )
+            train_result.inlet_stream = dto.FluidStream.from_fluid_domain_object(fluid_stream=new_inlet_stream)
             train_result.target_pressure_status = self.check_target_pressures(
-                calculated_suction_pressure=train_result.suction_pressure_before_choking,
-                calculated_discharge_pressure=train_result.discharge_pressure,
+                calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
+                calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
             )
 
         return train_result
@@ -304,7 +304,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
             )
-            inlet_stream_stage = inlet_stream_train
+            inlet_stream_stage = outlet_stream_stage = inlet_stream_train
             stage_results = []
             for stage in self.stages:
                 outlet_pressure_for_stage = inlet_stream_stage.pressure_bara * pressure_ratio_per_stage
@@ -327,6 +327,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 calculated_discharge_pressure=stage_results[-1].outlet_stream.pressure_bara,
             )
             return CompressorTrainResultSingleTimeStep(
+                inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=inlet_stream_train),
+                outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_stream_stage),
                 speed=np.nan,
                 stage_results=stage_results,
                 target_pressure_status=target_pressure_status,
@@ -707,6 +709,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         return CompressorTrainResultSingleTimeStep(
+            inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=train_inlet_stream),
+            outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_stream),
             speed=np.nan,
             stage_results=stage_results,
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])

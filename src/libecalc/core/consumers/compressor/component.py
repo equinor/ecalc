@@ -131,6 +131,8 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
                     rate_sm3_day=model_result.rate_sm3_day,
                     stage_results=model_result.stage_results,
                     failure_status=model_result.failure_status,
+                    inlet_stream_condition=model_result.inlet_stream_condition,
+                    outlet_stream_condition=model_result.outlet_stream_condition,
                 )
             ],
         )

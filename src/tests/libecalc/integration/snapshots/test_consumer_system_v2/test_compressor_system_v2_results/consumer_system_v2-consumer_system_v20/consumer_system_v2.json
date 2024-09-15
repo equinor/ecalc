@@ -845,6 +845,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -862,6 +924,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor1",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    250.0,
+                                    250.0,
+                                    250.0,
+                                    250.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -1141,6 +1265,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -1158,6 +1344,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor2",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    250.0,
+                                    250.0,
+                                    250.0,
+                                    250.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -1437,6 +1685,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -1454,6 +1764,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor3",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    250.0,
+                                    250.0,
+                                    250.0,
+                                    250.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -1735,6 +2107,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -1752,6 +2186,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor1",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    125.0,
+                                    125.0,
+                                    125.0,
+                                    125.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2031,6 +2527,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2048,6 +2606,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor2",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    125.0,
+                                    125.0,
+                                    125.0,
+                                    125.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2327,6 +2947,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2344,6 +3026,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor3",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    125.0,
+                                    125.0,
+                                    125.0,
+                                    125.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2625,6 +3369,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2642,6 +3448,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor1",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    125.0,
+                                    125.0,
+                                    125.0,
+                                    125.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2921,6 +3789,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -2938,6 +3868,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor2",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    125.0,
+                                    125.0,
+                                    125.0,
+                                    125.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -3217,6 +4209,68 @@
                                 "NO_FAILURE",
                                 "NO_FAILURE"
                             ],
+                            "inlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    50.0,
+                                    50.0,
+                                    50.0,
+                                    50.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "is_valid": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -3234,6 +4288,68 @@
                             },
                             "max_standard_rate": null,
                             "name": "compressor3",
+                            "outlet_stream_condition": {
+                                "actual_rate_before_asv_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "actual_rate_m3_per_hr": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "density_kg_per_m3": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "kappa": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "pressure": [
+                                    125.0,
+                                    125.0,
+                                    125.0,
+                                    125.0
+                                ],
+                                "pressure_before_choking": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_before_asv_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "standard_rate_sm3_per_day": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "temperature_kelvin": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ],
+                                "z": [
+                                    NaN,
+                                    NaN,
+                                    NaN,
+                                    NaN
+                                ]
+                            },
                             "power": {
                                 "timesteps": [
                                     "2022-01-01 00:00:00",
@@ -3554,6 +4670,68 @@
                         "NO_FAILURE",
                         "NO_FAILURE"
                     ],
+                    "inlet_stream_condition": {
+                        "actual_rate_before_asv_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "actual_rate_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "density_kg_per_m3": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "kappa": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "pressure": [
+                            50.0,
+                            50.0,
+                            50.0,
+                            50.0
+                        ],
+                        "pressure_before_choking": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_before_asv_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "temperature_kelvin": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "z": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ]
+                    },
                     "is_valid": {
                         "timesteps": [
                             "2022-01-01 00:00:00",
@@ -3571,6 +4749,68 @@
                     },
                     "max_standard_rate": null,
                     "name": "compressor1",
+                    "outlet_stream_condition": {
+                        "actual_rate_before_asv_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "actual_rate_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "density_kg_per_m3": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "kappa": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "pressure": [
+                            125.0,
+                            125.0,
+                            125.0,
+                            125.0
+                        ],
+                        "pressure_before_choking": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_before_asv_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "temperature_kelvin": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "z": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ]
+                    },
                     "power": {
                         "timesteps": [
                             "2022-01-01 00:00:00",
@@ -3850,6 +5090,68 @@
                         "NO_FAILURE",
                         "NO_FAILURE"
                     ],
+                    "inlet_stream_condition": {
+                        "actual_rate_before_asv_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "actual_rate_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "density_kg_per_m3": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "kappa": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "pressure": [
+                            50.0,
+                            50.0,
+                            50.0,
+                            50.0
+                        ],
+                        "pressure_before_choking": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_before_asv_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "temperature_kelvin": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "z": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ]
+                    },
                     "is_valid": {
                         "timesteps": [
                             "2022-01-01 00:00:00",
@@ -3867,6 +5169,68 @@
                     },
                     "max_standard_rate": null,
                     "name": "compressor2",
+                    "outlet_stream_condition": {
+                        "actual_rate_before_asv_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "actual_rate_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "density_kg_per_m3": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "kappa": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "pressure": [
+                            125.0,
+                            125.0,
+                            125.0,
+                            125.0
+                        ],
+                        "pressure_before_choking": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_before_asv_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "temperature_kelvin": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "z": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ]
+                    },
                     "power": {
                         "timesteps": [
                             "2022-01-01 00:00:00",
@@ -4146,6 +5510,68 @@
                         "NO_FAILURE",
                         "NO_FAILURE"
                     ],
+                    "inlet_stream_condition": {
+                        "actual_rate_before_asv_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "actual_rate_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "density_kg_per_m3": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "kappa": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "pressure": [
+                            50.0,
+                            50.0,
+                            50.0,
+                            50.0
+                        ],
+                        "pressure_before_choking": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_before_asv_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "temperature_kelvin": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "z": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ]
+                    },
                     "is_valid": {
                         "timesteps": [
                             "2022-01-01 00:00:00",
@@ -4163,6 +5589,68 @@
                     },
                     "max_standard_rate": null,
                     "name": "compressor3",
+                    "outlet_stream_condition": {
+                        "actual_rate_before_asv_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "actual_rate_m3_per_hr": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "density_kg_per_m3": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "kappa": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "pressure": [
+                            125.0,
+                            125.0,
+                            125.0,
+                            125.0
+                        ],
+                        "pressure_before_choking": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_before_asv_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "standard_rate_sm3_per_day": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "temperature_kelvin": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ],
+                        "z": [
+                            NaN,
+                            NaN,
+                            NaN,
+                            NaN
+                        ]
+                    },
                     "power": {
                         "timesteps": [
                             "2022-01-01 00:00:00",

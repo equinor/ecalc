@@ -163,6 +163,8 @@ def map_energy_function_results(
                 failure_status=result.failure_status,
                 turbine_result=result.turbine_result,
                 max_standard_rate=result.max_standard_rate,
+                inlet_stream_condition=result.inlet_stream_condition,
+                outlet_stream_condition=result.outlet_stream_condition,
             )
         )
     elif isinstance(result, PumpModelResult):

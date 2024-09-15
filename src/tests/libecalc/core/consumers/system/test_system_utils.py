@@ -54,6 +54,8 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_succe
                             )
                         ],
                         failure_status=[None],
+                        inlet_stream_condition=CompressorStreamCondition(),
+                        outlet_stream_condition=CompressorStreamCondition(),
                     ),
                 )
             ],
@@ -102,6 +104,8 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_failu
                             )
                         ],
                         failure_status=[None],
+                        inlet_stream_condition=CompressorStreamCondition(),
+                        outlet_stream_condition=CompressorStreamCondition(),
                     ),
                 )
             ],
@@ -152,6 +156,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_firs
                             )
                         ],
                         failure_status=[None],
+                        inlet_stream_condition=CompressorStreamCondition(),
+                        outlet_stream_condition=CompressorStreamCondition(),
                     ),
                 )
             ],
@@ -186,6 +192,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_firs
                             )
                         ],
                         failure_status=[None],
+                        inlet_stream_condition=CompressorStreamCondition(),
+                        outlet_stream_condition=CompressorStreamCondition(),
                     ),
                 )
             ],
@@ -234,6 +242,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_both
                             )
                         ],
                         failure_status=[None],
+                        inlet_stream_condition=CompressorStreamCondition(),
+                        outlet_stream_condition=CompressorStreamCondition(),
                     ),
                 )
             ],
@@ -271,6 +281,8 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_both
                             )
                         ],
                         failure_status=[None],
+                        inlet_stream_condition=CompressorStreamCondition(),
+                        outlet_stream_condition=CompressorStreamCondition(),
                     ),
                 )
             ],

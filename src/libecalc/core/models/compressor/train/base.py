@@ -161,12 +161,18 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 )
                 max_standard_rate[valid_indices] = max_standard_rate_for_valid_indices
 
-        stage_results = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
+        (
+            inlet_stream_condition,
+            outlet_stream_condition,
+            stage_results,
+        ) = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
             result_list=train_results,
             compressor_charts=[stage.compressor_chart.data_transfer_object for stage in self.stages],
         )
 
         return CompressorTrainResult(
+            inlet_stream_condition=inlet_stream_condition,
+            outlet_stream_condition=outlet_stream_condition,
             energy_usage=list(power_mw_adjusted),
             energy_usage_unit=Unit.MEGA_WATT,
             power=list(power_mw_adjusted),
