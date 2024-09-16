@@ -1,13 +1,19 @@
 # PRESSURE_CONTROL
 
 ## Description
-`PRESSURE_CONTROL` is required when a compressor model is defined. This dictates how the compressor will be controlled, the method for pressure control are as follows:
+The `PRESSURE_CONTROL` dictates how the compressor will be controlled when running on a fixed speed. The available
+methods for pressure control are as follows:
 
 - DOWNSTREAM_CHOKE (default)
 - UPSTREAM_CHOKE
 - INDIVIDUAL_ASV_PRESSURE
 - INDIVIDUAL_ASV_RATE
 - COMMON_ASV
+
+`PRESSURE_CONTROL` is in use for the following types of compressor trains:
+- [`Single speed compressor train model`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/single_speed_compressor_train_model.md)
+- [`Variable speed compressor train model`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model.md)
+- [`Variable speed compressor train model with multiple streams and pressures`](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md)
 
 Further description on how each pressure control method works can be found in [Fixed speed pressure control](/about/modelling/setup/models/compressor_modelling/fixed_speed_pressure_control/index.md)
 
