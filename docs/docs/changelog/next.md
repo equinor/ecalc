@@ -11,7 +11,7 @@ sidebar_position: -1002
 
 
 ## New Features
-
+- `POWER_ADJUSTMENT_FACTOR` for models: Optional factor to adjust the power (MW). Previously only the `POWER_ADJUSTMENT_CONSTANT` has been available for models, now it is possible to adjust/scale the power with a constant and a factor. It can be used to calibrate equipment.
 
 ## Fixes
 
