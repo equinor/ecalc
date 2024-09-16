@@ -107,21 +107,6 @@
                         true
                     ]
                 },
-                "outlet_pressure_before_choking": {
-                    "timesteps": [
-                        "2022-01-01 00:00:00",
-                        "2024-01-01 00:00:00",
-                        "2025-01-01 00:00:00",
-                        "2026-01-01 00:00:00"
-                    ],
-                    "unit": "bara",
-                    "values": [
-                        NaN,
-                        NaN,
-                        NaN,
-                        NaN
-                    ]
-                },
                 "power": {
                     "timesteps": [
                         "2022-01-01 00:00:00",
@@ -393,21 +378,6 @@
                         true
                     ]
                 },
-                "outlet_pressure_before_choking": {
-                    "timesteps": [
-                        "2022-01-01 00:00:00",
-                        "2024-01-01 00:00:00",
-                        "2025-01-01 00:00:00",
-                        "2026-01-01 00:00:00"
-                    ],
-                    "unit": "bara",
-                    "values": [
-                        NaN,
-                        NaN,
-                        NaN,
-                        NaN
-                    ]
-                },
                 "power": {
                     "timesteps": [
                         "2022-01-01 00:00:00",
@@ -605,21 +575,6 @@
                         true,
                         true,
                         true
-                    ]
-                },
-                "outlet_pressure_before_choking": {
-                    "timesteps": [
-                        "2022-01-01 00:00:00",
-                        "2024-01-01 00:00:00",
-                        "2025-01-01 00:00:00",
-                        "2026-01-01 00:00:00"
-                    ],
-                    "unit": "bara",
-                    "values": [
-                        NaN,
-                        NaN,
-                        NaN,
-                        NaN
                     ]
                 },
                 "power": {
@@ -876,12 +831,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -954,12 +903,6 @@
                                     250.0,
                                     250.0,
                                     250.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -1067,12 +1010,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -1146,12 +1083,6 @@
                                             250.0,
                                             250.0,
                                             250.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -1296,12 +1227,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -1374,12 +1299,6 @@
                                     250.0,
                                     250.0,
                                     250.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -1487,12 +1406,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -1566,12 +1479,6 @@
                                             250.0,
                                             250.0,
                                             250.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -1716,12 +1623,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -1794,12 +1695,6 @@
                                     250.0,
                                     250.0,
                                     250.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -1907,12 +1802,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -1986,12 +1875,6 @@
                                             250.0,
                                             250.0,
                                             250.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -2138,12 +2021,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -2216,12 +2093,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -2329,12 +2200,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -2408,12 +2273,6 @@
                                             125.0,
                                             125.0,
                                             125.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -2558,12 +2417,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -2636,12 +2489,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -2749,12 +2596,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -2828,12 +2669,6 @@
                                             125.0,
                                             125.0,
                                             125.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -2978,12 +2813,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -3056,12 +2885,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -3169,12 +2992,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -3248,12 +3065,6 @@
                                             125.0,
                                             125.0,
                                             125.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -3400,12 +3211,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -3478,12 +3283,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -3591,12 +3390,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -3670,12 +3463,6 @@
                                             125.0,
                                             125.0,
                                             125.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -3820,12 +3607,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -3898,12 +3679,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -4011,12 +3786,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -4090,12 +3859,6 @@
                                             125.0,
                                             125.0,
                                             125.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -4240,12 +4003,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -4318,12 +4075,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -4431,12 +4182,6 @@
                                             50.0,
                                             50.0
                                         ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
-                                        ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
                                             NaN,
@@ -4510,12 +4255,6 @@
                                             125.0,
                                             125.0,
                                             125.0
-                                        ],
-                                        "pressure_before_choking": [
-                                            NaN,
-                                            NaN,
-                                            NaN,
-                                            NaN
                                         ],
                                         "standard_rate_before_asv_sm3_per_day": [
                                             NaN,
@@ -4701,12 +4440,6 @@
                             50.0,
                             50.0
                         ],
-                        "pressure_before_choking": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
-                        ],
                         "standard_rate_before_asv_sm3_per_day": [
                             NaN,
                             NaN,
@@ -4779,12 +4512,6 @@
                             125.0,
                             125.0,
                             125.0
-                        ],
-                        "pressure_before_choking": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
                         ],
                         "standard_rate_before_asv_sm3_per_day": [
                             NaN,
@@ -4892,12 +4619,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -4971,12 +4692,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -5121,12 +4836,6 @@
                             50.0,
                             50.0
                         ],
-                        "pressure_before_choking": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
-                        ],
                         "standard_rate_before_asv_sm3_per_day": [
                             NaN,
                             NaN,
@@ -5199,12 +4908,6 @@
                             125.0,
                             125.0,
                             125.0
-                        ],
-                        "pressure_before_choking": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
                         ],
                         "standard_rate_before_asv_sm3_per_day": [
                             NaN,
@@ -5312,12 +5015,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -5391,12 +5088,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -5541,12 +5232,6 @@
                             50.0,
                             50.0
                         ],
-                        "pressure_before_choking": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
-                        ],
                         "standard_rate_before_asv_sm3_per_day": [
                             NaN,
                             NaN,
@@ -5619,12 +5304,6 @@
                             125.0,
                             125.0,
                             125.0
-                        ],
-                        "pressure_before_choking": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
                         ],
                         "standard_rate_before_asv_sm3_per_day": [
                             NaN,
@@ -5732,12 +5411,6 @@
                                     50.0,
                                     50.0
                                 ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
-                                ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
                                     NaN,
@@ -5811,12 +5484,6 @@
                                     125.0,
                                     125.0,
                                     125.0
-                                ],
-                                "pressure_before_choking": [
-                                    NaN,
-                                    NaN,
-                                    NaN,
-                                    NaN
                                 ],
                                 "standard_rate_before_asv_sm3_per_day": [
                                     NaN,
@@ -6015,21 +5682,6 @@
                             true,
                             true,
                             true
-                        ]
-                    },
-                    "outlet_pressure_before_choking": {
-                        "timesteps": [
-                            "2022-01-01 00:00:00",
-                            "2024-01-01 00:00:00",
-                            "2025-01-01 00:00:00",
-                            "2026-01-01 00:00:00"
-                        ],
-                        "unit": "bara",
-                        "values": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
                         ]
                     },
                     "power": {
@@ -6299,21 +5951,6 @@
                             true
                         ]
                     },
-                    "outlet_pressure_before_choking": {
-                        "timesteps": [
-                            "2022-01-01 00:00:00",
-                            "2024-01-01 00:00:00",
-                            "2025-01-01 00:00:00",
-                            "2026-01-01 00:00:00"
-                        ],
-                        "unit": "bara",
-                        "values": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
-                        ]
-                    },
                     "power": {
                         "timesteps": [
                             "2022-01-01 00:00:00",
@@ -6507,21 +6144,6 @@
                             true,
                             true,
                             true
-                        ]
-                    },
-                    "outlet_pressure_before_choking": {
-                        "timesteps": [
-                            "2022-01-01 00:00:00",
-                            "2024-01-01 00:00:00",
-                            "2025-01-01 00:00:00",
-                            "2026-01-01 00:00:00"
-                        ],
-                        "unit": "bara",
-                        "values": [
-                            NaN,
-                            NaN,
-                            NaN,
-                            NaN
                         ]
                     },
                     "power": {

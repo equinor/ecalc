@@ -3,7 +3,6 @@ from datetime import datetime
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
-    TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
 from libecalc.core.result import CompressorResult
@@ -43,11 +42,6 @@ class TestMerge:
                 timesteps=timesteps,
                 values=[False, False, False, False],
                 unit=Unit.NONE,
-            ),
-            outlet_pressure_before_choking=TimeSeriesFloat(
-                timesteps=timesteps,
-                values=[150, 151, 152, 153],
-                unit=Unit.BARA,
             ),
             id="My test component",
         )

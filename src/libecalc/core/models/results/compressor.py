@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from enum import Enum
 from math import isnan
 from typing import Dict, List, Optional, Union
@@ -50,7 +49,6 @@ class TargetPressureStatus(str, Enum):
 
 class CompressorStreamCondition(EnergyModelBaseResult):
     pressure: Optional[List[Optional[float]]] = None
-    pressure_before_choking: Optional[List[Optional[float]]] = None
     actual_rate_m3_per_hr: Optional[List[Optional[float]]] = None
     actual_rate_before_asv_m3_per_hr: Optional[List[Optional[float]]] = None
     standard_rate_sm3_per_day: Optional[List[Optional[float]]] = None
@@ -65,7 +63,6 @@ class CompressorStreamCondition(EnergyModelBaseResult):
         nans = [np.nan] * number_of_timesteps
         return cls(
             pressure=nans,
-            pressure_before_choking=nans,
             actual_rate_m3_per_hr=nans,
             actual_rate_before_asv_m3_per_hr=nans,
             standard_rate_sm3_per_day=nans,
@@ -259,14 +256,3 @@ class CompressorTrainResult(EnergyFunctionResult):
     @property
     def rate_exceeds_maximum(self) -> List[bool]:
         return list(np.any([stage.rate_exceeds_maximum for stage in self.stage_results], axis=0))
-
-    @property
-    def outlet_pressure_before_choking(self) -> Optional[List[float]]:
-        return (
-            [
-                pressure if pressure is not None else math.nan
-                for pressure in self.stage_results[-1].outlet_stream_condition.pressure_before_choking
-            ]
-            if self.stage_results[-1].outlet_stream_condition.pressure_before_choking is not None
-            else None
-        )

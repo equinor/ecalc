@@ -72,7 +72,6 @@ class CompressorResult(GenericComponentResult):
     typ: Literal["comp"] = "comp"
     recirculation_loss: TimeSeriesStreamDayRate
     rate_exceeds_maximum: TimeSeriesBoolean
-    outlet_pressure_before_choking: TimeSeriesFloat
     streams: Optional[List[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
     def get_subset(self, indices: List[int]) -> Self:
@@ -84,7 +83,6 @@ class CompressorResult(GenericComponentResult):
             power=self.power[indices] if self.power is not None else None,
             recirculation_loss=self.recirculation_loss[indices],
             rate_exceeds_maximum=self.rate_exceeds_maximum[indices],
-            outlet_pressure_before_choking=self.outlet_pressure_before_choking[indices],
         )
 
 

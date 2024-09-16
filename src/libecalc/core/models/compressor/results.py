@@ -57,9 +57,6 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     pressure_is_choked: Optional[bool] = None
     head_exceeds_maximum: Optional[bool] = None
 
-    inlet_pressure_before_choking: float
-    outlet_pressure_before_choking: float
-
     point_is_valid: bool
     model_config = ConfigDict(extra="forbid")
 
@@ -88,8 +85,6 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
             rate_exceeds_maximum=False,
             pressure_is_choked=False,
             head_exceeds_maximum=False,
-            inlet_pressure_before_choking=np.nan,
-            outlet_pressure_before_choking=np.nan,
             point_is_valid=True,
         )
 
@@ -194,11 +189,6 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                 else np.nan
                 for t in range(len(result_list))
             ]
-            inlet_stream_condition_per_stage[i].pressure_before_choking = [
-                result_list[t].stage_results[i].inlet_pressure_before_choking
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].inlet_pressure_before_choking is not None
-            ]
             # Note: Here we reverse the lingo from "before ASV" to "ASV corrected"
             inlet_stream_condition_per_stage[i].actual_rate_m3_per_hr = [
                 result_list[t].stage_results[i].inlet_actual_rate_asv_corrected_m3_per_hour
@@ -256,11 +246,6 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
                 and result_list[t].stage_results[i].outlet_stream.pressure_bara is not None
                 else np.nan
                 for t in range(len(result_list))
-            ]
-            outlet_stream_condition_per_stage[i].pressure_before_choking = [
-                result_list[t].stage_results[i].outlet_pressure_before_choking
-                for t in range(len(result_list))
-                if result_list[t].stage_results[i].outlet_pressure_before_choking is not None
             ]
             outlet_stream_condition_per_stage[i].actual_rate_m3_per_hr = [
                 result_list[t].stage_results[i].outlet_actual_rate_asv_corrected_m3_per_hour
@@ -530,19 +515,11 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             return np.nan
 
     @property
-    def discharge_pressure_before_choking(self) -> float:
-        return np.nan  #  not relevant here
-
-    @property
     def suction_pressure(self) -> float:
         if self.inlet_stream is not None:
             return self.inlet_stream.pressure_bara
         else:
             return np.nan
-
-    @property
-    def suction_pressure_before_choking(self) -> float:
-        return np.nan  #  not relevant here
 
     @property
     def mass_rate_kg_per_hour(self) -> float:
@@ -666,7 +643,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     @property
     def pressure_is_choked(self) -> bool:
         # Small margin when checking for choke in order to avoid false positives.
-        return self.discharge_pressure < (self.discharge_pressure_before_choking - 1e-5) or any(
+        return self.discharge_pressure < self.stage_results[0].discharge_pressure or any(
             stage.pressure_is_choked for stage in self.stage_results
         )
 
