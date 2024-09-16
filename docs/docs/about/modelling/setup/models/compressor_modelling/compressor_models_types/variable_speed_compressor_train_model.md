@@ -5,7 +5,9 @@ sidebar_position: 3
 
 In this model all compressors in the train have the same speed, and the model is build on a forward model of
 the fluid properties/state where speed is a parameter. Then the speed is iterated until the discharge pressure of the
-outlet is equal to the requested discharge pressure.
+outlet is equal to the requested discharge pressure. If the resulting discharge pressure is not low enough to meet the 
+requested discharge pressure by iterating on speed only, an attempt is made to find a solution using the defined
+[Fixed speed pressure control](/about/modelling/setup/models/compressor_modelling/fixed_speed_pressure_control/index.md) with the speed fixed at the minimum speed.
 
 This model only supports `User defined variable speed compressor chart`.
 
