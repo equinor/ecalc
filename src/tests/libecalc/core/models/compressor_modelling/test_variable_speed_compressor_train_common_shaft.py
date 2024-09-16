@@ -382,4 +382,4 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
         suction_pressure=np.asarray([30]),
         discharge_pressure=np.asarray([100.0]),
     )
-    assert result_adjusted.power[0] == result.power[0] * 1.5 + adjustment_constant
+    assert result_adjusted.power[0] == result.power[0] * adjustment_factor + adjustment_constant
