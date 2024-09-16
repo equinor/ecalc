@@ -54,6 +54,11 @@ class YamlTurbine(YamlBase):
         description="Constant to adjust power usage in MW",
         title="POWER_ADJUSTMENT_CONSTANT",
     )
+    power_adjustment_factor: float = Field(
+        1.0,
+        description="Factor to adjust power usage in MW",
+        title="POWER_ADJUSTMENT_FACTOR",
+    )
 
     def to_dto(self):
         raise NotImplementedError

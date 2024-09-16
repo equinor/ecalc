@@ -892,7 +892,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         power_mw = np.array([time_step.power_megawatt for time_step in train_results])
         power_mw_adjusted = np.where(
-            power_mw > 0, power_mw + self.data_transfer_object.energy_usage_adjustment_constant, power_mw
+            power_mw > 0,
+            power_mw * self.data_transfer_object.energy_usage_adjustment_factor
+            + self.data_transfer_object.energy_usage_adjustment_constant,
+            power_mw,
         )
 
         inlet_stream, outlet_stream, stage_results = CompressorTrainResultSingleTimeStep.from_result_list_to_dto(
