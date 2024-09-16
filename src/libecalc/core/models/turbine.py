@@ -44,7 +44,6 @@ class TurbineModel(BaseModel):
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
         # Calibration of turbine load:
         # Linear adjustment a´*x + b´, but where a´=1/a and b´=b/a.
-        # This is probably to ensu
         load_adjusted = np.where(
             load > 0,
             (load + self.data_transfer_object.energy_usage_adjustment_constant)
