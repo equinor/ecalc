@@ -4,7 +4,8 @@ import pandas as pd
 import numpy as np
 import os
 import sys
-print(os.getcwd())import scipy
+import scipy
+print(os.getcwd())
 
 version = scipy.__version__
 print(version)
@@ -38,8 +39,8 @@ values = pd.read_csv('debug_failed_stp_test/interpolator_input_ltp_run/values_lt
 
 qhull_points_np = qhull_points.to_numpy()
 x_for_interpolator_np = x_for_interpolator.to_numpy()
-values_np = np.reshape(values.to_numpy(),(1284,))
-values_np = values.to_numpy()
+values_shape = (values.shape[0],) # values shape to match ecalc data
+values_np = np.reshape(values.to_numpy(), values_shape)
 # convex_hull = ConvexHull(qhull_points)
 delaunay = Delaunay(qhull_points_np)
 
