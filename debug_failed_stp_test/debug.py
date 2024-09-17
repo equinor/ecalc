@@ -30,8 +30,10 @@ For debugging functionality from the file src/libecalc/core/models/compressor/sa
 # values = pd.read_csv('debug_failed_stp_test/kb_input/fuel_usage.csv', header=None)
 x_for_interpolator = pd.read_csv('debug_failed_stp_test/kb_input/x_for_interpolator.csv', header=None)
 
-qhull_points = pd.read_csv('debug_failed_stp_test/interpolator_input_17_09/qhull_points_17_09.csv', header=None)
-values = pd.read_csv('debug_failed_stp_test/interpolator_input_17_09/values_17.csv', header=None)
+# qhull_points = pd.read_csv('debug_failed_stp_test/interpolator_input_17_09/qhull_points_17_09.csv', header=None)
+# values = pd.read_csv('debug_failed_stp_test/interpolator_input_17_09/values_17.csv', header=None)
+qhull_points = pd.read_csv('debug_failed_stp_test/interpolator_input_ltp_run/qhull_points_ltp_run.csv', header=None)
+values = pd.read_csv('debug_failed_stp_test/interpolator_input_ltp_run/values_ltp_run.csv', header=None)
 
 
 qhull_points_np = qhull_points.to_numpy()
