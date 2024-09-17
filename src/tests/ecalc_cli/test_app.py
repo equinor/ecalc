@@ -360,6 +360,7 @@ class TestStpExport:
                 output_folder=tmp_path,
                 name_prefix=run_name_prefix,
                 csv=False,
+                json=True,
                 output_frequency="MONTH",
             ),
             catch_exceptions=False,
@@ -381,6 +382,8 @@ class TestStpExport:
         run_files = [
             tmp_path / f"{run_name_prefix}.{installation_name}.stp.tsv" for installation_name in installation_names
         ]
+
+        run_files.append(tmp_path / f"{run_name_prefix}_v3.json")
 
         for run_file in run_files:
             assert run_file.is_file()
