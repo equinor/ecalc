@@ -1,0 +1,575 @@
+TIME_SERIES:
+  - NAME: INPUT_PROD_INJ
+    TYPE: DEFAULT
+    FILE: 'sim/prod_inj_forecast.csv'
+  - NAME: STEAMGEN
+    TYPE: DEFAULT
+    FILE: 'sim/steamgen.csv'
+  - NAME: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES
+    TYPE: MISCELLANEOUS
+    FILE: 'sim/flare_diesel_cold_venting_fugitives.csv'
+    EXTRAPOLATION: false
+    INFLUENCE_TIME_VECTOR: false
+    INTERPOLATION_TYPE: RIGHT
+  - NAME: INPUT_MOBILE_INSTALLATIONS_HOST_FIELD
+    TYPE: MISCELLANEOUS
+    FILE: 'sim/mobile_installations_host_field.csv'
+    EXTRAPOLATION: false
+    INFLUENCE_TIME_VECTOR: false
+    INTERPOLATION_TYPE: RIGHT
+  - NAME: INPUT_MOBILE_INSTALLATIONS_SATELLITE_A
+    TYPE: MISCELLANEOUS
+    FILE: 'sim/mobile_installations_satellite_A.csv'
+    EXTRAPOLATION: false
+    INFLUENCE_TIME_VECTOR: false
+    INTERPOLATION_TYPE: RIGHT
+  - NAME: INPUT_MOBILE_INSTALLATIONS_SATELLITE_B
+    TYPE: MISCELLANEOUS
+    FILE: 'sim/mobile_installations_satellite_B.csv'
+    EXTRAPOLATION: false
+    INFLUENCE_TIME_VECTOR: false
+    INTERPOLATION_TYPE: RIGHT
+
+FACILITY_INPUTS:
+  - NAME: A_genset
+    TYPE: ELECTRICITY2FUEL
+    FILE: 'einput/genset_17MW.csv'
+  - NAME: onshore_power
+    TYPE: ELECTRICITY2FUEL
+    FILE: 'einput/onshore_power.csv'
+  - NAME: A_waterinj
+    TYPE: PUMP_CHART_SINGLE_SPEED
+    UNITS:
+      EFFICIENCY: PERCENTAGE
+      HEAD: M
+      RATE: AM3_PER_HOUR
+    FILE: 'einput/pumpchart_water_inj.csv'
+  - NAME: A_gascompr
+    TYPE: COMPRESSOR_TABULAR
+    FILE: 'einput/gascompression.csv'
+  - NAME: A_gascompr_zero_power
+    TYPE: COMPRESSOR_TABULAR
+    FILE: 'einput/gascompression_zero_power.csv'  # "HACK" to make a non-power driven compressor to return power results (that are 0), e.g to combine with future power-driven equipment
+
+FUEL_TYPES:
+  - NAME: fuel_gas_sac
+    # This fuel type is to be used for power generators, need to split due to NOx emissions
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 2.11 #kg/Sm3
+      - NAME: ch4
+        FACTOR: 0.00091 #kg/Sm3
+      - NAME: nox
+        FACTOR: 0.00916 #kg/Sm3
+      - NAME: nmvoc
+        FACTOR: 0.00024 #kg/Sm3
+  - NAME: fuel_gas_dle
+    # This fuel type is to be used for gas compressors, need to split due to NOx emissions
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 2.11 #kg/Sm3
+      - NAME: ch4
+        FACTOR: 0.00091 #kg/Sm3
+      - NAME: nox
+        FACTOR: 0.0018 #kg/Sm3
+      - NAME: nmvoc
+        FACTOR: 0.00024 #kg/Sm3
+  - NAME: flare_gas
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 2.60 #kg/Sm3
+      - NAME: ch4
+        FACTOR: 0.00024 #kg/Sm3
+      - NAME: nox
+        FACTOR: 0.0014 #kg/Sm3
+      - NAME: nmvoc
+        FACTOR: "0.00006" #kg/Sm3 (quotes needed, due to eCalc bug for values < 1E-04)
+  - NAME: diesel_fixed
+    CATEGORY: DIESEL
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 2.71 #kg/l, input diesel usage in litres/d
+      - NAME: ch4
+        FACTOR: 0 #kg/l, negligible
+      - NAME: nox
+        FACTOR: 0.0305 #kg/l, covers both diesel usage in turbines and motors
+      - NAME: nmvoc
+        FACTOR: 0.00222 #kg/l, covers both diesel usage in turbines and motors
+  - NAME: cold_venting_fugitives_methane_direct
+    # This is a 'dummy' fuel type, to ensure that input emission rates are passed through eCalc
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 0 #kg/kg
+      - NAME: ch4
+        FACTOR: 1 #kg/kg - input emissions directly in kg/d
+      - NAME: nox
+        FACTOR: 0 #kg/kg
+      - NAME: nmvoc
+        FACTOR: 0 #kg/kg
+  - NAME: cold_venting_fugitives_nmvoc_direct
+    # This is a 'dummy' fuel type, to ensure that input emission rates are passed through eCalc
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 0 #kg/kg
+      - NAME: ch4
+        FACTOR: 0 #kg/kg
+      - NAME: nox
+        FACTOR: 0 #kg/kg
+      - NAME: nmvoc
+        FACTOR: 1 #kg/kg - input emissions directly in kg/d
+  - NAME: loading_ch4_nmvoc
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 0 #kg/Sm3
+      - NAME: ch4
+        FACTOR: 0.02 #kg/Sm3
+      - NAME: nox
+        FACTOR: 0 #kg/Sm3
+      - NAME: nmvoc
+        FACTOR: 0.21 #kg/Sm3
+  - NAME: storage_ch4_nmvoc
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 0 #kg/Sm3
+      - NAME: ch4
+        FACTOR: 0 #kg/Sm3 (not applicable)
+      - NAME: nox
+        FACTOR: 0 #kg/Sm3
+      - NAME: nmvoc
+        FACTOR: 0 #kg/Sm3 (not applicable)
+  - NAME: diesel_mobile
+    CATEGORY: DIESEL
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: 2.71 #kg/l, input diesel usage in litres/d
+      - NAME: ch4
+        FACTOR: 0 #kg/l, negligible
+      - NAME: nox
+        FACTOR: 0.04617 #kg/l
+      - NAME: nmvoc
+        FACTOR: 0.004275 #kg/l
+
+MODELS:
+  - NAME: medium_gas
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: MEDIUM
+  - NAME: generic_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: GENERIC_FROM_INPUT
+    UNITS:
+      EFFICIENCY: FRACTION
+    POLYTROPIC_EFFICIENCY: 0.75
+  - NAME: a_train
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    COMPRESSOR_TRAIN:
+      MAXIMUM_PRESSURE_RATIO_PER_STAGE: 3.5
+      COMPRESSOR_CHART: generic_chart
+      INLET_TEMPERATURE: 30
+  - NAME: export_compressor_turbine
+    TYPE: TURBINE
+    LOWER_HEATING_VALUE: 36.9 # MJ/Sm3
+    TURBINE_LOADS: [0, 1.9, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30]
+    TURBINE_EFFICIENCIES: [0, 0.292, 0.292, 0.293, 0.295, 0.299, 0.303, 0.308, 0.314, 0.322, 0.330, 0.339, 0.35]
+  - NAME: export_compressor_existing
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: A_gascompr
+    TURBINE_MODEL: export_compressor_turbine
+  - NAME: compressor_with_turbine_with_train
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: a_train
+    TURBINE_MODEL: export_compressor_turbine
+
+START: 2021-01-01
+END: 2034-01-01
+
+INSTALLATIONS:
+  - NAME: INST_A
+    CATEGORY: FIXED
+    REGULARITY: INPUT_PROD_INJ;REGULARITY
+    HCEXPORT: INPUT_PROD_INJ;OIL_PROD {+} INPUT_PROD_INJ;GAS_PROD {/} 1000
+    FUEL: fuel_gas_sac
+    GENERATORSETS:
+      - NAME: genset
+        CATEGORY: TURBINE-GENERATOR
+        ELECTRICITY2FUEL: A_genset
+        CONSUMERS:
+          - NAME: steamgen
+            CATEGORY: STEAM-TURBINE-GENERATOR
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: STEAMGEN;STEAMGEN_RATE
+          - NAME: base_load
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 6.0 # MW
+              CONSUMPTION_RATE_TYPE: STREAM_DAY
+          - NAME: heating_sat_a
+            CATEGORY: FIXED-PRODUCTION-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 3.0 # MW
+              CONSUMPTION_RATE_TYPE: STREAM_DAY
+              CONDITION: INPUT_PROD_INJ;OIL_PROD_SAT_A > 0
+          - NAME: waterinj
+            CATEGORY: PUMP
+            ENERGY_USAGE_MODEL:
+              TYPE: PUMP_SYSTEM
+              PUMPS:
+                - NAME: WIA
+                  CHART: A_waterinj
+                - NAME: WIB
+                  CHART: A_waterinj
+                - NAME: WIC
+                  CHART: A_waterinj
+                - NAME: WID
+                  CHART: A_waterinj
+              FLUID_DENSITY: 1030 # kg/m3, water density
+              TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;WATER_INJ
+              OPERATIONAL_SETTINGS:
+                - RATE_FRACTIONS: [1, 0, 0, 0]
+                  SUCTION_PRESSURE: 3 # barg
+                  DISCHARGE_PRESSURE: 200 # barg
+                - RATE_FRACTIONS: [0.5, 0.5, 0, 0]
+                  SUCTION_PRESSURE: 3 # barg
+                  DISCHARGE_PRESSURE: 200 # barg
+                - RATE_FRACTIONS: [0.33, 0.33, 0.34, 0]
+                  SUCTION_PRESSURE: 3 # barg
+                  DISCHARGE_PRESSURE: 200 # barg
+                - RATE_FRACTIONS: [0.25, 0.25, 0.25, 0.25]
+                  SUCTION_PRESSURE: 3 # barg
+                  DISCHARGE_PRESSURE: 200 # barg
+      - NAME: power_from_shore
+        CATEGORY: POWER-FROM-SHORE
+        ELECTRICITY2FUEL: onshore_power
+        CONSUMERS:
+          - NAME: heating
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 10.0 # MW
+              CONSUMPTION_RATE_TYPE: STREAM_DAY
+          - NAME: wind_turbine
+            CATEGORY: OFFSHORE-WIND
+            ENERGY_USAGE_MODEL:
+              2022-01-01:
+                TYPE: DIRECT
+                LOAD: 0.0 # MW
+              2024-01-01:
+                TYPE: DIRECT
+                LOAD: -4.4 # MW
+                CONSUMPTION_RATE_TYPE: STREAM_DAY
+                CONDITION: INPUT_PROD_INJ;GAS_PROD > 0
+
+    FUELCONSUMERS:
+      - NAME: gascompression_compressor_sampled
+        CATEGORY: COMPRESSOR
+        FUEL: fuel_gas_dle
+        ENERGY_USAGE_MODEL:
+          TYPE: COMPRESSOR
+          ENERGYFUNCTION: A_gascompr # Note: Input curve covers both compression trains
+          RATE: INPUT_PROD_INJ;GAS_PROD {+} INPUT_PROD_INJ;GAS_LIFT
+          CONDITION: INPUT_PROD_INJ;GAS_LIFT > 0
+          SUCTION_PRESSURE: 13 # barg (12-16 barg allowed in energy function)
+          DISCHARGE_PRESSURE: 215 # barg (210-230 barg allowed in energy function)
+      - NAME: gascompression_compressor_system_compressor_sampled  # sampled in system, merged
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          2022-01-01: # This should give some fuel usage, but no power usge 2022-2023
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: compressor1
+                COMPRESSOR_MODEL: A_gascompr
+              - NAME: compressor2
+                COMPRESSOR_MODEL: A_gascompr
+            OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [1,0]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+              - RATE_FRACTIONS: [ 0.51,0.49 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+            TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;GAS_PROD {*} 2
+          2024-01-01: # Note! Identical to system above, should give same results
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: compressor1
+                COMPRESSOR_MODEL: A_gascompr
+              - NAME: compressor2
+                COMPRESSOR_MODEL: A_gascompr
+            OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [ 1,0 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+              - RATE_FRACTIONS: [ 0.51,0.49 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+            TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;GAS_PROD {*} 2
+      - NAME: gascompression_combinations_singles  # compatible result models that will be merged
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
+        ENERGY_USAGE_MODEL: # implicit direct load:0 model from 2021-2022 (0 power, 0 fuel)
+            2022-01-01: # This should give some fuel usage, but no power usage 2022-2023
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: A_gascompr_zero_power
+              RATE: INPUT_PROD_INJ;GAS_PROD
+              SUCTION_PRESSURE: 12 # barg (12-16 barg allowed in energy function)
+              DISCHARGE_PRESSURE: 210 # barg (210-230 barg allowed in energy function)
+            2023-01-01:  # Test that this compressor is not activated before 2023, hence 2 first years should be 0
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: export_compressor_existing
+              RATE: INPUT_PROD_INJ;GAS_PROD {+} INPUT_PROD_INJ;GAS_LIFT
+              CONDITION: INPUT_PROD_INJ;GAS_LIFT > 0
+              SUCTION_PRESSURE: 13 # barg (12-16 barg allowed in energy function)
+              DISCHARGE_PRESSURE: 215 # barg (210-230 barg allowed in energy function)
+            2025-01-01: # Identical as before, the output should be identical as well
+              TYPE: COMPRESSOR
+              ENERGYFUNCTION: export_compressor_existing
+              RATE: INPUT_PROD_INJ;GAS_PROD {+} INPUT_PROD_INJ;GAS_LIFT
+              CONDITION: INPUT_PROD_INJ;GAS_LIFT > 0
+              SUCTION_PRESSURE: 13 # barg (12-16 barg allowed in energy function)
+              DISCHARGE_PRESSURE: 215 # barg (210-230 barg allowed in energy function)
+      - NAME: gascompression_train_and_single  # train and single result models, will not be merged but appended
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
+        ENERGY_USAGE_MODEL: # implicit direct load:0 model from 2021-2022 (0 power, 0 fuel)
+          2022-01-01: # This should give some fuel usage, but no power usge 2022-2023
+            TYPE: COMPRESSOR
+            ENERGYFUNCTION: A_gascompr_zero_power
+            RATE: INPUT_PROD_INJ;GAS_PROD
+            SUCTION_PRESSURE: 12 # barg (12-16 barg allowed in energy function)
+            DISCHARGE_PRESSURE: 210 # barg (210-230 barg allowed in energy function)
+          2023-01-01: # Test that this compressor is not activated before 2023, hence 2 first years should be 0
+            TYPE: COMPRESSOR
+            ENERGYFUNCTION: export_compressor_existing
+            RATE: INPUT_PROD_INJ;GAS_PROD {+} INPUT_PROD_INJ;GAS_LIFT
+            CONDITION: INPUT_PROD_INJ;GAS_LIFT > 0
+            SUCTION_PRESSURE: 13 # barg (12-16 barg allowed in energy function)
+            DISCHARGE_PRESSURE: 215 # barg (210-230 barg allowed in energy function)
+          2024-01-01: # train
+            TYPE: COMPRESSOR
+            ENERGYFUNCTION: compressor_with_turbine_with_train
+            RATE: INPUT_PROD_INJ;GAS_PROD
+            SUCTION_PRESSURE: 13
+            DISCHARGE_PRESSURE: 215
+      - NAME: gascompression_train_only  # train only
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
+        ENERGY_USAGE_MODEL: # implicit direct load:0 model from 2021-2022 (0 power, 0 fuel)
+          2024-01-01: # train
+            TYPE: COMPRESSOR
+            ENERGYFUNCTION: compressor_with_turbine_with_train
+            RATE: INPUT_PROD_INJ;GAS_PROD
+            SUCTION_PRESSURE: 13
+            DISCHARGE_PRESSURE: 215
+      # system + non-system is no longer supported!
+      - NAME: gascompression_compressor_system_sampled_and_turbine  # sampled + compr_with_turbine
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          2022-01-01: # This should give some fuel usage, but no power usge 2022-2023
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: compressor1
+                COMPRESSOR_MODEL: A_gascompr
+              - NAME: compressor2
+                COMPRESSOR_MODEL: A_gascompr
+            OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [ 1,0 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+              - RATE_FRACTIONS: [ 0.51,0.49 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+            TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;GAS_PROD {*} 2
+          2024-01-01: # Note! Identical to system above, should give same results
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: compressor1
+                COMPRESSOR_MODEL: export_compressor_existing
+              - NAME: compressor2
+                COMPRESSOR_MODEL: export_compressor_existing
+            OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [ 1,0 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+              - RATE_FRACTIONS: [ 0.51,0.49 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+            TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;GAS_PROD {*} 2
+      - NAME: gascompression_compressor_system_sampled_turbine_and_train  # sampled + compr_with_turbine + train
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          2022-01-01: # This should give some fuel usage, but no power usge 2022-2023
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: compressor1
+                COMPRESSOR_MODEL: A_gascompr
+              - NAME: compressor2
+                COMPRESSOR_MODEL: A_gascompr
+            OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [ 1,0 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+              - RATE_FRACTIONS: [ 0.51,0.49 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+            TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;GAS_PROD {*} 2
+          2024-01-01: # Note! Identical to system above, should give same results
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: compressor1
+                COMPRESSOR_MODEL: export_compressor_existing
+              - NAME: compressor2
+                COMPRESSOR_MODEL: export_compressor_existing
+            OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [ 1,0 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+              - RATE_FRACTIONS: [ 0.51,0.49 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+            TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;GAS_PROD {*} 2
+          2025-01-01: # Note! Identical to system above, should give same results
+            TYPE: COMPRESSOR_SYSTEM
+            POWERLOSSFACTOR: 0.05
+            COMPRESSORS:
+              - NAME: compressor1
+                COMPRESSOR_MODEL: compressor_with_turbine_with_train
+            OPERATIONAL_SETTINGS:
+              - RATE_FRACTIONS: [ 1 ]
+                SUCTION_PRESSURE: 12
+                DISCHARGE_PRESSURE: 210
+            TOTAL_SYSTEM_RATE: INPUT_PROD_INJ;GAS_PROD
+      - NAME: flare
+        CATEGORY: FLARE
+        FUEL: flare_gas
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;FLARE_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: diesel_consumers
+        CATEGORY: MISCELLANEOUS
+        FUEL: diesel_fixed
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;DIESEL_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: cold_venting_fugitives_methane
+        CATEGORY: COLD-VENTING-FUGITIVE
+        FUEL: cold_venting_fugitives_methane_direct
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;COLD_VENTING_FUGITIVE_METHANE_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: cold_venting_fugitives_nmvoc
+        CATEGORY: COLD-VENTING-FUGITIVE
+        FUEL: cold_venting_fugitives_nmvoc_direct
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_FLARE_DIESEL_COLD_VENTING_FUGITIVES;COLD_VENTING_FUGITIVE_NMVOC_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: loading
+        CATEGORY: LOADING
+        FUEL: loading_ch4_nmvoc
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_PROD_INJ;OIL_PROD
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: storage
+        CATEGORY: STORAGE
+        FUEL: storage_ch4_nmvoc
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_PROD_INJ;OIL_PROD
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: fuel_gas_to_diesel
+        CATEGORY: MISCELLANEOUS
+        FUEL:
+          2021-01-01: diesel_fixed
+          2027-01-01: fuel_gas_dle
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: 4000
+  - NAME: MOBILE_HOST_FIELD
+    HCEXPORT: INPUT_PROD_INJ;OIL_PROD {*} 0 #dummy, cannot exclude or set to zero explicitly
+    FUEL: diesel_mobile
+    CATEGORY: MOBILE
+    FUELCONSUMERS:
+      - NAME: mobile_rig_host_field
+        CATEGORY: MISCELLANEOUS
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_MOBILE_INSTALLATIONS_HOST_FIELD;RIG_DIESEL_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: mobile_lwi_host_field
+        CATEGORY: MISCELLANEOUS
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_MOBILE_INSTALLATIONS_HOST_FIELD;LWI_DIESEL_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+
+  - NAME: MOBILE_SATELLITE_A
+    HCEXPORT: INPUT_PROD_INJ;OIL_PROD {*} 0 #dummy, cannot exclude or set to zero explicitly
+    CATEGORY: MOBILE
+    FUEL: diesel_mobile
+    FUELCONSUMERS:
+      - NAME: mobile_rig_satellite_a
+        CATEGORY: MISCELLANEOUS
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_MOBILE_INSTALLATIONS_SATELLITE_A;RIG_DIESEL_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: mobile_lwi_satellite_a
+        CATEGORY: MISCELLANEOUS
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_MOBILE_INSTALLATIONS_SATELLITE_A;LWI_DIESEL_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+
+  - NAME: MOBILE_SATELLITE_B
+    HCEXPORT: INPUT_PROD_INJ;OIL_PROD {*} 0 #dummy, cannot exclude or set to zero explicitly
+    FUEL: diesel_mobile
+    CATEGORY: MOBILE
+    FUELCONSUMERS:
+      - NAME: mobile_rig_satellite_b
+        CATEGORY: MISCELLANEOUS
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_MOBILE_INSTALLATIONS_SATELLITE_B;RIG_DIESEL_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+      - NAME: mobile_lwi_satellite_b
+        CATEGORY: MISCELLANEOUS
+        ENERGY_USAGE_MODEL:
+          TYPE: DIRECT
+          FUELRATE: INPUT_MOBILE_INSTALLATIONS_SATELLITE_B;LWI_DIESEL_RATE
+          CONSUMPTION_RATE_TYPE: CALENDAR_DAY
+
+  - NAME: POWER_FROM_SHORE_EVENT
+    CATEGORY: FIXED
+    REGULARITY: INPUT_PROD_INJ;REGULARITY
+    HCEXPORT: INPUT_PROD_INJ;OIL_PROD {+} INPUT_PROD_INJ;GAS_PROD {/} 1000
+    FUEL: fuel_gas_sac
+    GENERATORSETS:
+      - NAME: power_from_shore_event
+        CATEGORY:
+          2022-01-01: TURBINE-GENERATOR
+          2023-01-01: POWER-FROM-SHORE
+          2040-01-01: TURBINE-GENERATOR  # Check that we are filtering temporal category
+        ELECTRICITY2FUEL:
+          2022-01-01: A_genset
+          2024-01-01: onshore_power
+        CONSUMERS:
+          - NAME: more_heating
+            CATEGORY: BASE-LOAD
+            ENERGY_USAGE_MODEL:
+              TYPE: DIRECT
+              LOAD: 20.0 # MW
+              CONSUMPTION_RATE_TYPE: STREAM_DAY

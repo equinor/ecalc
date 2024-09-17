@@ -137,9 +137,13 @@ class CompressorModelSampled3D:
         else:
             self._do_rescale = False
             self._scale_factor_rate = 1.0
-
+        import copy
+        import scipy
+        version = scipy.__version__
+        print(version)
+        
         qhull_points = sampled_data_scaled[self.variable_order_3d][:].values
-        convex_hull = ConvexHull(qhull_points)
+        convex_hull = ConvexHull(copy.deepcopy(qhull_points))
         delaunay = Delaunay(qhull_points)
         interpolator = LinearNDInterpolator(
             points=delaunay,

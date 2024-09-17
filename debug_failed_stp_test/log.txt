@@ -1,0 +1,5 @@
+# cond breakpoint
+  for component_dto in component_dtos:
+            if isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
+
+component_dto.name == 'gascompression_compressor_sampled'

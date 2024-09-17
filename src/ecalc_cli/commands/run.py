@@ -139,6 +139,34 @@ def run(
         variables_map=model.variables,
         consumer_results=consumer_results,
     )
+    ## Store rate values
+    import json
+
+    # Function to serialize datetime objects
+    def datetime_serializer(obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Type {type(obj)} not serializable")
+
+    # Prepare the data to store in JSON
+    emissions_data = {}
+
+    # Loop over each emission result and extract relevant co2 rate values
+    for key, result in emission_results.items():
+        if 'co2' in result and hasattr(result['co2'], 'rate') and hasattr(result['co2'].rate, 'values'):
+            emissions_data[key] = {
+                "timesteps": [ts for ts in result['co2'].rate.timesteps],
+                "values": result['co2'].rate.values,
+                "unit": str(result['co2'].rate.unit)  # Converting unit to string if it's an enum or object
+            }
+
+    # Write the emissions data to a JSON file
+    with open('emission_results.json', 'w') as json_file:
+        json.dump(emissions_data, json_file, default=datetime_serializer, indent=4)
+
+    print("Emission results saved to emission_results.json")
+
+    ###
     results_core = GraphResult(
         graph=model.graph,
         consumer_results=consumer_results,

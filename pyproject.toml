@@ -81,6 +81,7 @@ pdoc = "^14.5.1"
 nbconvert = "^7.4.0"
 pytest-xdist = "^3.3.0"
 inline-snapshot = "^0.12.1"
+ipykernel = "^6.29.5"
 
 [tool.poetry.extras]
 notebooks = ["jupyter", "matplotlib"]
