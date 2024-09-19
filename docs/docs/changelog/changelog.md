@@ -1,5 +1,62 @@
 # Changelog
 
+## [8.22.0](https://github.com/equinor/ecalc/compare/v8.21.0...v8.22.0) (2024-09-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* Validation is more strict than before.
+
+### Features
+
+* validate yaml model ([ad95222](https://github.com/equinor/ecalc/commit/ad95222e9562ce27bade2dab478258cd3d1e8e09))
+
+
+### Bug Fixes
+
+* avoid RuamelYamlModel becoming an abstract class ([d0548e7](https://github.com/equinor/ecalc/commit/d0548e7c40d9a6cd52e82d82d07c608f3f120ba6))
+* unexpected keyword argument ([4797d46](https://github.com/equinor/ecalc/commit/4797d46da7b771908334a25f4c4029e0c9078615))
+
+
+### Documentation
+
+* improve documentation around PRESSURE_CONTROL ([#610](https://github.com/equinor/ecalc/issues/610)) ([94dbce9](https://github.com/equinor/ecalc/commit/94dbce94c227a7f853b154758369412a970d9eb0))
+* Moved YAML Keywords from level 2 to level 1 section new ([#575](https://github.com/equinor/ecalc/issues/575)) ([145deab](https://github.com/equinor/ecalc/commit/145deab43cce2a233db9b8f9deba27a690251587))
+* swap order of migration guides ([#571](https://github.com/equinor/ecalc/issues/571)) ([b1d4e88](https://github.com/equinor/ecalc/commit/b1d4e889e678844b9cb512e5d67d635857924c43))
+* update changelogs ([#587](https://github.com/equinor/ecalc/issues/587)) ([0537ce4](https://github.com/equinor/ecalc/commit/0537ce4b4621806857f8d7461dd7b14b53579f3e))
+* update notebooks with poetry instructions ([9cfcd47](https://github.com/equinor/ecalc/commit/9cfcd47bfa989cb1cd8ae4dfd9298aceb6be8538))
+
+
+### Miscellaneous Chores
+
+* add .vscode to gitignore under IDE section ([#593](https://github.com/equinor/ecalc/issues/593)) ([4766fe7](https://github.com/equinor/ecalc/commit/4766fe7f719b1c645e4d2521d5de0f0702ca7a52))
+* **cli:** make mypy understand frequency type ([b784f30](https://github.com/equinor/ecalc/commit/b784f309854b11876710a56731f007daa75c5398))
+* fix failing test ([9ef52d3](https://github.com/equinor/ecalc/commit/9ef52d3796e55423970a5467bb718d942ba7822c))
+* spelling ([9a67f53](https://github.com/equinor/ecalc/commit/9a67f53c4591ea0a5cf03774171dc5a13159b3b1))
+* update changelog with fix in isvalid for compressor stages ([#591](https://github.com/equinor/ecalc/issues/591)) ([e924f5f](https://github.com/equinor/ecalc/commit/e924f5fa22e8ad38ffff0d1a61bb2a8fd9532d50))
+* update dependencies ([#584](https://github.com/equinor/ecalc/issues/584)) ([63839b6](https://github.com/equinor/ecalc/commit/63839b6d3c85d5cef4712c91c449ff779ce4e413))
+* update deps week 38 ([#616](https://github.com/equinor/ecalc/issues/616)) ([fe3a72c](https://github.com/equinor/ecalc/commit/fe3a72cc3f0f8d49c6c2f1721c6d78994aa5b991))
+* update poetry ([cb2d954](https://github.com/equinor/ecalc/commit/cb2d954c2760dd3ab2ba4e3eb1fbd7f44a144869))
+* update pre-commit hooks ([4254094](https://github.com/equinor/ecalc/commit/4254094702f6f3841d020f36c4e34f39da10b26f))
+* upgrade dependencies ([#595](https://github.com/equinor/ecalc/issues/595)) ([11e5e4e](https://github.com/equinor/ecalc/commit/11e5e4eaa587a9054be007dec4959b913326922d))
+* upgrade deps ([#606](https://github.com/equinor/ecalc/issues/606)) ([e24df7e](https://github.com/equinor/ecalc/commit/e24df7e77f2eb64f19f9dac301d2844ad7aba996))
+
+
+### Code Refactoring
+
+* add inlet/outlet stream also for compressor train results ([#590](https://github.com/equinor/ecalc/issues/590)) ([c27e5bd](https://github.com/equinor/ecalc/commit/c27e5bd5b817ff651ce3d4a5e643a389a0a18383))
+* avoid using dtos in core ([a3683c1](https://github.com/equinor/ecalc/commit/a3683c19b7fb8b8bff2ccb1ded11533ace70e26a))
+* introduce resource protocol ([dac5789](https://github.com/equinor/ecalc/commit/dac57898b2d347acc97a1548b5bcd038bfa506d1))
+* move target pressure status from stages to compressor train ([#589](https://github.com/equinor/ecalc/issues/589)) ([098cfa9](https://github.com/equinor/ecalc/commit/098cfa989ab92da7c451823b103ba5f12c5980da))
+* remove pressure before choking ([#609](https://github.com/equinor/ecalc/issues/609)) ([02f9099](https://github.com/equinor/ecalc/commit/02f909921eed4f3b9ba8c26bbc71a48bcb0eb265))
+* return compressor stage result when only stage is calculated for simplified train ([#592](https://github.com/equinor/ecalc/issues/592)) ([9ef52d3](https://github.com/equinor/ecalc/commit/9ef52d3796e55423970a5467bb718d942ba7822c))
+* yaml model class and reader ([50f41ab](https://github.com/equinor/ecalc/commit/50f41abf59ccb37783b3765f556dc9f51f755bbd))
+
+
+### Continuous Integration
+
+* cache pre-commit ([5448149](https://github.com/equinor/ecalc/commit/5448149369f71ed28b2449d8184b5a2aa547f4d8))
+
 ## [8.21.0](https://github.com/equinor/ecalc/compare/v8.20.0...v8.21.0) (2024-08-26)
 
 
