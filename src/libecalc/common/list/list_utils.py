@@ -124,3 +124,50 @@ def array_to_list(result_array: Union[NDArray[np.float64], List[NDArray[np.float
         return [array_to_list(array) for array in result_array]
     elif isinstance(result_array, np.ndarray):
         return cast(list, result_array.tolist())
+
+
+def strictly_increasing_or_decreasing(input_list: List[Union[float, int, str]]) -> [bool, int, float]:
+    all_decreasing = all(float(i) > float(j) for i, j in zip(input_list, input_list[1:]))
+    all_increasing = all(float(i) < float(j) for i, j in zip(input_list, input_list[1:]))
+    is_constant = all(val == input_list[0] for val in input_list)
+
+    if is_constant:
+        # Possible with constant: check if this is true
+        return True, None, None
+
+    increasing_or_decreasing = True
+    problem_value_index = None
+    problem_value = None
+
+    if not all_decreasing and not all_increasing:
+        increasing = [[float(i) < float(j)] for i, j in zip(input_list, input_list[1:])]
+        increasing_true = increasing.count([True])
+        increasing_false = increasing.count([False])
+
+        if increasing_true > increasing_false:
+            problem_value_index = increasing.index([False])
+        else:
+            problem_value_index = increasing.index([True])
+
+        problem_value = float(input_list[problem_value_index])
+        increasing_or_decreasing = False
+
+        # Check if problem value is a constant/no change from previous/after, then ok:
+        if len(input_list) - 1 > problem_value_index > 0:
+            if (
+                input_list[problem_value_index] == input_list[problem_value_index + 1]
+                or input_list[problem_value_index] == input_list[problem_value_index - 1]
+            ):
+                increasing_or_decreasing = True
+        elif len(input_list) - 1 == problem_value_index:
+            increasing_or_decreasing = (
+                True if input_list[problem_value_index] == input_list[problem_value_index - 1] else False
+            )
+        elif problem_value_index == 0:
+            increasing_or_decreasing = (
+                True if input_list[problem_value_index] == input_list[problem_value_index + 1] else False
+            )
+
+        problem_value_index += 1
+
+    return increasing_or_decreasing, problem_value_index, problem_value
