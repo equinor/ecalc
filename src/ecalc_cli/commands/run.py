@@ -117,7 +117,7 @@ def run(
         configuration_service=configuration_service,
         resource_service=resource_service,
         output_frequency=frequency,
-    )
+    ).validate_for_run()
 
     if (flow_diagram or ltp_export) and (model.start is None or model.end is None):
         logger.warning(
@@ -132,7 +132,7 @@ def run(
             name_prefix=name_prefix,
         )
 
-    energy_calculator = EnergyCalculator(graph=model.graph)
+    energy_calculator = EnergyCalculator(graph=model.get_graph())
     precision = 6
     consumer_results = energy_calculator.evaluate_energy_usage(model.variables)
     emission_results = energy_calculator.evaluate_emissions(
@@ -140,7 +140,7 @@ def run(
         consumer_results=consumer_results,
     )
     results_core = GraphResult(
-        graph=model.graph,
+        graph=model.get_graph(),
         consumer_results=consumer_results,
         variables_map=model.variables,
         emission_results=emission_results,

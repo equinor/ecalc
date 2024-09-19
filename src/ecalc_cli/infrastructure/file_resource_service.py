@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Callable, Dict
 
-from libecalc.common.errors.exceptions import EcalcError, HeaderNotFound
+from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
 from libecalc.common.logger import logger
 from libecalc.infrastructure.file_io import read_facility_resource, read_timeseries_resource
 from libecalc.presentation.yaml.resource import Resource
@@ -18,7 +18,7 @@ class FileResourceService(ResourceService):
     def _read_resource(resource_name: Path, *args, read_func: Callable[..., MemoryResource]) -> MemoryResource:
         try:
             return read_func(resource_name, *args)
-        except (HeaderNotFound, ValueError) as exc:
+        except (InvalidHeaderException, ValueError) as exc:
             logger.error(str(exc))
             raise EcalcError("Failed to read resource", f"Failed to read {resource_name.name}: {str(exc)}") from exc
 

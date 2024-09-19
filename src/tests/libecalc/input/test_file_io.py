@@ -8,7 +8,7 @@ import pytest
 from inline_snapshot import snapshot
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from libecalc.common.errors.exceptions import EcalcError, HeaderNotFound
+from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
 from libecalc.fixtures.cases import input_file_examples
 from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
@@ -165,9 +165,9 @@ class TestReadFacilityResource:
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_missing_headers(self, tmp_path_fixture):
-        with pytest.raises(HeaderNotFound) as e:
+        with pytest.raises(InvalidHeaderException) as e:
             file_io.read_facility_resource(create_csv_from_line(tmp_path_fixture, "HEADER1        ,,HEADER3"))
-        assert str(e.value) == snapshot("Missing header(s): Header 'Unnamed: 1' not found")
+        assert str(e.value) == snapshot("Invalid header: One or more headers are missing in resource")
 
 
 @pytest.fixture
@@ -319,7 +319,7 @@ class TestReadYaml:
             )
 
         assert str(e.value) == snapshot(
-            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: Missing header(s): Header 'Unnamed: 1' not found"
+            "Failed to read resource: Failed to read base_profile_missing_header_oil_prod.csv: Invalid header: One or more headers are missing in resource"
         )
 
     @pytest.mark.snapshot
@@ -346,7 +346,7 @@ class TestReadYaml:
             )
 
         assert str(e.value) == snapshot(
-            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: Missing header(s): Header 'Unnamed: 1' not found"
+            "Failed to read resource: Failed to read tabular_missing_header_fuel.csv: Invalid header: One or more headers are missing in resource"
         )
 
 

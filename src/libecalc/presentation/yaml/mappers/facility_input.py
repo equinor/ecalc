@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union
 from pydantic import TypeAdapter, ValidationError
 
 from libecalc import dto
-from libecalc.common.errors.exceptions import InvalidResource
+from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import GeneratorSetSampled, TabulatedData
 from libecalc.dto.types import ChartType, EnergyModelType, EnergyUsageType
@@ -49,7 +49,7 @@ def _get_adjustment_factor(data: Dict) -> float:
 def _get_column_or_none(resource: Resource, header: str) -> Optional[List[Union[float, int, str]]]:
     try:
         return resource.get_column(header)
-    except InvalidResource:
+    except InvalidResourceException:
         return None
 
 
@@ -221,7 +221,7 @@ class FacilityInputMapper:
                 error_key=vve.key,
                 dump_flow_style=DumpFlowStyle.BLOCK,
             ) from vve
-        except InvalidResource as e:
+        except InvalidResourceException as e:
             message = f"Invalid resource '{resource_name}'. Reason: {str(e)}"
 
             raise DataValidationError(

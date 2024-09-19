@@ -17,7 +17,7 @@ import pandas as pd
 from libecalc.common.errors.exceptions import (
     EcalcError,
     EcalcErrorType,
-    HeaderNotFound,
+    InvalidHeaderException,
 )
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, YamlTimeseriesType
@@ -399,7 +399,7 @@ def _validate_headers(headers: List[str]):
                 "[ _ - # + : . , /] "
             )
         elif re.match(r"^Unnamed: \d+$", header):
-            raise HeaderNotFound(header=header)
+            raise InvalidHeaderException(message="One or more headers are missing in resource")
 
 
 def _validate_not_nan(columns: List[List]):

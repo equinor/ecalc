@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
 
-from libecalc.common.errors.exceptions import HeaderNotFound, InvalidReferenceException
+from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidReferenceException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.dto.types import (
@@ -269,7 +269,7 @@ def get_single_speed_chart_data(resource: Resource, resource_name: str) -> Chart
             )
         # Get first speed, all are equal.
         speed = speed_values[0]
-    except HeaderNotFound:
+    except HeaderNotFoundException:
         logger.debug(f"Speed not specified for single speed chart {resource_name}, setting speed to 1.")
         speed = 1
 

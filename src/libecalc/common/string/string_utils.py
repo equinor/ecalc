@@ -1,7 +1,9 @@
-from typing import Iterable, Set
+from typing import Hashable, Iterable, Set, TypeVar
+
+TItem = TypeVar("TItem", bound=Hashable)
 
 
-def get_duplicates(names: Iterable[str]) -> Set[str]:
+def get_duplicates(names: Iterable[TItem]) -> Set[TItem]:
     seen = set()
     duplicates = set()
     for name in names:

@@ -1,16 +1,33 @@
+from io import StringIO
 from pathlib import Path
+from typing import Dict, Optional, cast
 
 import pytest
-import yaml
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
-from libecalc.dto import ResultOptions
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures.case_types import DTOCase
-from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
-from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.configuration_service import ConfigurationService
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
+
+
+class OverridableStreamConfigurationService(ConfigurationService):
+    def __init__(self, stream: ResourceStream, overrides: Optional[Dict] = None):
+        self._overrides = overrides
+        self._stream = stream
+
+    def get_configuration(self) -> YamlValidator:
+        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
+            main_yaml=self._stream,
+            enable_include=True,
+        )
+
+        if self._overrides is not None:
+            main_yaml_model._internal_datamodel.update(self._overrides)
+        return cast(YamlValidator, main_yaml_model)
 
 
 @pytest.fixture
@@ -78,26 +95,17 @@ def ltp_pfs_yaml_factory():
 
         """
 
-        yaml_text = yaml.safe_load(input_text)
-        configuration = PyYamlYamlModel(
-            internal_datamodel=yaml_text,
-            name="ltp_export",
-            instantiated_through_read=True,
+        configuration_service = OverridableStreamConfigurationService(
+            stream=ResourceStream(name="ltp_export", stream=StringIO(input_text))
+        )
+        resource_service = FileResourceService(working_directory=path)
+
+        model = YamlModel(
+            configuration_service=configuration_service,
+            resource_service=resource_service,
+            output_frequency=Frequency.YEAR,
         )
 
-        path = path
-
-        resources = FileResourceService._read_resources(configuration=configuration, working_directory=path)
-        variables = map_yaml_to_variables(
-            configuration,
-            resources=resources,
-            result_options=ResultOptions(
-                start=configuration.start,
-                end=configuration.end,
-                output_frequency=Frequency.YEAR,
-            ),
-        )
-        yaml_model = map_yaml_to_dto(configuration=configuration, resources=resources)
-        return DTOCase(ecalc_model=yaml_model, variables=variables)
+        return DTOCase(ecalc_model=model.dto, variables=model.variables)
 
     return _ltp_pfs_yaml_factory
