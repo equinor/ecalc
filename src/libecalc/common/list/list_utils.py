@@ -124,3 +124,26 @@ def array_to_list(result_array: Union[NDArray[np.float64], List[NDArray[np.float
         return [array_to_list(array) for array in result_array]
     elif isinstance(result_array, np.ndarray):
         return cast(list, result_array.tolist())
+
+
+def strictly_increasing_or_decreasing(input_list: List[Union[float, int, str]]) -> [bool, int, float]:
+    all_decreasing = all(float(i) > float(j) for i, j in zip(input_list, input_list[1:]))
+    all_increasing = all(float(i) < float(j) for i, j in zip(input_list, input_list[1:]))
+
+    increasing_or_decreasing = True
+    problem_value_index = None
+    problem_value = None
+
+    if not all_decreasing and not all_increasing:
+        increasing = [[float(i) < float(j)] for i, j in zip(input_list, input_list[1:])]
+        increasing_true = increasing.count([True])
+        increasing_false = increasing.count([False])
+        if increasing_true > increasing_false:
+            problem_value_index = increasing.index([False])
+        else:
+            problem_value_index = increasing.index([True])
+        problem_value = float(input_list[problem_value_index])
+        problem_value_index += 1
+        increasing_or_decreasing = False
+
+    return increasing_or_decreasing, problem_value_index, problem_value

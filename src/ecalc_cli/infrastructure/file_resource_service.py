@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Callable, Dict
 
 from libecalc.common.errors.exceptions import EcalcError, HeaderNotFound
+from libecalc.common.list.list_utils import strictly_increasing_or_decreasing
 from libecalc.common.logger import logger
 from libecalc.infrastructure.file_io import read_facility_resource, read_timeseries_resource
 from libecalc.presentation.yaml.resource import Resource
@@ -48,17 +49,21 @@ class FileResourceService(ResourceService):
             )
             if is_el2fuel:
                 el2fuel = resources[facility_resource_name]
-                if not all(i > j for i, j in zip(el2fuel.data[0], el2fuel.data[0][1:])):
+                increasing_or_decreasing = strictly_increasing_or_decreasing(el2fuel.data[0])
+
+                if not increasing_or_decreasing[0]:
                     raise ResourceValidationError(
                         resource=el2fuel,
                         resource_name=facility_resource_name,
-                        message=f"{el2fuel.headers[0]}: Values must be strictly increasing.",
+                        message=f"{el2fuel.headers[0]}: Values must be strictly increasing or decreasing. "
+                        f"Value in line number {increasing_or_decreasing[1]} is not allowed: {increasing_or_decreasing[2]}",
                     )
-                if not all(i > j for i, j in zip(el2fuel.data[1], el2fuel.data[1][1:])):
+                if not not increasing_or_decreasing[1]:
                     raise ResourceValidationError(
                         resource=el2fuel,
                         resource_name=facility_resource_name,
-                        message=f"{el2fuel.headers[0]}: Values must be strictly increasing.",
+                        message=f"{el2fuel.headers[1]}: Values must be strictly increasing or decreasing. "
+                        f"Value in line number {increasing_or_decreasing[1]} is not allowed: {increasing_or_decreasing[2]}",
                     )
         return resources
 
