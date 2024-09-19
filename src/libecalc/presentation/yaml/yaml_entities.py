@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Dict, List, TextIO, Union
 
 from libecalc import dto
-from libecalc.common.errors.exceptions import ColumnNotFound, HeaderNotFound
+from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
 from libecalc.presentation.yaml.resource import Resource
 
 
@@ -24,10 +24,10 @@ class MemoryResource(Resource):
             header_index = self.headers.index(header)
             return self.data[header_index]
         except ValueError as e:
-            raise HeaderNotFound(header=header) from e
+            raise HeaderNotFoundException(header=header) from e
         except IndexError as e:
             # Should validate that header and columns are of equal length, but that is currently done elsewhere.
-            raise ColumnNotFound(header=header) from e
+            raise ColumnNotFoundException(header=header) from e
 
 
 @dataclass

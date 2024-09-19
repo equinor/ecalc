@@ -1,17 +1,20 @@
 from datetime import datetime
-from textwrap import indent
+from functools import cached_property
 from typing import Dict, List, Optional
 
-from libecalc.common.errors.exceptions import InvalidResource
+from typing_extensions import Self, deprecated
+
 from libecalc.common.time_utils import Frequency
 from libecalc.dto import ResultOptions, VariablesMap
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
+from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
+from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
-from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.resource_service import ResourceService
-from libecalc.presentation.yaml.validation_errors import DtoValidationError, ModelValidationError
+from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_validation_context import (
     ModelContext,
@@ -19,25 +22,6 @@ from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
     YamlModelValidationContextNames,
 )
-
-
-class ModelValidationException(Exception):
-    def __init__(self, errors: List[ModelValidationError]):
-        self._errors = errors
-        super().__init__("Model is not valid")
-
-    def error_count(self) -> int:
-        return len(self._errors)
-
-    def errors(self) -> List[ModelValidationError]:
-        return self._errors
-
-    def __str__(self):
-        msg = "Validation error\n\n"
-        errors = "\n\n".join(map(str, self._errors))
-        errors = indent(errors, "\t")
-        msg += errors
-        return msg
 
 
 class YamlModel:
@@ -64,8 +48,16 @@ class YamlModel:
         self._output_frequency = output_frequency
         self._configuration = configuration_service.get_configuration()
         self.resources = resource_service.get_resources(self._configuration)
-        self.is_valid_for_run()
-        self.dto = map_yaml_to_dto(configuration=self._configuration, resources=self.resources)
+
+        self._is_validated = False
+
+    @cached_property
+    @deprecated(
+        "Avoid using the dto objects directly, we want to remove them. get_graph() might be useful instead, although the nodes will change."
+    )
+    def dto(self):
+        self.validate_for_run()
+        return map_yaml_to_dto(configuration=self._configuration, resources=self.resources)
 
     @property
     def start(self) -> Optional[datetime]:
@@ -75,10 +67,24 @@ class YamlModel:
     def end(self) -> Optional[datetime]:
         return self._configuration.end
 
+    def _get_time_series_collections(self) -> TimeSeriesCollections:
+        return TimeSeriesCollections(time_series=self._configuration.time_series, resources=self.resources)
+
+    def _get_time_vector(self):
+        return get_global_time_vector(
+            time_series_time_vector=self._get_time_series_collections().get_time_vector(),
+            start=self.start,
+            end=self.end,
+            frequency=self._output_frequency,
+            additional_dates=self._configuration.dates,
+        )
+
     @property
     def variables(self) -> VariablesMap:
         return map_yaml_to_variables(
-            configuration=self._configuration, resources=self.resources, result_options=self.result_options
+            configuration=self._configuration,
+            time_series_provider=self._get_time_series_collections(),
+            global_time_vector=self._get_time_vector(),
         )
 
     @property
@@ -89,29 +95,11 @@ class YamlModel:
             output_frequency=self._output_frequency,
         )
 
-    @property
-    def graph(self) -> ComponentGraph:
+    def get_graph(self) -> ComponentGraph:
         return self.dto.get_graph()
 
-    def _find_resource_from_name(self, filename: str) -> Optional[Resource]:
-        return self.resources.get(filename)
-
     def _get_token_references(self, yaml_model: YamlValidator) -> List[str]:
-        token_references = []
-        for time_series in yaml_model.time_series:
-            resource = self._find_resource_from_name(time_series.file)
-
-            if resource is None:
-                # Don't add any tokens if the resource is not found
-                continue
-
-            try:
-                headers = resource.get_headers()
-                for header in headers:
-                    token_references.append(f"{time_series.name};{header}")
-            except InvalidResource:
-                # Don't add any tokens if resource is invalid (unable to read header)
-                continue
+        token_references = self._get_time_series_collections().get_time_series_references()
 
         for reference in yaml_model.variables:
             token_references.append(f"$var.{reference}")
@@ -134,11 +122,15 @@ class YamlModel:
             YamlModelValidationContextNames.model_types: self._get_model_types(yaml_model=yaml_model),
         }
 
-    def is_valid_for_run(self) -> bool:
+    def validate_for_run(self) -> Self:
+        if self._is_validated:
+            return self
+
         try:
             # Validate model
             validation_context = self._get_validation_context(yaml_model=self._configuration)
             self._configuration.validate(validation_context)
-            return True
+            self._is_validated = True
+            return self
         except DtoValidationError as e:
             raise ModelValidationException(errors=e.errors()) from e

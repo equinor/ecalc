@@ -2,20 +2,18 @@ import math
 from datetime import datetime
 from typing import Dict, Optional
 
+import pydantic
 import pytest
 from inline_snapshot import snapshot
+from pydantic import TypeAdapter
 
 from libecalc.dto import TimeSeriesType
 from libecalc.dto.types import InterpolationType
-from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection import (
-    MiscellaneousTimeSeriesCollection,
-)
-from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection_mapper import (
-    TimeSeriesCollectionMapper,
-)
-from libecalc.presentation.yaml.validation_errors import DtoValidationError, ValidationError
+from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
+from libecalc.presentation.yaml.validation_errors import ValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 
 
 def _create_timeseries_data(
@@ -39,7 +37,7 @@ def _create_timeseries_data(
         timeseries_dict[EcalcYamlKeywords.time_series_extrapolate_outside_defined] = extrapolate_outside
 
     if interpolation_type is not None:
-        timeseries_dict[EcalcYamlKeywords.time_series_interpolation_type] = interpolation_type
+        timeseries_dict[EcalcYamlKeywords.time_series_interpolation_type] = interpolation_type.value
 
     return timeseries_dict
 
@@ -47,8 +45,6 @@ def _create_timeseries_data(
 class TestTimeSeries:
     parameterized_valid_timeseries_data = [
         (
-            TimeSeriesType.MISCELLANEOUS,
-            MiscellaneousTimeSeriesCollection,
             TimeSeriesType.MISCELLANEOUS,
             True,
             True,
@@ -58,13 +54,11 @@ class TestTimeSeries:
     ]
 
     @pytest.mark.parametrize(
-        "typ_string, typ_class, typ_enum, extrapolate, influence_time_vector, interpolation_type, extrapolate_result",
+        "typ_enum, extrapolate, influence_time_vector, interpolation_type, extrapolate_result",
         parameterized_valid_timeseries_data,
     )
     def test_valid_minimal_timeserie_different_types(
         self,
-        typ_string,
-        typ_class,
         typ_enum,
         extrapolate,
         influence_time_vector,
@@ -72,81 +66,113 @@ class TestTimeSeries:
         extrapolate_result,
     ):
         filename = "test.csv"
-        resources = {filename: MemoryResource(headers=["DATE", "OIL_PROD"], data=[["01.01.2017"], [5016]])}
+        resource = MemoryResource(headers=["DATE", "OIL_PROD"], data=[["01.01.2017"], [5016]])
 
-        timeseries_mapper = TimeSeriesCollectionMapper(resources=resources)
-        timeseries_model = timeseries_mapper.from_yaml_to_dto(
-            _create_timeseries_data(
-                typ=typ_string,
-                name="OIL_PROD",
-                file=filename,
-                extrapolate_outside=extrapolate,
-                interpolation_type=interpolation_type,
-                influence_time_vector=influence_time_vector,
-            )
+        timeseries_model = TimeSeriesCollection.from_yaml(
+            resource=resource,
+            yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                _create_timeseries_data(
+                    typ=typ_enum,
+                    name="SIM1",
+                    file=filename,
+                    extrapolate_outside=extrapolate,
+                    interpolation_type=interpolation_type,
+                    influence_time_vector=influence_time_vector,
+                )
+            ),
         )
 
-        assert isinstance(timeseries_model, typ_class)
-        assert timeseries_model.typ == typ_enum
-        assert timeseries_model.headers == ["OIL_PROD"]
-        assert timeseries_model.time_vector == [datetime(2017, 1, 1)]
-        assert timeseries_model.columns == [[5016]]
-        assert timeseries_model.extrapolate_outside_defined_time_interval is extrapolate_result
-        assert timeseries_model.influence_time_vector is True
-        assert timeseries_model.interpolation_type == InterpolationType.LEFT
+        assert timeseries_model.name == "SIM1"
+        assert timeseries_model.get_time_series_references() == ["OIL_PROD"]
+        assert timeseries_model.get_time_vector() == [datetime(2017, 1, 1)]
+        assert timeseries_model.should_influence_time_vector() is True
+
+        time_series = timeseries_model.get_time_series("OIL_PROD")
+        assert time_series.series == [5016]
+        assert time_series.time_vector == [datetime(2017, 1, 1)]
+        assert time_series._extrapolate is extrapolate_result
+        assert timeseries_model._interpolation == InterpolationType.LEFT
 
     def test_valid_time_series_multiple_columns(self):
+        """
+        Test TimeSeriesCollection.type 'DEFAULT' defaults
+        """
         filename = "test_multiple_columns.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", "COLUMN1", "COLUMN2", "COLUMN3"],
-                data=[["01.01.2015", "01.01.2016"], [1, 2], [3, 4], [5, 6]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
-        time_series_dto = time_series_mapper.from_yaml_to_dto(
-            _create_timeseries_data(
-                typ=TimeSeriesType.DEFAULT,
-                name="SIM1",
-                file=filename,
-                extrapolate_outside=None,
-                influence_time_vector=True,
-                interpolation_type=None,
-            )
+        resource = MemoryResource(
+            headers=["DATE", "COLUMN1", "COLUMN2", "COLUMN3"],
+            data=[["01.01.2015", "01.01.2016"], [1, 2], [3, 4], [5, 6]],
         )
 
-        assert time_series_dto.columns == [[1, 2], [3, 4], [5, 6]]
-        assert time_series_dto.time_vector == [datetime(2015, 1, 1), datetime(2016, 1, 1)]
-        assert time_series_dto.headers == ["COLUMN1", "COLUMN2", "COLUMN3"]
-        assert time_series_dto.typ == TimeSeriesType.DEFAULT
+        timeseries_model = TimeSeriesCollection.from_yaml(
+            resource=resource,
+            yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                _create_timeseries_data(
+                    typ=TimeSeriesType.DEFAULT,
+                    name="SIM1",
+                    file=filename,
+                    extrapolate_outside=None,
+                    interpolation_type=None,
+                    influence_time_vector=True,
+                )
+            ),
+        )
+
+        assert timeseries_model.name == "SIM1"
+        assert timeseries_model.get_time_series_references() == ["COLUMN1", "COLUMN2", "COLUMN3"]
+        assert timeseries_model.get_time_vector() == [datetime(2015, 1, 1), datetime(2016, 1, 1)]
+        assert timeseries_model.should_influence_time_vector() is True
+
+        time_series = timeseries_model.get_time_series("COLUMN1")
+        assert time_series.series == [1, 2]
+        assert time_series.time_vector == [datetime(2015, 1, 1), datetime(2016, 1, 1)]
+        assert time_series._extrapolate is False
+        assert timeseries_model._interpolation == InterpolationType.RIGHT
+
+        time_series = timeseries_model.get_time_series("COLUMN2")
+        assert time_series.series == [3, 4]
+        assert time_series.time_vector == [datetime(2015, 1, 1), datetime(2016, 1, 1)]
+        assert time_series._extrapolate is False
+        assert timeseries_model._interpolation == InterpolationType.RIGHT
+
+        time_series = timeseries_model.get_time_series("COLUMN3")
+        assert time_series.series == [5, 6]
+        assert time_series.time_vector == [datetime(2015, 1, 1), datetime(2016, 1, 1)]
+        assert time_series._extrapolate is False
+        assert timeseries_model._interpolation == InterpolationType.RIGHT
 
     def test_valid_time_series_unsorted(self):
         filename = "test_unsorted.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", "COLUMN1", "COLUMN2"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
-        time_series_dto = time_series_mapper.from_yaml_to_dto(
-            _create_timeseries_data(
-                typ=TimeSeriesType.DEFAULT,
-                name="SIM1",
-                file=filename,
-                extrapolate_outside=None,
-                influence_time_vector=True,
-                interpolation_type=None,
-            )
+        resource = MemoryResource(
+            headers=["DATE", "COLUMN1", "COLUMN2"],
+            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
         )
 
-        assert time_series_dto.columns == [
-            [3, 1, 2],
-            [1, 2, 3],
-        ]
-        assert time_series_dto.time_vector == [datetime(1900, 1, 1), datetime(2015, 1, 1), datetime(2016, 1, 1)]
-        assert time_series_dto.headers == ["COLUMN1", "COLUMN2"]
-        assert time_series_dto.typ == TimeSeriesType.DEFAULT
+        timeseries_model = TimeSeriesCollection.from_yaml(
+            resource=resource,
+            yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                _create_timeseries_data(
+                    typ=TimeSeriesType.DEFAULT,
+                    name="SIM1",
+                    file=filename,
+                    extrapolate_outside=None,
+                    influence_time_vector=True,
+                    interpolation_type=None,
+                )
+            ),
+        )
+
+        assert timeseries_model.name == "SIM1"
+        assert timeseries_model.get_time_series_references() == ["COLUMN1", "COLUMN2"]
+        assert timeseries_model.get_time_vector() == [datetime(2015, 1, 1), datetime(2016, 1, 1), datetime(1900, 1, 1)]
+        assert timeseries_model.should_influence_time_vector() is True
+
+        time_series = timeseries_model.get_time_series("COLUMN1")
+        assert time_series.series == [3, 1, 2]
+        assert time_series.time_vector == [datetime(1900, 1, 1), datetime(2015, 1, 1), datetime(2016, 1, 1)]
+
+        time_series = timeseries_model.get_time_series("COLUMN2")
+        assert time_series.series == [1, 2, 3]
+        assert time_series.time_vector == [datetime(1900, 1, 1), datetime(2015, 1, 1), datetime(2016, 1, 1)]
 
     parameterized_invalid_timeseries_data = [
         # headers, data mismatch (+1)
@@ -154,8 +180,19 @@ class TestTimeSeries:
             ["DATE", "OIL_PROD", "BVBV"],
             [["01.01.2017"], [5016]],
             snapshot("""\
-Location: MISCELLANEOUS
-Message: Value error, The number of columns provided do not match for header and data: data: 1, headers: 2
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Missing column: Column matching header 'BVBV' is missing.
 """),
         ),
         # no data
@@ -163,8 +200,19 @@ Message: Value error, The number of columns provided do not match for header and
             ["DATE", "DUMMY"],
             [["01.01.2017"]],
             snapshot("""\
-Location: MISCELLANEOUS
-Message: Value error, Data vector must at least have one column
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Missing column: Column matching header 'DUMMY' is missing.
 """),
         ),
         # no time
@@ -172,51 +220,148 @@ Message: Value error, Data vector must at least have one column
             ["DATE", "OIL_PROD"],
             [[], [5016]],
             snapshot("""\
-Location: MISCELLANEOUS.time_vector
-Message: Value error, Time vectors must have at least one record
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Invalid time series resource: The time vector is empty
 """),
         ),
         # no headers
         (
             [],
             [["01.01.2017"], [5016]],
-            snapshot("Invalid resource: Resource must at least have one column"),
+            snapshot("""\
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Invalid resource: Resource must at least have one column
+"""),
         ),
         # mismatch data, time
         (
             ["DATE", "OIL_PROD"],
             [["01.01.2017", "01.01.2018"], [5016]],
-            snapshot("""\
-Location: MISCELLANEOUS
-Message: Value error, The number of records for times and data do not match: data: 1, time_vector: 2
-"""),
+            snapshot(
+                """\
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Rows mismatch: The number of records for times and data do not match: data: 1, time_vector: 2
+"""
+            ),
         ),
         # mismatch data, time
         (
             ["DATE", "OIL_PROD"],
             [["01.01.2017"], [5016, 5026]],
-            snapshot("""\
-Location: MISCELLANEOUS
-Message: Value error, The number of records for times and data do not match: data: 2, time_vector: 1
-"""),
+            snapshot(
+                """\
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Rows mismatch: The number of records for times and data do not match: data: 2, time_vector: 1
+"""
+            ),
         ),
         # no data cols
         (
             ["DATE", "HEADER"],
             [["01.01.2017"]],
             snapshot("""\
-Location: MISCELLANEOUS
-Message: Value error, Data vector must at least have one column
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Missing column: Column matching header 'HEADER' is missing.
 """),
         ),
         # duplicate dates
         (
             ["DATE", "HEADER"],
             [["01.01.2015", "01.01.2016", "01.01.2017", "01.01.2017"], [5016, 5036, 5026, 5216]],
-            snapshot("""\
-Location: MISCELLANEOUS.time_vector
-Message: Value error, The list of dates have duplicates. Duplicated dates are currently not supported.
-"""),
+            snapshot(
+                """\
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Invalid time series resource: The time series resource contains duplicate dates: 2017-01-01 00:00:00
+"""
+            ),
+        ),
+        # string values
+        (
+            ["DATE", "HEADER"],
+            [["01.01.2015", "01.01.2016", "01.01.2017"], [5016, 5036, "invalid"]],
+            snapshot(
+                """\
+Validation error
+
+	...
+	name: SIM1
+	file: test.csv
+	type: MISCELLANEOUS
+	influence_time_vector: true
+	extrapolation: true
+	interpolation_type: LINEAR
+	...
+
+	Location: FILE
+	Message: Invalid column: The timeseries column 'HEADER' contains non-numeric values in row 3.
+"""
+            ),
         ),
     ]
 
@@ -228,35 +373,37 @@ Message: Value error, The list of dates have duplicates. Duplicated dates are cu
     )
     def test_invalid_timeseries(self, headers, columns, error_message):
         filename = "test.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=headers,
-                data=columns,
-            )
-        }
+        resource = MemoryResource(
+            headers=headers,
+            data=columns,
+        )
 
-        timeseries_mapper = TimeSeriesCollectionMapper(resources=resources)
         with pytest.raises(ValidationError) as ve:
-            timeseries_mapper.from_yaml_to_dto(
-                _create_timeseries_data(
-                    typ=TimeSeriesType.MISCELLANEOUS,
-                    name="OIL_PROD",
-                    file=filename,
-                    extrapolate_outside=True,
-                    interpolation_type=InterpolationType.LINEAR,
-                )
+            TimeSeriesCollection.from_yaml(
+                resource=resource,
+                yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                    _create_timeseries_data(
+                        typ=TimeSeriesType.MISCELLANEOUS,
+                        name="SIM1",
+                        file=filename,
+                        extrapolate_outside=True,
+                        interpolation_type=InterpolationType.LINEAR,
+                    )
+                ),
             )
 
         assert str(ve.value) == error_message
 
     def test_timeseries_with_int_as_date(self):
         filename = "sim1.csv"
-        resources = {filename: MemoryResource(headers=["DATE", "HEADER1"], data=[[2012, 2013, 2014], [1, 2, 3]])}
-        timeseries_mapper = TimeSeriesCollectionMapper(resources=resources)
-        timeseries_dto = timeseries_mapper.from_yaml_to_dto(
-            _create_timeseries_data(typ=TimeSeriesType.DEFAULT, name="SIM1", file=filename)
+        resource = MemoryResource(headers=["DATE", "HEADER1"], data=[[2012, 2013, 2014], [1, 2, 3]])
+        time_series_collection = TimeSeriesCollection.from_yaml(
+            resource=resource,
+            yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                _create_timeseries_data(typ=TimeSeriesType.DEFAULT, name="SIM1", file=filename),
+            ),
         )
-        assert timeseries_dto.time_vector == [
+        assert time_series_collection.get_time_vector() == [
             datetime(2012, 1, 1),
             datetime(2013, 1, 1),
             datetime(2014, 1, 1),
@@ -268,33 +415,31 @@ Message: Value error, The list of dates have duplicates. Duplicated dates are cu
     )
     def test_invalid_time_series_headers(self, header):
         filename = "test_invalid_headers.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", header, "COLUMN2"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
 
-        with pytest.raises(DtoValidationError) as ve:
-            time_series_mapper.from_yaml_to_dto(
-                _create_timeseries_data(
-                    typ=TimeSeriesType.DEFAULT,
-                    name="SIM1",
-                    file=filename,
-                    extrapolate_outside=None,
-                    influence_time_vector=True,
-                    interpolation_type=None,
-                )
+        resource = MemoryResource(
+            headers=["DATE", header, "COLUMN2"],
+            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
+        )
+
+        with pytest.raises(ValidationError) as ve:
+            TimeSeriesCollection.from_yaml(
+                resource=resource,
+                yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                    _create_timeseries_data(
+                        typ=TimeSeriesType.DEFAULT,
+                        name="SIM1",
+                        file=filename,
+                        extrapolate_outside=None,
+                        influence_time_vector=True,
+                        interpolation_type=None,
+                    )
+                ),
             )
 
-        error_message = str(ve.value.extended_message)
+        error_message = str(ve.value)
         assert "SIM1" in error_message
         assert (
-            "DEFAULT.headers[0]" in error_message
-        )  # This should probably not be required, does not make sense to user as it isn't related to the yaml path/location.
-        assert (
-            "The string/name contains illegal characters. Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
+            "The time series resource header contains illegal characters. Allowed characters are: ^[A-Za-z][A-Za-z0-9_.,\\-\\s#+:\\/]*$"
             in error_message
         )
 
@@ -304,25 +449,26 @@ Message: Value error, The list of dates have duplicates. Duplicated dates are cu
     )
     def test_valid_time_series_headers(self, header):
         filename = "test_valid_headers.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", header, "COLUMN2"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
-        time_series_dto = time_series_mapper.from_yaml_to_dto(
-            _create_timeseries_data(
-                typ=TimeSeriesType.DEFAULT,
-                name="SIM1",
-                file=filename,
-                extrapolate_outside=None,
-                influence_time_vector=True,
-                interpolation_type=None,
-            )
+        resource = MemoryResource(
+            headers=["DATE", header, "COLUMN2"],
+            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
         )
 
-        assert time_series_dto.headers == [header, "COLUMN2"]
+        time_series_collection = TimeSeriesCollection.from_yaml(
+            resource=resource,
+            yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                _create_timeseries_data(
+                    typ=TimeSeriesType.DEFAULT,
+                    name="SIM1",
+                    file=filename,
+                    extrapolate_outside=None,
+                    influence_time_vector=True,
+                    interpolation_type=None,
+                )
+            ),
+        )
+
+        assert time_series_collection.get_time_series_references() == [header, "COLUMN2"]
 
     @pytest.mark.parametrize(
         "resource_name",
@@ -330,16 +476,9 @@ Message: Value error, The list of dates have duplicates. Duplicated dates are cu
     )
     def test_invalid_resource_names(self, resource_name):
         filename = "test_invalid_resource_names.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", "COLUMN1", "COLUMN2"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3], [2, 3, 1]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
 
-        with pytest.raises(DtoValidationError) as ve:
-            time_series_mapper.from_yaml_to_dto(
+        with pytest.raises(pydantic.ValidationError) as ve:
+            TypeAdapter(YamlTimeSeriesCollection).validate_python(
                 _create_timeseries_data(
                     typ=TimeSeriesType.DEFAULT,
                     name=resource_name,
@@ -350,114 +489,60 @@ Message: Value error, The list of dates have duplicates. Duplicated dates are cu
                 )
             )
 
-        error_message = str(ve.value.extended_message)
+        error_message = str(ve.value)
 
         assert resource_name in error_message
-        assert (
-            "The string/name contains illegal characters. Allowed characters are: ^[A-Za-z][A-Za-z0-9_]*$"
-            in error_message
-        )
-
-    def test_interpretation_of_interpolation_type_for_default_resource(self):
-        """Check default interpolation for DEFAULT time series."""
-        filename = "test_interpretation_of_rate_interpolation_type_for_reservoir_resource.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", "GAS_PROD"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
-
-        time_series_explicit_none = time_series_mapper.from_yaml_to_dto(
-            _create_timeseries_data(
-                typ=TimeSeriesType.DEFAULT,
-                name="SIM1",
-                file=filename,
-                extrapolate_outside=None,
-                influence_time_vector=True,
-                interpolation_type=None,
-            )
-        )
-        assert time_series_explicit_none.interpolation_type == InterpolationType.RIGHT
-
-        time_series_implicit_none = time_series_mapper.from_yaml_to_dto(
-            _create_timeseries_data(
-                typ=TimeSeriesType.DEFAULT,
-                name="SIM1",
-                file=filename,
-                extrapolate_outside=None,
-                influence_time_vector=True,
-            )
-        )
-
-        assert time_series_implicit_none.interpolation_type == InterpolationType.RIGHT
+        assert "String should match pattern '^[A-Za-z][A-Za-z0-9_]*$' " in error_message
 
     def test_undefined_type_for_miscellaneous_resource(self):
         """Check that MISCELLANEOUS fails if interpolation not defined."""
-        filename = "test_interpretation_of_rate_interpolation_type_for_reservoir_resource.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", "GAS_PROD"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
 
-        with pytest.raises(DtoValidationError) as ve:
-            time_series_mapper.from_yaml_to_dto(
+        with pytest.raises(pydantic.ValidationError) as ve:
+            TypeAdapter(YamlTimeSeriesCollection).validate_python(
                 _create_timeseries_data(
                     typ=TimeSeriesType.MISCELLANEOUS,
                     name="SIM1",
-                    file=filename,
+                    file="test.csv",
                     extrapolate_outside=None,
                     influence_time_vector=True,
                 )
             )
-        assert isinstance(ve.value, DtoValidationError)
 
-    def test_left_interpolation_type_for_miscellaneous_resource(self):
-        """Check that LEFT is used when specified for MISCELLANEOUS."""
-        filename = "test_interpretation_of_rate_interpolation_type_for_reservoir_resource.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", "GAS_PROD"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, 3]],
-            )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
-
-        time_series = time_series_mapper.from_yaml_to_dto(
-            _create_timeseries_data(
-                typ=TimeSeriesType.MISCELLANEOUS,
-                name="SIM1",
-                file=filename,
-                extrapolate_outside=None,
-                influence_time_vector=True,
-                interpolation_type=InterpolationType.LEFT,
-            )
-        )
-        assert time_series.interpolation_type == InterpolationType.LEFT
+        assert isinstance(ve.value, pydantic.ValidationError)
 
     def test_error_if_nan_data(self):
         filename = "test_invalid_data.csv"
-        resources = {
-            filename: MemoryResource(
-                headers=["DATE", "COLUMN2"],
-                data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]],
+        resource = MemoryResource(
+            headers=["DATE", "COLUMN2"],
+            data=[["01.01.2015", "01.01.2016", "01.01.1900"], [1, 2, math.nan]],
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            TimeSeriesCollection.from_yaml(
+                resource=resource,
+                yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
+                    _create_timeseries_data(
+                        typ=TimeSeriesType.DEFAULT,
+                        name="SIM1",
+                        file=filename,
+                        extrapolate_outside=None,
+                        influence_time_vector=True,
+                        interpolation_type=None,
+                    )
+                ),
             )
-        }
-        time_series_mapper = TimeSeriesCollectionMapper(resources=resources)
-        with pytest.raises(DtoValidationError) as exc_info:
-            time_series_mapper.from_yaml_to_dto(
-                _create_timeseries_data(
-                    typ=TimeSeriesType.DEFAULT,
-                    name="SIM1",
-                    file=filename,
-                    extrapolate_outside=None,
-                    influence_time_vector=True,
-                    interpolation_type=None,
-                )
-            )
+        message = str(exc_info.value)
+        assert message == snapshot(
+            """\
+Validation error
 
-        assert "The timeseries column 'SIM1;COLUMN2' contains empty values." in str(exc_info.value)
+	...
+	name: SIM1
+	file: test_invalid_data.csv
+	type: DEFAULT
+	influence_time_vector: true
+	...
+
+	Location: FILE
+	Message: Invalid column: The timeseries column 'COLUMN2' contains empty values in row 3.
+"""
+        )

@@ -7,7 +7,7 @@ from ecalc_cli.commands import show
 from ecalc_cli.commands.run import run
 from ecalc_cli.commands.selftest import selftest
 from ecalc_cli.logger import CLILogConfigurator, LogLevel, logger
-from libecalc.presentation.yaml.model import ModelValidationException
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.validation_errors import DataValidationError
 
 app = typer.Typer(name="ecalc")

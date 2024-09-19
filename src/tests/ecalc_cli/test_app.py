@@ -16,7 +16,7 @@ from ecalc_cli.commands import show
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.run_info import RunInfo
 from libecalc.dto.utils.validators import COMPONENT_NAME_ALLOWED_CHARS
-from libecalc.presentation.yaml.model import ModelValidationException
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.exceptions import YamlError
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel

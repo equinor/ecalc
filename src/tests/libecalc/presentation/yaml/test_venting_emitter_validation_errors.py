@@ -7,7 +7,7 @@ from libecalc.fixtures.cases import venting_emitters
 from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
     venting_emitter_yaml_factory,
 )
-from libecalc.presentation.yaml.model import ModelValidationException
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
     YamlOilRateUnits,

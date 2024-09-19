@@ -6,15 +6,8 @@ from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
 from libecalc.dto import VariablesMap
-from libecalc.presentation.yaml.mappers.variables_mapper.time_series_collection_mapper import (
-    TimeSeriesCollectionMapper,
-)
-from libecalc.presentation.yaml.mappers.variables_mapper.timeseries_utils import (
-    fit_time_series_to_time_vector,
-    get_global_time_vector,
-)
-from libecalc.presentation.yaml.resource import Resources
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.domain.time_series_provider import TimeSeriesProvider
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.yaml_variable import (
     YamlSingleVariable,
     YamlVariable,
@@ -107,36 +100,17 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
 
 
 def map_yaml_to_variables(
-    configuration: PyYamlYamlModel,
-    resources: Resources,
-    result_options: dto.ResultOptions,
+    configuration: YamlValidator, time_series_provider: TimeSeriesProvider, global_time_vector: List[datetime]
 ) -> dto.VariablesMap:
-    # TODO: Replace configuration type with YamlValidator
-    timeseries_collections = [
-        TimeSeriesCollectionMapper(resources).from_yaml_to_dto(timeseries.model_dump(by_alias=True))
-        for timeseries in configuration.time_series_raise_if_invalid
-    ]
-
-    global_time_vector = get_global_time_vector(
-        time_series_collections=timeseries_collections,
-        start=configuration.start,
-        end=configuration.end,
-        frequency=result_options.output_frequency,
-        additional_dates=configuration.dates,
-    )
-
     variables = {}
-    for timeseries_collection in timeseries_collections:
-        timeseries_list = timeseries_collection.time_series
-        for timeseries in timeseries_list:
-            variables[timeseries.reference_id] = fit_time_series_to_time_vector(
-                time_series=timeseries,
-                time_vector=global_time_vector,
-                extrapolate_outside_defined_time_interval=timeseries_collection.extrapolate_outside_defined_time_interval,
-                interpolation_type=timeseries_collection.interpolation_type,
-            )
+    time_series_list = [
+        time_series_provider.get_time_series(time_series_reference)
+        for time_series_reference in time_series_provider.get_time_series_references()
+    ]
+    for time_series in time_series_list:
+        variables[time_series.reference_id] = time_series.fit_to_time_vector(global_time_vector).series
 
     return _evaluate_variables(
-        configuration.variables_raise_if_invalid,
+        configuration.variables,
         variables_map=VariablesMap(variables=variables, time_vector=global_time_vector),
     )

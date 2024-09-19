@@ -74,7 +74,7 @@ class InvalidReferenceException(EcalcError):
 class InvalidDateException(EcalcError): ...
 
 
-class InvalidResource(EcalcError):
+class InvalidResourceException(EcalcError):
     """
     Base exception for resource
     """
@@ -82,7 +82,12 @@ class InvalidResource(EcalcError):
     pass
 
 
-class HeaderNotFound(InvalidResource):
+class InvalidHeaderException(InvalidResourceException):
+    def __init__(self, message: str):
+        super().__init__("Invalid header", message, error_type=EcalcErrorType.CLIENT_ERROR)
+
+
+class HeaderNotFoundException(InvalidResourceException):
     """Resource is missing header."""
 
     def __init__(self, header: str):
@@ -90,7 +95,7 @@ class HeaderNotFound(InvalidResource):
         super().__init__("Missing header(s)", f"Header '{header}' not found", error_type=EcalcErrorType.CLIENT_ERROR)
 
 
-class ColumnNotFound(InvalidResource):
+class ColumnNotFoundException(InvalidResourceException):
     """Resource is missing column"""
 
     def __init__(self, header: str):
@@ -98,3 +103,20 @@ class ColumnNotFound(InvalidResource):
         super().__init__(
             "Missing column", f"Column matching header '{header}' is missing.", error_type=EcalcErrorType.CLIENT_ERROR
         )
+
+
+class InvalidColumnException(InvalidResourceException):
+    def __init__(self, header: str, message: str, row: int = None):
+        self.header = header
+        self.row = row
+        super().__init__(
+            "Invalid column",
+            message.format(header=header, row=row),
+        )
+
+
+class NoColumnsException(InvalidResourceException):
+    """Resource contains no columns"""
+
+    def __init__(self):
+        super().__init__("No columns", "The resource contains no columns, it should have at least one.")
