@@ -150,7 +150,24 @@ def strictly_increasing_or_decreasing(input_list: List[Union[float, int, str]]) 
             problem_value_index = increasing.index([True])
 
         problem_value = float(input_list[problem_value_index])
-        problem_value_index += 1
         increasing_or_decreasing = False
+
+        # Check if problem value is a constant/no change from previous/after, then ok:
+        if len(input_list) - 1 > problem_value_index > 0:
+            if (
+                input_list[problem_value_index] == input_list[problem_value_index + 1]
+                or input_list[problem_value_index] == input_list[problem_value_index - 1]
+            ):
+                increasing_or_decreasing = True
+        elif len(input_list) - 1 == problem_value_index:
+            increasing_or_decreasing = (
+                True if input_list[problem_value_index] == input_list[problem_value_index - 1] else False
+            )
+        elif problem_value_index == 0:
+            increasing_or_decreasing = (
+                True if input_list[problem_value_index] == input_list[problem_value_index + 1] else False
+            )
+
+        problem_value_index += 1
 
     return increasing_or_decreasing, problem_value_index, problem_value
