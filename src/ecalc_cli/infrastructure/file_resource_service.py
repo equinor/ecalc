@@ -58,7 +58,9 @@ class FileResourceService(ResourceService):
                         message=f"{el2fuel.headers[0]}: Values must be strictly increasing or decreasing. "
                         f"Value in line number {increasing_or_decreasing[1]} is not allowed: {increasing_or_decreasing[2]}",
                     )
-                if not not increasing_or_decreasing[1]:
+
+                increasing_or_decreasing = strictly_increasing_or_decreasing(el2fuel.data[1])
+                if not not increasing_or_decreasing[0]:
                     raise ResourceValidationError(
                         resource=el2fuel,
                         resource_name=facility_resource_name,

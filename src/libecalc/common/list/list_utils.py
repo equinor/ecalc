@@ -129,6 +129,11 @@ def array_to_list(result_array: Union[NDArray[np.float64], List[NDArray[np.float
 def strictly_increasing_or_decreasing(input_list: List[Union[float, int, str]]) -> [bool, int, float]:
     all_decreasing = all(float(i) > float(j) for i, j in zip(input_list, input_list[1:]))
     all_increasing = all(float(i) < float(j) for i, j in zip(input_list, input_list[1:]))
+    is_constant = all(val == input_list[0] for val in input_list)
+
+    if is_constant:
+        # Possible with constant: check if this is true
+        return True, None, None
 
     increasing_or_decreasing = True
     problem_value_index = None
