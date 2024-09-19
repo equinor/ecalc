@@ -6,8 +6,10 @@ from libecalc.common.logger import logger
 from libecalc.infrastructure.file_io import read_facility_resource, read_timeseries_resource
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.resource_service import ResourceService
+from libecalc.presentation.yaml.validation_errors import ResourceValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModelType
 
 
 class FileResourceService(ResourceService):
@@ -33,10 +35,31 @@ class FileResourceService(ResourceService):
             )
 
         for facility_resource_name in configuration.facility_resource_names:
+            is_el2fuel = False
+            for facility_input in configuration.facility_inputs:
+                if (
+                    facility_input.type == YamlFacilityModelType.ELECTRICITY2FUEL
+                    and facility_input.file == facility_resource_name
+                ):
+                    is_el2fuel = True
             resources[facility_resource_name] = cls._read_resource(
                 working_directory / facility_resource_name,
                 read_func=read_facility_resource,
             )
+            if is_el2fuel:
+                el2fuel = resources[facility_resource_name]
+                if not all(i > j for i, j in zip(el2fuel.data[0], el2fuel.data[0][1:])):
+                    raise ResourceValidationError(
+                        resource=el2fuel,
+                        resource_name=facility_resource_name,
+                        message=f"{el2fuel.headers[0]}: Values must be strictly increasing.",
+                    )
+                if not all(i > j for i, j in zip(el2fuel.data[1], el2fuel.data[1][1:])):
+                    raise ResourceValidationError(
+                        resource=el2fuel,
+                        resource_name=facility_resource_name,
+                        message=f"{el2fuel.headers[0]}: Values must be strictly increasing.",
+                    )
         return resources
 
     def get_resources(self, configuration: YamlValidator) -> Dict[str, Resource]:
