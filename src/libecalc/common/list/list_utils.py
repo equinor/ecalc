@@ -138,10 +138,12 @@ def strictly_increasing_or_decreasing(input_list: List[Union[float, int, str]]) 
         increasing = [[float(i) < float(j)] for i, j in zip(input_list, input_list[1:])]
         increasing_true = increasing.count([True])
         increasing_false = increasing.count([False])
+
         if increasing_true > increasing_false:
             problem_value_index = increasing.index([False])
         else:
             problem_value_index = increasing.index([True])
+
         problem_value = float(input_list[problem_value_index])
         problem_value_index += 1
         increasing_or_decreasing = False
