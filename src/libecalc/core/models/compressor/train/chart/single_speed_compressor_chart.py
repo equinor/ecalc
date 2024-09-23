@@ -2,10 +2,10 @@ from copy import deepcopy
 from typing import Optional, Tuple
 
 from libecalc.core.models.chart import SingleSpeedChart
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.train.chart.types import (
     CompressorChartHeadEfficiencyResultSinglePoint,
 )
-from libecalc.dto.types import ChartAreaFlag
 
 
 class SingleSpeedCompressorChart(SingleSpeedChart):

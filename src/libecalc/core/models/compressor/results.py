@@ -7,13 +7,13 @@ from pydantic import BaseModel, ConfigDict
 
 from libecalc import dto
 from libecalc.common.units import Unit
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.results.compressor import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
-from libecalc.dto.types import ChartAreaFlag
 
 
 class CompressorTrainStageResultSingleTimeStep(BaseModel):

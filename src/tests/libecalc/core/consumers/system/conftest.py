@@ -18,6 +18,7 @@ from libecalc.core.consumers.legacy_consumer.system.results import (
     ConsumerSystemConsumerFunctionResult,
 )
 from libecalc.core.consumers.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.results import (
     CompressorStageResult,
     CompressorStreamCondition,
@@ -27,7 +28,6 @@ from libecalc.core.models.results import (
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.dto.types import ChartAreaFlag
 from libecalc.expression import Expression
 
 

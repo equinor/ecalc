@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
-from libecalc import dto
+import libecalc.core.models.chart.chart_area_flag
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
@@ -130,7 +130,8 @@ class CompressorStageResult(EnergyModelBaseResult):
             asv_recirculation_loss_mw=nans,
             fluid_composition={},
             is_valid=[True] * number_of_timesteps,
-            chart_area_flags=[dto.types.ChartAreaFlag.NOT_CALCULATED] * number_of_timesteps,
+            chart_area_flags=[libecalc.core.models.chart.chart_area_flag.ChartAreaFlag.NOT_CALCULATED]
+            * number_of_timesteps,
             rate_has_recirculation=[False] * number_of_timesteps,
             rate_exceeds_maximum=[False] * number_of_timesteps,
             pressure_is_choked=[False] * number_of_timesteps,

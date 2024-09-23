@@ -14,12 +14,12 @@ from libecalc.core.consumers.legacy_consumer.system.utils import (
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.results import (
     CompressorStageResult,
     CompressorStreamCondition,
     CompressorTrainResult,
 )
-from libecalc.dto.types import ChartAreaFlag
 
 
 def test_calculate_system_energy_usage_from_operational_setting_one_option_success():
