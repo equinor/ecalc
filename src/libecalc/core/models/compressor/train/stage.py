@@ -3,7 +3,6 @@ from typing import Dict, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing_extensions import Annotated
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.results import (
@@ -19,6 +18,7 @@ from libecalc.core.models.compressor.train.utils.common import (
     calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
 )
+from libecalc.dto import FluidStream as FluidStreamDTO
 
 
 class CompressorTrainStage(BaseModel):
@@ -171,8 +171,8 @@ class CompressorTrainStage(BaseModel):
         )
 
         return CompressorTrainStageResultSingleTimeStep(
-            inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=inlet_stream_compressor),
-            outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_stream),
+            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=inlet_stream_compressor),
+            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
             inlet_actual_rate_m3_per_hour=mass_rate_kg_per_hour / inlet_stream_compressor.density,
             inlet_actual_rate_asv_corrected_m3_per_hour=mass_rate_asv_corrected_kg_per_hour
             / inlet_stream_compressor.density,

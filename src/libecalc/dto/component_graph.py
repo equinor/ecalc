@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import List
 
-from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.graph import Graph, NodeID
@@ -31,11 +30,11 @@ class ComponentGraph(Graph):
 
     def get_node_info(self, node_id: NodeID) -> NodeInfo:
         component_dto = self.nodes[node_id]
-        if isinstance(component_dto, dto.Asset):
+        if component_dto.component_type == ComponentType.ASSET:
             component_level = ComponentLevel.ASSET
-        elif isinstance(component_dto, dto.Installation):
+        elif component_dto.component_type == ComponentType.INSTALLATION:
             component_level = ComponentLevel.INSTALLATION
-        elif isinstance(component_dto, dto.GeneratorSet):
+        elif component_dto.component_type == ComponentType.GENERATOR_SET:
             component_level = ComponentLevel.GENERATOR_SET
         elif component_dto.component_type in [
             ComponentType.COMPRESSOR_SYSTEM,

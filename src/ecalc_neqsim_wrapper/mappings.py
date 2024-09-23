@@ -4,9 +4,9 @@ from enum import Enum
 from typing import Dict
 
 from ecalc_neqsim_wrapper import neqsim
-from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
+from libecalc.dto import FluidComposition
 from libecalc.dto.types import EoSModel
 
 
@@ -51,7 +51,7 @@ _map_fluid_component_from_neqsim = {
 }
 
 
-def map_fluid_composition_to_neqsim(fluid_composition: dto.FluidComposition) -> Dict[str, float]:
+def map_fluid_composition_to_neqsim(fluid_composition: FluidComposition) -> Dict[str, float]:
     component_dict = {}
     for component_name, value in fluid_composition.model_dump().items():
         if value is not None and value > 0:

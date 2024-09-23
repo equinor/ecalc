@@ -3,27 +3,45 @@ from datetime import datetime
 
 import pytest
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.variables import VariablesMap
+from libecalc.dto import (
+    Asset,
+    CompressorConsumerFunction,
+    CompressorStage,
+    CompressorSystemCompressor,
+    CompressorSystemConsumerFunction,
+    CompressorSystemOperationalSetting,
+    DirectConsumerFunction,
+    ElectricityConsumer,
+    FuelConsumer,
+    GeneratorSet,
+    GeneratorSetSampled,
+    Installation,
+    SingleSpeedCompressorTrain,
+    TabulatedConsumerFunction,
+    TabulatedData,
+    Variables,
+)
 from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
+from libecalc.dto.types import EnergyUsageType, FixedSpeedPressureControl
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 
 
-def direct_consumer(power: float) -> dto.DirectConsumerFunction:
-    return dto.DirectConsumerFunction(
+def direct_consumer(power: float) -> DirectConsumerFunction:
+    return DirectConsumerFunction(
         load=Expression.setup_from_expression(value=power),
-        energy_usage_type=dto.types.EnergyUsageType.POWER,
+        energy_usage_type=EnergyUsageType.POWER,
     )
 
 
-def generator_set_sampled_300mw() -> dto.GeneratorSetSampled:
-    return dto.GeneratorSetSampled(
+def generator_set_sampled_300mw() -> GeneratorSetSampled:
+    return GeneratorSetSampled(
         headers=["POWER", "FUEL"],
         data=[[0, 1, 300], [0, 1, 300]],
         energy_usage_adjustment_constant=0.0,
@@ -31,21 +49,21 @@ def generator_set_sampled_300mw() -> dto.GeneratorSetSampled:
     )
 
 
-def tabulated_energy_usage_model() -> dto.TabulatedConsumerFunction:
-    return dto.TabulatedConsumerFunction(
-        model=dto.TabulatedData(
+def tabulated_energy_usage_model() -> TabulatedConsumerFunction:
+    return TabulatedConsumerFunction(
+        model=TabulatedData(
             headers=["RATE", "FUEL"],
             data=[[0, 1, 2, 10000], [0, 2, 4, 5]],
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         ),
-        variables=[dto.Variables(name="RATE", expression=Expression.setup_from_expression(value="RATE"))],
-        energy_usage_type=dto.types.EnergyUsageType.FUEL,
+        variables=[Variables(name="RATE", expression=Expression.setup_from_expression(value="RATE"))],
+        energy_usage_type=EnergyUsageType.FUEL,
     )
 
 
-def tabulated_fuel_consumer_with_time_slots(fuel_gas) -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+def tabulated_fuel_consumer_with_time_slots(fuel_gas) -> FuelConsumer:
+    return FuelConsumer(
         name="fuel_consumer_with_time_slots",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
@@ -69,18 +87,18 @@ def single_speed_compressor_chart() -> SingleSpeedChartDTO:
 
 
 @pytest.fixture
-def single_speed_compressor_train(medium_fluid_dto) -> dto.SingleSpeedCompressorTrain:
-    return dto.SingleSpeedCompressorTrain(
+def single_speed_compressor_train(medium_fluid_dto) -> SingleSpeedCompressorTrain:
+    return SingleSpeedCompressorTrain(
         fluid_model=medium_fluid_dto,
         stages=[
-            dto.CompressorStage(
+            CompressorStage(
                 inlet_temperature_kelvin=303.15,
                 compressor_chart=single_speed_compressor_chart(),
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
                 control_margin=0,
             ),
-            dto.CompressorStage(
+            CompressorStage(
                 inlet_temperature_kelvin=303.15,
                 compressor_chart=single_speed_compressor_chart(),
                 remove_liquid_after_cooling=True,
@@ -88,7 +106,7 @@ def single_speed_compressor_train(medium_fluid_dto) -> dto.SingleSpeedCompressor
                 control_margin=0,
             ),
         ],
-        pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         maximum_discharge_pressure=350.0,
         energy_usage_adjustment_constant=1.0,
         energy_usage_adjustment_factor=1.0,
@@ -96,9 +114,9 @@ def single_speed_compressor_train(medium_fluid_dto) -> dto.SingleSpeedCompressor
 
 
 @pytest.fixture
-def simple_compressor_model(single_speed_compressor_train) -> dto.CompressorConsumerFunction:
-    return dto.CompressorConsumerFunction(
-        energy_usage_type=dto.types.EnergyUsageType.POWER,
+def simple_compressor_model(single_speed_compressor_train) -> CompressorConsumerFunction:
+    return CompressorConsumerFunction(
+        energy_usage_type=EnergyUsageType.POWER,
         rate_standard_m3_day=Expression.setup_from_expression(value="RATE"),
         suction_pressure=Expression.setup_from_expression(value=20),
         discharge_pressure=Expression.setup_from_expression(value=200),
@@ -107,8 +125,8 @@ def simple_compressor_model(single_speed_compressor_train) -> dto.CompressorCons
 
 
 @pytest.fixture
-def time_slot_electricity_consumer_with_changing_model_type(simple_compressor_model) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def time_slot_electricity_consumer_with_changing_model_type(simple_compressor_model) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="el-consumer1",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
@@ -125,8 +143,8 @@ def time_slot_electricity_consumer_with_changing_model_type(simple_compressor_mo
 
 
 @pytest.fixture
-def time_slot_electricity_consumer_with_same_model_type() -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def time_slot_electricity_consumer_with_same_model_type() -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="el-consumer2",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
@@ -140,11 +158,11 @@ def time_slot_electricity_consumer_with_same_model_type() -> dto.ElectricityCons
 
 
 @pytest.fixture
-def time_slot_electricity_consumer_with_same_model_type2() -> dto.ElectricityConsumer:
+def time_slot_electricity_consumer_with_same_model_type2() -> ElectricityConsumer:
     """Same consumer as 'time_slot_electricity_consumer_with_same_model_type', different name,
     used in the second generator set.
     """
-    return dto.ElectricityConsumer(
+    return ElectricityConsumer(
         name="el-consumer4",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
@@ -158,8 +176,8 @@ def time_slot_electricity_consumer_with_same_model_type2() -> dto.ElectricityCon
 
 
 @pytest.fixture
-def time_slot_electricity_consumer_with_same_model_type3(simple_compressor_model) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def time_slot_electricity_consumer_with_same_model_type3(simple_compressor_model) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="el-consumer-simple-compressor-model-with-timeslots",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
@@ -173,8 +191,8 @@ def time_slot_electricity_consumer_with_same_model_type3(simple_compressor_model
 
 
 @pytest.fixture
-def time_slot_electricity_consumer_too_late_startup() -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def time_slot_electricity_consumer_too_late_startup() -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="el-consumer3",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
@@ -187,27 +205,27 @@ def time_slot_electricity_consumer_too_late_startup() -> dto.ElectricityConsumer
 def time_slots_simplified_compressor_system(
     fuel_gas,
     single_speed_compressor_train,
-) -> dto.ElectricityConsumer:
+) -> ElectricityConsumer:
     """Here we model a compressor system that changes over time. New part is suffixed "_upgrade"."""
-    energy_usage_model = dto.CompressorSystemConsumerFunction(
-        energy_usage_type=dto.types.EnergyUsageType.POWER,
+    energy_usage_model = CompressorSystemConsumerFunction(
+        energy_usage_type=EnergyUsageType.POWER,
         compressors=[
-            dto.CompressorSystemCompressor(
+            CompressorSystemCompressor(
                 name="train1",
                 compressor_train=single_speed_compressor_train,
             ),
-            dto.CompressorSystemCompressor(
+            CompressorSystemCompressor(
                 name="train2",
                 compressor_train=single_speed_compressor_train,
             ),
         ],
         operational_settings=[
-            dto.CompressorSystemOperationalSetting(
+            CompressorSystemOperationalSetting(
                 rate_fractions=[Expression.setup_from_expression(value=1), Expression.setup_from_expression(value=0)],
                 suction_pressure=Expression.setup_from_expression(value=41),
                 discharge_pressure=Expression.setup_from_expression(value=200),
             ),
-            dto.CompressorSystemOperationalSetting(
+            CompressorSystemOperationalSetting(
                 rate_fractions=[
                     Expression.setup_from_expression(value=0.5),
                     Expression.setup_from_expression(value=0.5),
@@ -222,7 +240,7 @@ def time_slots_simplified_compressor_system(
     energy_usage_model_upgrade = deepcopy(energy_usage_model)
     energy_usage_model_upgrade.compressors[0].name = "train1_upgrade"
     energy_usage_model_upgrade.compressors[1].name = "train2_upgrade"
-    return dto.ElectricityConsumer(
+    return ElectricityConsumer(
         name="simplified_compressor_system",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
@@ -246,10 +264,10 @@ def consumer_with_time_slots_models_dto(
     time_vector = [datetime(year, 1, 1) for year in range(start_year, start_year + number_of_years)]
 
     return DTOCase(
-        ecalc_model=dto.Asset(
+        ecalc_model=Asset(
             name="time_slots_model",
             installations=[
-                dto.Installation(
+                Installation(
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     name="some_installation",
                     regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
@@ -257,7 +275,7 @@ def consumer_with_time_slots_models_dto(
                         datetime(1900, 1, 1): Expression.setup_from_expression(value="RATE"),
                     },
                     fuel_consumers=[
-                        dto.GeneratorSet(
+                        GeneratorSet(
                             name="some_genset",
                             user_defined_category={
                                 datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
@@ -275,7 +293,7 @@ def consumer_with_time_slots_models_dto(
                                 time_slots_simplified_compressor_system,
                             ],
                         ),
-                        dto.GeneratorSet(
+                        GeneratorSet(
                             name="some_genset_startup_after_consumer",
                             user_defined_category={
                                 datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR

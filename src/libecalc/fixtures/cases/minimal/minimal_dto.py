@@ -2,13 +2,13 @@ from datetime import datetime
 
 import pytest
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.dto import Asset, DirectConsumerFunction, Emission, FuelConsumer, Installation
 from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.dto.types import EnergyUsageType
+from libecalc.dto.types import EnergyUsageType, FuelType
 from libecalc.expression import Expression
 
 
@@ -16,23 +16,23 @@ def minimal_installation_dto(
     installation_name: str = "minimal_installation", fuel_rate: int = 50, start: datetime = datetime(2020, 1, 1)
 ):
     regularity = {start: Expression.setup_from_expression(1)}
-    return dto.Installation(
+    return Installation(
         name=installation_name,
         regularity=regularity,
         venting_emitters=[],
         hydrocarbon_export={start: Expression.setup_from_expression(0)},
         user_defined_category=InstallationUserDefinedCategoryType.FIXED,
         fuel_consumers=[
-            dto.FuelConsumer(
+            FuelConsumer(
                 name=f"{installation_name}-direct",
                 component_type=ComponentType.GENERIC,
                 user_defined_category={start: ConsumerUserDefinedCategoryType.MISCELLANEOUS},
                 regularity=regularity,
                 fuel={
-                    start: dto.FuelType(
+                    start: FuelType(
                         name="fuel",
                         emissions=[
-                            dto.Emission(
+                            Emission(
                                 name="co2",
                                 factor=Expression.setup_from_expression(2),
                             )
@@ -40,7 +40,7 @@ def minimal_installation_dto(
                     )
                 },
                 energy_usage_model={
-                    start: dto.DirectConsumerFunction(
+                    start: DirectConsumerFunction(
                         fuel_rate=Expression.setup_from_expression(fuel_rate),
                         energy_usage_type=EnergyUsageType.FUEL,
                     )
@@ -60,7 +60,7 @@ def minimal_model_dto_factory():
     def minimal_model_dto(
         asset_name: str = "minimal_model", fuel_rate: int = 50, start: datetime = datetime(2020, 1, 1)
     ):
-        return dto.Asset(
+        return Asset(
             name=asset_name,
             installations=[minimal_installation_dto(fuel_rate=fuel_rate, start=start)],
         )

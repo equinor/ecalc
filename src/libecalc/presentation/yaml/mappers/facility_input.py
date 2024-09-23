@@ -2,11 +2,10 @@ from typing import Dict, List, Optional, Union
 
 from pydantic import TypeAdapter, ValidationError
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
-from libecalc.dto import GeneratorSetSampled, TabulatedData
+from libecalc.dto import EnergyModel, GeneratorSetSampled, PumpModel, TabulatedData
 from libecalc.dto.types import ChartType, EnergyModelType, EnergyUsageType
 from libecalc.presentation.yaml.mappers.utils import (
     chart_curves_as_resource_to_dto_format,
@@ -93,7 +92,7 @@ def _create_compressor_train_sampled_dto_model_data(
     )
 
 
-def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_data, **kwargs) -> dto.PumpModel:
+def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_data, **kwargs) -> PumpModel:
     units = get_units_from_chart_config(chart_config=facility_data)
     resource_name = facility_data.get(EcalcYamlKeywords.file)
 
@@ -115,7 +114,7 @@ def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_
 
     head_margin = facility_data.get(EcalcYamlKeywords.pump_system_head_margin, 0.0)
 
-    return dto.PumpModel(
+    return PumpModel(
         chart=chart,
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
@@ -123,7 +122,7 @@ def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_
     )
 
 
-def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facility_data, **kwargs) -> dto.PumpModel:
+def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facility_data, **kwargs) -> PumpModel:
     units = get_units_from_chart_config(chart_config=facility_data)
 
     resource_name = facility_data.get(EcalcYamlKeywords.file)
@@ -148,7 +147,7 @@ def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facilit
 
     head_margin = facility_data.get(EcalcYamlKeywords.pump_system_head_margin, 0.0)
 
-    return dto.PumpModel(
+    return PumpModel(
         chart=VariableSpeedChartDTO(curves=curves),
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
@@ -184,7 +183,7 @@ class FacilityInputMapper:
     def __init__(self, resources: Resources):
         self.__resources = resources
 
-    def from_yaml_to_dto(self, data: Dict) -> dto.EnergyModel:
+    def from_yaml_to_dto(self, data: Dict) -> EnergyModel:
         resource_name = data.get(EcalcYamlKeywords.file)
         resource = self.__resources.get(data.get(EcalcYamlKeywords.file))
 

@@ -4,13 +4,27 @@ from typing import Dict, List
 import numpy as np
 
 import libecalc.common.component_type
-from libecalc import dto
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.dto import (
+    CompressorConsumerFunction,
+    CompressorSampled,
+    DirectConsumerFunction,
+    ElectricityConsumer,
+    Emission,
+    FuelConsumer,
+    FuelType,
+    GeneratorSet,
+    GeneratorSetSampled,
+    Installation,
+)
 from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
+    InstallationUserDefinedCategoryType,
 )
+from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
 
 regularity_installation = 1.0
@@ -43,59 +57,59 @@ days_year1_second_half = calculate_delta_days(np.array([date2, date3]))
 days_year2_second_half = calculate_delta_days(np.array([date4, date5]))
 
 
-def fuel_turbine() -> dto.types.FuelType:
-    return dto.types.FuelType(
+def fuel_turbine() -> FuelType:
+    return FuelType(
         name="fuel_gas",
         emissions=[
-            dto.Emission(
+            Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
             )
         ],
-        user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.FUEL_GAS,
+        user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
     )
 
 
-def diesel_turbine() -> dto.types.FuelType:
-    return dto.types.FuelType(
+def diesel_turbine() -> FuelType:
+    return FuelType(
         name="diesel",
         emissions=[
-            dto.Emission(
+            Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
             )
         ],
-        user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.DIESEL,
+        user_defined_category=FuelTypeUserDefinedCategoryType.DIESEL,
     )
 
 
-def diesel_turbine_multi() -> dto.types.FuelType:
-    return dto.types.FuelType(
+def diesel_turbine_multi() -> FuelType:
+    return FuelType(
         name="diesel",
         emissions=[
-            dto.Emission(
+            Emission(
                 name="co2",
                 factor=Expression.setup_from_expression(value=co2_factor),
             ),
-            dto.Emission(
+            Emission(
                 name="ch4",
                 factor=Expression.setup_from_expression(value=ch4_factor),
             ),
-            dto.Emission(
+            Emission(
                 name="nox",
                 factor=Expression.setup_from_expression(value=nox_factor),
             ),
-            dto.Emission(
+            Emission(
                 name="nmvoc",
                 factor=Expression.setup_from_expression(value=nmvoc_factor),
             ),
         ],
-        user_defined_category=dto.types.FuelTypeUserDefinedCategoryType.DIESEL,
+        user_defined_category=FuelTypeUserDefinedCategoryType.DIESEL,
     )
 
 
-def generator_set_fuel() -> dto.GeneratorSetSampled:
-    return dto.GeneratorSetSampled(
+def generator_set_fuel() -> GeneratorSetSampled:
+    return GeneratorSetSampled(
         headers=["POWER", "FUEL"],
         data=[[0, 2.5, 5, power_usage_mw, 15, 20], [0, 30000, 45000, fuel_rate, 87000, 110000]],
         energy_usage_adjustment_constant=0.0,
@@ -103,8 +117,8 @@ def generator_set_fuel() -> dto.GeneratorSetSampled:
     )
 
 
-def generator_set_diesel() -> dto.GeneratorSetSampled:
-    return dto.GeneratorSetSampled(
+def generator_set_diesel() -> GeneratorSetSampled:
+    return GeneratorSetSampled(
         headers=["POWER", "FUEL"],
         data=[[0, power_usage_mw, 15, 20], [0, diesel_rate, 145000, 160000]],
         energy_usage_adjustment_constant=0.0,
@@ -112,7 +126,7 @@ def generator_set_diesel() -> dto.GeneratorSetSampled:
     )
 
 
-def fuel_dict() -> Dict[datetime, dto.types.FuelType]:
+def fuel_dict() -> Dict[datetime, FuelType]:
     return {
         date1: diesel_turbine(),
         date2: fuel_turbine(),
@@ -122,7 +136,7 @@ def fuel_dict() -> Dict[datetime, dto.types.FuelType]:
     }
 
 
-def fuel_dict_multi() -> Dict[datetime, dto.types.FuelType]:
+def fuel_dict_multi() -> Dict[datetime, FuelType]:
     return {
         date1: diesel_turbine_multi(),
         date2: fuel_turbine(),
@@ -132,7 +146,7 @@ def fuel_dict_multi() -> Dict[datetime, dto.types.FuelType]:
     }
 
 
-def generator_set_dict() -> Dict[datetime, dto.GeneratorSetSampled]:
+def generator_set_dict() -> Dict[datetime, GeneratorSetSampled]:
     return {
         date1: generator_set_diesel(),
         date2: generator_set_fuel(),
@@ -160,15 +174,15 @@ def category_dict_coarse() -> Dict[datetime, ConsumerUserDefinedCategoryType]:
     }
 
 
-def direct_consumer(power: float) -> dto.DirectConsumerFunction:
-    return dto.DirectConsumerFunction(
+def direct_consumer(power: float) -> DirectConsumerFunction:
+    return DirectConsumerFunction(
         load=Expression.setup_from_expression(value=power),
-        energy_usage_type=dto.types.EnergyUsageType.POWER,
+        energy_usage_type=EnergyUsageType.POWER,
     )
 
 
-def offshore_wind() -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def offshore_wind() -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="direct_consumer",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={
@@ -189,8 +203,8 @@ def offshore_wind() -> dto.ElectricityConsumer:
     )
 
 
-def no_el_consumption() -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def no_el_consumption() -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="no_el_consumption",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
@@ -199,15 +213,15 @@ def no_el_consumption() -> dto.ElectricityConsumer:
     )
 
 
-def simple_direct_el_consumer(name: str = "direct_consumer") -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def simple_direct_el_consumer(name: str = "direct_consumer") -> ElectricityConsumer:
+    return ElectricityConsumer(
         name=name,
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
-            date1: dto.DirectConsumerFunction(
+            date1: DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
@@ -215,15 +229,15 @@ def simple_direct_el_consumer(name: str = "direct_consumer") -> dto.ElectricityC
     )
 
 
-def simple_direct_el_consumer_mobile() -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def simple_direct_el_consumer_mobile() -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="direct_consumer_mobile",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
-            date1: dto.DirectConsumerFunction(
+            date1: DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
@@ -232,8 +246,8 @@ def simple_direct_el_consumer_mobile() -> dto.ElectricityConsumer:
 
 
 def compressor_sampled():
-    return dto.CompressorSampled(
-        energy_usage_type=dto.types.EnergyUsageType.FUEL,
+    return CompressorSampled(
+        energy_usage_type=EnergyUsageType.FUEL,
         energy_usage_values=[0, 10000, 11000, 12000, 13000],
         power_interpolation_values=[0.0, 1.0, 2.0, power_compressor_mw, 4.0],
         rate_values=[0, 1000000, 2000000, compressor_rate, 4000000],
@@ -242,8 +256,8 @@ def compressor_sampled():
     )
 
 
-def boiler_heater() -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+def boiler_heater() -> FuelConsumer:
+    return FuelConsumer(
         name="boiler",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
         fuel={date1: fuel_turbine()},
@@ -253,16 +267,16 @@ def boiler_heater() -> dto.FuelConsumer:
         },
         regularity=regularity_temporal_consumer,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.DirectConsumerFunction(
+            datetime(1900, 1, 1): DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value=fuel_rate),
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+                energy_usage_type=EnergyUsageType.FUEL,
             )
         },
     )
 
 
-def compressor(name: str = "single_1d_compressor_sampled") -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+def compressor(name: str = "single_1d_compressor_sampled") -> FuelConsumer:
+    return FuelConsumer(
         name=name,
         component_type=libecalc.common.component_type.ComponentType.COMPRESSOR,
         fuel={datetime(2027, 1, 1): fuel_turbine()},
@@ -275,8 +289,8 @@ def compressor(name: str = "single_1d_compressor_sampled") -> dto.FuelConsumer:
         },
         regularity=regularity_temporal_consumer,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
                 model=compressor_sampled(),
                 rate_standard_m3_day=Expression.setup_from_expression(value=compressor_rate),
                 suction_pressure=Expression.setup_from_expression(value=200),
@@ -286,8 +300,8 @@ def compressor(name: str = "single_1d_compressor_sampled") -> dto.FuelConsumer:
     )
 
 
-def generator_set_direct_consumer_temporal_model() -> dto.GeneratorSet:
-    return dto.GeneratorSet(
+def generator_set_direct_consumer_temporal_model() -> GeneratorSet:
+    return GeneratorSet(
         name="genset",
         user_defined_category=category_dict_coarse(),
         fuel=fuel_dict(),
@@ -297,8 +311,8 @@ def generator_set_direct_consumer_temporal_model() -> dto.GeneratorSet:
     )
 
 
-def generator_set_offshore_wind_temporal_model() -> dto.GeneratorSet:
-    return dto.GeneratorSet(
+def generator_set_offshore_wind_temporal_model() -> GeneratorSet:
+    return GeneratorSet(
         name="genset",
         user_defined_category={date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
         fuel={date1: fuel_turbine()},
@@ -308,10 +322,8 @@ def generator_set_offshore_wind_temporal_model() -> dto.GeneratorSet:
     )
 
 
-def generator_set_compressor_temporal_model(
-    consumers: List[dto.ElectricityConsumer], name: str = "genset"
-) -> dto.GeneratorSet:
-    return dto.GeneratorSet(
+def generator_set_compressor_temporal_model(consumers: List[ElectricityConsumer], name: str = "genset") -> GeneratorSet:
+    return GeneratorSet(
         name=name,
         user_defined_category={date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
         fuel={date1: fuel_turbine()},
@@ -321,8 +333,8 @@ def generator_set_compressor_temporal_model(
     )
 
 
-def generator_set_fixed_diesel() -> dto.GeneratorSet:
-    return dto.GeneratorSet(
+def generator_set_fixed_diesel() -> GeneratorSet:
+    return GeneratorSet(
         name="genset_fixed",
         user_defined_category=category_dict(),
         fuel=fuel_dict_multi(),
@@ -332,8 +344,8 @@ def generator_set_fixed_diesel() -> dto.GeneratorSet:
     )
 
 
-def generator_set_mobile_diesel() -> dto.GeneratorSet:
-    return dto.GeneratorSet(
+def generator_set_mobile_diesel() -> GeneratorSet:
+    return GeneratorSet(
         name="genset_mobile",
         user_defined_category=category_dict(),
         fuel=fuel_dict_multi(),
@@ -447,33 +459,33 @@ def expected_co2_from_heater():
     return emission_tons
 
 
-def installation_direct_consumer_dto() -> dto.Installation:
-    return dto.Installation(
+def installation_direct_consumer_dto() -> Installation:
+    return Installation(
         name="INSTALLATION_A",
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_direct_consumer_temporal_model()],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
+        user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )
 
 
-def installation_offshore_wind_dto() -> dto.Installation:
-    return dto.Installation(
+def installation_offshore_wind_dto() -> Installation:
+    return Installation(
         name="INSTALLATION_A",
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_offshore_wind_temporal_model()],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
+        user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )
 
 
 def installation_compressor_dto(
-    el_consumers: List[dto.ElectricityConsumer],
+    el_consumers: List[ElectricityConsumer],
     installation_name: str = "INSTALLATION_A",
     genset_name: str = "genset",
     compressor_name: str = "compressor",
-) -> dto.Installation:
-    return dto.Installation(
+) -> Installation:
+    return Installation(
         name=installation_name,
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
@@ -481,35 +493,35 @@ def installation_compressor_dto(
             generator_set_compressor_temporal_model(el_consumers, name=genset_name),
             compressor(name=compressor_name),
         ],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
+        user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )
 
 
-def installation_diesel_fixed_dto() -> dto.Installation:
-    return dto.Installation(
+def installation_diesel_fixed_dto() -> Installation:
+    return Installation(
         name="INSTALLATION_FIXED",
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_fixed_diesel()],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
+        user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )
 
 
-def installation_diesel_mobile_dto() -> dto.Installation:
-    return dto.Installation(
+def installation_diesel_mobile_dto() -> Installation:
+    return Installation(
         name="INSTALLATION_MOBILE",
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_mobile_diesel()],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.MOBILE,
+        user_defined_category=InstallationUserDefinedCategoryType.MOBILE,
     )
 
 
-def installation_boiler_heater_dto() -> dto.Installation:
-    return dto.Installation(
+def installation_boiler_heater_dto() -> Installation:
+    return Installation(
         name="INSTALLATION_A",
         regularity=regularity_temporal_installation,
         hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[boiler_heater()],
-        user_defined_category=dto.base.InstallationUserDefinedCategoryType.FIXED,
+        user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )

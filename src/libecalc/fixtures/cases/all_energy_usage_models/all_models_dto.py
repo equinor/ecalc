@@ -2,13 +2,43 @@ from datetime import datetime
 
 import pytest
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.utils.rates import RateType
+from libecalc.dto import (
+    Asset,
+    CompressorConsumerFunction,
+    CompressorStage,
+    CompressorSystemCompressor,
+    CompressorSystemConsumerFunction,
+    CompressorSystemOperationalSetting,
+    CompressorTrainSimplifiedWithUnknownStages,
+    DirectConsumerFunction,
+    ElectricityConsumer,
+    FuelConsumer,
+    GeneratorSet,
+    GeneratorSetSampled,
+    GenericChartFromDesignPoint,
+    GenericChartFromInput,
+    Installation,
+    InterstagePressureControl,
+    MultipleStreamsAndPressureStream,
+    MultipleStreamsCompressorStage,
+    PumpConsumerFunction,
+    PumpSystemConsumerFunction,
+    PumpSystemOperationalSetting,
+    PumpSystemPump,
+    SingleSpeedCompressorTrain,
+    TabulatedConsumerFunction,
+    TabulatedData,
+    Variables,
+    VariableSpeedCompressorTrain,
+    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
 from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
+from libecalc.dto.types import EnergyUsageType, FixedSpeedPressureControl, FluidStreamType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -28,33 +58,33 @@ def compressor_system_variable_speed_compressor_trains(
     fuel_gas,
     regularity,
     compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
-) -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+) -> FuelConsumer:
+    return FuelConsumer(
         name="compressor_system_variable_speed_compressor_trains",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel=fuel_gas,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): dto.CompressorSystemConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            datetime(2018, 1, 1): CompressorSystemConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 compressors=[
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train1",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train2",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train3",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
                 ],
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rates=[
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
@@ -65,21 +95,21 @@ def compressor_system_variable_speed_compressor_trains(
                     )
                 ],
             ),
-            datetime(2019, 1, 1): dto.CompressorSystemConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            datetime(2019, 1, 1): CompressorSystemConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.0),
                 compressors=[
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train1_upgraded",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train2_upgraded",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
                 ],
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rates=[
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
@@ -98,33 +128,33 @@ def compressor_system_variable_speed_compressor_trains_multiple_suction_discharg
     fuel_gas,
     regularity,
     compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
-) -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+) -> FuelConsumer:
+    return FuelConsumer(
         name="compressor_system_variable_speed_compressor_trains_multiple_pressures",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel=fuel_gas,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): dto.CompressorSystemConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            datetime(2018, 1, 1): CompressorSystemConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 compressors=[
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train1",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train2",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train3",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
                 ],
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rates=[
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
@@ -141,7 +171,7 @@ def compressor_system_variable_speed_compressor_trains_multiple_suction_discharg
                             Expression.setup_from_expression(value=240),
                         ],
                     ),
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rates=[
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 3"),
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 3"),
@@ -160,21 +190,21 @@ def compressor_system_variable_speed_compressor_trains_multiple_suction_discharg
                     ),
                 ],
             ),
-            datetime(2019, 1, 1): dto.CompressorSystemConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            datetime(2019, 1, 1): CompressorSystemConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.0),
                 compressors=[
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train1_upgraded",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="train2_upgraded",
                         compressor_train=compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2,
                     ),
                 ],
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rates=[
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
@@ -198,15 +228,15 @@ def compressor_system_variable_speed_compressor_trains_multiple_suction_discharg
 def simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid(
     simplified_variable_speed_compressor_train_with_gerg_fluid2,
     regularity,
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
                 discharge_pressure=Expression.setup_from_expression(value=250),
@@ -217,18 +247,18 @@ def simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid
 
 
 @pytest.fixture
-def tabulated(fuel_gas, regularity) -> dto.FuelConsumer:
-    tabulated = dto.TabulatedConsumerFunction(
-        model=dto.TabulatedData(
+def tabulated(fuel_gas, regularity) -> FuelConsumer:
+    tabulated = TabulatedConsumerFunction(
+        model=TabulatedData(
             headers=["VARIABLE1", "FUEL"],
             data=[[0.0, 20000.0, 40000.0, 60000.0, 80000.0], [0.0, 1000.0, 2000.0, 3000.0, 4000.0]],
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
         ),
-        variables=[dto.Variables(name="VARIABLE1", expression=Expression.setup_from_expression(value="SIM1;GAS_LIFT"))],
-        energy_usage_type=dto.types.EnergyUsageType.FUEL,
+        variables=[Variables(name="VARIABLE1", expression=Expression.setup_from_expression(value="SIM1;GAS_LIFT"))],
+        energy_usage_type=EnergyUsageType.FUEL,
     )
-    return dto.FuelConsumer(
+    return FuelConsumer(
         name="tabulated",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
@@ -239,16 +269,16 @@ def tabulated(fuel_gas, regularity) -> dto.FuelConsumer:
 
 
 @pytest.fixture
-def compressor(compressor_sampled_1d, fuel_gas, regularity) -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+def compressor(compressor_sampled_1d, fuel_gas, regularity) -> FuelConsumer:
+    return FuelConsumer(
         name="single_1d_compressor_sampled",
         component_type=ComponentType.COMPRESSOR,
         fuel=fuel_gas,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
                 model=compressor_sampled_1d,
                 rate_standard_m3_day=Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
                 suction_pressure=Expression.setup_from_expression(value=200),
@@ -259,24 +289,24 @@ def compressor(compressor_sampled_1d, fuel_gas, regularity) -> dto.FuelConsumer:
 
 
 @pytest.fixture
-def pump_system_el_consumer(single_speed_pump, regularity) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def pump_system_el_consumer(single_speed_pump, regularity) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="waterinj",
         component_type=ComponentType.PUMP_SYSTEM,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.PumpSystemConsumerFunction(
+            datetime(1900, 1, 1): PumpSystemConsumerFunction(
                 condition=Expression.setup_from_expression(value="SIM1;WATER_PROD >0"),
                 pumps=[
-                    dto.PumpSystemPump(name="pump1", pump_model=single_speed_pump),
-                    dto.PumpSystemPump(name="pump2", pump_model=single_speed_pump),
+                    PumpSystemPump(name="pump1", pump_model=single_speed_pump),
+                    PumpSystemPump(name="pump2", pump_model=single_speed_pump),
                 ],
                 fluid_density=Expression.setup_from_expression(value="1026"),
                 total_system_rate=Expression.setup_from_expression(value="SIM1;WATER_INJ"),
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 operational_settings=[
-                    dto.PumpSystemOperationalSetting(
+                    PumpSystemOperationalSetting(
                         rate_fractions=[
                             Expression.setup_from_expression(value=1),
                             Expression.setup_from_expression(value=0),
@@ -291,7 +321,7 @@ def pump_system_el_consumer(single_speed_pump, regularity) -> dto.ElectricityCon
                         ],
                         crossover=[2, 0],
                     ),
-                    dto.PumpSystemOperationalSetting(
+                    PumpSystemOperationalSetting(
                         rate_fractions=[
                             Expression.setup_from_expression(value=0.5),
                             Expression.setup_from_expression(value=0.5),
@@ -309,15 +339,15 @@ def pump_system_el_consumer(single_speed_pump, regularity) -> dto.ElectricityCon
 def simplified_variable_speed_compressor_train_known_stages_consumer(
     simplified_variable_speed_compressor_train_known_stages,
     regularity,
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="simplified_variable_speed_compressor_train_known_stages_consumer",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
                 discharge_pressure=Expression.setup_from_expression(value=250),
@@ -331,22 +361,22 @@ def simplified_variable_speed_compressor_train_known_stages_consumer(
 def simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model(
     simplified_variable_speed_compressor_train_known_stages,
     regularity,
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(2018, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
                 discharge_pressure=Expression.setup_from_expression(value=250),
                 model=simplified_variable_speed_compressor_train_known_stages,
             ),
-            datetime(2019, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(2019, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=40),
                 discharge_pressure=Expression.setup_from_expression(value=260),
@@ -360,23 +390,23 @@ def simplified_variable_speed_compressor_train_known_stages_consumer_temporal_mo
 def generic_from_design_point_compressor_train_consumer(
     medium_fluid_dto,
     regularity,
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="generic_from_design_point_compressor_train_consumer",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
                 discharge_pressure=Expression.setup_from_expression(value=250),
                 condition=Expression.setup_from_expression("1 > 0"),
-                model=dto.CompressorTrainSimplifiedWithUnknownStages(
+                model=CompressorTrainSimplifiedWithUnknownStages(
                     fluid_model=medium_fluid_dto,
-                    stage=dto.CompressorStage(
-                        compressor_chart=dto.GenericChartFromDesignPoint(
+                    stage=CompressorStage(
+                        compressor_chart=GenericChartFromDesignPoint(
                             polytropic_efficiency_fraction=0.75,
                             design_rate_actual_m3_per_hour=5000,
                             design_polytropic_head_J_per_kg=100000,
@@ -398,22 +428,22 @@ def generic_from_design_point_compressor_train_consumer(
 @pytest.fixture
 def simplified_variable_speed_compressor_train_unknown_stages_consumer(
     medium_fluid_dto, regularity
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="simplified_variable_speed_compressor_train_unknown_stages_consumer",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
                 discharge_pressure=Expression.setup_from_expression(value=250),
-                model=dto.CompressorTrainSimplifiedWithUnknownStages(
+                model=CompressorTrainSimplifiedWithUnknownStages(
                     fluid_model=medium_fluid_dto,
-                    stage=dto.CompressorStage(
-                        compressor_chart=dto.GenericChartFromInput(
+                    stage=CompressorStage(
+                        compressor_chart=GenericChartFromInput(
                             polytropic_efficiency_fraction=0.75,
                         ),
                         inlet_temperature_kelvin=303.15,
@@ -431,15 +461,15 @@ def simplified_variable_speed_compressor_train_unknown_stages_consumer(
 
 @pytest.fixture
 def turbine_driven_compressor_train(fuel_gas, compressor_with_turbine, regularity):
-    return dto.FuelConsumer(
+    return FuelConsumer(
         name="turbine_driven_compressor_train",
         component_type=ComponentType.COMPRESSOR,
         fuel=fuel_gas,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.FUEL,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=30),
                 discharge_pressure=Expression.setup_from_expression(value=200),
@@ -450,29 +480,29 @@ def turbine_driven_compressor_train(fuel_gas, compressor_with_turbine, regularit
 
 
 @pytest.fixture
-def compressor_system(fuel_gas, compressor_sampled_1d, regularity) -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+def compressor_system(fuel_gas, compressor_sampled_1d, regularity) -> FuelConsumer:
+    return FuelConsumer(
         name="sampled_compressor_system",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         fuel=fuel_gas,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorSystemConsumerFunction(
+            datetime(1900, 1, 1): CompressorSystemConsumerFunction(
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+                energy_usage_type=EnergyUsageType.FUEL,
                 compressors=[
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="sampled_train1",
                         compressor_train=compressor_sampled_1d,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="sampled_train2",
                         compressor_train=compressor_sampled_1d,
                     ),
                 ],
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rates=[
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
@@ -491,28 +521,28 @@ def simplified_compressor_system(
     fuel_gas,
     simplified_variable_speed_compressor_train_known_stages,
     regularity,
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="simplified_compressor_system",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorSystemConsumerFunction(
+            datetime(1900, 1, 1): CompressorSystemConsumerFunction(
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
                 compressors=[
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="simplified_train1",
                         compressor_train=simplified_variable_speed_compressor_train_known_stages,
                     ),
-                    dto.CompressorSystemCompressor(
+                    CompressorSystemCompressor(
                         name="simplified_train2",
                         compressor_train=simplified_variable_speed_compressor_train_known_stages,
                     ),
                 ],
                 operational_settings=[
-                    dto.CompressorSystemOperationalSetting(
+                    CompressorSystemOperationalSetting(
                         rates=[
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {*} 3"),
                             Expression.setup_from_expression(value="SIM1;GAS_PROD {*} 3"),
@@ -527,18 +557,18 @@ def simplified_compressor_system(
 
 
 @pytest.fixture
-def deh(regularity) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def deh(regularity) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="deh",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.DirectConsumerFunction(
+            datetime(1900, 1, 1): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=4.1),
                 condition=Expression.setup_from_expression(value="SIM1;GAS_LIFT > 0"),
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
@@ -546,39 +576,39 @@ def deh(regularity) -> dto.ElectricityConsumer:
 
 
 @pytest.fixture
-def late_start_consumer(regularity) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def late_start_consumer(regularity) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="late_start_consumer",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): dto.DirectConsumerFunction(
+            datetime(2018, 1, 1): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=1),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
             ),
-            datetime(2019, 1, 1): dto.DirectConsumerFunction(
+            datetime(2019, 1, 1): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=2),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
             ),
-            datetime(2020, 1, 1): dto.DirectConsumerFunction(
+            datetime(2020, 1, 1): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=0),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
             ),
         },
     )
 
 
 @pytest.fixture
-def late_start_consumer_evolving_type(regularity) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def late_start_consumer_evolving_type(regularity) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="late_start_consumer_evolving_type",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): dto.TabulatedConsumerFunction(
-                model=dto.TabulatedData(
+            datetime(2018, 1, 1): TabulatedConsumerFunction(
+                model=TabulatedData(
                     headers=["RATE", "POWER"],
                     data=[
                         [0, 1, 8500, 9000, 17000, 17500, 36000, 72000, 142000],
@@ -588,27 +618,27 @@ def late_start_consumer_evolving_type(regularity) -> dto.ElectricityConsumer:
                     energy_usage_adjustment_factor=1.0,
                 ),
                 variables=[
-                    dto.Variables(
+                    Variables(
                         name="RATE",
                         expression=Expression.setup_from_expression(value="$var.salt_water_injection"),
                     )
                 ],
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
             ),
         },
     )
 
 
 @pytest.fixture
-def salt_water_injection_tabular(regularity) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def salt_water_injection_tabular(regularity) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="salt_water_injection_tabular",
         component_type=ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.TabulatedConsumerFunction(
-                model=dto.TabulatedData(
+            datetime(1900, 1, 1): TabulatedConsumerFunction(
+                model=TabulatedData(
                     headers=["RATE", "POWER"],
                     data=[
                         [0, 1, 8500, 9000, 17000, 17500, 36000, 72000, 142000],
@@ -618,26 +648,26 @@ def salt_water_injection_tabular(regularity) -> dto.ElectricityConsumer:
                     energy_usage_adjustment_factor=1.0,
                 ),
                 variables=[
-                    dto.Variables(
+                    Variables(
                         name="RATE",
                         expression=Expression.setup_from_expression(value="$var.salt_water_injection"),
                     )
                 ],
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=EnergyUsageType.POWER,
             ),
         },
     )
 
 
 @pytest.fixture
-def water_injection_single_speed(regularity, single_speed_pump) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def water_injection_single_speed(regularity, single_speed_pump) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="water_injection_single_speed",
         component_type=ComponentType.PUMP,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.PumpConsumerFunction(
+            datetime(1900, 1, 1): PumpConsumerFunction(
                 condition=Expression.setup_from_expression(value="SIM1;GAS_PROD > 0"),
                 model=single_speed_pump,
                 power_loss_factor=None,
@@ -651,15 +681,15 @@ def water_injection_single_speed(regularity, single_speed_pump) -> dto.Electrici
 
 
 @pytest.fixture
-def water_injection_variable_speed(regularity, variable_speed_pump) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+def water_injection_variable_speed(regularity, variable_speed_pump) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="water_injection_variable_speed",
         component_type=ComponentType.PUMP,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.PumpConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): PumpConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 model=variable_speed_pump,
                 rate_standard_m3_day=Expression.setup_from_expression(value="SIM1;WATER_INJ"),
                 suction_pressure=Expression.setup_from_expression(value=3),
@@ -675,29 +705,29 @@ def water_injection_variable_speed(regularity, variable_speed_pump) -> dto.Elect
 @pytest.fixture
 def variable_speed_compressor_train_predefined_charts(
     regularity, medium_fluid_dto, predefined_variable_speed_compressor_chart_dto
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="variable_speed_compressor_train_predefined_charts",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
                 discharge_pressure=Expression.setup_from_expression(value=250),
-                model=dto.VariableSpeedCompressorTrain(
+                model=VariableSpeedCompressorTrain(
                     fluid_model=medium_fluid_dto,
                     stages=[
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=predefined_variable_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
                             pressure_drop_before_stage=0,
                             control_margin=0.1,
                         ),
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=predefined_variable_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
@@ -707,7 +737,7 @@ def variable_speed_compressor_train_predefined_charts(
                     ],
                     energy_usage_adjustment_constant=1.0,
                     energy_usage_adjustment_factor=1.0,
-                    pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                    pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
                 ),
             )
         },
@@ -717,29 +747,29 @@ def variable_speed_compressor_train_predefined_charts(
 @pytest.fixture
 def single_speed_compressor_train_asv_pressure_control(
     regularity, medium_fluid_dto, user_defined_single_speed_compressor_chart_dto
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="single_speed_compressor_train_asv_pressure_control",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5800000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
                 discharge_pressure=Expression.setup_from_expression(value=300.0),
-                model=dto.SingleSpeedCompressorTrain(
+                model=SingleSpeedCompressorTrain(
                     fluid_model=medium_fluid_dto,
                     stages=[
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
                             pressure_drop_before_stage=0,
                             control_margin=0,
                         ),
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
@@ -747,7 +777,7 @@ def single_speed_compressor_train_asv_pressure_control(
                             control_margin=0,
                         ),
                     ],
-                    pressure_control=dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
+                    pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
                     energy_usage_adjustment_constant=1.0,
                     energy_usage_adjustment_factor=1.0,
                 ),
@@ -759,29 +789,29 @@ def single_speed_compressor_train_asv_pressure_control(
 @pytest.fixture
 def single_speed_compressor_train_upstream_choke_pressure_control(
     regularity, medium_fluid_dto, user_defined_single_speed_compressor_chart_dto
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="single_speed_compressor_train_upstream_choke_pressure_control",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5800000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
                 discharge_pressure=Expression.setup_from_expression(value=300.0),
-                model=dto.SingleSpeedCompressorTrain(
+                model=SingleSpeedCompressorTrain(
                     fluid_model=medium_fluid_dto,
                     stages=[
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
                             pressure_drop_before_stage=0,
                             control_margin=0,
                         ),
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
@@ -789,7 +819,7 @@ def single_speed_compressor_train_upstream_choke_pressure_control(
                             control_margin=0,
                         ),
                     ],
-                    pressure_control=dto.types.FixedSpeedPressureControl.UPSTREAM_CHOKE,
+                    pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
                     energy_usage_adjustment_constant=1.0,
                     energy_usage_adjustment_factor=1.0,
                 ),
@@ -801,29 +831,29 @@ def single_speed_compressor_train_upstream_choke_pressure_control(
 @pytest.fixture
 def single_speed_compressor_train_downstream_choke_pressure_control(
     regularity, medium_fluid_dto, user_defined_single_speed_compressor_chart_dto
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="single_speed_compressor_train_downstream_choke_pressure_control",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5800000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
                 discharge_pressure=Expression.setup_from_expression(value=300.0),
-                model=dto.SingleSpeedCompressorTrain(
+                model=SingleSpeedCompressorTrain(
                     fluid_model=medium_fluid_dto,
                     stages=[
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
                             pressure_drop_before_stage=0,
                             control_margin=0,
                         ),
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
@@ -831,7 +861,7 @@ def single_speed_compressor_train_downstream_choke_pressure_control(
                             control_margin=0,
                         ),
                     ],
-                    pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                    pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
                     energy_usage_adjustment_constant=1.0,
                     energy_usage_adjustment_factor=1.0,
                 ),
@@ -843,29 +873,29 @@ def single_speed_compressor_train_downstream_choke_pressure_control(
 @pytest.fixture
 def single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure(
     regularity, medium_fluid_dto, user_defined_single_speed_compressor_chart_dto
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=1000000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
                 discharge_pressure=Expression.setup_from_expression(value=300.0),
-                model=dto.SingleSpeedCompressorTrain(
+                model=SingleSpeedCompressorTrain(
                     fluid_model=medium_fluid_dto,
                     stages=[
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
                             pressure_drop_before_stage=0,
                             control_margin=0,
                         ),
-                        dto.CompressorStage(
+                        CompressorStage(
                             inlet_temperature_kelvin=303.15,
                             compressor_chart=user_defined_single_speed_compressor_chart_dto,
                             remove_liquid_after_cooling=True,
@@ -873,7 +903,7 @@ def single_speed_compressor_train_downstream_choke_pressure_control_maximum_disc
                             control_margin=0,
                         ),
                     ],
-                    pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                    pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
                     maximum_discharge_pressure=350.0,
                     energy_usage_adjustment_constant=1.0,
                     energy_usage_adjustment_factor=1.0,
@@ -886,18 +916,18 @@ def single_speed_compressor_train_downstream_choke_pressure_control_maximum_disc
 @pytest.fixture
 def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure(
     regularity, predefined_variable_speed_compressor_chart_dto, rich_fluid_dto, medium_fluid_dto
-) -> dto.ElectricityConsumer:
-    return dto.ElectricityConsumer(
+) -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
         component_type=ComponentType.COMPRESSOR,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.CompressorConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
-                model=dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
+            datetime(1900, 1, 1): CompressorConsumerFunction(
+                energy_usage_type=EnergyUsageType.POWER,
+                model=VariableSpeedCompressorTrainMultipleStreamsAndPressures(
                     stages=[
-                        dto.MultipleStreamsCompressorStage(
+                        MultipleStreamsCompressorStage(
                             inlet_temperature_kelvin=303.15,
                             remove_liquid_after_cooling=True,
                             compressor_chart=predefined_variable_speed_compressor_chart_dto,
@@ -905,7 +935,7 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
                             pressure_drop_before_stage=0.0,
                             control_margin=0,
                         ),
-                        dto.MultipleStreamsCompressorStage(
+                        MultipleStreamsCompressorStage(
                             inlet_temperature_kelvin=303.15,
                             remove_liquid_after_cooling=True,
                             compressor_chart=predefined_variable_speed_compressor_chart_dto,
@@ -913,26 +943,26 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
                             pressure_drop_before_stage=0.0,
                             control_margin=0,
                         ),
-                        dto.MultipleStreamsCompressorStage(
+                        MultipleStreamsCompressorStage(
                             inlet_temperature_kelvin=303.15,
                             remove_liquid_after_cooling=True,
                             compressor_chart=predefined_variable_speed_compressor_chart_dto,
                             pressure_drop_before_stage=0.0,
                             control_margin=0,
                         ),
-                        dto.MultipleStreamsCompressorStage(
+                        MultipleStreamsCompressorStage(
                             inlet_temperature_kelvin=303.15,
                             remove_liquid_after_cooling=True,
                             compressor_chart=predefined_variable_speed_compressor_chart_dto,
                             stream_reference=["out_stream_stage_4_export"],
-                            interstage_pressure_control=dto.InterstagePressureControl(
-                                downstream_pressure_control=dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
-                                upstream_pressure_control=dto.types.FixedSpeedPressureControl.UPSTREAM_CHOKE,
+                            interstage_pressure_control=InterstagePressureControl(
+                                downstream_pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+                                upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
                             ),
                             pressure_drop_before_stage=0.0,
                             control_margin=0,
                         ),
-                        dto.MultipleStreamsCompressorStage(
+                        MultipleStreamsCompressorStage(
                             inlet_temperature_kelvin=303.15,
                             remove_liquid_after_cooling=True,
                             compressor_chart=predefined_variable_speed_compressor_chart_dto,
@@ -941,29 +971,29 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
                         ),
                     ],
                     streams=[
-                        dto.MultipleStreamsAndPressureStream(
+                        MultipleStreamsAndPressureStream(
                             fluid_model=rich_fluid_dto,
                             name="in_stream_stage_1",
-                            typ=dto.types.FluidStreamType.INGOING,
+                            typ=FluidStreamType.INGOING,
                         ),
-                        dto.MultipleStreamsAndPressureStream(
+                        MultipleStreamsAndPressureStream(
                             fluid_model=medium_fluid_dto,
                             name="in_stream_stage_2",
-                            typ=dto.types.FluidStreamType.INGOING,
+                            typ=FluidStreamType.INGOING,
                         ),
-                        dto.MultipleStreamsAndPressureStream(
+                        MultipleStreamsAndPressureStream(
                             fluid_model=medium_fluid_dto,
                             name="another_in_stream_stage_2",
-                            typ=dto.types.FluidStreamType.INGOING,
+                            typ=FluidStreamType.INGOING,
                         ),
-                        dto.MultipleStreamsAndPressureStream(
+                        MultipleStreamsAndPressureStream(
                             name="out_stream_stage_4_export",
-                            typ=dto.types.FluidStreamType.OUTGOING,
+                            typ=FluidStreamType.OUTGOING,
                         ),
                     ],
                     energy_usage_adjustment_constant=1.0,
                     energy_usage_adjustment_factor=1.0,
-                    pressure_control=dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+                    pressure_control=FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
                 ),
                 discharge_pressure=Expression.setup_from_expression(value=600),
                 suction_pressure=Expression.setup_from_expression(value=10),
@@ -998,15 +1028,15 @@ def methane_venting(regularity) -> YamlVentingEmitter:
 
 
 @pytest.fixture
-def flare(fuel_gas, regularity) -> dto.FuelConsumer:
-    return dto.FuelConsumer(
+def flare(fuel_gas, regularity) -> FuelConsumer:
+    return FuelConsumer(
         name="flare",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
         energy_usage_model={
-            datetime(1900, 1, 1): dto.DirectConsumerFunction(
+            datetime(1900, 1, 1): DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value="FLARE;FLARE_RATE"),
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+                energy_usage_type=EnergyUsageType.FUEL,
                 consumption_rate_type=RateType.STREAM_DAY,
             )
         },
@@ -1016,8 +1046,8 @@ def flare(fuel_gas, regularity) -> dto.FuelConsumer:
 
 
 @pytest.fixture
-def genset_sampled() -> dto.GeneratorSetSampled:
-    return dto.GeneratorSetSampled(
+def genset_sampled() -> GeneratorSetSampled:
+    return GeneratorSetSampled(
         headers=["POWER", "FUEL"],
         data=[
             [0.0, 0.1, 10.0, 20.0, 21.0, 40.0, 100.0, 1000.0],
@@ -1061,10 +1091,10 @@ def all_energy_usage_models_dto(
     all_energy_usage_models_variables,
 ) -> DTOCase:
     return DTOCase(
-        dto.Asset(
+        Asset(
             name="all_energy_usage_models",
             installations=[
-                dto.Installation(
+                Installation(
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     name="MAIN_INSTALLATION",
                     regularity=regularity,
@@ -1074,7 +1104,7 @@ def all_energy_usage_models_dto(
                         ),
                     },
                     fuel_consumers=[
-                        dto.GeneratorSet(
+                        GeneratorSet(
                             name="GeneratorSet",
                             user_defined_category={
                                 datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
@@ -1133,10 +1163,10 @@ def compressor_systems_and_compressor_train_temporal_dto(
     all_energy_usage_models_variables,
 ) -> DTOCase:
     return DTOCase(
-        dto.Asset(
+        Asset(
             name="all_energy_usage_models",
             installations=[
-                dto.Installation(
+                Installation(
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     name="MAIN_INSTALLATION",
                     regularity=regularity,
@@ -1146,7 +1176,7 @@ def compressor_systems_and_compressor_train_temporal_dto(
                         ),
                     },
                     fuel_consumers=[
-                        dto.GeneratorSet(
+                        GeneratorSet(
                             name="GeneratorSet",
                             user_defined_category={
                                 datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR

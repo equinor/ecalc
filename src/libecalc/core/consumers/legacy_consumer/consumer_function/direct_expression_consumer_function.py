@@ -2,7 +2,6 @@ from typing import List, Optional
 
 import numpy as np
 
-from libecalc import dto
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType
@@ -18,16 +17,18 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     get_power_loss_factor_from_expression,
 )
 from libecalc.core.models.results import EnergyFunctionGenericResult
+from libecalc.dto import DirectConsumerFunction
+from libecalc.dto.types import EnergyUsageType
 
 
 class DirectExpressionConsumerFunction(ConsumerFunction):
     def __init__(
         self,
-        data_transfer_object: dto.DirectConsumerFunction,
+        data_transfer_object: DirectConsumerFunction,
     ):
         expression = (
             data_transfer_object.fuel_rate
-            if data_transfer_object.energy_usage_type == dto.types.EnergyUsageType.FUEL.value
+            if data_transfer_object.energy_usage_type == EnergyUsageType.FUEL.value
             else data_transfer_object.load
         )
         condition_expression = data_transfer_object.condition
@@ -42,11 +43,11 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
 
     @property
     def is_electrical_consumer(self) -> bool:
-        return self.data_transfer_object.energy_usage_type == dto.types.EnergyUsageType.POWER
+        return self.data_transfer_object.energy_usage_type == EnergyUsageType.POWER
 
     @property
     def is_fuel_consumer(self) -> bool:
-        return self.data_transfer_object.energy_usage_type == dto.types.EnergyUsageType.FUEL
+        return self.data_transfer_object.energy_usage_type == EnergyUsageType.FUEL
 
     @property
     def energy_usage_unit(self) -> Unit:

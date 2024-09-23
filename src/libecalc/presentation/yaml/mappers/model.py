@@ -2,9 +2,26 @@ from typing import Any, Dict, List, Union
 
 from pydantic import ValidationError
 
-from libecalc import dto
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
+from libecalc.dto import (
+    CompressorChart,
+    CompressorStage,
+    CompressorTrainSimplifiedWithKnownStages,
+    CompressorTrainSimplifiedWithUnknownStages,
+    CompressorWithTurbine,
+    EnergyModel,
+    GenericChartFromDesignPoint,
+    GenericChartFromInput,
+    InterstagePressureControl,
+    MultipleStreamsAndPressureStream,
+    MultipleStreamsCompressorStage,
+    SingleSpeedCompressorTrain,
+    Turbine,
+    VariableSpeedCompressorTrain,
+    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
+from libecalc.dto.types import FixedSpeedPressureControl
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -31,9 +48,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 )
 
 
-def _compressor_chart_mapper(
-    model_config: Dict, input_models: Dict[str, Any], resources: Resources
-) -> dto.CompressorChart:
+def _compressor_chart_mapper(model_config: Dict, input_models: Dict[str, Any], resources: Resources) -> CompressorChart:
     chart_type = model_config.get(EcalcYamlKeywords.consumer_chart_type)
     mapper = _compressor_chart_map.get(chart_type)
     if mapper is None:
@@ -41,7 +56,7 @@ def _compressor_chart_mapper(
     return mapper(model_config=model_config, resources=resources)
 
 
-def _pressure_control_mapper(model_config: Dict) -> dto.types.FixedSpeedPressureControl:
+def _pressure_control_mapper(model_config: Dict) -> FixedSpeedPressureControl:
     pressure_control_data = model_config.get(
         EcalcYamlKeywords.models_type_compressor_train_pressure_control,
         EcalcYamlKeywords.models_type_compressor_train_pressure_control_downstream_choke,
@@ -49,7 +64,7 @@ def _pressure_control_mapper(model_config: Dict) -> dto.types.FixedSpeedPressure
     if pressure_control_data == EcalcYamlKeywords.models_type_compressor_train_pressure_control_none:
         pressure_control = None
     else:
-        pressure_control = dto.types.FixedSpeedPressureControl(pressure_control_data)
+        pressure_control = FixedSpeedPressureControl(pressure_control_data)
     if pressure_control not in SUPPORTED_PRESSURE_CONTROLS_SINGLE_SPEED_COMPRESSOR_TRAIN:
         raise ValueError(
             f"Pressure control {pressure_control} not supported, should be one of {', '.join(SUPPORTED_PRESSURE_CONTROLS_SINGLE_SPEED_COMPRESSOR_TRAIN)}"
@@ -201,7 +216,7 @@ def _variable_speed_compressor_chart_mapper(model_config: Dict, resources: Resou
     return VariableSpeedChartDTO(curves=curves)
 
 
-def _generic_from_input_compressor_chart_mapper(model_config: Dict, resources: Resources) -> dto.GenericChartFromInput:
+def _generic_from_input_compressor_chart_mapper(model_config: Dict, resources: Resources) -> GenericChartFromInput:
     units = get_units_from_chart_config(
         chart_config=model_config, units_to_include=[EcalcYamlKeywords.consumer_chart_efficiency]
     )
@@ -211,12 +226,12 @@ def _generic_from_input_compressor_chart_mapper(model_config: Dict, resources: R
         input_unit=units[EcalcYamlKeywords.consumer_chart_efficiency],
     )[0]
 
-    return dto.GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency_fraction)
+    return GenericChartFromInput(polytropic_efficiency_fraction=polytropic_efficiency_fraction)
 
 
 def _generic_from_design_point_compressor_chart_mapper(
     model_config: Dict, resources: Resources
-) -> dto.GenericChartFromDesignPoint:
+) -> GenericChartFromDesignPoint:
     units = get_units_from_chart_config(chart_config=model_config)
     design_rate = model_config.get(EcalcYamlKeywords.consumer_chart_design_rate)
     design_polytropic_head = model_config.get(EcalcYamlKeywords.consumer_chart_design_head)
@@ -233,7 +248,7 @@ def _generic_from_design_point_compressor_chart_mapper(
         input_unit=units[EcalcYamlKeywords.consumer_chart_efficiency],
     )[0]
 
-    return dto.GenericChartFromDesignPoint(
+    return GenericChartFromDesignPoint(
         polytropic_efficiency_fraction=polytropic_efficiency_fraction,
         design_rate_actual_m3_per_hour=design_rate_actual_m3_per_hour,
         design_polytropic_head_J_per_kg=design_polytropic_head_joule_per_kg,
@@ -248,7 +263,7 @@ _compressor_chart_map = {
 }
 
 
-def _resolve_and_validate_chart(compressor_chart_reference, input_models: Dict[str, Any]) -> dto.CompressorChart:
+def _resolve_and_validate_chart(compressor_chart_reference, input_models: Dict[str, Any]) -> CompressorChart:
     compressor_chart = resolve_reference(
         value=compressor_chart_reference,
         references=input_models,
@@ -270,19 +285,19 @@ def _replace_compressor_chart_with_reference(stage_spec, input_models) -> Dict:
 def _variable_speed_compressor_train_multiple_streams_and_pressures_stream_mapper(
     stream_config: Dict,
     input_models: Dict[str, Any],
-) -> dto.MultipleStreamsAndPressureStream:
+) -> MultipleStreamsAndPressureStream:
     reference_name = stream_config.get(EcalcYamlKeywords.name)
     stream_type = stream_config.get(EcalcYamlKeywords.type)
     fluid_model_reference = stream_config.get(EcalcYamlKeywords.models_type_fluid_model)
     if fluid_model_reference is not None:
         fluid_model = resolve_reference(value=fluid_model_reference, references=input_models)
-        return dto.MultipleStreamsAndPressureStream(
+        return MultipleStreamsAndPressureStream(
             name=reference_name,
             fluid_model=fluid_model,
             typ=stream_type,
         )
     else:
-        return dto.MultipleStreamsAndPressureStream(
+        return MultipleStreamsAndPressureStream(
             name=reference_name,
             typ=stream_type,
         )
@@ -292,7 +307,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
     stage_config: Dict,
     stream_references: List[str],
     input_models: Dict[str, Any],
-) -> dto.MultipleStreamsCompressorStage:
+) -> MultipleStreamsCompressorStage:
     compressor_chart_reference = stage_config.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
     compressor_chart = resolve_reference(value=compressor_chart_reference, references=input_models)
     inlet_temperature_kelvin = convert_temperature_to_kelvin(
@@ -331,7 +346,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
         EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure
     )
     if interstage_pressure_control_config is not None:
-        interstage_pressure_control = dto.InterstagePressureControl(
+        interstage_pressure_control = InterstagePressureControl(
             upstream_pressure_control=interstage_pressure_control_config.get(
                 EcalcYamlKeywords.models_type_compressor_train_upstream_pressure_control
             ),
@@ -340,14 +355,14 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
             ),
         )
         mapped_stage.update({"interstage_pressure_control": interstage_pressure_control})
-    return dto.MultipleStreamsCompressorStage.model_validate(mapped_stage)
+    return MultipleStreamsCompressorStage.model_validate(mapped_stage)
 
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
-) -> dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures:
+) -> VariableSpeedCompressorTrainMultipleStreamsAndPressures:
     streams_config = model_config.get(EcalcYamlKeywords.models_type_compressor_train_streams)
     streams = [
         _variable_speed_compressor_train_multiple_streams_and_pressures_stream_mapper(
@@ -364,7 +379,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     ]
     pressure_control = _pressure_control_mapper(model_config)
 
-    return dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
+    return VariableSpeedCompressorTrainMultipleStreamsAndPressures(
         streams=streams,
         stages=stages,
         energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
@@ -376,11 +391,11 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
 
 
 SUPPORTED_PRESSURE_CONTROLS_SINGLE_SPEED_COMPRESSOR_TRAIN = [
-    dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
-    dto.types.FixedSpeedPressureControl.UPSTREAM_CHOKE,
-    dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
-    dto.types.FixedSpeedPressureControl.COMMON_ASV,
-    dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+    FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
+    FixedSpeedPressureControl.UPSTREAM_CHOKE,
+    FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+    FixedSpeedPressureControl.COMMON_ASV,
+    FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
     None,
 ]
 
@@ -389,7 +404,7 @@ def _single_speed_compressor_train_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
-) -> dto.SingleSpeedCompressorTrain:
+) -> SingleSpeedCompressorTrain:
     fluid_model_reference: str = model_config.get(EcalcYamlKeywords.models_type_fluid_model)
     fluid_model = input_models.get(fluid_model_reference)
     if fluid_model is None:
@@ -412,8 +427,8 @@ def _single_speed_compressor_train_mapper(
             message=f"Missing keyword {EcalcYamlKeywords.models_type_compressor_train_stages}"
             f" for {model_config.get(EcalcYamlKeywords.type)} {model_config.get(EcalcYamlKeywords.name)}",
         )
-    stages: List[dto.CompressorStage] = [
-        dto.CompressorStage(
+    stages: List[CompressorStage] = [
+        CompressorStage(
             compressor_chart=input_models.get(
                 stage.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
             ),
@@ -439,14 +454,14 @@ def _single_speed_compressor_train_mapper(
     ]
     pressure_control = _pressure_control_mapper(model_config)
     maximum_discharge_pressure = model_config.get(EcalcYamlKeywords.maximum_discharge_pressure)
-    if maximum_discharge_pressure and pressure_control != dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
+    if maximum_discharge_pressure and pressure_control != FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
         raise ValueError(
             f"Setting maximum discharge pressure for single speed compressor train is currently"
-            f"only supported with {dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE} pressure control"
+            f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE} pressure control"
             f"option. Pressure control option is {pressure_control}"
         )
 
-    return dto.SingleSpeedCompressorTrain(
+    return SingleSpeedCompressorTrain(
         fluid_model=fluid_model,
         stages=stages,
         pressure_control=pressure_control,
@@ -462,7 +477,7 @@ def _variable_speed_compressor_train_mapper(
     model_config: Dict,
     input_models: Dict[str, Any],
     resources: Resources,
-) -> dto.VariableSpeedCompressorTrain:
+) -> VariableSpeedCompressorTrain:
     fluid_model_reference: str = model_config.get(EcalcYamlKeywords.models_type_fluid_model)
     fluid_model = input_models.get(fluid_model_reference)
     if fluid_model is None:
@@ -486,7 +501,7 @@ def _variable_speed_compressor_train_mapper(
             f" for {model_config.get(EcalcYamlKeywords.type)} {model_config.get(EcalcYamlKeywords.name)}",
         )
 
-    stages: List[dto.CompressorStage] = []
+    stages: List[CompressorStage] = []
     for stage in stages_data:
         control_margin = convert_control_margin_to_fraction(
             stage.get(EcalcYamlKeywords.models_type_compressor_train_stage_control_margin, 0.0),
@@ -503,7 +518,7 @@ def _variable_speed_compressor_train_mapper(
         )
 
         stages.append(
-            dto.CompressorStage(
+            CompressorStage(
                 compressor_chart=compressor_chart,
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [stage.get(EcalcYamlKeywords.models_type_compressor_train_inlet_temperature)],
@@ -518,7 +533,7 @@ def _variable_speed_compressor_train_mapper(
         )
     pressure_control = _pressure_control_mapper(model_config)
 
-    return dto.VariableSpeedCompressorTrain(
+    return VariableSpeedCompressorTrain(
         fluid_model=fluid_model,
         stages=stages,
         energy_usage_adjustment_constant=model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0),
@@ -534,8 +549,8 @@ def _simplified_variable_speed_compressor_train_mapper(
     input_models: Dict[str, Any],
     resources: Resources,
 ) -> Union[
-    dto.CompressorTrainSimplifiedWithKnownStages,
-    dto.CompressorTrainSimplifiedWithUnknownStages,
+    CompressorTrainSimplifiedWithKnownStages,
+    CompressorTrainSimplifiedWithUnknownStages,
 ]:
     fluid_model_reference: str = model_config.get(EcalcYamlKeywords.models_type_fluid_model)
     fluid_model = input_models.get(fluid_model_reference)
@@ -566,10 +581,10 @@ def _simplified_variable_speed_compressor_train_mapper(
                     f"is only supported for the following train-types: "
                     f"{', '.join(YamlCompatibleTrainsPressureDropAheadOfStage)}."
                 )
-        return dto.CompressorTrainSimplifiedWithKnownStages(
+        return CompressorTrainSimplifiedWithKnownStages(
             fluid_model=fluid_model,
             stages=[
-                dto.CompressorStage(
+                CompressorStage(
                     inlet_temperature_kelvin=convert_temperature_to_kelvin(
                         [stage.get(EcalcYamlKeywords.models_type_compressor_train_inlet_temperature)],
                         input_unit=Unit.CELSIUS,
@@ -591,9 +606,9 @@ def _simplified_variable_speed_compressor_train_mapper(
     else:
         # The stages are unknown, not defined
         compressor_chart_reference = train_spec[EcalcYamlKeywords.models_type_compressor_train_compressor_chart]
-        return dto.CompressorTrainSimplifiedWithUnknownStages(
+        return CompressorTrainSimplifiedWithUnknownStages(
             fluid_model=fluid_model,
-            stage=dto.CompressorStage(
+            stage=CompressorStage(
                 compressor_chart=input_models.get(compressor_chart_reference),
                 inlet_temperature_kelvin=convert_temperature_to_kelvin(
                     [train_spec.get(EcalcYamlKeywords.models_type_compressor_train_inlet_temperature)],
@@ -612,11 +627,11 @@ def _simplified_variable_speed_compressor_train_mapper(
         )
 
 
-def _turbine_mapper(model_config: Dict, input_models: Dict[str, Any], resources: Resources) -> dto.Turbine:
+def _turbine_mapper(model_config: Dict, input_models: Dict[str, Any], resources: Resources) -> Turbine:
     energy_usage_adjustment_constant = model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0)
     energy_usage_adjustment_factor = model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1)
 
-    return dto.Turbine(
+    return Turbine(
         lower_heating_value=model_config.get(EcalcYamlKeywords.fuel_lower_heating_value),
         turbine_loads=model_config.get(EcalcYamlKeywords.models_turbine_efficiency_table_load_values),
         turbine_efficiency_fractions=model_config.get(
@@ -629,7 +644,7 @@ def _turbine_mapper(model_config: Dict, input_models: Dict[str, Any], resources:
 
 def _compressor_with_turbine_mapper(
     model_config: Dict, input_models: Dict[str, Any], resources: Resources
-) -> dto.CompressorWithTurbine:
+) -> CompressorWithTurbine:
     compressor_train_model_reference = model_config.get(EcalcYamlKeywords.models_compressor_model)
     turbine_model_reference = model_config.get(EcalcYamlKeywords.models_turbine_model)
     compressor_train_model = resolve_reference(
@@ -649,7 +664,7 @@ def _compressor_with_turbine_mapper(
     energy_usage_adjustment_constant = model_config.get(EcalcYamlKeywords.models_power_adjustment_constant_mw, 0)
     energy_usage_adjustment_factor = model_config.get(EcalcYamlKeywords.models_power_adjustment_factor_mw, 1)
 
-    return dto.CompressorWithTurbine(
+    return CompressorWithTurbine(
         compressor_train=compressor_train_model,
         turbine=turbine_model,
         energy_usage_adjustment_constant=energy_usage_adjustment_constant,
@@ -680,7 +695,7 @@ class ModelMapper:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
         return model_creator(model_config=model, input_models=input_models, resources=resources)
 
-    def from_yaml_to_dto(self, model_config: Dict, input_models: Dict[str, Any]) -> dto.EnergyModel:
+    def from_yaml_to_dto(self, model_config: Dict, input_models: Dict[str, Any]) -> EnergyModel:
         try:
             model_data = ModelMapper.create_model(
                 model=model_config, input_models=input_models, resources=self.__resources

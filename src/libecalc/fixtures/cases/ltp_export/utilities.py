@@ -1,15 +1,15 @@
 from datetime import datetime
 from typing import List, Union
 
-from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency
 from libecalc.common.variables import VariablesMap
+from libecalc.dto import Asset, Installation
 from libecalc.presentation.exporter.configs.configs import LTPConfig
 
 
-def get_consumption(model: Union[dto.Installation, dto.Asset], variables: VariablesMap, time_vector: List[datetime]):
+def get_consumption(model: Union[Installation, Asset], variables: VariablesMap, time_vector: List[datetime]):
     model = model
     graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)

@@ -2,7 +2,6 @@ from datetime import datetime
 
 import pytest
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
@@ -11,9 +10,13 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import (
+    CompressorSampled,
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
+    Emission,
+    GeneratorSetSampled,
+    PumpModel,
     PumpSystemConsumerFunction,
     PumpSystemOperationalSetting,
     PumpSystemPump,
@@ -24,12 +27,20 @@ from libecalc.dto.base import (
     InstallationUserDefinedCategoryType,
 )
 from libecalc.dto.components import (
+    Asset,
+    CompressorComponent,
+    ConsumerSystem,
     Crossover,
+    ElectricityConsumer,
     ExpressionStreamConditions,
     ExpressionTimeSeries,
+    FuelConsumer,
+    GeneratorSet,
+    Installation,
+    PumpComponent,
     SystemComponentConditions,
 )
-from libecalc.dto.types import EnergyUsageType
+from libecalc.dto.types import EnergyUsageType, FuelType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 
@@ -37,11 +48,11 @@ regularity = {
     datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(1),
 }
 fuel = {
-    datetime(2022, 1, 1, 0, 0): dto.FuelType(
+    datetime(2022, 1, 1, 0, 0): FuelType(
         name="fuel_gas",
         user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
         emissions=[
-            dto.Emission(
+            Emission(
                 factor=Expression.setup_from_expression(2.2),
                 name="co2",
             )
@@ -49,7 +60,7 @@ fuel = {
     )
 }
 
-genset = dto.GeneratorSetSampled(
+genset = GeneratorSetSampled(
     headers=["POWER", "FUEL"],
     data=[
         [0.0, 0.1, 1000000.0],
@@ -58,10 +69,10 @@ genset = dto.GeneratorSetSampled(
     energy_usage_adjustment_constant=0.0,
     energy_usage_adjustment_factor=1.0,
 )
-compressor_1d = dto.CompressorSampled(
+compressor_1d = CompressorSampled(
     energy_usage_adjustment_constant=0.0,
     energy_usage_adjustment_factor=1.0,
-    energy_usage_type=dto.types.EnergyUsageType.FUEL,
+    energy_usage_type=EnergyUsageType.FUEL,
     energy_usage_values=[0.0, 10000.0, 11000.0, 12000.0, 13000.0],
     rate_values=[0.0, 1000000.0, 2000000.0, 3000000.0, 4000000.0],
     suction_pressure_values=None,
@@ -69,7 +80,7 @@ compressor_1d = dto.CompressorSampled(
     power_interpolation_values=[0.0, 1.0, 2.0, 3.0, 4.0],
 )
 
-pump_model_single_speed = dto.PumpModel(
+pump_model_single_speed = PumpModel(
     energy_usage_adjustment_factor=1,
     energy_usage_adjustment_constant=0,
     chart=SingleSpeedChartDTO(
@@ -81,7 +92,7 @@ pump_model_single_speed = dto.PumpModel(
     head_margin=0,
 )
 
-compressor1 = dto.components.CompressorComponent(
+compressor1 = CompressorComponent(
     name="compressor1",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     fuel=fuel,
@@ -89,7 +100,7 @@ compressor1 = dto.components.CompressorComponent(
     consumes=ConsumptionType.FUEL,
     energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
 )
-compressor2 = dto.components.CompressorComponent(
+compressor2 = CompressorComponent(
     name="compressor2",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     fuel=fuel,
@@ -97,7 +108,7 @@ compressor2 = dto.components.CompressorComponent(
     consumes=ConsumptionType.FUEL,
     energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
 )
-compressor3 = dto.components.CompressorComponent(
+compressor3 = CompressorComponent(
     name="compressor3",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     fuel=fuel,
@@ -105,7 +116,7 @@ compressor3 = dto.components.CompressorComponent(
     consumes=ConsumptionType.FUEL,
     energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
 )
-compressor4_temporal_model = dto.components.CompressorComponent(
+compressor4_temporal_model = CompressorComponent(
     name="compressor3",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     fuel=fuel,
@@ -113,7 +124,7 @@ compressor4_temporal_model = dto.components.CompressorComponent(
     consumes=ConsumptionType.FUEL,
     energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d, datetime(2024, 1, 1, 0, 0): compressor_1d},
 )
-compressor5_with_overlapping_temporal_model = dto.components.CompressorComponent(
+compressor5_with_overlapping_temporal_model = CompressorComponent(
     name="compressor3",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     fuel=fuel,
@@ -126,21 +137,21 @@ compressor5_with_overlapping_temporal_model = dto.components.CompressorComponent
     },
 )
 
-pump1 = dto.components.PumpComponent(
+pump1 = PumpComponent(
     name="pump1",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=ConsumptionType.ELECTRICITY,
     energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
 )
-pump2 = dto.components.PumpComponent(
+pump2 = PumpComponent(
     name="pump2",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=ConsumptionType.ELECTRICITY,
     energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
 )
-pump3 = dto.components.PumpComponent(
+pump3 = PumpComponent(
     name="pump3",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
@@ -148,7 +159,7 @@ pump3 = dto.components.PumpComponent(
     energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
 )
 
-compressor_system = dto.FuelConsumer(
+compressor_system = FuelConsumer(
     component_type=ComponentType.COMPRESSOR_SYSTEM,
     name="compressor_system",
     fuel=fuel,
@@ -197,7 +208,7 @@ compressor_system = dto.FuelConsumer(
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
 )
 
-compressor_system_v2 = dto.components.ConsumerSystem(
+compressor_system_v2 = ConsumerSystem(
     name="compressor_system_v2",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
     regularity=regularity,
@@ -395,7 +406,7 @@ compressor_system_v2 = dto.components.ConsumerSystem(
     ],
 )
 
-pump_system = dto.ElectricityConsumer(
+pump_system = ElectricityConsumer(
     component_type=ComponentType.PUMP_SYSTEM,
     name="pump_system",
     energy_usage_model={
@@ -439,7 +450,7 @@ pump_system = dto.ElectricityConsumer(
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
 )
 
-pump_system_v2 = dto.components.ConsumerSystem(
+pump_system_v2 = ConsumerSystem(
     name="pump_system_v2",
     user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
@@ -618,18 +629,18 @@ def consumer_system_v2_dto() -> DTOCase:
     assert pump2
     assert pump3
     return DTOCase(
-        dto.Asset(
+        Asset(
             component_type=ComponentType.ASSET,
             name="consumer_system_v2",
             installations=[
-                dto.Installation(
+                Installation(
                     name="installation",
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     component_type=ComponentType.INSTALLATION,
                     regularity=regularity,
                     hydrocarbon_export={datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(17)},
                     fuel_consumers=[
-                        dto.GeneratorSet(
+                        GeneratorSet(
                             name="GeneratorSet",
                             user_defined_category={
                                 datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR

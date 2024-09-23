@@ -5,10 +5,10 @@ from typing import Dict, List
 
 import libecalc.common.time_utils
 from ecalc_cli.errors import EcalcCLIError
-from libecalc import dto
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_time_steps
+from libecalc.dto import Asset, ResultOptions
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
 from libecalc.presentation.exporter.exporter import Exporter
@@ -169,7 +169,7 @@ def export_tsv(
     exporter.export(row_based_data)
 
 
-def write_flow_diagram(model_dto: dto.Asset, result_options: dto.ResultOptions, output_folder: Path, name_prefix: str):
+def write_flow_diagram(model_dto: Asset, result_options: ResultOptions, output_folder: Path, name_prefix: str):
     """Write FDE diagram to file.
 
     Args:

@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from libecalc import dto
 from libecalc.common.time_utils import Period
+from libecalc.dto import Asset
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.create_references import create_references
 from libecalc.presentation.yaml.resource import Resources
@@ -10,7 +10,7 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
 
-def map_yaml_to_dto(configuration: PyYamlYamlModel, resources: Resources) -> dto.Asset:
+def map_yaml_to_dto(configuration: PyYamlYamlModel, resources: Resources) -> Asset:
     # TODO: Replace configuration type with YamlValidator
     references = create_references(configuration, resources)
     target_period = Period(

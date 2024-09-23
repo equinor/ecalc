@@ -1,11 +1,11 @@
-from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
 from libecalc.core.models.compressor import create_compressor_model
+from libecalc.dto import CompressorConsumerFunction as CompressorConsumerFunctionDTO
 
 
-def create_compressor_consumer_function(model_dto: dto.CompressorConsumerFunction) -> CompressorConsumerFunction:
+def create_compressor_consumer_function(model_dto: CompressorConsumerFunctionDTO) -> CompressorConsumerFunction:
     compressor_model = create_compressor_model(compressor_model_dto=model_dto.model)
     return CompressorConsumerFunction(
         condition_expression=model_dto.condition,

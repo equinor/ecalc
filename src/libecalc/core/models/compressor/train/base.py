@@ -4,7 +4,6 @@ from typing import Generic, List, Optional, TypeVar, Union, cast
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models import (
@@ -24,6 +23,8 @@ from libecalc.dto.models.compressor.train import CompressorTrain as CompressorTr
 from libecalc.dto.models.compressor.train import (
     SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
 )
+from libecalc.dto.models.compressor.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
+from libecalc.dto.types import FixedSpeedPressureControl
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT
@@ -86,7 +87,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         return min([stage.compressor_chart.maximum_speed for stage in self.stages])
 
     @property
-    def pressure_control(self) -> Optional[dto.types.FixedSpeedPressureControl]:
+    def pressure_control(self) -> Optional[FixedSpeedPressureControl]:
         return self.data_transfer_object.pressure_control
 
     @property
@@ -150,7 +151,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
                 for (i, failure_status) in enumerate(input_failure_status)
                 if failure_status == ModelInputFailureStatus.NO_FAILURE
             ]
-            if isinstance(self.data_transfer_object, dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures):
+            if isinstance(self.data_transfer_object, VariableSpeedCompressorTrainMultipleStreamsAndPressures):
                 max_standard_rate_for_valid_indices = self.get_max_standard_rate_per_stream(
                     suction_pressures=suction_pressure[valid_indices],
                     discharge_pressures=discharge_pressure[valid_indices],

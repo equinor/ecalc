@@ -4,7 +4,6 @@ from typing import Dict
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
@@ -12,6 +11,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
+from libecalc.dto import FuelType
 
 
 class FuelModel:
@@ -20,7 +20,7 @@ class FuelModel:
     attributes which may be evaluated for some variables and a fuel_rate.
     """
 
-    def __init__(self, fuel_time_function_dict: Dict[datetime, dto.FuelType]):
+    def __init__(self, fuel_time_function_dict: Dict[datetime, FuelType]):
         logger.debug("Creating fuel model")
         self.temporal_fuel_model = TemporalModel(fuel_time_function_dict)
 

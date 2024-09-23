@@ -18,7 +18,6 @@ from ecalc_neqsim_wrapper.mappings import (
     map_eos_model_to_neqsim,
     map_fluid_composition_to_neqsim,
 )
-from libecalc import dto
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.logger import logger
 from libecalc.dto import FluidComposition
@@ -121,7 +120,7 @@ class NeqsimFluid:
     @classmethod
     def create_thermo_system(
         cls,
-        composition: dto.FluidComposition,
+        composition: FluidComposition,
         temperature_kelvin: float = STANDARD_TEMPERATURE_KELVIN,
         pressure_bara: float = STANDARD_PRESSURE_BARA,
         eos_model: EoSModel = EoSModel.SRK,
@@ -386,7 +385,7 @@ def mix_neqsim_streams(
     pressure: float,
     temperature: float,
     eos_model: EoSModel = EoSModel.SRK,
-) -> Tuple[dto.FluidComposition, NeqsimFluid]:
+) -> Tuple[FluidComposition, NeqsimFluid]:
     """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
 
     composition_dict: Dict[str, float] = {}
@@ -420,7 +419,7 @@ def mix_neqsim_streams(
             else:
                 composition_dict[composition_name] = composition_moles
 
-    ecalc_fluid_composition = dto.FluidComposition.parse_obj(
+    ecalc_fluid_composition = FluidComposition.parse_obj(
         {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()}
     )
 

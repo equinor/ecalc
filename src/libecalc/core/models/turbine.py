@@ -6,11 +6,11 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc import dto
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results import TurbineResult
+from libecalc.dto import Turbine
 
 SECONDS_PER_DAY = 86400
 
@@ -18,7 +18,7 @@ SECONDS_PER_DAY = 86400
 class TurbineModel(BaseModel):
     def __init__(
         self,
-        data_transfer_object: dto.Turbine,
+        data_transfer_object: Turbine,
     ):
         self.data_transfer_object = data_transfer_object
         self.fuel_lower_heating_value = np.array(data_transfer_object.lower_heating_value)

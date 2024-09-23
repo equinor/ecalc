@@ -6,7 +6,6 @@ from typing import Dict
 import numpy as np
 
 import libecalc.dto.components
-from libecalc import dto
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.math.numbers import Numbers
@@ -26,6 +25,18 @@ from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.dto.components import (
+    ConsumerSystem as ConsumerSystemDTO,
+)
+from libecalc.dto.components import (
+    ElectricityConsumer as ElectricityConsumerDTO,
+)
+from libecalc.dto.components import (
+    FuelConsumer as FuelConsumerDTO,
+)
+from libecalc.dto.components import (
+    GeneratorSet as GeneratorSetDTO,
+)
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -50,7 +61,7 @@ class EnergyCalculator:
         consumer_results: Dict[str, EcalcModelResult] = {}
 
         for component_dto in component_dtos:
-            if isinstance(component_dto, (dto.ElectricityConsumer, dto.FuelConsumer)):
+            if isinstance(component_dto, (ElectricityConsumerDTO, FuelConsumerDTO)):
                 consumer = Consumer(
                     id=component_dto.id,
                     name=component_dto.name,
@@ -65,7 +76,7 @@ class EnergyCalculator:
                     ),
                 )
                 consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)
-            elif isinstance(component_dto, dto.GeneratorSet):
+            elif isinstance(component_dto, GeneratorSetDTO):
                 fuel_consumer = Genset(
                     id=component_dto.id,
                     name=component_dto.name,
@@ -189,14 +200,14 @@ class EnergyCalculator:
         """
         emission_results: Dict[str, Dict[str, EmissionResult]] = {}
         for consumer_dto in self._graph.nodes.values():
-            if isinstance(consumer_dto, (dto.FuelConsumer, dto.GeneratorSet)):
+            if isinstance(consumer_dto, (FuelConsumerDTO, GeneratorSetDTO)):
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                 emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
                     variables_map=variables_map,
                     fuel_rate=np.asarray(energy_usage.values),
                 )
-            elif isinstance(consumer_dto, dto.components.ConsumerSystem):
+            elif isinstance(consumer_dto, ConsumerSystemDTO):
                 if consumer_dto.consumes == ConsumptionType.FUEL:
                     fuel_model = FuelModel(consumer_dto.fuel)
                     energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage

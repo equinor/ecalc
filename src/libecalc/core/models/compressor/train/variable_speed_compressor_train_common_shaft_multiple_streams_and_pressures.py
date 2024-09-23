@@ -4,7 +4,6 @@ from typing import Dict, List, Optional, Tuple, cast
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
@@ -36,13 +35,20 @@ from libecalc.core.models.results.compressor import (
     TargetPressureStatus,
 )
 from libecalc.domain.stream_conditions import StreamConditions
+from libecalc.dto import (
+    CompressorStage,
+    FluidModel,
+    SingleSpeedCompressorTrain,
+    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
+from libecalc.dto import FluidStream as FluidStreamDTO
 from libecalc.dto.types import FixedSpeedPressureControl
 
 EPSILON = 1e-5
 
 
 class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
-    CompressorTrainModel[dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures]
+    CompressorTrainModel[VariableSpeedCompressorTrainMultipleStreamsAndPressures]
 ):
     """An advanced model of a compressor train with variable speed, with the possibility of modelling additional
     streams going into or leaving the compressor train between the compressor train stages.
@@ -76,7 +82,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def __init__(
         self,
-        data_transfer_object: dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+        data_transfer_object: VariableSpeedCompressorTrainMultipleStreamsAndPressures,
         streams: List[FluidStreamObjectForMultipleStreams],
     ):
         logger.debug(
@@ -1040,8 +1046,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         )
 
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=train_inlet_stream),
-            outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=previous_outlet_stream),
+            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
+            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=previous_outlet_stream),
             stage_results=stage_results,
             speed=speed,
             target_pressure_status=target_pressure_status,
@@ -1125,7 +1131,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         pressure_bara=inlet_pressure,
                         temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
                     )
-                    train_result.inlet_stream = dto.FluidStream.from_fluid_domain_object(fluid_stream=new_inlet_stream)
+                    train_result.inlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_inlet_stream)
                     train_result.target_pressure_status = self.check_target_pressures(
                         calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
                         calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
@@ -1137,9 +1143,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                         pressure_bara=outlet_pressure,
                         temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
                     )
-                    train_result.outlet_stream = dto.FluidStream.from_fluid_domain_object(
-                        fluid_stream=new_outlet_stream
-                    )
+                    train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
                     train_result.target_pressure_status = self.check_target_pressures(
                         calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
                         calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
@@ -1220,10 +1224,10 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
             ]
 
             single_speed_train = SingleSpeedCompressorTrainCommonShaft(
-                data_transfer_object=dto.SingleSpeedCompressorTrain(
+                data_transfer_object=SingleSpeedCompressorTrain(
                     fluid_model=inlet_fluid_single_speed_train.fluid_model,
                     stages=[
-                        dto.CompressorStage(
+                        CompressorStage(
                             compressor_chart=SingleSpeedChartDTO(
                                 speed_rpm=stage.compressor_chart.speed,
                                 rate_actual_m3_hour=list(stage.compressor_chart.rate_values),
@@ -1391,7 +1395,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         # set self.inlet_fluid based on outlet_stream_first_part
         compressor_train_last_part.streams[0].fluid = FluidStream(  # filling the placeholder with the correct fluid
-            fluid_model=dto.FluidModel(
+            fluid_model=FluidModel(
                 composition=compressor_train_results_first_part_with_optimal_speed_result.stage_results[
                     -1
                 ].outlet_stream.composition,
@@ -1564,7 +1568,7 @@ def split_train_on_stage_number(
     compressor_train_first_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=[stream for stream in compressor_train.streams if stream.connected_to_stage_no < stage_number],
         data_transfer_object=cast(
-            dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures, first_part_data_transfer_object
+            VariableSpeedCompressorTrainMultipleStreamsAndPressures, first_part_data_transfer_object
         ),
     )
 
@@ -1586,7 +1590,7 @@ def split_train_on_stage_number(
     compressor_train_last_part = VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         streams=streams_last_part,
         data_transfer_object=cast(
-            dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures, last_part_data_transfer_object
+            VariableSpeedCompressorTrainMultipleStreamsAndPressures, last_part_data_transfer_object
         ),
     )
 

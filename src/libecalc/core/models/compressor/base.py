@@ -7,7 +7,6 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
@@ -18,6 +17,7 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import find_roo
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.models.turbine import TurbineModel
 from libecalc.domain.stream_conditions import StreamConditions
+from libecalc.dto import CompressorWithTurbine
 
 
 class CompressorModel(BaseModel):
@@ -73,7 +73,7 @@ class CompressorModel(BaseModel):
 class CompressorWithTurbineModel(CompressorModel):
     def __init__(
         self,
-        data_transfer_object: dto.CompressorWithTurbine,
+        data_transfer_object: CompressorWithTurbine,
         compressor_energy_function: CompressorModel,
         turbine_model: TurbineModel,
     ):

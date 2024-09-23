@@ -1,6 +1,5 @@
 from typing import Optional
 
-from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
     ConsumerSystemConsumerFunction,
     PumpSystemConsumerFunction,
@@ -10,6 +9,8 @@ from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
 )
 from libecalc.core.consumers.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.core.models.pump import create_pump_model
+from libecalc.dto import PumpSystemConsumerFunction as PumpSystemConsumerFunctionDTO
+from libecalc.dto import PumpSystemOperationalSetting
 from libecalc.expression import Expression
 
 from .compressor_system_consumer_function import (
@@ -20,7 +21,7 @@ from .compressor_system_consumer_function import (
 
 
 def _map_operational_setting(
-    operational_setting: dto.PumpSystemOperationalSetting,
+    operational_setting: PumpSystemOperationalSetting,
     system_rate: Optional[Expression],
     system_fluid_density: Optional[Expression],
     number_of_pumps: int,
@@ -46,7 +47,7 @@ def _map_operational_setting(
     )
 
 
-def create_pump_system(model_dto: dto.PumpSystemConsumerFunction) -> ConsumerSystemConsumerFunction:
+def create_pump_system(model_dto: PumpSystemConsumerFunctionDTO) -> ConsumerSystemConsumerFunction:
     return PumpSystemConsumerFunction(
         consumer_components=[
             ConsumerSystemComponent(
