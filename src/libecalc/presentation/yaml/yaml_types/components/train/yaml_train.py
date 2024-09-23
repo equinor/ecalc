@@ -4,8 +4,8 @@ from typing import Dict, Generic, List, Literal, Optional, TypeVar
 from pydantic import Field
 
 from libecalc import dto
+from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
-from libecalc.dto.base import ComponentType
 from libecalc.dto.components import Stream, TrainComponent
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression

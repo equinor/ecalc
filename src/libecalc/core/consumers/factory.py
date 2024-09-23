@@ -2,12 +2,12 @@ from datetime import datetime
 from typing import Union, overload
 
 from libecalc import dto
+from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
 from libecalc.core.consumers.compressor import Compressor
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.models.compressor import create_compressor_model
 from libecalc.core.models.pump import create_pump_model
-from libecalc.dto.base import ComponentType
 
 
 @overload

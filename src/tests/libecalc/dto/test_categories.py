@@ -5,9 +5,9 @@ import pytest
 from pydantic import ValidationError
 
 from libecalc import dto
+from libecalc.common.component_type import ComponentType
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.components import (
-    ComponentType,
     ConsumerUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )

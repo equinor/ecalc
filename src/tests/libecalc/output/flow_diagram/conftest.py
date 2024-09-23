@@ -3,7 +3,7 @@ import datetime
 import pytest
 
 from libecalc import dto
-from libecalc.dto.base import ComponentType
+from libecalc.common.component_type import ComponentType
 from libecalc.expression import Expression
 from libecalc.presentation.flow_diagram.fde_models import Flow, FlowType, Node, NodeType
 

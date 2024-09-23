@@ -8,6 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 from typing_extensions import assert_never
 
+from libecalc.common.component_type import ComponentType
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
@@ -42,7 +43,6 @@ from libecalc.core.result.results import (
     GenericComponentResult,
     PumpResult,
 )
-from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 
