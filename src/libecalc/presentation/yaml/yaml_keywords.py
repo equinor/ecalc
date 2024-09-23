@@ -176,6 +176,7 @@ class EcalcYamlKeywords:
     models_turbine_efficiency_table_efficiency_values = "TURBINE_EFFICIENCIES"
     models_type_compressor_with_turbine = "COMPRESSOR_WITH_TURBINE"
     models_power_adjustment_constant_mw = "POWER_ADJUSTMENT_CONSTANT"
+    models_power_adjustment_factor_mw = "POWER_ADJUSTMENT_FACTOR"
     models_maximum_power = "MAXIMUM_POWER"
 
     facility_adjustment = "ADJUSTMENT"

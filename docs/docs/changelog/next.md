@@ -21,6 +21,7 @@ sidebar_position: -1002
   is any downstream choking, this will happen between the outlet of the last compressor stage and the outlet of the
   compressor train. This means that in a situation with downstream choking, the fluid stream leaving the compressor
   train will have lower e.g. pressure and density than the fluid stream leaving the last compressor stage.
+- `POWER_ADJUSTMENT_FACTOR` for models: Optional factor to adjust the power (MW). Previously only the `POWER_ADJUSTMENT_CONSTANT` has been available for models, now it is possible to adjust/scale the power with a constant and a factor. It can be used to calibrate equipment.
 
 ## Fixes
 
