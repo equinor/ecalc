@@ -17,6 +17,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
+from libecalc.common.variables import VariablesMap
 from libecalc.dto.base import (
     Component,
     ComponentType,
@@ -40,7 +41,6 @@ from libecalc.dto.utils.validators import (
     convert_expression,
     validate_temporal_model,
 )
-from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.ltp_validation import (
     validate_generator_set_power_from_shore,

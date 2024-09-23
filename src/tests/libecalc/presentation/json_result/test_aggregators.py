@@ -11,6 +11,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
+from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import aggregate_emissions
@@ -148,7 +149,7 @@ class TestAggregateEmissions:
         """
 
         time_vector = pd.date_range(datetime(2024, 1, 1), datetime(2025, 1, 1), freq="M").to_pydatetime().tolist()
-        variables = dto.VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+        variables = VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
         inst_a = get_installation(
             name_inst="INSTA", name_consumer="cons1", name_fuel="fuel1", co2_factor=1, fuel_rate=100

@@ -3,8 +3,8 @@ from typing import List
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.utils.rates import TimeSeriesFloat
+from libecalc.common.variables import VariablesMap
 from libecalc.core.result import EcalcModelResult
-from libecalc.dto import VariablesMap
 
 
 class BaseConsumer(ABC):

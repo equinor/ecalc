@@ -4,6 +4,7 @@ import numpy as np
 
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.utils.rates import Rates
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -19,7 +20,6 @@ from libecalc.core.models.tabulated import (
     Variable,
     VariableExpression,
 )
-from libecalc.dto import VariablesMap
 from libecalc.expression import Expression
 
 

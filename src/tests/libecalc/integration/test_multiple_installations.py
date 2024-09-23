@@ -7,6 +7,7 @@ from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
+from libecalc.common.variables import VariablesMap
 from libecalc.presentation.json_result.mapper import get_asset_result
 
 
@@ -28,7 +29,7 @@ def test_asset_with_multiple_installations(asset_with_two_installations):
     graph = asset_with_two_installations.get_graph()
     energy_calculator = EnergyCalculator(graph)
     timesteps = [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
-    variables_map = dto.VariablesMap(time_vector=timesteps)
+    variables_map = VariablesMap(time_vector=timesteps)
     consumer_results = energy_calculator.evaluate_energy_usage(variables_map)
     emission_results = energy_calculator.evaluate_emissions(variables_map, consumer_results)
     graph_result = GraphResult(

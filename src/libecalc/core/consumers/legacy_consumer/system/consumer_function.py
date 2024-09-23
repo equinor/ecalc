@@ -8,6 +8,7 @@ from numpy.typing import NDArray
 from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     apply_condition,
@@ -35,7 +36,6 @@ from libecalc.core.consumers.legacy_consumer.system.utils import (
 )
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.pump import PumpModel
-from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
 

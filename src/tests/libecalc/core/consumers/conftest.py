@@ -4,7 +4,7 @@ import pytest
 
 from libecalc import dto
 from libecalc.common.utils.rates import RateType
-from libecalc.dto import VariablesMap
+from libecalc.common.variables import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.expression import Expression
 

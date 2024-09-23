@@ -3,7 +3,6 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
@@ -11,6 +10,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesStreamDayRate,
 )
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result.results import GenericComponentResult
@@ -25,7 +25,7 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
 
     graph = genset_2mw_dto.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
-    variables = dto.VariablesMap(time_vector=time_vector)
+    variables = VariablesMap(time_vector=time_vector)
     consumer_results = energy_calculator.evaluate_energy_usage(variables)
 
     generator_set_result = consumer_results[genset_2mw_dto.id].component_result
@@ -72,7 +72,7 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     )
 
     results = genset.evaluate(
-        variables_map=dto.VariablesMap(time_vector=time_vector),
+        variables_map=VariablesMap(time_vector=time_vector),
         power_requirement=np.asarray([np.nan, np.nan, 0.5, 0.5, np.nan, np.nan]),
     )
 
@@ -114,7 +114,7 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     )
 
     results = genset.evaluate(
-        variables_map=dto.VariablesMap(time_vector=time_vector),
+        variables_map=VariablesMap(time_vector=time_vector),
         power_requirement=np.asarray([1, 2, 3, 4, 5, 6]),
     )
 
@@ -143,7 +143,7 @@ def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto):
 
     graph = genset_1000mw_late_startup_dto.get_graph()
     energy_calculator = EnergyCalculator(graph)
-    consumer_results = energy_calculator.evaluate_energy_usage(variables_map=dto.VariablesMap(time_vector=time_vector))
+    consumer_results = energy_calculator.evaluate_energy_usage(variables_map=VariablesMap(time_vector=time_vector))
 
     generator_set_result = consumer_results[genset_1000mw_late_startup_dto.id].component_result
     components = [

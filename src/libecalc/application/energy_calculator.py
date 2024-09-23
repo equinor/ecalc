@@ -14,6 +14,7 @@ from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
@@ -42,7 +43,7 @@ class EnergyCalculator:
     ):
         self._graph = graph
 
-    def evaluate_energy_usage(self, variables_map: dto.VariablesMap) -> Dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(self, variables_map: VariablesMap) -> Dict[str, EcalcModelResult]:
         component_ids = list(reversed(self._graph.sorted_node_ids))
         component_dtos = [self._graph.get_node(component_id) for component_id in component_ids]
 
@@ -175,7 +176,7 @@ class EnergyCalculator:
         return Numbers.format_results_to_precision(consumer_results, precision=6)
 
     def evaluate_emissions(
-        self, variables_map: dto.VariablesMap, consumer_results: Dict[str, EcalcModelResult]
+        self, variables_map: VariablesMap, consumer_results: Dict[str, EcalcModelResult]
     ) -> Dict[str, Dict[str, EmissionResult]]:
         """
         Calculate emissions for fuel consumers and emitters

@@ -4,6 +4,7 @@ import numpy as np
 
 import libecalc.dto as dto
 from libecalc.common.units import Unit
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
@@ -148,7 +149,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
         )
     )
 
-    variables_map = dto.VariablesMap(
+    variables_map = VariablesMap(
         time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1)],
         variables={"SIM1;v1": [1, 1], "SIM1;v2": [1, 1]},
     )

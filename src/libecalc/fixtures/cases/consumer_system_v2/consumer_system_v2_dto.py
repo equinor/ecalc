@@ -6,6 +6,7 @@ from libecalc import dto
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.common.variables import VariablesMap
 from libecalc.dto import (
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
@@ -645,7 +646,7 @@ def consumer_system_v2_dto() -> DTOCase:
                 )
             ],
         ),
-        variables=dto.VariablesMap(
+        variables=VariablesMap(
             time_vector=[
                 datetime(2022, 1, 1, 0, 0),
                 datetime(2024, 1, 1, 0, 0),

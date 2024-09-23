@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 from libecalc.common.utils.rates import Rates
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -21,7 +22,6 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.core.models.results import CompressorTrainResult
-from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
 

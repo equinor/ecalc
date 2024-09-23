@@ -3,6 +3,7 @@ from typing import List, Union
 import numpy as np
 
 from libecalc.common.utils.rates import Rates
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -14,7 +15,6 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     get_power_loss_factor_from_expression,
 )
 from libecalc.core.models.pump import PumpModel
-from libecalc.dto import VariablesMap
 from libecalc.expression import Expression
 
 

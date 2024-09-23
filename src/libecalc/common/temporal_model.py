@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, Generic, Iterator, List, Tuple, TypeVar
 
 from libecalc.common.time_utils import Period
-from libecalc.dto.variables import VariablesMap
+from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
 
 ModelType = TypeVar("ModelType")
