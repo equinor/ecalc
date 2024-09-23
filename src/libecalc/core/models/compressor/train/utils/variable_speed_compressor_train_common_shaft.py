@@ -1,6 +1,6 @@
 import numpy as np
 
-from libecalc import dto
+from libecalc.common.serializable_chart import ChartCurveDTO
 from libecalc.core.models.compressor.train.chart import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
@@ -35,7 +35,7 @@ def get_single_speed_equivalent(
         head_values, efficiency_values = (np.asarray(iterable) for iterable in list(zip(*head_and_efficiency_values)))
 
         return SingleSpeedCompressorChart(
-            dto.ChartCurve(
+            ChartCurveDTO(
                 rate_actual_m3_hour=list(rate_values),
                 polytropic_head_joule_per_kg=list(head_values),
                 efficiency_fraction=list(efficiency_values),
