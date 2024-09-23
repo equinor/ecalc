@@ -238,7 +238,6 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
     def for_period(self, period: Period) -> Self:
         start_index, end_index = period.get_timestep_indices(self.timesteps)
-        #        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
         return self.__class__(
             timesteps=self.timesteps[start_index:end_index],
             values=self.values[start_index:end_index],
@@ -953,7 +952,6 @@ class TimeSeriesRate(TimeSeries[float]):
                 rate_type=self.rate_type,
             )
         start_index, end_index = period.get_timestep_indices(self.timesteps)
-        #        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
         return self.__class__(
             timesteps=self.timesteps[start_index:end_index],
             values=self.values[start_index:end_index],
