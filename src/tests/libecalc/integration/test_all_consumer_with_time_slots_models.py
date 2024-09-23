@@ -5,7 +5,6 @@ from typing import Dict, List
 import numpy as np
 import pytest
 
-from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.temporal_model import TemporalModel
