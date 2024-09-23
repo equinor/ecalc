@@ -1,15 +1,23 @@
 from typing import List, Literal, Optional
 
 import numpy as np
-from pydantic import Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing_extensions import Annotated, Self
 
 from libecalc.common.logger import logger
-from libecalc.dto.base import EcalcBaseModel
+from libecalc.common.string.string_utils import to_camel_case
 from libecalc.dto.types import ChartType
 
 
-class ChartCurve(EcalcBaseModel):
+class EcalcBaseModel(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
+
+
+class ChartCurveDTO(EcalcBaseModel):
     speed_rpm: float = Field(..., ge=0)
     rate_actual_m3_hour: List[Annotated[float, Field(ge=0)]]
     polytropic_head_joule_per_kg: List[Annotated[float, Field(ge=0)]]
@@ -68,19 +76,19 @@ class ChartCurve(EcalcBaseModel):
         return self.speed_rpm
 
 
-class SingleSpeedChart(ChartCurve):
+class SingleSpeedChartDTO(ChartCurveDTO):
     typ: Literal[ChartType.SINGLE_SPEED] = ChartType.SINGLE_SPEED
 
 
-class VariableSpeedChart(EcalcBaseModel):
+class VariableSpeedChartDTO(EcalcBaseModel):
     typ: Literal[ChartType.VARIABLE_SPEED] = ChartType.VARIABLE_SPEED
-    curves: List[ChartCurve]
+    curves: List[ChartCurveDTO]
     control_margin: Optional[float] = None  # Todo: Raise warning if this is used in an un-supported model.
     design_rate: Optional[float] = Field(None, ge=0)
     design_head: Optional[float] = Field(None, ge=0)
 
     @field_validator("curves")
-    def sort_chart_curves_by_speed(cls, curves: List[ChartCurve]) -> List[ChartCurve]:
+    def sort_chart_curves_by_speed(cls, curves: List[ChartCurveDTO]) -> List[ChartCurveDTO]:
         """Note: It is essential that the sort the curves by speed in order to set up the interpolations correctly."""
         return sorted(curves, key=lambda x: x.speed)
 

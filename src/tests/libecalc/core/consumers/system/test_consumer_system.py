@@ -319,7 +319,7 @@ class TestPumpSystemConsumerFunction:
         )
         pump = PumpSingleSpeed(
             pump_chart=SingleSpeedChart(
-                dto.SingleSpeedChart(
+                dto.SingleSpeedChartDTO(
                     rate_actual_m3_hour=df["RATE"].tolist(),
                     polytropic_head_joule_per_kg=[x * 9.81 for x in df["HEAD"].tolist()],  # [m] to [J/kg]
                     efficiency_fraction=df["EFFICIENCY"].tolist(),

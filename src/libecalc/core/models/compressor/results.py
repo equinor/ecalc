@@ -138,7 +138,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     @staticmethod
     def from_result_list_to_dto(
         result_list: List[CompressorTrainResultSingleTimeStep],
-        compressor_charts: Optional[List[Union[dto.SingleSpeedChart, dto.VariableSpeedChart]]],
+        compressor_charts: Optional[List[Union[dto.SingleSpeedChartDTO, dto.VariableSpeedChartDTO]]],
     ) -> Tuple[CompressorStreamCondition, CompressorStreamCondition, List[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 

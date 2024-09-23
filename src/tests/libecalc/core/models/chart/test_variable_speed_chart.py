@@ -8,15 +8,15 @@ from libecalc.core.models.chart import VariableSpeedChart
 @pytest.fixture
 def variable_speed_chart() -> VariableSpeedChart:
     return VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.5, 5.5],
                     polytropic_head_joule_per_kg=[4.5, 4.0, 2.5],
                     efficiency_fraction=[1, 1, 1],
                     speed_rpm=1,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[3.0, 5.0, 7.0],
                     polytropic_head_joule_per_kg=[7.5, 6.0, 5.0],
                     efficiency_fraction=[1, 1, 1],
@@ -30,45 +30,45 @@ def variable_speed_chart() -> VariableSpeedChart:
 @pytest.fixture
 def variable_speed_chart_multiple_speeds() -> VariableSpeedChart:
     return VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[2900.0, 3504.0, 4003.0, 4595.0],
                     polytropic_head_joule_per_kg=[82531.5, 78440.7, 72240.8, 60105.8],
                     efficiency_fraction=[0.72, 0.74, 0.74, 0.7],
                     speed_rpm=7689.0,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[3306.0, 4000.0, 4499.0, 4997.0, 5242.0],
                     polytropic_head_joule_per_kg=[107429.0, 101955.0, 95225.6, 84307.1, 78234.7],
                     efficiency_fraction=[0.72, 0.74, 0.74, 0.72, 0.7],
                     speed_rpm=8787.0,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[3709.0, 4502.0, 4994.0, 5508.0, 5924.0],
                     polytropic_head_joule_per_kg=[135819.0, 129325.0, 121889.0, 110617.0, 98629.7],
                     efficiency_fraction=[0.72, 0.74, 0.74, 0.73, 0.7],
                     speed_rpm=9886.0,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[3928.0, 4507.0, 5002.0, 5499.0, 6249.0],
                     polytropic_head_joule_per_kg=[151417.0, 146983.0, 140773.0, 131071.0, 109705.0],
                     efficiency_fraction=[0.72, 0.74, 0.74, 0.74, 0.7],
                     speed_rpm=10435.0,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[4053.0, 4501.0, 4999.0, 5493.0, 6001.0, 6439.0],
                     polytropic_head_joule_per_kg=[161345.0, 157754.0, 152506.0, 143618.0, 131983.0, 117455.0],
                     efficiency_fraction=[0.72, 0.73, 0.74, 0.74, 0.72, 0.7],
                     speed_rpm=10767.0,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[4139.0, 5002.0, 5494.0, 6009.0, 6560.0],
                     polytropic_head_joule_per_kg=[167544.0, 159657.0, 151358.0, 139910.0, 121477.0],
                     efficiency_fraction=[0.72, 0.74, 0.74, 0.73, 0.7],
                     speed_rpm=10984.0,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[4328.0, 4999.0, 5506.0, 6028.0, 6507.0, 6908.0],
                     polytropic_head_joule_per_kg=[185232.0, 178885.0, 171988.0, 161766.0, 147512.0, 133602.0],
                     efficiency_fraction=[0.72, 0.74, 0.74, 0.74, 0.72, 0.7],
@@ -101,13 +101,13 @@ def test_properties(variable_speed_chart):
 
 
 def test_minimum_head_function():
-    chart_curve_minimum_speed = dto.ChartCurve(
+    chart_curve_minimum_speed = dto.ChartCurveDTO(
         rate_actual_m3_hour=[500, 1000, 2000, 3000],
         polytropic_head_joule_per_kg=[10, 20, 40, 60],
         efficiency_fraction=[1, 1, 1, 1],
         speed_rpm=10,
     )
-    chart_curve_maximum_speed = dto.ChartCurve(
+    chart_curve_maximum_speed = dto.ChartCurveDTO(
         rate_actual_m3_hour=[300, 4000, 5000, 6000],
         polytropic_head_joule_per_kg=[60, 80, 100, 120],
         efficiency_fraction=[1, 1, 1, 1],
@@ -115,7 +115,7 @@ def test_minimum_head_function():
     )
 
     variable_speed_chart = VariableSpeedChart(
-        dto.VariableSpeedChart(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
+        dto.VariableSpeedChartDTO(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
     )
 
     # Testing that a low rate should give minimum head of 10 and a high rate should give maximum of 120.
@@ -139,15 +139,15 @@ def test_minimum_head_function2(variable_speed_chart):
 def test_minimum_head_function_with_ill_defined_curve():
     # "Ugly" chart where maximum speed maximum rate is above minimum speed curve
     chart = VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.5, 5.5],
                     polytropic_head_joule_per_kg=[4.5, 4.0, 2.5],
                     efficiency_fraction=[1, 1, 1],
                     speed_rpm=1,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[3.0, 3.5, 4.0],
                     polytropic_head_joule_per_kg=[7.5, 6.0, 5.0],
                     efficiency_fraction=[1, 1, 1],
@@ -163,13 +163,13 @@ def test_minimum_head_function_with_ill_defined_curve():
 
 
 def test_max_flow_head_functions():
-    chart_curve_minimum_speed = dto.ChartCurve(
+    chart_curve_minimum_speed = dto.ChartCurveDTO(
         rate_actual_m3_hour=[1000, 2000, 3000, 5000],
         polytropic_head_joule_per_kg=[5, 10, 15, 20],
         efficiency_fraction=[1, 1, 1, 1],
         speed_rpm=10,
     )
-    chart_curve_maximum_speed = dto.ChartCurve(
+    chart_curve_maximum_speed = dto.ChartCurveDTO(
         rate_actual_m3_hour=[1000, 2000, 3000, 5000],
         polytropic_head_joule_per_kg=[5, 10, 15, 20],
         efficiency_fraction=[1, 1, 1, 1],
@@ -177,7 +177,7 @@ def test_max_flow_head_functions():
     )
 
     variable_speed_chart = VariableSpeedChart(
-        dto.VariableSpeedChart(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
+        dto.VariableSpeedChartDTO(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
     )
 
     assert variable_speed_chart.maximum_head_as_function_of_rate(0) == 5
@@ -194,19 +194,19 @@ def test_max_flow_head_functions():
 
 
 def test_get_efficiency_variable_chart():
-    chart_curve_1 = dto.ChartCurve(
+    chart_curve_1 = dto.ChartCurveDTO(
         rate_actual_m3_hour=[1, 3, 5],
         polytropic_head_joule_per_kg=[3, 2, 1],
         efficiency_fraction=[0.10, 0.20, 0.30],
         speed_rpm=1,
     )
-    chart_curve_2 = dto.ChartCurve(
+    chart_curve_2 = dto.ChartCurveDTO(
         rate_actual_m3_hour=[1.5, 5.5],
         polytropic_head_joule_per_kg=[4, 2],
         efficiency_fraction=[0.40, 0.50],
         speed_rpm=2,
     )
-    chart_curve_3 = dto.ChartCurve(
+    chart_curve_3 = dto.ChartCurveDTO(
         rate_actual_m3_hour=[2, 5, 6],
         polytropic_head_joule_per_kg=[5, 4, 3],
         efficiency_fraction=[0.60, 0.70, 0.80],
@@ -214,7 +214,7 @@ def test_get_efficiency_variable_chart():
     )
 
     variable_speed_chart = VariableSpeedChart(
-        dto.VariableSpeedChart(curves=[chart_curve_1, chart_curve_2, chart_curve_3])
+        dto.VariableSpeedChartDTO(curves=[chart_curve_1, chart_curve_2, chart_curve_3])
     )
 
     # Check values at points defined in chart
@@ -259,15 +259,15 @@ def test_efficiency_as_function_of_rate_and_head_zero_chart_data():
     for efficiency interpolation.
     """
     chart = VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                     polytropic_head_joule_per_kg=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                     efficiency_fraction=[0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
                     speed_rpm=75.0,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                     polytropic_head_joule_per_kg=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                     efficiency_fraction=[0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
@@ -284,15 +284,15 @@ def test_efficiency_as_function_of_rate_and_head_zero_chart_data():
 
 def test_min_flow_function():
     chart = VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.0],
                     polytropic_head_joule_per_kg=[1.0, 0.5],
                     efficiency_fraction=[1, 1],
                     speed_rpm=1,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[2.0, 3.5],
                     polytropic_head_joule_per_kg=[3.0, 2.0],
                     efficiency_fraction=[1, 1],
@@ -326,21 +326,21 @@ def test_min_flow_function():
 def test_speed_curve_sorting():
     # (rate, head) - points. On purpose, the points are not ordered
     chart = VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[0.5, 2.0, 4.0],
                     polytropic_head_joule_per_kg=[3.0, 2.0, 1.0],
                     efficiency_fraction=[1, 1, 1],
                     speed_rpm=1,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.5, 5.5],
                     polytropic_head_joule_per_kg=[4.5, 4.0, 2.5],
                     efficiency_fraction=[1, 1, 1],
                     speed_rpm=2,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[0.75, 2.25, 4.75],
                     polytropic_head_joule_per_kg=[3.75, 3.0, 1.75],
                     efficiency_fraction=[1, 1, 1],
@@ -356,15 +356,15 @@ def test_speed_curve_sorting():
 def test_maximum_flow_function():
     # (rate, head) - points. On purpose, the points are not ordered
     chart = VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[0.5, 2.0, 4.0],
                     polytropic_head_joule_per_kg=[3.0, 2.0, 1.0],
                     efficiency_fraction=[1, 1, 1],
                     speed_rpm=1,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[1.0, 2.5, 5.5],
                     polytropic_head_joule_per_kg=[4.5, 4.0, 2.5],
                     efficiency_fraction=[1, 1, 1],
@@ -394,9 +394,9 @@ def test_is_100_percent_efficient(variable_speed_chart):
     assert variable_speed_chart.is_100_percent_efficient
 
     efficient_chart = VariableSpeedChart(
-        dto.VariableSpeedChart(
+        dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[1, 2],
                     polytropic_head_joule_per_kg=[1, 2],
                     efficiency_fraction=[0.5, 0.5],

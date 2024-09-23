@@ -8,7 +8,7 @@ from typing_extensions import Self
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.utils.rates import TimeSeries
-from libecalc.dto import SingleSpeedChart, VariableSpeedChart
+from libecalc.dto import SingleSpeedChartDTO, VariableSpeedChartDTO
 
 
 class EcalcResultBaseModel(BaseModel):
@@ -30,7 +30,7 @@ class EcalcResultBaseModel(BaseModel):
                 logger.warning(
                     f"Concatenating two temporal compressor results where result attribute '{attribute}' is undefined."
                 )
-            elif isinstance(values, (Enum, str, dict, SingleSpeedChart, VariableSpeedChart)):
+            elif isinstance(values, (Enum, str, dict, SingleSpeedChartDTO, VariableSpeedChartDTO)):
                 if values != other_values:
                     logger.warning(
                         f"Concatenating two temporal compressor model results where attribute {attribute} changes"

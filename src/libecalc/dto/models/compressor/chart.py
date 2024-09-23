@@ -6,16 +6,16 @@ from typing_extensions import Annotated
 from libecalc.dto.models.chart import (
     GenericChartFromDesignPoint,
     GenericChartFromInput,
-    SingleSpeedChart,
-    VariableSpeedChart,
+    SingleSpeedChartDTO,
+    VariableSpeedChartDTO,
 )
 
 CompressorChart = Annotated[
     Union[
         GenericChartFromInput,
         GenericChartFromDesignPoint,
-        VariableSpeedChart,
-        SingleSpeedChart,
+        VariableSpeedChartDTO,
+        SingleSpeedChartDTO,
     ],
     Field(discriminator="typ"),
 ]
