@@ -4,7 +4,7 @@ from pydantic import Field
 from typing_extensions import Annotated
 
 from libecalc.dto.base import EcalcBaseModel
-from libecalc.dto.models.compressor.chart import CompressorChart, VariableSpeedChart
+from libecalc.dto.models.compressor.chart import CompressorChart, VariableSpeedChartDTO
 from libecalc.dto.types import FixedSpeedPressureControl
 
 
@@ -24,7 +24,7 @@ class InterstagePressureControl(EcalcBaseModel):
 class MultipleStreamsCompressorStage(CompressorStage):
     """Special case for multiple streams model."""
 
-    compressor_chart: VariableSpeedChart
+    compressor_chart: VariableSpeedChartDTO
     stream_reference: Optional[List[str]] = None
     interstage_pressure_control: Optional[InterstagePressureControl] = None
 

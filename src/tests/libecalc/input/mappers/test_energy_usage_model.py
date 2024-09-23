@@ -17,7 +17,7 @@ from libecalc.presentation.yaml.yaml_entities import References, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 SINGLE_SPEED_PUMP_CHART = dto.PumpModel(
-    chart=dto.SingleSpeedChart(
+    chart=dto.SingleSpeedChartDTO(
         rate_actual_m3_hour=[20, 200, 60, 10000],
         polytropic_head_joule_per_kg=[
             Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -111,7 +111,7 @@ pump_system = (
     References(
         models={
             "waterinj": dto.PumpModel(
-                chart=dto.SingleSpeedChart(
+                chart=dto.SingleSpeedChartDTO(
                     rate_actual_m3_hour=[20, 200, 60, 10000],
                     polytropic_head_joule_per_kg=[
                         Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)

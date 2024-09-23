@@ -75,8 +75,8 @@ def test_data_compressor_train_common_shaft():
 
 
 @pytest.fixture
-def single_speed_chart_dto() -> dto.SingleSpeedChart:
-    return dto.SingleSpeedChart(
+def single_speed_chart_dto() -> dto.SingleSpeedChartDTO:
+    return dto.SingleSpeedChartDTO(
         rate_actual_m3_hour=[1735, 1882, 2027, 2182, 2322, 2467, 2615, 2762, 2907, 3054, 3201],
         polytropic_head_joule_per_kg=[
             95941.8,
@@ -140,7 +140,7 @@ def single_speed_compressor_train(medium_fluid_dto, single_speed_chart_dto) -> d
 def single_speed_compressor_train_stage(single_speed_chart_dto) -> CompressorTrainStage:
     return CompressorTrainStage(
         compressor_chart=SingleSpeedCompressorChart(
-            dto.SingleSpeedChart(
+            dto.SingleSpeedChartDTO(
                 rate_actual_m3_hour=single_speed_chart_dto.rate_actual_m3_hour,
                 polytropic_head_joule_per_kg=single_speed_chart_dto.polytropic_head_joule_per_kg,
                 efficiency_fraction=single_speed_chart_dto.efficiency_fraction,
@@ -154,7 +154,7 @@ def single_speed_compressor_train_stage(single_speed_chart_dto) -> CompressorTra
 
 
 @pytest.fixture
-def variable_speed_compressor_chart_unisim_methane() -> dto.VariableSpeedChart:
+def variable_speed_compressor_chart_unisim_methane() -> dto.VariableSpeedChartDTO:
     """Some variable speed compressor chart used in UniSim to compare single speed and variable speed
     compressor trains using UniSim vs. eCalc.
 
@@ -215,7 +215,7 @@ speed	rate	head	efficiency
 
     chart_curves = []
     for speed, data in df.groupby("speed"):
-        chart_curve = dto.ChartCurve(
+        chart_curve = dto.ChartCurveDTO(
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=data["head"].tolist(),
             efficiency_fraction=data["efficiency"].tolist(),
@@ -223,7 +223,7 @@ speed	rate	head	efficiency
         )
         chart_curves.append(chart_curve)
 
-    return dto.VariableSpeedChart(curves=chart_curves)
+    return dto.VariableSpeedChartDTO(curves=chart_curves)
 
 
 @pytest.fixture
@@ -232,7 +232,7 @@ def single_speed_compressor_train_unisim_methane(
 ) -> SingleSpeedCompressorTrainCommonShaft:
     """10 435 RPM was used in the UniSim simulation. No special meaning or thought behind this."""
     curve = [x for x in variable_speed_compressor_chart_unisim_methane.curves if x.speed_rpm == 10435][0]
-    chart = dto.SingleSpeedChart(
+    chart = dto.SingleSpeedChartDTO(
         polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,
         rate_actual_m3_hour=curve.rate_actual_m3_hour,
         efficiency_fraction=curve.efficiency_fraction,
@@ -260,7 +260,7 @@ def single_speed_compressor_train_unisim_methane(
 
 @pytest.fixture
 def variable_speed_compressor_train_unisim_methane(
-    variable_speed_compressor_chart_unisim_methane: dto.VariableSpeedChart,
+    variable_speed_compressor_chart_unisim_methane: dto.VariableSpeedChartDTO,
 ) -> VariableSpeedCompressorTrainCommonShaft:
     compressor_train_dto = dto.VariableSpeedCompressorTrain(
         fluid_model=dto.FluidModel(composition=dto.FluidComposition(methane=1), eos_model=dto.types.EoSModel.SRK),

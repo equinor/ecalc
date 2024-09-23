@@ -24,7 +24,7 @@ class ChartCurve:
     Note that pump charts are normally converted from meter liquid column to J/kg before or when creating the chart.
     """
 
-    def __init__(self, data_transfer_object: dto.ChartCurve):
+    def __init__(self, data_transfer_object: dto.ChartCurveDTO):
         self.data_transfer_object = data_transfer_object
         self.rate_actual_m3_hour = data_transfer_object.rate_actual_m3_hour
         self.polytropic_head_joule_per_kg = data_transfer_object.polytropic_head_joule_per_kg

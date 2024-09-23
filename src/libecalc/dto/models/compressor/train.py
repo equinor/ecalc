@@ -4,7 +4,7 @@ from pydantic import Field, field_validator
 from typing_extensions import Annotated
 
 from libecalc.dto.models.base import EnergyModel
-from libecalc.dto.models.compressor.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.dto.models.compressor.chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto.models.compressor.fluid import (
     FluidModel,
     MultipleStreamsAndPressureStream,
@@ -37,7 +37,7 @@ class CompressorTrainSimplifiedWithKnownStages(CompressorTrain):
     @classmethod
     def _validate_stages(cls, stages):
         for stage in stages:
-            if isinstance(stage.compressor_chart, SingleSpeedChart):
+            if isinstance(stage.compressor_chart, SingleSpeedChartDTO):
                 raise ValueError(
                     "Simplified Compressor Train does not support Single Speed Compressor Chart."
                     f" Given type was {type(stage.compressor_chart)}"
@@ -63,7 +63,7 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
     @field_validator("stage")
     @classmethod
     def _validate_stages(cls, stage):
-        if isinstance(stage.compressor_chart, SingleSpeedChart):
+        if isinstance(stage.compressor_chart, SingleSpeedChartDTO):
             raise ValueError(
                 "Simplified Compressor Train does not support Single Speed Compressor Chart."
                 f" Given type was {type(stage.compressor_chart)}"
@@ -83,7 +83,7 @@ class SingleSpeedCompressorTrain(CompressorTrain):
     @classmethod
     def _validate_stages(cls, stages):
         for stage in stages:
-            if not isinstance(stage.compressor_chart, SingleSpeedChart):
+            if not isinstance(stage.compressor_chart, SingleSpeedChartDTO):
                 raise ValueError(
                     "Single Speed Compressor train only accepts Single Speed Compressor Charts."
                     f" Given type was {type(stage.compressor_chart)}"
@@ -102,7 +102,7 @@ class VariableSpeedCompressorTrain(CompressorTrain):
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
-            if not isinstance(stage.compressor_chart, VariableSpeedChart):
+            if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
                 raise ValueError(
                     "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
                     f" Given type was {type(stage.compressor_chart)}"
@@ -146,7 +146,7 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
         min_speed_per_stage = []
         max_speed_per_stage = []
         for stage in stages:
-            if not isinstance(stage.compressor_chart, VariableSpeedChart):
+            if not isinstance(stage.compressor_chart, VariableSpeedChartDTO):
                 raise ValueError(
                     "Variable Speed Compressor train only accepts Variable Speed Compressor Charts."
                     f" Given type was {type(stage.compressor_chart)}"

@@ -85,7 +85,7 @@ class TestSingleSpeedChart:
             facility_data=pump_chart,
         )
         assert pump_model_dto == dto.PumpModel(
-            chart=dto.SingleSpeedChart(
+            chart=dto.SingleSpeedChartDTO(
                 rate_actual_m3_hour=[6.0, 6.0],
                 polytropic_head_joule_per_kg=[
                     Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -105,7 +105,7 @@ class TestSingleSpeedChart:
             facility_data=pump_chart,
         )
         assert pump_model_dto == dto.PumpModel(
-            chart=dto.SingleSpeedChart(
+            chart=dto.SingleSpeedChartDTO(
                 rate_actual_m3_hour=[6.0, 6.0],
                 polytropic_head_joule_per_kg=[
                     Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -150,7 +150,7 @@ class TestCompressorChartSingleSpeed:
         chart_dto = _single_speed_compressor_chart_mapper(
             model_config=compressor_chart, resources={"compressorchart.csv": chart_resource_with_speed}
         )
-        assert chart_dto == dto.SingleSpeedChart(
+        assert chart_dto == dto.SingleSpeedChartDTO(
             rate_actual_m3_hour=[6.0, 6.0],
             polytropic_head_joule_per_kg=[7000.0, 7000.0],
             efficiency_fraction=[0.08, 0.08],
@@ -162,7 +162,7 @@ class TestCompressorChartSingleSpeed:
         chart_dto = _single_speed_compressor_chart_mapper(
             model_config=compressor_chart, resources={"compressorchart.csv": chart_resource_without_speed}
         )
-        assert chart_dto == dto.SingleSpeedChart(
+        assert chart_dto == dto.SingleSpeedChartDTO(
             rate_actual_m3_hour=[6.0, 6.0],
             polytropic_head_joule_per_kg=[7000.0, 7000.0],
             efficiency_fraction=[0.08, 0.08],

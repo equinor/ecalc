@@ -37,7 +37,7 @@ def all_energy_usage_models_variables():
 
 @pytest.fixture
 def single_speed_pump() -> dto.PumpModel:
-    chart = dto.SingleSpeedChart(
+    chart = dto.SingleSpeedChartDTO(
         rate_actual_m3_hour=[200.0, 500.0, 1000.0, 1300.0, 1500.0],
         polytropic_head_joule_per_kg=[
             Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -57,9 +57,9 @@ def single_speed_pump() -> dto.PumpModel:
 @pytest.fixture
 def variable_speed_pump() -> dto.PumpModel:
     return dto.PumpModel(
-        chart=dto.VariableSpeedChart(
+        chart=dto.VariableSpeedChartDTO(
             curves=[
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[250, 500, 700, 800, 850, 900],
                     polytropic_head_joule_per_kg=[
                         Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -75,7 +75,7 @@ def variable_speed_pump() -> dto.PumpModel:
                     efficiency_fraction=[0.5, 0.65, 0.7, 0.75, 0.75, 0.75],
                     speed_rpm=2650,
                 ),
-                dto.ChartCurve(
+                dto.ChartCurveDTO(
                     rate_actual_m3_hour=[300.0, 600.0, 700.0, 800.0, 850.0, 900.0, 1000.0, 1300.0],
                     polytropic_head_joule_per_kg=[
                         Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -129,8 +129,8 @@ def simplified_variable_speed_compressor_train_with_gerg_fluid2(predefined_varia
 
 
 @pytest.fixture
-def user_defined_single_speed_compressor_chart_dto() -> dto.SingleSpeedChart:
-    return dto.SingleSpeedChart(
+def user_defined_single_speed_compressor_chart_dto() -> dto.SingleSpeedChartDTO:
+    return dto.SingleSpeedChartDTO(
         rate_actual_m3_hour=[1735, 1882, 2027, 2182, 2322, 2467, 2615, 2762, 2907, 3054, 3201],
         polytropic_head_joule_per_kg=[95942, 92999, 89663, 86426, 81325, 76126, 70142, 63569, 56604, 49639, 42477],
         efficiency_fraction=[

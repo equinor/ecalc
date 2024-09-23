@@ -219,15 +219,15 @@ class CompressorChartCreator:
         min_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_HEADS
 
         return VariableSpeedCompressorChart(
-            dto.VariableSpeedChart(
+            dto.VariableSpeedChartDTO(
                 curves=[
-                    dto.ChartCurve(
+                    dto.ChartCurveDTO(
                         rate_actual_m3_hour=list(min_speed_volume_rates),
                         polytropic_head_joule_per_kg=list(min_speed_heads),
                         efficiency_fraction=[polytropic_efficiency] * len(min_speed_volume_rates),
                         speed_rpm=75,  # 75 % of max speed
                     ),
-                    dto.ChartCurve(
+                    dto.ChartCurveDTO(
                         rate_actual_m3_hour=list(max_speed_volume_rates),
                         polytropic_head_joule_per_kg=list(max_speed_heads),
                         efficiency_fraction=[polytropic_efficiency] * len(max_speed_volume_rates),

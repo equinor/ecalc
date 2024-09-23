@@ -3,7 +3,7 @@ from typing import Literal, Optional, Union
 from pydantic import field_validator
 
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
-from libecalc.dto.models.chart import SingleSpeedChart, VariableSpeedChart
+from libecalc.dto.models.chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto.types import ConsumerType, EnergyModelType, EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
@@ -11,7 +11,7 @@ from libecalc.expression import Expression
 
 class PumpModel(EnergyModel):
     typ: Literal[EnergyModelType.PUMP_MODEL] = EnergyModelType.PUMP_MODEL
-    chart: Union[SingleSpeedChart, VariableSpeedChart]
+    chart: Union[SingleSpeedChartDTO, VariableSpeedChartDTO]
     head_margin: float
 
 

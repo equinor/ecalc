@@ -24,7 +24,7 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
+from libecalc.dto.models import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 from libecalc.presentation.json_result.result.emission import (
     EmissionIntensityResult,
@@ -190,7 +190,7 @@ class CompressorStreamConditionResult(TabularTimeSeries):
 
 
 class CompressorModelStageResult(TabularTimeSeries):
-    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]]
+    chart: Optional[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]]
     chart_area_flags: List[str]
     energy_usage_unit: Unit
     power_unit: Unit

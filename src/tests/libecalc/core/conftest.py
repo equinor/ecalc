@@ -46,7 +46,7 @@ def fuel_dto() -> dto.types.FuelType:
 @pytest.fixture
 def pump_single_speed() -> PumpSingleSpeed:
     chart_curve = SingleSpeedChart(
-        dto.SingleSpeedChart(
+        dto.SingleSpeedChartDTO(
             rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
             polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
             efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
@@ -85,7 +85,7 @@ def pump_variable_speed() -> PumpVariableSpeed:
 
     chart_curves = []
     for speed, data in df.groupby("speed"):
-        chart_curve = dto.ChartCurve(
+        chart_curve = dto.ChartCurveDTO(
             rate_actual_m3_hour=data["rate"].tolist(),
             polytropic_head_joule_per_kg=[x * 9.81 for x in data["head"].tolist()],  # meter liquid column to joule /kg
             efficiency_fraction=data["efficiency"].tolist(),
@@ -93,7 +93,7 @@ def pump_variable_speed() -> PumpVariableSpeed:
         )
         chart_curves.append(chart_curve)
 
-    return PumpVariableSpeed(pump_chart=VariableSpeedChart(dto.VariableSpeedChart(curves=chart_curves)))
+    return PumpVariableSpeed(pump_chart=VariableSpeedChart(dto.VariableSpeedChartDTO(curves=chart_curves)))
 
 
 @pytest.fixture
@@ -162,7 +162,7 @@ def compressor_model_sampled_3d():
 
 
 @pytest.fixture
-def variable_speed_compressor_chart_dto() -> dto.VariableSpeedChart:
+def variable_speed_compressor_chart_dto() -> dto.VariableSpeedChartDTO:
     df = pd.DataFrame(
         [
             [10767, 4053.0, 161345.0, 0.72],
@@ -205,7 +205,7 @@ def variable_speed_compressor_chart_dto() -> dto.VariableSpeedChart:
         columns=["speed", "rate", "head", "efficiency"],
     )
     chart_curves = [
-        dto.ChartCurve(
+        dto.ChartCurveDTO(
             polytropic_head_joule_per_kg=data["head"].tolist(),
             rate_actual_m3_hour=data["rate"].tolist(),
             efficiency_fraction=data["efficiency"].tolist(),
@@ -214,7 +214,7 @@ def variable_speed_compressor_chart_dto() -> dto.VariableSpeedChart:
         for speed, data in df.groupby("speed")
     ]
 
-    return dto.VariableSpeedChart(curves=chart_curves)
+    return dto.VariableSpeedChartDTO(curves=chart_curves)
 
 
 @pytest.fixture
