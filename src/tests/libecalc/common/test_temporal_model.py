@@ -10,7 +10,13 @@ class TestTemporalExpression:
         assert TemporalExpression.evaluate(
             temporal_expression=TemporalModel({datetime(2020, 1, 1): Expression.setup_from_expression(1)}),
             variables_map=VariablesMap(
-                time_vector=[datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1), datetime(2022, 7, 1)]
+                global_time_vector=[
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                    datetime(2022, 1, 1),
+                    datetime(2022, 7, 1),
+                    datetime(2023, 7, 1),
+                ]
             ),
         ) == [1, 1, 1, 1]
 
@@ -18,7 +24,13 @@ class TestTemporalExpression:
         assert TemporalExpression.evaluate(
             temporal_expression=TemporalModel({datetime(2020, 1, 1): Expression.setup_from_expression(1)}),
             variables_map=VariablesMap(
-                time_vector=[datetime(2019, 1, 1), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 7, 1)]
+                global_time_vector=[
+                    datetime(2019, 1, 1),
+                    datetime(2020, 1, 1),
+                    datetime(2021, 1, 1),
+                    datetime(2022, 7, 1),
+                    datetime(2023, 1, 1),
+                ]
             ),
         ) == [0, 1, 1, 1]
 
@@ -31,12 +43,13 @@ class TestTemporalExpression:
                 }
             ),
             variables_map=VariablesMap(
-                time_vector=[
+                global_time_vector=[
                     datetime(2019, 1, 1),
                     datetime(2020, 1, 1),
                     datetime(2021, 1, 1),
                     datetime(2022, 1, 1),
                     datetime(2022, 7, 1),
+                    datetime(2023, 1, 1),
                 ]
             ),
         ) == [0, 1, 1, 2, 2]
@@ -50,13 +63,14 @@ class TestTemporalExpression:
                 }
             ),
             variables_map=VariablesMap(
-                variables={"$var.var1": [5, 5, 5, 5]},
-                time_vector=[
+                variables={"$var.var1": [5, 5, 5, 5, 5]},
+                global_time_vector=[
                     datetime(2019, 1, 1),
                     datetime(2020, 1, 1),
                     datetime(2021, 1, 1),
                     datetime(2022, 1, 1),
                     datetime(2022, 7, 1),
+                    datetime(2023, 1, 1),
                 ],
             ),
         ) == [0, 1, 1, 5, 5]

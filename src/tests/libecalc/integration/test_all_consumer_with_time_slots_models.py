@@ -5,6 +5,7 @@ from typing import Dict, List
 import numpy as np
 import pytest
 
+from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.temporal_model import TemporalModel
@@ -31,10 +32,11 @@ def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer
             }
         ),
     )
-    time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1)]
-    result = el_consumer.evaluate(variables_map=VariablesMap(time_vector=time_vector, variables={}))
+    time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1), datetime(1902, 1, 1)]
+    variables = VariablesMap(global_time_vector=time_vector, variables={})
+    result = el_consumer.evaluate(variables_map=variables)
     consumer_result = result.component_result
-    assert consumer_result.timesteps == time_vector
+    assert consumer_result.timesteps == variables.time_vector
     assert consumer_result.power.values == [0, 0]
 
 
@@ -56,11 +58,11 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
         ),
     )
     input_variables_dict: Dict[str, List[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
-
+    variables = VariablesMap(
+        global_time_vector=[datetime(year, 1, 1) for year in range(2015, 2026)], variables=input_variables_dict
+    )
     result = el_consumer.evaluate(
-        variables_map=VariablesMap(
-            time_vector=[datetime(year, 1, 1) for year in range(2015, 2025)], variables=input_variables_dict
-        ),
+        variables_map=variables,
     )
 
     consumer_result = result.component_result
@@ -112,11 +114,11 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
         ),
     )
     input_variables_dict: Dict[str, List[float]] = {}
-
+    variables = VariablesMap(
+        global_time_vector=[datetime(year, 1, 1) for year in range(2017, 2026)], variables=input_variables_dict
+    )
     result = el_consumer.evaluate(
-        variables_map=VariablesMap(
-            time_vector=[datetime(year, 1, 1) for year in range(2017, 2025)], variables=input_variables_dict
-        ),
+        variables_map=variables,
     )
     consumer_result = result.component_result
 
@@ -166,12 +168,12 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
     input_variables_dict: Dict[str, List[float]] = {
         "RATE": [1800000 - (x * 100000) for x in range(10)]  # 1 000 000 -> 100 000
     }
-
+    variables = VariablesMap(
+        global_time_vector=[datetime(year, 1, 1) for year in range(start_year, start_year + time_steps + 1)],
+        variables=input_variables_dict,
+    )
     result = el_consumer.evaluate(
-        variables_map=VariablesMap(
-            time_vector=[datetime(year, 1, 1) for year in range(start_year, start_year + time_steps)],
-            variables=input_variables_dict,
-        ),
+        variables_map=variables,
     )
     consumer_result = result.component_result
 

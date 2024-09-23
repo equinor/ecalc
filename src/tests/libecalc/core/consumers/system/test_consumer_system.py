@@ -38,7 +38,7 @@ def consumer_system_variables_map():
     ]
     return VariablesMap(
         variables={},
-        time_vector=time_vector,
+        global_time_vector=time_vector,
     )
 
 
@@ -235,7 +235,12 @@ class TestPumpSystemConsumerFunction:
                     "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                     "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
                 },
-                time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
+                global_time_vector=[
+                    datetime(1995, 10, 18, 0, 0),
+                    datetime(1995, 10, 27, 0, 0),
+                    datetime(1995, 11, 1, 0, 0),
+                    datetime(1995, 11, 9, 0, 0),
+                ],
             ),
         )
 
@@ -348,7 +353,12 @@ class TestPumpSystemConsumerFunction:
                 "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                 "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
             },
-            time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
+            global_time_vector=[
+                datetime(1995, 10, 18, 0, 0),
+                datetime(1995, 10, 27, 0, 0),
+                datetime(1995, 11, 1, 0, 0),
+                datetime(1995, 11, 9, 0, 0),
+            ],
         )
 
         regularity = Expression.setup_from_expression(1).evaluate(
@@ -417,7 +427,12 @@ class TestCompressorSystemConsumerFunction:
                 "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                 "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
             },
-            time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
+            global_time_vector=[
+                datetime(1995, 10, 18, 0, 0),
+                datetime(1995, 10, 27, 0, 0),
+                datetime(1995, 11, 1, 0, 0),
+                datetime(1995, 11, 9, 0, 0),
+            ],
         )
         result = compressor_system_single.evaluate_operational_setting_expressions(
             operational_setting_expressions=compressor_system_single.operational_settings_expressions[0],
@@ -490,7 +505,7 @@ class TestCompressorSystemConsumerFunction:
         gas_prod_values = [0.005, 1.5, 4, 4, 4, 4, 4, 4, 4, 4]
         variables_map = VariablesMap(
             variables={"SIM1;GAS_PROD": gas_prod_values},
-            time_vector=[datetime(2000 + i, 1, 1) for i in range(10)],
+            global_time_vector=[datetime(2000 + i, 1, 1) for i in range(11)],
         )
         result = consumer_system_function.evaluate(
             variables_map=variables_map,

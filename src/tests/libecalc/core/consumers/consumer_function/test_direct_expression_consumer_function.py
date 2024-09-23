@@ -19,8 +19,12 @@ from libecalc.expression import Expression
 
 @pytest.fixture
 def direct_variables_map():
-    time_vector = [datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2003, 1, 1)]
-    return VariablesMap(variables={"foo;bar": [1.0] * len(time_vector)}, time_vector=time_vector)
+    time_vector = [
+        datetime(2000, 1, 1),
+        datetime(2001, 1, 1),
+        datetime(2003, 1, 1),
+    ]
+    return VariablesMap(variables={"foo;bar": [1.0, 1.0]}, global_time_vector=time_vector)
 
 
 def test_direct_expression_consumer_function():
@@ -32,7 +36,11 @@ def test_direct_expression_consumer_function():
 
     # Test evaluation
     variables_map = VariablesMap(
-        time_vector=[datetime(2000, 1, 1, 0, 0), datetime(2001, 1, 1, 0, 0)],
+        global_time_vector=[
+            datetime(2000, 1, 1, 0, 0),
+            datetime(2001, 1, 1, 0, 0),
+            datetime(2002, 1, 1, 0, 0),
+        ],
         variables={"SIM1;Flare": [10.0, 3.0], "SIM1;Vent": [5.0, 2.0]},
     )
 

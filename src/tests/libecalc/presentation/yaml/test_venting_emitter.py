@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -45,11 +46,12 @@ def methane():
 def variables_map(methane_values):
     return VariablesMap(
         variables={"TSC1;Methane_rate": methane(), "TSC1;Oil_rate": oil_values()},
-        time_vector=[
+        global_time_vector=[
             datetime(2000, 1, 1, 0, 0),
             datetime(2001, 1, 1, 0, 0),
             datetime(2002, 1, 1),
             datetime(2003, 1, 1, 0, 0),
+            datetime(2004, 1, 1, 0, 0),
         ],
     )
 

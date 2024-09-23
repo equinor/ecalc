@@ -28,8 +28,13 @@ def asset_with_two_installations(minimal_installation_dto_factory) -> dto.Asset:
 def test_asset_with_multiple_installations(asset_with_two_installations):
     graph = asset_with_two_installations.get_graph()
     energy_calculator = EnergyCalculator(graph)
-    timesteps = [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
-    variables_map = VariablesMap(time_vector=timesteps)
+    timesteps = [
+        datetime(2020, 1, 1),
+        datetime(2021, 1, 1),
+        datetime(2022, 1, 1),
+        datetime(2023, 1, 1),
+    ]
+    variables_map = VariablesMap(global_time_vector=timesteps)
     consumer_results = energy_calculator.evaluate_energy_usage(variables_map)
     emission_results = energy_calculator.evaluate_emissions(variables_map, consumer_results)
     graph_result = GraphResult(
@@ -43,7 +48,7 @@ def test_asset_with_multiple_installations(asset_with_two_installations):
     assert asset_result.component_result.energy_usage == TimeSeriesRate(
         values=[150, 150, 150],
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-        timesteps=timesteps,
+        timesteps=variables_map.time_vector,
         rate_type=RateType.CALENDAR_DAY,
         regularity=[1.0, 1.0, 1.0],
     )

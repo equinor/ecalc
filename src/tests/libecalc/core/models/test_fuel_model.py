@@ -25,9 +25,15 @@ def test_fuel_model():
             )
         }
     )
-    timesteps = [datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1)]
+    timesteps = [
+        datetime(2000, 1, 1),
+        datetime(2001, 1, 1),
+        datetime(2002, 1, 1),
+        datetime(2003, 1, 1),
+    ]
+    variables = VariablesMap(global_time_vector=timesteps)
     emissions = fuel_model.evaluate_emissions(
-        variables_map=VariablesMap(time_vector=timesteps),
+        variables_map=variables,
         fuel_rate=np.asarray([1, 2, 3]),
     )
 
@@ -35,7 +41,7 @@ def test_fuel_model():
 
     assert emission_result.name == "co2"
     assert emission_result.rate == TimeSeriesRate(
-        timesteps=timesteps,
+        timesteps=variables.time_vector,
         values=[0.001, 0.002, 0.003],
         unit=Unit.TONS_PER_DAY,
         rate_type=RateType.CALENDAR_DAY,
@@ -69,7 +75,14 @@ def test_temporal_fuel_model():
     )
 
     emissions = fuel_model.evaluate_emissions(
-        variables_map=VariablesMap(time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1)]),
+        variables_map=VariablesMap(
+            global_time_vector=[
+                datetime(2000, 1, 1),
+                datetime(2001, 1, 1),
+                datetime(2002, 1, 1),
+                datetime(2003, 1, 1),
+            ]
+        ),
         fuel_rate=np.asarray([1, 2, 3]),
     )
 

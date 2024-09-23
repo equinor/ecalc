@@ -45,6 +45,7 @@ def all_energy_usage_models_variables():
         datetime(2018, 1, 1, 0, 0),
         datetime(2019, 1, 1, 0, 0),
         datetime(2020, 1, 1, 0, 0),
+        datetime(2021, 1, 1, 0, 0),
     ]
     return VariablesMap(time_vector=time_vector, variables=variables)
 

@@ -78,6 +78,11 @@ class TestCreatePeriods:
             [Period(start=datetime.min, end=single_date), Period(start=single_date, end=datetime.max)]
         )
 
+    def test_single_date_not_include_before_or_after(self):
+        single_date = datetime(2020, 1, 1)
+        periods = Periods.create_periods([single_date], include_before=False, include_after=False)
+        assert periods == Periods([])
+
     def test_two_dates(self):
         first_date = datetime(2020, 1, 1)
         second_date = datetime(2022, 1, 1)

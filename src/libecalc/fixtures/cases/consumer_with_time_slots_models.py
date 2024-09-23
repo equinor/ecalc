@@ -310,5 +310,5 @@ def consumer_with_time_slots_models_dto(
                 )
             ],
         ),
-        variables=VariablesMap(time_vector=time_vector, variables={"RATE": [5000] * number_of_years}),
+        variables=VariablesMap(global_time_vector=time_vector, variables={"RATE": [5000] * number_of_years}),
     )
