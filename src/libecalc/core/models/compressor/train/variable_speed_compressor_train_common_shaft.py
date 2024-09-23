@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.results import (
     CompressorTrainResultSingleTimeStep,
@@ -773,7 +774,7 @@ def get_single_speed_equivalent_train(
             fluid_model=compressor_train.fluid.fluid_model,
             stages=[
                 dto.CompressorStage(
-                    compressor_chart=dto.SingleSpeedChart(
+                    compressor_chart=SingleSpeedChartDTO(
                         speed_rpm=stage.compressor_chart.speed,
                         rate_actual_m3_hour=list(stage.compressor_chart.rate_values),
                         polytropic_head_joule_per_kg=list(stage.compressor_chart.head_values),

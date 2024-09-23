@@ -7,9 +7,9 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.units import Unit
-from libecalc.dto import SingleSpeedChart, VariableSpeedChart
 
 
 class EnergyModelBaseResult(BaseModel):
@@ -30,7 +30,7 @@ class EnergyModelBaseResult(BaseModel):
                 logger.warning(
                     f"Concatenating two temporal compressor results where result attribute '{attribute}' is undefined."
                 )
-            elif isinstance(values, (Enum, str, dict, SingleSpeedChart, VariableSpeedChart)):
+            elif isinstance(values, (Enum, str, dict, SingleSpeedChartDTO, VariableSpeedChartDTO)):
                 if values != other_values:
                     logger.warning(
                         f"Concatenating two temporal compressor model results where attribute {attribute} changes"

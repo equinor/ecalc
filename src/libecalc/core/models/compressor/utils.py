@@ -1,6 +1,7 @@
 from typing import Optional, Union
 
 from libecalc import dto
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.core.models.compressor.train.chart import (
     SingleSpeedCompressorChart,
     VariableSpeedCompressorChart,
@@ -17,9 +18,9 @@ from libecalc.core.models.compressor.train.stage import (
 def _create_compressor_chart(
     chart_dto: dto.CompressorChart,
 ) -> Optional[Union[SingleSpeedCompressorChart, VariableSpeedCompressorChart]]:
-    if isinstance(chart_dto, dto.SingleSpeedChart):
+    if isinstance(chart_dto, SingleSpeedChartDTO):
         return SingleSpeedCompressorChart(chart_dto)
-    elif isinstance(chart_dto, dto.VariableSpeedChart):
+    elif isinstance(chart_dto, VariableSpeedChartDTO):
         return VariableSpeedCompressorChart(chart_dto)
     elif isinstance(chart_dto, dto.GenericChartFromDesignPoint):
         return CompressorChartCreator.from_rate_and_head_design_point(
@@ -73,7 +74,7 @@ def map_compressor_train_stage_to_domain(stage_dto: dto.CompressorStage) -> Comp
     """Todo: Add multiple streams and pressures here."""
     if isinstance(stage_dto, dto.CompressorStage):
         if isinstance(
-            stage_dto.compressor_chart, (dto.VariableSpeedChart, dto.GenericChartFromDesignPoint, dto.SingleSpeedChart)
+            stage_dto.compressor_chart, (VariableSpeedChartDTO, dto.GenericChartFromDesignPoint, SingleSpeedChartDTO)
         ):
             return _create_compressor_train_stage(stage_dto)
         elif isinstance(stage_dto.compressor_chart, dto.GenericChartFromInput):
