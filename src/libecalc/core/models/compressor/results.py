@@ -6,6 +6,7 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from libecalc import dto
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.results.compressor import (
@@ -138,7 +139,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     @staticmethod
     def from_result_list_to_dto(
         result_list: List[CompressorTrainResultSingleTimeStep],
-        compressor_charts: Optional[List[Union[dto.SingleSpeedChartDTO, dto.VariableSpeedChartDTO]]],
+        compressor_charts: Optional[List[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]]],
     ) -> Tuple[CompressorStreamCondition, CompressorStreamCondition, List[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 

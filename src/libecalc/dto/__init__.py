@@ -8,7 +8,6 @@ from libecalc.dto.components import (
 )
 from libecalc.dto.emission import Emission
 from libecalc.dto.models import (
-    ChartCurveDTO,
     CompressorChart,
     CompressorConsumerFunction,
     CompressorModel,
@@ -36,13 +35,11 @@ from libecalc.dto.models import (
     PumpSystemConsumerFunction,
     PumpSystemOperationalSetting,
     PumpSystemPump,
-    SingleSpeedChartDTO,
     SystemOperationalSetting,
     TabulatedConsumerFunction,
     TabulatedData,
     Turbine,
     Variables,
-    VariableSpeedChartDTO,
 )
 from libecalc.dto.models.compressor import (
     CompressorStage,

@@ -4,8 +4,8 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc import dto
 from libecalc.common.list.list_utils import array_to_list
+from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.core.models.chart.base import ChartCurve
 
 
@@ -65,7 +65,7 @@ class VariableSpeedChart:
 
     """
 
-    def __init__(self, data_transfer_object: dto.VariableSpeedChart):
+    def __init__(self, data_transfer_object: VariableSpeedChartDTO):
         self.data_transfer_object = data_transfer_object
         self.curves = [ChartCurve(curve) for curve in data_transfer_object.curves]
 

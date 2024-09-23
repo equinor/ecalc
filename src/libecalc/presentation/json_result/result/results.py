@@ -11,6 +11,7 @@ from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.logger import logger
 from libecalc.common.math.numbers import Numbers
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
@@ -24,7 +25,6 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.dto.models import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 from libecalc.presentation.json_result.result.emission import (
     EmissionIntensityResult,
