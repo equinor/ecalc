@@ -18,24 +18,24 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     get_power_loss_factor_from_expression,
 )
 from libecalc.core.models.results import EnergyFunctionGenericResult
-from libecalc.dto import DirectConsumerFunction
+from libecalc.expression import Expression
 
 
 class DirectExpressionConsumerFunction(ConsumerFunction):
     def __init__(
         self,
-        data_transfer_object: DirectConsumerFunction,
+        energy_usage_type: EnergyUsageType,
+        condition: Optional[Expression] = None,
+        fuel_rate: Optional[Expression] = None,
+        load: Optional[Expression] = None,
+        power_loss_factor: Optional[Expression] = None,
+        consumption_rate_type: RateType = RateType.STREAM_DAY,
     ):
-        expression = (
-            data_transfer_object.fuel_rate
-            if data_transfer_object.energy_usage_type == EnergyUsageType.FUEL.value
-            else data_transfer_object.load
-        )
-        condition_expression = data_transfer_object.condition
-        power_loss_factor_expression = data_transfer_object.power_loss_factor
-        direct_consumer_consumption_rate_type = data_transfer_object.consumption_rate_type
-
-        self.data_transfer_object = data_transfer_object
+        expression = fuel_rate if energy_usage_type == EnergyUsageType.FUEL.value else load
+        condition_expression = condition
+        power_loss_factor_expression = power_loss_factor
+        direct_consumer_consumption_rate_type = consumption_rate_type
+        self._energy_usage_type = energy_usage_type
         self._expression = expression
         self._convert_to_stream_day = direct_consumer_consumption_rate_type == RateType.CALENDAR_DAY
         self._condition_expression = condition_expression
@@ -43,11 +43,11 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
 
     @property
     def is_electrical_consumer(self) -> bool:
-        return self.data_transfer_object.energy_usage_type == EnergyUsageType.POWER
+        return self._energy_usage_type == EnergyUsageType.POWER
 
     @property
     def is_fuel_consumer(self) -> bool:
-        return self.data_transfer_object.energy_usage_type == EnergyUsageType.FUEL
+        return self._energy_usage_type == EnergyUsageType.FUEL
 
     @property
     def energy_usage_unit(self) -> Unit:
