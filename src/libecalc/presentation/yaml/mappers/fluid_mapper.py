@@ -1,7 +1,8 @@
 from typing import Any, Dict
 
-from libecalc import dto
 from libecalc.common.logger import logger
+from libecalc.dto import FluidComposition, FluidModel
+from libecalc.dto.types import EoSModel
 from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
@@ -13,7 +14,7 @@ used for increasing molecular weight.
 """
 
 
-ULTRA_DRY_MW_17P1 = dto.FluidComposition(
+ULTRA_DRY_MW_17P1 = FluidComposition(
     nitrogen=1.140841432,
     CO2=0.607605069,
     methane=94.90924895,
@@ -25,7 +26,7 @@ ULTRA_DRY_MW_17P1 = dto.FluidComposition(
     n_pentane=0.033999676,
     n_hexane=0.197664882,
 )
-DRY_MW_18P3 = dto.FluidComposition(
+DRY_MW_18P3 = FluidComposition(
     nitrogen=1.6545,
     CO2=0.8396,
     methane=89.3891,
@@ -37,7 +38,7 @@ DRY_MW_18P3 = dto.FluidComposition(
     n_pentane=0.0793,
     n_hexane=0.2559,
 )
-MEDIUM_MW_19P4 = dto.FluidComposition(
+MEDIUM_MW_19P4 = FluidComposition(
     nitrogen=0.74373,
     CO2=2.415619,
     methane=85.60145,
@@ -49,7 +50,7 @@ MEDIUM_MW_19P4 = dto.FluidComposition(
     n_pentane=0.197937,
     n_hexane=0.368786,
 )
-RICH_MW_21P4 = dto.FluidComposition(
+RICH_MW_21P4 = FluidComposition(
     nitrogen=0.682785869,
     CO2=2.466921329,
     methane=79.57192993,
@@ -61,7 +62,7 @@ RICH_MW_21P4 = dto.FluidComposition(
     n_pentane=0.201853022,
     n_hexane=0.16881974,
 )
-ULTRA_RICH_MW_24P6 = dto.FluidComposition(
+ULTRA_RICH_MW_24P6 = FluidComposition(
     nitrogen=3.433045573,
     CO2=0.341296928,
     methane=62.50752861,
@@ -83,10 +84,10 @@ _predefined_fluid_composition_mapper = {
 }
 
 _eos_model_mapper = {
-    EcalcYamlKeywords.models_type_fluid_eos_model_pr: dto.types.EoSModel.PR,
-    EcalcYamlKeywords.models_type_fluid_eos_model_srk: dto.types.EoSModel.SRK,
-    EcalcYamlKeywords.models_type_fluid_eos_model_gerg_pr: dto.types.EoSModel.GERG_PR,
-    EcalcYamlKeywords.models_type_fluid_eos_model_gerg_srk: dto.types.EoSModel.GERG_SRK,
+    EcalcYamlKeywords.models_type_fluid_eos_model_pr: EoSModel.PR,
+    EcalcYamlKeywords.models_type_fluid_eos_model_srk: EoSModel.SRK,
+    EcalcYamlKeywords.models_type_fluid_eos_model_gerg_pr: EoSModel.GERG_PR,
+    EcalcYamlKeywords.models_type_fluid_eos_model_gerg_srk: EoSModel.GERG_SRK,
 }
 
 
@@ -98,10 +99,10 @@ def fluid_model_mapper(model_config: Dict, input_models: Dict[str, Any], resourc
     return mapper(model_config=model_config)
 
 
-def _predefined_fluid_model_mapper(model_config: Dict) -> dto.FluidModel:
+def _predefined_fluid_model_mapper(model_config: Dict) -> FluidModel:
     predefined_composition_type = model_config.get(EcalcYamlKeywords.models_type_fluid_predefined_gas_type)
     eos_model_type = model_config.get(EcalcYamlKeywords.models_type_fluid_eos_model)
-    return dto.FluidModel(
+    return FluidModel(
         eos_model=_eos_model_mapper.get(eos_model_type),
         composition=_predefined_fluid_composition_mapper.get(predefined_composition_type),
     )
@@ -109,7 +110,7 @@ def _predefined_fluid_model_mapper(model_config: Dict) -> dto.FluidModel:
 
 def _composition_fluid_model_mapper(
     model_config: Dict,
-) -> dto.FluidModel:
+) -> FluidModel:
     user_defined_composition = model_config.get(EcalcYamlKeywords.composition)
     if user_defined_composition is None:
         raise ValueError("User defined composition not found in Yaml keywords")
@@ -135,7 +136,7 @@ def _composition_fluid_model_mapper(
             EcalcYamlKeywords.composition_H2O
         ]  # Need to remove this in order to put it into the DTO
     eos_model_type = model_config.get(EcalcYamlKeywords.models_type_fluid_eos_model)
-    return dto.FluidModel(
+    return FluidModel(
         eos_model=_eos_model_mapper.get(eos_model_type),
         composition=user_defined_composition,
     )

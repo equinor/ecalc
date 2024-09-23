@@ -1,26 +1,26 @@
 from datetime import datetime
 from typing import Union, overload
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Periods
 from libecalc.core.consumers.compressor import Compressor
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.models.compressor import create_compressor_model
 from libecalc.core.models.pump import create_pump_model
+from libecalc.dto.components import CompressorComponent, PumpComponent
 
 
 @overload
-def create_consumer(consumer: dto.components.CompressorComponent, timestep: datetime) -> Compressor: ...
+def create_consumer(consumer: CompressorComponent, timestep: datetime) -> Compressor: ...
 
 
 @overload
-def create_consumer(consumer: dto.components.PumpComponent, timestep: datetime) -> Pump:  # type: ignore[misc]
+def create_consumer(consumer: PumpComponent, timestep: datetime) -> Pump:  # type: ignore[misc]
     ...
 
 
 def create_consumer(
-    consumer: Union[dto.components.CompressorComponent, dto.components.PumpComponent],
+    consumer: Union[CompressorComponent, PumpComponent],
     timestep: datetime,
 ) -> Union[Compressor, Pump]:
     periods = Periods.create_periods(list(consumer.energy_usage_model.keys()), include_before=False)

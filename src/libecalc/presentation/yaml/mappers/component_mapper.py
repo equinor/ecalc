@@ -3,12 +3,13 @@ from typing import Dict, Optional, Union
 
 from pydantic import TypeAdapter, ValidationError
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.dto.types import ConsumerType, EnergyModelType
+from libecalc.dto import ConsumerFunction
+from libecalc.dto.components import Asset, Consumer, ElectricityConsumer, FuelConsumer, GeneratorSet, Installation
+from libecalc.dto.types import ConsumerType, EnergyModelType, FuelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
@@ -45,7 +46,7 @@ COMPRESSOR_TRAIN_ENERGY_MODEL_TYPES = [
 ]
 
 
-def _get_component_type(energy_usage_models: Dict[datetime, dto.ConsumerFunction]) -> ComponentType:
+def _get_component_type(energy_usage_models: Dict[datetime, ConsumerFunction]) -> ComponentType:
     energy_usage_model_types = {energy_usage_model.typ for energy_usage_model in energy_usage_models.values()}
 
     if len(energy_usage_model_types) == 1:
@@ -64,7 +65,7 @@ def _resolve_fuel(
     default_fuel: Optional[str],
     references: References,
     target_period: Period,
-) -> Optional[Dict[datetime, dto.types.FuelType]]:
+) -> Optional[Dict[datetime, FuelType]]:
     fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
 
     if fuel is None:
@@ -96,7 +97,7 @@ class ConsumerMapper:
         regularity: Dict[datetime, Expression],
         consumes: ConsumptionType,
         default_fuel: Optional[str] = None,
-    ) -> dto.components.Consumer:
+    ) -> Consumer:
         component_type = data.get(EcalcYamlKeywords.type)
         if component_type is not None and component_type != ComponentType.CONSUMER_SYSTEM_V2:
             # We have type here for v2, check that type is valid
@@ -145,7 +146,7 @@ class ConsumerMapper:
         if consumes == ConsumptionType.FUEL:
             try:
                 fuel_consumer_name = data.get(EcalcYamlKeywords.name)
-                return dto.FuelConsumer(
+                return FuelConsumer(
                     name=fuel_consumer_name,
                     user_defined_category=define_time_model_for_period(
                         data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
@@ -160,7 +161,7 @@ class ConsumerMapper:
         else:
             try:
                 electricity_consumer_name = data.get(EcalcYamlKeywords.name)
-                return dto.ElectricityConsumer(
+                return ElectricityConsumer(
                     name=electricity_consumer_name,
                     regularity=regularity,
                     user_defined_category=define_time_model_for_period(
@@ -184,7 +185,7 @@ class GeneratorSetMapper:
         data: Dict,
         regularity: Dict[datetime, Expression],
         default_fuel: Optional[str] = None,
-    ) -> dto.GeneratorSet:
+    ) -> GeneratorSet:
         try:
             fuel = _resolve_fuel(
                 data.get(EcalcYamlKeywords.fuel), default_fuel, self.__references, target_period=self._target_period
@@ -226,7 +227,7 @@ class GeneratorSetMapper:
 
         try:
             generator_set_name = data.get(EcalcYamlKeywords.name)
-            return dto.GeneratorSet(
+            return GeneratorSet(
                 name=generator_set_name,
                 fuel=fuel,
                 regularity=regularity,
@@ -247,7 +248,7 @@ class InstallationMapper:
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(self, data: Dict) -> dto.Installation:
+    def from_yaml_to_dto(self, data: Dict) -> Installation:
         fuel_data = data.get(EcalcYamlKeywords.fuel)
         regularity = define_time_model_for_period(
             convert_expression(data.get(EcalcYamlKeywords.regularity, 1)), target_period=self._target_period
@@ -290,7 +291,7 @@ class InstallationMapper:
         )
 
         try:
-            return dto.Installation(
+            return Installation(
                 name=installation_name,
                 regularity=regularity,
                 hydrocarbon_export=hydrocarbon_export,
@@ -311,9 +312,9 @@ class EcalcModelMapper:
         self.__references = references
         self.__installation_mapper = InstallationMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(self, configuration: YamlValidator) -> dto.Asset:
+    def from_yaml_to_dto(self, configuration: YamlValidator) -> Asset:
         try:
-            ecalc_model = dto.Asset(
+            ecalc_model = Asset(
                 name=configuration.name,
                 installations=[
                     self.__installation_mapper.from_yaml_to_dto(installation)

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, TextIO, Union
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
+from libecalc.dto import EnergyModel, FuelType
 from libecalc.presentation.yaml.resource import Resource
 
 
@@ -32,8 +32,8 @@ class MemoryResource(Resource):
 
 @dataclass
 class References:
-    models: Dict[str, dto.EnergyModel] = None
-    fuel_types: Dict[str, dto.types.FuelType] = None
+    models: Dict[str, EnergyModel] = None
+    fuel_types: Dict[str, FuelType] = None
 
 
 class YamlTimeseriesType(str, Enum):

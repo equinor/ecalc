@@ -1,13 +1,14 @@
 from typing import Any
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.pump.pump import PumpModel, PumpSingleSpeed, PumpVariableSpeed
+from libecalc.dto import PumpModel as PumpModelDTO
+from libecalc.dto.types import ChartType
 
 
-def create_pump_single_speed(pump_model: dto.PumpModel) -> PumpSingleSpeed:
+def create_pump_single_speed(pump_model: PumpModelDTO) -> PumpSingleSpeed:
     return PumpSingleSpeed(
         pump_chart=SingleSpeedChart(
             SingleSpeedChartDTO(
@@ -23,7 +24,7 @@ def create_pump_single_speed(pump_model: dto.PumpModel) -> PumpSingleSpeed:
     )
 
 
-def create_pump_variable_speed(pump_model: dto.PumpModel) -> PumpVariableSpeed:
+def create_pump_variable_speed(pump_model: PumpModelDTO) -> PumpVariableSpeed:
     return PumpVariableSpeed(
         VariableSpeedChart(
             VariableSpeedChartDTO(
@@ -56,10 +57,10 @@ def _invalid_pump_model_type(pump_model_dto: Any):
 
 
 pump_model_map = {
-    dto.types.ChartType.SINGLE_SPEED: create_pump_single_speed,
-    dto.types.ChartType.VARIABLE_SPEED: create_pump_variable_speed,
+    ChartType.SINGLE_SPEED: create_pump_single_speed,
+    ChartType.VARIABLE_SPEED: create_pump_variable_speed,
 }
 
 
-def create_pump_model(pump_model_dto: dto.PumpModel) -> PumpModel:
+def create_pump_model(pump_model_dto: PumpModelDTO) -> PumpModel:
     return pump_model_map.get(pump_model_dto.chart.typ, _invalid_pump_model_type)(pump_model_dto)

@@ -1,8 +1,14 @@
 from typing import Any, Callable, Dict, Union
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
+from libecalc.dto import (
+    CompressorConsumerFunction,
+    CompressorSystemConsumerFunction,
+    DirectConsumerFunction,
+    PumpConsumerFunction,
+    TabulatedConsumerFunction,
+)
 from libecalc.dto.types import ConsumerType
 
 from .compressor_consumer_function import create_compressor_consumer_function
@@ -13,11 +19,11 @@ from .pump_system_consumer_function import create_pump_system
 from .tabulated import create_tabulated_consumer_function
 
 TConsumerFunction = Union[
-    dto.DirectConsumerFunction,
-    dto.CompressorConsumerFunction,
-    dto.CompressorSystemConsumerFunction,
-    dto.TabulatedConsumerFunction,
-    dto.PumpConsumerFunction,
+    DirectConsumerFunction,
+    CompressorConsumerFunction,
+    CompressorSystemConsumerFunction,
+    TabulatedConsumerFunction,
+    PumpConsumerFunction,
 ]
 
 consumer_function_map: Dict[ConsumerType, Callable[[TConsumerFunction], ConsumerFunction]] = {

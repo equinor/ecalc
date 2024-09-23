@@ -5,7 +5,6 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 from pydantic import BaseModel, ConfigDict
 
-from libecalc import dto
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
@@ -15,6 +14,8 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
+from libecalc.dto import FluidComposition
+from libecalc.dto import FluidStream as FluidStreamDTO
 
 
 class CompressorTrainStageResultSingleTimeStep(BaseModel):
@@ -28,8 +29,8 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     power [MW]
     """
 
-    inlet_stream: Optional[dto.FluidStream] = None
-    outlet_stream: Optional[dto.FluidStream] = None
+    inlet_stream: Optional[FluidStreamDTO] = None
+    outlet_stream: Optional[FluidStreamDTO] = None
 
     # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
     inlet_actual_rate_m3_per_hour: float
@@ -129,8 +130,8 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     mass rate [kg/hour]
     """
 
-    inlet_stream: Optional[dto.FluidStream] = None
-    outlet_stream: Optional[dto.FluidStream] = None
+    inlet_stream: Optional[FluidStreamDTO] = None
+    outlet_stream: Optional[FluidStreamDTO] = None
     speed: float
     stage_results: List[CompressorTrainStageResultSingleTimeStep]
     above_maximum_power: bool = False
@@ -559,11 +560,11 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             return np.nan
 
     @property
-    def inlet_fluid_composition(self) -> dto.FluidComposition:
+    def inlet_fluid_composition(self) -> FluidComposition:
         if self.inlet_stream is not None:
             return self.inlet_stream.composition
         else:
-            return dto.FluidComposition()
+            return FluidComposition()
 
     @property
     def outlet_actual_rate(self) -> float:
@@ -598,11 +599,11 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             return np.nan
 
     @property
-    def outlet_fluid_composition(self) -> dto.FluidComposition:
+    def outlet_fluid_composition(self) -> FluidComposition:
         if self.outlet_stream is not None:
             return self.outlet_stream.composition
         else:
-            return dto.FluidComposition()
+            return FluidComposition()
 
     @property
     def polytropic_head_kilo_joule_per_kg(self) -> List[float]:

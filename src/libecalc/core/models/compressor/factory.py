@@ -1,6 +1,5 @@
 from typing import Any
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.base import (
     CompressorModel,
@@ -25,14 +24,26 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
 from libecalc.core.models.turbine import TurbineModel
-from libecalc.dto.types import EnergyModelType
+from libecalc.dto import CompressorModel as CompressorModelDTO
+from libecalc.dto import (
+    CompressorSampled,
+    CompressorTrainSimplifiedWithKnownStages,
+    CompressorTrainSimplifiedWithUnknownStages,
+    CompressorWithTurbine,
+    MultipleStreamsAndPressureStream,
+    SingleSpeedCompressorTrain,
+    Turbine,
+    VariableSpeedCompressorTrain,
+    VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
+from libecalc.dto.types import EnergyModelType, FluidStreamType
 
 
 def _create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(
-    stream_data: dto.MultipleStreamsAndPressureStream,
+    stream_data: MultipleStreamsAndPressureStream,
     stream_references: dict,
 ) -> FluidStreamObjectForMultipleStreams:
-    is_inlet_stream = stream_data.typ == dto.types.FluidStreamType.INGOING
+    is_inlet_stream = stream_data.typ == FluidStreamType.INGOING
     return FluidStreamObjectForMultipleStreams(
         name=stream_data.name,
         fluid=FluidStream(fluid_model=stream_data.fluid_model) if stream_data.fluid_model else None,
@@ -42,7 +53,7 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures_strea
 
 
 def _create_compressor_train_simplified_with_known_stages(
-    compressor_model_dto: dto.CompressorTrainSimplifiedWithKnownStages,
+    compressor_model_dto: CompressorTrainSimplifiedWithKnownStages,
 ) -> CompressorTrainSimplifiedKnownStages:
     # Energy usage adjustment not supported for this model (yet)
     # Issue error if factors are not default (and not changing the energy usage result)
@@ -52,7 +63,7 @@ def _create_compressor_train_simplified_with_known_stages(
 
 
 def _create_compressor_with_turbine(
-    compressor_model_dto: dto.CompressorWithTurbine,
+    compressor_model_dto: CompressorWithTurbine,
 ) -> CompressorWithTurbineModel:
     return CompressorWithTurbineModel(
         data_transfer_object=compressor_model_dto,
@@ -61,12 +72,12 @@ def _create_compressor_with_turbine(
     )
 
 
-def _create_turbine(turbine_dto: dto.Turbine) -> TurbineModel:
+def _create_turbine(turbine_dto: Turbine) -> TurbineModel:
     return TurbineModel(data_transfer_object=turbine_dto)
 
 
 def _create_single_speed_compressor_train(
-    compressor_model_dto: dto.SingleSpeedCompressorTrain,
+    compressor_model_dto: SingleSpeedCompressorTrain,
 ) -> SingleSpeedCompressorTrainCommonShaft:
     return SingleSpeedCompressorTrainCommonShaft(
         data_transfer_object=compressor_model_dto,
@@ -74,7 +85,7 @@ def _create_single_speed_compressor_train(
 
 
 def _create_variable_speed_compressor_train(
-    compressor_model_dto: dto.VariableSpeedCompressorTrain,
+    compressor_model_dto: VariableSpeedCompressorTrain,
 ) -> VariableSpeedCompressorTrainCommonShaft:
     return VariableSpeedCompressorTrainCommonShaft(
         data_transfer_object=compressor_model_dto,
@@ -82,7 +93,7 @@ def _create_variable_speed_compressor_train(
 
 
 def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
-    compressor_model_dto: dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+    compressor_model_dto: VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 ) -> VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures:
     return VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         data_transfer_object=compressor_model_dto,
@@ -96,12 +107,12 @@ def _create_variable_speed_compressor_train_multiple_streams_and_pressures(
 
 
 def _create_compressor_train_simplified_with_unknown_stages(
-    compressor_model_dto: dto.CompressorTrainSimplifiedWithUnknownStages,
+    compressor_model_dto: CompressorTrainSimplifiedWithUnknownStages,
 ) -> CompressorTrainSimplifiedUnknownStages:
     return CompressorTrainSimplifiedUnknownStages(data_transfer_object=compressor_model_dto)
 
 
-def _create_compressor_sampled(compressor_model_dto: dto.CompressorSampled) -> CompressorModelSampled:
+def _create_compressor_sampled(compressor_model_dto: CompressorSampled) -> CompressorModelSampled:
     return CompressorModelSampled(data_transfer_object=compressor_model_dto)
 
 
@@ -128,7 +139,7 @@ def _invalid_compressor_model_type(compressor_model_dto: Any) -> None:
         raise TypeError(msg) from e
 
 
-def create_compressor_model(compressor_model_dto: dto.CompressorModel) -> CompressorModel:
+def create_compressor_model(compressor_model_dto: CompressorModelDTO) -> CompressorModel:
     return facility_model_map.get(compressor_model_dto.typ, _invalid_compressor_model_type)(
         compressor_model_dto=compressor_model_dto,
     )

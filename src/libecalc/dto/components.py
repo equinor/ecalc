@@ -7,7 +7,6 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.priorities import Priorities
@@ -431,7 +430,7 @@ class Asset(Component):
         component_ids = []
         for fuel_consumer in installation.fuel_consumers:
             component_ids.append(fuel_consumer.id)
-            if isinstance(fuel_consumer, dto.GeneratorSet):
+            if isinstance(fuel_consumer, GeneratorSet):
                 for electricity_consumer in fuel_consumer.consumers:
                     component_ids.append(electricity_consumer.id)
 
@@ -446,7 +445,7 @@ class Asset(Component):
     def validate_unique_names(self):
         """Ensure unique component names within installation."""
         names = [self.name]
-        fuel_types = [dto.FuelType]
+        fuel_types = [FuelType]
         fuel_names = [str]
         for installation in self.installations:
             names.append(installation.name)

@@ -4,11 +4,11 @@ from typing import Dict, Generic, List, Literal, Optional, TypeVar, Union
 from pydantic import ConfigDict, Field, TypeAdapter
 from typing_extensions import Annotated
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.dto.components import Crossover, SystemComponentConditions
+from libecalc.dto import FuelType
+from libecalc.dto.components import ConsumerSystem, Crossover, SystemComponentConditions
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
@@ -74,8 +74,8 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
         consumes: ConsumptionType,
         references: References,
         target_period: Period,
-        fuel: Optional[Dict[datetime, dto.types.FuelType]] = None,
-    ) -> dto.components.ConsumerSystem:
+        fuel: Optional[Dict[datetime, FuelType]] = None,
+    ) -> ConsumerSystem:
         consumers = [
             consumer.to_dto(
                 references=references,
@@ -107,7 +107,7 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
                 crossover=[],
             )
 
-        return dto.components.ConsumerSystem(
+        return ConsumerSystem(
             component_type=self.component_type,
             name=self.name,
             user_defined_category=define_time_model_for_period(self.category, target_period=target_period),

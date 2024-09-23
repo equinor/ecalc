@@ -4,7 +4,6 @@ from typing import List, Optional
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
@@ -32,6 +31,8 @@ from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train
     get_single_speed_equivalent,
 )
 from libecalc.core.models.results.compressor import TargetPressureStatus
+from libecalc.dto import CompressorStage, SingleSpeedCompressorTrain, VariableSpeedCompressorTrain
+from libecalc.dto import FluidStream as FluidStreamDTO
 from libecalc.dto.types import FixedSpeedPressureControl
 
 EPSILON = 1e-5
@@ -61,7 +62,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
-        data_transfer_object: dto.VariableSpeedCompressorTrain,
+        data_transfer_object: VariableSpeedCompressorTrain,
     ):
         logger.debug(
             f"Creating VariableSpeedCompressorTrainCommonShaft with n_stages: {len(data_transfer_object.stages)}"
@@ -235,8 +236,8 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=train_inlet_stream),
-            outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_stream),
+            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
+            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
             stage_results=stage_results,
             speed=speed,
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])
@@ -656,7 +657,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         pressure_bara=inlet_pressure,
                         temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
                     )
-                    train_result.inlet_stream = dto.FluidStream.from_fluid_domain_object(fluid_stream=new_inlet_stream)
+                    train_result.inlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_inlet_stream)
                     train_result.target_pressure_status = self.check_target_pressures(
                         calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
                         calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
@@ -670,9 +671,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                         pressure_bara=outlet_pressure,
                         temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
                     )
-                    train_result.outlet_stream = dto.FluidStream.from_fluid_domain_object(
-                        fluid_stream=new_outlet_stream
-                    )
+                    train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
                     train_result.target_pressure_status = self.check_target_pressures(
                         calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
                         calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
@@ -770,10 +769,10 @@ def get_single_speed_equivalent_train(
     ]
 
     return SingleSpeedCompressorTrainCommonShaft(
-        data_transfer_object=dto.SingleSpeedCompressorTrain(
+        data_transfer_object=SingleSpeedCompressorTrain(
             fluid_model=compressor_train.fluid.fluid_model,
             stages=[
-                dto.CompressorStage(
+                CompressorStage(
                     compressor_chart=SingleSpeedChartDTO(
                         speed_rpm=stage.compressor_chart.speed,
                         rate_actual_m3_hour=list(stage.compressor_chart.rate_values),

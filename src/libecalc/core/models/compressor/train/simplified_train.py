@@ -5,7 +5,6 @@ from typing import List, Union
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
@@ -29,6 +28,8 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_polytropic_head_campbell,
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
+from libecalc.dto import CompressorTrainSimplifiedWithKnownStages, CompressorTrainSimplifiedWithUnknownStages
+from libecalc.dto import FluidStream as FluidStreamDTO
 
 
 class CompressorTrainSimplified(CompressorTrainModel):
@@ -304,8 +305,8 @@ class CompressorTrainSimplified(CompressorTrainModel):
 
             compressor_result.append(
                 CompressorTrainStageResultSingleTimeStep(
-                    inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=inlet_streams[i]),
-                    outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_streams[i]),
+                    inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=inlet_streams[i]),
+                    outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_streams[i]),
                     inlet_actual_rate_asv_corrected_m3_per_hour=asv_corrected_actual_rate_m3_per_hour[i],
                     inlet_actual_rate_m3_per_hour=inlet_actual_rate_m3_per_hour[i],
                     standard_rate_sm3_per_day=mass_rate_kg_per_hour[i]
@@ -343,7 +344,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
 class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
     def __init__(
         self,
-        data_transfer_object: dto.CompressorTrainSimplifiedWithKnownStages,
+        data_transfer_object: CompressorTrainSimplifiedWithKnownStages,
     ):
         """See CompressorTrainSimplified for explanation of a compressor train."""
         logger.debug(f"Creating CompressorTrainSimplifiedKnownStages with n_stages: {len(data_transfer_object.stages)}")
@@ -577,7 +578,7 @@ class CompressorTrainSimplifiedUnknownStages(CompressorTrainSimplified):
 
     def __init__(
         self,
-        data_transfer_object: dto.CompressorTrainSimplifiedWithUnknownStages,
+        data_transfer_object: CompressorTrainSimplifiedWithUnknownStages,
     ):
         logger.debug("Creating CompressorTrainSimplifiedUnknownStages")
         super().__init__(data_transfer_object)

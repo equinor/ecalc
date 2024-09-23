@@ -3,10 +3,10 @@ from typing import Dict, Literal, Optional
 
 from pydantic import ConfigDict, Field
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.dto import FuelType
 from libecalc.dto.components import PumpComponent
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import resolve_reference
@@ -39,7 +39,7 @@ class YamlPump(YamlConsumerBase):
         target_period: Period,
         references: References,
         category: str,
-        fuel: Optional[Dict[datetime, dto.types.FuelType]],
+        fuel: Optional[Dict[datetime, FuelType]],
     ):
         return PumpComponent(
             consumes=consumes,

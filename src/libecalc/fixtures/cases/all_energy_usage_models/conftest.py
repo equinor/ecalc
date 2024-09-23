@@ -3,10 +3,21 @@ from typing import Dict
 
 import pytest
 
-from libecalc import dto
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.common.variables import VariablesMap
+from libecalc.dto import (
+    CompressorSampled,
+    CompressorStage,
+    CompressorTrainSimplifiedWithKnownStages,
+    CompressorWithTurbine,
+    FluidComposition,
+    FluidModel,
+    PumpModel,
+    Turbine,
+    VariableSpeedCompressorTrain,
+)
+from libecalc.dto.types import EnergyUsageType, EoSModel, FixedSpeedPressureControl
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
@@ -37,7 +48,7 @@ def all_energy_usage_models_variables():
 
 
 @pytest.fixture
-def single_speed_pump() -> dto.PumpModel:
+def single_speed_pump() -> PumpModel:
     chart = SingleSpeedChartDTO(
         rate_actual_m3_hour=[200.0, 500.0, 1000.0, 1300.0, 1500.0],
         polytropic_head_joule_per_kg=[
@@ -47,7 +58,7 @@ def single_speed_pump() -> dto.PumpModel:
         efficiency_fraction=[0.4, 0.5, 0.6, 0.7, 0.8],
         speed_rpm=1,
     )
-    return dto.PumpModel(
+    return PumpModel(
         chart=chart,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
@@ -56,8 +67,8 @@ def single_speed_pump() -> dto.PumpModel:
 
 
 @pytest.fixture
-def variable_speed_pump() -> dto.PumpModel:
-    return dto.PumpModel(
+def variable_speed_pump() -> PumpModel:
+    return PumpModel(
         chart=VariableSpeedChartDTO(
             curves=[
                 ChartCurveDTO(
@@ -104,19 +115,17 @@ def variable_speed_pump() -> dto.PumpModel:
 
 @pytest.fixture
 def simplified_variable_speed_compressor_train_with_gerg_fluid2(predefined_variable_speed_compressor_chart_dto):
-    return dto.CompressorTrainSimplifiedWithKnownStages(
-        fluid_model=dto.FluidModel(
-            eos_model=dto.types.EoSModel.GERG_SRK, composition=dto.FluidComposition.parse_obj(MEDIUM_MW_19P4)
-        ),
+    return CompressorTrainSimplifiedWithKnownStages(
+        fluid_model=FluidModel(eos_model=EoSModel.GERG_SRK, composition=FluidComposition.parse_obj(MEDIUM_MW_19P4)),
         stages=[
-            dto.CompressorStage(
+            CompressorStage(
                 inlet_temperature_kelvin=303.15,
                 compressor_chart=predefined_variable_speed_compressor_chart_dto,
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
                 control_margin=0,
             ),
-            dto.CompressorStage(
+            CompressorStage(
                 inlet_temperature_kelvin=303.15,
                 compressor_chart=predefined_variable_speed_compressor_chart_dto,
                 remove_liquid_after_cooling=True,
@@ -153,8 +162,8 @@ def user_defined_single_speed_compressor_chart_dto() -> SingleSpeedChartDTO:
 
 @pytest.fixture
 def compressor_sampled_1d():
-    return dto.CompressorSampled(
-        energy_usage_type=dto.types.EnergyUsageType.FUEL,
+    return CompressorSampled(
+        energy_usage_type=EnergyUsageType.FUEL,
         energy_usage_values=[0, 10000, 11000, 12000, 13000],
         power_interpolation_values=[0.0, 1.0, 2.0, 3.0, 4.0],
         rate_values=[0, 1000000, 2000000, 3000000, 4000000],
@@ -165,7 +174,7 @@ def compressor_sampled_1d():
 
 @pytest.fixture
 def compressor_with_turbine(turbine_dto, simplified_variable_speed_compressor_train_known_stages):
-    return dto.CompressorWithTurbine(
+    return CompressorWithTurbine(
         compressor_train=simplified_variable_speed_compressor_train_known_stages,
         turbine=turbine_dto,
         energy_usage_adjustment_constant=0.0,
@@ -174,8 +183,8 @@ def compressor_with_turbine(turbine_dto, simplified_variable_speed_compressor_tr
 
 
 @pytest.fixture
-def turbine_dto() -> dto.Turbine:
-    return dto.Turbine(
+def turbine_dto() -> Turbine:
+    return Turbine(
         lower_heating_value=38.0,
         turbine_loads=[0.0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767],
         turbine_efficiency_fractions=[0.0, 0.138, 0.21, 0.255, 0.286, 0.31, 0.328, 0.342, 0.353, 0.36, 0.362],
@@ -188,19 +197,19 @@ def turbine_dto() -> dto.Turbine:
 def compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_turbine2(
     turbine_dto,
     predefined_variable_speed_compressor_chart_dto,
-) -> dto.CompressorWithTurbine:
-    dto_stage = dto.CompressorStage(
+) -> CompressorWithTurbine:
+    dto_stage = CompressorStage(
         compressor_chart=predefined_variable_speed_compressor_chart_dto,
         inlet_temperature_kelvin=303.15,
         remove_liquid_after_cooling=True,
         pressure_drop_before_stage=0,
         control_margin=0,
     )
-    return dto.CompressorWithTurbine(
+    return CompressorWithTurbine(
         turbine=turbine_dto,
-        compressor_train=dto.VariableSpeedCompressorTrain(
-            fluid_model=dto.FluidModel(
-                composition=dto.FluidComposition(
+        compressor_train=VariableSpeedCompressorTrain(
+            fluid_model=FluidModel(
+                composition=FluidComposition(
                     water=0.0,
                     nitrogen=0.74373,
                     CO2=2.415619,
@@ -213,12 +222,12 @@ def compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_
                     n_pentane=0.197937,
                     n_hexane=0.368786,
                 ),
-                eos_model=dto.types.EoSModel.SRK,
+                eos_model=EoSModel.SRK,
             ),
             stages=[dto_stage, dto_stage],
             energy_usage_adjustment_constant=1.0,
             energy_usage_adjustment_factor=1.0,
-            pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+            pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         ),
         energy_usage_adjustment_constant=1.0,
         energy_usage_adjustment_factor=1.0,
@@ -234,17 +243,17 @@ def regularity() -> Dict[datetime, Expression]:
 def simplified_variable_speed_compressor_train_known_stages(
     predefined_variable_speed_compressor_chart_dto, medium_fluid_dto
 ):
-    return dto.CompressorTrainSimplifiedWithKnownStages(
+    return CompressorTrainSimplifiedWithKnownStages(
         fluid_model=medium_fluid_dto,
         stages=[
-            dto.CompressorStage(
+            CompressorStage(
                 inlet_temperature_kelvin=303.15,
                 compressor_chart=predefined_variable_speed_compressor_chart_dto,
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
                 control_margin=0,
             ),
-            dto.CompressorStage(
+            CompressorStage(
                 inlet_temperature_kelvin=303.15,
                 compressor_chart=predefined_variable_speed_compressor_chart_dto,
                 remove_liquid_after_cooling=True,

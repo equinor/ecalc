@@ -7,8 +7,8 @@ from numpy.typing import NDArray
 
 from ecalc_neqsim_wrapper import NeqsimFluid
 from ecalc_neqsim_wrapper.thermo import mix_neqsim_streams
-from libecalc import dto
 from libecalc.common.units import UnitConstants
+from libecalc.dto import FluidModel
 
 
 class FluidStream:
@@ -22,7 +22,7 @@ class FluidStream:
 
     def __init__(
         self,
-        fluid_model: dto.FluidModel,
+        fluid_model: FluidModel,
         pressure_bara: float = UnitConstants.STANDARD_PRESSURE_BARA,
         temperature_kelvin: float = UnitConstants.STANDARD_TEMPERATURE_KELVIN,
         existing_fluid: Optional[NeqsimFluid] = None,
@@ -279,5 +279,5 @@ class FluidStream:
 
         return FluidStream(
             existing_fluid=mixed_neqsim_fluid_stream,
-            fluid_model=dto.FluidModel(composition=mixed_fluid_composition, eos_model=self.fluid_model.eos_model),
+            fluid_model=FluidModel(composition=mixed_fluid_composition, eos_model=self.fluid_model.eos_model),
         )

@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, NamedTuple, TextIO
 
-from libecalc import dto
 from libecalc.common.variables import VariablesMap
+from libecalc.dto import Asset
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
@@ -21,5 +21,5 @@ class YamlCase:
 
 
 class DTOCase(NamedTuple):
-    ecalc_model: dto.Asset
+    ecalc_model: Asset
     variables: VariablesMap

@@ -3,7 +3,6 @@ from typing import List, Optional
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
@@ -22,6 +21,8 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.core.models.results.compressor import TargetPressureStatus
+from libecalc.dto import FluidStream as FluidStreamDTO
+from libecalc.dto import SingleSpeedCompressorTrain
 from libecalc.dto.types import FixedSpeedPressureControl
 
 EPSILON = 1e-5
@@ -84,7 +85,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
     def __init__(
         self,
-        data_transfer_object: dto.SingleSpeedCompressorTrain,
+        data_transfer_object: SingleSpeedCompressorTrain,
     ):
         logger.debug(
             f"Creating SingleSpeedCompressorTrainCommonShaft with n_stages: {len(data_transfer_object.stages)}"
@@ -215,7 +216,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 pressure_bara=discharge_pressure,
                 temperature_kelvin=train_result.outlet_stream.temperature_kelvin,
             )
-            train_result.outlet_stream = dto.FluidStream.from_fluid_domain_object(fluid_stream=new_outlet_stream)
+            train_result.outlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_outlet_stream)
             train_result.target_pressure_status = self.check_target_pressures(
                 calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
                 calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
@@ -250,7 +251,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 pressure_bara=suction_pressure,
                 temperature_kelvin=train_result.inlet_stream.temperature_kelvin,
             )
-            train_result.inlet_stream = dto.FluidStream.from_fluid_domain_object(fluid_stream=new_inlet_stream)
+            train_result.inlet_stream = FluidStreamDTO.from_fluid_domain_object(fluid_stream=new_inlet_stream)
             train_result.target_pressure_status = self.check_target_pressures(
                 calculated_suction_pressure=train_result.inlet_stream.pressure_bara,
                 calculated_discharge_pressure=train_result.outlet_stream.pressure_bara,
@@ -328,8 +329,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 calculated_discharge_pressure=stage_results[-1].outlet_stream.pressure_bara,
             )
             return CompressorTrainResultSingleTimeStep(
-                inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=inlet_stream_train),
-                outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_stream_stage),
+                inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=inlet_stream_train),
+                outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream_stage),
                 speed=np.nan,
                 stage_results=stage_results,
                 target_pressure_status=target_pressure_status,
@@ -710,8 +711,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         )
 
         return CompressorTrainResultSingleTimeStep(
-            inlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=train_inlet_stream),
-            outlet_stream=dto.FluidStream.from_fluid_domain_object(fluid_stream=outlet_stream),
+            inlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=train_inlet_stream),
+            outlet_stream=FluidStreamDTO.from_fluid_domain_object(fluid_stream=outlet_stream),
             speed=np.nan,
             stage_results=stage_results,
             above_maximum_power=sum([stage_result.power_megawatt for stage_result in stage_results])

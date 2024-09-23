@@ -6,7 +6,6 @@ import pandas as pd
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc import dto
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
@@ -43,6 +42,7 @@ from libecalc.core.models.results.compressor import (
 )
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor import CompressorSampled
+from libecalc.dto.types import EnergyUsageType
 
 
 class CompressorModelSampled(CompressorModel):
@@ -67,7 +67,7 @@ class CompressorModelSampled(CompressorModel):
         """
         logger.debug("Creating CompressorModelSampled")
         self.data_transfer_object = data_transfer_object
-        self.function_values_are_power = self.data_transfer_object.energy_usage_type == dto.types.EnergyUsageType.POWER
+        self.function_values_are_power = self.data_transfer_object.energy_usage_type == EnergyUsageType.POWER
         self.power_interpolation_values = data_transfer_object.power_interpolation_values
 
         function_values_adjusted: NDArray[np.float64] = transform_linear(

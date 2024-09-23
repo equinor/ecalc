@@ -3,8 +3,9 @@ from typing import NamedTuple
 
 import pytest
 
-from libecalc import dto
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.dto import FluidComposition, FluidModel
+from libecalc.dto.types import EoSModel
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
 StreamData = namedtuple(
@@ -28,7 +29,7 @@ CompressorData = namedtuple(
 
 class ProcessSimulationSingleCompressor(NamedTuple):
     compressor_chart: VariableSpeedChartDTO
-    fluid: dto.FluidModel
+    fluid: FluidModel
     compressor: CompressorData
     inlet_stream: StreamData
     outlet_stream: StreamData
@@ -36,9 +37,7 @@ class ProcessSimulationSingleCompressor(NamedTuple):
 
 @pytest.fixture
 def process_simulator_variable_compressor_data() -> ProcessSimulationSingleCompressor:
-    medium_fluid = dto.FluidModel(
-        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(MEDIUM_MW_19P4)
-    )
+    medium_fluid = FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.model_validate(MEDIUM_MW_19P4))
 
     chart_curves = [
         ChartCurveDTO(

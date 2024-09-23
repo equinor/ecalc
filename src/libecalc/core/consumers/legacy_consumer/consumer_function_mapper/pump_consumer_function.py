@@ -1,11 +1,11 @@
-from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )
 from libecalc.core.models.pump import create_pump_model
+from libecalc.dto import PumpConsumerFunction as PumpConsumerFunctionDTO
 
 
-def create_pump_consumer_function(model_dto: dto.PumpConsumerFunction) -> PumpConsumerFunction:
+def create_pump_consumer_function(model_dto: PumpConsumerFunctionDTO) -> PumpConsumerFunction:
     pump_model = create_pump_model(pump_model_dto=model_dto.model)
     return PumpConsumerFunction(
         condition_expression=model_dto.condition,

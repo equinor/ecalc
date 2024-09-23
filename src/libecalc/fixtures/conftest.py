@@ -3,31 +3,31 @@ from typing import Dict
 
 import pytest
 
-from libecalc import dto
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType
+from libecalc.dto import Emission, FluidComposition, FluidModel
+from libecalc.dto.types import EoSModel, FuelType, FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4
 
 
 @pytest.fixture
-def medium_fluid_dto() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(MEDIUM_MW_19P4))
+def medium_fluid_dto() -> FluidModel:
+    return FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.parse_obj(MEDIUM_MW_19P4))
 
 
 @pytest.fixture
-def rich_fluid_dto() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(RICH_MW_21P4))
+def rich_fluid_dto() -> FluidModel:
+    return FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.parse_obj(RICH_MW_21P4))
 
 
 @pytest.fixture
-def fuel_gas() -> Dict[datetime, dto.types.FuelType]:
+def fuel_gas() -> Dict[datetime, FuelType]:
     return {
-        datetime(1900, 1, 1): dto.types.FuelType(
+        datetime(1900, 1, 1): FuelType(
             name="fuel_gas",
             user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
             emissions=[
-                dto.Emission(
+                Emission(
                     name="co2",
                     factor=Expression.setup_from_expression(value="2.20"),
                 )

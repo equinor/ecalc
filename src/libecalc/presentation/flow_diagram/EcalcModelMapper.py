@@ -1,17 +1,30 @@
 from datetime import datetime, timedelta
 from typing import Dict, Iterable, List, Set, Tuple, Union
 
-from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period, Periods
 from libecalc.dto import (
     CompressorConsumerFunction,
+    CompressorSystemConsumerFunction,
     CompressorTrainSimplifiedWithKnownStages,
+    ConsumerFunction,
     ElectricEnergyUsageModel,
     FuelEnergyUsageModel,
+    GeneratorSet,
+    Installation,
+    PumpSystemConsumerFunction,
+    ResultOptions,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
+)
+from libecalc.dto.components import (
+    Asset,
+    CompressorComponent,
+    ConsumerSystem,
+    ElectricityConsumer,
+    FuelConsumer,
+    PumpComponent,
 )
 from libecalc.dto.models.compressor import CompressorWithTurbine
 from libecalc.dto.types import ConsumerType
@@ -33,7 +46,7 @@ EMISSIONS_FLOW = Flow(id="emission-flow", label="Emissions", type=FlowType.EMISS
 ELECTRICITY_FLOW = Flow(id="electricity-flow", label="Electricity", type=FlowType.ELECTRICITY)
 
 
-def _create_generator_set_node(generator_set: dto.GeneratorSet, installation: dto.Installation) -> Node:
+def _create_generator_set_node(generator_set: GeneratorSet, installation: Installation) -> Node:
     return Node(
         id=f"{installation.name}-generator-set-{generator_set.name}",
         title=generator_set.name,
@@ -42,7 +55,7 @@ def _create_generator_set_node(generator_set: dto.GeneratorSet, installation: dt
 
 
 def _create_legacy_pump_system_diagram(
-    energy_usage_model: Dict[datetime, dto.PumpSystemConsumerFunction],
+    energy_usage_model: Dict[datetime, PumpSystemConsumerFunction],
     consumer_id: str,
     consumer_title: str,
     global_end_date: datetime,
@@ -77,7 +90,7 @@ def _create_legacy_pump_system_diagram(
 
 
 def _create_legacy_compressor_system_diagram(
-    energy_usage_model: Dict[datetime, dto.CompressorSystemConsumerFunction],
+    energy_usage_model: Dict[datetime, CompressorSystemConsumerFunction],
     consumer_id: str,
     consumer_title: str,
     global_end_date: datetime,
@@ -131,7 +144,7 @@ def _create_legacy_compressor_system_diagram(
 
 
 def _create_system_diagram(
-    system: dto.components.ConsumerSystem,
+    system: ConsumerSystem,
     global_end_date: datetime,
 ) -> List[FlowDiagram]:
     timesteps = _get_timesteps(system.consumers)
@@ -166,7 +179,7 @@ _dto_model_type_to_fde_render_type_map = {
 
 
 def _create_compressor_train_diagram(
-    energy_usage_model: Dict[datetime, dto.CompressorConsumerFunction],
+    energy_usage_model: Dict[datetime, CompressorConsumerFunction],
     node_id: str,
     title: str,
     global_end_date: datetime,
@@ -200,7 +213,7 @@ def _create_compressor_train_diagram(
 
 
 def _create_compressor_with_turbine_stages_diagram(
-    energy_usage_model: Dict[datetime, dto.CompressorConsumerFunction],
+    energy_usage_model: Dict[datetime, CompressorConsumerFunction],
     node_id: str,
     title: str,
     global_end_date: datetime,
@@ -237,7 +250,7 @@ def _create_compressor_with_turbine_stages_diagram(
 
 
 def _is_compressor_with_turbine(
-    temporal_energy_usage_model: Dict[datetime, dto.ConsumerFunction],
+    temporal_energy_usage_model: Dict[datetime, ConsumerFunction],
 ) -> bool:
     """Checking if compressor type is compressor with turbine.
 
@@ -251,13 +264,13 @@ def _is_compressor_with_turbine(
 
 
 def _create_consumer_node(
-    consumer: Union[dto.FuelConsumer, dto.ElectricityConsumer, dto.components.ConsumerSystem],
+    consumer: Union[FuelConsumer, ElectricityConsumer, ConsumerSystem],
     installation_name: str,
     global_end_date: datetime,
 ) -> Node:
     node_id = f"{installation_name}-consumer-{consumer.name}"
     title = consumer.name
-    if isinstance(consumer, (dto.FuelConsumer, dto.ElectricityConsumer)):
+    if isinstance(consumer, (FuelConsumer, ElectricityConsumer)):
         component_type = list(consumer.energy_usage_model.values())[0].typ
         fde_type = _dto_model_type_to_fde_render_type_map.get(component_type, "default")
         if component_type == ConsumerType.PUMP_SYSTEM:
@@ -284,7 +297,7 @@ def _create_consumer_node(
             type=fde_type,
             subdiagram=subdiagram,
         )
-    elif isinstance(consumer, dto.components.ConsumerSystem):
+    elif isinstance(consumer, ConsumerSystem):
         return Node(
             id=consumer.id,
             title=consumer.name,
@@ -323,13 +336,13 @@ def _is_compressor_train(
 def _get_timesteps(
     components: List[
         Union[
-            dto.Asset,
-            dto.Installation,
-            dto.FuelConsumer,
-            dto.GeneratorSet,
-            dto.ElectricityConsumer,
-            dto.components.PumpComponent,
-            dto.components.CompressorComponent,
+            Asset,
+            Installation,
+            FuelConsumer,
+            GeneratorSet,
+            ElectricityConsumer,
+            PumpComponent,
+            CompressorComponent,
         ]
     ],
     shallow: bool = False,
@@ -343,25 +356,25 @@ def _get_timesteps(
     """
     timesteps: Set[datetime] = set()
     for component in components:
-        if isinstance(component, dto.Asset):
+        if isinstance(component, Asset):
             timesteps = timesteps.union(_get_timesteps(component.installations, shallow=shallow))
-        elif isinstance(component, dto.Installation):
+        elif isinstance(component, Installation):
             timesteps = timesteps.union(_get_timesteps(component.fuel_consumers, shallow=shallow))
-        elif isinstance(component, dto.GeneratorSet):
+        elif isinstance(component, GeneratorSet):
             timesteps = timesteps.union(set(component.generator_set_model.keys()))
             if not shallow:
                 timesteps = timesteps.union(_get_timesteps(component.consumers, shallow=shallow))
         elif isinstance(
             component,
             (
-                dto.ElectricityConsumer,
-                dto.FuelConsumer,
-                dto.components.PumpComponent,
-                dto.components.CompressorComponent,
+                ElectricityConsumer,
+                FuelConsumer,
+                PumpComponent,
+                CompressorComponent,
             ),
         ):
             timesteps = timesteps.union(set(component.energy_usage_model.keys()))
-        elif isinstance(component, dto.components.ConsumerSystem):
+        elif isinstance(component, ConsumerSystem):
             timesteps = timesteps.union(_get_timesteps(component.consumers, shallow=shallow))
         else:
             raise ValueError(
@@ -371,7 +384,7 @@ def _get_timesteps(
 
 
 def _consumer_is_active(
-    consumer: Union[dto.FuelConsumer, dto.ElectricityConsumer, dto.GeneratorSet],
+    consumer: Union[FuelConsumer, ElectricityConsumer, GeneratorSet],
     period: Period,
 ) -> bool:
     """Check whether the consumer is active or not.
@@ -385,12 +398,12 @@ def _consumer_is_active(
 
 
 def _create_installation_flow_diagram(
-    installation: dto.Installation,
+    installation: Installation,
     period: Period,
     global_end_date: datetime,
 ) -> FlowDiagram:
     generator_sets = [
-        generator_set for generator_set in installation.fuel_consumers if isinstance(generator_set, dto.GeneratorSet)
+        generator_set for generator_set in installation.fuel_consumers if isinstance(generator_set, GeneratorSet)
     ]
     generator_set_nodes = []
     electricity_consumer_nodes = []
@@ -420,9 +433,7 @@ def _create_installation_flow_diagram(
                     )
 
     fuel_consumers_except_generator_sets = [
-        fuel_consumer
-        for fuel_consumer in installation.fuel_consumers
-        if not isinstance(fuel_consumer, dto.GeneratorSet)
+        fuel_consumer for fuel_consumer in installation.fuel_consumers if not isinstance(fuel_consumer, GeneratorSet)
     ]
 
     fuel_consumer_except_generator_set_nodes = [
@@ -476,7 +487,7 @@ def _get_periods(
     return Periods.create_periods([*start_dates, global_end_date], include_before=False, include_after=False)
 
 
-def _create_installation_fde(installation: dto.Installation, global_end_date: datetime) -> List[FlowDiagram]:
+def _create_installation_fde(installation: Installation, global_end_date: datetime) -> List[FlowDiagram]:
     """Create flow diagrams for each timestep including only the consumers relevant in that timestep
     :param installation:
     :return:
@@ -516,7 +527,7 @@ def _filter_duplicate_flow_diagrams(installation_flow_diagrams: List[FlowDiagram
     return filtered_flow_diagrams
 
 
-def _create_installation_node(installation: dto.Installation, global_end_date: datetime) -> Node:
+def _create_installation_node(installation: Installation, global_end_date: datetime) -> Node:
     return Node(
         id=f"installation-{installation.name}",
         title=installation.name,
@@ -525,11 +536,11 @@ def _create_installation_node(installation: dto.Installation, global_end_date: d
     )
 
 
-def _get_sorted_start_dates(ecalc_model: dto.Asset):
+def _get_sorted_start_dates(ecalc_model: Asset):
     return sorted(_get_timesteps([ecalc_model]))
 
 
-def _get_global_dates(ecalc_model: dto.Asset, result_options: dto.ResultOptions) -> Tuple[datetime, datetime]:
+def _get_global_dates(ecalc_model: Asset, result_options: ResultOptions) -> Tuple[datetime, datetime]:
     user_defined_start_date = result_options.start
     user_defined_end_date = result_options.end
 
@@ -544,7 +555,7 @@ def _get_global_dates(ecalc_model: dto.Asset, result_options: dto.ResultOptions)
 
 class EcalcModelMapper:
     @staticmethod
-    def from_dto_to_fde(ecalc_model: dto.Asset, result_options: dto.ResultOptions) -> FlowDiagram:
+    def from_dto_to_fde(ecalc_model: Asset, result_options: ResultOptions) -> FlowDiagram:
         global_start_date, global_end_date = _get_global_dates(ecalc_model, result_options)
         installation_nodes = [
             _create_installation_node(installation, global_end_date) for installation in ecalc_model.installations

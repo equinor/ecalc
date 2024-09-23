@@ -1,12 +1,25 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Union
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.dto import (
+    CompressorConsumerFunction,
+    CompressorModel,
+    CompressorSystemCompressor,
+    CompressorSystemConsumerFunction,
+    CompressorSystemOperationalSetting,
     CompressorWithTurbine,
+    ConsumerFunction,
+    DirectConsumerFunction,
+    EnergyModel,
+    PumpConsumerFunction,
+    PumpSystemConsumerFunction,
+    PumpSystemOperationalSetting,
+    PumpSystemPump,
+    TabulatedConsumerFunction,
+    Variables,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.dto.types import EnergyModelType, EnergyUsageType
@@ -52,7 +65,7 @@ def _all_equal(items: Set) -> bool:
 
 
 def _get_compressor_train_energy_usage_type(
-    compressor_train: dto.CompressorModel,
+    compressor_train: CompressorModel,
 ) -> EnergyUsageType:
     typ = compressor_train.typ
 
@@ -79,7 +92,7 @@ def _get_compressor_train_energy_usage_type(
 
 def _compressor_system_mapper(
     energy_usage_model: Dict, references: References = None
-) -> dto.CompressorSystemConsumerFunction:
+) -> CompressorSystemConsumerFunction:
     compressors = []
     compressor_power_usage_type = set()
     for compressor in energy_usage_model.get(EcalcYamlKeywords.compressor_system_compressors, []):
@@ -89,7 +102,7 @@ def _compressor_system_mapper(
         )
 
         compressors.append(
-            dto.CompressorSystemCompressor(
+            CompressorSystemCompressor(
                 name=compressor.get(EcalcYamlKeywords.name),
                 compressor_train=compressor_train,
             )
@@ -107,14 +120,14 @@ def _compressor_system_mapper(
     energy_usage_type = (
         compressor_power_usage_type.pop() if len(compressor_power_usage_type) == 1 else EnergyUsageType.POWER
     )
-    return dto.CompressorSystemConsumerFunction(
+    return CompressorSystemConsumerFunction(
         energy_usage_type=energy_usage_type,
         compressors=compressors,
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         condition=_map_condition(energy_usage_model),
         total_system_rate=energy_usage_model.get(EcalcYamlKeywords.consumer_system_total_system_rate),
         operational_settings=[
-            dto.CompressorSystemOperationalSetting(
+            CompressorSystemOperationalSetting(
                 rates=operational_setting.get(EcalcYamlKeywords.consumer_system_operational_settings_rates),
                 rate_fractions=operational_setting.get(
                     EcalcYamlKeywords.consumer_system_operational_settings_rate_fractions
@@ -138,7 +151,7 @@ def _compressor_system_mapper(
     )
 
 
-def _pump_system_mapper(energy_usage_model: Dict, references: References = None) -> dto.PumpSystemConsumerFunction:
+def _pump_system_mapper(energy_usage_model: Dict, references: References = None) -> PumpSystemConsumerFunction:
     """Remove references from pump system and map yaml to DTO
     :param energy_usage_model: dict representing PumpSystem
     :return:
@@ -149,16 +162,16 @@ def _pump_system_mapper(energy_usage_model: Dict, references: References = None)
             pump.get(EcalcYamlKeywords.pump_system_pump_model),
             references=references.models,
         )
-        pumps.append(dto.PumpSystemPump(name=pump.get(EcalcYamlKeywords.name), pump_model=pump_model))
+        pumps.append(PumpSystemPump(name=pump.get(EcalcYamlKeywords.name), pump_model=pump_model))
 
-    return dto.PumpSystemConsumerFunction(
+    return PumpSystemConsumerFunction(
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         condition=_map_condition(energy_usage_model),
         pumps=pumps,
         fluid_density=energy_usage_model.get(EcalcYamlKeywords.pump_system_fluid_density),
         total_system_rate=energy_usage_model.get(EcalcYamlKeywords.consumer_system_total_system_rate),
         operational_settings=[
-            dto.PumpSystemOperationalSetting(
+            PumpSystemOperationalSetting(
                 fluid_densities=operational_setting.get(
                     EcalcYamlKeywords.pump_system_operational_settings_fluid_densities
                 ),
@@ -185,13 +198,13 @@ def _pump_system_mapper(energy_usage_model: Dict, references: References = None)
     )
 
 
-def _direct_mapper(energy_usage_model: Dict, references: References = None) -> dto.DirectConsumerFunction:
+def _direct_mapper(energy_usage_model: Dict, references: References = None) -> DirectConsumerFunction:
     """Change type to match DTOs, then pass the dict on to DTO to automatically create the correct DTO.
     :param energy_usage_model:
     :return:
     """
     is_power_consumer = EcalcYamlKeywords.load in energy_usage_model
-    return dto.DirectConsumerFunction(
+    return DirectConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER if is_power_consumer else EnergyUsageType.FUEL,
         load=energy_usage_model.get(EcalcYamlKeywords.load),
         fuel_rate=energy_usage_model.get(EcalcYamlKeywords.fuel_rate),
@@ -202,12 +215,12 @@ def _direct_mapper(energy_usage_model: Dict, references: References = None) -> d
     )
 
 
-def _tabulated_mapper(energy_usage_model: Dict, references: References = None) -> dto.TabulatedConsumerFunction:
+def _tabulated_mapper(energy_usage_model: Dict, references: References = None) -> TabulatedConsumerFunction:
     energy_model = resolve_reference(
         energy_usage_model.get(EcalcYamlKeywords.energy_model),
         references.models,
     )
-    return dto.TabulatedConsumerFunction(
+    return TabulatedConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER
         if EnergyUsageType.POWER.value in energy_model.headers
         else EnergyUsageType.FUEL,
@@ -215,7 +228,7 @@ def _tabulated_mapper(energy_usage_model: Dict, references: References = None) -
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         model=energy_model,
         variables=[
-            dto.Variables(
+            Variables(
                 name=variable.get(EcalcYamlKeywords.name),
                 expression=variable.get(EcalcYamlKeywords.variable_expression),
             )
@@ -224,12 +237,12 @@ def _tabulated_mapper(energy_usage_model: Dict, references: References = None) -
     )
 
 
-def _pump_mapper(energy_usage_model: Dict, references: References = None) -> dto.PumpConsumerFunction:
+def _pump_mapper(energy_usage_model: Dict, references: References = None) -> PumpConsumerFunction:
     energy_model = resolve_reference(
         energy_usage_model.get(EcalcYamlKeywords.energy_model),
         references=references.models,
     )
-    return dto.PumpConsumerFunction(
+    return PumpConsumerFunction(
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         condition=_map_condition(energy_usage_model),
         rate_standard_m3_day=energy_usage_model.get(EcalcYamlKeywords.consumer_function_rate),
@@ -242,7 +255,7 @@ def _pump_mapper(energy_usage_model: Dict, references: References = None) -> dto
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     energy_usage_model: Dict, references: References = None
-) -> dto.CompressorConsumerFunction:
+) -> CompressorConsumerFunction:
     compressor_train_model = resolve_reference(
         energy_usage_model.get(EcalcYamlKeywords.models_type_compressor_train_compressor_train_model),
         references=references.models,
@@ -281,7 +294,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
             if require_interstage_pressure_variable_expression
             else None
         )
-    return dto.CompressorConsumerFunction(
+    return CompressorConsumerFunction(
         energy_usage_type=_get_compressor_train_energy_usage_type(compressor_train_model),
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         condition=_map_condition(energy_usage_model),
@@ -297,7 +310,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     )
 
 
-def _compressor_mapper(energy_usage_model: Dict, references: References = None) -> dto.CompressorConsumerFunction:
+def _compressor_mapper(energy_usage_model: Dict, references: References = None) -> CompressorConsumerFunction:
     energy_model = resolve_reference(
         energy_usage_model.get(EcalcYamlKeywords.energy_model),
         references=references.models,
@@ -305,7 +318,7 @@ def _compressor_mapper(energy_usage_model: Dict, references: References = None) 
 
     compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
 
-    return dto.CompressorConsumerFunction(
+    return CompressorConsumerFunction(
         energy_usage_type=compressor_train_energy_usage_type,
         power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
         condition=_map_condition(energy_usage_model),
@@ -339,7 +352,7 @@ class ConsumerFunctionMapper:
             raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
         return model_creator(model, references)
 
-    def from_yaml_to_dto(self, data: dto.EnergyModel) -> Optional[Dict[datetime, dto.ConsumerFunction]]:
+    def from_yaml_to_dto(self, data: EnergyModel) -> Optional[Dict[datetime, ConsumerFunction]]:
         if data is None:
             return None
 

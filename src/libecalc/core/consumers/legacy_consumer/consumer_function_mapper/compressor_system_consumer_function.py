@@ -1,6 +1,5 @@
 from typing import List, Optional
 
-from libecalc import dto
 from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     ConsumerSystemConsumerFunction,
@@ -10,11 +9,13 @@ from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
 )
 from libecalc.core.consumers.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.core.models.compressor import create_compressor_model
+from libecalc.dto import CompressorSystemConsumerFunction as CompressorSystemConsumerFunctionDTO
+from libecalc.dto import CompressorSystemOperationalSetting, SystemOperationalSetting
 from libecalc.expression import Expression
 
 
 def _map_operational_settings(
-    operational_settings: dto.CompressorSystemOperationalSetting,
+    operational_settings: CompressorSystemOperationalSetting,
     system_rate: Optional[Expression],
     number_of_compressors: int,
 ) -> CompressorSystemOperationalSettingExpressions:
@@ -32,7 +33,7 @@ def _map_operational_settings(
     )
 
 
-def create_compressor_system(model_dto: dto.CompressorSystemConsumerFunction) -> ConsumerSystemConsumerFunction:
+def create_compressor_system(model_dto: CompressorSystemConsumerFunctionDTO) -> ConsumerSystemConsumerFunction:
     compressors = [
         ConsumerSystemComponent(
             name=compressor.name,
@@ -58,7 +59,7 @@ def create_compressor_system(model_dto: dto.CompressorSystemConsumerFunction) ->
 
 
 def map_discharge_pressures(
-    operational_setting: dto.SystemOperationalSetting,
+    operational_setting: SystemOperationalSetting,
     number_of_consumers: int,
 ) -> List[Expression]:
     if operational_setting.discharge_pressure is not None:
@@ -70,9 +71,7 @@ def map_discharge_pressures(
         return [Expression.setup_from_expression(0)] * number_of_consumers
 
 
-def map_suction_pressures(
-    operational_setting: dto.SystemOperationalSetting, number_of_consumers: int
-) -> List[Expression]:
+def map_suction_pressures(operational_setting: SystemOperationalSetting, number_of_consumers: int) -> List[Expression]:
     if operational_setting.suction_pressure is not None:
         return [operational_setting.suction_pressure] * number_of_consumers
     elif operational_setting.suction_pressures is not None:
@@ -83,7 +82,7 @@ def map_suction_pressures(
 
 
 def map_rates(
-    operational_setting: dto.SystemOperationalSetting,
+    operational_setting: SystemOperationalSetting,
     system_rate: Optional[Expression],
     number_of_consumers: int,
 ) -> List[Expression]:
