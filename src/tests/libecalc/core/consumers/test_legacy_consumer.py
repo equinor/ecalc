@@ -4,7 +4,6 @@ from unittest.mock import Mock
 import numpy as np
 import pandas as pd
 
-from libecalc import dto
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -133,7 +132,7 @@ def test_electricity_consumer(direct_el_consumer):
         values=[True] * 6,
         unit=Unit.NONE,
     )
-    assert consumer_result.timesteps == time_vector
+    assert consumer_result.timesteps == variables.time_vector
 
 
 def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
