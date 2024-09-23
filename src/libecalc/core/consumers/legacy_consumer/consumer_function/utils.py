@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.dto import VariablesMap
+from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
 
 

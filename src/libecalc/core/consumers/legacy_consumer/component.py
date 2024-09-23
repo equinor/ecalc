@@ -20,6 +20,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
@@ -43,7 +44,6 @@ from libecalc.core.result.results import (
 )
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
-from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
 

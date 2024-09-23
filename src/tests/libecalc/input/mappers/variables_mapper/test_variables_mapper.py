@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.dto import VariablesMap
+from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import (
     VariableProcessor,

@@ -6,11 +6,11 @@ import pytest
 import libecalc.common.utils.rates
 from libecalc import dto
 from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
-from libecalc.dto import VariablesMap
 from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
@@ -30,7 +30,7 @@ def test_direct_expression_consumer_function():
     )
 
     # Test evaluation
-    variables_map = dto.VariablesMap(
+    variables_map = VariablesMap(
         time_vector=[datetime(2000, 1, 1, 0, 0), datetime(2001, 1, 1, 0, 0)],
         variables={"SIM1;Flare": [10.0, 3.0], "SIM1;Vent": [5.0, 2.0]},
     )

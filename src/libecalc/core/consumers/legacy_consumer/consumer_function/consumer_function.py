@@ -3,10 +3,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List
 
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResult,
 )
-from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
 

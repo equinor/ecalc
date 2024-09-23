@@ -7,6 +7,7 @@ import pytest
 
 from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError
+from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )
@@ -25,7 +26,6 @@ from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
 from libecalc.core.consumers.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.core.models.chart import SingleSpeedChart
 from libecalc.core.models.pump import PumpSingleSpeed
-from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 
 

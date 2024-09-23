@@ -5,8 +5,8 @@ import numpy as np
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
+from libecalc.common.variables import VariablesMap
 from libecalc.core.models.fuel import FuelModel
-from libecalc.dto import VariablesMap
 from libecalc.expression import Expression
 
 

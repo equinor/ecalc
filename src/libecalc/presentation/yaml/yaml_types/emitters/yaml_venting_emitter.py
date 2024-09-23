@@ -20,9 +20,9 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
+from libecalc.common.variables import VariablesMap
 from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr, convert_expression
-from libecalc.dto.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.yaml_types import YamlBase

@@ -55,4 +55,3 @@ from libecalc.dto.models.compressor import (
 )
 from libecalc.dto.result_options import ResultOptions
 from libecalc.dto.types import FuelType, TimeSeriesType
-from libecalc.dto.variables import VariablesMap

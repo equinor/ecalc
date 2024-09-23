@@ -4,6 +4,7 @@ from datetime import datetime
 import pytest
 
 from libecalc import dto
+from libecalc.common.variables import VariablesMap
 from libecalc.dto.base import (
     ComponentType,
     ConsumerUserDefinedCategoryType,
@@ -292,5 +293,5 @@ def consumer_with_time_slots_models_dto(
                 )
             ],
         ),
-        variables=dto.VariablesMap(time_vector=time_vector, variables={"RATE": [5000] * number_of_years}),
+        variables=VariablesMap(time_vector=time_vector, variables={"RATE": [5000] * number_of_years}),
     )

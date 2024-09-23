@@ -5,6 +5,7 @@ import pytest
 
 from libecalc import dto
 from libecalc.common.units import Unit
+from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 
@@ -31,7 +32,7 @@ def all_energy_usage_models_variables():
         datetime(2019, 1, 1, 0, 0),
         datetime(2020, 1, 1, 0, 0),
     ]
-    return dto.VariablesMap(time_vector=time_vector, variables=variables)
+    return VariablesMap(time_vector=time_vector, variables=variables)
 
 
 @pytest.fixture

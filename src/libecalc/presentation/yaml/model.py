@@ -5,7 +5,8 @@ from typing import Dict, List, Optional
 from typing_extensions import Self, deprecated
 
 from libecalc.common.time_utils import Frequency
-from libecalc.dto import ResultOptions, VariablesMap
+from libecalc.common.variables import VariablesMap
+from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections

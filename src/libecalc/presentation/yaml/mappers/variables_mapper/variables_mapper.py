@@ -2,10 +2,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List
 
-from libecalc import dto
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.dto import VariablesMap
+from libecalc.common.variables import VariablesMap
 from libecalc.presentation.yaml.domain.time_series_provider import TimeSeriesProvider
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.yaml_variable import (
@@ -101,7 +100,7 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
 
 def map_yaml_to_variables(
     configuration: YamlValidator, time_series_provider: TimeSeriesProvider, global_time_vector: List[datetime]
-) -> dto.VariablesMap:
+) -> VariablesMap:
     variables = {}
     time_series_list = [
         time_series_provider.get_time_series(time_series_reference)

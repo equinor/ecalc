@@ -27,6 +27,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesRate,
 )
+from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.dto.base import ComponentType
@@ -265,7 +266,7 @@ def _compute_aggregated_power(
 
 
 def _evaluate_installations(
-    graph_result: GraphResult, variables_map: libecalc.dto.VariablesMap
+    graph_result: GraphResult, variables_map: VariablesMap
 ) -> List[libecalc.presentation.json_result.result.InstallationResult]:
     """
     All subcomponents have already been evaluated, here we basically collect and aggregate the results
@@ -807,7 +808,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         timesteps=model.timesteps,
                         values=[math.nan] * len(model.timesteps),
                         unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
-                    ),  #  not relevant for compressor train, only for stage
+                    ),  # not relevant for compressor train, only for stage
                     standard_rate_sm3_per_day=TimeSeriesRate(
                         timesteps=model.timesteps,
                         values=model.inlet_stream_condition.standard_rate_sm3_per_day
@@ -823,7 +824,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
                         regularity=regularity.for_timesteps(model.timesteps).values,
-                    ),  #  not relevant for compressor train, only for stage
+                    ),  # not relevant for compressor train, only for stage
                     kappa=TimeSeriesFloat(
                         timesteps=model.timesteps,
                         values=model.inlet_stream_condition.kappa
@@ -875,7 +876,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         timesteps=model.timesteps,
                         values=[math.nan] * len(model.timesteps),
                         unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
-                    ),  #  not relevant for compressor train, only for stage
+                    ),  # not relevant for compressor train, only for stage
                     standard_rate_sm3_per_day=TimeSeriesRate(
                         timesteps=model.timesteps,
                         values=model.outlet_stream_condition.standard_rate_sm3_per_day
@@ -891,7 +892,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
                         regularity=regularity.for_timesteps(model.timesteps).values,
-                    ),  #  not relevant for compressor train, only for stage
+                    ),  # not relevant for compressor train, only for stage
                     kappa=TimeSeriesFloat(
                         timesteps=model.timesteps,
                         values=model.outlet_stream_condition.kappa

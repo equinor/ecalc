@@ -11,6 +11,7 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.common.variables import VariablesMap
 from libecalc.fixtures.cases import ltp_export, venting_emitters
 from libecalc.fixtures.cases.ltp_export.installation_setup import (
     expected_boiler_fuel_consumption,
@@ -68,7 +69,7 @@ time_vector_yearly = pd.date_range(datetime(2027, 1, 1), datetime(2029, 1, 1), f
 
 def calculate_asset_result(
     model: Union[dto.Installation, dto.Asset],
-    variables: dto.VariablesMap,
+    variables: VariablesMap,
 ):
     model = model
     graph = model.get_graph()
@@ -102,7 +103,7 @@ def test_emissions_diesel_fixed_and_mobile():
         ],
     )
 
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
     ltp_result = get_consumption(model=asset, variables=variables, time_vector=time_vector_yearly)
 
@@ -136,7 +137,7 @@ def test_temporal_models_detailed():
     - Generator set user defined category
     - Generator set model
     """
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
     ltp_result = get_consumption(
         model=installation_direct_consumer_dto(), variables=variables, time_vector=time_vector_yearly
@@ -185,7 +186,7 @@ def test_temporal_models_offshore_wind():
     - El-consumer user defined category
     - El-consumer energy usage model
     """
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
 
     ltp_result = get_consumption(
         model=installation_offshore_wind_dto(), variables=variables, time_vector=time_vector_yearly
@@ -203,7 +204,7 @@ def test_temporal_models_compressor():
     Detailed temporal models (variations within one year) for:
     - Fuel consumer user defined category
     """
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={})
 
     ltp_result = get_consumption(
         model=installation_compressor_dto([no_el_consumption()]), variables=variables, time_vector=time_vector_yearly
@@ -216,7 +217,7 @@ def test_temporal_models_compressor():
 
 
 def test_boiler_heater_categories():
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={})
 
     ltp_result = get_consumption(
         model=installation_boiler_heater_dto(), variables=variables, time_vector=time_vector_yearly
@@ -246,7 +247,7 @@ def test_venting_emitters():
     regularity = 0.2
     emission_rate = 10
 
-    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+    variables = VariablesMap(time_vector=time_vector, variables={})
 
     dto_sd_kg_per_day = venting_emitter_yaml_factory(
         emission_rates=[emission_rate],
@@ -324,7 +325,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     regularity = 0.2
     emission_rate = 10
 
-    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+    variables = VariablesMap(time_vector=time_vector, variables={})
 
     # Installation with only venting emitters:
     dto_case_emitters = venting_emitter_yaml_factory(
@@ -427,7 +428,7 @@ def test_total_oil_loaded_old_method():
         datetime(2027, 1, 1),
         datetime(2028, 1, 1),
     ]
-    variables = dto.VariablesMap(time_vector=time_vector, variables={})
+    variables = VariablesMap(time_vector=time_vector, variables={})
 
     regularity = 0.6
     emission_factor = 2
@@ -480,7 +481,7 @@ def test_total_oil_loaded_old_method():
 
 def test_electrical_and_mechanical_power_installation():
     """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={})
     asset = dto.Asset(
         name="Asset 1",
         installations=[
@@ -513,7 +514,7 @@ def test_electrical_and_mechanical_power_installation():
 
 def test_electrical_and_mechanical_power_asset():
     """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
-    variables = dto.VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={})
     installation_name_1 = "INSTALLATION_1"
     installation_name_2 = "INSTALLATION_2"
 
@@ -568,7 +569,7 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
 
     time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
 
-    dto.VariablesMap(time_vector=time_vector_yearly, variables={})
+    VariablesMap(time_vector=time_vector_yearly, variables={})
     regularity = 0.2
     load = 10
     cable_loss = 0.1
@@ -631,7 +632,6 @@ def test_max_usage_from_shore(ltp_pfs_yaml_factory):
 
     time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
 
-    dto.VariablesMap(time_vector=time_vector_yearly, variables={})
     regularity = 0.2
     load = 10
     cable_loss = 0.1
