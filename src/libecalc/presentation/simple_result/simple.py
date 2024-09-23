@@ -4,11 +4,11 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.component_type import ComponentType
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.units import Unit
-from libecalc.dto.base import ComponentType
 from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
 
 opt_float = Optional[float]

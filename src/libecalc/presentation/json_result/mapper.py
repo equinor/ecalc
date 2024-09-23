@@ -11,6 +11,7 @@ import libecalc
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_info.compressor import CompressorPressureType
+from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.math.numbers import Numbers
@@ -30,7 +31,6 @@ from libecalc.common.utils.rates import (
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto import CompressorSystemConsumerFunction
-from libecalc.dto.base import ComponentType
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import (
     aggregate_emissions,

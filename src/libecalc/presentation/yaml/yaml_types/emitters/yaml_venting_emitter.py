@@ -11,6 +11,7 @@ from pydantic import (
 from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
+from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
 from libecalc.common.units import Unit
@@ -21,7 +22,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import VariablesMap
-from libecalc.dto.base import ComponentType, ConsumerUserDefinedCategoryType
+from libecalc.dto.base import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr, convert_expression
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType

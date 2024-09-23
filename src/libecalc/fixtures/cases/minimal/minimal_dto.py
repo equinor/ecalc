@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 
 from libecalc import dto
+from libecalc.common.component_type import ComponentType
 from libecalc.dto.base import (
-    ComponentType,
     ConsumerUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )

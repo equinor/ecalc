@@ -4,8 +4,8 @@ from typing import List
 
 from libecalc import dto
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.component_type import ComponentType
 from libecalc.common.graph import Graph, NodeID
-from libecalc.dto.base import ComponentType
 from libecalc.dto.node_info import NodeInfo
 
 

@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import Field
 from typing_extensions import Annotated, Literal, Self
 
+from libecalc.common.component_type import ComponentType
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
 from libecalc.common.utils.rates import (
@@ -21,7 +22,6 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.core.result.base import EcalcResultBaseModel
-from libecalc.dto.base import ComponentType
 
 
 class CommonResultBase(EcalcResultBaseModel):

@@ -4,9 +4,9 @@ from typing import Dict, Optional, Union
 from pydantic import TypeAdapter, ValidationError
 
 from libecalc import dto
+from libecalc.common.component_type import ComponentType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.dto.base import ComponentType
 from libecalc.dto.types import ConsumerType, ConsumptionType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression

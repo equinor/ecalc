@@ -2,8 +2,8 @@ from copy import deepcopy
 from datetime import datetime
 
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.component_type import ComponentType
 from libecalc.common.units import Unit
-from libecalc.dto.base import ComponentType
 from libecalc.presentation.simple_result.simple import (
     SimpleComponentResult,
     SimpleEmissionResult,

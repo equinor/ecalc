@@ -8,6 +8,7 @@ from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
 from libecalc import dto
+from libecalc.common.component_type import ComponentType
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
@@ -20,7 +21,6 @@ from libecalc.common.utils.rates import (
 from libecalc.common.variables import VariablesMap
 from libecalc.dto.base import (
     Component,
-    ComponentType,
     ConsumerUserDefinedCategoryType,
     EcalcBaseModel,
     InstallationUserDefinedCategoryType,

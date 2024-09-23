@@ -8,6 +8,7 @@ from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
+from libecalc.common.component_type import ComponentType
 from libecalc.common.logger import logger
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
@@ -23,7 +24,6 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.dto.base import ComponentType
 from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
 from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 from libecalc.presentation.json_result.result.emission import (

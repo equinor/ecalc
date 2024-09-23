@@ -3,6 +3,7 @@ from typing import Dict, List
 
 import numpy as np
 
+import libecalc.common.component_type
 from libecalc import dto
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
@@ -169,7 +170,7 @@ def direct_consumer(power: float) -> dto.DirectConsumerFunction:
 def offshore_wind() -> dto.ElectricityConsumer:
     return dto.ElectricityConsumer(
         name="direct_consumer",
-        component_type=dto.base.ComponentType.GENERIC,
+        component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={
             date1: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
             date2: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
@@ -191,7 +192,7 @@ def offshore_wind() -> dto.ElectricityConsumer:
 def no_el_consumption() -> dto.ElectricityConsumer:
     return dto.ElectricityConsumer(
         name="no_el_consumption",
-        component_type=dto.base.ComponentType.GENERIC,
+        component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={date1: direct_consumer(power=0)},
         regularity=regularity_temporal_consumer,
@@ -201,7 +202,7 @@ def no_el_consumption() -> dto.ElectricityConsumer:
 def simple_direct_el_consumer(name: str = "direct_consumer") -> dto.ElectricityConsumer:
     return dto.ElectricityConsumer(
         name=name,
-        component_type=dto.base.ComponentType.GENERIC,
+        component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
             date1: dto.DirectConsumerFunction(
@@ -217,7 +218,7 @@ def simple_direct_el_consumer(name: str = "direct_consumer") -> dto.ElectricityC
 def simple_direct_el_consumer_mobile() -> dto.ElectricityConsumer:
     return dto.ElectricityConsumer(
         name="direct_consumer_mobile",
-        component_type=dto.base.ComponentType.GENERIC,
+        component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
             date1: dto.DirectConsumerFunction(
@@ -244,7 +245,7 @@ def compressor_sampled():
 def boiler_heater() -> dto.FuelConsumer:
     return dto.FuelConsumer(
         name="boiler",
-        component_type=dto.base.ComponentType.GENERIC,
+        component_type=libecalc.common.component_type.ComponentType.GENERIC,
         fuel={date1: fuel_turbine()},
         user_defined_category={
             date1: ConsumerUserDefinedCategoryType.BOILER,
@@ -263,7 +264,7 @@ def boiler_heater() -> dto.FuelConsumer:
 def compressor(name: str = "single_1d_compressor_sampled") -> dto.FuelConsumer:
     return dto.FuelConsumer(
         name=name,
-        component_type=dto.base.ComponentType.COMPRESSOR,
+        component_type=libecalc.common.component_type.ComponentType.COMPRESSOR,
         fuel={datetime(2027, 1, 1): fuel_turbine()},
         user_defined_category={
             date1: ConsumerUserDefinedCategoryType.MISCELLANEOUS,

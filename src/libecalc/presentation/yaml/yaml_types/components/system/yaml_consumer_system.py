@@ -5,8 +5,8 @@ from pydantic import ConfigDict, Field, TypeAdapter
 from typing_extensions import Annotated
 
 from libecalc import dto
+from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.dto.base import ComponentType
 from libecalc.dto.components import Crossover, SystemComponentConditions
 from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
