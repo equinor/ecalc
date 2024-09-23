@@ -428,26 +428,6 @@ class Asset(Component):
     name: ComponentNameStr
     installations: List[Installation] = Field(default_factory=list)
 
-    @property
-    def installation_ids(self) -> List[str]:
-        return [installation.id for installation in self.installations]
-
-    def get_component_ids_for_installation_id(self, installation_id: str) -> List[str]:
-        installation = self.get_installation(installation_id)
-        component_ids = []
-        for fuel_consumer in installation.fuel_consumers:
-            component_ids.append(fuel_consumer.id)
-            if isinstance(fuel_consumer, GeneratorSet):
-                for electricity_consumer in fuel_consumer.consumers:
-                    component_ids.append(electricity_consumer.id)
-
-        for emitter in installation.venting_emitters:
-            component_ids.append(emitter.id)
-        return component_ids
-
-    def get_installation(self, installation_id: str) -> Installation:
-        return next(installation for installation in self.installations if installation.id == installation_id)
-
     @model_validator(mode="after")
     def validate_unique_names(self):
         """Ensure unique component names within installation."""
