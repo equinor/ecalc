@@ -6,9 +6,9 @@ from typing_extensions import Annotated
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.components import Crossover, SystemComponentConditions
-from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (

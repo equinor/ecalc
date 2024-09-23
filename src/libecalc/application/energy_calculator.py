@@ -7,6 +7,7 @@ import numpy as np
 
 import libecalc.dto.components
 from libecalc import dto
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.priorities import PriorityID
@@ -25,7 +26,6 @@ from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.component_graph import ComponentGraph
-from libecalc.dto.types import ConsumptionType
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
