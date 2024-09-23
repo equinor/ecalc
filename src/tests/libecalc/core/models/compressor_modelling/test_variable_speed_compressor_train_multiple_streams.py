@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc import dto
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.types import (
     FluidStreamObjectForMultipleStreams,
@@ -16,7 +17,7 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto import InterstagePressureControl
-from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl, FluidStreamType
+from libecalc.dto.types import FixedSpeedPressureControl, FluidStreamType
 
 
 def calculate_relative_difference(value1, value2):

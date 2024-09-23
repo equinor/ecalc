@@ -9,6 +9,7 @@ from libecalc import dto
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -28,7 +29,6 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_polytropic_head_campbell,
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
-from libecalc.dto.types import ChartAreaFlag
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

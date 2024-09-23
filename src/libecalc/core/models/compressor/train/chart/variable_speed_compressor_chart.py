@@ -10,11 +10,11 @@ from scipy.interpolate import interp1d
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.core.models.chart import VariableSpeedChart
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.train.chart.types import (
     CompressorChartHeadEfficiencyResultSinglePoint,
     CompressorChartResult,
 )
-from libecalc.dto.types import ChartAreaFlag
 
 NUMERICAL_TOLERANCE = 1e-7
 

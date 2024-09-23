@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, ConfigDict
 
-from libecalc.dto.types import ChartAreaFlag
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 
 
 class CompressorChartHeadEfficiencyResultSinglePoint(BaseModel):

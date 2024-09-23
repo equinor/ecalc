@@ -1,7 +1,7 @@
 import numpy as np
 
 from libecalc.core.models.chart.base import ChartCurve
-from libecalc.dto.types import ChartAreaFlag
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 
 
 class SingleSpeedChart(ChartCurve):

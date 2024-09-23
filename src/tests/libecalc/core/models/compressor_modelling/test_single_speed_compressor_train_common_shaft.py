@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.single_speed_compressor_train_common_shaft import (
     SingleSpeedCompressorTrainCommonShaft,
@@ -10,7 +11,7 @@ from libecalc.core.models.compressor.train.stage import CompressorTrainStage
 from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
-from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
+from libecalc.dto.types import FixedSpeedPressureControl
 
 
 @pytest.fixture

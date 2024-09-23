@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.logger import logger
+from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -21,7 +22,7 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.core.models.results.compressor import TargetPressureStatus
-from libecalc.dto.types import ChartAreaFlag, FixedSpeedPressureControl
+from libecalc.dto.types import FixedSpeedPressureControl
 
 EPSILON = 1e-5
 
