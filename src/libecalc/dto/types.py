@@ -8,11 +8,6 @@ from libecalc.dto.base import EcalcBaseModel, FuelTypeUserDefinedCategoryType
 from libecalc.dto.emission import Emission
 
 
-class ConsumptionType(str, Enum):
-    FUEL = "FUEL"
-    ELECTRICITY = "ELECTRICITY"
-
-
 class EnergyUsageType(str, Enum):
     FUEL = "FUEL"
     POWER = "POWER"

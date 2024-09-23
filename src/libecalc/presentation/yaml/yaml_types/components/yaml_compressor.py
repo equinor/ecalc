@@ -5,9 +5,9 @@ from pydantic import ConfigDict, Field
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto.components import CompressorComponent
-from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import resolve_reference
 from libecalc.presentation.yaml.yaml_entities import References

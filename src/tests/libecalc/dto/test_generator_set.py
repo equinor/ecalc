@@ -5,8 +5,9 @@ from pydantic import ValidationError
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.dto.base import ConsumerUserDefinedCategoryType
-from libecalc.dto.types import ConsumptionType, EnergyModelType, EnergyUsageType
+from libecalc.dto.types import EnergyModelType, EnergyUsageType
 from libecalc.expression import Expression
 
 

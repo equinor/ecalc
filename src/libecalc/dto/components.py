@@ -9,6 +9,7 @@ from typing_extensions import Annotated
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
@@ -34,7 +35,7 @@ from libecalc.dto.models import (
 )
 from libecalc.dto.models.compressor import CompressorModel
 from libecalc.dto.models.pump import PumpModel
-from libecalc.dto.types import ConsumptionType, EnergyUsageType, FuelType
+from libecalc.dto.types import EnergyUsageType, FuelType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
     ExpressionType,

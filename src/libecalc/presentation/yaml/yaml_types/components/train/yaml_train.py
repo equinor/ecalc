@@ -5,9 +5,9 @@ from pydantic import Field
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period
 from libecalc.dto.components import Stream, TrainComponent
-from libecalc.dto.types import ConsumptionType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import YamlConsumerBase
