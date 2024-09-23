@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from libecalc import dto
 from libecalc.common.errors.exceptions import EcalcError
+from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
@@ -319,7 +319,7 @@ class TestPumpSystemConsumerFunction:
         )
         pump = PumpSingleSpeed(
             pump_chart=SingleSpeedChart(
-                dto.SingleSpeedChartDTO(
+                SingleSpeedChartDTO(
                     rate_actual_m3_hour=df["RATE"].tolist(),
                     polytropic_head_joule_per_kg=[x * 9.81 for x in df["HEAD"].tolist()],  # [m] to [J/kg]
                     efficiency_fraction=df["EFFICIENCY"].tolist(),

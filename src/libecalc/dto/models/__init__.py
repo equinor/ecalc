@@ -25,11 +25,8 @@ from libecalc.dto.models.compressor import (
 
 from .base import ConsumerFunction, EnergyModel
 from .chart import (
-    ChartCurveDTO,
     GenericChartFromDesignPoint,
     GenericChartFromInput,
-    SingleSpeedChartDTO,
-    VariableSpeedChartDTO,
 )
 from .consumer_system import (
     CompressorSystemCompressor,

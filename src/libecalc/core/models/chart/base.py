@@ -7,8 +7,8 @@ from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 from typing_extensions import Self
 
-from libecalc import dto
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import ChartCurveDTO
 
 
 class ChartCurve:
@@ -24,7 +24,7 @@ class ChartCurve:
     Note that pump charts are normally converted from meter liquid column to J/kg before or when creating the chart.
     """
 
-    def __init__(self, data_transfer_object: dto.ChartCurveDTO):
+    def __init__(self, data_transfer_object: ChartCurveDTO):
         self.data_transfer_object = data_transfer_object
         self.rate_actual_m3_hour = data_transfer_object.rate_actual_m3_hour
         self.polytropic_head_joule_per_kg = data_transfer_object.polytropic_head_joule_per_kg

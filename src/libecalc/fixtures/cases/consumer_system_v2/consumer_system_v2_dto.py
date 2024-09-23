@@ -4,6 +4,7 @@ import pytest
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -70,7 +71,7 @@ compressor_1d = dto.CompressorSampled(
 pump_model_single_speed = dto.PumpModel(
     energy_usage_adjustment_factor=1,
     energy_usage_adjustment_constant=0,
-    chart=dto.SingleSpeedChartDTO(
+    chart=SingleSpeedChartDTO(
         rate_actual_m3_hour=[100, 200, 300, 400, 500],
         polytropic_head_joule_per_kg=[9810.0, 19620.0, 29430.0, 39240.0, 49050.0],
         efficiency_fraction=[0.4, 0.5, 0.75, 0.70, 0.60],

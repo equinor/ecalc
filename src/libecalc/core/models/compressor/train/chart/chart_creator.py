@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from libecalc import dto
+from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
 from libecalc.core.models.compressor.train.chart import VariableSpeedCompressorChart
 from libecalc.core.models.compressor.train.chart.generic_chart_data import (
     UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS,
@@ -219,15 +219,15 @@ class CompressorChartCreator:
         min_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_HEADS
 
         return VariableSpeedCompressorChart(
-            dto.VariableSpeedChartDTO(
+            VariableSpeedChartDTO(
                 curves=[
-                    dto.ChartCurveDTO(
+                    ChartCurveDTO(
                         rate_actual_m3_hour=list(min_speed_volume_rates),
                         polytropic_head_joule_per_kg=list(min_speed_heads),
                         efficiency_fraction=[polytropic_efficiency] * len(min_speed_volume_rates),
                         speed_rpm=75,  # 75 % of max speed
                     ),
-                    dto.ChartCurveDTO(
+                    ChartCurveDTO(
                         rate_actual_m3_hour=list(max_speed_volume_rates),
                         polytropic_head_joule_per_kg=list(max_speed_heads),
                         efficiency_fraction=[polytropic_efficiency] * len(max_speed_volume_rates),

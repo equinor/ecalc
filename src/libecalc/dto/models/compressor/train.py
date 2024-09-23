@@ -3,8 +3,8 @@ from typing import List, Literal, Optional
 from pydantic import Field, field_validator
 from typing_extensions import Annotated
 
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto.models.base import EnergyModel
-from libecalc.dto.models.compressor.chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto.models.compressor.fluid import (
     FluidModel,
     MultipleStreamsAndPressureStream,

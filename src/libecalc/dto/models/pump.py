@@ -2,8 +2,8 @@ from typing import Literal, Optional, Union
 
 from pydantic import field_validator
 
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
-from libecalc.dto.models.chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto.types import ConsumerType, EnergyModelType, EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression

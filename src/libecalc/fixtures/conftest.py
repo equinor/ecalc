@@ -4,6 +4,7 @@ from typing import Dict
 import pytest
 
 from libecalc import dto
+from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4
@@ -36,16 +37,16 @@ def fuel_gas() -> Dict[datetime, dto.types.FuelType]:
 
 
 @pytest.fixture
-def predefined_variable_speed_compressor_chart_dto() -> dto.VariableSpeedChartDTO:
-    return dto.VariableSpeedChartDTO(
+def predefined_variable_speed_compressor_chart_dto() -> VariableSpeedChartDTO:
+    return VariableSpeedChartDTO(
         curves=[
-            dto.ChartCurveDTO(
+            ChartCurveDTO(
                 speed_rpm=7689.0,
                 rate_actual_m3_hour=[2900.0666, 3503.8068, 4002.5554, 4595.0148],
                 polytropic_head_joule_per_kg=[82530.702036, 78443.25272100001, 72239.03594100001, 60107.539661999996],
                 efficiency_fraction=[0.723, 0.7469, 0.7449, 0.7015],
             ),
-            dto.ChartCurveDTO(
+            ChartCurveDTO(
                 speed_rpm=8787.0,
                 rate_actual_m3_hour=[3305.5723, 4000.1546, 4499.2342, 4996.8728, 5241.9892],
                 polytropic_head_joule_per_kg=[
@@ -57,7 +58,7 @@ def predefined_variable_speed_compressor_chart_dto() -> dto.VariableSpeedChartDT
                 ],
                 efficiency_fraction=[0.7241, 0.7449, 0.7464, 0.722, 0.7007],
             ),
-            dto.ChartCurveDTO(
+            ChartCurveDTO(
                 speed_rpm=9886.0,
                 rate_actual_m3_hour=[3708.8713, 4502.2531, 4993.5959, 5507.8114, 5924.3308],
                 polytropic_head_joule_per_kg=[
@@ -69,7 +70,7 @@ def predefined_variable_speed_compressor_chart_dto() -> dto.VariableSpeedChartDT
                 ],
                 efficiency_fraction=[0.723, 0.7473, 0.748, 0.7306, 0.704],
             ),
-            dto.ChartCurveDTO(
+            ChartCurveDTO(
                 speed_rpm=10435.0,
                 rate_actual_m3_hour=[3928.0389, 4507.4654, 5002.1249, 5498.9912, 6248.5937],
                 polytropic_head_joule_per_kg=[
@@ -81,7 +82,7 @@ def predefined_variable_speed_compressor_chart_dto() -> dto.VariableSpeedChartDT
                 ],
                 efficiency_fraction=[0.7232, 0.7437, 0.7453, 0.7414, 0.701],
             ),
-            dto.ChartCurveDTO(
+            ChartCurveDTO(
                 speed_rpm=10984.0,
                 rate_actual_m3_hour=[4138.6974, 5002.4758, 5494.3704, 6008.6962, 6560.148],
                 polytropic_head_joule_per_kg=[
@@ -93,7 +94,7 @@ def predefined_variable_speed_compressor_chart_dto() -> dto.VariableSpeedChartDT
                 ],
                 efficiency_fraction=[0.7226, 0.7462, 0.7468, 0.7349, 0.7023],
             ),
-            dto.ChartCurveDTO(
+            ChartCurveDTO(
                 speed_rpm=11533.0,
                 rate_actual_m3_hour=[4327.9175, 4998.517, 5505.8851, 6027.6167, 6506.9064, 6908.2832],
                 polytropic_head_joule_per_kg=[
@@ -106,7 +107,7 @@ def predefined_variable_speed_compressor_chart_dto() -> dto.VariableSpeedChartDT
                 ],
                 efficiency_fraction=[0.7254, 0.7444, 0.745, 0.7466, 0.7266, 0.7019],
             ),
-            dto.ChartCurveDTO(
+            ChartCurveDTO(
                 speed_rpm=10767.0,
                 rate_actual_m3_hour=[4052.9057, 4500.6637, 4999.41, 5492.822, 6000.6263, 6439.4876],
                 polytropic_head_joule_per_kg=[

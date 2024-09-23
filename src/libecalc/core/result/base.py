@@ -6,9 +6,9 @@ from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
 
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.utils.rates import TimeSeries
-from libecalc.dto import SingleSpeedChartDTO, VariableSpeedChartDTO
 
 
 class EcalcResultBaseModel(BaseModel):

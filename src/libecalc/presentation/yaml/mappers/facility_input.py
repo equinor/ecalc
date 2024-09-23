@@ -4,6 +4,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from libecalc import dto
 from libecalc.common.errors.exceptions import InvalidResourceException
+from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import GeneratorSetSampled, TabulatedData
 from libecalc.dto.types import ChartType, EnergyModelType, EnergyUsageType
@@ -98,7 +99,7 @@ def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_
 
     chart_data = get_single_speed_chart_data(resource=resource, resource_name=resource_name)
 
-    chart = dto.SingleSpeedChartDTO(
+    chart = SingleSpeedChartDTO(
         speed_rpm=chart_data.speed,
         efficiency_fraction=convert_efficiency_to_fraction(
             efficiency_values=chart_data.efficiency,
@@ -128,8 +129,8 @@ def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facilit
     resource_name = facility_data.get(EcalcYamlKeywords.file)
     curves_data = chart_curves_as_resource_to_dto_format(resource=resource, resource_name=resource_name)
 
-    curves: List[dto.ChartCurveDTO] = [
-        dto.ChartCurveDTO(
+    curves: List[ChartCurveDTO] = [
+        ChartCurveDTO(
             speed_rpm=curve["speed"],
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
                 rate_values=curve["rate"], input_unit=units[EcalcYamlKeywords.consumer_chart_rate]
@@ -148,7 +149,7 @@ def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facilit
     head_margin = facility_data.get(EcalcYamlKeywords.pump_system_head_margin, 0.0)
 
     return dto.PumpModel(
-        chart=dto.VariableSpeedChartDTO(curves=curves),
+        chart=VariableSpeedChartDTO(curves=curves),
         energy_usage_adjustment_constant=_get_adjustment_constant(facility_data),
         energy_usage_adjustment_factor=_get_adjustment_factor(facility_data),
         head_margin=head_margin,

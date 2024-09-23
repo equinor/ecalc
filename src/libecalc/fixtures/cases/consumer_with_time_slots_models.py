@@ -5,6 +5,7 @@ import pytest
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.variables import VariablesMap
 from libecalc.dto.base import (
     ConsumerUserDefinedCategoryType,
@@ -57,9 +58,9 @@ def tabulated_fuel_consumer_with_time_slots(fuel_gas) -> dto.FuelConsumer:
     )
 
 
-def single_speed_compressor_chart() -> dto.SingleSpeedChartDTO:
+def single_speed_compressor_chart() -> SingleSpeedChartDTO:
     """A simple single speed compressor chart."""
-    return dto.SingleSpeedChartDTO(
+    return SingleSpeedChartDTO(
         rate_actual_m3_hour=[x * 1000 for x in range(1, 11)],  # 1000 -> 10 000
         polytropic_head_joule_per_kg=[100000 - (x * 10000) for x in range(10)],  # 100 000 -> 10 000
         efficiency_fraction=[round(1 - (x / 10), 1) for x in range(10)],  # 1 -> 0.1

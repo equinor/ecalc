@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Union
 from pydantic import ValidationError
 
 from libecalc import dto
+from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
@@ -65,7 +66,7 @@ def _get_curve_data_from_resource(resource: Resource, speed: float = 0.0):
     }
 
 
-def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resources) -> dto.SingleSpeedChartDTO:
+def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resources) -> SingleSpeedChartDTO:
     units = get_units_from_chart_config(chart_config=model_config)
     curve_config = model_config.get(EcalcYamlKeywords.consumer_chart_curve)
     name = model_config.get(EcalcYamlKeywords.name)
@@ -121,7 +122,7 @@ def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resourc
             "efficiency": curve_config.get(EcalcYamlKeywords.consumer_chart_efficiency),
         }
 
-    return dto.SingleSpeedChartDTO(
+    return SingleSpeedChartDTO(
         speed_rpm=curve_data["speed"],
         rate_actual_m3_hour=convert_rate_to_am3_per_hour(
             rate_values=curve_data["rate"], input_unit=units[EcalcYamlKeywords.consumer_chart_rate]
@@ -136,7 +137,7 @@ def _single_speed_compressor_chart_mapper(model_config: Dict, resources: Resourc
     )
 
 
-def _variable_speed_compressor_chart_mapper(model_config: Dict, resources: Resources) -> dto.VariableSpeedChartDTO:
+def _variable_speed_compressor_chart_mapper(model_config: Dict, resources: Resources) -> VariableSpeedChartDTO:
     units = get_units_from_chart_config(chart_config=model_config)
 
     curve_config = model_config.get(EcalcYamlKeywords.consumer_chart_curves)
@@ -180,8 +181,8 @@ def _variable_speed_compressor_chart_mapper(model_config: Dict, resources: Resou
             for curve in model_config.get(EcalcYamlKeywords.consumer_chart_curves)
         ]
 
-    curves: List[dto.ChartCurveDTO] = [
-        dto.ChartCurveDTO(
+    curves: List[ChartCurveDTO] = [
+        ChartCurveDTO(
             speed_rpm=curve["speed"],
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
                 rate_values=curve["rate"], input_unit=units[EcalcYamlKeywords.consumer_chart_rate]
@@ -197,7 +198,7 @@ def _variable_speed_compressor_chart_mapper(model_config: Dict, resources: Resou
         for curve in curves_data
     ]
 
-    return dto.VariableSpeedChartDTO(curves=curves)
+    return VariableSpeedChartDTO(curves=curves)
 
 
 def _generic_from_input_compressor_chart_mapper(model_config: Dict, resources: Resources) -> dto.GenericChartFromInput:
@@ -497,7 +498,7 @@ def _variable_speed_compressor_train_mapper(
             ],
         )
 
-        compressor_chart: dto.VariableSpeedChartDTO = input_models.get(
+        compressor_chart: VariableSpeedChartDTO = input_models.get(
             stage.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
         )
 

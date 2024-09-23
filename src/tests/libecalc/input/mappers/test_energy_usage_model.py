@@ -5,6 +5,7 @@ import pytest
 
 import libecalc.common.utils.rates
 from libecalc import dto
+from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.dto.utils.validators import convert_expressions
@@ -17,7 +18,7 @@ from libecalc.presentation.yaml.yaml_entities import References, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 
 SINGLE_SPEED_PUMP_CHART = dto.PumpModel(
-    chart=dto.SingleSpeedChartDTO(
+    chart=SingleSpeedChartDTO(
         rate_actual_m3_hour=[20, 200, 60, 10000],
         polytropic_head_joule_per_kg=[
             Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
@@ -111,7 +112,7 @@ pump_system = (
     References(
         models={
             "waterinj": dto.PumpModel(
-                chart=dto.SingleSpeedChartDTO(
+                chart=SingleSpeedChartDTO(
                     rate_actual_m3_hour=[20, 200, 60, 10000],
                     polytropic_head_joule_per_kg=[
                         Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(x)
