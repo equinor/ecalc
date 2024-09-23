@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Union
 
+from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
@@ -22,7 +24,6 @@ from libecalc.dto import (
     Variables,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.dto.types import EnergyModelType, EnergyUsageType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import (
     resolve_reference,

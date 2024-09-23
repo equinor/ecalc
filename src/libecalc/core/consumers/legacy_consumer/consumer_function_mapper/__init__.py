@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict, Union
 
+from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.logger import logger
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.dto import (
@@ -9,7 +10,6 @@ from libecalc.dto import (
     PumpConsumerFunction,
     TabulatedConsumerFunction,
 )
-from libecalc.dto.types import ConsumerType
 
 from .compressor_consumer_function import create_compressor_consumer_function
 from .compressor_system_consumer_function import create_compressor_system

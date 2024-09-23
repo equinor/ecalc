@@ -2,8 +2,7 @@ from typing import List, Literal
 
 from pydantic import field_validator
 
-from libecalc.dto.types import EnergyModelType
-
+from ...common.energy_model_type import EnergyModelType
 from .sampled import EnergyModelSampled
 
 

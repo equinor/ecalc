@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc.common.decorators.feature_flags import Feature
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
@@ -42,7 +43,6 @@ from libecalc.core.models.results.compressor import (
 )
 from libecalc.domain.stream_conditions import StreamConditions
 from libecalc.dto.models.compressor import CompressorSampled
-from libecalc.dto.types import EnergyUsageType
 
 
 class CompressorModelSampled(CompressorModel):

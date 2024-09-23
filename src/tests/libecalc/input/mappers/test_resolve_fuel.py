@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from libecalc import dto
+import libecalc.dto.fuel_type
 from libecalc.common.errors.exceptions import InvalidReferenceException
 from libecalc.common.time_utils import Period
 from libecalc.presentation.yaml.mappers.component_mapper import _resolve_fuel
@@ -15,11 +15,11 @@ from libecalc.presentation.yaml.yaml_entities import References
 def references():
     return References(
         fuel_types={
-            "fuel_gas": dto.types.FuelType(
+            "fuel_gas": libecalc.dto.fuel_type.FuelType(
                 name="fuel_gas",
                 emissions=[],
             ),
-            "diesel": dto.types.FuelType(
+            "diesel": libecalc.dto.fuel_type.FuelType(
                 name="diesel",
                 emissions=[],
             ),

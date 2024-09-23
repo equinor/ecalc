@@ -1,11 +1,11 @@
 from typing import Any
 
+from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.pump.pump import PumpModel, PumpSingleSpeed, PumpVariableSpeed
 from libecalc.dto import PumpModel as PumpModelDTO
-from libecalc.dto.types import ChartType
 
 
 def create_pump_single_speed(pump_model: PumpModelDTO) -> PumpSingleSpeed:

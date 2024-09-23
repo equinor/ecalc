@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy as np
 
+import libecalc.common.energy_usage_type
 import libecalc.dto as dto
 from libecalc.common.units import Unit
 from libecalc.common.variables import VariablesMap
@@ -140,7 +141,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
 
     compressor = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
-            energy_usage_type=dto.types.EnergyUsageType.POWER,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
             energy_usage_values=[0, 1],
             power_interpolation_values=[0.0, 1],
             rate_values=[0, 1],

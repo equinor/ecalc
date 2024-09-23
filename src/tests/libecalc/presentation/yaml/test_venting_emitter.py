@@ -7,7 +7,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.core.result.emission import EmissionResult
-from libecalc.dto.base import ConsumerUserDefinedCategoryType
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.cases import venting_emitters
 from libecalc.fixtures.cases.ltp_export.utilities import (

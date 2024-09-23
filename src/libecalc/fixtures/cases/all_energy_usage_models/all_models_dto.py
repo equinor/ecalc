@@ -3,6 +3,9 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.component_type import ComponentType
+from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.utils.rates import RateType
 from libecalc.dto import (
     Asset,
@@ -34,11 +37,7 @@ from libecalc.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.dto.base import (
-    ConsumerUserDefinedCategoryType,
-    InstallationUserDefinedCategoryType,
-)
-from libecalc.dto.types import EnergyUsageType, FixedSpeedPressureControl, FluidStreamType
+from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (

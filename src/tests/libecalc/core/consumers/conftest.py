@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 
+import libecalc.common.energy_usage_type
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.utils.rates import RateType
@@ -37,7 +38,7 @@ def tabulated_fuel_consumer(fuel_gas) -> dto.FuelConsumer:
             energy_usage_adjustment_factor=1.0,
         ),
         variables=[dto.Variables(name="RATE", expression=Expression.setup_from_expression(value="RATE"))],
-        energy_usage_type=dto.types.EnergyUsageType.FUEL,
+        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     )
     return dto.FuelConsumer(
         name="fuel_consumer",
@@ -58,22 +59,22 @@ def direct_el_consumer() -> dto.ElectricityConsumer:
         energy_usage_model={
             datetime(2020, 1, 1): dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=1),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
             datetime(2021, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=2),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
             datetime(2022, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=10),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
             datetime(2023, 1, 1): dto.DirectConsumerFunction(  # Ensure we handle 0 load as well.
                 load=Expression.setup_from_expression(value=0),
-                energy_usage_type=dto.types.EnergyUsageType.POWER,
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
         },

@@ -4,6 +4,8 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.component_type import ComponentType
+from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import (
@@ -24,11 +26,7 @@ from libecalc.dto import (
     TabulatedData,
     Variables,
 )
-from libecalc.dto.base import (
-    ConsumerUserDefinedCategoryType,
-    InstallationUserDefinedCategoryType,
-)
-from libecalc.dto.types import EnergyUsageType, FixedSpeedPressureControl
+from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 

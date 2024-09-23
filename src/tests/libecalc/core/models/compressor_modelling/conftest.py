@@ -4,8 +4,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import libecalc.common.fixed_speed_pressure_control
+import libecalc.common.fluid_stream_type
 import libecalc.common.serializable_chart
 from libecalc import dto
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.train.chart import SingleSpeedCompressorChart
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -22,7 +25,6 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.dto.types import FixedSpeedPressureControl
 from libecalc.presentation.yaml.mappers.fluid_mapper import (
     DRY_MW_18P3,
     MEDIUM_MW_19P4,
@@ -250,7 +252,7 @@ def single_speed_compressor_train_unisim_methane(
                 control_margin=0,
             )
         ],
-        pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -274,7 +276,7 @@ def variable_speed_compressor_train_unisim_methane(
                 control_margin=0,
             )
         ],
-        pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         calculate_max_rate=False,
         energy_usage_adjustment_constant=0,
         energy_usage_adjustment_factor=1,
@@ -310,7 +312,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
     stream = dto.MultipleStreamsAndPressureStream(
         fluid_model=medium_fluid_dto,
         name="in_stream_stage_1",
-        typ=dto.types.FluidStreamType.INGOING,
+        typ=libecalc.common.fluid_stream_type.FluidStreamType.INGOING,
     )
     stage1 = dto.MultipleStreamsCompressorStage(
         compressor_chart=variable_speed_compressor_chart_dto,

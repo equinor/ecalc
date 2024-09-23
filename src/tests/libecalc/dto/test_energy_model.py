@@ -1,6 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
+import libecalc.common.energy_usage_type
+import libecalc.common.fixed_speed_pressure_control
 from libecalc import dto
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 
@@ -147,7 +149,7 @@ class TestCompressorSystemEnergyUsageModel:
                 )
             ],
             operational_settings=[],
-            energy_usage_type=dto.types.EnergyUsageType.POWER,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         )
 
 
@@ -250,7 +252,7 @@ class TestSingleSpeedCompressorTrain:
             ],
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+            pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
     def test_invalid_chart(self):
@@ -271,7 +273,7 @@ class TestSingleSpeedCompressorTrain:
                 ],
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
-                pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )
 
 
@@ -321,7 +323,7 @@ class TestVariableSpeedCompressorTrain:
             ],
             energy_usage_adjustment_factor=1,
             energy_usage_adjustment_constant=0,
-            pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+            pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
         )
 
     def test_incompatible_stages(self):
@@ -375,5 +377,5 @@ class TestVariableSpeedCompressorTrain:
                 ],
                 energy_usage_adjustment_factor=1,
                 energy_usage_adjustment_constant=0,
-                pressure_control=dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             )

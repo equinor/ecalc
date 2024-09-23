@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+import libecalc.common.energy_usage_type
 from libecalc import dto
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.sampled import CompressorModelSampled
@@ -53,7 +54,7 @@ def test_full_3d_compressor():
             ),
             energy_usage_adjustment_constant=0.0,
             energy_usage_adjustment_factor=1.0,
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         ),
     )
 
@@ -104,7 +105,7 @@ def test_full_3d_compressor_degenerated_ps():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=data["FUEL"].tolist(),
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=data["RATE"].tolist(),
             suction_pressure_values=data["PS"].tolist(),
             discharge_pressure_values=data["PD"].tolist(),
@@ -143,7 +144,7 @@ def test_full_3d_compressor_degenerated_rate():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=data["FUEL"].tolist(),
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=data["RATE"].tolist(),
             suction_pressure_values=data["PS"].tolist(),
             discharge_pressure_values=data["PD"].tolist(),
@@ -180,7 +181,7 @@ def test_full_3d_compressor_degenerated_pd():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=data["FUEL"].tolist(),
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=data["RATE"].tolist(),
             suction_pressure_values=data["PS"].tolist(),
             discharge_pressure_values=data["PD"].tolist(),
@@ -208,7 +209,7 @@ def test_full_3d_compressor_degenerated_rate_ps():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=data["FUEL"].tolist(),
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=data["RATE"].tolist(),
             suction_pressure_values=data["PS"].tolist(),
             discharge_pressure_values=data["PD"].tolist(),
@@ -244,7 +245,7 @@ def test_2d_compressor_degenerated_ps():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=df_2d["FUEL"].tolist(),
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=df_2d["RATE"].tolist(),
             suction_pressure_values=None,
             discharge_pressure_values=df_2d["PD"].tolist(),
@@ -284,7 +285,7 @@ def test_2d_compressor_degenerated_rate():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=df_2d["FUEL"].tolist(),
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=None,
             suction_pressure_values=df_2d["PS"].tolist(),
             discharge_pressure_values=df_2d["PD"].tolist(),
@@ -307,7 +308,7 @@ def test_2d_compressor_degenerated_pd():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=[6.0, 18.0, 42.0, 5.9, 5.8, 17.3, 41.5],
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=[1000000, 3000000, 7000000, 1000000, 1000000, 3000000, 7200000],
             suction_pressure_values=[50, 50, 50, 51, 52, 52, 52],
             discharge_pressure_values=None,
@@ -330,7 +331,7 @@ def test_1d_compressor_rate():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=[52765, 71918, 139839, 144574],
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=[1000000, 3000000, 7000000, 7200000],
             suction_pressure_values=None,
             discharge_pressure_values=None,
@@ -359,7 +360,7 @@ def test_1d_compressor_pd():
     energy_func = CompressorModelSampled(
         data_transfer_object=dto.CompressorSampled(
             energy_usage_values=[52765, 71918, 139839, 144574],
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             rate_values=None,
             suction_pressure_values=None,
             discharge_pressure_values=[1000000, 3000000, 7000000, 7200000],

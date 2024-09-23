@@ -1,5 +1,7 @@
 from typing import Any
 
+from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.base import (
     CompressorModel,
@@ -36,7 +38,6 @@ from libecalc.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.dto.types import EnergyModelType, FluidStreamType
 
 
 def _create_variable_speed_compressor_train_multiple_streams_and_pressures_stream(

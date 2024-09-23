@@ -3,12 +3,9 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.component_type import ComponentType
-from libecalc.dto import Asset, DirectConsumerFunction, Emission, FuelConsumer, Installation
-from libecalc.dto.base import (
-    ConsumerUserDefinedCategoryType,
-    InstallationUserDefinedCategoryType,
-)
-from libecalc.dto.types import EnergyUsageType, FuelType
+from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.dto import Asset, DirectConsumerFunction, Emission, FuelConsumer, FuelType, Installation
+from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 
 

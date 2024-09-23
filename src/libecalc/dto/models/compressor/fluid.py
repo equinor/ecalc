@@ -4,8 +4,9 @@ from typing import Optional
 
 from pydantic import Field, model_validator
 
+from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.dto.base import EcalcBaseModel
-from libecalc.dto.types import EoSModel, FluidStreamType
+from libecalc.dto.types import EoSModel
 
 
 class FluidComposition(EcalcBaseModel):

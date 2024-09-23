@@ -2,6 +2,7 @@ from typing import List
 
 import numpy
 
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.core.consumers.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
     TabulatedConsumerFunction,
 )
@@ -11,7 +12,6 @@ from libecalc.core.models.tabulated import (
     VariableExpression,
 )
 from libecalc.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
-from libecalc.dto.types import EnergyUsageType
 
 
 def _get_column(data: List[List], headers: List[str], header: str) -> List:

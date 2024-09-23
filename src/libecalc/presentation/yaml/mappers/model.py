@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Union
 
 from pydantic import ValidationError
 
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.dto import (
@@ -21,7 +22,6 @@ from libecalc.dto import (
     VariableSpeedCompressorTrain,
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.dto.types import FixedSpeedPressureControl
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_model_mapper
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,

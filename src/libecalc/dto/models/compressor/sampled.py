@@ -3,8 +3,9 @@ from typing import List, Literal, Optional
 from pydantic import Field, model_validator
 from typing_extensions import Annotated
 
+from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.dto.models.base import EnergyModel
-from libecalc.dto.types import EnergyModelType, EnergyUsageType
 
 
 class CompressorSampled(EnergyModel):

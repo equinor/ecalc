@@ -3,6 +3,9 @@ from typing import List
 
 import pandas as pd
 
+import libecalc.common.energy_usage_type
+import libecalc.dto.fuel_type
+import libecalc.dto.types
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
@@ -45,7 +48,7 @@ def get_installation(
     return inst
 
 
-def fuel(name: str, co2_factor: float) -> dto.types.FuelType:
+def fuel(name: str, co2_factor: float) -> libecalc.dto.fuel_type.FuelType:
     """Creates a simple fuel type object for use in fuel consumer setup
     Args:
         name (str): Name of fuel
@@ -55,7 +58,7 @@ def fuel(name: str, co2_factor: float) -> dto.types.FuelType:
         dto.types.FuelType
     """
 
-    return dto.types.FuelType(
+    return libecalc.dto.fuel_type.FuelType(
         name=name,
         emissions=[
             dto.Emission(
@@ -84,11 +87,11 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
         component_type=dto.components.ComponentType.GENERIC,
         fuel={datetime(2024, 1, 1): fuel(name=name_fuel, co2_factor=co2_factor)},
         regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-        user_defined_category={datetime(2024, 1, 1): dto.components.ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+        user_defined_category={datetime(2024, 1, 1): libecalc.dto.types.ConsumerUserDefinedCategoryType.MISCELLANEOUS},
         energy_usage_model={
             datetime(2024, 1, 1): dto.DirectConsumerFunction(
                 fuel_rate=fuel_rate,
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             )
         },
     )

@@ -3,10 +3,10 @@ from typing import List, Optional
 from pydantic import Field
 from typing_extensions import Annotated
 
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import VariableSpeedChartDTO
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.compressor.chart import CompressorChart
-from libecalc.dto.types import FixedSpeedPressureControl
 
 
 class CompressorStage(EcalcBaseModel):

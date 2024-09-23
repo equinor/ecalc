@@ -2,6 +2,8 @@ import datetime
 
 import pytest
 
+import libecalc.common.energy_usage_type
+import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.expression import Expression
@@ -34,7 +36,7 @@ def compressor_system_compressor_fd(name: str) -> dto.CompressorSystemCompressor
             rate_values=[0, 5000, 10000],
             suction_pressure_values=[5, 5, 5],
             discharge_pressure_values=[50, 50, 50],
-            energy_usage_type=dto.types.EnergyUsageType.FUEL,
+            energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             energy_usage_adjustment_constant=0,
             energy_usage_adjustment_factor=1.0,
         ),
@@ -42,8 +44,8 @@ def compressor_system_compressor_fd(name: str) -> dto.CompressorSystemCompressor
 
 
 @pytest.fixture
-def fuel_type_fd() -> dto.types.FuelType:
-    return dto.types.FuelType(
+def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
+    return libecalc.dto.fuel_type.FuelType(
         name="fuel_gas",
         emissions=[
             dto.Emission(
@@ -64,7 +66,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> dto.FuelConsumer:
         regularity={datetime.datetime(1900, 1, 1): Expression.setup_from_expression(1)},
         energy_usage_model={
             datetime.datetime(2018, 1, 1): dto.CompressorSystemConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                 compressors=[
                     compressor_system_compressor_fd("compressor1"),
                     compressor_system_compressor_fd("compressor2"),
@@ -96,7 +98,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> dto.FuelConsumer:
                 ],
             ),
             datetime.datetime(2020, 1, 1): dto.CompressorSystemConsumerFunction(
-                energy_usage_type=dto.types.EnergyUsageType.FUEL,
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                 compressors=[
                     compressor_system_compressor_fd("compressor1"),
                     compressor_system_compressor_fd("compressor2"),
@@ -145,7 +147,8 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> dto.FuelConsumer:
         fuel={datetime.datetime(1900, 1, 1): fuel_type_fd},
         energy_usage_model={
             datetime.datetime(2019, 1, 1): dto.DirectConsumerFunction(
-                fuel_rate=Expression.setup_from_expression(value=5), energy_usage_type=dto.types.EnergyUsageType.FUEL
+                fuel_rate=Expression.setup_from_expression(value=5),
+                energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             )
         },
         regularity={datetime.datetime(1900, 1, 1): Expression.setup_from_expression(1)},

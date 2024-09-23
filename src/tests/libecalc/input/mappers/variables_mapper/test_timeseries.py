@@ -1,13 +1,12 @@
 import math
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional
 
 import pydantic
 import pytest
 from inline_snapshot import snapshot
 from pydantic import TypeAdapter
 
-from libecalc.dto import TimeSeriesType
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
 from libecalc.presentation.yaml.validation_errors import ValidationError
@@ -17,7 +16,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 
 
 def _create_timeseries_data(
-    typ: TimeSeriesType,
+    typ: Literal["MISCELLANEOUS", "DEFAULT"],
     name: str,
     file: str,
     influence_time_vector: Optional[bool] = None,
@@ -25,7 +24,7 @@ def _create_timeseries_data(
     interpolation_type: Optional[InterpolationType] = None,
 ) -> Dict:
     timeseries_dict = {
-        EcalcYamlKeywords.type: typ.value,
+        EcalcYamlKeywords.type: typ,
         EcalcYamlKeywords.name: name,
         EcalcYamlKeywords.file: file,
     }
@@ -45,7 +44,7 @@ def _create_timeseries_data(
 class TestTimeSeries:
     parameterized_valid_timeseries_data = [
         (
-            TimeSeriesType.MISCELLANEOUS,
+            "MISCELLANEOUS",
             True,
             True,
             InterpolationType.LEFT,
@@ -107,7 +106,7 @@ class TestTimeSeries:
             resource=resource,
             yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
                 _create_timeseries_data(
-                    typ=TimeSeriesType.DEFAULT,
+                    typ="DEFAULT",
                     name="SIM1",
                     file=filename,
                     extrapolate_outside=None,
@@ -151,7 +150,7 @@ class TestTimeSeries:
             resource=resource,
             yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
                 _create_timeseries_data(
-                    typ=TimeSeriesType.DEFAULT,
+                    typ="DEFAULT",
                     name="SIM1",
                     file=filename,
                     extrapolate_outside=None,
@@ -383,7 +382,7 @@ Validation error
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
                     _create_timeseries_data(
-                        typ=TimeSeriesType.MISCELLANEOUS,
+                        typ="MISCELLANEOUS",
                         name="SIM1",
                         file=filename,
                         extrapolate_outside=True,
@@ -400,7 +399,7 @@ Validation error
         time_series_collection = TimeSeriesCollection.from_yaml(
             resource=resource,
             yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
-                _create_timeseries_data(typ=TimeSeriesType.DEFAULT, name="SIM1", file=filename),
+                _create_timeseries_data(typ="DEFAULT", name="SIM1", file=filename),
             ),
         )
         assert time_series_collection.get_time_vector() == [
@@ -426,7 +425,7 @@ Validation error
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
                     _create_timeseries_data(
-                        typ=TimeSeriesType.DEFAULT,
+                        typ="DEFAULT",
                         name="SIM1",
                         file=filename,
                         extrapolate_outside=None,
@@ -458,7 +457,7 @@ Validation error
             resource=resource,
             yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
                 _create_timeseries_data(
-                    typ=TimeSeriesType.DEFAULT,
+                    typ="DEFAULT",
                     name="SIM1",
                     file=filename,
                     extrapolate_outside=None,
@@ -480,7 +479,7 @@ Validation error
         with pytest.raises(pydantic.ValidationError) as ve:
             TypeAdapter(YamlTimeSeriesCollection).validate_python(
                 _create_timeseries_data(
-                    typ=TimeSeriesType.DEFAULT,
+                    typ="DEFAULT",
                     name=resource_name,
                     file=filename,
                     extrapolate_outside=None,
@@ -500,7 +499,7 @@ Validation error
         with pytest.raises(pydantic.ValidationError) as ve:
             TypeAdapter(YamlTimeSeriesCollection).validate_python(
                 _create_timeseries_data(
-                    typ=TimeSeriesType.MISCELLANEOUS,
+                    typ="MISCELLANEOUS",
                     name="SIM1",
                     file="test.csv",
                     extrapolate_outside=None,
@@ -521,7 +520,7 @@ Validation error
                 resource=resource,
                 yaml_collection=TypeAdapter(YamlTimeSeriesCollection).validate_python(
                     _create_timeseries_data(
-                        typ=TimeSeriesType.DEFAULT,
+                        typ="DEFAULT",
                         name="SIM1",
                         file=filename,
                         extrapolate_outside=None,

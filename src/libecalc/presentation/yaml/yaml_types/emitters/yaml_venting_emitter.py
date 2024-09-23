@@ -22,7 +22,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import VariablesMap
-from libecalc.dto.base import ConsumerUserDefinedCategoryType
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr, convert_expression
 from libecalc.expression import Expression
 from libecalc.expression.expression import ExpressionType
