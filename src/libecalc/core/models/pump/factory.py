@@ -2,6 +2,7 @@ from typing import Any
 
 from libecalc import dto
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.pump.pump import PumpModel, PumpSingleSpeed, PumpVariableSpeed
 
@@ -9,7 +10,7 @@ from libecalc.core.models.pump.pump import PumpModel, PumpSingleSpeed, PumpVaria
 def create_pump_single_speed(pump_model: dto.PumpModel) -> PumpSingleSpeed:
     return PumpSingleSpeed(
         pump_chart=SingleSpeedChart(
-            dto.SingleSpeedChart(
+            SingleSpeedChartDTO(
                 speed_rpm=pump_model.chart.speed_rpm,
                 rate_actual_m3_hour=pump_model.chart.rate_actual_m3_hour,
                 polytropic_head_joule_per_kg=pump_model.chart.polytropic_head_joule_per_kg,
@@ -25,9 +26,9 @@ def create_pump_single_speed(pump_model: dto.PumpModel) -> PumpSingleSpeed:
 def create_pump_variable_speed(pump_model: dto.PumpModel) -> PumpVariableSpeed:
     return PumpVariableSpeed(
         VariableSpeedChart(
-            dto.VariableSpeedChart(
+            VariableSpeedChartDTO(
                 curves=[
-                    dto.ChartCurve(
+                    ChartCurveDTO(
                         speed_rpm=curve.speed_rpm,
                         rate_actual_m3_hour=curve.rate_actual_m3_hour,
                         polytropic_head_joule_per_kg=curve.polytropic_head_joule_per_kg,

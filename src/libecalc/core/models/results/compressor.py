@@ -9,13 +9,13 @@ import numpy as np
 import libecalc.core.models.chart.chart_area_flag
 from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.logger import logger
+from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.core.models.results.base import (
     EnergyFunctionResult,
     EnergyModelBaseResult,
 )
 from libecalc.core.models.results.turbine import TurbineResult
-from libecalc.dto.models import SingleSpeedChart, VariableSpeedChart
 
 
 class CompressorTrainCommonShaftFailureStatus(str, Enum):
@@ -107,7 +107,7 @@ class CompressorStageResult(EnergyModelBaseResult):
     pressure_is_choked: List[bool]
     head_exceeds_maximum: List[bool]
 
-    chart: Optional[Union[SingleSpeedChart, VariableSpeedChart]] = None
+    chart: Optional[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]] = None
 
     @classmethod
     def create_empty(cls, number_of_timesteps: int) -> CompressorStageResult:
