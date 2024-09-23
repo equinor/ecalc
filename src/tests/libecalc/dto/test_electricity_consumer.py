@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
-from libecalc.dto.types import EnergyUsageType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.expression import Expression
 
 

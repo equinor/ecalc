@@ -3,13 +3,12 @@ from typing import List, Literal
 from pydantic import Field, model_validator
 from typing_extensions import Annotated, Self
 
-from libecalc.dto.types import EnergyModelType
-
-from .base import EnergyModel
+from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.dto.models.base import EnergyModel
 
 
 class Turbine(EnergyModel):
-    typ: Literal[EnergyModelType.TURBINE] = EnergyModelType.TURBINE  # type: ignore
+    typ: Literal[EnergyModelType.TURBINE] = EnergyModelType.TURBINE
     lower_heating_value: Annotated[float, Field(ge=0)]
     turbine_loads: List[Annotated[float, Field(ge=0)]]
     turbine_efficiency_fractions: List[float]

@@ -4,9 +4,9 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing_extensions import Annotated, Self
 
+from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.dto.types import ChartType
 
 
 class EcalcBaseModel(BaseModel):

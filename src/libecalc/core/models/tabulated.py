@@ -8,6 +8,7 @@ from pydantic import BaseModel as PydanticBaseModel
 from pydantic import ConfigDict
 from scipy.interpolate import LinearNDInterpolator, interp1d
 
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.list.adjustment import transform_linear
 from libecalc.common.list.list_utils import array_to_list
@@ -16,7 +17,6 @@ from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.core.utils.array_type import PydanticNDArray
-from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
 
 

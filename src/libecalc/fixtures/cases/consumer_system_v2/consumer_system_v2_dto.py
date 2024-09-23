@@ -4,6 +4,7 @@ import pytest
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.units import Unit
@@ -15,16 +16,12 @@ from libecalc.dto import (
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
     Emission,
+    FuelType,
     GeneratorSetSampled,
     PumpModel,
     PumpSystemConsumerFunction,
     PumpSystemOperationalSetting,
     PumpSystemPump,
-)
-from libecalc.dto.base import (
-    ConsumerUserDefinedCategoryType,
-    FuelTypeUserDefinedCategoryType,
-    InstallationUserDefinedCategoryType,
 )
 from libecalc.dto.components import (
     Asset,
@@ -40,7 +37,11 @@ from libecalc.dto.components import (
     PumpComponent,
     SystemComponentConditions,
 )
-from libecalc.dto.types import EnergyUsageType, FuelType
+from libecalc.dto.types import (
+    ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
+    InstallationUserDefinedCategoryType,
+)
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 

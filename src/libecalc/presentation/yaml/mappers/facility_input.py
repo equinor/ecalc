@@ -2,11 +2,13 @@ from typing import Dict, List, Optional, Union
 
 from pydantic import TypeAdapter, ValidationError
 
+from libecalc.common.chart_type import ChartType
+from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import EnergyModel, GeneratorSetSampled, PumpModel, TabulatedData
-from libecalc.dto.types import ChartType, EnergyModelType, EnergyUsageType
 from libecalc.presentation.yaml.mappers.utils import (
     chart_curves_as_resource_to_dto_format,
     convert_efficiency_to_fraction,

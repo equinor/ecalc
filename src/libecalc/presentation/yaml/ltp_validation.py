@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Union
 
-from libecalc.dto.base import ConsumerUserDefinedCategoryType
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ExpressionType
 
 

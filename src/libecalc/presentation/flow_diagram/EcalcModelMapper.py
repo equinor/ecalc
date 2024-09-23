@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Iterable, List, Set, Tuple, Union
 
 from libecalc.common.component_type import ComponentType
+from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.time_utils import Period, Periods
 from libecalc.dto import (
     CompressorConsumerFunction,
@@ -27,7 +28,6 @@ from libecalc.dto.components import (
     PumpComponent,
 )
 from libecalc.dto.models.compressor import CompressorWithTurbine
-from libecalc.dto.types import ConsumerType
 from libecalc.presentation.flow_diagram.fde_models import (
     Edge,
     Flow,

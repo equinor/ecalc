@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import ConfigDict, Field
 
-from libecalc.dto.base import FuelTypeUserDefinedCategoryType
+from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import (
     CategoryField,

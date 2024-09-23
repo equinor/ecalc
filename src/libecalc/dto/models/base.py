@@ -2,8 +2,9 @@ from typing import Optional
 
 from pydantic import ConfigDict, field_validator
 
+from libecalc.common.consumer_type import ConsumerType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.dto.base import EcalcBaseModel
-from libecalc.dto.types import ConsumerType, EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 

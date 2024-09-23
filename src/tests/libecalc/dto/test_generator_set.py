@@ -3,11 +3,13 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
+import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
-from libecalc.dto.base import ConsumerUserDefinedCategoryType
-from libecalc.dto.types import EnergyModelType, EnergyUsageType
+from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 
 
@@ -50,7 +52,7 @@ class TestGeneratorSet:
             regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             consumers=[],
             fuel={
-                datetime(1900, 1, 1): dto.types.FuelType(
+                datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
                     name="fuel_gas",
                     emissions=[],
                 )
@@ -66,7 +68,7 @@ class TestGeneratorSet:
         }
 
     def test_genset_should_fail_with_fuel_consumer(self):
-        fuel = dto.types.FuelType(
+        fuel = libecalc.dto.fuel_type.FuelType(
             name="fuel",
             emissions=[],
         )

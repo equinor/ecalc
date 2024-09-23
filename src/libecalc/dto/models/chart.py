@@ -2,8 +2,8 @@ from typing import Literal
 
 from pydantic import Field
 
+from libecalc.common.chart_type import ChartType
 from libecalc.dto.base import EcalcBaseModel
-from libecalc.dto.types import ChartType
 
 
 class GenericChartFromDesignPoint(EcalcBaseModel):

@@ -2,6 +2,8 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import Field, field_validator
 
+from libecalc.common.consumer_type import ConsumerType
+from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.dto.models.base import ConsumerFunction, EnergyModel
 from libecalc.dto.models.compressor.sampled import CompressorSampled
 from libecalc.dto.models.compressor.train import (
@@ -12,7 +14,6 @@ from libecalc.dto.models.compressor.train import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.dto.models.turbine import Turbine
-from libecalc.dto.types import ConsumerType, EnergyModelType
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 

@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 
+import libecalc.common.energy_usage_type
 import libecalc.common.utils.rates
 from libecalc import dto
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
@@ -63,7 +64,7 @@ pump_system = (
       DISCHARGE_PRESSURE: 200
     """,
     dto.PumpSystemConsumerFunction(
-        energy_usage_type=dto.types.EnergyUsageType.POWER,
+        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         condition=Expression.setup_from_expression(value="SIM1;WATER_PROD >0"),
         pumps=[
             dto.PumpSystemPump(
@@ -138,7 +139,7 @@ CONDITION: SIM2;GAS_LIFT > 0
     dto.DirectConsumerFunction(
         load=Expression.setup_from_expression(value="4.1"),
         condition=Expression.setup_from_expression(value="SIM2;GAS_LIFT > 0"),
-        energy_usage_type=dto.types.EnergyUsageType.POWER,
+        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
         consumption_rate_type=libecalc.common.utils.rates.RateType.STREAM_DAY,
     ),
     None,

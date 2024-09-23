@@ -4,6 +4,7 @@ from typing import Dict, List
 import numpy as np
 
 import libecalc.common.component_type
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
@@ -19,12 +20,11 @@ from libecalc.dto import (
     GeneratorSetSampled,
     Installation,
 )
-from libecalc.dto.base import (
+from libecalc.dto.types import (
     ConsumerUserDefinedCategoryType,
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.dto.types import EnergyUsageType
 from libecalc.expression import Expression
 
 regularity_installation = 1.0

@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
@@ -9,6 +9,7 @@ from typing_extensions import Annotated
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
@@ -20,12 +21,10 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import VariablesMap
 from libecalc.dto.base import (
-    Component,
-    ConsumerUserDefinedCategoryType,
     EcalcBaseModel,
-    InstallationUserDefinedCategoryType,
 )
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.models import (
     ConsumerFunction,
     ElectricEnergyUsageModel,
@@ -34,7 +33,7 @@ from libecalc.dto.models import (
 )
 from libecalc.dto.models.compressor import CompressorModel
 from libecalc.dto.models.pump import PumpModel
-from libecalc.dto.types import EnergyUsageType, FuelType
+from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
     ExpressionType,
@@ -56,6 +55,14 @@ def check_model_energy_usage_type(model_data: Dict[datetime, ConsumerFunction], 
         if model.energy_usage_type != energy_type:
             raise ValueError(f"Model does not consume {energy_type.value}")
     return model_data
+
+
+class Component(EcalcBaseModel, ABC):
+    component_type: ComponentType
+
+    @property
+    @abstractmethod
+    def id(self) -> str: ...
 
 
 class BaseComponent(Component, ABC):

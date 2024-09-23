@@ -4,6 +4,7 @@ from typing import Generic, List, Optional, TypeVar, Union, cast
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.core.models import (
@@ -24,7 +25,6 @@ from libecalc.dto.models.compressor.train import (
     SingleSpeedCompressorTrain as SingleSpeedCompressorTrainDTO,
 )
 from libecalc.dto.models.compressor.train import VariableSpeedCompressorTrainMultipleStreamsAndPressures
-from libecalc.dto.types import FixedSpeedPressureControl
 
 TModel = TypeVar("TModel", bound=CompressorTrainDTO)
 INVALID_MAX_RATE = INVALID_INPUT

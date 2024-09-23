@@ -3,6 +3,8 @@ from typing import Dict
 
 import pytest
 
+from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.common.variables import VariablesMap
@@ -17,7 +19,7 @@ from libecalc.dto import (
     Turbine,
     VariableSpeedCompressorTrain,
 )
-from libecalc.dto.types import EnergyUsageType, EoSModel, FixedSpeedPressureControl
+from libecalc.dto.types import EoSModel
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4
 

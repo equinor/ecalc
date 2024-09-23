@@ -2,6 +2,9 @@ from typing import List, Literal, Optional
 
 from pydantic import Field, field_validator
 
+from libecalc.common.chart_type import ChartType
+from libecalc.common.consumer_type import ConsumerType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.logger import logger
 from libecalc.dto.base import EcalcBaseModel
 from libecalc.dto.models.base import ConsumerFunction
@@ -11,7 +14,6 @@ from libecalc.dto.models.compressor.train import (
     CompressorTrainSimplifiedWithUnknownStages,
 )
 from libecalc.dto.models.pump import PumpModel
-from libecalc.dto.types import ChartType, ConsumerType, EnergyUsageType
 from libecalc.dto.utils.validators import convert_expression, convert_expressions
 from libecalc.expression import Expression
 

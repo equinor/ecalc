@@ -2,6 +2,7 @@ from typing import List, Optional
 
 import numpy as np
 
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType
@@ -18,7 +19,6 @@ from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
 )
 from libecalc.core.models.results import EnergyFunctionGenericResult
 from libecalc.dto import DirectConsumerFunction
-from libecalc.dto.types import EnergyUsageType
 
 
 class DirectExpressionConsumerFunction(ConsumerFunction):

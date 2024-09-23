@@ -4,14 +4,16 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
+import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.components import (
+from libecalc.dto.types import (
     ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.dto.types import EnergyUsageType, FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
@@ -101,7 +103,7 @@ class TestCategories:
     def test_fuel_type_categories(self):
         # Check that illegal category raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="GASOLINE")
+            libecalc.dto.fuel_type.FuelType(name="test", user_defined_category="GASOLINE")
 
         assert (
             "CATEGORY: GASOLINE is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
@@ -110,7 +112,7 @@ class TestCategories:
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="diesel")
+            libecalc.dto.fuel_type.FuelType(name="test", user_defined_category="diesel")
 
         assert (
             "CATEGORY: diesel is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
@@ -119,7 +121,7 @@ class TestCategories:
 
         # Check that empty raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="")
+            libecalc.dto.fuel_type.FuelType(name="test", user_defined_category="")
         assert (
             "CATEGORY:  is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
             in str(exc_info.value)
@@ -127,7 +129,7 @@ class TestCategories:
 
         # Check that underscore raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.types.FuelType(name="test", user_defined_category="FUEL_GAS")
+            libecalc.dto.fuel_type.FuelType(name="test", user_defined_category="FUEL_GAS")
 
         assert (
             "CATEGORY: FUEL_GAS is not allowed for FuelType with the name test. Valid categories are: ['FUEL-GAS', 'DIESEL']"
@@ -136,7 +138,7 @@ class TestCategories:
 
         # Check that correct category 1 is ok
         assert (
-            dto.types.FuelType(
+            libecalc.dto.fuel_type.FuelType(
                 name="test", user_defined_category=FuelTypeUserDefinedCategoryType.DIESEL
             ).user_defined_category
             == FuelTypeUserDefinedCategoryType.DIESEL
@@ -144,14 +146,14 @@ class TestCategories:
 
         # Check that correct category 2 is ok
         assert (
-            dto.types.FuelType(
+            libecalc.dto.fuel_type.FuelType(
                 name="test", user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS
             ).user_defined_category
             == FuelTypeUserDefinedCategoryType.FUEL_GAS
         )
 
         # Check that not defining category is ok
-        assert dto.types.FuelType(name="test").user_defined_category is None
+        assert libecalc.dto.fuel_type.FuelType(name="test").user_defined_category is None
 
     def test_installation_categories(self, flare):
         # Installation-dto requires either fuelconsumers or venting emitters to be set, hence use dummy fuelconsumer:
@@ -387,7 +389,7 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
                 consumers=[],
                 fuel={
-                    datetime(1900, 1, 1): dto.types.FuelType(
+                    datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
                         name="fuel-gas",
                         emissions=[],
                     )
@@ -415,7 +417,7 @@ class TestCategories:
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
                 consumers=[],
                 fuel={
-                    datetime(1900, 1, 1): dto.types.FuelType(
+                    datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
                         name="fuel-gas",
                         emissions=[],
                     )
@@ -442,7 +444,7 @@ class TestCategories:
             regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             consumers=[],
             fuel={
-                datetime(1900, 1, 1): dto.types.FuelType(
+                datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
                     name="fuel-gas",
                     emissions=[],
                 )

@@ -1,7 +1,10 @@
 import numpy as np
 import pytest
 
+import libecalc.common.fixed_speed_pressure_control
 from libecalc import dto
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.types import (
@@ -17,7 +20,6 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
 )
 from libecalc.dto import InterstagePressureControl
-from libecalc.dto.types import FixedSpeedPressureControl, FluidStreamType
 
 
 def calculate_relative_difference(value1, value2):
@@ -57,7 +59,7 @@ def variable_speed_compressor_train_two_compressors_downstream_choke(
         data_transfer_object=variable_speed_compressor_train_dto.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
-                "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                "pressure_control": libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             }
         )
     )
@@ -72,7 +74,7 @@ def variable_speed_compressor_train_two_compressors_individual_asv_pressure(
         data_transfer_object=variable_speed_compressor_train_dto.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
-                "pressure_control": dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+                "pressure_control": libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
             }
         )
     )
@@ -103,7 +105,7 @@ def mock_variable_speed_compressor_train_multiple_streams_and_pressures(
         calculate_max_rate=False,
         energy_usage_adjustment_constant=0.0,
         energy_usage_adjustment_factor=1.0,
-        pressure_control=dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
     )
 
 
@@ -146,7 +148,7 @@ def variable_speed_compressor_train_one_compressor_one_stream_downstream_choke(
         data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto],
-                "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                "pressure_control": libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             }
         ),
     )
@@ -171,7 +173,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_downstream_choke(
         data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
-                "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                "pressure_control": libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             }
         ),
     )
@@ -196,7 +198,7 @@ def variable_speed_compressor_train_two_compressors_one_stream_individual_asv_pr
         data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
-                "pressure_control": dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
+                "pressure_control": libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
             }
         ),
     )
@@ -258,7 +260,7 @@ def variable_speed_compressor_train_two_compressors_ingoning_and_outgoing_stream
         data_transfer_object=mock_variable_speed_compressor_train_multiple_streams_and_pressures.model_copy(
             update={
                 "stages": [variable_speed_compressor_train_stage_dto] * 2,
-                "pressure_control": dto.types.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
+                "pressure_control": libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
             }
         ),
     )
@@ -289,15 +291,13 @@ def variable_speed_compressor_train_two_compressors_one_ingoing_and_one_outgoing
             upstream_pressure_control=FixedSpeedPressureControl.UPSTREAM_CHOKE,
         ),
     )
-    mock_variable_speed_compressor_train_multiple_streams_and_pressures_with_pressure_control = (
-        dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
-            streams=[],  # Not used because streams are provided separately
-            stages=[stage, stage2],
-            calculate_max_rate=False,
-            energy_usage_adjustment_constant=0.0,
-            energy_usage_adjustment_factor=1.0,
-            pressure_control=dto.types.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
-        )
+    mock_variable_speed_compressor_train_multiple_streams_and_pressures_with_pressure_control = dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures(
+        streams=[],  # Not used because streams are provided separately
+        stages=[stage, stage2],
+        calculate_max_rate=False,
+        energy_usage_adjustment_constant=0.0,
+        energy_usage_adjustment_factor=1.0,
+        pressure_control=libecalc.common.fixed_speed_pressure_control.FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
     )
 
     fluid_streams = [

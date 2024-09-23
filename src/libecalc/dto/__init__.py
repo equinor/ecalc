@@ -7,6 +7,7 @@ from libecalc.dto.components import (
     Installation,
 )
 from libecalc.dto.emission import Emission
+from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.models import (
     CompressorChart,
     CompressorConsumerFunction,
@@ -51,4 +52,3 @@ from libecalc.dto.models.compressor import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.dto.result_options import ResultOptions
-from libecalc.dto.types import FuelType, TimeSeriesType

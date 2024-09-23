@@ -3,7 +3,7 @@ from typing import Dict, Generic, List, Literal, Optional, TypeVar
 
 from pydantic import Field
 
-from libecalc import dto
+import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period
@@ -36,7 +36,7 @@ class YamlTrain(YamlConsumerBase, Generic[TYamlConsumer]):
         target_period: Period,
         references: References,
         category: str,
-        fuel: Optional[Dict[datetime, dto.types.FuelType]],
+        fuel: Optional[Dict[datetime, libecalc.dto.fuel_type.FuelType]],
     ):
         stages = [
             consumer.to_dto(

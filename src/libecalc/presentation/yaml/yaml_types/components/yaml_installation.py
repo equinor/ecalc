@@ -4,7 +4,7 @@ from pydantic import ConfigDict, Field, model_validator
 from typing_extensions import Annotated
 
 from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
-from libecalc.dto.base import InstallationUserDefinedCategoryType
+from libecalc.dto.types import InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase

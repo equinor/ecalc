@@ -3,6 +3,8 @@ from typing import List, Literal, Optional
 from pydantic import Field, field_validator
 from typing_extensions import Annotated
 
+from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.dto.models.base import EnergyModel
 from libecalc.dto.models.compressor.fluid import (
@@ -13,7 +15,6 @@ from libecalc.dto.models.compressor.stage import (
     CompressorStage,
     MultipleStreamsCompressorStage,
 )
-from libecalc.dto.types import EnergyModelType, FixedSpeedPressureControl
 
 
 class CompressorTrain(EnergyModel):
