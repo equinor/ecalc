@@ -8,7 +8,7 @@ from libecalc.application.graph_result import GraphResult
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.temporal_model import TemporalExpression, TemporalModel
-from libecalc.common.time_utils import Frequency, resample_time_steps
+from libecalc.common.time_utils import Frequency, Period, resample_time_steps
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -75,9 +75,10 @@ class FuelQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
-            time_steps=installation_time_steps,
+            time_steps=installation_global_time_steps,
         )
 
         regularity = TimeSeriesFloat(
@@ -96,28 +97,30 @@ class FuelQuery(Query):
             for fuel_consumer in installation_dto.fuel_consumers:
                 temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                 for period, category in temporal_category.items():
-                    if self.consumer_categories is None or category in self.consumer_categories:
-                        fuel_consumer_result = installation_graph.get_energy_result(fuel_consumer.id)
-                        fuel_volumes = (
-                            TimeSeriesRate.from_timeseries_stream_day_rate(
-                                fuel_consumer_result.energy_usage, regularity=regularity
+                    if Period.intersects(period, installation_graph.variables_map.period):
+                        if self.consumer_categories is None or category in self.consumer_categories:
+                            period = Period.intersection(period, installation_graph.variables_map.period)
+                            fuel_consumer_result = installation_graph.get_energy_result(fuel_consumer.id)
+                            fuel_volumes = (
+                                TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    fuel_consumer_result.energy_usage, regularity=regularity
+                                )
+                                .for_period(period)
+                                .to_volumes_for_period(period)
                             )
-                            .for_period(period)
-                            .to_volumes()
-                        )
 
-                        fuel_temporal_model = TemporalModel(fuel_consumer.fuel)
-                        for timestep, fuel_volume in fuel_volumes.datapoints():
-                            fuel_model = fuel_temporal_model.get_model(timestep)
-                            fuel_category = fuel_model.user_defined_category
+                            fuel_temporal_model = TemporalModel(fuel_consumer.fuel)
+                            for timestep, fuel_volume in fuel_volumes.datapoints():
+                                fuel_model = fuel_temporal_model.get_model(timestep)
+                                fuel_category = fuel_model.user_defined_category
 
-                            if fuel_volume is not None:
-                                if self.fuel_type_category is None or fuel_category == self.fuel_type_category:
-                                    aggregated_result[timestep] += fuel_volume
+                                if fuel_volume is not None:
+                                    if self.fuel_type_category is None or fuel_category == self.fuel_type_category:
+                                        aggregated_result[timestep] += fuel_volume
 
             if aggregated_result:
                 sorted_result = dict(sorted(zip(aggregated_result.keys(), aggregated_result.values())))
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
                 #  Last timestep is removed in check above (fuel_volume is None). Needed back for re-indexing:
                 # date_keys.append(installation_time_steps[-1])
@@ -155,6 +158,7 @@ class VolumeQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
             time_steps=installation_time_steps,
@@ -197,7 +201,7 @@ class VolumeQuery(Query):
                 sorted_result = dict(
                     dict(sorted(zip(aggregated_emission_volume.keys(), aggregated_emission_volume.values()))).items()
                 )
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (
@@ -237,9 +241,10 @@ class EmissionQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
-            time_steps=installation_time_steps,
+            time_steps=installation_global_time_steps,
         )
 
         regularity = TimeSeriesFloat(
@@ -259,25 +264,27 @@ class EmissionQuery(Query):
             for fuel_consumer in installation_dto.fuel_consumers:
                 temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                 for period, category in temporal_category.items():
-                    if self.consumer_categories is None or category in self.consumer_categories:
-                        fuel_temporal_model = TemporalModel(fuel_consumer.fuel)
+                    if Period.intersects(period, installation_graph.variables_map.period):
+                        if self.consumer_categories is None or category in self.consumer_categories:
+                            period = Period.intersection(period, installation_graph.variables_map.period)
+                            fuel_temporal_model = TemporalModel(fuel_consumer.fuel)
 
-                        emissions = installation_graph.get_emissions(fuel_consumer.id)
+                            emissions = installation_graph.get_emissions(fuel_consumer.id)
 
-                        for emission in emissions.values():
-                            emission_volumes = (
-                                TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, regularity=regularity)
-                                .for_period(period)
-                                .to_volumes()
-                            )
-                            unit_in = emission_volumes.unit
-                            for timestep, emission_volume in emission_volumes.datapoints():
-                                fuel_model = fuel_temporal_model.get_model(timestep)
-                                fuel_category = fuel_model.user_defined_category
+                            for emission in emissions.values():
+                                emission_volumes = (
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(emission.rate, regularity=regularity)
+                                    .for_period(period)
+                                    .to_volumes_for_period(period)
+                                )
+                                unit_in = emission_volumes.unit
+                                for timestep, emission_volume in emission_volumes.datapoints():
+                                    fuel_model = fuel_temporal_model.get_model(timestep)
+                                    fuel_category = fuel_model.user_defined_category
 
-                                if self.fuel_type_category is None or fuel_category == self.fuel_type_category:
-                                    if self.emission_type is None or emission.name == self.emission_type:
-                                        aggregated_result[timestep] += emission_volume
+                                    if self.fuel_type_category is None or fuel_category == self.fuel_type_category:
+                                        if self.emission_type is None or emission.name == self.emission_type:
+                                            aggregated_result[timestep] += emission_volume
 
             # Add emissions from direct emitters, but ensure that emissions are not counted twice.
             # Direct emissions have no fuel, and should not count when asking for emissions for a given fuel
@@ -302,7 +309,7 @@ class EmissionQuery(Query):
 
             if aggregated_result:
                 sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (
@@ -337,9 +344,10 @@ class ElectricityGeneratedQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
-            time_steps=installation_time_steps,
+            time_steps=installation_global_time_steps,
         )
 
         regularity = TimeSeriesFloat(
@@ -360,27 +368,29 @@ class ElectricityGeneratedQuery(Query):
                 if isinstance(fuel_consumer, libecalc.dto.GeneratorSet):
                     temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                     for period, category in temporal_category.items():
-                        if self.producer_categories is None or category in self.producer_categories:
-                            fuel_consumer_result: GeneratorSetResult = installation_graph.get_energy_result(
-                                fuel_consumer.id
-                            )
-
-                            cumulative_volumes_gwh = (
-                                TimeSeriesRate.from_timeseries_stream_day_rate(
-                                    fuel_consumer_result.power, regularity=regularity
+                        if Period.intersects(period, installation_graph.variables_map.period):
+                            if self.producer_categories is None or category in self.producer_categories:
+                                period = Period.intersection(period, installation_graph.variables_map.period)
+                                fuel_consumer_result: GeneratorSetResult = installation_graph.get_energy_result(
+                                    fuel_consumer.id
                                 )
-                                .for_period(period)
-                                .to_volumes()
-                            )
 
-                            unit_in = cumulative_volumes_gwh.unit
+                                cumulative_volumes_gwh = (
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(
+                                        fuel_consumer_result.power, regularity=regularity
+                                    )
+                                    .for_period(period)
+                                    .to_volumes_for_period(period)
+                                )
 
-                            for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
-                                aggregated_result[timestep] += cumulative_volume_gwh
+                                unit_in = cumulative_volumes_gwh.unit
+
+                                for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
+                                    aggregated_result[timestep] += cumulative_volume_gwh
 
             if aggregated_result:
                 sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (
@@ -412,9 +422,10 @@ class PowerSupplyOnshoreQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
-            time_steps=installation_time_steps,
+            time_steps=installation_global_time_steps,
         )
 
         regularity = TimeSeriesFloat(
@@ -435,35 +446,37 @@ class PowerSupplyOnshoreQuery(Query):
                 if isinstance(fuel_consumer, libecalc.dto.GeneratorSet) and fuel_consumer.cable_loss is not None:
                     temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                     for period, category in temporal_category.items():
-                        if self.producer_categories is None or category in self.producer_categories:
-                            fuel_consumer_result: GeneratorSetResult = installation_graph.get_energy_result(
-                                fuel_consumer.id
-                            )
-
-                            cable_loss = Expression.evaluate(
-                                fuel_consumer.cable_loss,
-                                variables=installation_graph.variables_map.variables,
-                                fill_length=len(installation_graph.variables_map.time_vector),
-                            )
-
-                            fuel_consumer_result.power.values = fuel_consumer_result.power.values * (1 + cable_loss)
-
-                            cumulative_volumes_gwh = (
-                                TimeSeriesRate.from_timeseries_stream_day_rate(
-                                    fuel_consumer_result.power, regularity=regularity
+                        if Period.intersects(period, installation_graph.variables_map.period):
+                            if self.producer_categories is None or category in self.producer_categories:
+                                period = Period.intersection(period, installation_graph.variables_map.period)
+                                fuel_consumer_result: GeneratorSetResult = installation_graph.get_energy_result(
+                                    fuel_consumer.id
                                 )
-                                .for_period(period)
-                                .to_volumes()
-                            )
 
-                            unit_in = cumulative_volumes_gwh.unit
+                                cable_loss = Expression.evaluate(
+                                    fuel_consumer.cable_loss,
+                                    variables=installation_graph.variables_map.variables,
+                                    fill_length=len(installation_graph.variables_map.time_vector),
+                                )
 
-                            for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
-                                aggregated_result[timestep] += cumulative_volume_gwh
+                                fuel_consumer_result.power.values = fuel_consumer_result.power.values * (1 + cable_loss)
+
+                                cumulative_volumes_gwh = (
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(
+                                        fuel_consumer_result.power, regularity=regularity
+                                    )
+                                    .for_period(period)
+                                    .to_volumes_for_period(period)
+                                )
+
+                                unit_in = cumulative_volumes_gwh.unit
+
+                                for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
+                                    aggregated_result[timestep] += cumulative_volume_gwh
 
             if aggregated_result:
                 sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (
@@ -495,9 +508,10 @@ class MaxUsageFromShoreQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
-            time_steps=installation_time_steps,
+            time_steps=installation_global_time_steps,
         )
 
         regularity = TimeSeriesFloat(
@@ -520,31 +534,33 @@ class MaxUsageFromShoreQuery(Query):
                 ):
                     temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                     for period, category in temporal_category.items():
-                        if self.producer_categories is None or category in self.producer_categories:
-                            installation_graph.get_energy_result(fuel_consumer.id)
+                        if Period.intersects(period, installation_graph.variables_map.period):
+                            if self.producer_categories is None or category in self.producer_categories:
+                                period = Period.intersection(period, installation_graph.variables_map.period)
+                                installation_graph.get_energy_result(fuel_consumer.id)
 
-                            max_usage_from_shore = TimeSeriesStreamDayRate(
-                                values=array_to_list(
-                                    Expression.evaluate(
-                                        fuel_consumer.max_usage_from_shore,
-                                        variables=installation_graph.variables_map.variables,
-                                        fill_length=len(installation_graph.variables_map.time_vector),
-                                    )
-                                ),
-                                unit=unit,
-                                timesteps=installation_graph.variables_map.time_vector,
-                            )
+                                max_usage_from_shore = TimeSeriesStreamDayRate(
+                                    values=array_to_list(
+                                        Expression.evaluate(
+                                            fuel_consumer.max_usage_from_shore,
+                                            variables=installation_graph.variables_map.variables,
+                                            fill_length=len(installation_graph.variables_map.time_vector),
+                                        )
+                                    ),
+                                    unit=unit,
+                                    timesteps=installation_graph.variables_map.time_vector,
+                                )
 
-                            results = TimeSeriesRate.from_timeseries_stream_day_rate(
-                                max_usage_from_shore, regularity=regularity
-                            ).for_period(period)
+                                results = TimeSeriesRate.from_timeseries_stream_day_rate(
+                                    max_usage_from_shore, regularity=regularity
+                                ).for_period(period)
 
-                            for timestep, result in results.datapoints():
-                                aggregated_result[timestep] += result
+                                for timestep, result in results.datapoints():
+                                    aggregated_result[timestep] += result
 
             if aggregated_result:
                 sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
                 # Max usage from shore is time series float (values), and contains one more item
@@ -576,9 +592,10 @@ class FuelConsumerPowerConsumptionQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
-            time_steps=installation_time_steps,
+            time_steps=installation_global_time_steps,
         )
 
         regularity = TimeSeriesFloat(
@@ -607,35 +624,37 @@ class FuelConsumerPowerConsumptionQuery(Query):
             for fuel_consumer in fuel_consumers:
                 temporal_category = TemporalModel(fuel_consumer.user_defined_category)
                 for period, category in temporal_category.items():
-                    if self.consumer_categories is None or category in self.consumer_categories:
-                        fuel_consumer_result = installation_graph.get_energy_result(fuel_consumer.id)
-                        time_vector = fuel_consumer_result.timesteps
-                        shaft_power = fuel_consumer_result.power
+                    if Period.intersects(period, installation_graph.variables_map.period):
+                        if self.consumer_categories is None or category in self.consumer_categories:
+                            period = Period.intersection(period, installation_graph.variables_map.period)
+                            fuel_consumer_result = installation_graph.get_energy_result(fuel_consumer.id)
+                            time_vector = fuel_consumer_result.timesteps
+                            shaft_power = fuel_consumer_result.power
 
-                        if (
-                            shaft_power is not None
-                            and 0 < len(shaft_power) == len(time_vector)
-                            and len(fuel_consumer_result.timesteps) == len(installation_graph.timesteps)
-                        ):
-                            cumulative_volumes_gwh = (
-                                TimeSeriesRate.from_timeseries_stream_day_rate(shaft_power, regularity=regularity)
-                                .for_period(period)
-                                .to_volumes()
-                            )
-                            unit_in = cumulative_volumes_gwh.unit
+                            if (
+                                shaft_power is not None
+                                and 0 < len(shaft_power) == len(time_vector)
+                                and len(fuel_consumer_result.timesteps) == len(installation_graph.timesteps)
+                            ):
+                                cumulative_volumes_gwh = (
+                                    TimeSeriesRate.from_timeseries_stream_day_rate(shaft_power, regularity=regularity)
+                                    .for_period(period)
+                                    .to_volumes_for_period(period)
+                                )
+                                unit_in = cumulative_volumes_gwh.unit
 
-                            for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
-                                aggregated_result[timestep] += cumulative_volume_gwh
-                        else:
-                            raise NotImplementedError(
-                                f"A combination of one or more compressors that do not support fuel to power conversion was used."
-                                f"We are therefore unable to calculate correct power usage. Please only use compressors which support POWER conversion"
-                                f"for fuel consumer {fuel_consumer.name}"
-                            )
+                                for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
+                                    aggregated_result[timestep] += cumulative_volume_gwh
+                            else:
+                                raise NotImplementedError(
+                                    f"A combination of one or more compressors that do not support fuel to power conversion was used."
+                                    f"We are therefore unable to calculate correct power usage. Please only use compressors which support POWER conversion"
+                                    f"for fuel consumer {fuel_consumer.name}"
+                                )
 
             if aggregated_result:
                 sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (
@@ -667,9 +686,10 @@ class ElConsumerPowerConsumptionQuery(Query):
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_time_steps = installation_graph.timesteps
+        installation_global_time_steps = installation_graph.variables_map.global_time_vector
         time_steps = resample_time_steps(
             frequency=frequency,
-            time_steps=installation_time_steps,
+            time_steps=installation_global_time_steps,
         )
 
         regularity = TimeSeriesFloat(
@@ -691,25 +711,27 @@ class ElConsumerPowerConsumptionQuery(Query):
                     for electrical_consumer in fuel_consumer.consumers:
                         temporal_category = TemporalModel(electrical_consumer.user_defined_category)
                         for period, category in temporal_category.items():
-                            if self.consumer_categories is None or category in self.consumer_categories:
-                                electrical_consumer_result = installation_graph.get_energy_result(
-                                    electrical_consumer.id
-                                )
-                                power = electrical_consumer_result.power
-                                if power is not None:
-                                    cumulative_volumes_gwh = (
-                                        TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=regularity)
-                                        .for_period(period)
-                                        .to_volumes()
+                            if Period.intersects(period, installation_graph.variables_map.period):
+                                if self.consumer_categories is None or category in self.consumer_categories:
+                                    period = Period.intersection(period, installation_graph.variables_map.period)
+                                    electrical_consumer_result = installation_graph.get_energy_result(
+                                        electrical_consumer.id
                                     )
-                                    unit_in = cumulative_volumes_gwh.unit
+                                    power = electrical_consumer_result.power
+                                    if power is not None:
+                                        cumulative_volumes_gwh = (
+                                            TimeSeriesRate.from_timeseries_stream_day_rate(power, regularity=regularity)
+                                            .for_period(period)
+                                            .to_volumes_for_period(period)
+                                        )
+                                        unit_in = cumulative_volumes_gwh.unit
 
-                                    for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
-                                        aggregated_result[timestep] += cumulative_volume_gwh
+                                        for timestep, cumulative_volume_gwh in cumulative_volumes_gwh.datapoints():
+                                            aggregated_result[timestep] += cumulative_volume_gwh
 
             if aggregated_result:
                 sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-                sorted_result = {**dict.fromkeys(installation_time_steps, 0.0), **sorted_result}
+                sorted_result = {**dict.fromkeys(installation_global_time_steps, 0.0), **sorted_result}
                 date_keys = list(sorted_result.keys())
 
                 reindexed_result = (

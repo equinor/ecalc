@@ -107,8 +107,9 @@ class Rates:
         Returns:
             The production volume between the dates in time_steps
         """
-        delta_days = calculate_delta_days(time_steps)
-        return np.array(np.array(rates[:-1]) * delta_days)
+        delta_days = calculate_delta_days(np.array(time_steps))
+        rates_to_use = rates[:-1] if len(rates) > len(delta_days) else rates
+        return np.array(rates_to_use * delta_days, dtype=float)
 
     @staticmethod
     def compute_cumulative(
@@ -237,7 +238,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
     def for_period(self, period: Period) -> Self:
         start_index, end_index = period.get_timestep_indices(self.timesteps)
-        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
+        #        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
         return self.__class__(
             timesteps=self.timesteps[start_index:end_index],
             values=self.values[start_index:end_index],
@@ -943,8 +944,16 @@ class TimeSeriesRate(TimeSeries[float]):
         )
 
     def for_period(self, period: Period) -> Self:
+        if period.end < self.timesteps[0] or period.start > self.timesteps[-1]:
+            return self.__class__(
+                timesteps=[],
+                values=[],
+                regularity=[],
+                unit=self.unit,
+                rate_type=self.rate_type,
+            )
         start_index, end_index = period.get_timestep_indices(self.timesteps)
-        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
+        #        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
         return self.__class__(
             timesteps=self.timesteps[start_index:end_index],
             values=self.values[start_index:end_index],
@@ -1011,6 +1020,21 @@ class TimeSeriesRate(TimeSeries[float]):
         volumes = Rates.to_volumes(
             rates=self.to_calendar_day().values,
             time_steps=self.timesteps,
+        ).tolist()
+        return TimeSeriesVolumes(timesteps=self.timesteps, values=volumes, unit=self.unit.rate_to_volume())
+
+    def to_volumes_for_period(self, period: Period) -> TimeSeriesVolumes:
+        """Convert rates to volumes.
+
+        Volumes are always found from calendar day rates
+        """
+        if period.end < self.timesteps[-1]:
+            raise ValueError(
+                """The period end date provided to calculated volumes is before the last date in the time series."""
+            )
+        volumes = Rates.to_volumes(
+            rates=self.to_calendar_day().values,
+            time_steps=self.timesteps + [period.end],
         ).tolist()
         return TimeSeriesVolumes(timesteps=self.timesteps, values=volumes, unit=self.unit.rate_to_volume())
 

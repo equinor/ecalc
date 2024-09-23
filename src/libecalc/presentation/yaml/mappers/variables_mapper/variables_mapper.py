@@ -95,7 +95,7 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
             f"Missing references are {', '.join(missing_references)}"
         )
 
-    return VariablesMap(variables=processed_variables, time_vector=variables_map.time_vector)
+    return VariablesMap(variables=processed_variables, global_time_vector=variables_map.global_time_vector)
 
 
 def map_yaml_to_variables(
