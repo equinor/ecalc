@@ -68,7 +68,8 @@ class PumpConsumerFunction(ConsumerFunction):
             Pump consumer function result
         """
         condition = get_condition_from_expression(
-            variables_map=variables_map.get_variables_map(),
+            variables=variables_map.get_variables(),
+            time_vector=variables_map.get_time_vector(),
             condition_expression=self._condition_expression,
         )
         calendar_day_rate = self._rate_expression.evaluate(
@@ -101,7 +102,8 @@ class PumpConsumerFunction(ConsumerFunction):
         )
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables_map=variables_map.get_variables_map(),
+            variables=variables_map.get_variables(),
+            time_vector=variables_map.get_time_vector(),
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 

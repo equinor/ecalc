@@ -72,7 +72,8 @@ class TabulatedConsumerFunction(ConsumerFunction):
 
         condition = get_condition_from_expression(
             condition_expression=self._condition_expression,
-            variables_map=variables_map.get_variables_map(),
+            variables=variables_map.get_variables(),
+            time_vector=variables_map.get_time_vector(),
         )
         # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
         # invalid points to valid where the condition sets energy_usage to zero
@@ -94,7 +95,8 @@ class TabulatedConsumerFunction(ConsumerFunction):
         )
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables_map=variables_map.get_variables_map(),
+            variables=variables_map.get_variables(),
+            time_vector=variables_map.get_time_vector(),
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 

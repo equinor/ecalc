@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import List, Optional
+from datetime import datetime
+from typing import Dict, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -8,7 +9,7 @@ from numpy.typing import NDArray
 from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
-from libecalc.common.variables import VariablesMap, VariablesMapService
+from libecalc.common.variables import VariablesMapService
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     apply_condition,
@@ -79,7 +80,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-        variables_map: VariablesMap,
+        time_vector: [List[datetime]],
+        variables: Dict[str, List[float]],
     ) -> ConsumerSystemOperationalSetting: ...
 
     def evaluate(
@@ -103,7 +105,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         12. Return a complete ConsumerSystemConsumerFunctionResult with data from the above steps.
         """
         operational_settings = self.get_operational_settings_from_expressions(
-            variables_map=variables_map.get_variables_map(),
+            time_vector=variables_map.get_time_vector(),
+            variables=variables_map.get_variables(),
             regularity=regularity,
         )
 
@@ -112,7 +115,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         )
 
         condition = get_condition_from_expression(
-            variables_map=variables_map.get_variables_map(),
+            variables=variables_map.get_variables(),
+            time_vector=variables_map.get_time_vector(),
             condition_expression=self.condition_expression,
         )
 
@@ -151,7 +155,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         power_usage = np.sum([np.asarray(result.power) for result in consumer_results], axis=0)
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables_map=variables_map.get_variables_map(),
+            variables=variables_map.get_variables(),
+            time_vector=variables_map.get_time_vector(),
             power_loss_factor_expression=self.power_loss_factor_expression,
         )
 
@@ -178,7 +183,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
     def get_operational_settings_from_expressions(
         self,
-        variables_map: VariablesMap,
+        time_vector: [List[datetime]],
+        variables: Dict[str, List[float]],
         regularity: List[float],
     ) -> List[ConsumerSystemOperationalSetting]:
         """Evaluate operational settings expressions and return actual operational settings.
@@ -195,7 +201,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         operational_settings_calendar_day = [
             self.evaluate_operational_setting_expressions(
                 operational_setting_expressions=operational_setting,
-                variables_map=variables_map,
+                time_vector=time_vector,
+                variables=variables,
             )
             for operational_setting in self.operational_settings_expressions
         ]
@@ -318,7 +325,8 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-        variables_map: VariablesMap,
+        time_vector: [List[datetime]],
+        variables: Dict[str, List[float]],
     ) -> ConsumerSystemOperationalSetting:
         """Evaluate all expressions in an operational setting with the input time series
         and time vector. Each expression evaluates to an array, and all arrays are
@@ -327,19 +335,15 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
         Evaluate rate and pressure expressions in an OperationalSettingExpressions object
         """
         rates = [
-            rate_expression.evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+            rate_expression.evaluate(variables=variables, fill_length=len(time_vector))
             for rate_expression in operational_setting_expressions.rates
         ]
         suction_pressures = [
-            suction_pressure_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            suction_pressure_expression.evaluate(variables=variables, fill_length=len(time_vector))
             for suction_pressure_expression in operational_setting_expressions.suction_pressures
         ]
         discharge_pressures = [
-            discharge_pressure_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            discharge_pressure_expression.evaluate(variables=variables, fill_length=len(time_vector))
             for discharge_pressure_expression in operational_setting_expressions.discharge_pressures
         ]
         return CompressorSystemOperationalSetting(
@@ -377,32 +381,27 @@ class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_operational_setting_expressions(
         self,
         operational_setting_expressions: ConsumerSystemOperationalSettingExpressions,
-        variables_map: VariablesMap,
+        time_vector: [List[datetime]],
+        variables: Dict[str, List[float]],
     ) -> ConsumerSystemOperationalSetting:
         """Evaluate all expressions in an operational setting with the input time series
         and time vector. Each expression evaluates to an array, and all arrays are
         returned in a data object with all arrays.
         """
         rates = [
-            rate_expression.evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
+            rate_expression.evaluate(variables=variables, fill_length=len(time_vector))
             for rate_expression in operational_setting_expressions.rates
         ]
         suction_pressures = [
-            suction_pressure_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            suction_pressure_expression.evaluate(variables=variables, fill_length=len(time_vector))
             for suction_pressure_expression in operational_setting_expressions.suction_pressures
         ]
         discharge_pressures = [
-            discharge_pressure_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            discharge_pressure_expression.evaluate(variables=variables, fill_length=len(time_vector))
             for discharge_pressure_expression in operational_setting_expressions.discharge_pressures
         ]
         fluid_densities = [
-            fluid_density_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            fluid_density_expression.evaluate(variables=variables, fill_length=len(time_vector))
             for fluid_density_expression in operational_setting_expressions.fluid_densities
         ]
         return PumpSystemOperationalSetting(

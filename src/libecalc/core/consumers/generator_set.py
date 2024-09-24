@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import List
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -11,7 +14,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap, VariablesMapService
+from libecalc.common.variables import VariablesMapService
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
 
@@ -42,9 +45,11 @@ class Genset:
             raise ValueError("length of power_requirement does not match the time vector.")
 
         # Compute fuel consumption from power rate.
-        fuel_rate = self.evaluate_fuel_rate(power_requirement, variables_map=variables_map.get_variables_map())
+        fuel_rate = self.evaluate_fuel_rate(
+            power_requirement, time_vector=variables_map.get_time_vector(), actual_period=variables_map.get_period()
+        )
         power_capacity_margin = self.evaluate_power_capacity_margin(
-            power_requirement, variables_map=variables_map.get_variables_map()
+            power_requirement, time_vector=variables_map.get_time_vector(), actual_period=variables_map.get_period()
         )
 
         # Convert fuel_rate to calendar day rate
@@ -86,22 +91,28 @@ class Genset:
         )
 
     def evaluate_fuel_rate(
-        self, power_requirement: NDArray[np.float64], variables_map: VariablesMap
+        self,
+        power_requirement: NDArray[np.float64],
+        time_vector: [List[datetime]],
+        actual_period: Period,
     ) -> NDArray[np.float64]:
         result = np.full_like(power_requirement, fill_value=np.nan).astype(float)
         for period, model in self.temporal_generator_set_model.items():
-            if Period.intersects(period, variables_map.period):
-                start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
+            if Period.intersects(period, actual_period):
+                start_index, end_index = period.get_timestep_indices(time_vector)
                 result[start_index:end_index] = model.evaluate(power_requirement[start_index:end_index])
         return result
 
     def evaluate_power_capacity_margin(
-        self, power_requirement: NDArray[np.float64], variables_map: VariablesMap
+        self,
+        power_requirement: NDArray[np.float64],
+        time_vector: [List[datetime]],
+        actual_period: Period,
     ) -> NDArray[np.float64]:
         result = np.zeros_like(power_requirement).astype(float)
         for period, model in self.temporal_generator_set_model.items():
-            if Period.intersects(period, variables_map.period):
-                start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
+            if Period.intersects(period, actual_period):
+                start_index, end_index = period.get_timestep_indices(time_vector)
                 result[start_index:end_index] = model.evaluate_power_capacity_margin(
                     power_requirement[start_index:end_index]
                 )

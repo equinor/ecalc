@@ -211,13 +211,15 @@ class TestPumpSystemConsumerFunction:
 
         """
         operational_settings_expressions_evaluated = pump_system.get_operational_settings_from_expressions(
-            variables_map=consumer_system_variables_map,
+            variables=consumer_system_variables_map.get_variables(),
+            time_vector=consumer_system_variables_map.get_time_vector(),
             regularity=[1.0] * len(consumer_system_variables_map.time_vector),
         )
 
         operational_settings_expressions_evaluated_with_regularity = (
             pump_system.get_operational_settings_from_expressions(
-                variables_map=consumer_system_variables_map,
+                variables=consumer_system_variables_map.get_variables(),
+                time_vector=consumer_system_variables_map.get_time_vector(),
                 regularity=[0.9] * len(consumer_system_variables_map.time_vector),
             )
         )
@@ -230,13 +232,11 @@ class TestPumpSystemConsumerFunction:
     def test_evaluate_evaluate_operational_setting_expressions(self, pump_system):
         result = pump_system.evaluate_operational_setting_expressions(
             operational_setting_expressions=pump_system.operational_settings_expressions[0],
-            variables_map=VariablesMap(
-                variables={
-                    "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
-                    "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
-                },
-                time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
-            ),
+            variables={
+                "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
+                "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
+            },
+            time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
         )
 
         assert result.rates[0].tolist() == [1, 1, 1]
@@ -395,13 +395,15 @@ class TestCompressorSystemConsumerFunction:
         regularity is between 0 and 1 (fraction of "full time").
         """
         operational_settings_expressions_evaluated = compressor_system_single.get_operational_settings_from_expressions(
-            variables_map=consumer_system_variables_map,
+            variables=consumer_system_variables_map.get_variables(),
+            time_vector=consumer_system_variables_map.get_time_vector(),
             regularity=[1.0] * len(consumer_system_variables_map.time_vector),
         )
 
         operational_settings_expressions_evaluated_with_regularity = (
             compressor_system_single.get_operational_settings_from_expressions(
-                variables_map=consumer_system_variables_map,
+                variables=consumer_system_variables_map.get_variables(),
+                time_vector=consumer_system_variables_map.get_time_vector(),
                 regularity=[0.9] * len(consumer_system_variables_map.time_vector),
             )
         )
@@ -421,7 +423,8 @@ class TestCompressorSystemConsumerFunction:
         )
         result = compressor_system_single.evaluate_operational_setting_expressions(
             operational_setting_expressions=compressor_system_single.operational_settings_expressions[0],
-            variables_map=variables_map,
+            variables=variables_map.get_variables(),
+            time_vector=variables_map.get_time_vector(),
         )
 
         assert result.rates[0].tolist() == [1, 1, 1]

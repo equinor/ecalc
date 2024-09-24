@@ -1,30 +1,30 @@
 from copy import deepcopy
-from typing import Optional
+from datetime import datetime
+from typing import Dict, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
 
 
 def get_condition_from_expression(
-    variables_map: VariablesMap,
+    time_vector: [List[datetime]],
+    variables: Dict[str, List[float]],
     condition_expression: Expression,
 ) -> Optional[NDArray[np.int_]]:
     """Evaluate condition expression and compute resulting condition vector.
 
     Args:
-        variables_map: A map of all numeric arrays used in expressions
+        time_vector: The actual time vector
+        variables: All variables
         condition_expression: The condition expression
 
     Returns:
         Assembled condition vector
     """
     if condition_expression is not None:
-        condition = condition_expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-        )
+        condition = condition_expression.evaluate(variables=variables, fill_length=len(time_vector))
         condition = (condition != 0).astype(int)
     else:
         return None
@@ -51,22 +51,22 @@ def apply_condition(input_array: NDArray[np.float64], condition: Optional[NDArra
 
 
 def get_power_loss_factor_from_expression(
-    variables_map: VariablesMap,
+    time_vector: [List[datetime]],
+    variables: Dict[str, List[float]],
     power_loss_factor_expression: Expression,
 ) -> Optional[NDArray[np.float64]]:
     """Evaluate power loss factor expression and compute resulting power loss factor vector.
 
     Args:
-        variables_map: A map of all numeric arrays used in expressions
+        time_vector: The actual time vector
+        variables: All variables
         power_loss_factor_expression: The condition expression
 
     Returns:
         Assembled power loss factor vector
     """
     if power_loss_factor_expression is not None:
-        power_loss_factor = power_loss_factor_expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-        )
+        power_loss_factor = power_loss_factor_expression.evaluate(variables=variables, fill_length=len(time_vector))
     else:
         return None
     return np.array(power_loss_factor)
