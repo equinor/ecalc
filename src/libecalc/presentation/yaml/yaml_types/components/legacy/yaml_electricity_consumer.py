@@ -6,7 +6,6 @@ from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.energy_model_validation import (
     validate_energy_usage_models,
 )
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
@@ -41,8 +40,7 @@ class YamlElectricityConsumer(YamlBase):
         "\n\n$ECALC_DOCS_KEYWORDS_URL/ENERGY_USAGE_MODEL",
     )
 
-    @model_validator(mode="before")
-    def check_energy_usage_models(cls, data):
-        model = data[EcalcYamlKeywords.energy_usage_model]
-        _check_multiple_energy_usage_models = validate_energy_usage_models(model, data[EcalcYamlKeywords.name])
-        return data
+    @model_validator(mode="after")
+    def check_energy_usage_models(self):
+        _check_multiple_energy_usage_models = validate_energy_usage_models(self.energy_usage_model, self.name)
+        return self

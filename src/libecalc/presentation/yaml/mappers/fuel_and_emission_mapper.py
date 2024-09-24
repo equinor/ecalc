@@ -1,37 +1,24 @@
-from typing import Dict
-
 from pydantic import ValidationError
 
-from ecalc_cli.logger import logger
 from libecalc.dto import Emission, FuelType
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-
-
-class EmissionMapper:
-    @staticmethod
-    def from_yaml_to_dto(data: Dict) -> Emission:
-        if data.get("TAX") or data.get("QUOTA"):
-            logger.warning("Emission tax and quota are deprecated. It will have no effect.")
-        return Emission(
-            name=data.get(EcalcYamlKeywords.name),
-            factor=data.get(EcalcYamlKeywords.emission_factor),
-        )
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 
 
 class FuelMapper:
     @staticmethod
-    def from_yaml_to_dto(fuel: Dict) -> FuelType:
+    def from_yaml_to_dto(fuel: YamlFuelType) -> FuelType:
         try:
-            if fuel.get("PRICE"):
-                logger.warning("Fuel price is deprecated. It will have no effect.")
-
             return FuelType(
-                name=fuel.get(EcalcYamlKeywords.name),
-                user_defined_category=fuel.get(EcalcYamlKeywords.user_defined_tag),
+                name=fuel.name,
+                user_defined_category=fuel.category,
                 emissions=[
-                    EmissionMapper.from_yaml_to_dto(emission) for emission in fuel.get(EcalcYamlKeywords.emissions, [])
+                    Emission(
+                        name=emission.name,
+                        factor=emission.factor,
+                    )
+                    for emission in fuel.emissions
                 ],
             )
         except ValidationError as e:
-            raise DtoValidationError(data=fuel, validation_error=e) from e
+            raise DtoValidationError(data=fuel.model_dump(), validation_error=e) from e

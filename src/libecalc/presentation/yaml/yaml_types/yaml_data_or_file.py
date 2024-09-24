@@ -21,7 +21,10 @@ class YamlFile(YamlBase):
 
 
 def file_or_data_discriminator(data):
-    if not isinstance(data, dict):
+    if isinstance(data, YamlFile):
+        return "file"
+    elif not isinstance(data, dict):
+        # Not json/dict and not YamlFile -> Should be TData
         return "data"
 
     lower_case_keys = [str(key).lower() for key in data.keys()]

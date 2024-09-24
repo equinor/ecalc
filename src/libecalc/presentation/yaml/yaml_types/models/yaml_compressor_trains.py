@@ -88,7 +88,7 @@ class YamlVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         title="COMPRESSOR_TRAIN",
     )
     pressure_control: YamlPressureControl = Field(
-        None,
+        YamlPressureControl.DOWNSTREAM_CHOKE,
         description="Method for pressure control",
         title="PRESSURE_CONTROL",
     )

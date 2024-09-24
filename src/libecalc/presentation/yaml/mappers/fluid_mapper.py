@@ -1,10 +1,11 @@
 from typing import Any, Dict
 
-from libecalc.common.logger import logger
 from libecalc.dto import FluidComposition, FluidModel
 from libecalc.dto.types import EoSModel
 from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
+from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 
 """
 Some "standard" predefined compositions to choose from
@@ -12,7 +13,6 @@ notation ..._MW_XXPXX means molecular weight xx.x g/mol
 The lower molecular weight, the dryer the gas is, thus the naming Ultra dry, dry, medium, rich, ultra rich
 used for increasing molecular weight.
 """
-
 
 ULTRA_DRY_MW_17P1 = FluidComposition(
     nitrogen=1.140841432,
@@ -91,17 +91,17 @@ _eos_model_mapper = {
 }
 
 
-def fluid_model_mapper(model_config: Dict, input_models: Dict[str, Any], resources: Resources):
-    fluid_model_type = model_config.get(EcalcYamlKeywords.models_type_fluid_model_type)
+def fluid_model_mapper(model_config: YamlFluidModel, input_models: Dict[str, Any], resources: Resources):
+    fluid_model_type = model_config.fluid_model_type
     mapper = _fluid_model_map.get(fluid_model_type)
     if mapper is None:
         raise ValueError(f"Fluid model type {fluid_model_type} not supported")
     return mapper(model_config=model_config)
 
 
-def _predefined_fluid_model_mapper(model_config: Dict) -> FluidModel:
-    predefined_composition_type = model_config.get(EcalcYamlKeywords.models_type_fluid_predefined_gas_type)
-    eos_model_type = model_config.get(EcalcYamlKeywords.models_type_fluid_eos_model)
+def _predefined_fluid_model_mapper(model_config: YamlPredefinedFluidModel) -> FluidModel:
+    predefined_composition_type = model_config.gas_type
+    eos_model_type = model_config.eos_model
     return FluidModel(
         eos_model=_eos_model_mapper.get(eos_model_type),
         composition=_predefined_fluid_composition_mapper.get(predefined_composition_type),
@@ -109,36 +109,27 @@ def _predefined_fluid_model_mapper(model_config: Dict) -> FluidModel:
 
 
 def _composition_fluid_model_mapper(
-    model_config: Dict,
+    model_config: YamlCompositionFluidModel,
 ) -> FluidModel:
-    user_defined_composition = model_config.get(EcalcYamlKeywords.composition)
+    user_defined_composition = model_config.composition
     if user_defined_composition is None:
         raise ValueError("User defined composition not found in Yaml keywords")
-    if EcalcYamlKeywords.composition_H2O in user_defined_composition:
-        """
-        This is a work to allow both H2O and water to be specified as fluid definition
-        """
-
-        # Fixme: Remove in version 9
-        logger.warning(
-            "DeprecationWarning: H2O is deprecated as fluid composition. Use 'water' instead. "
-            "Will be removed in the next version."
-        )
-        if EcalcYamlKeywords.composition_water in user_defined_composition:
-            user_defined_composition[EcalcYamlKeywords.composition_water] += user_defined_composition[
-                EcalcYamlKeywords.composition_H2O
-            ]
-        else:
-            user_defined_composition[EcalcYamlKeywords.composition_water] = user_defined_composition[
-                EcalcYamlKeywords.composition_H2O
-            ]
-        del user_defined_composition[
-            EcalcYamlKeywords.composition_H2O
-        ]  # Need to remove this in order to put it into the DTO
-    eos_model_type = model_config.get(EcalcYamlKeywords.models_type_fluid_eos_model)
+    eos_model_type = model_config.eos_model
     return FluidModel(
         eos_model=_eos_model_mapper.get(eos_model_type),
-        composition=user_defined_composition,
+        composition=FluidComposition(
+            water=user_defined_composition.water,
+            nitrogen=user_defined_composition.nitrogen,
+            CO2=user_defined_composition.CO2,
+            methane=user_defined_composition.methane,
+            ethane=user_defined_composition.ethane,
+            propane=user_defined_composition.propane,
+            i_butane=user_defined_composition.i_butane,
+            n_butane=user_defined_composition.n_butane,
+            i_pentane=user_defined_composition.i_pentane,
+            n_pentane=user_defined_composition.n_pentane,
+            n_hexane=user_defined_composition.n_hexane,
+        ),
     )
 
 

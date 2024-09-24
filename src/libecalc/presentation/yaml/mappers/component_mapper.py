@@ -1,12 +1,13 @@
 from datetime import datetime
 from typing import Dict, Optional, Union
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import ValidationError
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.errors.exceptions import InvalidReferenceException
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto import ConsumerFunction, FuelType
@@ -22,14 +23,14 @@ from libecalc.presentation.yaml.validation_errors import (
     DtoValidationError,
 )
 from libecalc.presentation.yaml.yaml_entities import References
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import (
     YamlConsumerSystem,
 )
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingEmitter,
-)
+from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 
 energy_usage_model_to_component_type_map = {
     ConsumerType.PUMP: ComponentType.PUMP,
@@ -94,63 +95,60 @@ class ConsumerMapper:
 
     def from_yaml_to_dto(
         self,
-        data: Dict,
+        data: Union[YamlFuelConsumer, YamlElectricityConsumer, YamlConsumerSystem],
         regularity: Dict[datetime, Expression],
         consumes: ConsumptionType,
         default_fuel: Optional[str] = None,
     ) -> Consumer:
-        component_type = data.get(EcalcYamlKeywords.type)
-        if component_type is not None and component_type != ComponentType.CONSUMER_SYSTEM_V2:
+        component_type = data.component_type
+        if component_type not in [ComponentType.CONSUMER_SYSTEM_V2.value, "FUEL_CONSUMER", "ELECTRICITY_CONSUMER"]:
             # We have type here for v2, check that type is valid
             raise DataValidationError(
-                data=data,
-                message=f"Invalid component type '{component_type}' for component with name '{data.get(EcalcYamlKeywords.name)}'",
+                data=data.model_dump(),
+                message=f"Invalid component type '{component_type}' for component with name '{data.name}'",
             )
 
         fuel = None
         if consumes == ConsumptionType.FUEL:
+            consumer_fuel = data.fuel if hasattr(data, "fuel") else None  # YamlConsumerSystem does not have fuel
             try:
-                fuel = _resolve_fuel(
-                    data.get(EcalcYamlKeywords.fuel), default_fuel, self.__references, target_period=self._target_period
-                )
-            except ValueError as e:
+                fuel = _resolve_fuel(consumer_fuel, default_fuel, self.__references, target_period=self._target_period)
+            except InvalidReferenceException as e:
                 raise DataValidationError(
-                    data=data,
-                    message=f"Fuel '{data.get(EcalcYamlKeywords.fuel)}' does not exist",
+                    data=data.model_dump(),
+                    message=f"Fuel '{consumer_fuel or default_fuel}' does not exist",
                     error_key="fuel",
                 ) from e
 
-        if component_type is not None:
-            if component_type == ComponentType.CONSUMER_SYSTEM_V2:
-                try:
-                    compressor_system_yaml = YamlConsumerSystem(**data)
-                    return compressor_system_yaml.to_dto(
-                        consumes=consumes,
-                        regularity=regularity,
-                        references=self.__references,
-                        target_period=self._target_period,
-                        fuel=fuel,
-                    )
-                except ValidationError as e:
-                    raise DtoValidationError(data=data, validation_error=e) from e
+        if isinstance(data, YamlConsumerSystem):
+            try:
+                return data.to_dto(
+                    consumes=consumes,
+                    regularity=regularity,
+                    references=self.__references,
+                    target_period=self._target_period,
+                    fuel=fuel,
+                )
+            except ValidationError as e:
+                raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
         energy_usage_model = resolve_reference(
-            data.get(EcalcYamlKeywords.energy_usage_model),
+            data.energy_usage_model,
             references=self.__references.models,
-        )
+        )  # TODO: This is never a reference? So resolve_reference always return the same value, remove
 
         try:
             energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(energy_usage_model)
         except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e) from e
+            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
         if consumes == ConsumptionType.FUEL:
             try:
-                fuel_consumer_name = data.get(EcalcYamlKeywords.name)
+                fuel_consumer_name = data.name
                 return FuelConsumer(
                     name=fuel_consumer_name,
                     user_defined_category=define_time_model_for_period(
-                        data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
+                        data.category, target_period=self._target_period
                     ),
                     regularity=regularity,
                     fuel=fuel,
@@ -158,21 +156,21 @@ class ConsumerMapper:
                     component_type=_get_component_type(energy_usage_model),
                 )
             except ValidationError as e:
-                raise DtoValidationError(data=data, validation_error=e) from e
+                raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
         else:
             try:
-                electricity_consumer_name = data.get(EcalcYamlKeywords.name)
+                electricity_consumer_name = data.name
                 return ElectricityConsumer(
                     name=electricity_consumer_name,
                     regularity=regularity,
                     user_defined_category=define_time_model_for_period(
-                        data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
+                        data.category, target_period=self._target_period
                     ),
                     energy_usage_model=energy_usage_model,
                     component_type=_get_component_type(energy_usage_model),
                 )
             except ValidationError as e:
-                raise DtoValidationError(data=data, validation_error=e) from e
+                raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
 
 class GeneratorSetMapper:
@@ -183,22 +181,20 @@ class GeneratorSetMapper:
 
     def from_yaml_to_dto(
         self,
-        data: Dict,
+        data: YamlGeneratorSet,
         regularity: Dict[datetime, Expression],
         default_fuel: Optional[str] = None,
     ) -> GeneratorSet:
         try:
-            fuel = _resolve_fuel(
-                data.get(EcalcYamlKeywords.fuel), default_fuel, self.__references, target_period=self._target_period
-            )
+            fuel = _resolve_fuel(data.fuel, default_fuel, self.__references, target_period=self._target_period)
         except ValueError as e:
             raise DataValidationError(
-                data=data,
-                message=f"Fuel '{data.get(EcalcYamlKeywords.fuel)}' does not exist",
+                data=data.model_dump(),
+                message=f"Fuel '{data.fuel}' does not exist",  # TODO: What if default fuel does not exist?
                 error_key="fuel",
             ) from e
         generator_set_model_data = define_time_model_for_period(
-            data.get(EcalcYamlKeywords.el2fuel), target_period=self._target_period
+            data.electricity2fuel, target_period=self._target_period
         )
         generator_set_model = {
             start_time: resolve_reference(
@@ -217,17 +213,15 @@ class GeneratorSetMapper:
                 regularity=regularity,
                 consumes=ConsumptionType.ELECTRICITY,
             )
-            for consumer in data.get(EcalcYamlKeywords.consumers, [])
+            for consumer in data.consumers or []
         ]
-        user_defined_category = define_time_model_for_period(
-            data.get(EcalcYamlKeywords.user_defined_tag), target_period=self._target_period
-        )
+        user_defined_category = define_time_model_for_period(data.category, target_period=self._target_period)
 
-        cable_loss = convert_expression(data.get(EcalcYamlKeywords.cable_loss))
-        max_usage_from_shore = convert_expression(data.get(EcalcYamlKeywords.max_usage_from_shore))
+        cable_loss = convert_expression(data.cable_loss)
+        max_usage_from_shore = convert_expression(data.max_usage_from_shore)
 
         try:
-            generator_set_name = data.get(EcalcYamlKeywords.name)
+            generator_set_name = data.name
             return GeneratorSet(
                 name=generator_set_name,
                 fuel=fuel,
@@ -239,7 +233,7 @@ class GeneratorSetMapper:
                 max_usage_from_shore=max_usage_from_shore,
             )
         except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e) from e
+            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
 
 class InstallationMapper:
@@ -249,13 +243,13 @@ class InstallationMapper:
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
 
-    def from_yaml_to_dto(self, data: Dict) -> Installation:
-        fuel_data = data.get(EcalcYamlKeywords.fuel)
+    def from_yaml_to_dto(self, data: YamlInstallation) -> Installation:
+        fuel_data = data.fuel
         regularity = define_time_model_for_period(
-            convert_expression(data.get(EcalcYamlKeywords.regularity, 1)), target_period=self._target_period
+            convert_expression(data.regularity or 1), target_period=self._target_period
         )
 
-        installation_name = data.get(EcalcYamlKeywords.name)
+        installation_name = data.name
 
         generator_sets = [
             self.__generator_set_mapper.from_yaml_to_dto(
@@ -263,7 +257,7 @@ class InstallationMapper:
                 regularity=regularity,
                 default_fuel=fuel_data,
             )
-            for generator_set in data.get(EcalcYamlKeywords.generator_sets, [])
+            for generator_set in data.generator_sets or []
         ]
         fuel_consumers = [
             self.__consumer_mapper.from_yaml_to_dto(
@@ -272,22 +266,11 @@ class InstallationMapper:
                 consumes=ConsumptionType.FUEL,
                 default_fuel=fuel_data,
             )
-            for fuel_consumer in data.get(EcalcYamlKeywords.fuel_consumers, [])
+            for fuel_consumer in data.fuel_consumers or []
         ]
 
-        venting_emitters = []
-        for venting_emitter in data.get(EcalcYamlKeywords.installation_venting_emitters, []):
-            try:
-                venting_emitter = TypeAdapter(YamlVentingEmitter).validate_python(venting_emitter)
-                venting_emitters.append(venting_emitter)
-            except ValidationError as e:
-                raise DtoValidationError(data=venting_emitter, validation_error=e) from e
-
         hydrocarbon_export = define_time_model_for_period(
-            data.get(
-                EcalcYamlKeywords.hydrocarbon_export,
-                Expression.setup_from_expression(0),
-            ),
+            data.hydrocarbon_export or Expression.setup_from_expression(0),
             target_period=self._target_period,
         )
 
@@ -297,11 +280,11 @@ class InstallationMapper:
                 regularity=regularity,
                 hydrocarbon_export=hydrocarbon_export,
                 fuel_consumers=[*generator_sets, *fuel_consumers],
-                venting_emitters=venting_emitters,
-                user_defined_category=data.get(EcalcYamlKeywords.user_defined_tag),
+                venting_emitters=data.venting_emitters or [],
+                user_defined_category=data.category,
             )
         except ValidationError as e:
-            raise DtoValidationError(data=data, validation_error=e) from e
+            raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
 
 class EcalcModelMapper:

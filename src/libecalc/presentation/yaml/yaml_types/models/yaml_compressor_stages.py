@@ -12,7 +12,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
 )
 
 
-class YamlControlMarginUnits(enum.Enum):
+class YamlControlMarginUnits(str, enum.Enum):
     FRACTION = "FRACTION"
     PERCENTAGE = "PERCENTAGE"
 
@@ -45,7 +45,7 @@ class YamlCompressorStage(YamlBase):
 
 class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
     pressure_drop_ahead_of_stage: Optional[float] = Field(
-        None,
+        0.0,
         description="Pressure drop before compression stage [in bar]",
         title="PRESSURE_DROP_AHEAD_OF_STAGE",
     )

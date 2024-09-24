@@ -1,39 +1,32 @@
-from libecalc.presentation.yaml.mappers.create_references import _sort_models
+from dataclasses import dataclass
+
+from libecalc.presentation.yaml.mappers.create_references import SortableModel, _sort_models
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+
+
+@dataclass
+class Model(SortableModel):
+    name: str
+    type: str
 
 
 class TestCreateReferences:
     @staticmethod
     def test_sort_models():
         models_data = [
-            {
-                EcalcYamlKeywords.name: "a",
-                EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_with_turbine,
-            },
-            {
-                EcalcYamlKeywords.name: "b",
-                EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_train_simplified,
-            },
-            {EcalcYamlKeywords.name: "c", EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_turbine},
-            {
-                EcalcYamlKeywords.name: "d",
-                EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_with_turbine,
-            },
-            {EcalcYamlKeywords.name: "e", EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_chart},
-            {
-                EcalcYamlKeywords.name: "f",
-                EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_train_simplified,
-            },
-            {EcalcYamlKeywords.name: "g", EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_chart},
-            {
-                EcalcYamlKeywords.name: "h",
-                EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_train_simplified,
-            },
-            {EcalcYamlKeywords.name: "i", EcalcYamlKeywords.type: EcalcYamlKeywords.models_type_compressor_chart},
+            Model(name="a", type=EcalcYamlKeywords.models_type_compressor_with_turbine),
+            Model(name="b", type=EcalcYamlKeywords.models_type_compressor_train_simplified),
+            Model(name="c", type=EcalcYamlKeywords.models_type_turbine),
+            Model(name="d", type=EcalcYamlKeywords.models_type_compressor_with_turbine),
+            Model(name="e", type=EcalcYamlKeywords.models_type_compressor_chart),
+            Model(name="f", type=EcalcYamlKeywords.models_type_compressor_train_simplified),
+            Model(name="g", type=EcalcYamlKeywords.models_type_compressor_chart),
+            Model(name="h", type=EcalcYamlKeywords.models_type_compressor_train_simplified),
+            Model(name="i", type=EcalcYamlKeywords.models_type_compressor_chart),
         ]
 
         sorted_models = _sort_models(models_data)
-        assert [sorted_model[EcalcYamlKeywords.name] for sorted_model in sorted_models] == [
+        assert [sorted_model.name for sorted_model in sorted_models] == [
             "c",
             "e",
             "g",

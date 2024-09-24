@@ -14,6 +14,12 @@ from libecalc.presentation.yaml.mappers.model import (
 from libecalc.presentation.yaml.validation_errors import ResourceValidationError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlPumpChartSingleSpeed,
+    YamlPumpChartUnits,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlSingleSpeedChart, YamlUnits
+from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 
 
 @pytest.fixture
@@ -70,12 +76,12 @@ def chart_resource_unequal_speed():
 
 @pytest.fixture
 def pump_chart():
-    return {
-        "NAME": "pumpchart",
-        "FILE": "pumpchart.csv",
-        "TYPE": "PUMP_CHART_SINGLE_SPEED",
-        "UNITS": {"EFFICIENCY": "PERCENTAGE", "RATE": "AM3_PER_HOUR", "HEAD": "M"},
-    }
+    return YamlPumpChartSingleSpeed(
+        name="pumpchart",
+        file="pumpchart.csv",
+        type="PUMP_CHART_SINGLE_SPEED",
+        units=YamlPumpChartUnits(efficiency="PERCENTAGE", rate="AM3_PER_HOUR", head="M"),
+    )
 
 
 class TestSingleSpeedChart:
@@ -132,17 +138,17 @@ class TestSingleSpeedChart:
 
 @pytest.fixture
 def compressor_chart():
-    return {
-        "NAME": "compressorchart",
-        "TYPE": "COMPRESSOR_CHART",
-        "CHART_TYPE": "SINGLE_SPEED",
-        "UNITS": {
-            "EFFICIENCY": "PERCENTAGE",
-            "RATE": "AM3_PER_HOUR",
-            "HEAD": "KJ_PER_KG",
-        },
-        "CURVE": {"FILE": "compressorchart.csv"},
-    }
+    return YamlSingleSpeedChart(
+        name="compressorchart",
+        type="COMPRESSOR_CHART",
+        chart_type="SINGLE_SPEED",
+        units=YamlUnits(
+            efficiency="PERCENTAGE",
+            rate="AM3_PER_HOUR",
+            head="KJ_PER_KG",
+        ),
+        curve=YamlFile(file="compressorchart.csv"),
+    )
 
 
 class TestCompressorChartSingleSpeed:
