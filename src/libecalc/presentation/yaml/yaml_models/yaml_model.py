@@ -11,6 +11,9 @@ from libecalc.presentation.yaml.yaml_entities import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
+from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -61,16 +64,17 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def models(self):
-        pass
-
-    @abc.abstractmethod
-    def fuel_types(self):
+    def models(self) -> Iterable[YamlConsumerModel]:
         pass
 
     @property
     @abc.abstractmethod
-    def installations(self) -> Iterable:
+    def fuel_types(self) -> Iterable[YamlFuelType]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def installations(self) -> Iterable[YamlInstallation]:
         pass
 
     @property

@@ -48,7 +48,6 @@ class YamlComposition(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     CO2: float = 0.0
-    H2O: float = 0.0
     ethane: float = 0.0
     i_butane: float = 0.0
     i_pentane: float = 0.0

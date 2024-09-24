@@ -2,7 +2,7 @@ import datetime
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, TextIO, Type, Union
+from typing import Any, Dict, Iterable, Iterator, List, Optional, TextIO, Type, Union
 
 import yaml
 from pydantic import TypeAdapter
@@ -38,10 +38,12 @@ from libecalc.presentation.yaml.yaml_models.exceptions import (
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
 )
-from libecalc.presentation.yaml.yaml_types.models import YamlModel as YamlModelsModel
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
+from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -368,11 +370,11 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return facility_inputs
 
     @property
-    def models(self) -> List[YamlModelsModel]:
+    def models(self) -> List[YamlConsumerModel]:
         models = []
         for model in self._internal_datamodel.get(EcalcYamlKeywords.models, []):
             try:
-                models.append(TypeAdapter(YamlModelsModel).validate_python(model))
+                models.append(TypeAdapter(YamlConsumerModel).validate_python(model))
             except PydanticValidationError:
                 pass
 
@@ -413,11 +415,23 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def fuel_types(self):
-        return self._internal_datamodel.get(EcalcYamlKeywords.fuel_types, [])
+        fuel_types = []
+        for fuel_type in self._internal_datamodel.get(EcalcYamlKeywords.fuel_types, []):
+            try:
+                fuel_types.append(TypeAdapter(YamlFuelType).validate_python(fuel_type))
+            except PydanticValidationError:
+                pass
+        return fuel_types
 
     @property
-    def installations(self):
-        return self._internal_datamodel.get(EcalcYamlKeywords.installations, [])
+    def installations(self) -> Iterable[YamlInstallation]:
+        installations = []
+        for installation in self._internal_datamodel.get(EcalcYamlKeywords.installations, []):
+            try:
+                installations.append(TypeAdapter(YamlInstallation).validate_python(installation))
+            except PydanticValidationError:
+                pass
+        return installations
 
     @property
     def start(self) -> Optional[datetime.datetime]:

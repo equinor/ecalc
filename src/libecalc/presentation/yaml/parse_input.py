@@ -5,12 +5,12 @@ from libecalc.dto import Asset
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.create_references import create_references
 from libecalc.presentation.yaml.resource import Resources
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
 
-def map_yaml_to_dto(configuration: PyYamlYamlModel, resources: Resources) -> Asset:
+def map_yaml_to_dto(configuration: YamlValidator, resources: Resources) -> Asset:
     # TODO: Replace configuration type with YamlValidator
     references = create_references(configuration, resources)
     target_period = Period(

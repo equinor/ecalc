@@ -1,7 +1,9 @@
 import io
 from datetime import datetime
+from typing import Union
 
 import pytest
+from pydantic import TypeAdapter, ValidationError
 
 import libecalc.common.energy_usage_type
 import libecalc.common.utils.rates
@@ -14,9 +16,13 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
 )
-from libecalc.presentation.yaml.validation_errors import DataValidationError
 from libecalc.presentation.yaml.yaml_entities import References, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
+    YamlElectricityEnergyUsageModel,
+    YamlFuelEnergyUsageModel,
+)
+from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 SINGLE_SPEED_PUMP_CHART = dto.PumpModel(
     chart=SingleSpeedChartDTO(
@@ -152,7 +158,9 @@ class TestEnergyUsageModelMapper:
         read_yaml = PyYamlYamlModel.read_yaml(ResourceStream(name="main.yaml", stream=io.StringIO(yaml_text)))
         model_dto = ConsumerFunctionMapper(
             references, target_period=Period(start=datetime.min, end=datetime.max)
-        ).from_yaml_to_dto(read_yaml)
+        ).from_yaml_to_dto(
+            TypeAdapter(Union[YamlFuelEnergyUsageModel, YamlElectricityEnergyUsageModel]).validate_python(read_yaml)
+        )
         model_dto_without_default_date = next(iter(model_dto.values()))
         assert model_dto_without_default_date == expected_model_dto
 
@@ -172,9 +180,12 @@ CONDITIONS:
                 ),
             )
         )
-        with pytest.raises(DataValidationError) as exc_info:
-            ConsumerFunctionMapper(
-                References(), target_period=Period(start=datetime.min, end=datetime.max)
-            ).from_yaml_to_dto(read_yaml)
+        with pytest.raises(ValidationError) as exc_info:
+            TypeAdapter(
+                Union[
+                    YamlTemporalModel[YamlFuelEnergyUsageModel],
+                    YamlTemporalModel[YamlElectricityEnergyUsageModel],
+                ],
+            ).validate_python(read_yaml)
 
         assert "Either CONDITION or CONDITIONS should be specified, not both." in str(exc_info.value)

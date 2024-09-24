@@ -37,3 +37,5 @@ sidebar_position: -1002
     Main changes:
     - Economics has been removed. TAX, PRICE and QUOTA keywords will now give an error.
     - Misplaced keywords will now cause an error instead of being ignored.
+
+- H2O is no longer supported in composition. Use 'water' instead.

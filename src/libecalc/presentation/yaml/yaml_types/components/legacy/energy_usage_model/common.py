@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
@@ -25,3 +25,9 @@ class EnergyUsageModelCommon(YamlBase):
         description="A factor that may be added to account for power line losses.\n\n$ECALC_DOCS_KEYWORDS_URL/POWERLOSSFACTOR",
         alias="POWERLOSSFACTOR",
     )
+
+    @model_validator(mode="after")
+    def check_mutually_exclusive_condition(self):
+        if self.conditions is not None and self.condition is not None:
+            raise ValueError("Either CONDITION or CONDITIONS should be specified, not both.")
+        return self

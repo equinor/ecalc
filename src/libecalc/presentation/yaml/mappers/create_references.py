@@ -1,8 +1,9 @@
-from typing import Dict, List
+from typing import Dict, Iterable, List, Protocol, Union
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import get_duplicates
+from libecalc.dto import EnergyModel
 from libecalc.presentation.yaml.energy_model_validation import (
     validate_energy_usage_models,
 )
@@ -12,10 +13,14 @@ from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
+from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 
 
-def create_references(configuration: PyYamlYamlModel, resources: Resources) -> References:
+def create_references(configuration: YamlValidator, resources: Resources) -> References:
     """Create references-lookup used throughout the yaml.
 
     :param resources: list of resources containing data for the FILE reference in facility input
@@ -24,18 +29,16 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
     """
     facility_input_mapper = FacilityInputMapper(resources=resources)
     facility_inputs_from_files = {
-        facility_input.get(EcalcYamlKeywords.name): facility_input_mapper.from_yaml_to_dto(facility_input)
-        for facility_input in configuration.facility_inputs_raise_if_invalid
+        facility_input.name: facility_input_mapper.from_yaml_to_dto(facility_input)
+        for facility_input in configuration.facility_inputs
     }
     models = create_model_references(
-        models_yaml_config=configuration.models_raise_if_invalid,
+        models_yaml_config=configuration.models,
         facility_inputs=facility_inputs_from_files,
         resources=resources,
     )
 
-    duplicated_fuel_names = get_duplicates(
-        [fuel_data.get(EcalcYamlKeywords.name) for fuel_data in configuration.fuel_types]
-    )
+    duplicated_fuel_names = get_duplicates([fuel_data.name for fuel_data in configuration.fuel_types])
 
     if len(duplicated_fuel_names) > 0:
         raise EcalcError(
@@ -44,12 +47,12 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
             f" Duplicated names are: {', '.join(duplicated_fuel_names)}",
         )
 
-    fuel_types_emissions = [list(fuel_data[EcalcYamlKeywords.emissions]) for fuel_data in configuration.fuel_types]
+    fuel_types_emissions = [fuel_data.emissions for fuel_data in configuration.fuel_types]
 
     # Check each fuel for duplicated emissions
     duplicated_emissions = []
     for emissions in fuel_types_emissions:
-        duplicated_emissions.append(get_duplicates([emission.get(EcalcYamlKeywords.name) for emission in emissions]))
+        duplicated_emissions.append(get_duplicates([emission.name for emission in emissions]))
 
     duplicated_emissions_names = ",".join(name for string in duplicated_emissions for name in string if len(string) > 0)
 
@@ -60,26 +63,21 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
             f"Duplicated names are: {duplicated_emissions_names}",
         )
 
-    fuel_types = {
-        fuel_data.get(EcalcYamlKeywords.name): FuelMapper.from_yaml_to_dto(fuel_data)
-        for fuel_data in configuration.fuel_types
-    }
+    fuel_types = {fuel_data.name: FuelMapper.from_yaml_to_dto(fuel_data) for fuel_data in configuration.fuel_types}
 
+    # TODO: Move this validation to installation
     consumers_installations = []
     for installation in configuration.installations:
-        if installation.get(EcalcYamlKeywords.generator_sets) is not None:
+        if installation.generator_sets is not None:
             consumers_installations.append(
-                [
-                    consumer
-                    for consumers in installation[EcalcYamlKeywords.generator_sets]
-                    for consumer in consumers[EcalcYamlKeywords.consumers]
-                ]
+                [consumer for generator_set in installation.generator_sets for consumer in generator_set.consumers]
             )
 
-        if installation.get(EcalcYamlKeywords.fuel_consumers) is not None:
-            consumers_installations.append(list(installation[EcalcYamlKeywords.fuel_consumers]))
+        if installation.fuel_consumers is not None:
+            consumers_installations.append(installation.fuel_consumers)
 
     check_multiple_energy_models(consumers_installations)
+    # TODO: End move to installation
 
     return References(
         models=models,
@@ -87,7 +85,9 @@ def create_references(configuration: PyYamlYamlModel, resources: Resources) -> R
     )
 
 
-def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
+def check_multiple_energy_models(
+    consumers_installations: List[List[Union[YamlFuelConsumer, YamlConsumerSystem, YamlElectricityConsumer]]],
+):
     """
     Check for different energy model types within one consumer.
     Raises value error if different energy model types found within one consumer.
@@ -102,20 +102,23 @@ def check_multiple_energy_models(consumers_installations: List[List[Dict]]):
         for consumer in consumers:
             # Check if key exists: ENERGY_USAGE_MODEL.
             # Consumer system v2 has different structure/naming: test fails when looking for key ENERGY_USAGE_MODEL
-            if EcalcYamlKeywords.energy_usage_model in consumer:
-                model = consumer[EcalcYamlKeywords.energy_usage_model]
-                if isinstance(model, dict):
-                    validate_energy_usage_models(model, consumer[EcalcYamlKeywords.name])
+            if isinstance(consumer, (YamlFuelConsumer, YamlElectricityConsumer)):
+                model = consumer.energy_usage_model
+                validate_energy_usage_models(model, consumer.name)
 
 
-def create_model_references(models_yaml_config, facility_inputs: Dict, resources: Resources):
+def create_model_references(
+    models_yaml_config: Iterable[YamlConsumerModel],
+    facility_inputs: Dict[str, EnergyModel],
+    resources: Resources,
+):
     sorted_models = _sort_models(models_yaml_config)
 
     models_map = facility_inputs
     model_mapper = ModelMapper(resources=resources)
 
     for model in sorted_models:
-        model_reference = model.get(EcalcYamlKeywords.name)
+        model_reference = model.name
         if model_reference in models_map:
             raise EcalcError(
                 title="Duplicate reference",
@@ -142,18 +145,20 @@ _model_parsing_order_map = {
 }
 
 
-def _model_parsing_order(model) -> int:
-    model_type = model.get(EcalcYamlKeywords.type)
+class SortableModel(Protocol):
+    name: str
+    type: str
+
+
+def _model_parsing_order(model: SortableModel) -> int:
+    model_type = model.type
     try:
         return _model_parsing_order_map[model_type]
     except KeyError as e:
-        lines_reference = f"Check lines {model.start_mark.line} to {model.end_mark.line} in Yaml-file."
-        none_msg = f"Have you remembered to include the {EcalcYamlKeywords.type} keyword?" if model_type is None else ""
-        msg = f"{model[EcalcYamlKeywords.name]}:\nUnknown model type {model_type}. {none_msg}\n{lines_reference}"
-
+        msg = f"{model.name}:\nUnknown model type {model_type}."
         logger.exception(msg + f": {e}")
         raise EcalcError(title="Invalid model", message=msg) from e
 
 
-def _sort_models(models):
+def _sort_models(models: Iterable[SortableModel]):
     return sorted(models, key=_model_parsing_order)

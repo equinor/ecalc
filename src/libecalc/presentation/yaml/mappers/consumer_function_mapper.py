@@ -1,9 +1,8 @@
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Protocol, Set, Union
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.utils.rates import RateType
 from libecalc.dto import (
@@ -15,7 +14,6 @@ from libecalc.dto import (
     CompressorWithTurbine,
     ConsumerFunction,
     DirectConsumerFunction,
-    EnergyModel,
     PumpConsumerFunction,
     PumpSystemConsumerFunction,
     PumpSystemOperationalSetting,
@@ -28,9 +26,21 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.utils import (
     resolve_reference,
 )
-from libecalc.presentation.yaml.validation_errors import DataValidationError
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
+    YamlElectricityEnergyUsageModel,
+    YamlEnergyUsageModelCompressor,
+    YamlEnergyUsageModelCompressorSystem,
+    YamlEnergyUsageModelCompressorTrainMultipleStreams,
+    YamlEnergyUsageModelDirect,
+    YamlEnergyUsageModelPump,
+    YamlEnergyUsageModelPumpSystem,
+    YamlEnergyUsageModelTabulated,
+    YamlFuelEnergyUsageModel,
+)
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
 def _handle_condition_list(conditions: List[str]):
@@ -38,25 +48,17 @@ def _handle_condition_list(conditions: List[str]):
     return " {*} ".join(conditions_with_parentheses)
 
 
-def _map_condition(energy_usage_model: dict) -> Optional[Union[str, int, float]]:
-    if EcalcYamlKeywords.condition in energy_usage_model and EcalcYamlKeywords.conditions in energy_usage_model:
-        raise DataValidationError(
-            data=energy_usage_model,
-            message=f"Either {EcalcYamlKeywords.condition} or {EcalcYamlKeywords.conditions}"
-            f" should be specified, not both.",
-        )
+class ConditionedModel(Protocol):
+    condition: YamlExpressionType
+    conditions: List[YamlExpressionType]
 
-    if EcalcYamlKeywords.condition in energy_usage_model:
-        condition_value = energy_usage_model.get(EcalcYamlKeywords.condition)
-        if isinstance(condition_value, list):
-            logger.warning(
-                f"Usage of list with '{EcalcYamlKeywords.condition}'"
-                f" keyword is deprecated. Use '{EcalcYamlKeywords.conditions}' instead."
-            )
-            return _handle_condition_list(condition_value)
+
+def _map_condition(energy_usage_model: ConditionedModel) -> Optional[Union[str, int, float]]:
+    if energy_usage_model.condition:
+        condition_value = energy_usage_model.condition
         return condition_value
-    elif EcalcYamlKeywords.conditions in energy_usage_model:
-        return _handle_condition_list(energy_usage_model.get(EcalcYamlKeywords.conditions, []))
+    elif energy_usage_model.conditions:
+        return _handle_condition_list(energy_usage_model.conditions)
     else:
         return None
 
@@ -92,19 +94,19 @@ def _get_compressor_train_energy_usage_type(
 
 
 def _compressor_system_mapper(
-    energy_usage_model: Dict, references: References = None
+    energy_usage_model: YamlEnergyUsageModelCompressorSystem, references: References = None
 ) -> CompressorSystemConsumerFunction:
     compressors = []
     compressor_power_usage_type = set()
-    for compressor in energy_usage_model.get(EcalcYamlKeywords.compressor_system_compressors, []):
+    for compressor in energy_usage_model.compressors:
         compressor_train = resolve_reference(
-            value=compressor.get(EcalcYamlKeywords.compressor_system_compressor_sampled_data),
+            value=compressor.compressor_model,
             references=references.models,
         )
 
         compressors.append(
             CompressorSystemCompressor(
-                name=compressor.get(EcalcYamlKeywords.name),
+                name=compressor.name,
                 compressor_train=compressor_train,
             )
         )
@@ -124,101 +126,84 @@ def _compressor_system_mapper(
     return CompressorSystemConsumerFunction(
         energy_usage_type=energy_usage_type,
         compressors=compressors,
-        power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
+        power_loss_factor=energy_usage_model.power_loss_factor,
         condition=_map_condition(energy_usage_model),
-        total_system_rate=energy_usage_model.get(EcalcYamlKeywords.consumer_system_total_system_rate),
+        total_system_rate=energy_usage_model.total_system_rate,
         operational_settings=[
             CompressorSystemOperationalSetting(
-                rates=operational_setting.get(EcalcYamlKeywords.consumer_system_operational_settings_rates),
-                rate_fractions=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_rate_fractions
-                ),
-                suction_pressure=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_suction_pressure
-                ),
-                suction_pressures=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_suction_pressures
-                ),
-                discharge_pressure=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_discharge_pressure
-                ),
-                discharge_pressures=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_discharge_pressures
-                ),
-                crossover=operational_setting.get(EcalcYamlKeywords.consumer_system_operational_settings_crossover),
+                rates=operational_setting.rates,
+                rate_fractions=operational_setting.rate_fractions,
+                suction_pressure=operational_setting.suction_pressure,
+                suction_pressures=operational_setting.suction_pressures,
+                discharge_pressure=operational_setting.discharge_pressure,
+                discharge_pressures=operational_setting.discharge_pressures,
+                crossover=operational_setting.crossover,
             )
-            for operational_setting in energy_usage_model.get(EcalcYamlKeywords.consumer_system_operational_settings)
+            for operational_setting in energy_usage_model.operational_settings
         ],
     )
 
 
-def _pump_system_mapper(energy_usage_model: Dict, references: References = None) -> PumpSystemConsumerFunction:
+def _pump_system_mapper(
+    energy_usage_model: YamlEnergyUsageModelPumpSystem, references: References = None
+) -> PumpSystemConsumerFunction:
     """Remove references from pump system and map yaml to DTO
     :param energy_usage_model: dict representing PumpSystem
     :return:
     """
     pumps = []
-    for pump in energy_usage_model.get(EcalcYamlKeywords.pump_system_pumps, []):
+    for pump in energy_usage_model.pumps:
         pump_model = resolve_reference(
-            pump.get(EcalcYamlKeywords.pump_system_pump_model),
+            pump.chart,
             references=references.models,
         )
-        pumps.append(PumpSystemPump(name=pump.get(EcalcYamlKeywords.name), pump_model=pump_model))
+        pumps.append(PumpSystemPump(name=pump.name, pump_model=pump_model))
 
     return PumpSystemConsumerFunction(
-        power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
+        power_loss_factor=energy_usage_model.power_loss_factor,
         condition=_map_condition(energy_usage_model),
         pumps=pumps,
-        fluid_density=energy_usage_model.get(EcalcYamlKeywords.pump_system_fluid_density),
-        total_system_rate=energy_usage_model.get(EcalcYamlKeywords.consumer_system_total_system_rate),
+        fluid_density=energy_usage_model.fluid_density,
+        total_system_rate=energy_usage_model.total_system_rate,
         operational_settings=[
             PumpSystemOperationalSetting(
-                fluid_densities=operational_setting.get(
-                    EcalcYamlKeywords.pump_system_operational_settings_fluid_densities
-                ),
-                rates=operational_setting.get(EcalcYamlKeywords.consumer_system_operational_settings_rates),
-                rate_fractions=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_rate_fractions
-                ),
-                suction_pressure=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_suction_pressure
-                ),
-                suction_pressures=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_suction_pressures
-                ),
-                discharge_pressure=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_discharge_pressure
-                ),
-                discharge_pressures=operational_setting.get(
-                    EcalcYamlKeywords.consumer_system_operational_settings_discharge_pressures
-                ),
-                crossover=operational_setting.get(EcalcYamlKeywords.consumer_system_operational_settings_crossover),
+                fluid_densities=operational_setting.fluid_densities,
+                rates=operational_setting.rates,
+                rate_fractions=operational_setting.rate_fractions,
+                suction_pressure=operational_setting.suction_pressure,
+                suction_pressures=operational_setting.suction_pressures,
+                discharge_pressure=operational_setting.discharge_pressure,
+                discharge_pressures=operational_setting.discharge_pressures,
+                crossover=operational_setting.crossover,
             )
-            for operational_setting in energy_usage_model.get(EcalcYamlKeywords.consumer_system_operational_settings)
+            for operational_setting in energy_usage_model.operational_settings
         ],
     )
 
 
-def _direct_mapper(energy_usage_model: Dict, references: References = None) -> DirectConsumerFunction:
+def _direct_mapper(
+    energy_usage_model: YamlEnergyUsageModelDirect, references: References = None
+) -> DirectConsumerFunction:
     """Change type to match DTOs, then pass the dict on to DTO to automatically create the correct DTO.
     :param energy_usage_model:
     :return:
     """
-    is_power_consumer = EcalcYamlKeywords.load in energy_usage_model
+    is_power_consumer = energy_usage_model.load is not None
     return DirectConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER if is_power_consumer else EnergyUsageType.FUEL,
-        load=energy_usage_model.get(EcalcYamlKeywords.load),
-        fuel_rate=energy_usage_model.get(EcalcYamlKeywords.fuel_rate),
+        load=energy_usage_model.load,
+        fuel_rate=energy_usage_model.fuel_rate,
         condition=_map_condition(energy_usage_model),
-        power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
-        consumption_rate_type=energy_usage_model.get(EcalcYamlKeywords.direct_consumer_consumption_rate_type)
-        or RateType.STREAM_DAY,
+        power_loss_factor=energy_usage_model.power_loss_factor,
+        consumption_rate_type=energy_usage_model.consumption_rate_type or RateType.STREAM_DAY,
     )
 
 
-def _tabulated_mapper(energy_usage_model: Dict, references: References = None) -> TabulatedConsumerFunction:
+def _tabulated_mapper(
+    energy_usage_model: YamlEnergyUsageModelTabulated, references: References = None
+) -> TabulatedConsumerFunction:
     energy_model = resolve_reference(
-        energy_usage_model.get(EcalcYamlKeywords.energy_model),
+        energy_usage_model.energy_function,
         references.models,
     )
     return TabulatedConsumerFunction(
@@ -226,48 +211,46 @@ def _tabulated_mapper(energy_usage_model: Dict, references: References = None) -
         if EnergyUsageType.POWER.value in energy_model.headers
         else EnergyUsageType.FUEL,
         condition=_map_condition(energy_usage_model),
-        power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
+        power_loss_factor=energy_usage_model.power_loss_factor,
         model=energy_model,
         variables=[
             Variables(
-                name=variable.get(EcalcYamlKeywords.name),
-                expression=variable.get(EcalcYamlKeywords.variable_expression),
+                name=variable.name,
+                expression=variable.expression,
             )
-            for variable in energy_usage_model.get(EcalcYamlKeywords.variables, [])
+            for variable in energy_usage_model.variables
         ],
     )
 
 
-def _pump_mapper(energy_usage_model: Dict, references: References = None) -> PumpConsumerFunction:
+def _pump_mapper(energy_usage_model: YamlEnergyUsageModelPump, references: References = None) -> PumpConsumerFunction:
     energy_model = resolve_reference(
-        energy_usage_model.get(EcalcYamlKeywords.energy_model),
+        energy_usage_model.energy_function,
         references=references.models,
     )
     return PumpConsumerFunction(
-        power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
+        power_loss_factor=energy_usage_model.power_loss_factor,
         condition=_map_condition(energy_usage_model),
-        rate_standard_m3_day=energy_usage_model.get(EcalcYamlKeywords.consumer_function_rate),
-        suction_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_suction_pressure),
-        discharge_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_discharge_pressure),
-        fluid_density=energy_usage_model.get(EcalcYamlKeywords.pump_function_fluid_density),
+        rate_standard_m3_day=energy_usage_model.rate,
+        suction_pressure=energy_usage_model.suction_pressure,
+        discharge_pressure=energy_usage_model.discharge_pressure,
+        fluid_density=energy_usage_model.fluid_density,
         model=energy_model,
     )
 
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
-    energy_usage_model: Dict, references: References = None
+    energy_usage_model: YamlEnergyUsageModelCompressorTrainMultipleStreams, references: References = None
 ) -> CompressorConsumerFunction:
     compressor_train_model = resolve_reference(
-        energy_usage_model.get(EcalcYamlKeywords.models_type_compressor_train_compressor_train_model),
+        energy_usage_model.compressor_train_model,
         references=references.models,
     )
-    rates_per_stream_config = energy_usage_model.get(EcalcYamlKeywords.models_type_compressor_train_rate_per_stream)
     rates_per_stream = [
-        Expression.setup_from_expression(value=rate_expression) for rate_expression in rates_per_stream_config
+        Expression.setup_from_expression(value=rate_expression)
+        for rate_expression in energy_usage_model.rate_per_stream
     ]
-    interstage_control_pressure_config = energy_usage_model.get(
-        EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure
-    )
+    interstage_control_pressure_config = energy_usage_model.interstage_control_pressure
     if isinstance(compressor_train_model, CompressorWithTurbine):
         require_interstage_pressure_variable_expression = (
             compressor_train_model.compressor_train.has_interstage_pressure
@@ -279,13 +262,13 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     if require_interstage_pressure_variable_expression and interstage_control_pressure_config is None:
         raise ValueError(
             f"Energy model"
-            f" {energy_usage_model.get(EcalcYamlKeywords.models_type_compressor_train_compressor_train_model)}"
+            f" {energy_usage_model.compressor_train_model}"
             f" requires {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure} to be defined"
         )
     elif not require_interstage_pressure_variable_expression and interstage_control_pressure_config is not None:
         raise ValueError(
             f"Energy model"
-            f" {energy_usage_model.get(EcalcYamlKeywords.models_type_compressor_train_compressor_train_model)}"
+            f" {energy_usage_model.compressor_train_model}"
             f" does not accept {EcalcYamlKeywords.models_type_compressor_train_interstage_control_pressure}"
             f" to be defined"
         )
@@ -297,23 +280,23 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
         )
     return CompressorConsumerFunction(
         energy_usage_type=_get_compressor_train_energy_usage_type(compressor_train_model),
-        power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
+        power_loss_factor=energy_usage_model.power_loss_factor,
         condition=_map_condition(energy_usage_model),
         rate_standard_m3_day=rates_per_stream,
         suction_pressure=Expression.setup_from_expression(
-            value=energy_usage_model.get(EcalcYamlKeywords.consumer_function_suction_pressure)
+            value=energy_usage_model.suction_pressure,
         ),
-        discharge_pressure=Expression.setup_from_expression(
-            value=energy_usage_model.get(EcalcYamlKeywords.consumer_function_discharge_pressure)
-        ),
+        discharge_pressure=Expression.setup_from_expression(value=energy_usage_model.discharge_pressure),
         model=compressor_train_model,
         interstage_control_pressure=interstage_control_pressure,
     )
 
 
-def _compressor_mapper(energy_usage_model: Dict, references: References = None) -> CompressorConsumerFunction:
+def _compressor_mapper(
+    energy_usage_model: YamlEnergyUsageModelCompressor, references: References = None
+) -> CompressorConsumerFunction:
     energy_model = resolve_reference(
-        energy_usage_model.get(EcalcYamlKeywords.energy_model),
+        energy_usage_model.energy_function,
         references=references.models,
     )
 
@@ -321,11 +304,11 @@ def _compressor_mapper(energy_usage_model: Dict, references: References = None) 
 
     return CompressorConsumerFunction(
         energy_usage_type=compressor_train_energy_usage_type,
-        power_loss_factor=energy_usage_model.get(EcalcYamlKeywords.power_loss_factor),
+        power_loss_factor=energy_usage_model.power_loss_factor,
         condition=_map_condition(energy_usage_model),
-        rate_standard_m3_day=energy_usage_model.get(EcalcYamlKeywords.consumer_function_rate),
-        suction_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_suction_pressure),
-        discharge_pressure=energy_usage_model.get(EcalcYamlKeywords.consumer_function_discharge_pressure),
+        rate_standard_m3_day=energy_usage_model.rate,
+        suction_pressure=energy_usage_model.suction_pressure,
+        discharge_pressure=energy_usage_model.discharge_pressure,
         model=energy_model,
     )
 
@@ -347,13 +330,22 @@ class ConsumerFunctionMapper:
         self._target_period = target_period
 
     @staticmethod
-    def create_model(model: Dict, references: References = None):
-        model_creator = _consumer_function_mapper.get(model[EcalcYamlKeywords.type])
+    def create_model(
+        model: Union[YamlFuelEnergyUsageModel, YamlElectricityEnergyUsageModel],
+        references: References = None,
+    ):
+        model_creator = _consumer_function_mapper.get(model.type)
         if model_creator is None:
-            raise ValueError(f"Unknown model type: {model.get(EcalcYamlKeywords.type)}")
+            raise ValueError(f"Unknown model type: {model.type}")
         return model_creator(model, references)
 
-    def from_yaml_to_dto(self, data: EnergyModel) -> Optional[Dict[datetime, ConsumerFunction]]:
+    def from_yaml_to_dto(
+        self,
+        data: Union[
+            YamlTemporalModel[YamlFuelEnergyUsageModel],
+            YamlTemporalModel[YamlElectricityEnergyUsageModel],
+        ],
+    ) -> Optional[Dict[datetime, ConsumerFunction]]:
         if data is None:
             return None
 

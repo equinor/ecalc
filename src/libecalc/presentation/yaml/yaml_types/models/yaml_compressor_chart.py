@@ -14,23 +14,23 @@ from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 
 class YamlCurve(YamlBase):
-    speed: float = None
+    speed: float = 1
     rate: List[float]
     head: List[float]
     efficiency: List[float]
 
 
-class YamlRateUnits(enum.Enum):
+class YamlRateUnits(str, enum.Enum):
     AM3_PER_HOUR = "AM3_PER_HOUR"
 
 
-class YamlHeadUnits(enum.Enum):
+class YamlHeadUnits(str, enum.Enum):
     M = "M"
     KJ_PER_KG = "KJ_PER_KG"
     JOULE_PER_KG = "JOULE_PER_KG"
 
 
-class YamlEfficiencyUnits(enum.Enum):
+class YamlEfficiencyUnits(str, enum.Enum):
     FRACTION = "FRACTION"
     PERCENTAGE = "PERCENTAGE"
 
@@ -53,6 +53,10 @@ class YamlUnits(YamlBase):
     )
 
 
+def UnitsField() -> Field:
+    return Field(default_factory=lambda: YamlUnits(), title="UNITS", description="Defines the units")
+
+
 class YamlSingleSpeedChart(YamlBase):
     name: ModelName = Field(
         ...,
@@ -66,7 +70,7 @@ class YamlSingleSpeedChart(YamlBase):
     )
     chart_type: Literal[YamlChartType.SINGLE_SPEED] = YamlChartType.SINGLE_SPEED
     curve: DataOrFile[YamlCurve] = Field(..., description="One single compressor chart curve.", title="CURVE")
-    units: YamlUnits = None
+    units: YamlUnits = UnitsField()
 
 
 class YamlVariableSpeedChart(YamlBase):
@@ -84,7 +88,7 @@ class YamlVariableSpeedChart(YamlBase):
     curves: DataOrFile[List[YamlCurve]] = Field(
         ..., description="Compressor chart curves, one per speed.", title="CURVES"
     )
-    units: YamlUnits = None
+    units: YamlUnits = UnitsField()
 
 
 class YamlGenericFromInputChart(YamlBase):
@@ -104,7 +108,7 @@ class YamlGenericFromInputChart(YamlBase):
         description="Polytropic efficiency for compressor chart",
         title="POLYTROPIC_EFFICIENCY",
     )
-    units: YamlUnits = None
+    units: YamlUnits = UnitsField()
 
 
 class YamlGenericFromDesignPointChart(YamlBase):

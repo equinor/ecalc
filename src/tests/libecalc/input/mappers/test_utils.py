@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import List
+
 from libecalc.common.units import Unit
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
 from libecalc.presentation.yaml.mappers.utils import (
@@ -7,38 +10,31 @@ from libecalc.presentation.yaml.mappers.utils import (
     convert_rate_to_am3_per_hour,
     convert_temperature_to_kelvin,
 )
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+
+
+@dataclass
+class ConditionedModel:
+    condition: str = None
+    conditions: List[str] = None
 
 
 class TestMapCondition:
     def test_valid_single(self):
         condition = "5 {+} SIM1;COL1"
-        assert condition == _map_condition({EcalcYamlKeywords.condition: condition})
-
-    def test_valid_single_list(self):
-        """Test that deprecated list in 'CONDITION' still works. Fixme: Remove when making breaking changes.
-        :return:
-        """
-        conditions = [
-            "5 {+} SIM1;COL1",
-            "6 {+} SIM1;COL2",
-        ]
-        assert f"({conditions[0]}) {{*}} ({conditions[1]})" == _map_condition({EcalcYamlKeywords.condition: conditions})
+        assert condition == _map_condition(ConditionedModel(condition=condition))
 
     def test_valid_multiple(self):
         conditions = [
             "5 {+} SIM1;COL1",
             "6 {+} SIM1;COL2",
         ]
-        assert f"({conditions[0]}) {{*}} ({conditions[1]})" == _map_condition(
-            {EcalcYamlKeywords.conditions: conditions}
-        )
+        assert f"({conditions[0]}) {{*}} ({conditions[1]})" == _map_condition(ConditionedModel(conditions=conditions))
 
     def test_valid_multiple_with_single_item(self):
         conditions = [
             "5 {+} SIM1;COL1",
         ]
-        assert f"({conditions[0]})" == _map_condition({EcalcYamlKeywords.conditions: conditions})
+        assert f"({conditions[0]})" == _map_condition(ConditionedModel(conditions=conditions))
 
 
 def test_convert_rate_to_am3_per_hour():

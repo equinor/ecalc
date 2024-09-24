@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 from pydantic import TypeAdapter, ValidationError
 
@@ -10,12 +10,12 @@ from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDT
 from libecalc.dto import CompressorSampled as CompressorTrainSampledDTO
 from libecalc.dto import EnergyModel, GeneratorSetSampled, PumpModel, TabulatedData
 from libecalc.presentation.yaml.mappers.utils import (
+    YAML_UNIT_MAPPING,
     chart_curves_as_resource_to_dto_format,
     convert_efficiency_to_fraction,
     convert_head_to_joule_per_kg,
     convert_rate_to_am3_per_hour,
     get_single_speed_chart_data,
-    get_units_from_chart_config,
 )
 from libecalc.presentation.yaml.resource import Resource, Resources
 from libecalc.presentation.yaml.validation_errors import (
@@ -25,6 +25,14 @@ from libecalc.presentation.yaml.validation_errors import (
     ValidationValueError,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
+    YamlCompressorTabularModel,
+    YamlFacilityAdjustment,
+    YamlFacilityModel,
+    YamlFacilityModelBase,
+    YamlPumpChartSingleSpeed,
+    YamlPumpChartVariableSpeed,
+)
 
 # Used here to make pydantic understand which object to instantiate.
 EnergyModelUnionType = Union[GeneratorSetSampled, TabulatedData, CompressorTrainSampledDTO]
@@ -40,12 +48,16 @@ energy_model_type_map = {
 PUMP_CHART_TYPES = [ChartType.SINGLE_SPEED, ChartType.VARIABLE_SPEED]
 
 
-def _get_adjustment_constant(data: Dict) -> float:
-    return data.get(EcalcYamlKeywords.facility_adjustment, {}).get(EcalcYamlKeywords.facility_adjustment_constant) or 0
+def _get_adjustment_constant(data: YamlFacilityModelBase) -> float:
+    if data.adjustment is None:
+        return YamlFacilityAdjustment().constant
+    return data.adjustment.constant
 
 
-def _get_adjustment_factor(data: Dict) -> float:
-    return data.get(EcalcYamlKeywords.facility_adjustment, {}).get(EcalcYamlKeywords.facility_adjustment_factor) or 1
+def _get_adjustment_factor(data: YamlFacilityModelBase) -> float:
+    if data.adjustment is None:
+        return YamlFacilityAdjustment().factor
+    return data.adjustment.factor
 
 
 def _get_column_or_none(resource: Resource, header: str) -> Optional[List[Union[float, int, str]]]:
@@ -56,7 +68,7 @@ def _get_column_or_none(resource: Resource, header: str) -> Optional[List[Union[
 
 
 def _create_compressor_train_sampled_dto_model_data(
-    resource: Resource, facility_data, **kwargs
+    resource: Resource, facility_data: YamlCompressorTabularModel, **kwargs
 ) -> CompressorTrainSampledDTO:
     # kwargs just to allow this to be used with _default_facility_to_dto_model_data which needs type until we have
     # replaced _default_facility_to_dto_model_data and have separate functions for all types
@@ -94,9 +106,10 @@ def _create_compressor_train_sampled_dto_model_data(
     )
 
 
-def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_data, **kwargs) -> PumpModel:
-    units = get_units_from_chart_config(chart_config=facility_data)
-    resource_name = facility_data.get(EcalcYamlKeywords.file)
+def _create_pump_model_single_speed_dto_model_data(
+    resource: Resource, facility_data: YamlPumpChartSingleSpeed, **kwargs
+) -> PumpModel:
+    resource_name = facility_data.file
 
     chart_data = get_single_speed_chart_data(resource=resource, resource_name=resource_name)
 
@@ -104,17 +117,17 @@ def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_
         speed_rpm=chart_data.speed,
         efficiency_fraction=convert_efficiency_to_fraction(
             efficiency_values=chart_data.efficiency,
-            input_unit=units[EcalcYamlKeywords.consumer_chart_efficiency],
+            input_unit=YAML_UNIT_MAPPING[facility_data.units.efficiency],
         ),
         rate_actual_m3_hour=convert_rate_to_am3_per_hour(
-            rate_values=chart_data.rate, input_unit=units[EcalcYamlKeywords.consumer_chart_rate]
+            rate_values=chart_data.rate, input_unit=YAML_UNIT_MAPPING[facility_data.units.rate]
         ),
         polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
-            head_values=chart_data.head, input_unit=units[EcalcYamlKeywords.consumer_chart_head]
+            head_values=chart_data.head, input_unit=YAML_UNIT_MAPPING[facility_data.units.head]
         ),
     )
 
-    head_margin = facility_data.get(EcalcYamlKeywords.pump_system_head_margin, 0.0)
+    head_margin = facility_data.head_margin
 
     return PumpModel(
         chart=chart,
@@ -124,30 +137,32 @@ def _create_pump_model_single_speed_dto_model_data(resource: Resource, facility_
     )
 
 
-def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facility_data, **kwargs) -> PumpModel:
-    units = get_units_from_chart_config(chart_config=facility_data)
-
-    resource_name = facility_data.get(EcalcYamlKeywords.file)
+def _create_pump_chart_variable_speed_dto_model_data(
+    resource: Resource, facility_data: YamlPumpChartVariableSpeed, **kwargs
+) -> PumpModel:
+    resource_name = facility_data.file
     curves_data = chart_curves_as_resource_to_dto_format(resource=resource, resource_name=resource_name)
 
     curves: List[ChartCurveDTO] = [
         ChartCurveDTO(
             speed_rpm=curve["speed"],
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
-                rate_values=curve["rate"], input_unit=units[EcalcYamlKeywords.consumer_chart_rate]
+                rate_values=curve["rate"],
+                input_unit=YAML_UNIT_MAPPING[facility_data.units.rate],
             ),
             polytropic_head_joule_per_kg=convert_head_to_joule_per_kg(
-                head_values=curve["head"], input_unit=units[EcalcYamlKeywords.consumer_chart_head]
+                head_values=curve["head"],
+                input_unit=YAML_UNIT_MAPPING[facility_data.units.head],
             ),
             efficiency_fraction=convert_efficiency_to_fraction(
                 efficiency_values=curve["efficiency"],
-                input_unit=units[EcalcYamlKeywords.consumer_chart_efficiency],
+                input_unit=YAML_UNIT_MAPPING[facility_data.units.efficiency],
             ),
         )
         for curve in curves_data
     ]
 
-    head_margin = facility_data.get(EcalcYamlKeywords.pump_system_head_margin, 0.0)
+    head_margin = facility_data.head_margin
 
     return PumpModel(
         chart=VariableSpeedChartDTO(curves=curves),
@@ -158,7 +173,7 @@ def _create_pump_chart_variable_speed_dto_model_data(resource: Resource, facilit
 
 
 def _default_facility_to_dto_model_data(
-    resource: Resource, typ: EnergyModelType, facility_data: Dict
+    resource: Resource, typ: EnergyModelType, facility_data: YamlFacilityModelBase
 ) -> EnergyModelUnionType:
     resource_headers = resource.get_headers()
     resource_data = [resource.get_column(header) for header in resource_headers]
@@ -185,28 +200,18 @@ class FacilityInputMapper:
     def __init__(self, resources: Resources):
         self.__resources = resources
 
-    def from_yaml_to_dto(self, data: Dict) -> EnergyModel:
-        resource_name = data.get(EcalcYamlKeywords.file)
-        resource = self.__resources.get(data.get(EcalcYamlKeywords.file))
+    def from_yaml_to_dto(self, data: YamlFacilityModel) -> EnergyModel:
+        resource = self.__resources.get(data.file)
 
         if resource is None:
-            # This should have been validated elsewhere.
-            if resource_name is None:
-                raise DataValidationError(
-                    data,
-                    message=f"Missing file in '{data.get(EcalcYamlKeywords.name)}'",
-                    error_key=EcalcYamlKeywords.file,
-                    dump_flow_style=DumpFlowStyle.BLOCK,
-                )
-
             raise DataValidationError(
-                data,
-                f"Unable to find resource '{data.get(EcalcYamlKeywords.file)}'",
+                data.model_dump(),
+                f"Unable to find resource '{data.file}'",
                 error_key=EcalcYamlKeywords.file,
                 dump_flow_style=DumpFlowStyle.BLOCK,
             )
 
-        typ = energy_model_type_map.get(data.get(EcalcYamlKeywords.type))
+        typ = energy_model_type_map.get(data.type)
 
         try:
             return facility_input_to_dto_map.get(typ, _default_facility_to_dto_model_data)(
@@ -215,19 +220,19 @@ class FacilityInputMapper:
                 facility_data=data,
             )
         except ValidationError as ve:
-            raise DtoValidationError(data=data, validation_error=ve) from ve
+            raise DtoValidationError(data=data.model_dump(), validation_error=ve) from ve
         except ValidationValueError as vve:
             raise DataValidationError(
-                data=data,
+                data=data.model_dump(),
                 message=str(vve),
                 error_key=vve.key,
                 dump_flow_style=DumpFlowStyle.BLOCK,
             ) from vve
         except InvalidResourceException as e:
-            message = f"Invalid resource '{resource_name}'. Reason: {str(e)}"
+            message = f"Invalid resource '{data.file}'. Reason: {str(e)}"
 
             raise DataValidationError(
-                data=data,
+                data=data.model_dump(),
                 message=message,
                 error_key=EcalcYamlKeywords.file,
                 dump_flow_style=DumpFlowStyle.BLOCK,

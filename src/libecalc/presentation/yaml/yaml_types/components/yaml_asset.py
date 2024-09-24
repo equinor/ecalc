@@ -10,7 +10,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlFacilityModel,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
-from libecalc.presentation.yaml.yaml_types.models import YamlModel
+from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -39,7 +39,7 @@ class YamlAsset(YamlBase):
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
     )
-    models: List[YamlModel] = Field(
+    models: List[YamlConsumerModel] = Field(
         None,
         title="MODELS",
         description="Defines input files which characterize various facility elements."

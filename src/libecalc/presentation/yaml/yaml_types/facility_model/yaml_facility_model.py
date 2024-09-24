@@ -91,7 +91,7 @@ class YamlPumpChartUnits(YamlBase):
 
 class YamlPumpChartBase(YamlFacilityModelBase):
     head_margin: float = Field(
-        None,
+        0.0,
         title="HEAD_MARGIN",
         description="Adjustment of the head margin for power calibration.\n\n$ECALC_DOCS_KEYWORDS_URL/HEAD_MARGIN",
     )
