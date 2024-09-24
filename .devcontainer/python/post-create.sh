@@ -7,4 +7,7 @@ set -e
 echo "Installing Pre-commit hooks..."
 pre-commit install
 
+# Install poetry environment
+poetry install
+
 echo "Post-create script completed successfully."

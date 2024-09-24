@@ -56,5 +56,5 @@ WORKDIR /workspaces/ecalc
 # Copy essential file (devcontainer setup takes care of other files)
 COPY pyproject.toml poetry.lock ./
 
-# Install poetry environment
-RUN poetry install --no-interaction --no-ansi
+# Install poetry environment without root package
+RUN poetry install --no-interaction --no-ansi --no-root
