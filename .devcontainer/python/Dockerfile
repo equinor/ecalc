@@ -34,8 +34,12 @@ USER $USER
 ENV HOME="/home/$USER"
 ENV PATH="${HOME}/.local/bin:$PATH"
 
+# Set poetry related env vars
 # Set poetry virtualenv path in writable dir outsde mounted workspace
 ENV POETRY_VIRTUALENVS_PATH="$HOME/.venv"
+ENV POETRY_VIRTUALENVS_CREATE=true
+ENV POETRY_VIRTUALENVS_IN_PROJECT=false
+ENV PIP_DEFAULT_TIMEOUT=100
 
 # Python and poetry installation
 RUN echo $(which python) && echo $(which python3)  \
@@ -44,3 +48,12 @@ RUN echo $(which python) && echo $(which python3)  \
     && pip install pre-commit \
     && poetry --version \
     && pre-commit --version
+
+# Set workdir to ecalc project
+WORKDIR /workspaces/ecalc
+
+# Copy essential file (devcontainer setup takes care of other files)
+COPY pyproject.toml poetry.lock ./
+
+# Install poetry environment
+RUN poetry install --no-interaction --no-ansi

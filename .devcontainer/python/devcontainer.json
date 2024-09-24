@@ -1,50 +1,43 @@
 {
-    "name": "eCalc Python Dev Environment",
-    "build": {
-      "dockerfile": "Dockerfile",
-      "context": "../..",
-      "args": {
-        "VARIANT": "3.11-bookworm",
-        "POETRY_VERSION": "1.8.3",
+  "name": "eCalc Python Dev Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "../..",
+    "args": {
+      "VARIANT": "3.11-bookworm",
+      "POETRY_VERSION": "1.8.3",
     }
-    },
-    "containerEnv": {
-      "POETRY_VIRTUALENVS_CREATE": "true",
-      "POETRY_VIRTUALENVS_IN_PROJECT": "false",
-      "PIP_DEFAULT_TIMEOUT": "100",
-    },
-    "customizations": {
-      "vscode": {
-        "settings": {
-          "python.defaultInterpreterPath": "${containerEnv:POETRY_VIRTUALENVS_PATH}/bin/python",
-          "python.testing.pytestArgs": [],
-          "python.testing.cwd": "${workspaceFolder}/src/tests",
-          "python.testing.unittestEnabled": false,
-          "python.testing.pytestEnabled": true,
-          "python.testing.autoTestDiscoverOnSaveEnabled": true,
-          "ruff.enabled": true,
-          "terminal.integrated.defaultProfile.linux": "bash",
-          "[python]": {
-            "editor.defaultFormatter": "charliermarsh.ruff"
-      }
-        },
-        "extensions": [
-          "ms-python.python",
-          "ms-python.vscode-pylance",
-          "github.copilot",
-          "eamodio.gitlens",
-          "charliermarsh.ruff",
-          "shardulm94.trailing-spaces",
-        ]
-      }
-    },
-    "remoteUser": "vscode",
-    "features": {
-      "github-cli": "latest"
-    },
-    "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && bash ./.devcontainer/python/post-create.sh",
-  //   "mounts": [
-  //   // TODO: Reuse poetry cache between builds
-  //   "source=,target=/home/vscode/.cache/pypoetry,type=bind,consistency=cached"
-  // ]
-  }
+  },
+  "containerEnv": {
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "${containerEnv:POETRY_VIRTUALENVS_PATH}/bin/python",
+        "python.testing.pytestArgs": [],
+        "python.testing.cwd": "${workspaceFolder}/src/tests",
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestEnabled": true,
+        "python.testing.autoTestDiscoverOnSaveEnabled": true,
+        "ruff.enabled": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "github.copilot",
+        "eamodio.gitlens",
+        "charliermarsh.ruff",
+        "shardulm94.trailing-spaces",
+      ]
+    }
+  },
+  "remoteUser": "vscode",
+  "features": {
+    "github-cli": "latest"
+  },
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && bash ./.devcontainer/python/post-create.sh"
+}
