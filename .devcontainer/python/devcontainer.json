@@ -1,3 +1,4 @@
+// Github auth: F.ex. use HTTPS auth for github and a git credential manager in your OS to get your git auth working in the container.
 {
   "name": "eCalc Python Dev Environment",
   "build": {
@@ -13,7 +14,7 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "python.defaultInterpreterPath": "${containerEnv:POETRY_VIRTUALENVS_PATH}/bin/python",
+        // setting python.defaultInterpreterPath is not working as intended, set python interpreter manually.
         "python.testing.pytestArgs": [],
         "python.testing.cwd": "${workspaceFolder}/src/tests",
         "python.testing.unittestEnabled": false,
@@ -32,6 +33,7 @@
         "eamodio.gitlens",
         "charliermarsh.ruff",
         "shardulm94.trailing-spaces",
+        "esbenp.prettier-vscode"
       ]
     }
   },
