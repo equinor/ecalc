@@ -175,4 +175,4 @@ quiet = false
 
 [tool.codespell]
 skip = '*.ts,*.lock,*package-lock.json'
-ignore-words-list = "installationa, mke" # 'InstallationA' and 'Missing key error'
+ignore-words-list = "installationa, mke" # 'InstallationA' and 'Missing key error', ellipsis

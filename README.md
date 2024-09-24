@@ -84,6 +84,15 @@ ecalc selftest
 
 Please refer to [Docker Docs](https://docs.docker.com/) for details on how to use Docker.
 
+**Alternative using devcontainer**:
+
+In vscode:
+- Install extension "Dev Containers" and open command palette (ctrl+p or cmd+p or F1) and click "reopen in container" then click the alternative "eCalc Python Dev Environment".
+
+In github codespaces:
+- In the repo click the "<> Code" button -> codespaces -> in the codespaces section click the ellipsis menu (three dots) -> click "New with options.." -> under "Dev container configuration" click and choose "eCalc Python Dev Environment" -> then click button "Create Codespace".
+
+
 ![ecalc-selftest](docs/gifs/selftest.gif)
 
 ### Create and run your first model
