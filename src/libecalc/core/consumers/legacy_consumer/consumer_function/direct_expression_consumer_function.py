@@ -6,7 +6,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import Rates, RateType
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import VariablesMapService
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -66,16 +66,16 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        variables_map: VariablesMapService,
         regularity: List[float],
     ) -> ConsumerFunctionResult:
         energy_usage_expression_evaluated = self._expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+            variables=variables_map.get_variables(), fill_length=len(variables_map.get_time_vector())
         )
 
         # Do conditioning first - set rates to zero if conditions are not met
         condition = get_condition_from_expression(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             condition_expression=self._condition_expression,
         )
 
@@ -97,12 +97,12 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
         )
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
         consumer_function_result = ConsumerFunctionResult(
-            time_vector=np.array(variables_map.time_vector),
+            time_vector=np.array(variables_map.get_time_vector()),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             condition=condition,

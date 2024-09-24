@@ -11,7 +11,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import VariablesMap, VariablesMapService
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
 
@@ -30,7 +30,7 @@ class Genset:
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        variables_map: VariablesMapService,
         power_requirement: NDArray[np.float64],
     ) -> GeneratorSetResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid timesteps. this will
@@ -38,12 +38,14 @@ class Genset:
         """
         logger.debug(f"Evaluating Genset: {self.name}")
 
-        if not len(power_requirement) == len(variables_map.time_vector):
+        if not len(power_requirement) == len(variables_map.get_time_vector()):
             raise ValueError("length of power_requirement does not match the time vector.")
 
         # Compute fuel consumption from power rate.
-        fuel_rate = self.evaluate_fuel_rate(power_requirement, variables_map=variables_map)
-        power_capacity_margin = self.evaluate_power_capacity_margin(power_requirement, variables_map=variables_map)
+        fuel_rate = self.evaluate_fuel_rate(power_requirement, variables_map=variables_map.get_variables_map())
+        power_capacity_margin = self.evaluate_power_capacity_margin(
+            power_requirement, variables_map=variables_map.get_variables_map()
+        )
 
         # Convert fuel_rate to calendar day rate
         # fuel_rate = Rates.to_calendar_day(stream_day_rates=fuel_rate, regularity=regularity)
@@ -60,24 +62,24 @@ class Genset:
 
         return GeneratorSetResult(
             id=self.id,
-            timesteps=variables_map.time_vector,
+            timesteps=variables_map.get_time_vector(),
             is_valid=TimeSeriesBoolean(
-                timesteps=variables_map.time_vector,
+                timesteps=variables_map.get_time_vector(),
                 values=array_to_list(valid_timesteps),
                 unit=Unit.NONE,
             ),
             power_capacity_margin=TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=variables_map.get_time_vector(),
                 values=array_to_list(power_capacity_margin),
                 unit=Unit.MEGA_WATT,
             ),
             power=TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=variables_map.get_time_vector(),
                 values=array_to_list(power_requirement),
                 unit=Unit.MEGA_WATT,
             ),
             energy_usage=TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=variables_map.get_time_vector(),
                 values=array_to_list(fuel_rate),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             ),

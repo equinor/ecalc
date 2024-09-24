@@ -22,7 +22,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import VariablesMap, VariablesMapService
 from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
@@ -221,7 +221,7 @@ class Consumer(BaseConsumer):
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        variables_map: VariablesMapService,
     ) -> EcalcModelResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid timesteps. this will
         probably be changed soon.
@@ -229,12 +229,12 @@ class Consumer(BaseConsumer):
         logger.debug(f"Evaluating consumer: {self.name}")
         regularity = TemporalExpression.evaluate(
             temporal_expression=self.regularity,
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
         )
 
         # NOTE! This function may not handle regularity 0
         consumer_function_results = self.evaluate_consumer_temporal_model(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             regularity=regularity,
         )
 
@@ -245,13 +245,13 @@ class Consumer(BaseConsumer):
         energy_usage = self.reindex_time_vector(
             values=aggregated_consumer_function_result.energy_usage,
             time_vector=aggregated_consumer_function_result.time_vector,
-            new_time_vector=variables_map.time_vector,
+            new_time_vector=variables_map.get_time_vector(),
         )
 
         valid_timesteps = self.reindex_time_vector(
             values=aggregated_consumer_function_result.is_valid,
             time_vector=aggregated_consumer_function_result.time_vector,
-            new_time_vector=variables_map.time_vector,
+            new_time_vector=variables_map.get_time_vector(),
             fillna=True,  # Time-step is valid if not calculated.
         ).astype(bool)
 
@@ -268,22 +268,22 @@ class Consumer(BaseConsumer):
                 power = self.reindex_time_vector(
                     values=aggregated_consumer_function_result.power,
                     time_vector=aggregated_consumer_function_result.time_vector,
-                    new_time_vector=variables_map.time_vector,
+                    new_time_vector=variables_map.get_time_vector(),
                 )
                 power_time_series = TimeSeriesStreamDayRate(
-                    timesteps=variables_map.time_vector,
+                    timesteps=variables_map.get_time_vector(),
                     values=array_to_list(power),
                     unit=Unit.MEGA_WATT,
                 )
             energy_usage_time_series = TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=variables_map.get_time_vector(),
                 values=array_to_list(energy_usage),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             )
 
         elif self.consumes == ConsumptionType.ELECTRICITY:
             energy_usage_time_series = TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=variables_map.get_time_vector(),
                 values=array_to_list(energy_usage),
                 unit=Unit.MEGA_WATT,
             )
@@ -293,13 +293,13 @@ class Consumer(BaseConsumer):
             assert_never(self.consumes)
 
         is_valid = TimeSeriesBoolean(
-            timesteps=variables_map.time_vector,
+            timesteps=variables_map.get_time_vector(),
             values=array_to_list(valid_timesteps),
             unit=Unit.NONE,
         )
 
         consumer_result = self.get_consumer_result(
-            timesteps=variables_map.time_vector,
+            timesteps=variables_map.get_time_vector(),
             energy_usage=energy_usage_time_series,
             power_usage=power_time_series,
             is_valid=is_valid,

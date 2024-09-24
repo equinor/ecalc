@@ -3,7 +3,7 @@ from typing import List, Union
 import numpy as np
 
 from libecalc.common.utils.rates import Rates
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import VariablesMapService
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -55,7 +55,7 @@ class PumpConsumerFunction(ConsumerFunction):
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        variables_map: VariablesMapService,
         regularity: List[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the pump consumer function
@@ -68,11 +68,11 @@ class PumpConsumerFunction(ConsumerFunction):
             Pump consumer function result
         """
         condition = get_condition_from_expression(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             condition_expression=self._condition_expression,
         )
         calendar_day_rate = self._rate_expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+            variables=variables_map.get_variables(), fill_length=len(variables_map.get_time_vector())
         )
         # if regularity is 0 for a calendar day rate, set stream day rate to 0 for that step
         stream_day_rate = apply_condition(
@@ -83,13 +83,13 @@ class PumpConsumerFunction(ConsumerFunction):
             condition=condition,
         )
         suction_pressure = self._suction_pressure_expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+            variables=variables_map.get_variables(), fill_length=len(variables_map.get_time_vector())
         )
         discharge_pressure = self._discharge_pressure_expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+            variables=variables_map.get_variables(), fill_length=len(variables_map.get_time_vector())
         )
         fluid_density = self._fluid_density_expression.evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+            variables=variables_map.get_variables(), fill_length=len(variables_map.get_time_vector())
         )
 
         # Do not input regularity to pump function. Handled outside
@@ -101,12 +101,12 @@ class PumpConsumerFunction(ConsumerFunction):
         )
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
         pump_consumer_function_result = ConsumerFunctionResult(
-            time_vector=np.array(variables_map.time_vector),
+            time_vector=np.array(variables_map.get_time_vector()),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             energy_usage_before_power_loss_factor=np.asarray(energy_function_result.energy_usage),

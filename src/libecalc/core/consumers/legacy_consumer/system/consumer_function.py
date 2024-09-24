@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import VariablesMap, VariablesMapService
 from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     apply_condition,
@@ -84,7 +84,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        variables_map: VariablesMapService,
         regularity: List[float],
     ) -> ConsumerSystemConsumerFunctionResult:
         """Steps in evaluating a consumer system:
@@ -103,7 +103,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         12. Return a complete ConsumerSystemConsumerFunctionResult with data from the above steps.
         """
         operational_settings = self.get_operational_settings_from_expressions(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             regularity=regularity,
         )
 
@@ -112,7 +112,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         )
 
         condition = get_condition_from_expression(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             condition_expression=self.condition_expression,
         )
 
@@ -151,12 +151,12 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         power_usage = np.sum([np.asarray(result.power) for result in consumer_results], axis=0)
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables_map=variables_map,
+            variables_map=variables_map.get_variables_map(),
             power_loss_factor_expression=self.power_loss_factor_expression,
         )
 
         return ConsumerSystemConsumerFunctionResult(
-            time_vector=np.array(variables_map.time_vector),
+            time_vector=np.array(variables_map.get_time_vector()),
             is_valid=np.multiply.reduce([x.consumer_model_result.is_valid for x in consumer_results]).astype(bool),
             operational_setting_used=operational_setting_number_used_per_timestep,
             operational_settings=[operational_settings],
