@@ -84,6 +84,8 @@ ecalc selftest
 
 Please refer to [Docker Docs](https://docs.docker.com/) for details on how to use Docker.
 
+![ecalc-selftest](docs/gifs/selftest.gif)
+
 ### Create and run your first model
 
 Please refer to the https://equinor.github.io/ecalc/docs/about/modelling/setup/ on how to set up your own model
