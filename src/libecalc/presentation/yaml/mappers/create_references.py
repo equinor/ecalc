@@ -1,12 +1,9 @@
-from typing import Dict, Iterable, List, Protocol, Union
+from typing import Dict, Iterable, Protocol
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.dto import EnergyModel
-from libecalc.presentation.yaml.energy_model_validation import (
-    validate_energy_usage_models,
-)
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper
@@ -14,9 +11,6 @@ from libecalc.presentation.yaml.resource import Resources
 from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
-from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
-from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 
 
@@ -65,46 +59,10 @@ def create_references(configuration: YamlValidator, resources: Resources) -> Ref
 
     fuel_types = {fuel_data.name: FuelMapper.from_yaml_to_dto(fuel_data) for fuel_data in configuration.fuel_types}
 
-    # TODO: Move this validation to installation
-    consumers_installations = []
-    for installation in configuration.installations:
-        if installation.generator_sets is not None:
-            consumers_installations.append(
-                [consumer for generator_set in installation.generator_sets for consumer in generator_set.consumers]
-            )
-
-        if installation.fuel_consumers is not None:
-            consumers_installations.append(installation.fuel_consumers)
-
-    check_multiple_energy_models(consumers_installations)
-    # TODO: End move to installation
-
     return References(
         models=models,
         fuel_types=fuel_types,
     )
-
-
-def check_multiple_energy_models(
-    consumers_installations: List[List[Union[YamlFuelConsumer, YamlConsumerSystem, YamlElectricityConsumer]]],
-):
-    """
-    Check for different energy model types within one consumer.
-    Raises value error if different energy model types found within one consumer.
-
-    Args:
-        consumers_installations (List[List[Dict]]): List of consumers per installation
-
-    Returns:
-        None
-    """
-    for consumers in consumers_installations:
-        for consumer in consumers:
-            # Check if key exists: ENERGY_USAGE_MODEL.
-            # Consumer system v2 has different structure/naming: test fails when looking for key ENERGY_USAGE_MODEL
-            if isinstance(consumer, (YamlFuelConsumer, YamlElectricityConsumer)):
-                model = consumer.energy_usage_model
-                validate_energy_usage_models(model, consumer.name)
 
 
 def create_model_references(
