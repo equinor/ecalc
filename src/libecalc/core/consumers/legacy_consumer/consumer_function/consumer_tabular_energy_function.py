@@ -4,7 +4,7 @@ import numpy as np
 
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.utils.rates import Rates
-from libecalc.common.variables import VariablesMapService
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -43,16 +43,14 @@ class TabulatedConsumerFunction(ConsumerFunction):
 
     def evaluate(
         self,
-        variables_map: VariablesMapService,
+        expression_evaluator: ExpressionEvaluator,
         regularity: List[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the ConsumerFunction to get energy usage [MW] or [Sm3/day] (electricity or fuel)."""
         variables_for_calculation = {
             variable.name: Variable(
                 name=variable.name,
-                values=variable.expression.evaluate(
-                    variables=variables_map.get_variables(), fill_length=len(variables_map.get_time_vector())
-                ),
+                values=expression_evaluator.evaluate(expression=variable.expression),
             )
             for variable in self._variables_expressions
         }
@@ -72,8 +70,7 @@ class TabulatedConsumerFunction(ConsumerFunction):
 
         condition = get_condition_from_expression(
             condition_expression=self._condition_expression,
-            variables=variables_map.get_variables(),
-            time_vector=variables_map.get_time_vector(),
+            expression_evaluator=expression_evaluator,
         )
         # for tabular, is_valid is based on energy_usage being NaN. This will also (correctly) change potential
         # invalid points to valid where the condition sets energy_usage to zero
@@ -95,13 +92,12 @@ class TabulatedConsumerFunction(ConsumerFunction):
         )
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables=variables_map.get_variables(),
-            time_vector=variables_map.get_time_vector(),
+            expression_evaluator=expression_evaluator,
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
         return ConsumerFunctionResult(
-            time_vector=np.array(variables_map.get_time_vector()),
+            time_vector=np.array(expression_evaluator.get_time_vector()),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             condition=condition,

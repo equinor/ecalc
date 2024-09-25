@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import abc
 from datetime import datetime, timedelta
-from typing import Dict, List, Protocol
+from typing import Dict, List, Protocol, Union
 
 from pydantic import BaseModel, ConfigDict, Field
-from typing_extensions import Annotated
+from typing_extensions import Annotated, assert_never
 
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
+from libecalc.expression.expression import Expression
 
 
 class VariablesMap(BaseModel):
@@ -79,8 +81,32 @@ class VariablesMap(BaseModel):
     def get_variables_map(self):
         return self
 
+    def evaluate(self, expression: Union[Expression, Dict[datetime, Expression]]) -> List[float]:
+        if isinstance(expression, Expression):
+            return expression.evaluate(variables=self.get_variables(), fill_length=len(self.get_time_vector())).tolist()
+        elif isinstance(expression, dict):
+            return self._evaluate_temporal(temporal_expression=TemporalModel[expression])
+        elif isinstance(expression, TemporalModel):
+            return self._evaluate_temporal(temporal_expression=expression)
 
-class VariablesMapService(Protocol):
+        assert_never(expression)
+
+    def _evaluate_temporal(
+        self,
+        temporal_expression: TemporalModel[Expression],
+    ) -> List[float]:
+        result = self.zeros()
+
+        for period, expression in temporal_expression.items():
+            if Period.intersects(period, self.get_period()):
+                start_index, end_index = period.get_timestep_indices(self.get_time_vector())
+                variables_map_for_this_period = self.get_subset(start_index=start_index, end_index=end_index)
+                evaluated_expression = variables_map_for_this_period.evaluate(expression)
+                result[start_index:end_index] = evaluated_expression
+        return result
+
+
+class ExpressionEvaluator(Protocol):
     @abc.abstractmethod
     def get_time_vector(self) -> [List[datetime]]: ...
 
@@ -91,13 +117,15 @@ class VariablesMapService(Protocol):
     def get_period(self) -> Period: ...
 
     @abc.abstractmethod
-    def get_subset(self, start_index: int, end_index: int) -> VariablesMapService: ...
+    def get_subset(self, start_index: int, end_index: int) -> ExpressionEvaluator: ...
 
     @abc.abstractmethod
-    def get_subset_from_period(self) -> VariablesMapService: ...
+    def get_subset_from_period(self) -> ExpressionEvaluator: ...
 
     @abc.abstractmethod
-    def get_subset_for_timestep(self) -> VariablesMapService: ...
+    def get_subset_for_timestep(self) -> ExpressionEvaluator: ...
 
     @abc.abstractmethod
-    def get_variables_map(self) -> VariablesMapService: ...
+    def get_variables_map(self) -> ExpressionEvaluator: ...
+
+    def evaluate(self, expression: Union[Expression, TemporalModel, Dict[datetime, Expression]]) -> List[float]: ...

@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Generic, Iterator, List, Tuple, TypeVar
+from typing import Dict, Generic, Iterator, Tuple, TypeVar
 
 from libecalc.common.time_utils import Period
-from libecalc.common.variables import VariablesMap
-from libecalc.expression import Expression
 
 ModelType = TypeVar("ModelType")
 
@@ -37,22 +35,3 @@ class TemporalModel(Generic[ModelType]):
                 return model.model
 
         raise ValueError(f"Model for timestep '{timestep}' not found in Temporal model")
-
-
-class TemporalExpression:
-    @staticmethod
-    def evaluate(
-        temporal_expression: TemporalModel[Expression],
-        variables_map: VariablesMap,
-    ) -> List[float]:
-        result = variables_map.zeros()
-        for period, expression in temporal_expression.items():
-            if Period.intersects(period, variables_map.period):
-                start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
-                variables_map_for_this_period = variables_map.get_subset(start_index=start_index, end_index=end_index)
-                evaluated_expression = expression.evaluate(
-                    variables=variables_map_for_this_period.variables,
-                    fill_length=len(variables_map_for_this_period.time_vector),
-                )
-                result[start_index:end_index] = evaluated_expression
-        return result

@@ -1,30 +1,28 @@
 from copy import deepcopy
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.expression import Expression
 
 
 def get_condition_from_expression(
-    time_vector: [List[datetime]],
-    variables: Dict[str, List[float]],
+    expression_evaluator: ExpressionEvaluator,
     condition_expression: Expression,
 ) -> Optional[NDArray[np.int_]]:
     """Evaluate condition expression and compute resulting condition vector.
 
     Args:
-        time_vector: The actual time vector
-        variables: All variables
+        expression_evaluator (ExpressionEvaluator): Service with all info to evaluate expressions.
         condition_expression: The condition expression
 
     Returns:
         Assembled condition vector
     """
     if condition_expression is not None:
-        condition = condition_expression.evaluate(variables=variables, fill_length=len(time_vector))
+        condition = expression_evaluator.evaluate(expression=condition_expression)
         condition = (condition != 0).astype(int)
     else:
         return None
@@ -51,22 +49,20 @@ def apply_condition(input_array: NDArray[np.float64], condition: Optional[NDArra
 
 
 def get_power_loss_factor_from_expression(
-    time_vector: [List[datetime]],
-    variables: Dict[str, List[float]],
+    expression_evaluator: ExpressionEvaluator,
     power_loss_factor_expression: Expression,
 ) -> Optional[NDArray[np.float64]]:
     """Evaluate power loss factor expression and compute resulting power loss factor vector.
 
     Args:
-        time_vector: The actual time vector
-        variables: All variables
+        expression_evaluator (ExpressionEvaluator): Service with all info to evaluate expressions.
         power_loss_factor_expression: The condition expression
 
     Returns:
         Assembled power loss factor vector
     """
     if power_loss_factor_expression is not None:
-        power_loss_factor = power_loss_factor_expression.evaluate(variables=variables, fill_length=len(time_vector))
+        power_loss_factor = expression_evaluator.evaluate(expression=power_loss_factor_expression)
     else:
         return None
     return np.array(power_loss_factor)

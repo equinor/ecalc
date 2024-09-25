@@ -13,7 +13,7 @@ from typing_extensions import Annotated
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
-from libecalc.common.temporal_model import TemporalExpression, TemporalModel
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
@@ -21,7 +21,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr, convert_expression
 from libecalc.expression import Expression
@@ -118,21 +118,15 @@ class YamlDirectTypeEmitter(YamlBase):
     )
 
     def get_emissions(
-        self, variables_map: VariablesMap, regularity: Dict[datetime, Expression]
+        self, expression_evaluator: ExpressionEvaluator, regularity: Dict[datetime, Expression]
     ) -> Dict[str, TimeSeriesStreamDayRate]:
-        regularity_evaluated = TemporalExpression.evaluate(
-            temporal_expression=TemporalModel(regularity),
-            variables_map=variables_map,
+        regularity_evaluated = expression_evaluator.evaluate(
+            expression=TemporalModel(regularity),
         )
 
         emissions = {}
         for emission in self.emissions:
-            emission_rate = (
-                Expression.setup_from_expression(value=emission.rate.value)
-                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
-                .tolist()
-            )
-
+            emission_rate = expression_evaluator.evaluate(Expression.setup_from_expression(value=emission.rate.value))
             if emission.rate.type == RateType.CALENDAR_DAY:
                 emission_rate = Rates.to_stream_day(
                     calendar_day_rates=np.asarray(emission_rate), regularity=regularity_evaluated
@@ -141,7 +135,7 @@ class YamlDirectTypeEmitter(YamlBase):
             emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=expression_evaluator.get_time_vector(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -207,18 +201,13 @@ class YamlOilTypeEmitter(YamlBase):
 
     def get_emissions(
         self,
-        variables_map: VariablesMap,
+        expression_evaluator: ExpressionEvaluator,
         regularity: Dict[datetime, Expression],
     ) -> Dict[str, TimeSeriesStreamDayRate]:
-        regularity_evaluated = TemporalExpression.evaluate(
-            temporal_expression=TemporalModel(regularity),
-            variables_map=variables_map,
-        )
+        regularity_evaluated = expression_evaluator.evaluate(expression=TemporalModel(regularity))
 
-        oil_rates = (
-            Expression.setup_from_expression(value=self.volume.rate.value)
-            .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
-            .tolist()
+        oil_rates = expression_evaluator.evaluate(
+            expression=Expression.setup_from_expression(value=self.volume.rate.value)
         )
 
         if self.volume.rate.type == RateType.CALENDAR_DAY:
@@ -229,11 +218,8 @@ class YamlOilTypeEmitter(YamlBase):
 
         emissions = {}
         for emission in self.volume.emissions:
-            factors = (
-                Expression.setup_from_expression(value=emission.emission_factor)
-                .evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
-                .tolist()
-            )
+            factors = expression_evaluator.evaluate(Expression.setup_from_expression(value=emission.emission_factor))
+
             unit = self.volume.rate.unit.to_unit()
             oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
             emission_rate = [oil_rate * factor for oil_rate, factor in zip(oil_rates, factors)]
@@ -242,7 +228,7 @@ class YamlOilTypeEmitter(YamlBase):
             emission_rate = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=expression_evaluator.get_time_vector(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -250,14 +236,10 @@ class YamlOilTypeEmitter(YamlBase):
 
     def get_oil_rates(
         self,
-        variables_map: VariablesMap,
+        expression_evaluator: ExpressionEvaluator,
         regularity: TimeSeriesFloat,
     ) -> TimeSeriesStreamDayRate:
-        oil_rates = Expression.evaluate(
-            convert_expression(self.volume.rate.value),
-            variables=variables_map.variables,
-            fill_length=len(variables_map.time_vector),
-        )
+        oil_rates = expression_evaluator.evaluate(expression=convert_expression(self.volume.rate.value))
 
         if self.volume.rate.type == RateType.CALENDAR_DAY:
             oil_rates = Rates.to_stream_day(
@@ -269,7 +251,7 @@ class YamlOilTypeEmitter(YamlBase):
         oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
         return TimeSeriesStreamDayRate(
-            timesteps=variables_map.time_vector,
+            timesteps=expression_evaluator.get_time_vector(),
             values=oil_rates,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         )
