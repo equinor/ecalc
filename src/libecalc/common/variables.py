@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from datetime import datetime, timedelta
-from typing import Dict, List, Protocol, TypeVar, Union
+from typing import Dict, List, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated
@@ -80,31 +80,24 @@ class VariablesMap(BaseModel):
         return self
 
 
-T = TypeVar(
-    "T",
-    bound=Union[List[datetime], Dict[str, List[Annotated[float, Field(allow_inf_nan=False)]]], Period, VariablesMap],
-    covariant=True,
-)
-
-
-class VariablesMapService(Protocol[T]):
+class VariablesMapService(Protocol):
     @abc.abstractmethod
     def get_time_vector(self) -> [List[datetime]]: ...
 
     @abc.abstractmethod
-    def get_variables(self) -> Dict[str, List[Annotated[float, Field(allow_inf_nan=False)]]]: ...
+    def get_variables(self) -> Dict[str, List[float]]: ...
 
     @abc.abstractmethod
     def get_period(self) -> Period: ...
 
     @abc.abstractmethod
-    def get_subset(self, start_index: int, end_index: int) -> VariablesMap: ...
+    def get_subset(self, start_index: int, end_index: int) -> VariablesMapService: ...
 
     @abc.abstractmethod
-    def get_subset_from_period(self) -> VariablesMap: ...
+    def get_subset_from_period(self) -> VariablesMapService: ...
 
     @abc.abstractmethod
-    def get_subset_for_timestep(self) -> VariablesMap: ...
+    def get_subset_for_timestep(self) -> VariablesMapService: ...
 
     @abc.abstractmethod
-    def get_variables_map(self) -> VariablesMap: ...
+    def get_variables_map(self) -> VariablesMapService: ...
