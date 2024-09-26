@@ -85,7 +85,7 @@ def _pressure_control_mapper(
         YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
     ],
 ) -> FixedSpeedPressureControl:
-    return FixedSpeedPressureControl(model_config.pressure_control.value)  # TODO: Could this be none previously?
+    return FixedSpeedPressureControl(model_config.pressure_control.value)
 
 
 def _get_curve_data_from_resource(resource: Resource, speed: float = 0.0):
