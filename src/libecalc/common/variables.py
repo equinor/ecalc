@@ -80,9 +80,6 @@ class VariablesMap(BaseModel):
     def get_period(self):
         return self.period
 
-    def get_variables_map(self):
-        return self
-
     def evaluate(self, expression: Union[Expression, Dict[datetime, Expression], TemporalModel]) -> NDArray[np.float64]:
         # Should we only allow Expression or Temporal model?
         if isinstance(expression, Expression):
@@ -114,21 +111,10 @@ class ExpressionEvaluator(Protocol):
     def get_time_vector(self) -> [List[datetime]]: ...
 
     @abc.abstractmethod
-    def get_variables(self) -> Dict[str, List[float]]: ...
-
-    @abc.abstractmethod
     def get_period(self) -> Period: ...
 
     @abc.abstractmethod
     def get_subset(self, start_index: int, end_index: int) -> ExpressionEvaluator: ...
 
     @abc.abstractmethod
-    def get_subset_from_period(self) -> ExpressionEvaluator: ...
-
-    @abc.abstractmethod
-    def get_subset_for_timestep(self) -> ExpressionEvaluator: ...
-
-    @abc.abstractmethod
-    def get_variables_map(self) -> ExpressionEvaluator: ...
-
     def evaluate(self, expression: Union[Expression, TemporalModel, Dict[datetime, Expression]]) -> List[float]: ...
