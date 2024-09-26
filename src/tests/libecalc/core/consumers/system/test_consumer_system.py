@@ -211,15 +211,13 @@ class TestPumpSystemConsumerFunction:
 
         """
         operational_settings_expressions_evaluated = pump_system.get_operational_settings_from_expressions(
-            variables=consumer_system_variables_map.get_variables(),
-            time_vector=consumer_system_variables_map.get_time_vector(),
+            expression_evaluator=consumer_system_variables_map,
             regularity=[1.0] * len(consumer_system_variables_map.time_vector),
         )
 
         operational_settings_expressions_evaluated_with_regularity = (
             pump_system.get_operational_settings_from_expressions(
-                variables=consumer_system_variables_map.get_variables(),
-                time_vector=consumer_system_variables_map.get_time_vector(),
+                expression_evaluator=consumer_system_variables_map,
                 regularity=[0.9] * len(consumer_system_variables_map.time_vector),
             )
         )
@@ -230,13 +228,16 @@ class TestPumpSystemConsumerFunction:
         )
 
     def test_evaluate_evaluate_operational_setting_expressions(self, pump_system):
-        result = pump_system.evaluate_operational_setting_expressions(
-            operational_setting_expressions=pump_system.operational_settings_expressions[0],
+        expression_evaluator = VariablesMap(
             variables={
                 "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                 "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
             },
             time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
+        )
+        result = pump_system.evaluate_operational_setting_expressions(
+            operational_setting_expressions=pump_system.operational_settings_expressions[0],
+            expression_evaluator=expression_evaluator,
         )
 
         assert result.rates[0].tolist() == [1, 1, 1]
@@ -355,8 +356,8 @@ class TestPumpSystemConsumerFunction:
             variables=variables_map.variables, fill_length=len(variables_map.time_vector)
         )
         result = pump_system_consumer_function.evaluate(
-            variables_map=variables_map,
-            regularity=regularity,
+            expression_evaluator=variables_map,
+            regularity=regularity.tolist(),
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
 
@@ -377,10 +378,10 @@ class TestPumpSystemConsumerFunction:
             power_loss_factor_expression=Expression.setup_from_expression(str(power_loss_factor)),
         )
 
-        result = pump_consumer_function.evaluate(variables_map=variables_map, regularity=regularity)
+        result = pump_consumer_function.evaluate(expression_evaluator=variables_map, regularity=regularity.tolist())
         result_with_power_loss_factor = pump_consumer_function_with_power_loss_factor.evaluate(
-            variables_map=variables_map,
-            regularity=regularity,
+            expression_evaluator=variables_map,
+            regularity=regularity.tolist(),
         )
         np.testing.assert_allclose(result.energy_usage, [1.719326, 1.719326, 1.719326], rtol=1e-5)
         np.testing.assert_equal(
@@ -395,15 +396,13 @@ class TestCompressorSystemConsumerFunction:
         regularity is between 0 and 1 (fraction of "full time").
         """
         operational_settings_expressions_evaluated = compressor_system_single.get_operational_settings_from_expressions(
-            variables=consumer_system_variables_map.get_variables(),
-            time_vector=consumer_system_variables_map.get_time_vector(),
+            expression_evaluator=consumer_system_variables_map,
             regularity=[1.0] * len(consumer_system_variables_map.time_vector),
         )
 
         operational_settings_expressions_evaluated_with_regularity = (
             compressor_system_single.get_operational_settings_from_expressions(
-                variables=consumer_system_variables_map.get_variables(),
-                time_vector=consumer_system_variables_map.get_time_vector(),
+                expression_evaluator=consumer_system_variables_map,
                 regularity=[0.9] * len(consumer_system_variables_map.time_vector),
             )
         )
@@ -423,8 +422,7 @@ class TestCompressorSystemConsumerFunction:
         )
         result = compressor_system_single.evaluate_operational_setting_expressions(
             operational_setting_expressions=compressor_system_single.operational_settings_expressions[0],
-            variables=variables_map.get_variables(),
-            time_vector=variables_map.get_time_vector(),
+            expression_evaluator=variables_map,
         )
 
         assert result.rates[0].tolist() == [1, 1, 1]
@@ -496,11 +494,11 @@ class TestCompressorSystemConsumerFunction:
             time_vector=[datetime(2000 + i, 1, 1) for i in range(10)],
         )
         result = consumer_system_function.evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         result_with_power_loss = consumer_system_function_with_power_loss.evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         np.testing.assert_equal(
@@ -520,7 +518,7 @@ class TestCompressorSystemConsumerFunction:
         )
 
         result_with_condition = consumer_system_function_with_condition.evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
 
