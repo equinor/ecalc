@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.23.1](https://github.com/equinor/ecalc/compare/v8.23.0...v8.23.1) (2024-09-26)
+
+
+### Bug Fixes
+
+* make sure default pressure control is set for all trains ([b1e264e](https://github.com/equinor/ecalc/commit/b1e264e1db02c7c2f662afbf797d6664e005f26d))
+
 ## [8.23.0](https://github.com/equinor/ecalc/compare/v8.22.0...v8.23.0) (2024-09-26)
 
 
