@@ -1,5 +1,46 @@
 # Changelog
 
+## [8.23.0](https://github.com/equinor/ecalc/compare/v8.22.0...v8.23.0) (2024-09-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* H2O no longer supported in fluid composition, use 'water'
+
+### Features
+
+* add adjustment factor for models (new) ([#611](https://github.com/equinor/ecalc/issues/611)) ([63010f3](https://github.com/equinor/ecalc/commit/63010f3b5c3ec27cd2606e3ce2ef0d38a540cd1b))
+
+
+### Documentation
+
+* add ecalc selftest gif ([#626](https://github.com/equinor/ecalc/issues/626)) ([738815e](https://github.com/equinor/ecalc/commit/738815ea8b4818e3e931cf6b56a27f63a3a2db21))
+
+
+### Miscellaneous Chores
+
+* remove python example ([c034887](https://github.com/equinor/ecalc/commit/c034887f940098e402bd7e754d9db36bed04a249))
+* update dependecies - sre ([#622](https://github.com/equinor/ecalc/issues/622)) ([b4928ee](https://github.com/equinor/ecalc/commit/b4928ee5aefbdc0da8b5aae7a463600e27e0b4e3))
+
+
+### Code Refactoring
+
+* don't use dto in DirectExpressionConsumerFunction ([42b6774](https://github.com/equinor/ecalc/commit/42b67743a609b880a6662dc09a783b63a72e4431))
+* into ChartCurve move ([89ec20d](https://github.com/equinor/ecalc/commit/89ec20d16ec257145bf08fbe77614031522e4a2b))
+* move ChartAreaFlag ([433ef35](https://github.com/equinor/ecalc/commit/433ef35c9fe0dbb41b2107ecdbf322d7319c0af3))
+* move ComponentType to common ([8dbd146](https://github.com/equinor/ecalc/commit/8dbd146154ecbbdeb40ce7e536b3885d66812ef7))
+* move compressor charts into common ([de98661](https://github.com/equinor/ecalc/commit/de986611a7d52ab1bdcb3fdcebf2a839c312e618))
+* move compressor charts into common ([e871bb8](https://github.com/equinor/ecalc/commit/e871bb8ed5c18ad207fb62d880ad4c4da49b1d0f))
+* move consumption type to common ([3aec497](https://github.com/equinor/ecalc/commit/3aec49774ae216df8e33b621597c85a3de764996))
+* move enums/types ([e3135f6](https://github.com/equinor/ecalc/commit/e3135f65c1ea0d7e6edad1ac913703a0ca19ce54))
+* move VariablesMap ([1a1e2a2](https://github.com/equinor/ecalc/commit/1a1e2a2623615923f755d64da7ebc9b87e709c6e))
+* remove dto module imports ([b61d56e](https://github.com/equinor/ecalc/commit/b61d56ecf9beeb383186abf188269eef44e837f9))
+* remove unnecessary validation ([4c5af25](https://github.com/equinor/ecalc/commit/4c5af250a6f5dc6b7bfeae23b2b7a7f202a0e5c0))
+* remove unused properties ([7659111](https://github.com/equinor/ecalc/commit/7659111bf33de89a02a5ef59ccce05fe84285c08))
+* rename dto charts ([64b2d00](https://github.com/equinor/ecalc/commit/64b2d001ab73b1e420fc7857039da57d32c4118c))
+* time series collection, resource handling ([cf80ce8](https://github.com/equinor/ecalc/commit/cf80ce87979c600adc7bc342f85b1f7612d28ea2))
+* use yaml objects in mapper ([ef21d6f](https://github.com/equinor/ecalc/commit/ef21d6fa273344f7faebcaf9f5f300ad1774417e))
+
 ## [8.22.0](https://github.com/equinor/ecalc/compare/v8.21.0...v8.22.0) (2024-09-19)
 
 
