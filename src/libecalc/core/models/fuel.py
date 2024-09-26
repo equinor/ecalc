@@ -63,7 +63,7 @@ class FuelModel:
                 )
                 fuel_rate_this_period = fuel_rate[start_index:end_index]
                 for emission in model.emissions:
-                    factor = expression_evaluator.evaluate(expression=emission.factor)
+                    factor = variables_map_this_period.evaluate(expression=emission.factor)
 
                     emission_rate_kg_per_day = fuel_rate_this_period * factor
                     emission_rate_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate_kg_per_day)
