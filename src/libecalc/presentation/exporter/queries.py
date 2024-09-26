@@ -181,7 +181,7 @@ class VolumeQuery(Query):
                         or venting_emitter.user_defined_category in self.consumer_categories
                     ) and venting_emitter.type == YamlVentingType.OIL_VOLUME:
                         oil_volumes = venting_emitter.get_oil_rates(
-                            variables_map=installation_graph.variables_map, regularity=regularity
+                            expression_evaluator=installation_graph.variables_map, regularity=regularity
                         )
                         emission_volumes = TimeSeriesRate.from_timeseries_stream_day_rate(
                             oil_volumes, regularity=regularity
