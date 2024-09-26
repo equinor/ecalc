@@ -1398,7 +1398,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     if len(installation_results) < len(asset.installations):
         regularities = {
             installation.id: TimeSeriesFloat(
-                values=graph_result.variables_map.evaluate(expression=installation.regularity).tolist(),
+                values=graph_result.variables_map.evaluate(expression=TemporalModel(installation.regularity)).tolist(),
                 unit=Unit.NONE,
                 timesteps=graph_result.variables_map.get_time_vector(),
             )
