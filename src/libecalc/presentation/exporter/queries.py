@@ -7,7 +7,7 @@ import libecalc.dto
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.list.list_utils import array_to_list
-from libecalc.common.temporal_model import TemporalExpression, TemporalModel
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Frequency, resample_time_steps
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -82,10 +82,9 @@ class FuelQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 
@@ -162,10 +161,9 @@ class VolumeQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 
@@ -244,10 +242,9 @@ class EmissionQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 
@@ -344,10 +341,9 @@ class ElectricityGeneratedQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 
@@ -419,10 +415,9 @@ class PowerSupplyOnshoreQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 
@@ -502,10 +497,9 @@ class MaxUsageFromShoreQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 
@@ -583,10 +577,9 @@ class FuelConsumerPowerConsumptionQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 
@@ -674,10 +667,9 @@ class ElConsumerPowerConsumptionQuery(Query):
 
         regularity = TimeSeriesFloat(
             timesteps=installation_time_steps,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation_dto.regularity),
-                variables_map=installation_graph.variables_map,
-            ),
+            values=installation_graph.variables_map.evaluate(
+                expression=TemporalModel(installation_dto.regularity)
+            ).tolist(),
             unit=Unit.NONE,
         )
 

@@ -103,7 +103,7 @@ class EnergyCalculator:
 
                 consumer_results[component_dto.id] = EcalcModelResult(
                     component_result=fuel_consumer.evaluate(
-                        variables_map=variables_map,
+                        expression_evaluator=variables_map,
                         power_requirement=power_requirement,
                     ),
                     models=[],
@@ -204,7 +204,7 @@ class EnergyCalculator:
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                 emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
-                    variables_map=variables_map,
+                    expression_evaluator=variables_map,
                     fuel_rate=np.asarray(energy_usage.values),
                 )
             elif isinstance(consumer_dto, ConsumerSystemDTO):
@@ -212,7 +212,7 @@ class EnergyCalculator:
                     fuel_model = FuelModel(consumer_dto.fuel)
                     energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                     emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
-                        variables_map=variables_map, fuel_rate=np.asarray(energy_usage.values)
+                        expression_evaluator=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
             elif isinstance(consumer_dto, (YamlDirectTypeEmitter, YamlOilTypeEmitter)):
                 installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
@@ -220,7 +220,7 @@ class EnergyCalculator:
 
                 venting_emitter_results = {}
                 emission_rates = consumer_dto.get_emissions(
-                    variables_map=variables_map, regularity=installation.regularity
+                    expression_evaluator=variables_map, regularity=installation.regularity
                 )
 
                 for emission_name, emission_rate in emission_rates.items():

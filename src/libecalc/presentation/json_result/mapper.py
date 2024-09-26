@@ -15,7 +15,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.math.numbers import Numbers
-from libecalc.common.temporal_model import TemporalExpression, TemporalModel
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.calculate_emission_intensity import (
@@ -28,7 +28,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesRate,
 )
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.expression import Expression
@@ -266,7 +266,7 @@ def _compute_aggregated_power(
 
 
 def _evaluate_installations(
-    graph_result: GraphResult, variables_map: VariablesMap
+    graph_result: GraphResult, expression_evaluator: ExpressionEvaluator
 ) -> List[libecalc.presentation.json_result.result.InstallationResult]:
     """
     All subcomponents have already been evaluated, here we basically collect and aggregate the results
@@ -282,19 +282,16 @@ def _evaluate_installations(
     installation_results = []
     for installation in asset.installations:
         regularity = TimeSeriesFloat(
-            timesteps=variables_map.time_vector,
-            values=TemporalExpression.evaluate(
-                temporal_expression=TemporalModel(installation.regularity),
-                variables_map=variables_map,
-            ),
+            timesteps=expression_evaluator.get_time_vector(),
+            values=expression_evaluator.evaluate(expression=TemporalModel(installation.regularity)),
             unit=Unit.NONE,
         )
-        hydrocarbon_export_rate = TemporalExpression.evaluate(
-            temporal_expression=TemporalModel(installation.hydrocarbon_export),
-            variables_map=variables_map,
+        hydrocarbon_export_rate = expression_evaluator.evaluate(
+            expression=TemporalModel(installation.hydrocarbon_export)
         )
+
         hydrocarbon_export_rate = TimeSeriesRate(
-            timesteps=variables_map.time_vector,
+            timesteps=expression_evaluator.get_time_vector(),
             values=hydrocarbon_export_rate,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
@@ -370,9 +367,9 @@ def _evaluate_installations(
                 parent=asset.id,
                 component_level=installation_node_info.component_level,
                 componentType=installation_node_info.component_type.value,
-                timesteps=variables_map.time_vector,
+                timesteps=expression_evaluator.get_time_vector(),
                 is_valid=TimeSeriesBoolean(
-                    timesteps=variables_map.time_vector,
+                    timesteps=expression_evaluator.get_time_vector(),
                     values=aggregate_is_valid(sub_components),
                     unit=Unit.NONE,
                 ),
@@ -393,7 +390,7 @@ def _evaluate_installations(
                     emissions=aggregated_emissions,
                 ),
                 regularity=TimeSeriesFloat(
-                    timesteps=variables_map.time_vector,
+                    timesteps=expression_evaluator.get_time_vector(),
                     values=regularity.values,
                     unit=Unit.NONE,
                 ),
@@ -411,7 +408,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
     installation_results = _evaluate_installations(
         graph_result=graph_result,
-        variables_map=graph_result.variables_map,
+        expression_evaluator=graph_result.variables_map,
     )
 
     regularities: Dict[str, TimeSeriesFloat] = {
@@ -454,13 +451,13 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
                 requested_inlet_pressure = TimeSeriesFloat(
                     timesteps=graph_result.timesteps,
-                    values=TemporalExpression.evaluate(inlet_pressure_eval, graph_result.variables_map),
+                    values=graph_result.variables_map.evaluate(inlet_pressure_eval).tolist(),
                     unit=Unit.BARA,
                 ).for_period(period=period)
 
                 requested_outlet_pressure = TimeSeriesFloat(
                     timesteps=graph_result.timesteps,
-                    values=TemporalExpression.evaluate(outlet_pressure_eval, graph_result.variables_map),
+                    values=graph_result.variables_map.evaluate(outlet_pressure_eval).tolist(),
                     unit=Unit.BARA,
                 ).for_period(period=period)
 
@@ -1401,11 +1398,9 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     if len(installation_results) < len(asset.installations):
         regularities = {
             installation.id: TimeSeriesFloat(
-                values=TemporalExpression.evaluate(
-                    temporal_expression=TemporalModel(installation.regularity), variables_map=graph_result.variables_map
-                ),
+                values=graph_result.variables_map.evaluate(expression=installation.regularity).tolist(),
                 unit=Unit.NONE,
-                timesteps=graph_result.variables_map.time_vector,
+                timesteps=graph_result.variables_map.get_time_vector(),
             )
             for installation in asset.installations
         }

@@ -4,6 +4,8 @@ import abc
 from datetime import datetime, timedelta
 from typing import Dict, List, Protocol, Union
 
+import numpy as np
+from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated, assert_never
 
@@ -81,9 +83,9 @@ class VariablesMap(BaseModel):
     def get_variables_map(self):
         return self
 
-    def evaluate(self, expression: Union[Expression, Dict[datetime, Expression]]) -> List[float]:
+    def evaluate(self, expression: Union[Expression, Dict[datetime, Expression], TemporalModel]) -> NDArray[np.float64]:
         if isinstance(expression, Expression):
-            return expression.evaluate(variables=self.get_variables(), fill_length=len(self.get_time_vector())).tolist()
+            return expression.evaluate(variables=self.get_variables(), fill_length=len(self.get_time_vector()))
         elif isinstance(expression, dict):
             return self._evaluate_temporal(temporal_expression=TemporalModel[expression])
         elif isinstance(expression, TemporalModel):
@@ -94,7 +96,7 @@ class VariablesMap(BaseModel):
     def _evaluate_temporal(
         self,
         temporal_expression: TemporalModel[Expression],
-    ) -> List[float]:
+    ) -> NDArray[np.float64]:
         result = self.zeros()
 
         for period, expression in temporal_expression.items():
@@ -103,7 +105,7 @@ class VariablesMap(BaseModel):
                 variables_map_for_this_period = self.get_subset(start_index=start_index, end_index=end_index)
                 evaluated_expression = variables_map_for_this_period.evaluate(expression)
                 result[start_index:end_index] = evaluated_expression
-        return result
+        return np.asarray(result)
 
 
 class ExpressionEvaluator(Protocol):
