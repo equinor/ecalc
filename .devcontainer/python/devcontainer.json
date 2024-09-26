@@ -20,17 +20,14 @@
         "python.testing.unittestEnabled": false,
         "python.testing.pytestEnabled": true,
         "python.testing.autoTestDiscoverOnSaveEnabled": true,
+        "python.editor.defaultFormatter": "charliermarsh.ruff",
         "ruff.enabled": true,
         "terminal.integrated.defaultProfile.linux": "bash",
-        "[python]": {
-          "editor.defaultFormatter": "charliermarsh.ruff",
-        }
       },
       "extensions": [
         "ms-python.python",
         "ms-python.vscode-pylance",
         "github.copilot",
-        "eamodio.gitlens",
         "charliermarsh.ruff",
         "shardulm94.trailing-spaces",
         "esbenp.prettier-vscode",
