@@ -33,7 +33,9 @@
         "eamodio.gitlens",
         "charliermarsh.ruff",
         "shardulm94.trailing-spaces",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "ms-vscode.test-adapter-converter",
+        "littlefoxteam.vscode-python-test-adapter"
       ]
     }
   },
