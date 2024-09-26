@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.20.6](https://github.com/equinor/ecalc/compare/v8.20.5...v8.20.6) (2024-09-26)
+
+
+### Miscellaneous Chores
+
+* update dependencies week 39 ([#630](https://github.com/equinor/ecalc/issues/630)) ([f0ddf45](https://github.com/equinor/ecalc/commit/f0ddf459b1a3336cccf39cf434f2df64a56f8ec7))
+
 ## [8.20.5](https://github.com/equinor/ecalc/compare/v8.20.4...v8.20.5) (2024-09-19)
 
 
