@@ -71,9 +71,6 @@ class VariablesMap(BaseModel):
     def zeros(self) -> List[float]:
         return [0.0] * len(self.time_vector)
 
-    def get_variables(self):
-        return self.variables
-
     def get_time_vector(self):
         return self.time_vector
 
@@ -83,7 +80,7 @@ class VariablesMap(BaseModel):
     def evaluate(self, expression: Union[Expression, Dict[datetime, Expression], TemporalModel]) -> NDArray[np.float64]:
         # Should we only allow Expression or Temporal model?
         if isinstance(expression, Expression):
-            return expression.evaluate(variables=self.get_variables(), fill_length=len(self.get_time_vector()))
+            return expression.evaluate(variables=self.variables, fill_length=len(self.get_time_vector()))
         elif isinstance(expression, dict):
             return self._evaluate_temporal(temporal_expression=TemporalModel[expression])
         elif isinstance(expression, TemporalModel):
