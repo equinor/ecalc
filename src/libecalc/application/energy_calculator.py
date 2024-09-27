@@ -111,7 +111,7 @@ class EnergyCalculator:
                 )
             elif isinstance(component_dto, libecalc.dto.components.ConsumerSystem):
                 evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
-                    variables_map=variables_map,
+                    expression_evaluator=variables_map,
                 )
                 optimizer = PriorityOptimizer()
 
