@@ -4,6 +4,7 @@ import numpy as np
 
 import libecalc.dto.fuel_type
 from libecalc import dto
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import VariablesMap
@@ -14,7 +15,7 @@ from libecalc.expression import Expression
 def test_fuel_model():
     fuel_model = FuelModel(
         {
-            datetime(2000, 1, 1): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(
@@ -47,7 +48,7 @@ def test_temporal_fuel_model():
     """Assure that emissions are concatenated correctly when the emission name changes in a temporal model."""
     fuel_model = FuelModel(
         {
-            datetime(2000, 1, 1): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2000, 1, 1), datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(
@@ -56,7 +57,7 @@ def test_temporal_fuel_model():
                     ),
                 ],
             ),
-            datetime(2001, 1, 1): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(

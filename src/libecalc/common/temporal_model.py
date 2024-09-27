@@ -14,16 +14,14 @@ class Model(Generic[ModelType]):
 
 
 class TemporalModel(Generic[ModelType]):
-    def __init__(self, data: Dict[datetime, ModelType]):
+    def __init__(self, data: Dict[Period, ModelType]):
         self._data = data
-        start_times = list(data.keys())
-        end_times = [*start_times[1:], datetime.max]
         self.models = [
             Model(
-                period=Period(start=start_time, end=end_time),
+                period=period,
                 model=model,
             )
-            for start_time, end_time, model in zip(start_times, end_times, data.values())
+            for period, model in data.items()
         ]
 
     def get_periods(self) -> Iterable[Period]:

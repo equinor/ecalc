@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, TypeVar, Union
 from pydantic import StringConstraints
 from typing_extensions import Annotated
 
-from libecalc.common.time_utils import is_temporal_model
+from libecalc.common.time_utils import Period, is_temporal_model
 from libecalc.expression import Expression
 
 EmissionNameStr = Annotated[str, StringConstraints(pattern=r"^\w*$")]
@@ -18,11 +18,18 @@ ExpressionType = Union[str, int, float, Expression]
 
 
 def convert_expression(
-    value: Optional[Union[ExpressionType, Dict[date, ExpressionType]]],
-) -> Optional[Union[Expression, Dict[date, Expression]]]:
+    value: Optional[Union[ExpressionType, Dict[Union[date, Period], ExpressionType]]],
+) -> Optional[Union[Expression, Dict[Period, Expression]]]:
     if value is None or isinstance(value, Expression):
         return value
     elif is_temporal_model(value):
+        if all(isinstance(key, date) for key in value.keys()):
+            # convert date keys to Period keys
+            model_dates = list(value.keys()) + [datetime.max.replace(microsecond=0)]
+            return {
+                Period(start=start_time, end=end_time): convert_expression(value=expression)
+                for start_time, end_time, expression in zip(model_dates[:-1], model_dates[1:], value.values())
+            }
         return {start_time: convert_expression(value=expression) for start_time, expression in value.items()}
     return Expression.setup_from_expression(value=value)
 

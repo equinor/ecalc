@@ -70,8 +70,8 @@ class EnergyCalculator:
                     consumes=component_dto.consumes,
                     energy_usage_model=TemporalModel(
                         {
-                            start_time: EnergyModelMapper.from_dto_to_domain(model)
-                            for start_time, model in component_dto.energy_usage_model.items()
+                            period: EnergyModelMapper.from_dto_to_domain(model)
+                            for period, model in component_dto.energy_usage_model.items()
                         }
                     ),
                 )
@@ -82,13 +82,13 @@ class EnergyCalculator:
                     name=component_dto.name,
                     temporal_generator_set_model=TemporalModel(
                         {
-                            start_time: GeneratorModelSampled(
+                            period: GeneratorModelSampled(
                                 fuel_values=model.fuel_values,
                                 power_values=model.power_values,
                                 energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
                                 energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
                             )
-                            for start_time, model in component_dto.generator_set_model.items()
+                            for period, model in component_dto.generator_set_model.items()
                         }
                     ),
                 )

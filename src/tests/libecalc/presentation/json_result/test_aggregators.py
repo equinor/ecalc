@@ -9,6 +9,7 @@ import libecalc.dto.types
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -39,8 +40,8 @@ def get_installation(
 
     inst = dto.Installation(
         name=name_inst,
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
         fuel_consumers=[
             direct_fuel_consumer(name=name_consumer, name_fuel=name_fuel, co2_factor=co2_factor, fuel_rate=fuel_rate)
         ],
@@ -85,11 +86,13 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
     return dto.FuelConsumer(
         name=name,
         component_type=dto.components.ComponentType.GENERIC,
-        fuel={datetime(2024, 1, 1): fuel(name=name_fuel, co2_factor=co2_factor)},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-        user_defined_category={datetime(2024, 1, 1): libecalc.dto.types.ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+        fuel={Period(datetime(2024, 1, 1)): fuel(name=name_fuel, co2_factor=co2_factor)},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        user_defined_category={
+            Period(datetime(2024, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.MISCELLANEOUS
+        },
         energy_usage_model={
-            datetime(2024, 1, 1): dto.DirectConsumerFunction(
+            Period(datetime(2024, 1, 1)): dto.DirectConsumerFunction(
                 fuel_rate=fuel_rate,
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             )

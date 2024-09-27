@@ -6,6 +6,7 @@ import pytest
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import (
@@ -237,8 +238,8 @@ def compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_
 
 
 @pytest.fixture
-def regularity() -> Dict[datetime, Expression]:
-    return {datetime(1900, 1, 1): Expression.setup_from_expression(value="SIM1;REGULARITY")}
+def regularity() -> Dict[Period, Expression]:
+    return {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value="SIM1;REGULARITY")}
 
 
 @pytest.fixture
