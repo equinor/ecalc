@@ -88,6 +88,21 @@ class Period:
                 f"Period: {self.start}:{self.end} - timesteps: {timesteps}"
             ) from e
 
+    def get_period_indices(self, periods: Periods) -> Tuple[int, int]:
+        try:
+            start_index = periods.start_dates.index(max(self.start, periods.periods[0].start))
+            if self.end > periods.last_date:
+                end_index = len(periods.all_dates)
+            else:
+                end_index = periods.all_dates.index(self.end)
+
+            return start_index, end_index
+        except (IndexError, ValueError) as e:
+            raise ProgrammingError(
+                "Trying to access a period index that does not exist. Please contact eCalc support.\n\t"
+                f"Period: {self.start}:{self.end} - periods: {periods}"
+            ) from e
+
     def get_timesteps(self, timesteps: List[datetime]) -> List[datetime]:
         """
         Get all given timesteps that are within this period.
@@ -142,6 +157,29 @@ class Periods:
 
         raise ProgrammingError(f"Period for date '{time}' not found in periods")
 
+    @property
+    def all_dates(self):
+        return self.start_dates + [self.end_dates[-1]]
+
+    @property
+    def start_dates(self):
+        return [period.start for period in self.periods]
+
+    @property
+    def end_dates(self):
+        return [period.end for period in self.periods]
+
+    @property
+    def last_date(self):
+        return self.end_dates[-1]
+
+    @property
+    def first_date(self):
+        return self.start_dates[0]
+
+    def __add__(self, other):
+        return Periods(self.periods + other.periods)
+
 
 def define_time_model_for_period(time_model_data: Optional[Any], target_period: Period) -> Optional[Dict[Period, Any]]:
     """Process time model based on the target period.
@@ -192,6 +230,40 @@ class Frequency(str, enum.Enum):
             return "%m/%Y"
         else:
             return "%d/%m/%Y"
+
+
+def resample_periods(
+    periods: Periods,
+    frequency: Frequency,
+    include_start_date: bool = True,
+    include_end_date: bool = True,
+) -> Periods:
+    """Makes a list of periods, based on the first and last date in the original periods and the frequency
+
+    Args:
+        periods: The original list of periods
+        frequency: The reporting frequency
+        include_start_date: Whether to include the start date if it is not part of the requested reporting frequency
+        include_end_date: Whether to include the end date if it is not part of the requested reporting frequency
+
+    Returns: List of periods dates according to given input
+
+    """
+    if frequency is not Frequency.NONE:
+        periods = Periods.create_periods(
+            times=create_time_steps(
+                start=periods.periods[0].start,
+                end=periods.periods[-1].end,
+                frequency=frequency,
+                include_start_date=include_start_date,
+                include_end_date=include_end_date,
+            ),
+            include_before=False,
+            include_after=False,
+        )
+    else:
+        periods = periods
+    return periods
 
 
 def resample_time_steps(
