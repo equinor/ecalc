@@ -1,0 +1,44 @@
+// Github auth: F.ex. use HTTPS auth for github and a git credential manager in your OS to get your git auth working in the container.
+{
+  "name": "eCalc Python Dev Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "../..",
+    "args": {
+      "VARIANT": "3.11-bookworm",
+      "POETRY_VERSION": "1.8.3",
+    }
+  },
+  "containerEnv": {
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // setting python.defaultInterpreterPath is not working as intended, set python interpreter manually.
+        "python.testing.pytestArgs": [],
+        "python.testing.cwd": "${workspaceFolder}/src/tests",
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestEnabled": true,
+        "python.testing.autoTestDiscoverOnSaveEnabled": true,
+        "python.editor.defaultFormatter": "charliermarsh.ruff",
+        "ruff.enabled": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "github.copilot",
+        "charliermarsh.ruff",
+        "shardulm94.trailing-spaces",
+        "esbenp.prettier-vscode",
+        "ms-vscode.test-adapter-converter",
+        "littlefoxteam.vscode-python-test-adapter"
+      ]
+    }
+  },
+  "remoteUser": "vscode",
+  "features": {
+    "github-cli": "latest"
+  },
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && bash ./.devcontainer/python/post-create.sh"
+}
