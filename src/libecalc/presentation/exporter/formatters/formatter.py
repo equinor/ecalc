@@ -2,9 +2,10 @@ import abc
 from datetime import datetime
 from typing import Dict, Iterator, List, Protocol, Tuple, Union
 
+from libecalc.common.time_utils import Period
 from libecalc.domain.tabular.tabular import HasColumns, Tabular
 
-RowIndex = Union[str, int, float, datetime]
+RowIndex = Union[str, int, float, datetime, Period]
 ColumnIndex = Union[str]
 
 

@@ -65,7 +65,7 @@ class InstallationExportable(Exportable):
 
                     power_production_values = fuel_consumer_result.power.values * (1 + cable_loss)
                     power_production_rate = TimeSeriesStreamDayRate(
-                        timesteps=fuel_consumer_result.power.timesteps,
+                        periods=fuel_consumer_result.power.periods,
                         values=power_production_values,
                         unit=fuel_consumer_result.power.unit,
                     )
@@ -111,7 +111,7 @@ class InstallationExportable(Exportable):
                 max_usage_from_shore_rate = (
                     TimeSeriesRate.from_timeseries_stream_day_rate(
                         TimeSeriesStreamDayRate(
-                            timesteps=self._installation_graph.timesteps,
+                            periods=self._installation_graph.periods,
                             values=max_usage_from_shore_values,
                             unit=Unit.MEGA_WATT,
                         ),
@@ -161,12 +161,12 @@ class InstallationExportable(Exportable):
     def get_category(self) -> str:
         return self._installation_dto.user_defined_category
 
-    def get_timesteps(self) -> List[datetime]:
-        return self._installation_graph.timesteps
+    def get_periods(self) -> Periods:
+        return self._installation_graph.periods
 
     def _get_regularity(self) -> TimeSeriesFloat:
         return TimeSeriesFloat(
-            timesteps=self.get_timesteps(),
+            periods=self.get_periods(),
             values=self._installation_graph.variables_map.evaluate(
                 expression=TemporalModel(self._installation_dto.regularity)
             ).tolist(),
@@ -195,7 +195,7 @@ class InstallationExportable(Exportable):
 
         periods = Periods.create_periods(sorted(timesteps), include_before=False, include_after=False)
 
-        def _get_category(temporal_category: Optional[TemporalModel[str]], timestep: datetime) -> Optional[str]:
+        def _get_category(temporal_category: Optional[TemporalModel[str]], period: Period) -> Optional[str]:
             """
             Get category for a timestep, returning None if temporal category is None or not defined for timestep
             Args:
@@ -208,7 +208,7 @@ class InstallationExportable(Exportable):
                 return None
 
             try:
-                return temporal_category.get_model(timestep)
+                return temporal_category.get_model(period)
             except ValueError:
                 # category not defined for timestep
                 return None
@@ -298,12 +298,12 @@ class InstallationExportable(Exportable):
 
             for period, consumer_category in TemporalModel(fuel_consumer.user_defined_category).items():
                 fuel_consumer_result = self._installation_graph.get_energy_result(fuel_consumer.id)
-                time_vector = fuel_consumer_result.timesteps
+                periods = fuel_consumer_result.periods
                 shaft_power = fuel_consumer_result.power
                 if (
                     shaft_power is not None
-                    and 0 < len(shaft_power) == len(time_vector)
-                    and len(fuel_consumer_result.timesteps) == len(self._installation_graph.timesteps)
+                    and 0 < len(shaft_power) == len(periods)
+                    and len(fuel_consumer_result.periods) == len(self._installation_graph.periods)
                 ):
                     shaft_power_volumes = (
                         TimeSeriesRate.from_timeseries_stream_day_rate(shaft_power, regularity=self._get_regularity())

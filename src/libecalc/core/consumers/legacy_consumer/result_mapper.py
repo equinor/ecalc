@@ -1,11 +1,8 @@
 from collections import defaultdict
 from typing import Dict, List, Union
 
-import numpy as np
-from numpy.typing import NDArray
-
-from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRate
 from libecalc.core import result as core_results
@@ -33,7 +30,7 @@ def get_single_consumer_models(
                 map_energy_function_results(
                     result=result.energy_function_result,
                     name=name,
-                    time_vector=result.time_vector,
+                    periods=result.periods,
                 )
             )
         elif isinstance(result.energy_function_result, list):
@@ -43,7 +40,7 @@ def get_single_consumer_models(
                     map_energy_function_results(
                         result=energy_function_result,
                         name=name,
-                        time_vector=result.time_vector[
+                        periods=result.periods[
                             time_vector_index : time_vector_index + len(energy_function_result.energy_usage)
                         ],
                     )
@@ -70,15 +67,13 @@ def get_consumer_system_models(
         time_slot_time_vector_index = 0
         for time_slot_consumer_results in result.consumer_results:
             n_steps = len(time_slot_consumer_results[0].energy_usage)
-            time_slot_time_vector = result.time_vector[
-                time_slot_time_vector_index : time_slot_time_vector_index + n_steps
-            ]
+            time_slot_periods = result.periods[time_slot_time_vector_index : time_slot_time_vector_index + n_steps]
             for consumer_model_result in time_slot_consumer_results:
                 energy_function_result.extend(
                     map_energy_function_results(
                         result=consumer_model_result.consumer_model_result,
                         name=consumer_model_result.name,
-                        time_vector=time_slot_time_vector,
+                        periods=time_slot_periods,
                     )
                 )
             time_slot_time_vector_index += n_steps
@@ -101,14 +96,14 @@ def get_operational_settings_results_from_consumer_result(
             for i, operational_settings_result in enumerate(time_slot_operational_settings_results):
                 for consumer_model_result in operational_settings_result.consumer_results:
                     n_steps = len(consumer_model_result.energy_usage)
-                    time_slot_time_vector = result.time_vector[
+                    time_slot_periods = result.periods[
                         time_slot_time_vector_index : time_slot_time_vector_index + n_steps
                     ]
                     if isinstance(consumer_model_result.consumer_model_result, EnergyFunctionResult):
                         consumer_specific_consumer_results = map_energy_function_results(
                             result=consumer_model_result.consumer_model_result,
                             name=consumer_model_result.name,
-                            time_vector=time_slot_time_vector,
+                            periods=time_slot_periods,
                         )
                         operational_settings_results[i].extend(consumer_specific_consumer_results)
                     else:
@@ -123,19 +118,17 @@ def get_operational_settings_results_from_consumer_result(
 
 def map_energy_function_results(
     result: EnergyFunctionResult,
-    time_vector: NDArray[np.float64],
+    periods: Periods,
     name: str,
 ) -> List[core_results.ConsumerModelResult]:
     """Returns a list of results that are specific to each consumer. This can be details for compressor trains with
     chart results, pump results, or other results. We will need to add other details below here.
     """
-    time_vector = array_to_list(time_vector)
-
     energy_function_results = []
     if isinstance(result, CompressorTrainResult):
         power = (
             TimeSeriesStreamDayRate(
-                timesteps=time_vector,
+                periods=periods,
                 values=result.power,
                 unit=result.power_unit,
             )
@@ -143,16 +136,16 @@ def map_energy_function_results(
             else None
         )
         energy_usage = TimeSeriesStreamDayRate(
-            timesteps=time_vector,
+            periods=periods,
             values=result.energy_usage,
             unit=result.energy_usage_unit,
         )
         energy_function_results.append(
             core_results.CompressorModelResult(
                 name=name,
-                timesteps=time_vector,
+                periods=periods,
                 is_valid=TimeSeriesBoolean(
-                    timesteps=time_vector,
+                    periods=periods,
                     values=result.is_valid,
                     unit=Unit.NONE,
                 ),
@@ -172,21 +165,21 @@ def map_energy_function_results(
         energy_function_results.append(
             core_results.PumpModelResult(
                 name=name,
-                timesteps=time_vector,
+                periods=periods,
                 is_valid=TimeSeriesBoolean(
-                    timesteps=time_vector,
+                    periods=periods,
                     values=result.is_valid,
                     unit=Unit.NONE,
                 ),
                 power=TimeSeriesStreamDayRate(
-                    timesteps=time_vector,
+                    periods=periods,
                     values=result.power,
                     unit=result.power_unit,
                 )
                 if result.power is not None
                 else None,
                 energy_usage=TimeSeriesStreamDayRate(
-                    timesteps=time_vector,
+                    periods=periods,
                     values=result.energy_usage,
                     unit=result.energy_usage_unit,
                 ),
@@ -200,21 +193,21 @@ def map_energy_function_results(
         energy_function_results.append(
             core_results.GenericModelResult(
                 name=name,
-                timesteps=time_vector,
+                periods=periods,
                 is_valid=TimeSeriesBoolean(
-                    timesteps=time_vector,
+                    periods=periods,
                     values=result.is_valid,
                     unit=Unit.NONE,
                 ),
                 power=TimeSeriesStreamDayRate(
-                    timesteps=time_vector,
+                    periods=periods,
                     values=result.power,
                     unit=result.power_unit,
                 )
                 if result.power is not None
                 else None,
                 energy_usage=TimeSeriesStreamDayRate(
-                    timesteps=time_vector,
+                    periods=periods,
                     values=result.energy_usage,
                     unit=result.energy_usage_unit,
                 ),

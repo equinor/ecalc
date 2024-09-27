@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import List
-
 from typing_extensions import Self
 
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -25,27 +23,27 @@ class EmissionResult(TabularTimeSeries):
     cumulative: TimeSeriesVolumesCumulative
 
     @classmethod
-    def create_empty(cls, name: str, timesteps: List[datetime]):
+    def create_empty(cls, name: str, periods: Periods):
         """Empty placeholder for emissions, when needed
 
         Args:
             name:
-            timesteps:
+            periods:
 
         Returns:
 
         """
         return cls(
             name=name,
-            timesteps=timesteps,
+            periods=periods,
             rate=TimeSeriesRate(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
+                periods=periods,
+                values=[0] * len(periods),
                 unit=Unit.TONS_PER_DAY,
             ),
             cumulative=TimeSeriesVolumesCumulative(
-                timesteps=timesteps,
-                values=[0] * len(timesteps),
+                periods=periods,
+                values=[0] * len(periods),
                 unit=Unit.TONS,
             ),
         )
@@ -61,6 +59,6 @@ class PartialEmissionResult(TabularTimeSeries):
     def from_emission_core_result(cls, emission_result: EmissionCoreResult, regularity: TimeSeriesFloat) -> Self:
         return PartialEmissionResult(
             name=emission_result.name,
-            timesteps=emission_result.timesteps,
+            periods=emission_result.periods,
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.rate, regularity),
         )

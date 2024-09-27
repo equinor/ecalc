@@ -8,7 +8,7 @@ import pytest
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import calculate_delta_days
+from libecalc.common.time_utils import Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -103,9 +103,9 @@ def test_emissions_diesel_fixed_and_mobile():
         ],
     )
 
-    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
 
-    ltp_result = get_consumption(model=asset, variables=variables, time_vector=time_vector_yearly)
+    ltp_result = get_consumption(model=asset, variables=variables, periods=variables.get_periods())
 
     co2_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCo2Mass")
     co2_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselCo2Mass")
@@ -139,10 +139,10 @@ def test_temporal_models_detailed():
     - Generator set user defined category
     - Generator set model
     """
-    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
 
     ltp_result = get_consumption(
-        model=installation_direct_consumer_dto(), variables=variables, time_vector=time_vector_yearly
+        model=installation_direct_consumer_dto(), variables=variables, periods=variables.get_periods()
     )
 
     turbine_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="turbineFuelGasConsumption")
@@ -190,10 +190,10 @@ def test_temporal_models_offshore_wind():
     - El-consumer user defined category
     - El-consumer energy usage model
     """
-    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
 
     ltp_result = get_consumption(
-        model=installation_offshore_wind_dto(), variables=variables, time_vector=time_vector_yearly
+        model=installation_offshore_wind_dto(), variables=variables, periods=variables.get_periods()
     )
 
     offshore_wind_el_consumption = get_sum_ltp_column(
@@ -213,7 +213,7 @@ def test_temporal_models_compressor():
     variables = VariablesMap(time_vector=time_vector_installation, variables={})
 
     ltp_result = get_consumption(
-        model=installation_compressor_dto([no_el_consumption()]), variables=variables, time_vector=time_vector_yearly
+        model=installation_compressor_dto([no_el_consumption()]), variables=variables, periods=variables.get_periods()
     )
 
     gas_turbine_compressor_el_consumption = get_sum_ltp_column(
@@ -228,7 +228,7 @@ def test_boiler_heater_categories():
     variables = VariablesMap(time_vector=time_vector_installation, variables={})
 
     ltp_result = get_consumption(
-        model=installation_boiler_heater_dto(), variables=variables, time_vector=time_vector_yearly
+        model=installation_boiler_heater_dto(), variables=variables, periods=variables.get_periods()
     )
 
     boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="boilerFuelGasConsumption")
@@ -288,15 +288,15 @@ def test_venting_emitters():
     )
 
     ltp_result_input_sd_kg_per_day = get_consumption(
-        model=dto_sd_kg_per_day.ecalc_model, variables=variables, time_vector=time_vector_yearly
+        model=dto_sd_kg_per_day.ecalc_model, variables=variables, periods=variables.get_periods()
     )
 
     ltp_result_input_sd_tons_per_day = get_consumption(
-        model=dto_sd_tons_per_day.ecalc_model, variables=variables, time_vector=time_vector_yearly
+        model=dto_sd_tons_per_day.ecalc_model, variables=variables, periods=variables.get_periods()
     )
 
     ltp_result_input_cd_kg_per_day = get_consumption(
-        model=dto_cd_kg_per_day.ecalc_model, variables=variables, time_vector=time_vector_yearly
+        model=dto_cd_kg_per_day.ecalc_model, variables=variables, periods=variables.get_periods()
     )
 
     emission_input_sd_kg_per_day = get_sum_ltp_column(
@@ -350,7 +350,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     )
 
     venting_emitter_results = get_consumption(
-        model=dto_case_emitters.ecalc_model, variables=variables, time_vector=time_vector_yearly
+        model=dto_case_emitters.ecalc_model, variables=variables, periods=variables.get_periods()
     )
 
     # Verify that eCalc is not failing in get_asset_result with only venting emitters -
@@ -390,7 +390,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     assert isinstance(calculate_asset_result(model=asset_multi_installations, variables=variables), EcalcModelResult)
 
     asset_ltp_result = get_consumption(
-        model=asset_multi_installations, variables=variables, time_vector=time_vector_yearly
+        model=asset_multi_installations, variables=variables, periods=variables.get_periods()
     )
     # Check that the results are the same: For the case with only one installation (only venting emitters),
     # compared to the multi-installation case with two installations. The fuel-consumer installation should
@@ -465,10 +465,10 @@ def test_total_oil_loaded_old_method():
     )
 
     ltp_result_loading_storage = get_consumption(
-        model=asset_loading_storage, variables=variables, time_vector=time_vector_yearly
+        model=asset_loading_storage, variables=variables, periods=variables.get_periods()
     )
     ltp_result_loading_only = get_consumption(
-        model=asset_loading_only, variables=variables, time_vector=time_vector_yearly
+        model=asset_loading_only, variables=variables, periods=variables.get_periods()
     )
 
     loaded_and_stored_oil_loading_and_storage = get_sum_ltp_column(
@@ -577,7 +577,7 @@ def test_electrical_and_mechanical_power_asset():
 def test_power_from_shore(ltp_pfs_yaml_factory):
     """Test power from shore output for LTP export."""
 
-    time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
+    time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2031, 1, 1), freq="YS").to_pydatetime().tolist()
 
     VariablesMap(time_vector=time_vector_yearly, variables={})
     regularity = 0.2
@@ -604,10 +604,10 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
     )
 
     ltp_result = get_consumption(
-        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=time_vector_yearly
+        model=dto_case.ecalc_model, variables=dto_case.variables, periods=dto_case.variables.get_periods()
     )
     ltp_result_csv = get_consumption(
-        model=dto_case_csv.ecalc_model, variables=dto_case.variables, time_vector=time_vector_yearly
+        model=dto_case_csv.ecalc_model, variables=dto_case.variables, periods=dto_case.variables.get_periods()
     )
 
     power_from_shore_consumption = get_sum_ltp_column(
@@ -623,7 +623,7 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
     )
 
     # In the temporal model, the category is POWER_FROM_SHORE the last three years, within the period 2025 - 2030:
-    delta_days = calculate_delta_days(time_vector_yearly)[2:5]
+    delta_days = calculate_delta_days(time_vector_yearly)[2:6]
 
     # Check that power from shore consumption is correct
     assert power_from_shore_consumption == sum([load * days * regularity * 24 / 1000 for days in delta_days])
@@ -634,7 +634,9 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
     )
 
     # Check that max usage from shore is just a report of the input
-    assert max_usage_from_shore == max_from_shore * 3
+    # Max usage from shore is 0 until 2027.6.1 and the 12 until 2031.1.1, so
+    # 2027, 2028, 2029 and 2030 (4 years) should all have 12 as max usage from shore.
+    assert max_usage_from_shore == max_from_shore * 4
 
     # Check that reading cable loss from csv-file gives same result as using constant
     assert power_supply_onshore == power_supply_onshore_csv
@@ -645,8 +647,6 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
 
 def test_max_usage_from_shore(ltp_pfs_yaml_factory):
     """Test power from shore output for LTP export."""
-
-    time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
 
     regularity = 0.2
     load = 10
@@ -661,18 +661,20 @@ def test_max_usage_from_shore(ltp_pfs_yaml_factory):
     )
 
     ltp_result_csv = get_consumption(
-        model=dto_case_csv.ecalc_model, variables=dto_case_csv.variables, time_vector=time_vector_yearly
+        model=dto_case_csv.ecalc_model, variables=dto_case_csv.variables, periods=dto_case_csv.variables.get_periods()
     )
 
-    max_usage_from_shore_2027 = float(ltp_result_csv.query_results[0].query_results[3].values[datetime(2027, 1, 1)])
+    max_usage_from_shore_2027 = float(
+        ltp_result_csv.query_results[0].query_results[3].values[Period(datetime(2027, 1, 1), datetime(2028, 1, 1))]
+    )
 
     # In the input csv-file max usage from shore is 250 (1.12.2026), 290 (1.6.2027), 283 (1.1.2028)
-    # and 283 (1.1.2029). Ensure that the correct value is set for January 2027:
-    assert max_usage_from_shore_2027 == 250.0
+    # and 283 (1.1.2029). Ensure that the correct value is set for 2027 (290 from 1.6):
+    assert max_usage_from_shore_2027 == 290.0
 
     # Ensure that values in 2027, 2028 and 2029 are correct, based on input file:
     assert [float(max_pfs) for max_pfs in ltp_result_csv.query_results[0].query_results[3].values.values()][2:5] == [
-        250,
+        290,
         283,
         283,
     ]

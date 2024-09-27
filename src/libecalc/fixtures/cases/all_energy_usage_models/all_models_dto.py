@@ -6,6 +6,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.fluid_stream_type import FluidStreamType
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.dto import (
     Asset,
@@ -62,10 +63,12 @@ def compressor_system_variable_speed_compressor_trains(
         name="compressor_system_variable_speed_compressor_trains",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel=fuel_gas,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): CompressorSystemConsumerFunction(
+            Period(datetime(2018, 1, 1), datetime(2019, 1, 1)): CompressorSystemConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 compressors=[
@@ -94,7 +97,7 @@ def compressor_system_variable_speed_compressor_trains(
                     )
                 ],
             ),
-            datetime(2019, 1, 1): CompressorSystemConsumerFunction(
+            Period(datetime(2019, 1, 1), datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.0),
                 compressors=[
@@ -132,10 +135,12 @@ def compressor_system_variable_speed_compressor_trains_multiple_suction_discharg
         name="compressor_system_variable_speed_compressor_trains_multiple_pressures",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         fuel=fuel_gas,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): CompressorSystemConsumerFunction(
+            Period(datetime(2018, 1, 1), datetime(2019, 1, 1)): CompressorSystemConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 compressors=[
@@ -189,7 +194,7 @@ def compressor_system_variable_speed_compressor_trains_multiple_suction_discharg
                     ),
                 ],
             ),
-            datetime(2019, 1, 1): CompressorSystemConsumerFunction(
+            Period(datetime(2019, 1, 1), datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 power_loss_factor=Expression.setup_from_expression(value=0.0),
                 compressors=[
@@ -231,10 +236,12 @@ def simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid
     return ElectricityConsumer(
         name="simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
@@ -261,8 +268,10 @@ def tabulated(fuel_gas, regularity) -> FuelConsumer:
         name="tabulated",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
-        energy_usage_model={datetime(1900, 1, 1): tabulated},
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+        energy_usage_model={Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): tabulated},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS
+        },
         regularity=regularity,
     )
 
@@ -273,10 +282,12 @@ def compressor(compressor_sampled_1d, fuel_gas, regularity) -> FuelConsumer:
         name="single_1d_compressor_sampled",
         component_type=ComponentType.COMPRESSOR,
         fuel=fuel_gas,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 model=compressor_sampled_1d,
                 rate_standard_m3_day=Expression.setup_from_expression(value="SIM1;GAS_PROD {/} 2"),
@@ -292,10 +303,12 @@ def pump_system_el_consumer(single_speed_pump, regularity) -> ElectricityConsume
     return ElectricityConsumer(
         name="waterinj",
         component_type=ComponentType.PUMP_SYSTEM,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.PUMP
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): PumpSystemConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): PumpSystemConsumerFunction(
                 condition=Expression.setup_from_expression(value="SIM1;WATER_PROD >0"),
                 pumps=[
                     PumpSystemPump(name="pump1", pump_model=single_speed_pump),
@@ -342,10 +355,12 @@ def simplified_variable_speed_compressor_train_known_stages_consumer(
     return ElectricityConsumer(
         name="simplified_variable_speed_compressor_train_known_stages_consumer",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
@@ -364,17 +379,19 @@ def simplified_variable_speed_compressor_train_known_stages_consumer_temporal_mo
     return ElectricityConsumer(
         name="simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): CompressorConsumerFunction(
+            Period(datetime(2018, 1, 1), datetime(2019, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
                 discharge_pressure=Expression.setup_from_expression(value=250),
                 model=simplified_variable_speed_compressor_train_known_stages,
             ),
-            datetime(2019, 1, 1): CompressorConsumerFunction(
+            Period(datetime(2019, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=40),
@@ -393,10 +410,12 @@ def generic_from_design_point_compressor_train_consumer(
     return ElectricityConsumer(
         name="generic_from_design_point_compressor_train_consumer",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
@@ -431,10 +450,12 @@ def simplified_variable_speed_compressor_train_unknown_stages_consumer(
     return ElectricityConsumer(
         name="simplified_variable_speed_compressor_train_unknown_stages_consumer",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
@@ -464,10 +485,12 @@ def turbine_driven_compressor_train(fuel_gas, compressor_with_turbine, regularit
         name="turbine_driven_compressor_train",
         component_type=ComponentType.COMPRESSOR,
         fuel=fuel_gas,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=30),
@@ -483,11 +506,13 @@ def compressor_system(fuel_gas, compressor_sampled_1d, regularity) -> FuelConsum
     return FuelConsumer(
         name="sampled_compressor_system",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         fuel=fuel_gas,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorSystemConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 energy_usage_type=EnergyUsageType.FUEL,
                 compressors=[
@@ -524,10 +549,12 @@ def simplified_compressor_system(
     return ElectricityConsumer(
         name="simplified_compressor_system",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorSystemConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorSystemConsumerFunction(
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
                 energy_usage_type=EnergyUsageType.POWER,
                 compressors=[
@@ -560,10 +587,12 @@ def deh(regularity) -> ElectricityConsumer:
     return ElectricityConsumer(
         name="deh",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): DirectConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=4.1),
                 condition=Expression.setup_from_expression(value="SIM1;GAS_LIFT > 0"),
                 power_loss_factor=Expression.setup_from_expression(value=0.05),
@@ -579,18 +608,20 @@ def late_start_consumer(regularity) -> ElectricityConsumer:
     return ElectricityConsumer(
         name="late_start_consumer",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): DirectConsumerFunction(
+            Period(datetime(2018, 1, 1), datetime(2019, 1, 1)): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=1),
                 energy_usage_type=EnergyUsageType.POWER,
             ),
-            datetime(2019, 1, 1): DirectConsumerFunction(
+            Period(datetime(2019, 1, 1), datetime(2020, 1, 1)): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=2),
                 energy_usage_type=EnergyUsageType.POWER,
             ),
-            datetime(2020, 1, 1): DirectConsumerFunction(
+            Period(datetime(2020, 1, 1), datetime(2021, 1, 1)): DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=0),
                 energy_usage_type=EnergyUsageType.POWER,
             ),
@@ -603,10 +634,12 @@ def late_start_consumer_evolving_type(regularity) -> ElectricityConsumer:
     return ElectricityConsumer(
         name="late_start_consumer_evolving_type",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.PUMP
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(2018, 1, 1): TabulatedConsumerFunction(
+            Period(datetime(2018, 1, 1), datetime(2021, 1, 1)): TabulatedConsumerFunction(
                 model=TabulatedData(
                     headers=["RATE", "POWER"],
                     data=[
@@ -633,10 +666,12 @@ def salt_water_injection_tabular(regularity) -> ElectricityConsumer:
     return ElectricityConsumer(
         name="salt_water_injection_tabular",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.PUMP
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): TabulatedConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): TabulatedConsumerFunction(
                 model=TabulatedData(
                     headers=["RATE", "POWER"],
                     data=[
@@ -663,10 +698,12 @@ def water_injection_single_speed(regularity, single_speed_pump) -> ElectricityCo
     return ElectricityConsumer(
         name="water_injection_single_speed",
         component_type=ComponentType.PUMP,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.PUMP
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): PumpConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): PumpConsumerFunction(
                 condition=Expression.setup_from_expression(value="SIM1;GAS_PROD > 0"),
                 model=single_speed_pump,
                 power_loss_factor=None,
@@ -684,10 +721,12 @@ def water_injection_variable_speed(regularity, variable_speed_pump) -> Electrici
     return ElectricityConsumer(
         name="water_injection_variable_speed",
         component_type=ComponentType.PUMP,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.PUMP
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): PumpConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): PumpConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 model=variable_speed_pump,
                 rate_standard_m3_day=Expression.setup_from_expression(value="SIM1;WATER_INJ"),
@@ -708,10 +747,12 @@ def variable_speed_compressor_train_predefined_charts(
     return ElectricityConsumer(
         name="variable_speed_compressor_train_predefined_charts",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5000000),
                 suction_pressure=Expression.setup_from_expression(value=50),
@@ -750,10 +791,12 @@ def single_speed_compressor_train_asv_pressure_control(
     return ElectricityConsumer(
         name="single_speed_compressor_train_asv_pressure_control",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5800000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
@@ -792,10 +835,12 @@ def single_speed_compressor_train_upstream_choke_pressure_control(
     return ElectricityConsumer(
         name="single_speed_compressor_train_upstream_choke_pressure_control",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5800000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
@@ -834,10 +879,12 @@ def single_speed_compressor_train_downstream_choke_pressure_control(
     return ElectricityConsumer(
         name="single_speed_compressor_train_downstream_choke_pressure_control",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=5800000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
@@ -876,10 +923,12 @@ def single_speed_compressor_train_downstream_choke_pressure_control_maximum_disc
     return ElectricityConsumer(
         name="single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 rate_standard_m3_day=Expression.setup_from_expression(value=1000000.0),
                 suction_pressure=Expression.setup_from_expression(value=80.0),
@@ -919,10 +968,12 @@ def variable_speed_compressor_train_multiple_input_streams_and_interstage_pressu
     return ElectricityConsumer(
         name="variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+        },
         regularity=regularity,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.POWER,
                 model=VariableSpeedCompressorTrainMultipleStreamsAndPressures(
                     stages=[
@@ -1033,13 +1084,15 @@ def flare(fuel_gas, regularity) -> FuelConsumer:
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
         energy_usage_model={
-            datetime(1900, 1, 1): DirectConsumerFunction(
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value="FLARE;FLARE_RATE"),
                 energy_usage_type=EnergyUsageType.FUEL,
                 consumption_rate_type=RateType.STREAM_DAY,
             )
         },
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FLARE},
+        user_defined_category={
+            Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): ConsumerUserDefinedCategoryType.FLARE
+        },
         regularity=regularity,
     )
 
@@ -1098,7 +1151,7 @@ def all_energy_usage_models_dto(
                     name="MAIN_INSTALLATION",
                     regularity=regularity,
                     hydrocarbon_export={
-                        datetime(1900, 1, 1): Expression.setup_from_expression(
+                        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): Expression.setup_from_expression(
                             value="SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000"
                         ),
                     },
@@ -1106,11 +1159,13 @@ def all_energy_usage_models_dto(
                         GeneratorSet(
                             name="GeneratorSet",
                             user_defined_category={
-                                datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+                                Period(
+                                    datetime(1900, 1, 1), datetime(2021, 1, 1)
+                                ): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
                             },
                             generator_set_model={
-                                datetime(1900, 1, 1): genset_sampled,
-                                datetime(2018, 1, 1): genset_sampled,
+                                Period(datetime(1900, 1, 1), datetime(2018, 1, 1)): genset_sampled,
+                                Period(datetime(2018, 1, 1), datetime(2021, 1, 1)): genset_sampled,
                             },
                             regularity=regularity,
                             fuel=fuel_gas,
@@ -1170,7 +1225,7 @@ def compressor_systems_and_compressor_train_temporal_dto(
                     name="MAIN_INSTALLATION",
                     regularity=regularity,
                     hydrocarbon_export={
-                        datetime(1900, 1, 1): Expression.setup_from_expression(
+                        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): Expression.setup_from_expression(
                             value="SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000"
                         ),
                     },
@@ -1178,11 +1233,13 @@ def compressor_systems_and_compressor_train_temporal_dto(
                         GeneratorSet(
                             name="GeneratorSet",
                             user_defined_category={
-                                datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+                                Period(
+                                    datetime(1900, 1, 1), datetime(2021, 1, 1)
+                                ): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
                             },
                             generator_set_model={
-                                datetime(1900, 1, 1): genset_sampled,
-                                datetime(2018, 1, 1): genset_sampled,
+                                Period(datetime(1900, 1, 1), datetime(2018, 1, 1)): genset_sampled,
+                                Period(datetime(2018, 1, 1), datetime(2021, 1, 1)): genset_sampled,
                             },
                             regularity=regularity,
                             fuel=fuel_gas,

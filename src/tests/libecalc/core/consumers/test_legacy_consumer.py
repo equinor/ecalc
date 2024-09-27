@@ -49,19 +49,21 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
             }
         ),
     )
-    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
+    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
     results = consumer.evaluate_consumer_temporal_model(
-        expression_evaluator=VariablesMap(time_vector=time_vector), regularity=np.ones_like(time_vector)
+        expression_evaluator=variables, regularity=np.ones_like(variables.periods).tolist()
     )
     results = consumer.aggregate_consumer_function_results(results)
     assert results.energy_usage.tolist() == [1, 2, 10, 0, 0, 0]
     assert results.is_valid.tolist() == [1, 1, 1, 1, 1, 1]
-    assert results.time_vector.tolist() == time_vector
+    assert results.periods == variables.periods
 
 
 def test_fuel_consumer(tabulated_fuel_consumer):
     """Simple test to assert that the FuelConsumer actually runs as expected."""
-    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
+    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 0, 0]})
     fuel_consumer = Consumer(
         id=tabulated_fuel_consumer.id,
         name=tabulated_fuel_consumer.name,
@@ -77,24 +79,24 @@ def test_fuel_consumer(tabulated_fuel_consumer):
     )
 
     result = fuel_consumer.evaluate(
-        expression_evaluator=VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 0, 0]}),
+        expression_evaluator=variables,
     )
     consumer_result = result.component_result
 
     assert consumer_result.energy_usage == TimeSeriesRate(
-        timesteps=time_vector,
+        periods=variables.periods,
         values=[2, 2, 2, 2, 0, 0],
         regularity=[1] * 6,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         rate_type=RateType.CALENDAR_DAY,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(
-        timesteps=time_vector,
+        periods=variables.periods,
         values=[True] * 6,
         unit=Unit.NONE,
     )
 
-    assert consumer_result.timesteps == time_vector
+    assert consumer_result.periods == variables.periods
 
 
 def test_electricity_consumer(direct_el_consumer):
@@ -112,29 +114,31 @@ def test_electricity_consumer(direct_el_consumer):
             }
         ),
     )
-    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
+    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
     result = electricity_consumer.evaluate(
-        expression_evaluator=VariablesMap(time_vector=time_vector),
+        expression_evaluator=variables,
     )
 
     assert isinstance(result, EcalcModelResult)
     consumer_result = result.component_result
     assert consumer_result.power == TimeSeriesStreamDayRate(
-        timesteps=time_vector,
+        periods=variables.periods,
         values=[1, 2, 10, 0, 0, 0],
         unit=Unit.MEGA_WATT,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(
-        timesteps=time_vector,
+        periods=variables.periods,
         values=[True] * 6,
         unit=Unit.NONE,
     )
-    assert consumer_result.timesteps == time_vector
+    assert consumer_result.periods == variables.periods
 
 
 def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
     """The direct_el_consumer starts after the ElectricityConsumer is finished."""
     time_vector = pd.date_range(datetime(2000, 1, 1), datetime(2005, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
     electricity_consumer = Consumer(
         id=direct_el_consumer.id,
         name=direct_el_consumer.name,
@@ -150,20 +154,20 @@ def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
     )
 
     result = electricity_consumer.evaluate(
-        expression_evaluator=VariablesMap(time_vector=time_vector),
+        expression_evaluator=variables,
     )
     consumer_result = result.component_result
 
     # The consumer itself should however return a proper result object matching the input time_vector.
-    assert consumer_result.timesteps == time_vector
+    assert consumer_result.periods == variables.periods
     assert consumer_result.power == TimeSeriesStreamDayRate(
-        timesteps=time_vector,
-        values=[0] * len(time_vector),
+        periods=variables.periods,
+        values=[0] * len(variables.periods),
         unit=Unit.MEGA_WATT,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(
-        timesteps=time_vector,
-        values=[True] * len(time_vector),
+        periods=variables.periods,
+        values=[True] * len(variables.periods),
         unit=Unit.NONE,
     )
 
@@ -178,7 +182,8 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
     :param direct_el_consumer:
     :return:
     """
-    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
+    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+    variables = VariablesMap(time_vector=time_vector)
     power = np.array([np.nan, np.nan, 1, np.nan, np.nan, np.nan])
     electricity_consumer = Consumer(
         id=direct_el_consumer.id,
@@ -196,24 +201,24 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
     consumer_function_result = ConsumerFunctionResult(
         power=power,
         energy_usage=power,
-        time_vector=np.asarray(time_vector),
+        periods=variables.periods,
         is_valid=np.asarray([False, False, True, False, False, False]),
     )
 
     electricity_consumer.evaluate_consumer_temporal_model = Mock(return_value=[consumer_function_result])
 
     result = electricity_consumer.evaluate(
-        expression_evaluator=VariablesMap(time_vector=time_vector),
+        expression_evaluator=variables,
     )
     consumer_result = result.component_result
 
     assert consumer_result.power == TimeSeriesStreamDayRate(
-        timesteps=time_vector,
+        periods=variables.periods,
         values=[0, 0, 1, 1, 1, 1],
         unit=Unit.MEGA_WATT,
     )
     assert consumer_result.is_valid == TimeSeriesBoolean(
-        timesteps=time_vector,
+        periods=variables.periods,
         values=[False, False, True, False, False, False],
         unit=Unit.NONE,
     )

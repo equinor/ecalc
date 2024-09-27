@@ -59,8 +59,8 @@ class CompressorStreamCondition(EnergyModelBaseResult):
     temperature_kelvin: Optional[List[Optional[float]]] = None
 
     @classmethod
-    def create_empty(cls, number_of_timesteps) -> CompressorStreamCondition:
-        nans = [np.nan] * number_of_timesteps
+    def create_empty(cls, number_of_periods) -> CompressorStreamCondition:
+        nans = [np.nan] * number_of_periods
         return cls(
             pressure=nans,
             actual_rate_m3_per_hr=nans,
@@ -110,9 +110,9 @@ class CompressorStageResult(EnergyModelBaseResult):
     chart: Optional[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]] = None
 
     @classmethod
-    def create_empty(cls, number_of_timesteps: int) -> CompressorStageResult:
+    def create_empty(cls, number_of_periods: int) -> CompressorStageResult:
         """Create empty CompressorStageResult"""
-        nans = [np.nan] * number_of_timesteps
+        nans = [np.nan] * number_of_periods
         return cls(
             energy_usage=nans,
             energy_usage_unit=Unit.NONE,
@@ -120,8 +120,8 @@ class CompressorStageResult(EnergyModelBaseResult):
             power_unit=Unit.MEGA_WATT,
             mass_rate_kg_per_hr=nans,
             mass_rate_before_asv_kg_per_hr=nans,
-            inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=number_of_timesteps),
-            outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=number_of_timesteps),
+            inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=number_of_periods),
+            outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=number_of_periods),
             polytropic_enthalpy_change_kJ_per_kg=nans,
             polytropic_head_kJ_per_kg=nans,
             polytropic_efficiency=nans,
@@ -129,13 +129,13 @@ class CompressorStageResult(EnergyModelBaseResult):
             speed=nans,
             asv_recirculation_loss_mw=nans,
             fluid_composition={},
-            is_valid=[True] * number_of_timesteps,
+            is_valid=[True] * number_of_periods,
             chart_area_flags=[libecalc.core.models.chart.chart_area_flag.ChartAreaFlag.NOT_CALCULATED]
-            * number_of_timesteps,
-            rate_has_recirculation=[False] * number_of_timesteps,
-            rate_exceeds_maximum=[False] * number_of_timesteps,
-            pressure_is_choked=[False] * number_of_timesteps,
-            head_exceeds_maximum=[False] * number_of_timesteps,
+            * number_of_periods,
+            rate_has_recirculation=[False] * number_of_periods,
+            rate_exceeds_maximum=[False] * number_of_periods,
+            pressure_is_choked=[False] * number_of_periods,
+            head_exceeds_maximum=[False] * number_of_periods,
             chart=None,
         )
 

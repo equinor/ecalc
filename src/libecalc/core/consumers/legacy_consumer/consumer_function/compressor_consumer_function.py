@@ -66,7 +66,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         regularity: List[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the Compressor energy usage.
-        :param variables_map: Variables map is the VariablesMap-object holding all the data to be evaluated.
+        :param expression_evaluator: Variables map is the VariablesMap-object holding all the data to be evaluated.
         :param regularity:
         :return:
         """
@@ -144,7 +144,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         )
 
         consumer_function_result = ConsumerFunctionResult(
-            time_vector=np.array(expression_evaluator.get_time_vector()),
+            periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
             condition=condition,

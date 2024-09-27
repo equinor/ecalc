@@ -8,6 +8,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
+from libecalc.common.time_utils import Periods
 from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
 )
@@ -137,6 +138,8 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
                     values.extend(other_values)
                 else:
                     values.append(other_values)
+            elif isinstance(values, Periods):
+                self.__setattr__(attribute, values + other_values)
             else:
                 msg = (
                     f"{self.__repr_name__()} attribute {attribute} does not have an append method."
