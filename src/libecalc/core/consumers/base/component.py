@@ -12,7 +12,6 @@ class BaseConsumer(ABC):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        temporal_operational_settings,
     ) -> EcalcModelResult: ...
 
 

@@ -1,12 +1,10 @@
-from datetime import datetime
 from typing import Dict
 
 import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
-from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
@@ -15,14 +13,14 @@ from libecalc.dto import FuelType
 
 
 class FuelModel:
-    """A function to evaluate fuel related attributes for different time intervals
-    For each time interval, there is a data object with expressions for fuel related
+    """A function to evaluate fuel related attributes for different time period
+    For each period, there is a data object with expressions for fuel related
     attributes which may be evaluated for some variables and a fuel_rate.
     """
 
-    def __init__(self, fuel_time_function_dict: Dict[datetime, FuelType]):
+    def __init__(self, fuel_time_function_dict: Dict[Period, FuelType]):
         logger.debug("Creating fuel model")
-        self.temporal_fuel_model = TemporalModel(fuel_time_function_dict)
+        self.temporal_fuel_model = fuel_time_function_dict
 
     def evaluate_emissions(
         self, expression_evaluator: ExpressionEvaluator, fuel_rate: NDArray[np.float64]
@@ -36,27 +34,26 @@ class FuelModel:
         Then the resulting emission volume is calculated based on the fuel rate:
         - emission_rate = emission_factor * fuel_rate
 
-        This is done per time interval and all fuel related results both in terms of
-        fuel types and time intervals, are merged into one common fuel collection results object.
+        This is done per time period and all fuel related results both in terms of
+        fuel types and time periods, are merged into one common fuel collection results object.
 
-        The length of the fuel_rate array must equal the length of the time_vector
-        array for the time_series. It is assumed that the fuel_rate array origins
-        from calculations based on the same time_series object and thus will have
-        the same length when used in this method.
+        The length of the fuel_rate array must equal the length of the global list of periods.
+        It is assumed that the fuel_rate array origins from calculations based on the same time_series
+        object and thus will have the same length when used in this method.
         """
         logger.debug("Evaluating fuel usage and emissions")
 
         # Creating a pseudo-default dict with all the emitters as keys. This is to handle changes in a temporal model.
         emissions = {
-            emission_name: EmissionResult.create_empty(name=emission_name, timesteps=[])
+            emission_name: EmissionResult.create_empty(name=emission_name, periods=Periods([]))
             for emission_name in {
                 emission.name for _, model in self.temporal_fuel_model.items() for emission in model.emissions
             }
         }
 
-        for period, model in self.temporal_fuel_model.items():
-            if Period.intersects(period, expression_evaluator.get_period()):
-                start_index, end_index = period.get_timestep_indices(expression_evaluator.get_time_vector())
+        for temporal_period, model in self.temporal_fuel_model.items():
+            if Period.intersects(temporal_period, expression_evaluator.get_period()):
+                start_index, end_index = temporal_period.get_period_indices(expression_evaluator.get_periods())
                 variables_map_this_period = expression_evaluator.get_subset(
                     start_index=start_index,
                     end_index=end_index,
@@ -70,9 +67,9 @@ class FuelModel:
 
                     result = EmissionResult(
                         name=emission.name,
-                        timesteps=variables_map_this_period.get_time_vector(),
+                        periods=variables_map_this_period.get_periods(),
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=variables_map_this_period.get_time_vector(),
+                            periods=variables_map_this_period.get_periods(),
                             values=emission_rate_tons_per_day.tolist(),
                             unit=Unit.TONS_PER_DAY,
                         ),
@@ -83,9 +80,7 @@ class FuelModel:
                 for name in emissions:
                     if name not in [emission.name for emission in model.emissions]:
                         emissions[name].extend(
-                            EmissionResult.create_empty(
-                                name=name, timesteps=variables_map_this_period.get_time_vector()
-                            )
+                            EmissionResult.create_empty(name=name, periods=variables_map_this_period.get_periods())
                         )
 
         return dict(sorted(emissions.items()))

@@ -11,7 +11,7 @@
             "to_node": "emission-output"
         }
     ],
-    "end_date": "2020-12-31 00:00:00",
+    "end_date": "2021-01-01 00:00:00",
     "flows": [
         {
             "id": "fuel-flow",
@@ -233,7 +233,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
                                     "nodes": [
@@ -262,7 +262,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
                                     "nodes": [
@@ -297,7 +297,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer",
                                     "nodes": [
@@ -356,7 +356,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-waterinj",
                                     "nodes": [
@@ -385,7 +385,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-simplified_compressor_system",
                                     "nodes": [
@@ -414,7 +414,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
                                     "nodes": [
@@ -443,7 +443,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts",
                                     "nodes": [
@@ -472,7 +472,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control",
                                     "nodes": [
@@ -501,7 +501,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control",
                                     "nodes": [
@@ -530,7 +530,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control",
                                     "nodes": [
@@ -559,7 +559,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
                                     "nodes": [
@@ -588,7 +588,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
                                     "nodes": [
@@ -803,7 +803,7 @@
                             "to_node": "emission-output"
                         }
                     ],
-                    "end_date": "2020-12-31 00:00:00",
+                    "end_date": "2021-01-01 00:00:00",
                     "flows": [
                         {
                             "id": "fuel-flow",
@@ -858,7 +858,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-sampled_compressor_system",
                                     "nodes": [
@@ -887,7 +887,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-turbine_driven_compressor_train",
                                     "nodes": [
@@ -1007,7 +1007,7 @@
                                 },
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-compressor_system_variable_speed_compressor_trains",
                                     "nodes": [
@@ -1015,7 +1015,7 @@
                                             "id": "train1_upgraded",
                                             "subdiagram": {
                                                 "edges": [],
-                                                "end_date": "2020-12-31 00:00:00",
+                                                "end_date": "2021-01-01 00:00:00",
                                                 "flows": [],
                                                 "id": "train1_upgraded",
                                                 "nodes": [
@@ -1042,7 +1042,7 @@
                                             "id": "train2_upgraded",
                                             "subdiagram": {
                                                 "edges": [],
-                                                "end_date": "2020-12-31 00:00:00",
+                                                "end_date": "2021-01-01 00:00:00",
                                                 "flows": [],
                                                 "id": "train2_upgraded",
                                                 "nodes": [
@@ -1084,7 +1084,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-simplified_variable_speed_compressor_train_known_stages_consumer",
                                     "nodes": [
@@ -1155,7 +1155,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-waterinj",
                                     "nodes": [
@@ -1184,7 +1184,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-simplified_compressor_system",
                                     "nodes": [
@@ -1213,7 +1213,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-simplified_compressor_train_predefined_variable_speed_charts_with_gerg_fluid",
                                     "nodes": [
@@ -1242,7 +1242,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_predefined_charts",
                                     "nodes": [
@@ -1271,7 +1271,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_asv_pressure_control",
                                     "nodes": [
@@ -1300,7 +1300,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_upstream_choke_pressure_control",
                                     "nodes": [
@@ -1329,7 +1329,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control",
                                     "nodes": [
@@ -1358,7 +1358,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-single_speed_compressor_train_downstream_choke_pressure_control_maximum_discharge_pressure",
                                     "nodes": [
@@ -1387,7 +1387,7 @@
                             "subdiagram": [
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "MAIN_INSTALLATION-consumer-variable_speed_compressor_train_multiple_input_streams_and_interstage_pressure",
                                     "nodes": [

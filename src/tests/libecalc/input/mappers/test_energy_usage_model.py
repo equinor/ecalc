@@ -157,7 +157,7 @@ class TestEnergyUsageModelMapper:
     def test_energy_usage_model_valid(self, yaml_text, expected_model_dto, references):
         read_yaml = PyYamlYamlModel.read_yaml(ResourceStream(name="main.yaml", stream=io.StringIO(yaml_text)))
         model_dto = ConsumerFunctionMapper(
-            references, target_period=Period(start=datetime.min, end=datetime.max)
+            references, target_period=Period(start=datetime.min, end=datetime.max.replace(microsecond=0))
         ).from_yaml_to_dto(
             TypeAdapter(Union[YamlFuelEnergyUsageModel, YamlElectricityEnergyUsageModel]).validate_python(read_yaml)
         )

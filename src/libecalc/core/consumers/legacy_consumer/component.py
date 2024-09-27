@@ -13,7 +13,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
@@ -51,7 +51,7 @@ def get_operational_settings_used_from_consumer_result(
     result: ConsumerSystemConsumerFunctionResult,
 ) -> TimeSeriesInt:
     return TimeSeriesInt(
-        timesteps=result.time_vector.tolist(),
+        periods=result.periods,
         values=result.operational_setting_used.tolist(),
         unit=Unit.NONE,
     )
@@ -97,7 +97,7 @@ class Consumer(BaseConsumer):
 
     def get_consumer_result(
         self,
-        timesteps: List[datetime],
+        periods: Periods,
         energy_usage: TimeSeriesStreamDayRate,
         is_valid: TimeSeriesBoolean,
         power_usage: TimeSeriesStreamDayRate,
@@ -105,13 +105,13 @@ class Consumer(BaseConsumer):
     ) -> ConsumerResult:
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             operational_settings_used = get_operational_settings_used_from_consumer_result(result=aggregated_result)
-            operational_settings_used.values = self.reindex_time_vector(
+            operational_settings_used.values = self.reindex_periods(
                 values=operational_settings_used.values,
-                time_vector=aggregated_result.time_vector,
-                new_time_vector=timesteps,
+                periods=aggregated_result.periods,
+                new_periods=periods,
                 fillna=-1,
             ).tolist()
-            operational_settings_used.timesteps = timesteps
+            operational_settings_used.periods = periods
 
             operational_settings_result = get_operational_settings_results_from_consumer_result(
                 aggregated_result, parent_id=self.id
@@ -123,7 +123,7 @@ class Consumer(BaseConsumer):
 
             consumer_result = ConsumerSystemResult(
                 id=self.id,
-                timesteps=timesteps,
+                periods=periods,
                 is_valid=is_valid,
                 power=power_usage,
                 energy_usage=energy_usage,
@@ -135,32 +135,32 @@ class Consumer(BaseConsumer):
             # Using generic consumer result as pump has no specific results currently
 
             inlet_rate_time_series = TimeSeriesStreamDayRate(
-                timesteps=aggregated_result.time_vector.tolist(),
+                periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.rate,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            ).reindex(new_time_vector=timesteps)
+            ).reindex(new_periods=periods)
 
             inlet_pressure_time_series = TimeSeriesFloat(
-                timesteps=aggregated_result.time_vector.tolist(),
+                periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.suction_pressure,
                 unit=Unit.BARA,
-            ).reindex(new_time_vector=timesteps)
+            ).reindex(new_periods=periods)
 
             outlet_pressure_time_series = TimeSeriesFloat(
-                timesteps=aggregated_result.time_vector.tolist(),
+                periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.discharge_pressure,
                 unit=Unit.BARA,
-            ).reindex(new_time_vector=timesteps)
+            ).reindex(new_periods=periods)
 
             operational_head_time_series = TimeSeriesFloat(
-                timesteps=aggregated_result.time_vector.tolist(),
+                periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.operational_head,
                 unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
-            ).reindex(new_time_vector=timesteps)
+            ).reindex(new_periods=periods)
 
             consumer_result = PumpResult(
                 id=self.id,
-                timesteps=timesteps,
+                periods=periods,
                 is_valid=is_valid,
                 energy_usage=energy_usage,
                 power=power_usage,
@@ -175,44 +175,42 @@ class Consumer(BaseConsumer):
             if isinstance(aggregated_result.energy_function_result, CompressorTrainResult):
                 recirculation_loss = aggregated_result.energy_function_result.recirculation_loss
                 recirculation_loss = array_to_list(
-                    self.reindex_time_vector(
+                    self.reindex_periods(
                         values=recirculation_loss,
-                        time_vector=aggregated_result.time_vector,
-                        new_time_vector=timesteps,
+                        periods=aggregated_result.periods,
+                        new_periods=periods,
                     )
                 )
                 rate_exceeds_maximum = aggregated_result.energy_function_result.rate_exceeds_maximum
                 rate_exceeds_maximum = array_to_list(
-                    self.reindex_time_vector(
+                    self.reindex_periods(
                         values=rate_exceeds_maximum,
-                        time_vector=aggregated_result.time_vector,
-                        new_time_vector=timesteps,
+                        periods=aggregated_result.periods,
+                        new_periods=periods,
                     )
                 )
             else:
-                recirculation_loss = [math.nan] * len(timesteps)
-                rate_exceeds_maximum = [False] * len(timesteps)
+                recirculation_loss = [math.nan] * len(periods)
+                rate_exceeds_maximum = [False] * len(periods)
 
             consumer_result = CompressorResult(
                 id=self.id,
-                timesteps=timesteps,
+                periods=periods,
                 is_valid=is_valid,
                 energy_usage=energy_usage,
                 power=power_usage,
                 recirculation_loss=TimeSeriesStreamDayRate(
-                    timesteps=timesteps,
+                    periods=periods,
                     values=recirculation_loss,
                     unit=Unit.MEGA_WATT,
                 ),
-                rate_exceeds_maximum=TimeSeriesBoolean(
-                    timesteps=timesteps, values=rate_exceeds_maximum, unit=Unit.NONE
-                ),
+                rate_exceeds_maximum=TimeSeriesBoolean(periods=periods, values=rate_exceeds_maximum, unit=Unit.NONE),
             )
 
         else:
             consumer_result = GenericComponentResult(
                 id=self.id,
-                timesteps=timesteps,
+                periods=periods,
                 is_valid=is_valid,
                 energy_usage=energy_usage,
                 power=power_usage,
@@ -223,11 +221,11 @@ class Consumer(BaseConsumer):
         self,
         expression_evaluator: ExpressionEvaluator,
     ) -> EcalcModelResult:
-        """Warning! We are converting energy usage to NaN when the energy usage models has invalid timesteps. this will
+        """Warning! We are converting energy usage to NaN when the energy usage models has invalid periods. this will
         probably be changed soon.
         """
         logger.debug(f"Evaluating consumer: {self.name}")
-        regularity = expression_evaluator.evaluate(expression=self.regularity)
+        regularity = list(expression_evaluator.evaluate(expression=self.regularity))
 
         # NOTE! This function may not handle regularity 0
         consumer_function_results = self.evaluate_consumer_temporal_model(
@@ -239,20 +237,20 @@ class Consumer(BaseConsumer):
             consumer_function_results=consumer_function_results,
         )
 
-        energy_usage = self.reindex_time_vector(
+        energy_usage = self.reindex_periods(
             values=aggregated_consumer_function_result.energy_usage,
-            time_vector=aggregated_consumer_function_result.time_vector,
-            new_time_vector=expression_evaluator.get_time_vector(),
+            periods=aggregated_consumer_function_result.periods,
+            new_periods=expression_evaluator.get_periods(),
         )
 
-        valid_timesteps = self.reindex_time_vector(
+        valid_periods = self.reindex_periods(
             values=aggregated_consumer_function_result.is_valid,
-            time_vector=aggregated_consumer_function_result.time_vector,
-            new_time_vector=expression_evaluator.get_time_vector(),
+            periods=aggregated_consumer_function_result.periods,
+            new_periods=expression_evaluator.get_periods(),
             fillna=True,  # Time-step is valid if not calculated.
         ).astype(bool)
 
-        extrapolations = ~valid_timesteps
+        extrapolations = ~valid_periods
         energy_usage[extrapolations] = np.nan
         energy_usage = Rates.forward_fill_nan_values(rates=energy_usage)
 
@@ -262,25 +260,25 @@ class Consumer(BaseConsumer):
         if self.consumes == ConsumptionType.FUEL:
             power_time_series = None
             if aggregated_consumer_function_result.power is not None:
-                power = self.reindex_time_vector(
+                power = self.reindex_periods(
                     values=aggregated_consumer_function_result.power,
-                    time_vector=aggregated_consumer_function_result.time_vector,
-                    new_time_vector=expression_evaluator.get_time_vector(),
+                    periods=aggregated_consumer_function_result.periods,
+                    new_periods=expression_evaluator.get_periods(),
                 )
                 power_time_series = TimeSeriesStreamDayRate(
-                    timesteps=expression_evaluator.get_time_vector(),
+                    periods=expression_evaluator.get_periods(),
                     values=array_to_list(power),
                     unit=Unit.MEGA_WATT,
                 )
             energy_usage_time_series = TimeSeriesStreamDayRate(
-                timesteps=expression_evaluator.get_time_vector(),
+                periods=expression_evaluator.get_periods(),
                 values=array_to_list(energy_usage),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             )
 
         elif self.consumes == ConsumptionType.ELECTRICITY:
             energy_usage_time_series = TimeSeriesStreamDayRate(
-                timesteps=expression_evaluator.get_time_vector(),
+                periods=expression_evaluator.get_periods(),
                 values=array_to_list(energy_usage),
                 unit=Unit.MEGA_WATT,
             )
@@ -290,13 +288,13 @@ class Consumer(BaseConsumer):
             assert_never(self.consumes)
 
         is_valid = TimeSeriesBoolean(
-            timesteps=expression_evaluator.get_time_vector(),
-            values=array_to_list(valid_timesteps),
+            periods=expression_evaluator.get_periods(),
+            values=array_to_list(valid_periods),
             unit=Unit.NONE,
         )
 
         consumer_result = self.get_consumer_result(
-            timesteps=expression_evaluator.get_time_vector(),
+            periods=expression_evaluator.get_periods(),
             energy_usage=energy_usage_time_series,
             power_usage=power_time_series,
             is_valid=is_valid,
@@ -324,7 +322,7 @@ class Consumer(BaseConsumer):
         results = []
         for period, consumer_model in self._consumer_time_function.items():
             if Period.intersects(period, expression_evaluator.get_period()):
-                start_index, end_index = period.get_timestep_indices(expression_evaluator.get_time_vector())
+                start_index, end_index = period.get_period_indices(expression_evaluator.get_periods())
                 regularity_this_period = regularity[start_index:end_index]
                 variables_map_this_period = expression_evaluator.get_subset(
                     start_index=start_index,
@@ -359,6 +357,29 @@ class Consumer(BaseConsumer):
             empty_result = ConsumerFunctionResult.create_empty()
             return empty_result
         return merged_result
+
+    @staticmethod
+    def reindex_periods(
+        values: Iterable[Union[str, float]],
+        periods: Iterable[Period],
+        new_periods: Iterable[Period],
+        fillna: Union[float, str] = 0.0,
+    ) -> NDArray[np.float64]:
+        """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
+        the consumer time vector, we calculate the actual consumer (consumption) rate.
+        """
+        new_values: DefaultDict[Period, Union[float, str]] = defaultdict(float)
+        new_values.update({t: fillna for t in new_periods})
+        for t, v in zip(periods, values):
+            if t in new_values:
+                new_values[t] = v
+            else:
+                logger.warning(
+                    "Reindexing consumer time vector and losing data. This should not happen."
+                    " Please contact eCalc support."
+                )
+
+        return np.array([rate_sum for time, rate_sum in sorted(new_values.items())])
 
     @staticmethod
     def reindex_time_vector(

@@ -49,8 +49,8 @@ class GraphResult:
         return self.consumer_results[component_id].component_result
 
     @property
-    def timesteps(self):
-        return self.variables_map.time_vector
+    def periods(self):
+        return self.variables_map.periods
 
     def get_emissions(self, component_id: str) -> Dict[str, EmissionResult]:
         return self.emission_results[component_id]

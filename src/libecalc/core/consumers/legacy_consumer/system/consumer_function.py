@@ -156,7 +156,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         )
 
         return ConsumerSystemConsumerFunctionResult(
-            time_vector=np.array(expression_evaluator.get_time_vector()),
+            periods=expression_evaluator.get_periods(),
             is_valid=np.multiply.reduce([x.consumer_model_result.is_valid for x in consumer_results]).astype(bool),
             operational_setting_used=operational_setting_number_used_per_timestep,
             operational_settings=[operational_settings],

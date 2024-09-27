@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing_extensions import Self
 
 from libecalc.common.list.list_utils import transpose
+from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import TimeSeries
 
 
@@ -50,9 +51,9 @@ class TabularTimeSeriesUtils:
             for other in others:
                 accumulated_value = merged_object.__getattribute__(key)
                 other_value = other.__getattribute__(key)
-                if key == "timesteps":
-                    merged_timesteps = sorted(itertools.chain(accumulated_value, other_value))
-                    merged_object.__setattr__(key, merged_timesteps)
+                if key == "periods":
+                    merged_periods = sorted(itertools.chain(accumulated_value, other_value))
+                    merged_object.__setattr__(key, Periods(merged_periods))
                 elif isinstance(value, TimeSeries):
                     merged_object.__setattr__(key, accumulated_value.merge(other_value))
                 elif isinstance(value, BaseModel):

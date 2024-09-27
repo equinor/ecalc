@@ -1,9 +1,8 @@
 import abc
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from libecalc.common.math.numbers import Numbers
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.units import Unit
 from libecalc.presentation.exporter.configs import configs
 from libecalc.presentation.exporter.domain.exportable import Exportable
@@ -20,7 +19,7 @@ class Modifier(abc.ABC):
         """
         self.__before_modifier = before_modifier
 
-    def modify(self, data: Dict[datetime, float]) -> Dict[datetime, Any]:
+    def modify(self, data: Dict[Period, float]) -> Dict[Period, Any]:
         """Public modify() method that is used in order to be able
         chain modifiers, if needed.
         :param data:
@@ -32,7 +31,7 @@ class Modifier(abc.ABC):
         return self._modify(data)
 
     @abc.abstractmethod
-    def _modify(self, data: Dict[datetime, float]) -> Dict[datetime, Any]:
+    def _modify(self, data: Dict[Period, float]) -> Dict[Period, Any]:
         """Needs to be implemented by extending classes. Do NOT call
         super()'s methods, or the chained modifiers
         :param data:
@@ -44,14 +43,14 @@ class Modifier(abc.ABC):
 class NullModifier(Modifier):
     """Default modifier, makes no changes, just pipes the data through."""
 
-    def _modify(self, data: Dict[datetime, float]) -> Dict[datetime, float]:
+    def _modify(self, data: Dict[Period, float]) -> Dict[Period, float]:
         return data
 
 
 class InvertValuesModifier(Modifier):
     """Turns negative values positives, or positive values negative."""
 
-    def _modify(self, data: Dict[datetime, float]) -> Dict[datetime, float]:
+    def _modify(self, data: Dict[Period, float]) -> Dict[Period, float]:
         return {key: -1.0 * value if value != 0 else 0.0 for key, value in data.items()}
 
 
@@ -60,7 +59,7 @@ class FormatValuesToPrecisionModifier(Modifier):
     The current spec says 6 decimals.
     """
 
-    def _modify(self, data: Dict[datetime, float]) -> Dict[datetime, str]:
+    def _modify(self, data: Dict[Period, float]) -> Dict[Period, str]:
         return {key: Numbers.format_to_precision(value, precision=configs.LTP_PRECISION) for key, value in data.items()}
 
 

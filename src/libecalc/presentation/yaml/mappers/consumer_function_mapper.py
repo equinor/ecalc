@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Dict, List, Optional, Protocol, Set, Union
 
 from libecalc.common.energy_model_type import EnergyModelType
@@ -323,13 +322,13 @@ class ConsumerFunctionMapper:
             YamlTemporalModel[YamlFuelEnergyUsageModel],
             YamlTemporalModel[YamlElectricityEnergyUsageModel],
         ],
-    ) -> Optional[Dict[datetime, ConsumerFunction]]:
+    ) -> Optional[Dict[Period, ConsumerFunction]]:
         if data is None:
             return None
 
         time_adjusted_model = define_time_model_for_period(data, target_period=self._target_period)
 
         return {
-            start_date: ConsumerFunctionMapper.create_model(model, self.__references)
-            for start_date, model in time_adjusted_model.items()
+            period: ConsumerFunctionMapper.create_model(model, self.__references)
+            for period, model in time_adjusted_model.items()
         }

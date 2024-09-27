@@ -35,7 +35,7 @@ def get_operational_settings_number_used_from_model_results(
         len(consumer_system_operational_settings_results) > 1
     ):  # Otherwise the [:-1] and i + 1 will fail. A consumer system with only 1 operational setting/consumer does not make much sense either...
         for i, operational_setting_results in enumerate(consumer_system_operational_settings_results[:-1]):
-            # keep the indices of the timesteps that is outside capacity to test on the next operational setting, if any
+            # keep the indices of the periods that is outside capacity to test on the next operational setting, if any
 
             indices_time_steps_outside_capacity = operational_setting_results.indices_outside_capacity
             logger.debug(
@@ -49,14 +49,12 @@ def get_operational_settings_number_used_from_model_results(
             )
 
             if len(remaining_indices_time_steps_outside_capacity) == 0:
-                logger.debug(
-                    "All time steps accounted for: Finished finding operational settings for all timesteps in period."
-                )
+                logger.debug("All time steps accounted for: Finished finding operational settings for all periods.")
                 break
             else:
                 logger.debug(
                     f"We have now {len(remaining_indices_time_steps_outside_capacity)}"
-                    f" remaining timesteps for remaining operational settings."
+                    f" remaining periods for remaining operational settings."
                 )
 
             # Assume, until proven otherwise, that the next operational setting to test is the correct one
@@ -65,7 +63,7 @@ def get_operational_settings_number_used_from_model_results(
     if len(remaining_indices_time_steps_outside_capacity) > 0:
         logger.debug(
             "We have exhausted all options, and just assume that the last prioritized operational setting is"
-            " within capacity of remaining timesteps."
+            " within capacity for remaining periods."
         )
         logger.debug(
             f"Last timestep has {len(consumer_system_operational_settings_results[-1].indices_outside_capacity)}"

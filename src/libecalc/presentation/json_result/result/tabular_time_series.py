@@ -1,11 +1,10 @@
 from abc import ABC
-from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 import pandas as pd
 from typing_extensions import Self
 
-from libecalc.common.time_utils import Frequency, resample_time_steps
+from libecalc.common.time_utils import Frequency, Periods, resample_periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
@@ -19,7 +18,7 @@ from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 
 class TabularTimeSeries(ABC, EcalcResultBaseModel):
     name: str
-    timesteps: List[datetime]
+    periods: Periods
 
     def to_dataframe(
         self,
@@ -36,8 +35,8 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
         Returns:
 
         """
-        timesteps = self.timesteps
-        df = pd.DataFrame(index=timesteps)
+        periods = self.periods
+        df = pd.DataFrame(index=periods.start_dates)
 
         for attribute_name, attribute_value in self.__dict__.items():
             if isinstance(attribute_value, TimeSeries):
@@ -58,7 +57,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                 else:
                     values = attribute_value.values
 
-                timeseries_df = pd.DataFrame({column_name: values}, index=attribute_value.timesteps)
+                timeseries_df = pd.DataFrame({column_name: values}, index=attribute_value.periods.start_dates)
                 df = df.join(timeseries_df)
             elif isinstance(attribute_value, list):
                 if len(attribute_value) > 0 and all(isinstance(item, TabularTimeSeries) for item in attribute_value):
@@ -115,5 +114,5 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                 # NOTE: turbine_result is not resampled. Should add support?
                 pass
 
-        resampled.timesteps = resample_time_steps(self.timesteps, frequency=freq)
+        resampled.periods = resample_periods(self.periods, frequency=freq)
         return resampled

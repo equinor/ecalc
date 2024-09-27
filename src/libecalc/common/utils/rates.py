@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 import math
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -34,10 +33,11 @@ from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.time_utils import (
     Frequency,
     Period,
+    Periods,
     calculate_delta_days,
-    resample_time_steps,
+    resample_periods,
 )
-from libecalc.common.units import Unit
+from libecalc.common.units import Unit, UnitConstants
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
 
@@ -91,24 +91,26 @@ class Rates:
 
     @staticmethod
     def to_volumes(
-        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], time_steps: Iterable[datetime]
+        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]],
+        periods: Periods,
     ) -> NDArray[np.float64]:
         """
-        Computes the volume between two dates from the corresponding rates, according to the given frequency.
+        Computes the volume in given periods from the corresponding rates.
         Note that the code does not perform any interpolation or extrapolation,
-        it assumes that all requested dates are present, and that the rates are constant between dates.
-
-        Note that when the number of periodic volumes will be one less than the number of rates
+        it assumes that all periods follow each other, and that the rates are constant within each period.
 
         Args:
             rates: Production rates, assumed to be constant between dates
-            time_steps: Dates for the given production rates
+            periods: Periods for which the production rates are defined
 
         Returns:
-            The production volume between the dates in time_steps
+            The production volume for each period
         """
-        delta_days = calculate_delta_days(time_steps)
-        return np.array(np.array(rates[:-1]) * delta_days)
+
+        delta_days = [
+            (period.end - period.start).total_seconds() / UnitConstants.SECONDS_IN_A_DAY for period in periods
+        ]
+        return np.array([rate * days for rate, days in zip(rates, delta_days)])
 
     @staticmethod
     def compute_cumulative(
@@ -117,60 +119,56 @@ class Rates:
         """
         Compute cumulative volumes from a list of periodic volumes
 
-        The number of cumulative volumes will always be one more than the number of periodic volumes. The first
-        cumulative volume will always be set zero.
-
         Args:
             volumes: Production volume for time periods
 
         Returns:
             The cumulative sum of the periodic production volumes given as input
         """
-        return np.append([0], np.nancumsum(volumes))
+        return np.nancumsum(volumes)
 
     @staticmethod
     def compute_cumulative_volumes_from_daily_rates(
-        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], time_steps: Iterable[datetime]
+        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], periods: Periods
     ) -> NDArray[np.float64]:
         """
-        Compute cumulative production volumes based on production rates and the corresponding dates.
-        The production rates are assumed to be constant between the different dates.
+        Compute cumulative production volumes based on production rates and the corresponding time periods.
+        The production rates are assumed to be constant within each period.
 
         Args:
-            rates: Production rates, assumed to be constant between dates
-            time_steps: Dates for the given production rates
+            rates: Production rates, assumed to be constant for all periods.
+            periods: The periods for which the given production rates are defined.
 
         Returns:
             The cumulative production volumes
         """
         if rates is None or len(rates) == 0:
             raise ValueError("Failed to compute cumulative volumes from daily rates. Valid rates not provided")
-        volumes = Rates.to_volumes(rates=rates, time_steps=time_steps)
+        volumes = Rates.to_volumes(rates=rates, periods=periods)
         return Rates.compute_cumulative(volumes)
 
 
 class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
-    timesteps: List[datetime]
+    periods: Periods
     values: List[TimeSeriesValue]
     unit: Unit
     model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True, extra="forbid")
 
     @field_validator("values", mode="before")
     @classmethod
-    def timesteps_values_one_to_one(cls, v: List[Any], info: ValidationInfo):
-        nr_timesteps = len(info.data["timesteps"])
+    def period_values_one_to_one(cls, v: List[Any], info: ValidationInfo):
+        nr_periods = len(info.data["periods"].periods)
         nr_values = len(v)
 
-        if not cls.__name__ == TimeSeriesVolumes.__name__:
-            if nr_timesteps != nr_values:
-                if all(math.isnan(i) for i in v):
-                    # TODO: This should probably be solved another place. Temporary solution to make things run
-                    return [math.nan] * len(info.data["timesteps"])
-                else:
-                    raise ProgrammingError(
-                        "Time series: number of timesteps do not match number "
-                        "of values. Most likely a bug, report to eCalc Dev Team."
-                    )
+        if nr_periods != nr_values:
+            if all(math.isnan(i) for i in v):
+                # TODO: This should probably be solved another place. Temporary solution to make things run
+                return [math.nan] * len(info.data["periods"])
+            else:
+                raise ProgrammingError(
+                    "Time series: number of periods do not match number "
+                    "of values. Most likely a bug, report to eCalc Dev Team."
+                )
         return v
 
     def __len__(self) -> int:
@@ -184,6 +182,27 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
         return all(self_value < other_value for self_value, other_value in zip(self.values, other.values))
 
+    def period(self):
+        return Period(start=self.periods.periods[0].start, end=self.periods.periods[-1].end)
+
+    def first_date(self):
+        return self.period().start
+
+    def last_date(self):
+        return self.period().end
+
+    def all_dates(self) -> List[datetime]:
+        return self.start_dates() + [self.last_date()]
+
+    def start_dates(self):
+        return [period.start for period in self.periods]
+
+    def end_dates(self):
+        return [period.end for period in self.periods]
+
+    def max(self):
+        return max(self.values)
+
     @abstractmethod
     def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self: ...
 
@@ -192,14 +211,17 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")
 
         return self.__class__(
-            timesteps=self.timesteps + other.timesteps,
+            periods=self.periods + other.periods,
             values=self.values + other.values,
             unit=self.unit,
         )
 
     def merge(self, other: TimeSeries) -> Self:
         """
-        Merge two TimeSeries with differing timesteps
+        Merge two TimeSeries with differing periods
+
+        The periods need to be non-overlapping and follow right after eavh other
+
         Args:
             other:
 
@@ -212,67 +234,75 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
         if self.unit != other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != '{other.unit}'")
 
-        if len(set(self.timesteps).intersection(other.timesteps)) != 0:
-            raise ValueError("Can not merge two TimeSeries with common timesteps")
+        if Period.intersects(self.period(), other.period()) != 0:
+            raise ValueError("Can not merge two TimeSeries with overlapping periods.")
 
-        merged_timesteps = sorted(itertools.chain(self.timesteps, other.timesteps))
-        merged_values = []
+        if self.first_date() != other.last_date() and self.last_date() != other.first_date():
+            raise ValueError("Can not merge two TimeSeries when there is a gap in time between them.")
 
-        for timestep in merged_timesteps:
-            if timestep in self.timesteps:
-                timestep_index = self.timesteps.index(timestep)
-                merged_values.append(self.values[timestep_index])
-            else:
-                timestep_index = other.timesteps.index(timestep)
-                merged_values.append(other.values[timestep_index])
+        if self.first_date() < other.last_date():
+            first = self
+            second = other
+        else:
+            first = other
+            second = self
+
+        merged_periods = first.periods + second.periods
+        merged_values = first.values + second.values
 
         return self.__class__(
-            timesteps=merged_timesteps,
+            periods=merged_periods,
             values=merged_values,
             unit=self.unit,
         )
 
-    def datapoints(self) -> Iterator[Tuple[datetime, TimeSeriesValue]]:
-        yield from zip(self.timesteps, self.values)
+    def datapoints(self) -> Iterator[Tuple[Period, TimeSeriesValue]]:
+        yield from zip(self.periods, self.values)
 
     def for_period(self, period: Period) -> Self:
-        start_index, end_index = period.get_timestep_indices(self.timesteps)
-        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
-        return self.__class__(
-            timesteps=self.timesteps[start_index:end_index],
-            values=self.values[start_index:end_index],
-            unit=self.unit,
-        )
-
-    def for_timestep(self, current_timestep: datetime) -> Self:
-        """
-        Get the timeseries data for the single timestep given
-        :param current_timestep:
-        :return: A timeseries with a single step/value corresponding to the timestep given
-        """
-        timestep_index = self.timesteps.index(current_timestep)
-
-        return self.__class__(
-            timesteps=self.timesteps[timestep_index : timestep_index + 1],
-            values=self.values[timestep_index : timestep_index + 1],
-            unit=self.unit,
-        )
-
-    def for_timesteps(self, timesteps: List[datetime]) -> Self:
-        """For a given list of datetime, return corresponding values
+        """The time series for a given period. The given period needs to have start and end dates that are within the
+        start and end dates of the periods in the original time series.
 
         Args:
-            timesteps:
+            period:
 
         Returns:
 
         """
-        values: List[TimeSeriesValue] = []
-        for timestep in timesteps:
-            timestep_index = self.timesteps.index(timestep)
-            values.append(self.values[timestep_index])
+        if period.start not in self.periods.all_dates or period.end not in self.periods.all_dates:
+            raise ValueError(
+                f"Can not get time series for period {period}. "
+                f"The period start and end dates needs to be within the start and end dates of the original time series."
+            )
+        start_index, end_index = period.get_period_indices(self.periods)
+        return self.__class__(
+            periods=Periods(self.periods.periods[start_index:end_index]),
+            values=self.values[start_index:end_index],
+            unit=self.unit,
+        )
 
-        return self.__class__(timesteps=timesteps, values=values, unit=self.unit)
+    def for_periods(self, periods: Periods) -> Self:
+        """
+
+        Args:
+            periods:
+
+        Returns:
+
+        """
+        if not all(
+            period.start in self.periods.all_dates and period.end in self.periods.all_dates for period in periods
+        ):
+            raise ValueError(
+                f"Can not get time series for periods {periods}. "
+                f"The period start and end dates needs to be within the start and end dates of the original time series."
+            )
+        start_index, end_index = periods.period.get_period_indices(self.periods)
+        return self.__class__(
+            periods=Periods(self.periods.periods[start_index:end_index]),
+            values=self.values[start_index:end_index],
+            unit=self.unit,
+        )
 
     def to_unit(self, unit: Unit) -> Self:
         if unit == self.unit:
@@ -287,12 +317,16 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
     def __getitem__(self, indices: Union[slice, int, List[int]]) -> Self:
         if isinstance(indices, slice):
-            return self.__class__(timesteps=self.timesteps[indices], values=self.values[indices], unit=self.unit)
+            return self.__class__(
+                periods=Periods(self.periods.periods[indices]), values=self.values[indices], unit=self.unit
+            )
         elif isinstance(indices, int):
-            return self.__class__(timesteps=[self.timesteps[indices]], values=[self.values[indices]], unit=self.unit)
+            return self.__class__(
+                periods=Periods([self.periods.periods[indices]]), values=[self.values[indices]], unit=self.unit
+            )
         elif isinstance(indices, list):
             return self.__class__(
-                timesteps=[self.timesteps[i] for i in indices],
+                periods=Periods([self.periods.periods[i] for i in indices]),
                 values=[self.values[i] for i in indices],
                 unit=self.unit,
             )
@@ -325,17 +359,17 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
                 f"Could not update timeseries, Combination of indices of type '{type(indices)}' and values of type '{type(values)}' is not supported"
             )
 
-    def reindex_time_vector(
+    def reindex_periods(
         self,
-        new_time_vector: Iterable[datetime],
+        new_periods: Iterable[Period],
         fillna: Union[float, str] = 0.0,
     ) -> np.ndarray:
         """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
         the consumer time vector, we calculate the actual consumer (consumption) rate.
         """
-        new_values: DefaultDict[datetime, Union[float, str]] = defaultdict(float)
-        new_values.update({t: fillna for t in new_time_vector})
-        for t, v in zip(self.timesteps, self.values):
+        new_values: DefaultDict[Period, Union[float, str]] = defaultdict(float)
+        new_values.update({t: fillna for t in new_periods})
+        for t, v in zip(self.periods, self.values):
             if t in new_values:
                 new_values[t] = v
             else:
@@ -352,12 +386,12 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
         return bool(
             # Check that all values are either both NaN or equal
             all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
-            and self.timesteps == other.timesteps
+            and self.periods == other.periods
             and self.unit == other.unit
         )
 
-    def append(self, timestep: datetime, value: TimeSeriesValue):
-        self.timesteps.append(timestep)
+    def append(self, period: Period, value: TimeSeriesValue):
+        self.periods.append(period)
         self.values.append(value)
 
 
@@ -369,6 +403,8 @@ class TimeSeriesString(TimeSeries[str]):
 
         Args:
             freq: The frequency the time series should be resampled to
+            include_start_date:
+            include_end_date
 
         Returns:
             TimeSeriesString resampled to the given frequency
@@ -376,13 +412,13 @@ class TimeSeriesString(TimeSeries[str]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        ds = pd.Series(index=self.timesteps, data=self.values)
+        ds = pd.Series(index=[period.start for period in self.periods], data=self.values)
 
         # New resampled pd.Series
         ds_resampled = ds.resample(freq).ffill()
 
         return TimeSeriesString(
-            timesteps=ds_resampled.index.to_pydatetime().tolist(),
+            periods=ds_resampled.index.to_pydatetime().tolist(),
             values=ds_resampled.values.tolist(),
             unit=self.unit,
         )
@@ -403,16 +439,17 @@ class TimeSeriesInt(TimeSeries[int]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        ds = pd.Series(index=self.timesteps, data=self.values)
+        ds = pd.Series(index=self.start_dates(), data=self.values)
 
-        new_timesteps = resample_time_steps(
-            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        new_periods = resample_periods(
+            self.periods, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
         )
+        new_time_steps = new_periods.start_dates
         # New resampled pd.Series
-        ds_resampled = ds.reindex(new_timesteps).ffill()
+        ds_resampled = ds.reindex(new_time_steps).ffill()
 
         return TimeSeriesInt(
-            timesteps=new_timesteps,
+            periods=new_periods,
             values=list(ds_resampled.values.tolist()),
             unit=self.unit,
         )
@@ -434,25 +471,19 @@ class TimeSeriesBoolean(TimeSeries[bool]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        # Always make new time series WITH end date, but remove it later is not needed
-        new_timeseries = resample_time_steps(
-            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=True
+        new_periods = resample_periods(
+            self.periods, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
         )
         resampled = []
 
         # Iterate over all pairs of subsequent dates in the new time vector
-        for start_period, end_period in zip(new_timeseries[:-1], new_timeseries[1:]):
-            start_index = self.timesteps.index(max([date for date in self.timesteps if date <= start_period]))
-            end_index = self.timesteps.index(max([date for date in self.timesteps if date < end_period]))
+        for period in new_periods:
+            start_index = self.all_dates().index(max([date for date in self.all_dates() if date <= period.start]))
+            end_index = self.all_dates().index(max([date for date in self.all_dates() if date < period.end]))
             resampled.append(all(self.values[start_index : end_index + 1]))
 
-        if include_end_date:
-            resampled.append(self.values[-1])
-        else:
-            new_timeseries.pop()
-
         return TimeSeriesBoolean(
-            timesteps=new_timeseries,
+            periods=new_periods,
             values=resampled,
             unit=self.unit,
         )
@@ -464,7 +495,7 @@ class TimeSeriesBoolean(TimeSeries[bool]):
             )
 
         return self.__class__(
-            timesteps=self.timesteps,
+            periods=self.periods,
             values=[self_item and other_item for self_item, other_item in zip(self.values, other.values)],
             unit=self.unit,
         )
@@ -493,28 +524,31 @@ class TimeSeriesFloat(TimeSeries[float]):
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        ds = pd.Series(index=self.timesteps, data=self.values)
+        ds = pd.Series(index=self.start_dates(), data=self.values)
 
-        new_timeseries = resample_time_steps(
-            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        new_periods = resample_periods(
+            self.periods, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
         )
-        ds_resampled = ds.reindex(new_timeseries).ffill()
+        new_start_dates = new_periods.start_dates
+        ds_resampled = ds.reindex(new_start_dates).ffill()
 
         return self.__class__(
-            timesteps=new_timeseries,
+            periods=new_periods,
             values=[float(x) for x in ds_resampled.values.tolist()],
             unit=self.unit,
         )
 
-    def reindex(self, new_time_vector: Iterable[datetime]) -> Self:
+    def reindex(self, new_periods: Periods) -> Self:
         """
-        Ensure to map correct value to correct timestep in the final resulting time vector.
+        Ensure to map correct value to correct period in the final resulting time vector.
         """
-        reindex_values = self.reindex_time_vector(new_time_vector)
-        return self.__class__(timesteps=new_time_vector, values=reindex_values.tolist(), unit=self.unit)
+        reindex_values = self.reindex_periods(new_periods)
+        return self.__class__(periods=new_periods, values=reindex_values.tolist(), unit=self.unit)
 
 
 class TimeSeriesVolumesCumulative(TimeSeries[float]):
+    """This will represent the sum of the volumes in all periods up to and including each individual period."""
+
     @field_validator("values", mode="before")
     @classmethod
     def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
@@ -536,33 +570,39 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         production volumes will potentially be dropped.
 
         Args:
-            freq: The frequency the time series should be resampled to
+            freq: The frequency the time series should be resampled to or the Periods to resample to
 
         Returns:
-            TimeSeriesVolumesCumulative resampled to the given frequency
+            TimeSeriesVolumesCumulative resampled to the given frequency or given Periods
         """
         if freq is Frequency.NONE:
             return self.model_copy()
 
-        ds = pd.Series(index=self.timesteps, data=self.values)
-        new_timeseries = resample_time_steps(
-            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        ds = pd.Series(index=self.all_dates(), data=[0] + self.values)  # cumulative volume always zero at start date
+        new_periods = resample_periods(
+            self.periods, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
         )
-        if ds.index[-1] not in new_timeseries:
+        new_dates = new_periods.all_dates
+        if ds.index[-1] not in new_dates:
             logger.warning(
                 f"The final date in the rate input ({ds.index[-1].strftime('%m/%d/%Y')}) does not "
                 f"correspond to the end of a period with the requested output frequency. There is a "
                 f"possibility that the resampling will drop volumes."
             )
-        ds_interpolated = ds.reindex(ds.index.union(new_timeseries)).interpolate("slinear")
+        ds_interpolated = ds.reindex(ds.index.union(new_dates)).interpolate("slinear")
 
         # New resampled pd.Series
-        ds_resampled = ds_interpolated.reindex(new_timeseries)
+        resampled = ds_interpolated.reindex(new_dates).values.tolist()
+
+        if not include_start_date:
+            dropped_cumulative_volume = resampled[0]
+            resampled = [value - dropped_cumulative_volume for value in resampled[1:]]
+        else:
+            resampled = resampled[1:]
 
         return TimeSeriesVolumesCumulative(
-            timesteps=new_timeseries,
-            # Are we sure this is always an DatetimeIndex? type: ignore
-            values=ds_resampled.values.tolist(),
+            periods=new_periods,
+            values=resampled,
             unit=self.unit,
         )
 
@@ -577,7 +617,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
                 f"Unable to divide unit '{self.unit}' by unit '{other.unit}'. Please add unit conversion."
             )
         return TimeSeriesCalendarDayRate(
-            timesteps=self.timesteps,
+            periods=self.periods,
             values=np.divide(
                 self.values,
                 other.values,
@@ -591,16 +631,15 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         """
         Converts cumulative volumes to period volumes
 
-        The first volume will be the difference between the cumulative volumes at the first two times, and so on
-        To keep the same dimension, a volume of zero is always added at the end
-
-        The dimension of periodic volumes will be one less that the dimension of cumulative volumes
+        The first volume will be the cumulative volume for the first period.
+        The remaining volumes will be the difference between the cumulative volume at the end of the current period
+        and the cumulative volume at the end of the previous period.
 
         Returns:
             Periodic production volumes
         """
-        period_volumes = np.diff(self.values).tolist()
-        return TimeSeriesVolumes(timesteps=self.timesteps, values=period_volumes, unit=self.unit)
+        period_volumes = np.diff([0.0] + self.values).tolist()
+        return TimeSeriesVolumes(periods=self.periods, values=period_volumes, unit=self.unit)
 
 
 class TimeSeriesVolumes(TimeSeries[float]):
@@ -612,65 +651,34 @@ class TimeSeriesVolumes(TimeSeries[float]):
             return [i if i is not None else math.nan for i in v]
         return v
 
-    @field_validator("values", mode="before")
-    def check_length_timestep_values(cls, v: List[Any], info: ValidationInfo):
-        # Initially timesteps for volumes contains one more item than values
-        # After reindex number of timesteps equals number of values
-        # TODO: Ensure periodical volumes are handled in a consistent way. Why different after reindex?
-        if len(v) not in [len(info.data["timesteps"]), len(info.data["timesteps"]) - 1]:
-            raise ProgrammingError(
-                "Time series: number of timesteps do not match number "
-                "of values. Most likely a bug, report to eCalc Dev Team."
-            )
-        return v
-
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
-        msg = (
-            f"{self.__class__.__name__} does not have an resample method."
-            f" You should not land here. Please contact the eCalc Support."
-        )
-        logger.warning(msg)
-        raise NotImplementedError(msg)
-
-    def reindex(self, time_steps: List[datetime]) -> Self:
         """
-        This is legacy code where the time steps are in reality periods. time_steps[0] and time_steps[1] is period 1
-        and corresponds to value[0].
+        Resample the time series of period volumes to a new frequency or set of periods.
 
-        Note: we do not allow up-sampling, hence the ValueError if a new value is discovered within the existing
-            time-vector.
+        This method first converts the time series to cumulative volumes, resamples the cumulative volumes,
+        and then converts the resampled cumulative volumes back to period volumes.
+
+        Args:
+            freq (Frequency): The new frequency to resample to.
+            include_start_date (bool, optional): Whether to include the start date in the resampled periods. Defaults to True.
+            include_end_date (bool, optional): Whether to include the end date in the resampled periods. Defaults to True.
+
+        Returns:
+            TimeSeriesVolumes: The resampled time series as period volumes.
         """
-        for time_step in time_steps:
-            if self.timesteps[0] <= time_step <= self.timesteps[-1] and time_step not in self.timesteps:
-                raise ValueError(f"Could not reindex volumes. Missing time step `{time_step}`.")
-
-        cumulative_volumes = Rates.compute_cumulative(self.values)
-
-        re_indexed_cumulative_values = pd.Series(index=self.timesteps, data=cumulative_volumes).reindex(time_steps)
-
-        # Diffing cumulative volume in order to go back to volumes per period.
-        re_indexed_volumes = re_indexed_cumulative_values.diff().shift(-1)[:-1]
-
-        return self.__class__(
-            timesteps=re_indexed_volumes.index.to_pydatetime().tolist(),
-            values=re_indexed_volumes.tolist(),
-            unit=self.unit,
-        )
+        return self.cumulative().resample(freq, include_start_date, include_end_date).to_volumes()
 
     def cumulative(self) -> TimeSeriesVolumesCumulative:
         """
         Converts periodic volumes to cumulative volumes
 
-        The first volume will always be zero. All other volumes will be the sum of all periodic volumes up to the
-        time in question.
-
-        The dimension of cumulative volumes will be one more that the dimension of periodic volumes.
+        All cumulative volumes will be the sum of all periodic volumes up to (and including) the current period.
 
         Returns:
             Cumulative production volumes
         """
         return TimeSeriesVolumesCumulative(
-            timesteps=self.timesteps,
+            periods=self.periods,
             values=Rates.compute_cumulative(self.values).tolist(),
             unit=self.unit,
         )
@@ -681,29 +689,21 @@ class TimeSeriesVolumes(TimeSeries[float]):
 
         Regularity is needed to keep track of correct rate type. Regularity assumed to be 1 if not given.
 
-        The dimension of periodic volumes is one less than the number of time steps. Hence, a rate of zero is added
-        at the end to make dimensions equal. The regularity may also need an additional value to have the same
-        dimension as the average rates and the number of time steps.
-
         Args:
             regularity: The regularity (floats in the range <0,1])
 
         Returns:
             Average production rate
         """
-        if len(self.timesteps) > 1:
-            delta_days = calculate_delta_days(self.timesteps).tolist()
+        if len(self.all_dates()) > 1:
+            delta_days = calculate_delta_days(np.asarray(self.all_dates())).tolist()
             average_rates = [volume / days for volume, days in zip(self.values, delta_days)]
-
-            if regularity is not None and isinstance(regularity, list) and len(regularity) == len(self.timesteps) - 1:
-                regularity.append(0.0)
-            average_rates.append(0.0)
         else:
             average_rates = self.values
-            regularity = [1.0] * len(self.timesteps)
+            regularity = [1.0] * len(self.periods)
 
         return TimeSeriesRate(
-            timesteps=self.timesteps,
+            periods=self.periods,
             values=average_rates,
             unit=self.unit.volume_to_rate(),
             regularity=regularity,
@@ -736,7 +736,7 @@ class TimeSeriesStreamDayRate(TimeSeriesFloat):
 
         if isinstance(other, TimeSeriesStreamDayRate):
             return TimeSeriesStreamDayRate(
-                timesteps=self.timesteps,
+                periods=self.periods,
                 values=elementwise_sum(self.values, other.values).tolist(),
                 unit=self.unit,
             )
@@ -781,10 +781,10 @@ class TimeSeriesRate(TimeSeries[float]):
     @field_validator("regularity")
     def check_regularity_length(cls, regularity: List[float], info: ValidationInfo) -> List[float]:
         regularity_length = len(regularity)
-        timesteps_length = len(info.data.get("timesteps", []))
-        if regularity_length != timesteps_length:
+        periods_length = len(info.data["periods"].periods)
+        if regularity_length != periods_length:
             raise ProgrammingError(
-                f"Regularity must correspond to nr of timesteps. Length of timesteps ({timesteps_length}) !=  length of regularity ({regularity_length})."
+                f"Regularity must correspond to nr of periods. Length of periods ({periods_length}) !=  length of regularity ({regularity_length})."
             )
 
         return regularity
@@ -803,7 +803,7 @@ class TimeSeriesRate(TimeSeries[float]):
             if self.regularity == other.regularity:
                 # Adding TimeSeriesRate with same regularity -> New TimeSeriesRate with same regularity
                 return self.__class__(
-                    timesteps=self.timesteps,
+                    periods=self.periods,
                     values=elementwise_sum(self.values, other.values).tolist(),
                     unit=self.unit,
                     regularity=self.regularity,
@@ -815,7 +815,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 sum_stream_day = elementwise_sum(self.to_stream_day().values, other.to_stream_day().values)
 
                 return TimeSeriesRate(
-                    timesteps=self.timesteps,
+                    periods=self.periods,
                     values=elementwise_sum(self.values, other.values).tolist(),
                     unit=self.unit,
                     regularity=(sum_calendar_day / sum_stream_day).tolist(),
@@ -842,7 +842,7 @@ class TimeSeriesRate(TimeSeries[float]):
             )
 
         return self.__class__(
-            timesteps=self.timesteps + other.timesteps,
+            periods=self.periods + other.periods,
             values=self.values + other.values,
             unit=self.unit,
             regularity=self.regularity + other.regularity,
@@ -851,15 +851,14 @@ class TimeSeriesRate(TimeSeries[float]):
 
     def merge(self, other: TimeSeries) -> TimeSeriesRate:
         """
-        Merge two TimeSeries with differing timesteps
+        Merge two TimeSeries with differing periods
         Args:
             other:
 
         Returns:
 
         """
-
-        if not isinstance(other, TimeSeriesRate):
+        if not isinstance(other, type(self)):
             raise ValueError(f"Can not merge {type(self)} with {type(other)}")
 
         if self.unit != other.unit:
@@ -870,31 +869,25 @@ class TimeSeriesRate(TimeSeries[float]):
                 "Mismatching rate type. Currently you can not merge stream/calendar day rates with calendar/stream day rates."
             )
 
-        if len(set(self.timesteps).intersection(other.timesteps)) != 0:
-            raise ValueError("Can not merge two TimeSeries with common timesteps")
+        if Period.intersects(self.period(), other.period()) != 0:
+            raise ValueError("Can not merge two TimeSeries with overlapping periods")
 
-        merged_timesteps = sorted(itertools.chain(self.timesteps, other.timesteps))
-        merged_values = []
-        merged_regularity = []
+        if self.first_date() != other.last_date() and self.last_date() != other.first_date():
+            raise ValueError("Can not merge two TimeSeries when there is a gap in time between them")
 
-        for timestep in merged_timesteps:
-            if timestep in self.timesteps:
-                timestep_index = self.timesteps.index(timestep)
-                merged_values.append(self.values[timestep_index])
-                if self.regularity is not None:
-                    merged_regularity.append(self.regularity[timestep_index])
-                else:
-                    merged_regularity.append(1)  # whaaaaaaaaaa
-            else:
-                timestep_index = other.timesteps.index(timestep)
-                merged_values.append(other.values[timestep_index])
-                if other.regularity is not None:
-                    merged_regularity.append(other.regularity[timestep_index])
-                else:
-                    merged_regularity.append(1)  # whaaaaaaaaaa
+        if self.first_date() < other.last_date():
+            first = self
+            second = other
+        else:
+            first = other
+            second = self
+
+        merged_periods = first.periods + second.periods
+        merged_values = first.values + second.values
+        merged_regularity = first.regularity + second.regularity
 
         return self.__class__(
-            timesteps=merged_timesteps,
+            periods=merged_periods,
             values=merged_values,
             regularity=merged_regularity,
             unit=self.unit,
@@ -902,27 +895,28 @@ class TimeSeriesRate(TimeSeries[float]):
         )
 
     def for_period(self, period: Period) -> Self:
-        start_index, end_index = period.get_timestep_indices(self.timesteps)
-        end_index = end_index + 1  # Include end as we need it to calculate cumulative correctly
+        """The time series for a given period. The given period needs to have start and end dates that are within the
+        start and end dates of the periods in the original time series.
+
+        Args:
+            period:
+
+        Returns:
+
+        """
+        if not Period.intersects(self.period(), period):
+            return self.__class__(
+                periods=Periods([]),
+                values=[],
+                regularity=[],
+                unit=self.unit,
+                rate_type=self.rate_type,
+            )
+        start_index, end_index = period.get_period_indices(self.periods)
         return self.__class__(
-            timesteps=self.timesteps[start_index:end_index],
+            periods=Periods(self.periods.periods[start_index:end_index]),
             values=self.values[start_index:end_index],
             regularity=self.regularity[start_index:end_index],
-            unit=self.unit,
-            rate_type=self.rate_type,
-        )
-
-    def for_timestep(self, current_timestep: datetime) -> Self:
-        """
-        Get the timeseries data for the single timestep given
-        :param current_timestep:
-        :return: A timeseries with a single step/value corresponding to the timestep given
-        """
-        timestep_index = self.timesteps.index(current_timestep)
-        return self.__class__(
-            timesteps=self.timesteps[timestep_index : timestep_index + 1],
-            values=self.values[timestep_index : timestep_index + 1],
-            regularity=self.regularity[timestep_index : timestep_index + 1],
             unit=self.unit,
             rate_type=self.rate_type,
         )
@@ -937,7 +931,7 @@ class TimeSeriesRate(TimeSeries[float]):
             regularity=self.regularity,
         ).tolist()
         return self.__class__(
-            timesteps=self.timesteps,
+            periods=self.periods,
             values=calendar_day_rates,
             regularity=self.regularity,
             unit=self.unit,
@@ -954,7 +948,7 @@ class TimeSeriesRate(TimeSeries[float]):
             regularity=self.regularity,
         ).tolist()
         return self.__class__(
-            timesteps=self.timesteps,
+            periods=self.periods,
             values=stream_day_rates,
             regularity=self.regularity,
             unit=self.unit,
@@ -969,9 +963,9 @@ class TimeSeriesRate(TimeSeries[float]):
         """
         volumes = Rates.to_volumes(
             rates=self.to_calendar_day().values,
-            time_steps=self.timesteps,
+            periods=self.periods,
         ).tolist()
-        return TimeSeriesVolumes(timesteps=self.timesteps, values=volumes, unit=self.unit.rate_to_volume())
+        return TimeSeriesVolumes(periods=self.periods, values=volumes, unit=self.unit.rate_to_volume())
 
     def resample(
         self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
@@ -981,15 +975,10 @@ class TimeSeriesRate(TimeSeries[float]):
         weighted average or the rates in those periods. The regularity is also recalculated to reflect the new
         time periods.
 
-        If the final date(s) in self.timesteps does not correspond to a date in the requested output frequency series
-        the volumes will be dropped in the resampling. TODO: include these dates as well?
-
-        Note the the rate and regularity are always set to zero at the last time step at the new frequency.
-        As this is the last time step it does not really matter what the values are. This is just to make sure that the
-        regularity/values/timesteps for the resampled TimeSeriesRate have equal length.
-
         Args:
             freq: The frequency the time series should be resampled to
+            include_start_date:
+            include_end_date:
 
         Returns:
             TimeSeriesRate resampled to the given frequency
@@ -1002,9 +991,9 @@ class TimeSeriesRate(TimeSeries[float]):
             TimeSeriesVolumesCumulative(
                 values=Rates.compute_cumulative_volumes_from_daily_rates(
                     rates=self.to_calendar_day().values,
-                    time_steps=self.timesteps,
+                    periods=self.periods,
                 ).tolist(),
-                timesteps=self.timesteps,
+                periods=self.periods,
                 unit=self.to_volumes().unit,
             )
             .resample(freq=freq, include_start_date=include_start_date, include_end_date=include_end_date)
@@ -1015,9 +1004,9 @@ class TimeSeriesRate(TimeSeries[float]):
             TimeSeriesVolumesCumulative(
                 values=Rates.compute_cumulative_volumes_from_daily_rates(
                     rates=self.to_stream_day().values,
-                    time_steps=self.timesteps,
+                    periods=self.periods,
                 ).tolist(),
-                timesteps=self.timesteps,
+                periods=self.periods,
                 unit=self.to_volumes().unit,
             )
             .resample(freq=freq, include_start_date=include_start_date, include_end_date=include_end_date)
@@ -1041,7 +1030,7 @@ class TimeSeriesRate(TimeSeries[float]):
     def __getitem__(self, indices: Union[slice, int, List[int], NDArray[np.float64]]) -> TimeSeriesRate:
         if isinstance(indices, slice):
             return self.__class__(
-                timesteps=self.timesteps[indices],
+                periods=self.periods[indices],
                 values=self.values[indices],
                 regularity=self.regularity[indices],
                 unit=self.unit,
@@ -1049,7 +1038,7 @@ class TimeSeriesRate(TimeSeries[float]):
             )
         elif isinstance(indices, int):
             return self.__class__(
-                timesteps=[self.timesteps[indices]],
+                periods=[self.periods[indices]],
                 values=[self.values[indices]],
                 regularity=[self.regularity[indices]],
                 unit=self.unit,
@@ -1058,7 +1047,7 @@ class TimeSeriesRate(TimeSeries[float]):
         elif isinstance(indices, (list, np.ndarray)):
             indices = list(indices)
             return self.__class__(
-                timesteps=[self.timesteps[i] for i in indices],
+                periods=[self.periods[i] for i in indices],
                 values=[self.values[i] for i in indices],
                 regularity=[self.regularity[i] for i in indices],
                 unit=self.unit,
@@ -1074,19 +1063,19 @@ class TimeSeriesRate(TimeSeries[float]):
         return bool(
             # Check that all values are either both NaN or equal
             all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
-            and self.timesteps == other.timesteps
+            and self.periods == other.periods
             and self.unit == other.unit
             and self.regularity == other.regularity
             and self.rate_type == other.rate_type
         )
 
-    def reindex(self, new_time_vector: Iterable[datetime]) -> TimeSeriesRate:
+    def reindex(self, new_periods: Periods) -> TimeSeriesRate:
         """
-        Ensure to map correct value to correct timestep in the final resulting time vector.
+        Ensure to map correct value to correct period in the final resulting time vector.
         """
-        reindex_values = self.reindex_time_vector(new_time_vector)
+        reindex_values = self.reindex_time_vector(new_periods)
         return TimeSeriesRate(
-            timesteps=new_time_vector,
+            periods=new_periods,
             values=reindex_values.tolist(),
             unit=self.unit,
             regularity=self.regularity,
@@ -1100,10 +1089,10 @@ class TimeSeriesRate(TimeSeries[float]):
         if time_series_stream_day_rate is None:
             return None
 
-        regularity = regularity.for_timesteps(time_series_stream_day_rate.timesteps)
+        regularity = regularity.for_periods(time_series_stream_day_rate.periods)
 
         return cls(
-            timesteps=time_series_stream_day_rate.timesteps,
+            periods=time_series_stream_day_rate.periods,
             values=time_series_stream_day_rate.values,
             unit=time_series_stream_day_rate.unit,
             rate_type=RateType.STREAM_DAY,
@@ -1114,5 +1103,5 @@ class TimeSeriesRate(TimeSeries[float]):
         """Convert to fixed stream day rate timeseries"""
         stream_day_rate = self.to_stream_day()
         return TimeSeriesStreamDayRate(
-            timesteps=stream_day_rate.timesteps, values=stream_day_rate.values, unit=stream_day_rate.unit
+            periods=stream_day_rate.periods, values=stream_day_rate.values, unit=stream_day_rate.unit
         )

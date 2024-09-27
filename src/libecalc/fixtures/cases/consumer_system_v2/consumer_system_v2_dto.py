@@ -7,6 +7,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.string.string_utils import generate_id
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -46,10 +47,10 @@ from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
 
 regularity = {
-    datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(1),
+    Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): Expression.setup_from_expression(1),
 }
 fuel = {
-    datetime(2022, 1, 1, 0, 0): FuelType(
+    Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): FuelType(
         name="fuel_gas",
         user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
         emissions=[
@@ -95,69 +96,82 @@ pump_model_single_speed = PumpModel(
 
 compressor1 = CompressorComponent(
     name="compressor1",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+    user_defined_category={
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+    },
     fuel=fuel,
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
-    energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
+    energy_usage_model={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): compressor_1d},
 )
 compressor2 = CompressorComponent(
     name="compressor2",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+    user_defined_category={
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+    },
     fuel=fuel,
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
-    energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
+    energy_usage_model={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): compressor_1d},
 )
 compressor3 = CompressorComponent(
     name="compressor3",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+    user_defined_category={
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+    },
     fuel=fuel,
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
-    energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d},
+    energy_usage_model={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): compressor_1d},
 )
 compressor4_temporal_model = CompressorComponent(
     name="compressor3",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-    fuel=fuel,
-    regularity=regularity,
-    consumes=ConsumptionType.FUEL,
-    energy_usage_model={datetime(2022, 1, 1, 0, 0): compressor_1d, datetime(2024, 1, 1, 0, 0): compressor_1d},
-)
-compressor5_with_overlapping_temporal_model = CompressorComponent(
-    name="compressor3",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+    user_defined_category={
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+    },
     fuel=fuel,
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
     energy_usage_model={
-        datetime(2022, 1, 1, 0, 0): compressor_1d,
-        datetime(2024, 1, 1, 0, 0): compressor_1d,
-        datetime(2025, 1, 1, 0, 0): compressor_1d,
+        Period(datetime(2022, 1, 1), datetime(2024, 1, 1)): compressor_1d,
+        Period(datetime(2024, 1, 1), datetime(2027, 1, 1)): compressor_1d,
+    },
+)
+compressor5_with_overlapping_temporal_model = CompressorComponent(
+    name="compressor3",
+    user_defined_category={
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+    },
+    fuel=fuel,
+    regularity=regularity,
+    consumes=ConsumptionType.FUEL,
+    energy_usage_model={
+        Period(datetime(2022, 1, 1), datetime(2024, 1, 1)): compressor_1d,
+        Period(datetime(2024, 1, 1), datetime(2025, 1, 1)): compressor_1d,
+        Period(datetime(2025, 1, 1), datetime(2027, 1, 1)): compressor_1d,
     },
 )
 
 pump1 = PumpComponent(
     name="pump1",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+    user_defined_category={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=ConsumptionType.ELECTRICITY,
-    energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
+    energy_usage_model={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): pump_model_single_speed},
 )
 pump2 = PumpComponent(
     name="pump2",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+    user_defined_category={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=ConsumptionType.ELECTRICITY,
-    energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
+    energy_usage_model={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): pump_model_single_speed},
 )
 pump3 = PumpComponent(
     name="pump3",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+    user_defined_category={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=ConsumptionType.ELECTRICITY,
-    energy_usage_model={datetime(2022, 1, 1, 0, 0): pump_model_single_speed},
+    energy_usage_model={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): pump_model_single_speed},
 )
 
 compressor_system = FuelConsumer(
@@ -165,7 +179,7 @@ compressor_system = FuelConsumer(
     name="compressor_system",
     fuel=fuel,
     energy_usage_model={
-        datetime(2022, 1, 1, 0, 0): CompressorSystemConsumerFunction(
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): CompressorSystemConsumerFunction(
             energy_usage_type=EnergyUsageType.FUEL,
             power_loss_factor=None,
             compressors=[
@@ -206,12 +220,16 @@ compressor_system = FuelConsumer(
         )
     },
     regularity=regularity,
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+    user_defined_category={
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+    },
 )
 
 compressor_system_v2 = ConsumerSystem(
     name="compressor_system_v2",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
+    user_defined_category={
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR
+    },
     regularity=regularity,
     consumes=ConsumptionType.FUEL,
     fuel=fuel,
@@ -411,7 +429,7 @@ pump_system = ElectricityConsumer(
     component_type=ComponentType.PUMP_SYSTEM,
     name="pump_system",
     energy_usage_model={
-        datetime(2022, 1, 1, 0, 0): PumpSystemConsumerFunction(
+        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): PumpSystemConsumerFunction(
             energy_usage_type=EnergyUsageType.POWER,
             condition=Expression.setup_from_expression("1"),
             power_loss_factor=Expression.setup_from_expression("0"),
@@ -448,12 +466,12 @@ pump_system = ElectricityConsumer(
         )
     },
     regularity=regularity,
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+    user_defined_category={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.PUMP},
 )
 
 pump_system_v2 = ConsumerSystem(
     name="pump_system_v2",
-    user_defined_category={datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+    user_defined_category={Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): ConsumerUserDefinedCategoryType.PUMP},
     regularity=regularity,
     consumes=ConsumptionType.ELECTRICITY,
     component_conditions=SystemComponentConditions(
@@ -639,15 +657,19 @@ def consumer_system_v2_dto() -> DTOCase:
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     component_type=ComponentType.INSTALLATION,
                     regularity=regularity,
-                    hydrocarbon_export={datetime(2022, 1, 1, 0, 0): Expression.setup_from_expression(17)},
+                    hydrocarbon_export={
+                        Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): Expression.setup_from_expression(17)
+                    },
                     fuel_consumers=[
                         GeneratorSet(
                             name="GeneratorSet",
                             user_defined_category={
-                                datetime(2022, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+                                Period(
+                                    datetime(2022, 1, 1), datetime(2027, 1, 1)
+                                ): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
                             },
                             generator_set_model={
-                                datetime(2022, 1, 1): genset,
+                                Period(datetime(2022, 1, 1), datetime(2027, 1, 1)): genset,
                             },
                             regularity=regularity,
                             fuel=fuel,
@@ -662,10 +684,11 @@ def consumer_system_v2_dto() -> DTOCase:
         ),
         variables=VariablesMap(
             time_vector=[
-                datetime(2022, 1, 1, 0, 0),
-                datetime(2024, 1, 1, 0, 0),
-                datetime(2025, 1, 1, 0, 0),
-                datetime(2026, 1, 1, 0, 0),
+                datetime(2022, 1, 1),
+                datetime(2024, 1, 1),
+                datetime(2025, 1, 1),
+                datetime(2026, 1, 1),
+                datetime(2027, 1, 1),
             ],
             variables={
                 "compressor1;rate": [0.0, 0.0, 0.0, 4000000.0],

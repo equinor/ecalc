@@ -2,7 +2,7 @@ import abc
 from typing import List
 
 from libecalc.presentation.exporter.formatters.formatter import IndexFormatter
-from libecalc.presentation.exporter.formatters.index_formatter import TimeIndexFormatter
+from libecalc.presentation.exporter.formatters.index_formatter import PeriodIndexFormatter, TimeIndexFormatter
 
 
 class FormatterConfig(abc.ABC):
@@ -21,6 +21,23 @@ class TimeFormatterConfig(FormatterConfig):
                 time_format="%Y",
             ),
             TimeIndexFormatter(
+                name="forecastMonth",
+                title="Months",
+                time_format="%m",
+            ),
+        ]
+
+
+class PeriodFormatterConfig(FormatterConfig):
+    @staticmethod
+    def get_row_index_formatters() -> List[IndexFormatter]:
+        return [
+            PeriodIndexFormatter(
+                name="forecastYear",
+                title="Years",
+                time_format="%Y",
+            ),
+            PeriodIndexFormatter(
                 name="forecastMonth",
                 title="Months",
                 time_format="%m",

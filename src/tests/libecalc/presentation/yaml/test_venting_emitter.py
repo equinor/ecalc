@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -46,10 +47,11 @@ def variables_map(methane_values):
     return VariablesMap(
         variables={"TSC1;Methane_rate": methane(), "TSC1;Oil_rate": oil_values()},
         time_vector=[
-            datetime(2000, 1, 1, 0, 0),
-            datetime(2001, 1, 1, 0, 0),
+            datetime(2000, 1, 1),
+            datetime(2001, 1, 1),
             datetime(2002, 1, 1),
-            datetime(2003, 1, 1, 0, 0),
+            datetime(2003, 1, 1),
+            datetime(2004, 1, 1),
         ],
     )
 
@@ -82,7 +84,7 @@ def test_venting_emitter(variables_map):
     emission_result = {
         venting_emitter.emissions[0].name: EmissionResult(
             name=venting_emitter.emissions[0].name,
-            timesteps=variables_map.time_vector,
+            periods=variables_map.periods,
             rate=emission_rate,
         )
     }
@@ -119,7 +121,7 @@ def test_venting_emitter_oil_volume(variables_map):
         ),
     )
 
-    regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
+    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}
 
     emission_rate = venting_emitter.get_emissions(expression_evaluator=variables_map, regularity=regularity)[
         "ch4"
@@ -128,14 +130,14 @@ def test_venting_emitter_oil_volume(variables_map):
     emission_result = {
         venting_emitter.volume.emissions[0].name: EmissionResult(
             name=venting_emitter.volume.emissions[0].name,
-            timesteps=variables_map.time_vector,
+            periods=variables_map.periods,
             rate=emission_rate,
         )
     }
     emissions_ch4 = emission_result["ch4"]
 
     regularity_evaluated = float(
-        Expression.evaluate(regularity[datetime(1900, 1, 1)], fill_length=1, variables=variables_map.variables)
+        Expression.evaluate(regularity[Period(datetime(1900, 1, 1))], fill_length=1, variables=variables_map.variables)
     )
     expected_result = [oil_value * regularity_evaluated * emission_factor / 1000 for oil_value in oil_values()]
 
@@ -199,7 +201,7 @@ def test_venting_emitters_direct_multiple_emissions_ltp():
     ]
 
     ltp_result = get_consumption(
-        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
+        model=dto_case.ecalc_model, variables=dto_case.variables, periods=dto_case.variables.get_periods()
     )
 
     ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="co2VentingMass")
@@ -253,13 +255,13 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
     ]
 
     ltp_result = get_consumption(
-        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
+        model=dto_case.ecalc_model, variables=dto_case.variables, periods=dto_case.variables.periods
     )
 
     ltp_result_stream_day = get_consumption(
         model=dto_case_stream_day.ecalc_model,
         variables=dto_case_stream_day.variables,
-        time_vector=dto_case_stream_day.variables.time_vector,
+        periods=dto_case_stream_day.variables.periods,
     )
 
     ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingNmvocMass")

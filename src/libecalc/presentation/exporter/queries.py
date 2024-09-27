@@ -1,10 +1,9 @@
 import abc
 from collections import defaultdict
-from datetime import datetime
 from typing import DefaultDict, Dict, List, Optional
 
 from libecalc.common.decorators.feature_flags import Feature
-from libecalc.common.time_utils import Frequency, resample_time_steps
+from libecalc.common.time_utils import Frequency, Period, Periods, resample_periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -25,7 +24,7 @@ class Query(abc.ABC):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         pass
 
 
@@ -61,11 +60,11 @@ class FuelQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
-        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result: DefaultDict[Period, float] = defaultdict(float)
         for attribute in installation_graph.get_fuel_consumption():
             meta = attribute.get_meta()
             if self.fuel_type_category is not None and meta.fuel_category != self.fuel_type_category:
@@ -74,25 +73,26 @@ class FuelQuery(Query):
             if self.consumer_categories is not None and meta.consumer_category not in self.consumer_categories:
                 continue
 
-            for timestep, fuel_volume in attribute.datapoints():
-                aggregated_result[timestep] += fuel_volume
+            for period, fuel_volume in attribute.datapoints():
+                aggregated_result[period] += fuel_volume
 
         if aggregated_result:
             sorted_result = dict(
                 sorted(zip(aggregated_result.keys(), aggregated_result.values()))
             )  # Sort tuple with datetime and values, basically means sort on date since dates are unique?
             sorted_result = {
-                **dict.fromkeys(installation_graph.get_timesteps(), 0.0),
+                **dict.fromkeys(installation_graph.get_periods(), 0.0),
                 **sorted_result,
-            }  # Fill missing timesteps with zeroes, also keep sort?
-            date_keys = list(sorted_result.keys())
-            reindexed_result = (
-                TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
-                .reindex(resample_time_steps(time_steps=installation_graph.get_timesteps(), frequency=frequency))
+            }  # Fill missing periods with zeroes, also keep sort?
+            period_keys = list(sorted_result.keys())
+            resampled_results = (
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
-
-            return {reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
+            }
         return None
 
 
@@ -110,33 +110,32 @@ class StorageVolumeQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
-        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result: DefaultDict[Period, float] = defaultdict(float)
         for attribute in installation_graph.get_storage_volumes(unit):
             meta = attribute.get_meta()
 
             if self.consumer_categories is not None and meta.consumer_category not in self.consumer_categories:
                 continue
 
-            for timestep, fuel_volume in attribute.datapoints():
-                aggregated_result[timestep] += fuel_volume
+            for period, fuel_volume in attribute.datapoints():
+                aggregated_result[period] += fuel_volume
 
         if aggregated_result:
             sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_timesteps(), 0.0), **sorted_result}
-            date_keys = list(sorted_result.keys())
-
-            reindexed_result = (
-                TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
-                .reindex(resample_time_steps(time_steps=installation_graph.get_timesteps(), frequency=frequency))
+            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+            period_keys = list(sorted_result.keys())
+            resampled_results = (
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
-
-            return {reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
-
+            return {
+                resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
+            }
         return None
 
 
@@ -158,11 +157,11 @@ class EmissionQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
-        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result: DefaultDict[Period, float] = defaultdict(float)
         for attribute in installation_graph.get_emissions(unit):
             meta = attribute.get_meta()
             if self.fuel_type_category is not None and meta.fuel_category != self.fuel_type_category:
@@ -174,24 +173,25 @@ class EmissionQuery(Query):
             if self.emission_type is not None and meta.emission_type != self.emission_type:
                 continue
 
-            for timestep, emission_volume in attribute.datapoints():
-                aggregated_result[timestep] += emission_volume
+            for period, emission_volume in attribute.datapoints():
+                aggregated_result[period] += emission_volume
 
         if aggregated_result:
             sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_timesteps(), 0.0), **sorted_result}
-            date_keys = list(sorted_result.keys())
+            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+            period_keys = list(sorted_result.keys())
 
-            reindexed_result = (
-                TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
+            resampled_result = (
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .resample(freq=frequency)
                 .to_unit(Unit.KILO)
                 .to_unit(unit)
-                .reindex(resample_time_steps(time_steps=installation_graph.get_timesteps(), frequency=frequency))
                 .fill_nan(0)
             )
 
-            return {reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
-
+            return {
+                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
+            }
         return None
 
 
@@ -207,32 +207,34 @@ class ElectricityGeneratedQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
-        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result: DefaultDict[Period, float] = defaultdict(float)
         for attribute in installation_graph.get_electricity_production(unit):
             meta = attribute.get_meta()
 
             if self.producer_categories is not None and meta.producer_category not in self.producer_categories:
                 continue
 
-            for timestep, production_volume in attribute.datapoints():
-                aggregated_result[timestep] += production_volume
+            for period, production_volume in attribute.datapoints():
+                aggregated_result[period] += production_volume
 
         if aggregated_result:
             sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_timesteps(), 0.0), **sorted_result}
-            date_keys = list(sorted_result.keys())
+            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+            period_keys = list(sorted_result.keys())
 
-            reindexed_result = (
-                TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
-                .reindex(resample_time_steps(time_steps=installation_graph.get_timesteps(), frequency=frequency))
+            resampled_result = (
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
 
-            return {reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
+            }
         return None
 
 
@@ -248,35 +250,33 @@ class MaxUsageFromShoreQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
-        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result: DefaultDict[Period, float] = defaultdict(float)
         for attribute in installation_graph.get_maximum_electricity_production(unit):
             meta = attribute.get_meta()
 
             if self.producer_categories is not None and meta.producer_category not in self.producer_categories:
                 continue
 
-            for timestep, production_volume in attribute.datapoints():
-                aggregated_result[timestep] += production_volume
+            for period, production_volume in attribute.datapoints():
+                aggregated_result[period] += production_volume
 
         if aggregated_result:
             sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_timesteps(), 0.0), **sorted_result}
-            date_keys = list(sorted_result.keys())
+            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+            period_keys = list(sorted_result.keys())
 
-            # Max usage from shore is time series float (values), and contains one more item
-            # than time steps for volumes. Number of values for max usage from shore should
-            # be the same as number of volume-time steps, hence [:-1]
-            reindexed_result = (
-                TimeSeriesFloat(timesteps=date_keys, values=list(sorted_result.values()), unit=unit)
-                .reindex(resample_time_steps(time_steps=installation_graph.get_timesteps(), frequency=frequency))
-                .fill_nan(0)
-            )[:-1]
-
-            return {reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            # Max usage from shore is time series float (values)
+            # The maximum value with in each period in sorted_results should be found for the new periods
+            return {
+                period: TimeSeriesFloat(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .for_period(period)
+                .max()
+                for period in resample_periods(periods=installation_graph.get_periods(), frequency=frequency)
+            }
         return None
 
 
@@ -297,11 +297,11 @@ class PowerConsumptionQuery(Query):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         if self.installation_category is not None and self.installation_category != installation_graph.get_category():
             return None
 
-        aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
+        aggregated_result: DefaultDict[Period, float] = defaultdict(float)
         for attribute in installation_graph.get_power_consumption(unit):
             meta = attribute.get_meta()
 
@@ -311,20 +311,22 @@ class PowerConsumptionQuery(Query):
             if self.consumer_categories is not None and meta.consumer_category not in self.consumer_categories:
                 continue
 
-            for timestep, consumption_volume in attribute.datapoints():
-                aggregated_result[timestep] += consumption_volume
+            for period, consumption_volume in attribute.datapoints():
+                aggregated_result[period] += consumption_volume
 
         if aggregated_result:
             sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
-            sorted_result = {**dict.fromkeys(installation_graph.get_timesteps(), 0.0), **sorted_result}
-            date_keys = list(sorted_result.keys())
+            sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
+            period_keys = list(sorted_result.keys())
 
-            reindexed_result = (
-                TimeSeriesVolumes(timesteps=date_keys, values=list(sorted_result.values())[:-1], unit=unit)
-                .reindex(resample_time_steps(time_steps=installation_graph.get_timesteps(), frequency=frequency))
+            resampled_result = (
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
 
-            return {reindexed_result.timesteps[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
+            }
 
         return None

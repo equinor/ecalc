@@ -41,7 +41,7 @@ def ltp_pfs_yaml_factory():
     ) -> DTOCase:
         input_text = f"""
         START: 2025-01-01
-        END: 2030-01-01
+        END: 2031-01-01
         TIME_SERIES:
           - NAME: CABLE_LOSS
             TYPE: DEFAULT

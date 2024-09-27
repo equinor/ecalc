@@ -15,7 +15,7 @@ def map_yaml_to_dto(configuration: YamlValidator, resources: Resources) -> Asset
     references = create_references(configuration, resources)
     target_period = Period(
         start=configuration.start or DEFAULT_START_TIME,
-        end=configuration.end or datetime.max,
+        end=configuration.end or datetime.max.replace(microsecond=0),
     )
     model_mapper = EcalcModelMapper(
         references=references,
