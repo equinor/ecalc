@@ -151,7 +151,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     )
 
     variables_map = VariablesMap(
-        time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1)],
+        global_time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1), datetime(2025, 1, 1)],
         variables={"SIM1;v1": [1, 1], "SIM1;v2": [1, 1]},
     )
 

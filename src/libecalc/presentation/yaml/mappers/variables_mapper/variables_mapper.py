@@ -95,7 +95,7 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
             f"Missing references are {', '.join(missing_references)}"
         )
 
-    return VariablesMap(variables=processed_variables, time_vector=variables_map.time_vector)
+    return VariablesMap(variables=processed_variables, global_time_vector=variables_map.global_time_vector)
 
 
 def map_yaml_to_variables(
@@ -106,10 +106,11 @@ def map_yaml_to_variables(
         time_series_provider.get_time_series(time_series_reference)
         for time_series_reference in time_series_provider.get_time_series_references()
     ]
+    period_start_dates = global_time_vector[:-1]  # Remove last date
     for time_series in time_series_list:
-        variables[time_series.reference_id] = time_series.fit_to_time_vector(global_time_vector).series
+        variables[time_series.reference_id] = time_series.fit_to_time_vector(period_start_dates).series
 
     return _evaluate_variables(
         configuration.variables,
-        variables_map=VariablesMap(variables=variables, time_vector=global_time_vector),
+        variables_map=VariablesMap(variables=variables, global_time_vector=global_time_vector),
     )

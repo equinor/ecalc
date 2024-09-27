@@ -14,7 +14,7 @@ def minimal_asset_result(minimal_model_dto_factory):
     minimal_dto = minimal_model_dto_factory()
     graph = minimal_dto.get_graph()
     variables = VariablesMap(
-        time_vector=[datetime(2020, 1, 1), datetime(2022, 1, 1)],
+        global_time_vector=[datetime(2020, 1, 1), datetime(2022, 1, 1)],
         variables={},
     )
     energy_calculator = EnergyCalculator(graph=graph)

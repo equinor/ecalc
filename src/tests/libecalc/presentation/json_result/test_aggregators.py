@@ -152,7 +152,7 @@ class TestAggregateEmissions:
         """
 
         time_vector = pd.date_range(datetime(2024, 1, 1), datetime(2025, 1, 1), freq="M").to_pydatetime().tolist()
-        variables = VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+        variables = VariablesMap(global_time_vector=time_vector, variables={"RATE": [1] * (len(time_vector) - 1)})
 
         inst_a = get_installation(
             name_inst="INSTA", name_consumer="cons1", name_fuel="fuel1", co2_factor=1, fuel_rate=100

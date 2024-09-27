@@ -53,6 +53,21 @@ class Period:
         """
         return first.start in second or second.start in first
 
+    @staticmethod
+    def intersection(first: Period, second: Period) -> Period:
+        """
+        Args:
+            first:
+            second:
+
+        Returns:
+
+        """
+        if not Period.intersects(first, second):
+            return Period()
+
+        return Period(max(first.start, second.start), min(first.end, second.end))
+
     def get_timestep_indices(self, timesteps: List[datetime]) -> Tuple[int, int]:
         try:
             start_index = timesteps.index(max(self.start, timesteps[0]))
@@ -121,6 +136,11 @@ class Periods:
                 return period
 
         raise ProgrammingError(f"Period for date '{time}' not found in periods")
+
+    @property
+    def period(self) -> Period:
+        """Get the period which is the union of all the sub periods"""
+        return Period(start=self.periods[0].start, end=self.periods[-1].end)
 
 
 def define_time_model_for_period(

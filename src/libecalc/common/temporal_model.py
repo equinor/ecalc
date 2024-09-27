@@ -47,12 +47,14 @@ class TemporalExpression:
     ) -> List[float]:
         result = variables_map.zeros()
         for period, expression in temporal_expression.items():
+            # find the intersection with the global periods
             if Period.intersects(period, variables_map.period):
-                start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
-                variables_map_for_this_period = variables_map.get_subset(start_index=start_index, end_index=end_index)
+                variables_map_for_this_period = variables_map.get_subset_for_period(period=period)
                 evaluated_expression = expression.evaluate(
                     variables=variables_map_for_this_period.variables,
                     fill_length=len(variables_map_for_this_period.time_vector),
                 )
+                start_index = variables_map.periods.periods.index(variables_map_for_this_period.first_period)
+                end_index = variables_map.periods.periods.index(variables_map_for_this_period.last_period) + 1
                 result[start_index:end_index] = evaluated_expression
         return result

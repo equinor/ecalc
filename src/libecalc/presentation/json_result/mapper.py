@@ -256,7 +256,7 @@ def _compute_aggregated_power(
             if component.power is not None
         ],
         TimeSeriesRate(
-            values=[0.0] * graph_result.variables_map.length,
+            values=[0.0] * graph_result.variables_map.number_of_periods,
             timesteps=graph_result.variables_map.time_vector,
             unit=Unit.MEGA_WATT,
             rate_type=RateType.STREAM_DAY,
@@ -431,7 +431,11 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             component = graph_result.graph.get_node(consumer_id)
 
             for model in consumer_result.models:
-                period = Period(model.timesteps[0], model.timesteps[-1])
+                model_start_date = model.timesteps[0]
+                model_end_date = graph_result.variables_map.global_time_vector[
+                    graph_result.variables_map.global_time_vector.index(model.timesteps[-1]) + 1
+                ]
+                period = Period(start=model_start_date, end=model_end_date)
 
                 inlet_pressure_eval = get_requested_compressor_pressures(
                     energy_usage_model=component.energy_usage_model,
@@ -1411,11 +1415,11 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         }
 
     time_series_zero = TimeSeriesRate(
-        values=[0] * graph_result.variables_map.length,
+        values=[0] * graph_result.variables_map.number_of_periods,
         timesteps=graph_result.variables_map.time_vector,
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         rate_type=RateType.CALENDAR_DAY,
-        regularity=[1] * graph_result.variables_map.length,
+        regularity=[1] * graph_result.variables_map.number_of_periods,
     )
 
     for installation in asset.installations:
@@ -1434,7 +1438,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     timesteps=graph_result.variables_map.time_vector,
                     is_valid=TimeSeriesBoolean(
                         timesteps=graph_result.variables_map.time_vector,
-                        values=[True] * graph_result.variables_map.length,
+                        values=[True] * graph_result.variables_map.number_of_periods,
                         unit=Unit.NONE,
                     ),
                     energy_usage=energy_usage,
@@ -1532,7 +1536,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             timesteps=graph_result.variables_map.time_vector,
             values=aggregate_is_valid(installation_results)
             if installation_results
-            else [True] * graph_result.variables_map.length,
+            else [True] * graph_result.variables_map.number_of_periods,
             unit=Unit.NONE,
         ),
         power=asset_power_core,

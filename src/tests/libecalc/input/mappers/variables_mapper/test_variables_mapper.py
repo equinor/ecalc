@@ -21,7 +21,7 @@ class TestEvaluateVariables:
                     "test_id2": YamlSingleVariable(value=Expression.setup_from_expression("SIM2;TEST")),
                     "test_id3": YamlSingleVariable(value=Expression.setup_from_expression("SIM3;TEST")),
                 },
-                variables_map=VariablesMap(variables={}, time_vector=[]),
+                variables_map=VariablesMap(variables={}, global_time_vector=[]),
             )
         assert str(exc_info.value) == (
             "Could not evaluate all variables, unable to resolve references in "
@@ -32,9 +32,10 @@ class TestEvaluateVariables:
     def test_two_layers(self):
         variables_map = VariablesMap(
             variables={"SIM1;TEST": [2, 4]},
-            time_vector=[
+            global_time_vector=[
                 datetime(2010, 1, 1),
                 datetime(2012, 1, 1),
+                datetime(2014, 1, 1),
             ],
         )
         variables = {"VAR1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2"))}
@@ -45,9 +46,10 @@ class TestEvaluateVariables:
         test_values = [2, 4]
         variables_map = VariablesMap(
             variables={"SIM1;TEST": test_values},
-            time_vector=[
+            global_time_vector=[
                 datetime(2010, 1, 1),
                 datetime(2012, 1, 1),
+                datetime(2014, 1, 1),
             ],
         )
         variables = {

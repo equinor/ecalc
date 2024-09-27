@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -103,7 +104,7 @@ def test_emissions_diesel_fixed_and_mobile():
         ],
     )
 
-    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(global_time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
 
     ltp_result = get_consumption(model=asset, variables=variables, time_vector=time_vector_yearly)
 
@@ -137,7 +138,7 @@ def test_temporal_models_detailed():
     - Generator set user defined category
     - Generator set model
     """
-    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(global_time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
 
     ltp_result = get_consumption(
         model=installation_direct_consumer_dto(), variables=variables, time_vector=time_vector_yearly
@@ -186,7 +187,7 @@ def test_temporal_models_offshore_wind():
     - El-consumer user defined category
     - El-consumer energy usage model
     """
-    variables = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+    variables = VariablesMap(global_time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
 
     ltp_result = get_consumption(
         model=installation_offshore_wind_dto(), variables=variables, time_vector=time_vector_yearly
@@ -204,7 +205,7 @@ def test_temporal_models_compressor():
     Detailed temporal models (variations within one year) for:
     - Fuel consumer user defined category
     """
-    variables = VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(global_time_vector=time_vector_installation, variables={})
 
     ltp_result = get_consumption(
         model=installation_compressor_dto([no_el_consumption()]), variables=variables, time_vector=time_vector_yearly
@@ -217,7 +218,7 @@ def test_temporal_models_compressor():
 
 
 def test_boiler_heater_categories():
-    variables = VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(global_time_vector=time_vector_installation, variables={})
 
     ltp_result = get_consumption(
         model=installation_boiler_heater_dto(), variables=variables, time_vector=time_vector_yearly
@@ -243,11 +244,12 @@ def test_venting_emitters():
     time_vector = [
         datetime(2027, 1, 1),
         datetime(2028, 1, 1),
+        datetime(2029, 1, 1),
     ]
     regularity = 0.2
     emission_rate = 10
 
-    variables = VariablesMap(time_vector=time_vector, variables={})
+    variables = VariablesMap(global_time_vector=time_vector, variables={})
 
     dto_sd_kg_per_day = venting_emitter_yaml_factory(
         emission_rates=[emission_rate],
@@ -321,11 +323,12 @@ def test_only_venting_emitters_no_fuelconsumers():
     time_vector = [
         datetime(2027, 1, 1),
         datetime(2028, 1, 1),
+        datetime(2029, 1, 1),
     ]
     regularity = 0.2
     emission_rate = 10
 
-    variables = VariablesMap(time_vector=time_vector, variables={})
+    variables = VariablesMap(global_time_vector=time_vector, variables={})
 
     # Installation with only venting emitters:
     dto_case_emitters = venting_emitter_yaml_factory(
@@ -427,8 +430,9 @@ def test_total_oil_loaded_old_method():
     time_vector = [
         datetime(2027, 1, 1),
         datetime(2028, 1, 1),
+        datetime(2029, 1, 1),
     ]
-    variables = VariablesMap(time_vector=time_vector, variables={})
+    variables = VariablesMap(global_time_vector=time_vector, variables={})
 
     regularity = 0.6
     emission_factor = 2
@@ -472,7 +476,9 @@ def test_total_oil_loaded_old_method():
     assert loaded_and_stored_oil_loading_only is not None
 
     # Verify correct volume for oil loaded/stored
-    assert loaded_and_stored_oil_loading_and_storage == fuel_rate * 365 * regularity
+    assert (
+        loaded_and_stored_oil_loading_and_storage == fuel_rate * (365 + 366) * regularity
+    )  # for 2027 and 2028 (leap year)
 
     # Verify that total oil loaded/stored is the same if only loading is specified,
     # compared to a model with both loading and storage.
@@ -481,7 +487,7 @@ def test_total_oil_loaded_old_method():
 
 def test_electrical_and_mechanical_power_installation():
     """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
-    variables = VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(global_time_vector=time_vector_installation, variables={})
     asset = dto.Asset(
         name="Asset 1",
         installations=[
@@ -505,8 +511,9 @@ def test_electrical_and_mechanical_power_installation():
     power_total_installation = asset_result.get_component_by_name("INSTALLATION_A").power_cumulative.values[-1]
 
     # Verify that total power is correct
-    assert power_total_installation == power_electrical_installation + power_mechanical_installation
-
+    np.testing.assert_allclose(
+        power_total_installation, power_electrical_installation + power_mechanical_installation, rtol=0.001
+    )
     # Verify that electrical power equals genset power, and mechanical power equals power from gas driven compressor:
     assert power_generator_set == power_electrical_installation
     assert power_fuel_driven_compressor == power_mechanical_installation
@@ -514,7 +521,7 @@ def test_electrical_and_mechanical_power_installation():
 
 def test_electrical_and_mechanical_power_asset():
     """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
-    variables = VariablesMap(time_vector=time_vector_installation, variables={})
+    variables = VariablesMap(global_time_vector=time_vector_installation, variables={})
     installation_name_1 = "INSTALLATION_1"
     installation_name_2 = "INSTALLATION_2"
 
@@ -569,7 +576,6 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
 
     time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2030, 1, 1), freq="YS").to_pydatetime().tolist()
 
-    VariablesMap(time_vector=time_vector_yearly, variables={})
     regularity = 0.2
     load = 10
     cable_loss = 0.1

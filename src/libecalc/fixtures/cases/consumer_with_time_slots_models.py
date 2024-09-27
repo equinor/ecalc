@@ -259,7 +259,7 @@ def consumer_with_time_slots_models_dto(
 ) -> DTOCase:
     start_year = 2010
     number_of_years = 20
-    time_vector = [datetime(year, 1, 1) for year in range(start_year, start_year + number_of_years)]
+    time_vector = [datetime(year, 1, 1) for year in range(start_year, start_year + number_of_years + 1)]
 
     return DTOCase(
         ecalc_model=Asset(
@@ -310,5 +310,5 @@ def consumer_with_time_slots_models_dto(
                 )
             ],
         ),
-        variables=VariablesMap(time_vector=time_vector, variables={"RATE": [5000] * number_of_years}),
+        variables=VariablesMap(global_time_vector=time_vector, variables={"RATE": [5000] * number_of_years}),
     )

@@ -661,11 +661,12 @@ def consumer_system_v2_dto() -> DTOCase:
             ],
         ),
         variables=VariablesMap(
-            time_vector=[
+            global_time_vector=[
                 datetime(2022, 1, 1, 0, 0),
                 datetime(2024, 1, 1, 0, 0),
                 datetime(2025, 1, 1, 0, 0),
                 datetime(2026, 1, 1, 0, 0),
+                datetime(2027, 1, 1, 0, 0),
             ],
             variables={
                 "compressor1;rate": [0.0, 0.0, 0.0, 4000000.0],
