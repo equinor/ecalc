@@ -75,7 +75,7 @@ class EnergyCalculator:
                         }
                     ),
                 )
-                consumer_results[component_dto.id] = consumer.evaluate(variables_map=variables_map)
+                consumer_results[component_dto.id] = consumer.evaluate(expression_evaluator=variables_map)
             elif isinstance(component_dto, GeneratorSetDTO):
                 fuel_consumer = Genset(
                     id=component_dto.id,
