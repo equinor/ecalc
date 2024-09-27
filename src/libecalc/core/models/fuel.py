@@ -9,7 +9,7 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
 from libecalc.dto import FuelType
 
@@ -25,7 +25,7 @@ class FuelModel:
         self.temporal_fuel_model = TemporalModel(fuel_time_function_dict)
 
     def evaluate_emissions(
-        self, variables_map: VariablesMap, fuel_rate: NDArray[np.float64]
+        self, expression_evaluator: ExpressionEvaluator, fuel_rate: NDArray[np.float64]
     ) -> Dict[str, EmissionResult]:
         """Evaluate fuel related expressions and results for a TimeSeriesCollection and a
         fuel_rate array.
@@ -55,27 +55,24 @@ class FuelModel:
         }
 
         for period, model in self.temporal_fuel_model.items():
-            if Period.intersects(period, variables_map.period):
-                start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
-                variables_map_this_period = variables_map.get_subset(
+            if Period.intersects(period, expression_evaluator.get_period()):
+                start_index, end_index = period.get_timestep_indices(expression_evaluator.get_time_vector())
+                variables_map_this_period = expression_evaluator.get_subset(
                     start_index=start_index,
                     end_index=end_index,
                 )
                 fuel_rate_this_period = fuel_rate[start_index:end_index]
                 for emission in model.emissions:
-                    factor = emission.factor.evaluate(
-                        variables=variables_map_this_period.variables,
-                        fill_length=len(variables_map_this_period.time_vector),
-                    )
+                    factor = variables_map_this_period.evaluate(expression=emission.factor)
 
                     emission_rate_kg_per_day = fuel_rate_this_period * factor
                     emission_rate_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate_kg_per_day)
 
                     result = EmissionResult(
                         name=emission.name,
-                        timesteps=variables_map_this_period.time_vector,
+                        timesteps=variables_map_this_period.get_time_vector(),
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=variables_map_this_period.time_vector,
+                            timesteps=variables_map_this_period.get_time_vector(),
                             values=emission_rate_tons_per_day.tolist(),
                             unit=Unit.TONS_PER_DAY,
                         ),
@@ -86,7 +83,9 @@ class FuelModel:
                 for name in emissions:
                     if name not in [emission.name for emission in model.emissions]:
                         emissions[name].extend(
-                            EmissionResult.create_empty(name=name, timesteps=variables_map_this_period.time_vector)
+                            EmissionResult.create_empty(
+                                name=name, timesteps=variables_map_this_period.get_time_vector()
+                            )
                         )
 
         return dict(sorted(emissions.items()))

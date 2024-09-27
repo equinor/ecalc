@@ -35,7 +35,7 @@ def test_direct_expression_consumer_function():
         fuel_rate=Expression.setup_from_expression(time_series_name + ";Flare {+} " + time_series_name + ";Vent"),
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     ).evaluate(
-        variables_map=variables_map,
+        expression_evaluator=variables_map,
         regularity=[1.0] * len(variables_map.time_vector),
     )
     expected_result = [15, 5]
@@ -59,7 +59,7 @@ def test_direct_expression_consumer_function():
         consumes=ConsumptionType.FUEL,
         regularity=TemporalModel({datetime(1900, 1, 1): Expression.setup_from_expression(1)}),
     )
-    result = fuel_consumer.evaluate(variables_map=variables_map)
+    result = fuel_consumer.evaluate(expression_evaluator=variables_map)
     consumer_result = result.component_result
     np.testing.assert_allclose(
         actual=consumer_result.energy_usage.values,
@@ -74,7 +74,7 @@ def test_direct_expression_consumer_function():
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -87,7 +87,7 @@ def test_direct_expression_consumer_function():
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -100,7 +100,7 @@ def test_direct_expression_consumer_function():
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -113,7 +113,7 @@ def test_direct_expression_consumer_function():
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -126,7 +126,7 @@ def test_direct_expression_consumer_function():
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -140,7 +140,7 @@ def test_direct_expression_consumer_function():
             condition=Expression.setup_from_expression(value="2 < 1"),
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -156,7 +156,7 @@ def test_direct_expression_consumer_function():
             ),
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -170,7 +170,7 @@ def test_direct_expression_consumer_function():
             energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
         )
         .evaluate(
-            variables_map=variables_map,
+            expression_evaluator=variables_map,
             regularity=[1.0] * len(variables_map.time_vector),
         )
         .energy_usage,
@@ -201,11 +201,11 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
     evaluated_regularity = [regularity] * len(direct_variables_map.time_vector)
 
     stream_day_function_result = stream_day_function.evaluate(
-        variables_map=direct_variables_map,
+        expression_evaluator=direct_variables_map,
         regularity=evaluated_regularity,
     )
     calendar_day_function_result = calendar_day_function.evaluate(
-        variables_map=direct_variables_map,
+        expression_evaluator=direct_variables_map,
         regularity=evaluated_regularity,
     )
 

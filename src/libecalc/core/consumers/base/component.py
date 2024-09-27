@@ -3,7 +3,7 @@ from typing import List
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.utils.rates import TimeSeriesFloat
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 
 
@@ -11,7 +11,7 @@ class BaseConsumer(ABC):
     @abstractmethod
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        expression_evaluator: ExpressionEvaluator,
         temporal_operational_settings,
     ) -> EcalcModelResult: ...
 

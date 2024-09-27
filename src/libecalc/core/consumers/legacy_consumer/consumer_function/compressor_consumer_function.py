@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 from libecalc.common.utils.rates import Rates
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -62,7 +62,7 @@ class CompressorConsumerFunction(ConsumerFunction):
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        expression_evaluator: ExpressionEvaluator,
         regularity: List[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the Compressor energy usage.
@@ -71,10 +71,7 @@ class CompressorConsumerFunction(ConsumerFunction):
         :return:
         """
         calendar_day_rates = np.array(
-            [
-                rate_expression.evaluate(variables=variables_map.variables, fill_length=len(variables_map.time_vector))
-                for rate_expression in self._rate_expression
-            ]
+            [expression_evaluator.evaluate(expression=rate_expression) for rate_expression in self._rate_expression]
         )
         # Squeeze to remove axes of length one -> non-multiple streams will be 1d and not 2d.
         # But we don't want to squeeze multiple streams model with only one date.
@@ -99,30 +96,24 @@ class CompressorConsumerFunction(ConsumerFunction):
             )
 
         intermediate_pressure = (
-            self._intermediate_pressure_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            expression_evaluator.evaluate(expression=self._intermediate_pressure_expression)
             if self._intermediate_pressure_expression
             else None
         )
         suction_pressure = (
-            self._suction_pressure_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            expression_evaluator.evaluate(expression=self._suction_pressure_expression)
             if self._suction_pressure_expression is not None
             else None
         )
         discharge_pressure = (
-            self._discharge_pressure_expression.evaluate(
-                variables=variables_map.variables, fill_length=len(variables_map.time_vector)
-            )
+            expression_evaluator.evaluate(expression=self._discharge_pressure_expression)
             if self._discharge_pressure_expression is not None
             else None
         )
 
         # Do conditioning first - set rates to zero if conditions are not met
         condition = get_condition_from_expression(
-            variables_map=variables_map,
+            expression_evaluator=expression_evaluator,
             condition_expression=self._condition_expression,
         )
         stream_day_rate_after_condition = apply_condition(
@@ -148,12 +139,12 @@ class CompressorConsumerFunction(ConsumerFunction):
             )
 
         power_loss_factor = get_power_loss_factor_from_expression(
-            variables_map=variables_map,
+            expression_evaluator=expression_evaluator,
             power_loss_factor_expression=self._power_loss_factor_expression,
         )
 
         consumer_function_result = ConsumerFunctionResult(
-            time_vector=np.array(variables_map.time_vector),
+            time_vector=np.array(expression_evaluator.get_time_vector()),
             is_valid=np.asarray(compressor_train_result.is_valid),
             energy_function_result=compressor_train_result,
             condition=condition,

@@ -12,7 +12,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
-from libecalc.common.temporal_model import TemporalExpression, TemporalModel
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -22,7 +22,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
@@ -221,20 +221,17 @@ class Consumer(BaseConsumer):
 
     def evaluate(
         self,
-        variables_map: VariablesMap,
+        expression_evaluator: ExpressionEvaluator,
     ) -> EcalcModelResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid timesteps. this will
         probably be changed soon.
         """
         logger.debug(f"Evaluating consumer: {self.name}")
-        regularity = TemporalExpression.evaluate(
-            temporal_expression=self.regularity,
-            variables_map=variables_map,
-        )
+        regularity = expression_evaluator.evaluate(expression=self.regularity)
 
         # NOTE! This function may not handle regularity 0
         consumer_function_results = self.evaluate_consumer_temporal_model(
-            variables_map=variables_map,
+            expression_evaluator=expression_evaluator,
             regularity=regularity,
         )
 
@@ -245,13 +242,13 @@ class Consumer(BaseConsumer):
         energy_usage = self.reindex_time_vector(
             values=aggregated_consumer_function_result.energy_usage,
             time_vector=aggregated_consumer_function_result.time_vector,
-            new_time_vector=variables_map.time_vector,
+            new_time_vector=expression_evaluator.get_time_vector(),
         )
 
         valid_timesteps = self.reindex_time_vector(
             values=aggregated_consumer_function_result.is_valid,
             time_vector=aggregated_consumer_function_result.time_vector,
-            new_time_vector=variables_map.time_vector,
+            new_time_vector=expression_evaluator.get_time_vector(),
             fillna=True,  # Time-step is valid if not calculated.
         ).astype(bool)
 
@@ -268,22 +265,22 @@ class Consumer(BaseConsumer):
                 power = self.reindex_time_vector(
                     values=aggregated_consumer_function_result.power,
                     time_vector=aggregated_consumer_function_result.time_vector,
-                    new_time_vector=variables_map.time_vector,
+                    new_time_vector=expression_evaluator.get_time_vector(),
                 )
                 power_time_series = TimeSeriesStreamDayRate(
-                    timesteps=variables_map.time_vector,
+                    timesteps=expression_evaluator.get_time_vector(),
                     values=array_to_list(power),
                     unit=Unit.MEGA_WATT,
                 )
             energy_usage_time_series = TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=expression_evaluator.get_time_vector(),
                 values=array_to_list(energy_usage),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             )
 
         elif self.consumes == ConsumptionType.ELECTRICITY:
             energy_usage_time_series = TimeSeriesStreamDayRate(
-                timesteps=variables_map.time_vector,
+                timesteps=expression_evaluator.get_time_vector(),
                 values=array_to_list(energy_usage),
                 unit=Unit.MEGA_WATT,
             )
@@ -293,13 +290,13 @@ class Consumer(BaseConsumer):
             assert_never(self.consumes)
 
         is_valid = TimeSeriesBoolean(
-            timesteps=variables_map.time_vector,
+            timesteps=expression_evaluator.get_time_vector(),
             values=array_to_list(valid_timesteps),
             unit=Unit.NONE,
         )
 
         consumer_result = self.get_consumer_result(
-            timesteps=variables_map.time_vector,
+            timesteps=expression_evaluator.get_time_vector(),
             energy_usage=energy_usage_time_series,
             power_usage=power_time_series,
             is_valid=is_valid,
@@ -320,26 +317,26 @@ class Consumer(BaseConsumer):
 
     def evaluate_consumer_temporal_model(
         self,
-        variables_map: VariablesMap,
+        expression_evaluator: ExpressionEvaluator,
         regularity: List[float],
     ) -> List[ConsumerOrSystemFunctionResult]:
         """Evaluate each of the models in the temporal model for this consumer."""
         results = []
         for period, consumer_model in self._consumer_time_function.items():
-            if Period.intersects(period, variables_map.period):
-                start_index, end_index = period.get_timestep_indices(variables_map.time_vector)
+            if Period.intersects(period, expression_evaluator.get_period()):
+                start_index, end_index = period.get_timestep_indices(expression_evaluator.get_time_vector())
                 regularity_this_period = regularity[start_index:end_index]
-                variables_map_this_period = variables_map.get_subset(
+                variables_map_this_period = expression_evaluator.get_subset(
                     start_index=start_index,
                     end_index=end_index,
                 )
                 logger.debug(
                     f"Evaluating {consumer_model.__class__.__name__} with"
-                    f" {len(variables_map_this_period.time_vector)} timestep(s) in range"
+                    f" {len(variables_map_this_period.get_time_vector())} timestep(s) in range"
                     f" [{period}]"
                 )
                 consumer_function_result = consumer_model.evaluate(
-                    variables_map=variables_map_this_period,
+                    expression_evaluator=variables_map_this_period,
                     regularity=regularity_this_period,
                 )
                 results.append(consumer_function_result)

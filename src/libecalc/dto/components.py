@@ -19,7 +19,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.dto.base import (
     EcalcBaseModel,
 )
@@ -252,7 +252,7 @@ class ConsumerSystem(BaseConsumer):
         return graph
 
     def evaluate_stream_conditions(
-        self, variables_map: VariablesMap
+        self, expression_evaluator: ExpressionEvaluator
     ) -> Priorities[Dict[ConsumerID, List[TimeSeriesStreamConditions]]]:
         parsed_priorities: Priorities[Dict[ConsumerID, List[TimeSeriesStreamConditions]]] = defaultdict(dict)
         for priority_name, priority in self.stream_conditions_priorities.items():
@@ -262,10 +262,10 @@ class ConsumerSystem(BaseConsumer):
                         id=generate_id(consumer_name, stream_name),
                         name="-".join([consumer_name, stream_name]),
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=variables_map.time_vector,
+                            timesteps=expression_evaluator.get_time_vector(),
                             values=list(
-                                Expression.setup_from_expression(stream_conditions.rate.value).evaluate(
-                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                expression_evaluator.evaluate(
+                                    Expression.setup_from_expression(stream_conditions.rate.value)
                                 )
                             ),
                             unit=stream_conditions.rate.unit,
@@ -273,10 +273,10 @@ class ConsumerSystem(BaseConsumer):
                         if stream_conditions.rate is not None
                         else None,
                         pressure=TimeSeriesFloat(
-                            timesteps=variables_map.time_vector,
+                            timesteps=expression_evaluator.get_time_vector(),
                             values=list(
-                                Expression.setup_from_expression(stream_conditions.pressure.value).evaluate(
-                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                expression_evaluator.evaluate(
+                                    expression=Expression.setup_from_expression(stream_conditions.pressure.value)
                                 )
                             ),
                             unit=stream_conditions.pressure.unit,
@@ -284,10 +284,10 @@ class ConsumerSystem(BaseConsumer):
                         if stream_conditions.pressure is not None
                         else None,
                         fluid_density=TimeSeriesFloat(
-                            timesteps=variables_map.time_vector,
+                            timesteps=expression_evaluator.get_time_vector(),
                             values=list(
-                                Expression.setup_from_expression(stream_conditions.fluid_density.value).evaluate(
-                                    variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+                                expression_evaluator.evaluate(
+                                    expression=Expression.setup_from_expression(stream_conditions.fluid_density.value)
                                 )
                             ),
                             unit=stream_conditions.fluid_density.unit,

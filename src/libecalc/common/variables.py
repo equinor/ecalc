@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import abc
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Protocol, Union
 
+import numpy as np
+from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
-from typing_extensions import Annotated
+from typing_extensions import Annotated, assert_never
 
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
+from libecalc.expression.expression import Expression
 
 
 class VariablesMap(BaseModel):
@@ -65,3 +70,50 @@ class VariablesMap(BaseModel):
 
     def zeros(self) -> List[float]:
         return [0.0] * len(self.time_vector)
+
+    def get_time_vector(self):
+        return self.time_vector
+
+    def get_period(self):
+        return self.period
+
+    def evaluate(self, expression: Union[Expression, Dict[datetime, Expression], TemporalModel]) -> NDArray[np.float64]:
+        # Should we only allow Expression and Temporal model?
+        if isinstance(expression, Expression):
+            return expression.evaluate(variables=self.variables, fill_length=len(self.get_time_vector()))
+        elif isinstance(expression, dict):
+            return self._evaluate_temporal(temporal_expression=TemporalModel[expression])
+        elif isinstance(expression, TemporalModel):
+            return self._evaluate_temporal(temporal_expression=expression)
+
+        assert_never(expression)
+
+    def _evaluate_temporal(
+        self,
+        temporal_expression: TemporalModel[Expression],
+    ) -> NDArray[np.float64]:
+        result = self.zeros()
+
+        for period, expression in temporal_expression.items():
+            if Period.intersects(period, self.get_period()):
+                start_index, end_index = period.get_timestep_indices(self.get_time_vector())
+                variables_map_for_this_period = self.get_subset(start_index=start_index, end_index=end_index)
+                evaluated_expression = variables_map_for_this_period.evaluate(expression)
+                result[start_index:end_index] = evaluated_expression
+        return np.asarray(result)
+
+
+class ExpressionEvaluator(Protocol):
+    @abc.abstractmethod
+    def get_time_vector(self) -> [List[datetime]]: ...
+
+    @abc.abstractmethod
+    def get_period(self) -> Period: ...
+
+    @abc.abstractmethod
+    def get_subset(self, start_index: int, end_index: int) -> ExpressionEvaluator: ...
+
+    @abc.abstractmethod
+    def evaluate(
+        self, expression: Union[Expression, TemporalModel, Dict[datetime, Expression]]
+    ) -> NDArray[np.float64]: ...

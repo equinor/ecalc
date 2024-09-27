@@ -27,7 +27,7 @@ def test_fuel_model():
     )
     timesteps = [datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1)]
     emissions = fuel_model.evaluate_emissions(
-        variables_map=VariablesMap(time_vector=timesteps),
+        expression_evaluator=VariablesMap(time_vector=timesteps),
         fuel_rate=np.asarray([1, 2, 3]),
     )
 
@@ -69,7 +69,9 @@ def test_temporal_fuel_model():
     )
 
     emissions = fuel_model.evaluate_emissions(
-        variables_map=VariablesMap(time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1)]),
+        expression_evaluator=VariablesMap(
+            time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1)]
+        ),
         fuel_rate=np.asarray([1, 2, 3]),
     )
 

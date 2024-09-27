@@ -51,7 +51,7 @@ def test_evaluate_consumer_time_function(direct_el_consumer):
     )
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
     results = consumer.evaluate_consumer_temporal_model(
-        variables_map=VariablesMap(time_vector=time_vector), regularity=np.ones_like(time_vector)
+        expression_evaluator=VariablesMap(time_vector=time_vector), regularity=np.ones_like(time_vector)
     )
     results = consumer.aggregate_consumer_function_results(results)
     assert results.energy_usage.tolist() == [1, 2, 10, 0, 0, 0]
@@ -77,7 +77,7 @@ def test_fuel_consumer(tabulated_fuel_consumer):
     )
 
     result = fuel_consumer.evaluate(
-        variables_map=VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 0, 0]}),
+        expression_evaluator=VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 0, 0]}),
     )
     consumer_result = result.component_result
 
@@ -114,7 +114,7 @@ def test_electricity_consumer(direct_el_consumer):
     )
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2025, 1, 1), freq="YS").to_pydatetime().tolist()
     result = electricity_consumer.evaluate(
-        variables_map=VariablesMap(time_vector=time_vector),
+        expression_evaluator=VariablesMap(time_vector=time_vector),
     )
 
     assert isinstance(result, EcalcModelResult)
@@ -150,7 +150,7 @@ def test_electricity_consumer_mismatch_time_slots(direct_el_consumer):
     )
 
     result = electricity_consumer.evaluate(
-        variables_map=VariablesMap(time_vector=time_vector),
+        expression_evaluator=VariablesMap(time_vector=time_vector),
     )
     consumer_result = result.component_result
 
@@ -203,7 +203,7 @@ def test_electricity_consumer_nan_values(direct_el_consumer):
     electricity_consumer.evaluate_consumer_temporal_model = Mock(return_value=[consumer_function_result])
 
     result = electricity_consumer.evaluate(
-        variables_map=VariablesMap(time_vector=time_vector),
+        expression_evaluator=VariablesMap(time_vector=time_vector),
     )
     consumer_result = result.component_result
 

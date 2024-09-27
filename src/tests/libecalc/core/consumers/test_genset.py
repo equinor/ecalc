@@ -72,7 +72,7 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     )
 
     results = genset.evaluate(
-        variables_map=VariablesMap(time_vector=time_vector),
+        expression_evaluator=VariablesMap(time_vector=time_vector),
         power_requirement=np.asarray([np.nan, np.nan, 0.5, 0.5, np.nan, np.nan]),
     )
 
@@ -114,7 +114,7 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     )
 
     results = genset.evaluate(
-        variables_map=VariablesMap(time_vector=time_vector),
+        expression_evaluator=VariablesMap(time_vector=time_vector),
         power_requirement=np.asarray([1, 2, 3, 4, 5, 6]),
     )
 
