@@ -156,8 +156,8 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
         consumes=time_slots_simplified_compressor_system.consumes,
         energy_usage_model=TemporalModel(
             {
-                start_time: EnergyModelMapper.from_dto_to_domain(model)
-                for start_time, model in time_slots_simplified_compressor_system.energy_usage_model.items()
+                period: EnergyModelMapper.from_dto_to_domain(model)
+                for period, model in time_slots_simplified_compressor_system.energy_usage_model.items()
             }
         ),
     )

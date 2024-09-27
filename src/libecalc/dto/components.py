@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
@@ -13,6 +12,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
@@ -50,7 +50,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 
 
-def check_model_energy_usage_type(model_data: Dict[datetime, ConsumerFunction], energy_type: EnergyUsageType):
+def check_model_energy_usage_type(model_data: Dict[Period, ConsumerFunction], energy_type: EnergyUsageType):
     for model in model_data.values():
         if model.energy_usage_type != energy_type:
             raise ValueError(f"Model does not consume {energy_type.value}")
@@ -68,13 +68,13 @@ class Component(EcalcBaseModel, ABC):
 class BaseComponent(Component, ABC):
     name: ComponentNameStr
 
-    regularity: Dict[datetime, Expression]
+    regularity: Dict[Period, Expression]
 
     _validate_base_temporal_model = field_validator("regularity")(validate_temporal_model)
 
 
 class BaseEquipment(BaseComponent, ABC):
-    user_defined_category: Dict[datetime, ConsumerUserDefinedCategoryType] = Field(..., validate_default=True)
+    user_defined_category: Dict[Period, ConsumerUserDefinedCategoryType] = Field(..., validate_default=True)
 
     @property
     def id(self) -> str:
@@ -101,7 +101,7 @@ class BaseConsumer(BaseEquipment, ABC):
     """Base class for all consumers."""
 
     consumes: ConsumptionType
-    fuel: Optional[Dict[datetime, FuelType]] = None
+    fuel: Optional[Dict[Period, FuelType]] = None
 
     @field_validator("fuel")
     @classmethod
@@ -125,7 +125,7 @@ class ElectricityConsumer(BaseConsumer):
     ]
     consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY
     energy_usage_model: Dict[
-        datetime,
+        Period,
         ElectricEnergyUsageModel,
     ]
 
@@ -143,8 +143,8 @@ class FuelConsumer(BaseConsumer):
         ComponentType.COMPRESSOR_SYSTEM,
     ]
     consumes: Literal[ConsumptionType.FUEL] = ConsumptionType.FUEL
-    fuel: Dict[datetime, FuelType]
-    energy_usage_model: Dict[datetime, FuelEnergyUsageModel]
+    fuel: Dict[Period, FuelType]
+    energy_usage_model: Dict[Period, FuelEnergyUsageModel]
 
     _validate_fuel_consumer_temporal_models = field_validator("energy_usage_model", "fuel")(validate_temporal_model)
 
@@ -171,12 +171,12 @@ class PumpOperationalSettings(EcalcBaseModel):
 
 class CompressorComponent(BaseConsumer):
     component_type: Literal[ComponentType.COMPRESSOR] = ComponentType.COMPRESSOR
-    energy_usage_model: Dict[datetime, CompressorModel]
+    energy_usage_model: Dict[Period, CompressorModel]
 
 
 class PumpComponent(BaseConsumer):
     component_type: Literal[ComponentType.PUMP] = ComponentType.PUMP
-    energy_usage_model: Dict[datetime, PumpModel]
+    energy_usage_model: Dict[Period, PumpModel]
 
 
 class Stream(EcalcBaseModel):
@@ -302,8 +302,8 @@ class ConsumerSystem(BaseConsumer):
 
 class GeneratorSet(BaseEquipment):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
-    fuel: Dict[datetime, FuelType]
-    generator_set_model: Dict[datetime, GeneratorSetSampled]
+    fuel: Dict[Period, FuelType]
+    generator_set_model: Dict[Period, GeneratorSetSampled]
     consumers: List[
         Annotated[
             Union[ElectricityConsumer, ConsumerSystem],
@@ -359,7 +359,7 @@ class GeneratorSet(BaseEquipment):
 class Installation(BaseComponent):
     component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = Field(default=None, validate_default=True)
-    hydrocarbon_export: Dict[datetime, Expression]
+    hydrocarbon_export: Dict[Period, Expression]
     fuel_consumers: List[
         Annotated[
             Union[GeneratorSet, FuelConsumer, ConsumerSystem],

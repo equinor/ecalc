@@ -8,6 +8,7 @@ import libecalc.common.utils.rates
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression_consumer_function import (
@@ -48,7 +49,7 @@ def test_direct_expression_consumer_function():
         component_type=ComponentType.GENERIC,
         energy_usage_model=TemporalModel(
             {
-                datetime(1900, 1, 1): DirectExpressionConsumerFunction(
+                Period(datetime(1900, 1, 1)): DirectExpressionConsumerFunction(
                     fuel_rate=Expression.setup_from_expression(
                         time_series_name + ";Flare {+} " + time_series_name + ";Vent"
                     ),
@@ -57,7 +58,7 @@ def test_direct_expression_consumer_function():
             }
         ),
         consumes=ConsumptionType.FUEL,
-        regularity=TemporalModel({datetime(1900, 1, 1): Expression.setup_from_expression(1)}),
+        regularity=TemporalModel({Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}),
     )
     result = fuel_consumer.evaluate(expression_evaluator=variables_map)
     consumer_result = result.component_result

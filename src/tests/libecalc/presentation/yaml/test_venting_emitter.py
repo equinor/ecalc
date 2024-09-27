@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -73,7 +74,7 @@ def test_venting_emitter(variables_map):
         ],
     )
 
-    regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
+    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}
 
     emission_rate = venting_emitter.get_emissions(expression_evaluator=variables_map, regularity=regularity)[
         "ch4"
@@ -119,7 +120,7 @@ def test_venting_emitter_oil_volume(variables_map):
         ),
     )
 
-    regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
+    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}
 
     emission_rate = venting_emitter.get_emissions(expression_evaluator=variables_map, regularity=regularity)[
         "ch4"
@@ -135,7 +136,7 @@ def test_venting_emitter_oil_volume(variables_map):
     emissions_ch4 = emission_result["ch4"]
 
     regularity_evaluated = float(
-        Expression.evaluate(regularity[datetime(1900, 1, 1)], fill_length=1, variables=variables_map.variables)
+        Expression.evaluate(regularity[Period(datetime(1900, 1, 1))], fill_length=1, variables=variables_map.variables)
     )
     expected_result = [oil_value * regularity_evaluated * emission_factor / 1000 for oil_value in oil_values()]
 

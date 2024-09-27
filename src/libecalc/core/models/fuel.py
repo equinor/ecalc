@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Dict
 
 import numpy as np
@@ -20,7 +19,7 @@ class FuelModel:
     attributes which may be evaluated for some variables and a fuel_rate.
     """
 
-    def __init__(self, fuel_time_function_dict: Dict[datetime, FuelType]):
+    def __init__(self, fuel_time_function_dict: Dict[Period, FuelType]):
         logger.debug("Creating fuel model")
         self.temporal_fuel_model = TemporalModel(fuel_time_function_dict)
 

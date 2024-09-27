@@ -60,7 +60,7 @@ def get_operational_setting_used_id(timestep: datetime, operational_settings_use
 
 @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
 def get_requested_compressor_pressures(
-    energy_usage_model: Dict[datetime, Any],
+    energy_usage_model: Dict[Period, Any],
     pressure_type: CompressorPressureType,
     name: str,
     model_timesteps: List[datetime],
@@ -84,7 +84,7 @@ def get_requested_compressor_pressures(
         if isinstance(model, CompressorSystemConsumerFunction):
             # Loop timesteps in temporal model, to find correct operational settings used:
             timesteps_in_period = period.get_timesteps(model_timesteps)
-            for timestep in timesteps_in_period:
+            for timestep, next_timestep in zip(timesteps_in_period[:-1], timesteps_in_period[1:]):
                 for compressor in model.compressors:
                     if compressor.name == name:
                         operational_setting_used_id = get_operational_setting_used_id(
@@ -114,7 +114,7 @@ def get_requested_compressor_pressures(
 
                         if not isinstance(pressures, Expression):
                             pressures = Expression.setup_from_expression(value=pressures)
-                        evaluated_temporal_energy_usage_models[timestep] = pressures
+                        evaluated_temporal_energy_usage_models[Period(timestep, next_timestep)] = pressures
         else:
             pressures = model.suction_pressure
 
@@ -127,7 +127,7 @@ def get_requested_compressor_pressures(
             if not isinstance(pressures, Expression):
                 pressures = Expression.setup_from_expression(value=pressures)
 
-            evaluated_temporal_energy_usage_models[period.start] = pressures
+            evaluated_temporal_energy_usage_models[period] = pressures
 
     return TemporalModel(evaluated_temporal_energy_usage_models)
 

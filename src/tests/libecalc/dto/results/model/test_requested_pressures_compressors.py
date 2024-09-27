@@ -6,6 +6,7 @@ import pytest
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import EcalcModelResult, GraphResult
 from libecalc.common.component_info.compressor import CompressorPressureType
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.presentation.json_result.mapper import (
@@ -40,12 +41,12 @@ def result(compressor_systems_and_compressor_train_temporal_dto) -> EcalcModelRe
     return result
 
 
-def get_inlet_pressure(list_index: int, timestep: datetime, models: List[CompressorModelResult]) -> float:
-    return models[list_index].requested_inlet_pressure.for_timestep(timestep).values[0]
+def get_inlet_pressure(list_index: int, period: Period, models: List[CompressorModelResult]) -> List[float]:
+    return models[list_index].requested_inlet_pressure.for_period(period).values
 
 
-def get_outlet_pressure(list_index: int, timestep: datetime, models: List[CompressorModelResult]) -> float:
-    return models[list_index].requested_outlet_pressure.for_timestep(timestep).values[0]
+def get_outlet_pressure(list_index: int, period: Period, models: List[CompressorModelResult]) -> List[float]:
+    return models[list_index].requested_outlet_pressure.for_period(period).values
 
 
 def test_requested_pressures_compressor_train_temporal_model(result: EcalcModelResult):
@@ -92,22 +93,22 @@ def test_requested_pressures_compressor_system_temporal_model(result: EcalcModel
     :param result: eCalc result including models with requested pressures
     :return: Nothing
     """
-    date_temporal_1 = datetime(2018, 1, 1)
-    date_temporal_2 = datetime(2019, 1, 1)
+    period1 = Period(datetime(2018, 1, 1), datetime(2019, 1, 1))
+    period2 = Period(datetime(2019, 1, 1))
     models = result.models
 
     # Compressor system with temporal model and inlet/outlet pressures per compressor
-    requested_inlet_pressure_train1 = get_inlet_pressure(2, date_temporal_1, models)
-    requested_inlet_pressure_train1_upgr = get_inlet_pressure(3, date_temporal_2, models)
-    requested_inlet_pressure_train2 = get_inlet_pressure(4, date_temporal_1, models)
-    requested_inlet_pressure_train2_upgr = get_inlet_pressure(5, date_temporal_2, models)
-    requested_inlet_pressure_train3 = get_inlet_pressure(6, date_temporal_1, models)
+    requested_inlet_pressure_train1 = get_inlet_pressure(2, period1, models)
+    requested_inlet_pressure_train1_upgr = get_inlet_pressure(3, period2, models)
+    requested_inlet_pressure_train2 = get_inlet_pressure(4, period1, models)
+    requested_inlet_pressure_train2_upgr = get_inlet_pressure(5, period2, models)
+    requested_inlet_pressure_train3 = get_inlet_pressure(6, period1, models)
 
-    requested_outlet_pressure_train1 = get_outlet_pressure(2, date_temporal_1, models)
-    requested_outlet_pressure_train1_upgr = get_outlet_pressure(3, date_temporal_2, models)
-    requested_outlet_pressure_train2 = get_outlet_pressure(4, date_temporal_1, models)
-    requested_outlet_pressure_train2_upgr = get_outlet_pressure(5, date_temporal_2, models)
-    requested_outlet_pressure_train3 = get_outlet_pressure(6, date_temporal_1, models)
+    requested_outlet_pressure_train1 = get_outlet_pressure(2, period1, models)
+    requested_outlet_pressure_train1_upgr = get_outlet_pressure(3, period2, models)
+    requested_outlet_pressure_train2 = get_outlet_pressure(4, period1, models)
+    requested_outlet_pressure_train2_upgr = get_outlet_pressure(5, period2, models)
+    requested_outlet_pressure_train3 = get_outlet_pressure(6, period1, models)
 
     # Temporal model 1
     assert requested_inlet_pressure_train1 in [20.0, 50.0]
