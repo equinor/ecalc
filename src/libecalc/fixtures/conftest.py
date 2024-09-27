@@ -4,6 +4,7 @@ from typing import Dict
 import pytest
 
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
+from libecalc.common.time_utils import Period
 from libecalc.dto import Emission, FluidComposition, FluidModel, FuelType
 from libecalc.dto.types import EoSModel, FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
@@ -21,9 +22,9 @@ def rich_fluid_dto() -> FluidModel:
 
 
 @pytest.fixture
-def fuel_gas() -> Dict[datetime, FuelType]:
+def fuel_gas() -> Dict[Period, FuelType]:
     return {
-        datetime(1900, 1, 1): FuelType(
+        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): FuelType(
             name="fuel_gas",
             user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
             emissions=[

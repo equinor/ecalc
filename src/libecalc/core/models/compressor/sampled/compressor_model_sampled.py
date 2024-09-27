@@ -218,17 +218,17 @@ class CompressorModelSampled(CompressorModel):
             turbine_result.energy_usage if turbine_result is not None else array_to_list(interpolated_consumer_values)
         )
 
-        inlet_stream_condition = CompressorStreamCondition.create_empty(number_of_timesteps=number_of_data_points)
+        inlet_stream_condition = CompressorStreamCondition.create_empty(number_of_periods=number_of_data_points)
         inlet_stream_condition.pressure = (
             array_to_list(suction_pressure) if suction_pressure is not None else [np.nan] * number_of_data_points
         )
 
-        outlet_stream_condition = CompressorStreamCondition.create_empty(number_of_timesteps=number_of_data_points)
+        outlet_stream_condition = CompressorStreamCondition.create_empty(number_of_periods=number_of_data_points)
         outlet_stream_condition.pressure = (
             array_to_list(discharge_pressure) if discharge_pressure is not None else [np.nan] * number_of_data_points
         )
 
-        compressor_stage_result = CompressorStageResult.create_empty(number_of_timesteps=number_of_data_points)
+        compressor_stage_result = CompressorStageResult.create_empty(number_of_periods=number_of_data_points)
         if energy_usage is not None:
             compressor_stage_result.energy_usage = energy_usage
         compressor_stage_result.energy_usage_unit = (

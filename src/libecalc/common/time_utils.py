@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
+from typing_extensions import Self
 
 from libecalc.common.errors.exceptions import (
     InvalidDateException,
@@ -20,52 +21,82 @@ def calculate_delta_days(time_vector: ArrayLike) -> NDArray[np.float64]:
     return np.array([x.total_seconds() / UnitConstants.SECONDS_IN_A_DAY for x in np.diff(time_vector)])
 
 
-@dataclass
+@dataclass(eq=True, frozen=True, order=True)
 class Period:
+    """A period of time, defined by a start and end date."""
+
     start: datetime = datetime.min
-    end: datetime = datetime.max
+    end: datetime = datetime.max.replace(microsecond=0)
 
     def __str__(self) -> str:
-        return f"{self.start}:{self.end}"
+        return f"{self.start};{self.end}"  #  need something other than : to be able to split a string into two dates
 
-    def __contains__(self, time: datetime) -> bool:
+    def __contains__(self, date_or_period: Union[datetime, Period]) -> bool:
         """
-        A period of time is defined as [start, end>,
-        ie inclusive start and exclusive end.
+        A period of time is defined as [start, end>, ie inclusive start and exclusive end.
+
+        Check if a date or another period is contained within this period.
 
         Args:
-            time:
+            date_or_period: A date or period of interest
 
         Returns:
-
+            Whether the given date or period is contained within this period
         """
-        return self.start <= time < self.end
+        if isinstance(date_or_period, datetime):
+            return self.start <= date_or_period < self.end
+        if isinstance(date_or_period, Period):
+            return self.start <= date_or_period.start < date_or_period.end <= self.end
 
     @staticmethod
     def intersects(first: Period, second: Period) -> bool:
-        """
+        """Decide if two periods intersects.
+
         Args:
-            first:
-            second:
+            first: A period
+            second: Another period
+
+        Returns:
+            Whether the two periods intersects
+        """
+        return first.start in second or second.start in first
+
+    @staticmethod
+    def intersection(first: Period, second: Period) -> Optional[Period]:
+        """Find the intersection between two periods.
+
+        Args:
+            first: A period
+            second: Another period
+
+        Returns:
+            The intersection between the two periods. Returns None if the periods do not intersect.
+        """
+        if not Period.intersects(first, second):
+            return None
+
+        return Period(max(first.start, second.start), min(first.end, second.end))
+
+    def get_period_indices(self, periods: Periods) -> Tuple[int, int]:
+        """Given a list of periods, find the indices of the start and end of this objects period in the list.
+
+           The start and end dates of this object's period must be within the start and end dates within
+           the given list of periods.
+        Args:
+            periods: A Periods object, containing a list of Periods
 
         Returns:
 
         """
-        return first.start in second or second.start in first
-
-    def get_timestep_indices(self, timesteps: List[datetime]) -> Tuple[int, int]:
         try:
-            start_index = timesteps.index(max(self.start, timesteps[0]))
-            if self.end > timesteps[-1]:
-                end_index = len(timesteps) + 1
-            else:
-                end_index = timesteps.index(self.end)
+            start_index = periods.start_dates.index(max(self.start, periods.periods[0].start))
+            end_index = periods.all_dates.index(min(self.end, periods.periods[-1].end))
 
             return start_index, end_index
         except (IndexError, ValueError) as e:
             raise ProgrammingError(
-                "Trying to access a timestep index that does not exist. Please contact eCalc support.\n\t"
-                f"Period: {self.start}:{self.end} - timesteps: {timesteps}"
+                "Trying to access a period index that does not exist. Please contact eCalc support.\n\t"
+                f"Period: {self.start}:{self.end} - periods: {periods}"
             ) from e
 
     def get_timesteps(self, timesteps: List[datetime]) -> List[datetime]:
@@ -77,13 +108,31 @@ class Period:
 
         return timesteps
 
+    def get_periods(self, periods: Periods) -> Periods:
+        """Given a list of periods, find those that are within this object's period.
+        Args:
+            periods: A Periods object, containing a list of Periods
 
-@dataclass
+        Returns:
+
+        """
+        if Period.intersects(periods.period, self):
+            start_index, end_index = self.get_period_indices(periods)
+            return periods[start_index:end_index]
+        else:
+            return Periods([])
+
+    @property
+    def duration(self) -> timedelta:
+        return self.end - self.start
+
+
+@dataclass(eq=True, frozen=True, order=True)
 class Periods:
     periods: List[Period]
 
-    @classmethod
-    def create_periods(cls, times: List[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
+    @staticmethod
+    def create_periods(times: List[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
         """
         Create periods from the provided datetimes
         :param times: the sorted times to create periods from
@@ -94,7 +143,7 @@ class Periods:
         :return:
         """
         if len(times) == 0:
-            return cls([])
+            return Periods([])
 
         periods = []
 
@@ -110,46 +159,87 @@ class Periods:
         if include_after:
             periods.append(Period(start=times[-1]))
 
-        return cls(periods)
+        return Periods(periods=periods)
 
     def __iter__(self):
         return self.periods.__iter__()
 
-    def get_period(self, time: datetime) -> Period:
-        for period in self.periods:
-            if time in period:
-                return period
+    def get_period(self, period: Period) -> Optional[Period]:
+        for _period in self.periods:
+            if period in _period:
+                return _period
 
-        raise ProgrammingError(f"Period for date '{time}' not found in periods")
+        return None
+
+    @property
+    def all_dates(self):
+        return self.start_dates + [self.end_dates[-1]]
+
+    @property
+    def start_dates(self):
+        return [period.start for period in self.periods]
+
+    @property
+    def end_dates(self):
+        return [period.end for period in self.periods]
+
+    @property
+    def last_date(self):
+        return self.end_dates[-1]
+
+    @property
+    def first_date(self):
+        return self.start_dates[0]
+
+    def __add__(self, other):
+        return Periods(self.periods + other.periods)
+
+    def __len__(self):
+        return len(self.periods)
+
+    def __getitem__(self, indices: Union[slice, int, List[int]]) -> Self:
+        if isinstance(indices, slice):
+            return Periods(self.periods[indices])
+        elif isinstance(indices, int):
+            return Periods([self.periods[indices]])
+        elif isinstance(indices, list):
+            return Periods([self.periods[i] for i in indices])
+        raise ValueError(
+            f"Unsupported indexing operation. Got '{type(indices)}', expected indices as a slice, single index or a list of indices"
+        )
+
+    @property
+    def period(self):
+        return Period(self.periods[0].start, self.periods[-1].end)
 
 
-def define_time_model_for_period(
-    time_model_data: Optional[Any], target_period: Period
-) -> Optional[Dict[datetime, Any]]:
+def define_time_model_for_period(time_model_data: Optional[Any], target_period: Period) -> Optional[Dict[Period, Any]]:
     """Process time model based on the target period.
 
     Steps:
         - Add a default start date if the model is not already a time model
         - Filter definitions outside given time period
-        - Adjust start_date of the first model to the period
-    :param time_model_data: a model that can vary based on time,
-        i.e. {1900.01.01: some model, 1950.01.01: some other model}
-    :param target_period: period for which a model is defined (START,END specified by user or default to everything)
-    :return: the time model for the target period
+        - Adjust start date of the first model to the period
+
+    Args:
+        time_model_data: A model that can vary based on time, e.g., {1900-01-01: some model, 1950-01-01: some other model}
+        target_period: Period for which a model is defined (START, END specified by user or default to everything)
+
+    Returns:
+        The time model for the target period
     """
     if time_model_data is None:
         return None
 
     # Make sure the model is a time model
-    time_model_data = default_temporal_model(time_model_data, default_start=target_period.start)
+    time_model_data = default_temporal_model(time_model_data, default_period=target_period)
 
-    model_periods = Periods.create_periods(list(time_model_data.keys()), include_before=False)
+    dict_to_return = {}
+    for model_period, model in time_model_data.items():
+        if Period.intersects(model_period, target_period):
+            dict_to_return[Period.intersection(model_period, target_period)] = model
 
-    return {
-        max(model_period.start, target_period.start): model
-        for model_period, model in zip(model_periods.periods, time_model_data.values())
-        if Period.intersects(model_period, target_period)
-    }
+    return dict_to_return
 
 
 class Frequency(str, enum.Enum):
@@ -175,38 +265,41 @@ class Frequency(str, enum.Enum):
             return "%d/%m/%Y"
 
 
-def resample_time_steps(
-    time_steps: List[datetime],
+def resample_periods(
+    periods: Periods,
     frequency: Frequency,
     include_start_date: bool = True,
     include_end_date: bool = True,
-) -> List[datetime]:
-    """Makes a time vector, based on the first and last date in time_vector and the frequency
+) -> Periods:
+    """Makes a list of periods, based on the first and last date in the original periods and the frequency
 
     Args:
-        time_steps: The original time vector
+        periods: The original list of periods
         frequency: The reporting frequency
         include_start_date: Whether to include the start date if it is not part of the requested reporting frequency
         include_end_date: Whether to include the end date if it is not part of the requested reporting frequency
 
-    Returns: Time vector with dates according to given input
+    Returns: List of periods dates according to given input
 
     """
     if frequency is not Frequency.NONE:
-        time_step_vector = create_time_steps(
-            start=time_steps[0],
-            end=time_steps[-1],
-            frequency=frequency,
-            include_start_date=include_start_date,
-            include_end_date=include_end_date,
+        periods = Periods.create_periods(
+            times=create_start_and_end_dates_for_periods(
+                start=periods.periods[0].start,
+                end=periods.periods[-1].end,
+                frequency=frequency,
+                include_start_date=include_start_date,
+                include_end_date=include_end_date,
+            ),
+            include_before=False,
+            include_after=False,
         )
     else:
-        time_step_vector = time_steps
+        periods = periods
+    return periods
 
-    return time_step_vector
 
-
-def create_time_steps(
+def create_start_and_end_dates_for_periods(
     frequency: Frequency, start: datetime, end: datetime, include_start_date: bool, include_end_date: bool
 ) -> List[datetime]:
     """
@@ -242,25 +335,48 @@ def clear_time(d: datetime) -> datetime:
 
 
 def is_temporal_model(data: Dict) -> bool:
+    """Check if the data is a time dependent dict. A time dependent dict is a dict where the keys are dates or periods."""
     if isinstance(data, dict):
+        is_period = []
         is_date = []
-        is_not_date_keys = []
+        is_not_period_keys = []
         for key in data:
             if isinstance(key, date):
                 is_date.append(True)
+                is_period.append(False)
+            elif isinstance(key, Period):
+                is_period.append(True)
+                is_date.append(False)
             else:
                 try:
-                    datetime.strptime(key, "%Y-%m-%dT%H:%M:%S")
-                    is_date.append(True)
+                    split_key = key.split(";")
+                    if len(split_key) == 1:
+                        datetime.strptime(split_key[0], "%Y-%m-%dT%H:%M:%S")
+                        is_date.append(True)
+                        is_period.append(False)
+                    else:
+                        datetime.strptime(split_key[0], "%Y-%m-%d %H:%M:%S")
+                        datetime.strptime(split_key[1], "%Y-%m-%d %H:%M:%S")
+                        is_period.append(True)
+                        is_date.append(False)
                 except (TypeError, ValueError):
-                    is_not_date_keys.append(str(key))
+                    is_not_period_keys.append(str(key))
+                    is_period.append(False)
                     is_date.append(False)
         if any(is_date):
             if not all(is_date):
                 raise InvalidDateException(
                     title="Invalid model",
                     message="Temporal models should only contain date keys. "
-                    f"Invalid date(s): {','.join(is_not_date_keys)}",
+                    f"Invalid date(s): {','.join(is_not_period_keys)}",
+                )
+            return True
+        if any(is_period):
+            if not all(is_period):
+                raise InvalidDateException(
+                    title="Invalid model",
+                    message="Temporal models should only contain date keys. "
+                    f"Invalid date(s): {','.join(is_not_period_keys)}",
                 )
             return True
     return False
@@ -272,19 +388,28 @@ def convert_date_to_datetime(d: Union[date, datetime]) -> datetime:
     return datetime(d.year, d.month, d.day, 0, 0, 0)
 
 
-def default_temporal_model(data: Any, default_start: datetime) -> Optional[Dict[datetime, Any]]:
+def default_temporal_model(data: Any, default_period: Period) -> Optional[Dict[Period, Any]]:
     """Ensure the data is a time dependent dict. Also convert all dates to datetime with default time 00:00:00
-    :param default_start: the start time to use as default
+    :param default_period: the period to use as default
     :param data:
     :return:
     """
     if data is None:
         return None
     elif is_temporal_model(data):
-        # Already a date-dict
-        return {convert_date_to_datetime(_date): value for _date, value in data.items()}
+        # Already a temporal model dictionary. Convert all keys to periods if they are dates
+        if isinstance(next(iter(data)), date):
+            _dates = [convert_date_to_datetime(key) for key in data.keys()] + [datetime.max.replace(microsecond=0)]
+            return {
+                Period(start=start_date, end=end_date): value
+                for start_date, end_date, value in zip(_dates[:-1], _dates[1:], data.values())
+            }
+        return {
+            Period(start=convert_date_to_datetime(key.start), end=convert_date_to_datetime(key.end)): value
+            for key, value in data.items()
+        }
     else:
         # Set default start
         return {
-            default_start: data,
+            default_period: data,
         }

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Dict, Iterator, List, Tuple, Union
 
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.domain.tabular.exceptions import ColumnNotFound
 from libecalc.presentation.exporter.formatters.formattable import ColumnIndex, Formattable, FormattableGroup, RowIndex
@@ -32,7 +32,7 @@ class QueryResult:
     name: str
     title: str
     unit: Unit  # Needed! in order to know how to handler further....parse
-    values: Dict[datetime, float]
+    values: Dict[Period, float]
 
     def get_title(self) -> str:
         return f"{self.title}[{self.unit}]"
@@ -53,11 +53,11 @@ class GroupedQueryResult:
 @dataclass
 class FormattableGroupedQuery(Formattable):
     query_results: List[QueryResult]
-    time_vector: List[datetime]
+    periods: Periods
 
     @property
     def row_ids(self) -> List[RowIndex]:
-        return self.time_vector
+        return self.periods.periods
 
     @property
     def column_ids(self) -> List[ColumnIndex]:
@@ -80,7 +80,7 @@ class FormattableGroupedQuery(Formattable):
 @dataclass
 class FilteredResult(FormattableGroup):
     query_results: List[GroupedQueryResult]
-    time_vector: List[datetime]
+    periods: Periods
 
     @property
     def groups(self) -> Iterator[Tuple[str, Formattable]]:
@@ -88,7 +88,7 @@ class FilteredResult(FormattableGroup):
             (
                 group.group_name,
                 FormattableGroupedQuery(
-                    time_vector=self.time_vector,
+                    periods=self.periods,
                     query_results=group.query_results,
                 ),
             )

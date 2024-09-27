@@ -57,7 +57,7 @@ class TestResolveFuel:
 
     def test_resolve_multiple_fuels(self, references, all_the_time):
         _resolve_fuel(
-            {datetime(1900, 1, 1): "diesel", datetime(2020, 1, 1): "fuel_gas"},
+            {Period(datetime(1900, 1, 1), datetime(2020, 1, 1)): "diesel", Period(datetime(2020, 1, 1)): "fuel_gas"},
             "fuel_gas",
             references,
             target_period=all_the_time,

@@ -31,7 +31,7 @@ class TestEcalcModelMapper:
         first_subdiagram = installation.subdiagram.pop(0)
         last_subdiagram = installation.subdiagram.pop(-1)
         assert first_subdiagram.end_date == datetime(2018, 1, 1)
-        assert last_subdiagram.end_date == datetime(2020, 12, 31)
+        assert last_subdiagram.end_date == datetime(2021, 1, 1)
 
     @pytest.mark.snapshot
     def test_case_with_dates(self, installation_with_dates_dto_fd: dto.Asset, snapshot):

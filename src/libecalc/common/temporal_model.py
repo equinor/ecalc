@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Generic, Iterable, Iterator, Tuple, TypeVar
+from typing import Dict, Generic, Iterable, Iterator, Tuple, TypeVar, Union
 
 from libecalc.common.time_utils import Period
 
@@ -14,16 +14,23 @@ class Model(Generic[ModelType]):
 
 
 class TemporalModel(Generic[ModelType]):
-    def __init__(self, data: Dict[datetime, ModelType]):
+    """If data has datetime keys, convert to Period keys"""
+
+    def __init__(self, data: Union[Dict[datetime, ModelType], Dict[Period, ModelType]]):
+        if all(isinstance(key, datetime) for key in data.keys()):
+            # convert date keys to Period keys
+            model_dates = list(data.keys()) + [datetime.max.replace(microsecond=0)]
+            data = {
+                Period(start=start_time, end=end_time): model
+                for start_time, end_time, model in zip(model_dates[:-1], model_dates[1:], data.values())
+            }
         self._data = data
-        start_times = list(data.keys())
-        end_times = [*start_times[1:], datetime.max]
         self.models = [
             Model(
-                period=Period(start=start_time, end=end_time),
+                period=period,
                 model=model,
             )
-            for start_time, end_time, model in zip(start_times, end_times, data.values())
+            for period, model in data.items()
         ]
 
     def get_periods(self) -> Iterable[Period]:
@@ -32,9 +39,9 @@ class TemporalModel(Generic[ModelType]):
     def items(self) -> Iterator[Tuple[Period, ModelType]]:
         return ((model.period, model.model) for model in self.models)
 
-    def get_model(self, timestep: datetime) -> ModelType:
+    def get_model(self, period: Period) -> ModelType:
         for model in self.models:
-            if timestep in model.period:
+            if period in model.period:
                 return model.model
 
-        raise ValueError(f"Model for timestep '{timestep}' not found in Temporal model")
+        raise ValueError(f"Model for timestep '{period}' not found in Temporal model")

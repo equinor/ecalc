@@ -46,7 +46,7 @@ class TestConsumerSystemConsumerFunctionResult:
     def test_append(self, consumer_system_result):
         appended_consumer_system_result = consumer_system_result.extend(consumer_system_result)
 
-        assert len(appended_consumer_system_result.time_vector) == 6
+        assert len(appended_consumer_system_result.periods) == 6
         assert np.all(appended_consumer_system_result.is_valid)
         assert appended_consumer_system_result.energy_usage.tolist() == [1, 2, 3, 1, 2, 3]
         assert appended_consumer_system_result.energy_usage_before_power_loss_factor.tolist() == [1, 2, 3, 1, 2, 3]

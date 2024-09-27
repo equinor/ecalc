@@ -1,10 +1,11 @@
 from collections import defaultdict
-from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence, Union, cast
 
 import numpy as np
 from numpy import float64
 from numpy.typing import NDArray
+
+from libecalc.common.time_utils import Periods
 
 """
 NOTE! A "list util" class is not the best, but maybe we should try to
@@ -57,23 +58,21 @@ def group_data_by_value_at_index(index: int, row_based_data: List[List[Any]]) ->
     return chart_grouped_by_index
 
 
-def elementwise_sum(
-    *vectors: Sequence[Optional[float]], timesteps: Optional[List[datetime]] = None
-) -> NDArray[np.float64]:
+def elementwise_sum(*vectors: Sequence[Optional[float]], periods: Optional[Periods] = None) -> NDArray[np.float64]:
     """Sum up multiple vectors elementwise.
 
     E.g. if we provide three lists [1,20], [2,10], [1,30], the result will be [1+2+1,20+10+30] = [4,60]
 
     Args:
         *vectors: Sequences to be summed up elementwise
-        timesteps: Optional list of timesteps used to initialize resulting array. If no timesteps are provided, the first vector is used
+        periods: Optional list of periods used to initialize resulting array. If no periods are provided, the first vector is used
 
     Returns:
         Numpy array where the elements of provided vectors are summed up elementwise
 
     """
-    if timesteps is not None:
-        result = np.full_like(timesteps, fill_value=0.0, dtype=float64)
+    if periods is not None:
+        result = np.full_like(periods.periods, fill_value=0.0, dtype=float64)
     else:
         result = np.full_like(vectors[0], fill_value=0.0, dtype=float64)
 
@@ -83,7 +82,7 @@ def elementwise_sum(
 
 
 def elementwise_multiplication(
-    *vectors: Sequence[Optional[float]], timesteps: Optional[List[datetime]] = None
+    *vectors: Sequence[Optional[float]], periods: Optional[Periods] = None
 ) -> NDArray[np.float64]:
     """Multiply multiple vectors elementwise.
 
@@ -91,14 +90,14 @@ def elementwise_multiplication(
 
     Args:
         *vectors: Sequences to be multiplied up elementwise
-        timesteps: Optional list of timesteps used to initialize resulting array. If no timesteps are provided, the first vector is used
+        periods: Optional list of periods used to initialize resulting array. If no periods are provided, the first vector is used
 
     Returns:
         Numpy array where the elements of provided vectors are multiplied up elementwise
 
     """
-    if timesteps is not None:
-        result = np.full_like(timesteps, fill_value=1.0, dtype=float64)
+    if periods is not None:
+        result = np.full_like(periods.periods, fill_value=1.0, dtype=float64)
     else:
         result = np.full_like(vectors[0], fill_value=1.0, dtype=float64)
 

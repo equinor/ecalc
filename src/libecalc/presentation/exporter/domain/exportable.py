@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from typing import Iterable, Iterator, List, Optional, Tuple
 
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 
 
@@ -26,7 +26,7 @@ class AttributeMeta:
 
 class Attribute(ABC):
     @abstractmethod
-    def datapoints(self) -> Iterable[Tuple[datetime, float]]: ...
+    def datapoints(self) -> Iterable[Tuple[Period, float]]: ...
 
     @abstractmethod
     def get_meta(self) -> AttributeMeta: ...
@@ -48,7 +48,7 @@ class Exportable(ABC):
     def get_category(self) -> str: ...
 
     @abstractmethod
-    def get_timesteps(self) -> List[datetime]: ...
+    def get_periods(self) -> Periods: ...
 
     @abstractmethod
     def get_fuel_consumption(self) -> AttributeSet: ...

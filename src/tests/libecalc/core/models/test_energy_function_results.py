@@ -79,8 +79,8 @@ def test_extend_mismatching_compressor_stage_results():
         stage_results=[],
         rate_sm3_day=[np.nan] * 3,
         failure_status=[None] * 3,
-        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
-        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
+        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
+        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
     result_2 = CompressorTrainResult(
         energy_usage=[2.0] * 3,
@@ -88,24 +88,24 @@ def test_extend_mismatching_compressor_stage_results():
         power=[np.nan] * 3,
         power_unit=Unit.MEGA_WATT,
         stage_results=[
-            CompressorStageResult.create_empty(number_of_timesteps=3),
-            CompressorStageResult.create_empty(number_of_timesteps=3),
+            CompressorStageResult.create_empty(number_of_periods=3),
+            CompressorStageResult.create_empty(number_of_periods=3),
         ],
         rate_sm3_day=[np.nan] * 3,
         failure_status=[None] * 3,
-        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
-        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
+        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
+        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
     result_3 = CompressorTrainResult(
         energy_usage=[3.0] * 3,
         energy_usage_unit=Unit.MEGA_WATT,
         power=[np.nan] * 3,
         power_unit=Unit.MEGA_WATT,
-        stage_results=[CompressorStageResult.create_empty(number_of_timesteps=3)],
+        stage_results=[CompressorStageResult.create_empty(number_of_periods=3)],
         rate_sm3_day=[np.nan] * 3,
         failure_status=[None] * 3,
-        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
-        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
+        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
+        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
 
     result_4 = CompressorTrainResult(
@@ -116,8 +116,8 @@ def test_extend_mismatching_compressor_stage_results():
         stage_results=[],
         rate_sm3_day=[],
         failure_status=[],
-        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
-        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
+        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
+        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
 
     result = result_1.model_copy()
@@ -151,7 +151,7 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
     )
 
     variables_map = VariablesMap(
-        time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1)],
+        time_vector=[datetime(2023, 1, 1), datetime(2024, 1, 1), datetime(2025, 1, 1)],
         variables={"SIM1;v1": [1, 1], "SIM1;v2": [1, 1]},
     )
 
@@ -166,11 +166,11 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
             condition_expression=None,
             power_loss_factor_expression=None,
         )
-        .evaluate(expression_evaluator=variables_map, regularity=[1] * len(variables_map.time_vector))
+        .evaluate(expression_evaluator=variables_map, regularity=[1] * variables_map.number_of_periods)
         .energy_function_result
     )
 
-    stage_result_3 = CompressorStageResult.create_empty(number_of_timesteps=3)
+    stage_result_3 = CompressorStageResult.create_empty(number_of_periods=3)
     stage_result_3.mass_rate_kg_per_hr = [1, 1, 1]
 
     # Results 2: second temporal model - 3 timesteps. Has real values for mass_rate_kg_per_hr.
@@ -182,8 +182,8 @@ def test_extend_compressor_train_results_over_temporal_models_with_none_variable
         stage_results=[stage_result_3],
         rate_sm3_day=[np.nan] * 3,
         failure_status=[None] * 3,
-        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
-        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
+        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
+        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
 
     result = result_1.model_copy(deep=True)
@@ -212,8 +212,8 @@ def test_extend_compressor_train_result_from_multiple_streams() -> None:
         stage_results=[],
         rate_sm3_day=[[1] * 3] * 3,
         failure_status=[None] * 3,
-        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
-        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
+        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
+        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
     result_2 = CompressorTrainResult(
         energy_usage=[2.0] * 3,
@@ -221,13 +221,13 @@ def test_extend_compressor_train_result_from_multiple_streams() -> None:
         power=[np.nan] * 3,
         power_unit=Unit.MEGA_WATT,
         stage_results=[
-            CompressorStageResult.create_empty(number_of_timesteps=3),
-            CompressorStageResult.create_empty(number_of_timesteps=3),
+            CompressorStageResult.create_empty(number_of_periods=3),
+            CompressorStageResult.create_empty(number_of_periods=3),
         ],
         rate_sm3_day=[[2] * 3] * 3,
         failure_status=[None] * 3,
-        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
-        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_timesteps=3),
+        inlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
+        outlet_stream_condition=CompressorStreamCondition.create_empty(number_of_periods=3),
     )
     result = result_1.model_copy()
     result.extend(result_2)

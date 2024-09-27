@@ -6,6 +6,7 @@ from typing import Dict, Generic, List, Optional, Protocol, Tuple, TypeVar
 import networkx as nx
 
 from libecalc.common.priority_optimizer import EvaluatorResult
+from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
 )
@@ -138,7 +139,9 @@ class ConsumerSystem(Generic[Consumer]):
                 operator.mul,
                 [consumer_result.is_valid for consumer_result in consumer_results],
             ),
-            timesteps=sorted({*itertools.chain(*(consumer_result.timesteps for consumer_result in consumer_results))}),
+            periods=Periods(
+                sorted({*itertools.chain(*(consumer_result.periods for consumer_result in consumer_results))})
+            ),
             energy_usage=reduce(
                 operator.add,
                 [consumer_result.energy_usage for consumer_result in consumer_results],

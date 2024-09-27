@@ -1,7 +1,6 @@
 import math
 import operator
 from collections import defaultdict
-from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
@@ -16,7 +15,7 @@ from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
@@ -46,45 +45,48 @@ from libecalc.presentation.json_result.result.results import (
 )
 
 
-def get_operational_setting_used_id(timestep: datetime, operational_settings_used: TimeSeriesInt) -> int:
-    timestep_index = operational_settings_used.timesteps.index(timestep)
+def get_operational_setting_used_id(period: Period, operational_settings_used: TimeSeriesInt) -> int:
+    period_index = operational_settings_used.periods.periods.index(period)
 
-    operational_setting_id = operational_settings_used.values[timestep_index]
+    operational_setting_id = operational_settings_used.values[period_index]
 
     return operational_setting_id - 1
 
 
 @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
 def get_requested_compressor_pressures(
-    energy_usage_model: Dict[datetime, Any],
+    energy_usage_model: Dict[Period, Any],
     pressure_type: CompressorPressureType,
     name: str,
-    model_timesteps: List[datetime],
+    model_periods: Periods,
     operational_settings_used: Optional[TimeSeriesInt] = None,
 ) -> TemporalModel[Expression]:
     """Get temporal model for compressor inlet- and outlet pressures.
+
     The pressures are the actual pressures defined by user in input.
 
-    :param energy_usage_model: Temporal energy model
-    :param pressure_type: Compressor pressure type, inlet- or outlet
-    :param name: name of compressor
-    :param model_period: start- and stop time for model
-    :param model_timesteps: actual timesteps in model
-    :param operational_settings_used: time series indicating which priority is active
-    :return: Temporal model with pressures as expressions
+    Args:
+        energy_usage_model (Dict[Period, Any]): Temporal energy model.
+        pressure_type (CompressorPressureType): Compressor pressure type, inlet- or outlet.
+        name (str): Name of compressor.
+        model_periods (Periods): Actual periods in the model.
+        operational_settings_used (Optional[TimeSeriesInt]): Time series indicating which priority is active.
+
+    Returns:
+        TemporalModel[Expression]: Temporal model with pressures as expressions.
     """
 
     evaluated_temporal_energy_usage_models = {}
 
-    for period, model in TemporalModel(energy_usage_model).items():
+    for period, model in energy_usage_model.items():  # TODO: fix this
         if isinstance(model, CompressorSystemConsumerFunction):
-            # Loop timesteps in temporal model, to find correct operational settings used:
-            timesteps_in_period = period.get_timesteps(model_timesteps)
-            for timestep in timesteps_in_period:
+            # Loop periods in temporal model, to find correct operational settings used:
+            periods_in_period = period.get_periods(model_periods)
+            for _period in periods_in_period:
                 for compressor in model.compressors:
                     if compressor.name == name:
                         operational_setting_used_id = get_operational_setting_used_id(
-                            timestep=timestep, operational_settings_used=operational_settings_used
+                            period=_period, operational_settings_used=operational_settings_used
                         )
 
                         operational_setting = model.operational_settings[operational_setting_used_id]
@@ -110,7 +112,7 @@ def get_requested_compressor_pressures(
 
                         if not isinstance(pressures, Expression):
                             pressures = Expression.setup_from_expression(value=pressures)
-                        evaluated_temporal_energy_usage_models[timestep] = pressures
+                        evaluated_temporal_energy_usage_models[_period] = pressures
         else:
             pressures = model.suction_pressure
 
@@ -123,7 +125,7 @@ def get_requested_compressor_pressures(
             if not isinstance(pressures, Expression):
                 pressures = Expression.setup_from_expression(value=pressures)
 
-            evaluated_temporal_energy_usage_models[period.start] = pressures
+            evaluated_temporal_energy_usage_models[period] = pressures
 
     return TemporalModel(evaluated_temporal_energy_usage_models)
 
@@ -142,7 +144,7 @@ def _to_full_result(
     return {
         key: libecalc.presentation.json_result.result.EmissionResult(
             name=key,
-            timesteps=emissions[key].timesteps,
+            periods=emissions[key].periods,
             rate=emissions[key].rate,
             cumulative=emissions[key].rate.to_volumes().cumulative(),
         )
@@ -201,7 +203,7 @@ def _parse_emissions(
     return {
         key: libecalc.presentation.json_result.result.EmissionResult(
             name=key,
-            timesteps=emissions[key].timesteps,
+            periods=emissions[key].periods,
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(
                 emissions[key].rate, regularity=regularity
             ).to_calendar_day(),
@@ -226,8 +228,8 @@ def _compute_aggregated_power(
             if component.power is not None
         ],
         TimeSeriesRate(
-            values=[0.0] * graph_result.variables_map.length,
-            timesteps=graph_result.variables_map.time_vector,
+            values=[0.0] * graph_result.variables_map.number_of_periods,
+            periods=graph_result.variables_map.periods,
             unit=Unit.MEGA_WATT,
             rate_type=RateType.STREAM_DAY,
             regularity=regularity.values,
@@ -252,7 +254,7 @@ def _evaluate_installations(
     installation_results = []
     for installation in asset.installations:
         regularity = TimeSeriesFloat(
-            timesteps=expression_evaluator.get_time_vector(),
+            periods=expression_evaluator.get_periods(),
             values=expression_evaluator.evaluate(expression=TemporalModel(installation.regularity)),
             unit=Unit.NONE,
         )
@@ -261,7 +263,7 @@ def _evaluate_installations(
         )
 
         hydrocarbon_export_rate = TimeSeriesRate(
-            timesteps=expression_evaluator.get_time_vector(),
+            periods=expression_evaluator.get_periods(),
             values=hydrocarbon_export_rate,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.CALENDAR_DAY,
@@ -337,9 +339,9 @@ def _evaluate_installations(
                 parent=asset.id,
                 component_level=installation_node_info.component_level,
                 componentType=installation_node_info.component_type.value,
-                timesteps=expression_evaluator.get_time_vector(),
+                periods=expression_evaluator.get_periods(),
                 is_valid=TimeSeriesBoolean(
-                    timesteps=expression_evaluator.get_time_vector(),
+                    periods=expression_evaluator.get_periods(),
                     values=aggregate_is_valid(sub_components),
                     unit=Unit.NONE,
                 ),
@@ -356,7 +358,7 @@ def _evaluate_installations(
                 hydrocarbon_export_rate=hydrocarbon_export_rate,
                 emissions=_to_full_result(aggregated_emissions),
                 regularity=TimeSeriesFloat(
-                    timesteps=expression_evaluator.get_time_vector(),
+                    periods=expression_evaluator.get_periods(),
                     values=regularity.values,
                     unit=Unit.NONE,
                 ),
@@ -394,7 +396,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             component = graph_result.graph.get_node(consumer_id)
 
             for model in consumer_result.models:
-                period = Period(model.timesteps[0], model.timesteps[-1])
+                period = model.periods.period
 
                 inlet_pressure_eval = get_requested_compressor_pressures(
                     energy_usage_model=component.energy_usage_model,
@@ -403,7 +405,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     operational_settings_used=consumer_result.component_result.operational_settings_used
                     if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
                     else None,
-                    model_timesteps=model.timesteps,
+                    model_periods=model.periods,
                 )
                 outlet_pressure_eval = get_requested_compressor_pressures(
                     energy_usage_model=component.energy_usage_model,
@@ -412,17 +414,17 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     operational_settings_used=consumer_result.component_result.operational_settings_used
                     if consumer_node_info.component_type == ComponentType.COMPRESSOR_SYSTEM
                     else None,
-                    model_timesteps=model.timesteps,
+                    model_periods=model.periods,
                 )
 
                 requested_inlet_pressure = TimeSeriesFloat(
-                    timesteps=graph_result.timesteps,
+                    periods=graph_result.variables_map.get_periods(),
                     values=graph_result.variables_map.evaluate(inlet_pressure_eval).tolist(),
                     unit=Unit.BARA,
                 ).for_period(period=period)
 
                 requested_outlet_pressure = TimeSeriesFloat(
-                    timesteps=graph_result.timesteps,
+                    periods=graph_result.variables_map.get_periods(),
                     values=graph_result.variables_map.evaluate(outlet_pressure_eval).tolist(),
                     unit=Unit.BARA,
                 ).for_period(period=period)
@@ -437,258 +439,258 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         power_unit=stage_result.power_unit,
                         fluid_composition=stage_result.fluid_composition,
                         asv_recirculation_loss_mw=TimeSeriesRate(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.for_timesteps(model.timesteps).values,
+                            regularity=regularity.for_periods(model.periods).values,
                             values=stage_result.asv_recirculation_loss_mw
                             if stage_result.asv_recirculation_loss_mw is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.MEGA_WATT,
                         ),
                         head_exceeds_maximum=TimeSeriesBoolean(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.head_exceeds_maximum
                             if stage_result.asv_recirculation_loss_mw is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.NONE,
                         ),
                         is_valid=TimeSeriesBoolean(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.is_valid,
                             unit=Unit.NONE,
                         ),
                         polytropic_efficiency=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.polytropic_efficiency
                             if stage_result.polytropic_efficiency is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.FRACTION,
                         ),
                         polytropic_enthalpy_change_before_choke_kJ_per_kg=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.polytropic_enthalpy_change_before_choke_kJ_per_kg
                             if stage_result.polytropic_enthalpy_change_before_choke_kJ_per_kg is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
                         ),
                         polytropic_enthalpy_change_kJ_per_kg=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.polytropic_enthalpy_change_kJ_per_kg
                             if stage_result.polytropic_enthalpy_change_kJ_per_kg is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
                         ),
                         polytropic_head_kJ_per_kg=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.polytropic_head_kJ_per_kg
                             if stage_result.polytropic_head_kJ_per_kg is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
                         ),
                         energy_usage=TimeSeriesRate(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.energy_usage
                             if stage_result.energy_usage is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=stage_result.energy_usage_unit,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.for_timesteps(model.timesteps).values,
+                            regularity=regularity.for_periods(model.periods).values,
                         ),
                         mass_rate_kg_per_hr=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.mass_rate_kg_per_hr
                             if stage_result.mass_rate_kg_per_hr is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.KILO_PER_HOUR,
                         ),
                         mass_rate_before_asv_kg_per_hr=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.mass_rate_before_asv_kg_per_hr
                             if stage_result.mass_rate_before_asv_kg_per_hr is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.KILO_PER_HOUR,
                         ),
                         power=TimeSeriesRate(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.power
                             if stage_result.power is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=stage_result.power_unit,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.for_timesteps(model.timesteps).values,
+                            regularity=regularity.for_periods(model.periods).values,
                         ),
                         pressure_is_choked=TimeSeriesBoolean(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.pressure_is_choked
                             if stage_result.pressure_is_choked is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.NONE,
                         ),
                         rate_exceeds_maximum=TimeSeriesBoolean(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.rate_exceeds_maximum
                             if stage_result.rate_exceeds_maximum is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.NONE,
                         ),
                         rate_has_recirculation=TimeSeriesBoolean(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.rate_has_recirculation
                             if stage_result.rate_has_recirculation is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.NONE,
                         ),
                         speed=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=stage_result.speed
                             if stage_result.speed is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.SPEED_RPM,
                         ),
                         inlet_stream_condition=CompressorStreamConditionResult(
                             actual_rate_m3_per_hr=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.actual_rate_m3_per_hr
                                 if stage_result.inlet_stream_condition.actual_rate_m3_per_hr is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                             ),
                             actual_rate_before_asv_m3_per_hr=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.actual_rate_before_asv_m3_per_hr
                                 if stage_result.inlet_stream_condition.actual_rate_before_asv_m3_per_hr is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                             ),
                             standard_rate_sm3_per_day=TimeSeriesRate(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.standard_rate_sm3_per_day
                                 if stage_result.inlet_stream_condition.standard_rate_sm3_per_day is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.for_timesteps(model.timesteps).values,
+                                regularity=regularity.for_periods(model.periods).values,
                             ),
                             standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.standard_rate_before_asv_sm3_per_day
                                 if stage_result.inlet_stream_condition.standard_rate_before_asv_sm3_per_day is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.for_timesteps(model.timesteps).values,
+                                regularity=regularity.for_periods(model.periods).values,
                             ),
                             kappa=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.kappa
                                 if stage_result.inlet_stream_condition.kappa is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.NONE,
                             ),
                             density_kg_per_m3=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.density_kg_per_m3
                                 if stage_result.inlet_stream_condition.density_kg_per_m3 is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.KG_M3,
                             ),
                             pressure=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.pressure
                                 if stage_result.inlet_stream_condition.pressure is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.BARA,
                             ),
                             temperature_kelvin=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.temperature_kelvin
                                 if stage_result.inlet_stream_condition.temperature_kelvin is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.KELVIN,
                             ),
                             z=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.inlet_stream_condition.z
                                 if stage_result.inlet_stream_condition.z is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.NONE,
                             ),
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             name="Inlet stream condition",
                         ),
                         outlet_stream_condition=CompressorStreamConditionResult(
                             actual_rate_m3_per_hr=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.actual_rate_m3_per_hr
                                 if stage_result.outlet_stream_condition.actual_rate_m3_per_hr is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                             ),
                             actual_rate_before_asv_m3_per_hr=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.actual_rate_before_asv_m3_per_hr
                                 if stage_result.outlet_stream_condition.actual_rate_before_asv_m3_per_hr is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                             ),
                             standard_rate_sm3_per_day=TimeSeriesRate(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.standard_rate_sm3_per_day
                                 if stage_result.outlet_stream_condition.standard_rate_sm3_per_day is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.for_timesteps(model.timesteps).values,
+                                regularity=regularity.for_periods(model.periods).values,
                             ),
                             standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.standard_rate_before_asv_sm3_per_day
                                 if stage_result.outlet_stream_condition.standard_rate_before_asv_sm3_per_day is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.for_timesteps(model.timesteps).values,
+                                regularity=regularity.for_periods(model.periods).values,
                             ),
                             kappa=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.kappa
                                 if stage_result.outlet_stream_condition.kappa is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.NONE,
                             ),
                             density_kg_per_m3=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.density_kg_per_m3
                                 if stage_result.outlet_stream_condition.density_kg_per_m3 is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.KG_M3,
                             ),
                             pressure=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.pressure
                                 if stage_result.outlet_stream_condition.pressure is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.BARA,
                             ),
                             temperature_kelvin=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.temperature_kelvin
                                 if stage_result.outlet_stream_condition.temperature_kelvin is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.KELVIN,
                             ),
                             z=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=stage_result.outlet_stream_condition.z
                                 if stage_result.outlet_stream_condition.z is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.NONE,
                             ),
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             name="Outlet stream condition",
                         ),
                         name=f"Stage {i + 1}",
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                     )
 
                     model_stage_results.append(model_stage_result)
@@ -698,61 +700,61 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                         energy_usage_unit=model.turbine_result.energy_usage_unit,
                         power_unit=model.turbine_result.power_unit,
                         efficiency=TimeSeriesFloat(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=model.turbine_result.efficiency
                             if model.turbine_result.efficiency is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.FRACTION,
                         ),
                         energy_usage=TimeSeriesRate(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=model.turbine_result.energy_usage
                             if model.turbine_result.energy_usage is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=model.turbine_result.energy_usage_unit,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.for_timesteps(model.timesteps).values,
+                            regularity=regularity.for_periods(model.periods).values,
                         ),
                         exceeds_maximum_load=TimeSeriesBoolean(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=model.turbine_result.exceeds_maximum_load
                             if model.turbine_result.exceeds_maximum_load is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.NONE,
                         ),
                         fuel_rate=TimeSeriesRate(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=model.turbine_result.fuel_rate
                             if model.turbine_result.fuel_rate is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.for_timesteps(model.timesteps).values,
+                            regularity=regularity.for_periods(model.periods).values,
                         ),
                         is_valid=TimeSeriesBoolean(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=model.turbine_result.is_valid,
                             unit=Unit.NONE,
                         ),
                         load=TimeSeriesRate(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=model.turbine_result.load
                             if model.turbine_result.load is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=model.turbine_result.energy_usage_unit,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.for_timesteps(model.timesteps).values,
+                            regularity=regularity.for_periods(model.periods).values,
                         ),
                         power=TimeSeriesRate(
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             values=model.turbine_result.power
                             if model.turbine_result.power is not None
-                            else [math.nan] * len(model.timesteps),
+                            else [math.nan] * len(model.periods),
                             unit=model.turbine_result.power_unit,
                             rate_type=RateType.STREAM_DAY,
-                            regularity=regularity.for_timesteps(model.timesteps).values,
+                            regularity=regularity.for_periods(model.periods).values,
                         ),
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         name=model.name,
                     )
                     if model.turbine_result is not None
@@ -761,137 +763,137 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
                 inlet_stream_condition = CompressorStreamConditionResult(
                     actual_rate_m3_per_hr=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.inlet_stream_condition.actual_rate_m3_per_hr
                         if model.inlet_stream_condition.actual_rate_m3_per_hr is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                     ),
                     actual_rate_before_asv_m3_per_hr=TimeSeriesFloat(
-                        timesteps=model.timesteps,
-                        values=[math.nan] * len(model.timesteps),
+                        periods=model.periods,
+                        values=[math.nan] * len(model.periods),
                         unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                     ),  # not relevant for compressor train, only for stage
                     standard_rate_sm3_per_day=TimeSeriesRate(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.inlet_stream_condition.standard_rate_sm3_per_day
                         if model.inlet_stream_condition.standard_rate_sm3_per_day is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     ),
                     standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
-                        timesteps=model.timesteps,
-                        values=[math.nan] * len(model.timesteps),
+                        periods=model.periods,
+                        values=[math.nan] * len(model.periods),
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     ),  # not relevant for compressor train, only for stage
                     kappa=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.inlet_stream_condition.kappa
                         if model.inlet_stream_condition.kappa is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.NONE,
                     ),
                     density_kg_per_m3=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.inlet_stream_condition.density_kg_per_m3
                         if model.inlet_stream_condition.density_kg_per_m3 is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.KG_M3,
                     ),
                     pressure=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.inlet_stream_condition.pressure
                         if model.inlet_stream_condition.pressure is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.BARA,
                     ),
                     temperature_kelvin=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.inlet_stream_condition.temperature_kelvin
                         if model.inlet_stream_condition.temperature_kelvin is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.KELVIN,
                     ),
                     z=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.inlet_stream_condition.z
                         if model.inlet_stream_condition.z is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.NONE,
                     ),
-                    timesteps=model.timesteps,
+                    periods=model.periods,
                     name="Inlet stream condition",
                 )
 
                 outlet_stream_condition = CompressorStreamConditionResult(
                     actual_rate_m3_per_hr=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.outlet_stream_condition.actual_rate_m3_per_hr
                         if model.outlet_stream_condition.actual_rate_m3_per_hr is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                     ),
                     actual_rate_before_asv_m3_per_hr=TimeSeriesFloat(
-                        timesteps=model.timesteps,
-                        values=[math.nan] * len(model.timesteps),
+                        periods=model.periods,
+                        values=[math.nan] * len(model.periods),
                         unit=Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR,
                     ),  # not relevant for compressor train, only for stage
                     standard_rate_sm3_per_day=TimeSeriesRate(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.outlet_stream_condition.standard_rate_sm3_per_day
                         if model.outlet_stream_condition.standard_rate_sm3_per_day is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     ),
                     standard_rate_before_asv_sm3_per_day=TimeSeriesRate(
-                        timesteps=model.timesteps,
-                        values=[math.nan] * len(model.timesteps),
+                        periods=model.periods,
+                        values=[math.nan] * len(model.periods),
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     ),  # not relevant for compressor train, only for stage
                     kappa=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.outlet_stream_condition.kappa
                         if model.outlet_stream_condition.kappa is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.NONE,
                     ),
                     density_kg_per_m3=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.outlet_stream_condition.density_kg_per_m3
                         if model.outlet_stream_condition.density_kg_per_m3 is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.KG_M3,
                     ),
                     pressure=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.outlet_stream_condition.pressure
                         if model.outlet_stream_condition.pressure is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.BARA,
                     ),
                     temperature_kelvin=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.outlet_stream_condition.temperature_kelvin
                         if model.outlet_stream_condition.temperature_kelvin is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.KELVIN,
                     ),
                     z=TimeSeriesFloat(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.outlet_stream_condition.z
                         if model.outlet_stream_condition.z is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.NONE,
                     ),
-                    timesteps=model.timesteps,
+                    periods=model.periods,
                     name="Outlet stream condition",
                 )
 
@@ -900,37 +902,37 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     # Select the first rate from multi stream, only a workaround until we have more info by using
                     # streams
                     rate = TimeSeriesRate(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.rate_sm3_day[0],
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     )
                     maximum_rate = TimeSeriesRate(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.max_standard_rate[0]  # WORKAROUND: We only pick max rate for first stream for now
                         if model.max_standard_rate is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     )
                 else:
                     rate = TimeSeriesRate(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.rate_sm3_day,
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     )
                     maximum_rate = TimeSeriesRate(
-                        timesteps=model.timesteps,
+                        periods=model.periods,
                         values=model.max_standard_rate
                         if model.max_standard_rate is not None
-                        else [math.nan] * len(model.timesteps),
+                        else [math.nan] * len(model.periods),
                         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                         rate_type=RateType.STREAM_DAY,
-                        regularity=regularity.for_timesteps(model.timesteps).values,
+                        regularity=regularity.for_periods(model.periods).values,
                     )
 
                 models.extend(
@@ -949,7 +951,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                             maximum_rate=maximum_rate,
                             stage_results=model_stage_results,
                             failure_status=model.failure_status,
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             is_valid=model.is_valid,
                             energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
                                 model.energy_usage, regularity=regularity
@@ -992,7 +994,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                             )
                             .to_volumes()
                             .cumulative(),
-                            timesteps=model.timesteps,
+                            periods=model.periods,
                             power_cumulative=(
                                 TimeSeriesRate.from_timeseries_stream_day_rate(model.power, regularity=regularity)
                                 .to_volumes()
@@ -1005,33 +1007,33 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                             if model.power is not None
                             else None,
                             inlet_liquid_rate_m3_per_day=TimeSeriesRate(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=model.inlet_liquid_rate_m3_per_day
                                 if model.inlet_liquid_rate_m3_per_day is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                                 rate_type=RateType.STREAM_DAY,
-                                regularity=regularity.for_timesteps(model.timesteps).values,
+                                regularity=regularity.for_periods(model.periods).values,
                             ),
                             inlet_pressure_bar=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=model.inlet_pressure_bar
                                 if model.inlet_pressure_bar is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.BARA,
                             ),
                             outlet_pressure_bar=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=model.outlet_pressure_bar
                                 if model.outlet_pressure_bar is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.BARA,
                             ),
                             operational_head=TimeSeriesFloat(
-                                timesteps=model.timesteps,
+                                periods=model.periods,
                                 values=model.operational_head
                                 if model.operational_head is not None
-                                else [math.nan] * len(model.timesteps),
+                                else [math.nan] * len(model.periods),
                                 unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
                             ),
                         )
@@ -1108,7 +1110,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 power_capacity_margin=TimeSeriesRate.from_timeseries_stream_day_rate(
                     consumer_result.component_result.power_capacity_margin, regularity=regularity
                 ),
-                timesteps=consumer_result.component_result.timesteps,
+                periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
             )
@@ -1150,7 +1152,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 inlet_pressure_bar=consumer_result.component_result.inlet_pressure_bar,
                 outlet_pressure_bar=consumer_result.component_result.outlet_pressure_bar,
                 operational_head=consumer_result.component_result.operational_head,
-                timesteps=consumer_result.component_result.timesteps,
+                periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
                 streams=consumer_result.component_result.streams,
@@ -1191,7 +1193,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     consumer_result.component_result.recirculation_loss, regularity=regularity
                 ),
                 rate_exceeds_maximum=consumer_result.component_result.rate_exceeds_maximum,
-                timesteps=consumer_result.component_result.timesteps,
+                periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
                 streams=consumer_result.component_result.streams,
@@ -1268,7 +1270,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     consumer_result.component_result.energy_usage, regularity=regularity
                 ).to_stream_day(),
                 regularity=consumer_result.component_result.regularity,
-                timesteps=consumer_result.component_result.timesteps,
+                periods=consumer_result.component_result.periods,
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
             )
@@ -1276,7 +1278,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             obj = libecalc.presentation.json_result.result.ConsumerSystemResult(
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
-                timesteps=consumer_result.component_result.timesteps,
+                periods=consumer_result.component_result.periods,
                 name=consumer_node_info.name,
                 parent=graph_result.graph.get_predecessor(consumer_id),
                 component_level=consumer_node_info.component_level,
@@ -1365,17 +1367,17 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
             installation.id: TimeSeriesFloat(
                 values=graph_result.variables_map.evaluate(expression=TemporalModel(installation.regularity)).tolist(),
                 unit=Unit.NONE,
-                timesteps=graph_result.variables_map.get_time_vector(),
+                periods=graph_result.variables_map.get_periods(),
             )
             for installation in asset.installations
         }
 
     time_series_zero = TimeSeriesRate(
-        values=[0] * graph_result.variables_map.length,
-        timesteps=graph_result.variables_map.time_vector,
+        values=[0] * graph_result.variables_map.number_of_periods,
+        periods=graph_result.variables_map.get_periods(),
         unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         rate_type=RateType.CALENDAR_DAY,
-        regularity=[1] * graph_result.variables_map.length,
+        regularity=[1] * graph_result.variables_map.number_of_periods,
     )
 
     for installation in asset.installations:
@@ -1391,10 +1393,10 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     emissions=_parse_emissions(
                         graph_result.emission_results[venting_emitter.id], regularities[installation.id]
                     ),
-                    timesteps=graph_result.variables_map.time_vector,
+                    periods=graph_result.variables_map.get_periods(),
                     is_valid=TimeSeriesBoolean(
-                        timesteps=graph_result.variables_map.time_vector,
-                        values=[True] * graph_result.variables_map.length,
+                        periods=graph_result.variables_map.get_periods(),
+                        values=[True] * graph_result.variables_map.number_of_periods,
                         unit=Unit.NONE,
                     ),
                     energy_usage=energy_usage,
@@ -1487,12 +1489,12 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         name=asset_node_info.name,
         component_level=asset_node_info.component_level,
         componentType=asset_node_info.component_type.value,
-        timesteps=graph_result.variables_map.time_vector,
+        periods=graph_result.variables_map.get_periods(),
         is_valid=TimeSeriesBoolean(
-            timesteps=graph_result.variables_map.time_vector,
+            periods=graph_result.variables_map.get_periods(),
             values=aggregate_is_valid(installation_results)
             if installation_results
-            else [True] * graph_result.variables_map.length,
+            else [True] * graph_result.variables_map.number_of_periods,
             unit=Unit.NONE,
         ),
         power=asset_power_core,

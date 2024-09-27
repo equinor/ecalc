@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Dict, Optional, Union
 
 from pydantic import ValidationError
@@ -46,7 +45,7 @@ COMPRESSOR_TRAIN_ENERGY_MODEL_TYPES = [
 ]
 
 
-def _get_component_type(energy_usage_models: Dict[datetime, ConsumerFunction]) -> ComponentType:
+def _get_component_type(energy_usage_models: Dict[Period, ConsumerFunction]) -> ComponentType:
     energy_usage_model_types = {energy_usage_model.typ for energy_usage_model in energy_usage_models.values()}
 
     if len(energy_usage_model_types) == 1:
@@ -65,7 +64,7 @@ def _resolve_fuel(
     default_fuel: Optional[str],
     references: ReferenceService,
     target_period: Period,
-) -> Optional[Dict[datetime, FuelType]]:
+) -> Optional[Dict[Period, FuelType]]:
     fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
 
     if fuel is None:
@@ -74,10 +73,10 @@ def _resolve_fuel(
     time_adjusted_fuel = define_time_model_for_period(fuel, target_period=target_period)
 
     temporal_fuel_model = {}
-    for start_time, fuel in time_adjusted_fuel.items():
+    for period, fuel in time_adjusted_fuel.items():
         resolved_fuel = references.get_fuel_reference(fuel)
 
-        temporal_fuel_model[start_time] = resolved_fuel
+        temporal_fuel_model[period] = resolved_fuel
 
     return temporal_fuel_model
 
@@ -91,7 +90,7 @@ class ConsumerMapper:
     def from_yaml_to_dto(
         self,
         data: Union[YamlFuelConsumer, YamlElectricityConsumer, YamlConsumerSystem],
-        regularity: Dict[datetime, Expression],
+        regularity: Dict[Period, Expression],
         consumes: ConsumptionType,
         default_fuel: Optional[str] = None,
     ) -> Consumer:
@@ -172,7 +171,7 @@ class GeneratorSetMapper:
     def from_yaml_to_dto(
         self,
         data: YamlGeneratorSet,
-        regularity: Dict[datetime, Expression],
+        regularity: Dict[Period, Expression],
         default_fuel: Optional[str] = None,
     ) -> GeneratorSet:
         try:

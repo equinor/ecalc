@@ -97,7 +97,7 @@ class TabulatedConsumerFunction(ConsumerFunction):
         )
 
         return ConsumerFunctionResult(
-            time_vector=np.array(expression_evaluator.get_time_vector()),
+            periods=expression_evaluator.get_periods(),
             is_valid=np.asarray(energy_function_result.is_valid),
             energy_function_result=energy_function_result,
             condition=condition,

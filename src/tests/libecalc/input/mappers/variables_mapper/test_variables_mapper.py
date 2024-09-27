@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 
+from libecalc.common.time_utils import Periods
 from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import (
@@ -35,6 +36,7 @@ class TestEvaluateVariables:
             time_vector=[
                 datetime(2010, 1, 1),
                 datetime(2012, 1, 1),
+                datetime(2014, 1, 1),
             ],
         )
         variables = {"VAR1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2"))}
@@ -48,6 +50,7 @@ class TestEvaluateVariables:
             time_vector=[
                 datetime(2010, 1, 1),
                 datetime(2012, 1, 1),
+                datetime(2014, 1, 1),
             ],
         )
         variables = {
@@ -90,11 +93,23 @@ class TestEvaluateVariables:
 
 class TestVariableProcessor:
     def test_process_time_variable_without_references(self):
-        time_vector = [datetime(2010, 1, 1), datetime(2012, 1, 1), datetime(2015, 1, 1)]
+        time_vector = [
+            datetime(2010, 1, 1),
+            datetime(2012, 1, 1),
+            datetime(2015, 1, 1),
+            datetime(2017, 1, 1),
+        ]
         processor = VariableProcessor(
             reference_id="$var.test",
             variable={
                 datetime(2010, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("2")),
             },
         )
-        assert processor.process(variables={}, time_vector=time_vector) == [2.0, 2.0, 2.0]
+        assert processor.process(
+            variables={},
+            periods=Periods.create_periods(
+                times=time_vector,
+                include_after=False,
+                include_before=False,
+            ),
+        ) == [2.0, 2.0, 2.0]

@@ -1,11 +1,11 @@
 import operator
-from datetime import datetime
 from functools import reduce
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.string.string_utils import generate_id, to_camel_case
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.domain.stream_conditions import (
     Density,
@@ -52,7 +52,7 @@ class TimeSeriesStreamConditions(BaseModel):
 
         target_pressure = self.pressure  # Assuming 'self' decides the target pressure
         if any(stream.pressure < target_pressure for stream in other_streams):  # type: ignore
-            # TODO: return a warning object with the specific timesteps?
+            # TODO: return a warning object with the specific periods?
             raise ValueError("Increasing pressure when mixing streams. That should not happen.")
 
         return TimeSeriesStreamConditions(
@@ -63,12 +63,12 @@ class TimeSeriesStreamConditions(BaseModel):
             fluid_density=self.fluid_density,  # TODO: Check that they are equal? Or handle it?
         )
 
-    def for_timestep(self, current_timestep: datetime) -> StreamConditions:
+    def for_period(self, period: Period) -> StreamConditions:
         """
         For a given timestep, get the stream that is relevant for that timestep only.
 
         Args:
-            current_timestep: the timestep must be a part of the global timevector
+            period: the period must be a part of the global periods
 
         Returns: the stream that is relevant for the given timestep.
 
@@ -76,21 +76,17 @@ class TimeSeriesStreamConditions(BaseModel):
         return StreamConditions(
             id=self.id,
             name=self.name,
-            timestep=current_timestep,
-            rate=Rate(value=self.rate.for_timestep(current_timestep).values[0], unit=self.rate.unit)
+            period=period,
+            rate=Rate(value=self.rate.for_period(period).values[0], unit=self.rate.unit)
             if self.rate is not None
             else None,
-            pressure=Pressure(value=self.pressure.for_timestep(current_timestep).values[0], unit=self.pressure.unit)
+            pressure=Pressure(value=self.pressure.for_period(period).values[0], unit=self.pressure.unit)
             if self.pressure is not None
             else None,
-            density=Density(
-                value=self.fluid_density.for_timestep(current_timestep).values[0], unit=self.fluid_density.unit
-            )
+            density=Density(value=self.fluid_density.for_period(period).values[0], unit=self.fluid_density.unit)
             if self.fluid_density is not None
             else None,
-            temperature=Temperature(
-                value=self.temperature.for_timestep(current_timestep).values[0], unit=self.temperature.unit
-            )
+            temperature=Temperature(value=self.temperature.for_period(period).values[0], unit=self.temperature.unit)
             if self.temperature is not None
             else None,
         )
@@ -101,24 +97,24 @@ class TimeSeriesStreamConditions(BaseModel):
             id=stream_conditions.id,
             name=stream_conditions.name,
             rate=TimeSeriesStreamDayRate(
-                timesteps=[stream_conditions.timestep],
+                periods=Periods([stream_conditions.period]),
                 values=[stream_conditions.rate.value],
                 unit=stream_conditions.rate.unit,
             ),
             pressure=TimeSeriesFloat(
-                timesteps=[stream_conditions.timestep],
+                periods=Periods([stream_conditions.period]),
                 values=[stream_conditions.pressure.value],
                 unit=stream_conditions.pressure.unit,
             ),
             temperature=TimeSeriesFloat(
-                timesteps=[stream_conditions.timestep],
+                periods=Periods([stream_conditions.period]),
                 values=[stream_conditions.temperature.value],
                 unit=stream_conditions.temperature.unit,
             )
             if stream_conditions.temperature is not None
             else None,
             fluid_density=TimeSeriesFloat(
-                timesteps=[stream_conditions.timestep],
+                periods=Periods([stream_conditions.period]),
                 values=[stream_conditions.density.value],
                 unit=stream_conditions.density.unit,
             )

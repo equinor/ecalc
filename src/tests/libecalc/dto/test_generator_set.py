@@ -9,6 +9,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.time_utils import Period
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 
@@ -40,26 +41,26 @@ class TestGeneratorSet:
     def test_valid(self):
         generator_set_dto = dto.GeneratorSet(
             name="Test",
-            user_defined_category={datetime(1900, 1, 1): "MISCELLANEOUS"},
+            user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             generator_set_model={
-                datetime(1900, 1, 1): dto.GeneratorSetSampled(
+                Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
                     headers=["FUEL", "POWER"],
                     data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                     energy_usage_adjustment_constant=0.0,
                     energy_usage_adjustment_factor=1.0,
                 )
             },
-            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             consumers=[],
             fuel={
-                datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
+                Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
                     name="fuel_gas",
                     emissions=[],
                 )
             },
         )
         assert generator_set_dto.generator_set_model == {
-            datetime(1900, 1, 1): dto.GeneratorSetSampled(
+            Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
                 headers=["FUEL", "POWER"],
                 data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                 energy_usage_adjustment_constant=0.0,
@@ -74,22 +75,22 @@ class TestGeneratorSet:
         )
         fuel_consumer = dto.FuelConsumer(
             name="test",
-            fuel={datetime(2000, 1, 1): fuel},
+            fuel={Period(datetime(2000, 1, 1)): fuel},
             consumes=ConsumptionType.FUEL,
             component_type=ComponentType.GENERIC,
             energy_usage_model={
-                datetime(2000, 1, 1): dto.DirectConsumerFunction(
+                Period(datetime(2000, 1, 1)): dto.DirectConsumerFunction(
                     fuel_rate=Expression.setup_from_expression(1),
                     energy_usage_type=EnergyUsageType.FUEL,
                 )
             },
-            regularity={datetime(2000, 1, 1): Expression.setup_from_expression(1)},
-            user_defined_category={datetime(2000, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+            regularity={Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)},
+            user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
         )
         with pytest.raises(ValidationError):
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
                 generator_set_model={},
                 regularity={},
                 consumers=[fuel_consumer],
@@ -105,9 +106,9 @@ class TestGeneratorSet:
         with pytest.raises(ValueError) as exc_info:
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.BOILER},
+                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
                 generator_set_model={},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 consumers=[],
                 fuel={},
                 cable_loss=0,
@@ -119,9 +120,9 @@ class TestGeneratorSet:
         with pytest.raises(ValueError) as exc_info:
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.BOILER},
+                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
                 generator_set_model={},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 consumers=[],
                 fuel={},
                 max_usage_from_shore=20,
@@ -134,9 +135,9 @@ class TestGeneratorSet:
         with pytest.raises(ValueError) as exc_info:
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.BOILER},
+                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
                 generator_set_model={},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 consumers=[],
                 fuel={},
                 max_usage_from_shore=20,

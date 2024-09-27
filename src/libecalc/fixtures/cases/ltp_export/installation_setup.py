@@ -1,11 +1,9 @@
 from datetime import datetime
 from typing import Dict, List
 
-import numpy as np
-
 import libecalc.common.component_type
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.time_utils import calculate_delta_days
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.dto import (
@@ -47,14 +45,24 @@ date3 = datetime(2028, 1, 1)
 date4 = datetime(2028, 4, 10)
 date5 = datetime(2029, 1, 1)
 
-regularity_temporal_installation = {datetime(1900, 1, 1): Expression.setup_from_expression(regularity_installation)}
-regularity_temporal_consumer = {datetime(1900, 1, 1): Expression.setup_from_expression(regularity_consumer)}
+period1 = Period(date1, date2)
+period2 = Period(date2, date3)
+period3 = Period(date3, date4)
+period4 = Period(date4, date5)
+period5 = Period(date5)
 
-days_year1_first_half = calculate_delta_days(np.array([date1, date2]))
-days_year2_first_half = calculate_delta_days(np.array([date3, date4]))
+full_period = Period(datetime(1900, 1, 1))
+period_from_date1 = Period(date1)
+period_from_date3 = Period(date3)
 
-days_year1_second_half = calculate_delta_days(np.array([date2, date3]))
-days_year2_second_half = calculate_delta_days(np.array([date4, date5]))
+regularity_temporal_installation = {full_period: Expression.setup_from_expression(regularity_installation)}
+regularity_temporal_consumer = {full_period: Expression.setup_from_expression(regularity_consumer)}
+
+days_year1_first_half = period1.duration.days
+days_year2_first_half = period3.duration.days
+
+days_year1_second_half = period2.duration.days
+days_year2_second_half = period4.duration.days
 
 
 def fuel_turbine() -> FuelType:
@@ -126,51 +134,51 @@ def generator_set_diesel() -> GeneratorSetSampled:
     )
 
 
-def fuel_dict() -> Dict[datetime, FuelType]:
+def fuel_dict() -> Dict[Period, FuelType]:
     return {
-        date1: diesel_turbine(),
-        date2: fuel_turbine(),
-        date3: diesel_turbine(),
-        date4: fuel_turbine(),
-        date5: diesel_turbine(),
+        period1: diesel_turbine(),
+        period2: fuel_turbine(),
+        period3: diesel_turbine(),
+        period4: fuel_turbine(),
+        period5: diesel_turbine(),
     }
 
 
-def fuel_dict_multi() -> Dict[datetime, FuelType]:
+def fuel_dict_multi() -> Dict[Period, FuelType]:
     return {
-        date1: diesel_turbine_multi(),
-        date2: fuel_turbine(),
-        date3: diesel_turbine_multi(),
-        date4: fuel_turbine(),
-        date5: diesel_turbine_multi(),
+        period1: diesel_turbine_multi(),
+        period2: fuel_turbine(),
+        period3: diesel_turbine_multi(),
+        period4: fuel_turbine(),
+        period5: diesel_turbine_multi(),
     }
 
 
-def generator_set_dict() -> Dict[datetime, GeneratorSetSampled]:
+def generator_set_dict() -> Dict[Period, GeneratorSetSampled]:
     return {
-        date1: generator_set_diesel(),
-        date2: generator_set_fuel(),
-        date3: generator_set_diesel(),
-        date4: generator_set_fuel(),
-        date5: generator_set_diesel(),
+        period1: generator_set_diesel(),
+        period2: generator_set_fuel(),
+        period3: generator_set_diesel(),
+        period4: generator_set_fuel(),
+        period5: generator_set_diesel(),
     }
 
 
-def category_dict() -> Dict[datetime, ConsumerUserDefinedCategoryType]:
+def category_dict() -> Dict[Period, ConsumerUserDefinedCategoryType]:
     return {
-        date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
-        date2: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
-        date3: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
-        date4: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
-        date5: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period2: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+        period3: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period4: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+        period5: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
     }
 
 
-def category_dict_coarse() -> Dict[datetime, ConsumerUserDefinedCategoryType]:
+def category_dict_coarse() -> Dict[Period, ConsumerUserDefinedCategoryType]:
     return {
-        date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
-        date2: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
-        date3: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period2: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+        period_from_date3: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
     }
 
 
@@ -186,18 +194,18 @@ def offshore_wind() -> ElectricityConsumer:
         name="direct_consumer",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
         user_defined_category={
-            date1: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-            date2: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-            date3: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-            date4: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-            date5: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+            period1: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+            period2: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+            period3: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+            period4: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+            period5: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
         },
         energy_usage_model={
-            date1: direct_consumer(power=0),
-            date2: direct_consumer(power=power_offshore_wind_mw),
-            date3: direct_consumer(power=0),
-            date4: direct_consumer(power=power_offshore_wind_mw),
-            date5: direct_consumer(power=0),
+            period1: direct_consumer(power=0),
+            period2: direct_consumer(power=power_offshore_wind_mw),
+            period3: direct_consumer(power=0),
+            period4: direct_consumer(power=power_offshore_wind_mw),
+            period5: direct_consumer(power=0),
         },
         regularity=regularity_temporal_consumer,
     )
@@ -207,8 +215,8 @@ def no_el_consumption() -> ElectricityConsumer:
     return ElectricityConsumer(
         name="no_el_consumption",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
-        energy_usage_model={date1: direct_consumer(power=0)},
+        user_defined_category={full_period: ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
+        energy_usage_model={period_from_date1: direct_consumer(power=0)},
         regularity=regularity_temporal_consumer,
     )
 
@@ -217,9 +225,9 @@ def simple_direct_el_consumer(name: str = "direct_consumer") -> ElectricityConsu
     return ElectricityConsumer(
         name=name,
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
+        user_defined_category={full_period: ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
-            date1: DirectConsumerFunction(
+            period_from_date1: DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
                 energy_usage_type=EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
@@ -233,9 +241,9 @@ def simple_direct_el_consumer_mobile() -> ElectricityConsumer:
     return ElectricityConsumer(
         name="direct_consumer_mobile",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
+        user_defined_category={full_period: ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD},
         energy_usage_model={
-            date1: DirectConsumerFunction(
+            period_from_date1: DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=power_usage_mw),
                 energy_usage_type=EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
@@ -260,14 +268,14 @@ def boiler_heater() -> FuelConsumer:
     return FuelConsumer(
         name="boiler",
         component_type=libecalc.common.component_type.ComponentType.GENERIC,
-        fuel={date1: fuel_turbine()},
+        fuel={period_from_date1: fuel_turbine()},
         user_defined_category={
-            date1: ConsumerUserDefinedCategoryType.BOILER,
-            date4: ConsumerUserDefinedCategoryType.HEATER,
+            Period(date1, date4): ConsumerUserDefinedCategoryType.BOILER,
+            Period(date4): ConsumerUserDefinedCategoryType.HEATER,
         },
         regularity=regularity_temporal_consumer,
         energy_usage_model={
-            datetime(1900, 1, 1): DirectConsumerFunction(
+            full_period: DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value=fuel_rate),
                 energy_usage_type=EnergyUsageType.FUEL,
             )
@@ -279,17 +287,17 @@ def compressor(name: str = "single_1d_compressor_sampled") -> FuelConsumer:
     return FuelConsumer(
         name=name,
         component_type=libecalc.common.component_type.ComponentType.COMPRESSOR,
-        fuel={datetime(2027, 1, 1): fuel_turbine()},
+        fuel={period_from_date1: fuel_turbine()},
         user_defined_category={
-            date1: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-            date2: ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR,
-            date3: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-            date4: ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR,
-            date5: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+            period1: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+            period2: ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR,
+            period3: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+            period4: ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR,
+            period5: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
         },
         regularity=regularity_temporal_consumer,
         energy_usage_model={
-            datetime(1900, 1, 1): CompressorConsumerFunction(
+            full_period: CompressorConsumerFunction(
                 energy_usage_type=EnergyUsageType.FUEL,
                 model=compressor_sampled(),
                 rate_standard_m3_day=Expression.setup_from_expression(value=compressor_rate),
@@ -314,9 +322,9 @@ def generator_set_direct_consumer_temporal_model() -> GeneratorSet:
 def generator_set_offshore_wind_temporal_model() -> GeneratorSet:
     return GeneratorSet(
         name="genset",
-        user_defined_category={date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
-        fuel={date1: fuel_turbine()},
-        generator_set_model={date1: generator_set_fuel()},
+        user_defined_category={period_from_date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
+        fuel={period_from_date1: fuel_turbine()},
+        generator_set_model={period_from_date1: generator_set_fuel()},
         consumers=[offshore_wind()],
         regularity=regularity_temporal_consumer,
     )
@@ -325,9 +333,9 @@ def generator_set_offshore_wind_temporal_model() -> GeneratorSet:
 def generator_set_compressor_temporal_model(consumers: List[ElectricityConsumer], name: str = "genset") -> GeneratorSet:
     return GeneratorSet(
         name=name,
-        user_defined_category={date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
-        fuel={date1: fuel_turbine()},
-        generator_set_model={date1: generator_set_fuel()},
+        user_defined_category={period_from_date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
+        fuel={period_from_date1: fuel_turbine()},
+        generator_set_model={period_from_date1: generator_set_fuel()},
         consumers=consumers,
         regularity=regularity_temporal_consumer,
     )
@@ -463,7 +471,7 @@ def installation_direct_consumer_dto() -> Installation:
     return Installation(
         name="INSTALLATION_A",
         regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
+        hydrocarbon_export={full_period: Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_direct_consumer_temporal_model()],
         user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )
@@ -473,7 +481,7 @@ def installation_offshore_wind_dto() -> Installation:
     return Installation(
         name="INSTALLATION_A",
         regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
+        hydrocarbon_export={full_period: Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_offshore_wind_temporal_model()],
         user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )
@@ -488,7 +496,7 @@ def installation_compressor_dto(
     return Installation(
         name=installation_name,
         regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
+        hydrocarbon_export={full_period: Expression.setup_from_expression(0)},
         fuel_consumers=[
             generator_set_compressor_temporal_model(el_consumers, name=genset_name),
             compressor(name=compressor_name),
@@ -501,7 +509,7 @@ def installation_diesel_fixed_dto() -> Installation:
     return Installation(
         name="INSTALLATION_FIXED",
         regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
+        hydrocarbon_export={full_period: Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_fixed_diesel()],
         user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )
@@ -511,7 +519,7 @@ def installation_diesel_mobile_dto() -> Installation:
     return Installation(
         name="INSTALLATION_MOBILE",
         regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
+        hydrocarbon_export={full_period: Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[generator_set_mobile_diesel()],
         user_defined_category=InstallationUserDefinedCategoryType.MOBILE,
     )
@@ -521,7 +529,7 @@ def installation_boiler_heater_dto() -> Installation:
     return Installation(
         name="INSTALLATION_A",
         regularity=regularity_temporal_installation,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
+        hydrocarbon_export={full_period: Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[boiler_heater()],
         user_defined_category=InstallationUserDefinedCategoryType.FIXED,
     )

@@ -8,6 +8,7 @@ import pytest
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
@@ -31,11 +32,11 @@ def test_mismatching_time_slots_within_a_consumer(time_slot_electricity_consumer
             }
         ),
     )
-    time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1)]
+    time_vector = [datetime(1900, 1, 1), datetime(1901, 1, 1), datetime(1902, 1, 1)]
     expression_evaluator = VariablesMap(time_vector=time_vector, variables={})
     result = el_consumer.evaluate(expression_evaluator=expression_evaluator)
     consumer_result = result.component_result
-    assert consumer_result.timesteps == time_vector
+    assert consumer_result.periods == expression_evaluator.get_periods()
     assert consumer_result.power.values == [0, 0]
 
 
@@ -58,7 +59,7 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
     )
     input_variables_dict: Dict[str, List[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
     expression_evaluator = VariablesMap(
-        time_vector=[datetime(year, 1, 1) for year in range(2015, 2025)], variables=input_variables_dict
+        time_vector=[datetime(year, 1, 1) for year in range(2015, 2026)], variables=input_variables_dict
     )
     result = el_consumer.evaluate(expression_evaluator=expression_evaluator)
 
@@ -69,24 +70,43 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
 
     first, second, third = model_results
 
-    assert len(consumer_result.timesteps) == 10
+    assert len(consumer_result.periods) == 10
 
-    # First two timesteps are extrapolated in consumer result
+    # First two periods are extrapolated in consumer result
     assert (
-        list(itertools.chain(*[model_result.timesteps for model_result in result.models]))
-        == consumer_result.timesteps[2:]
+        list(itertools.chain(*[model_result.periods for model_result in result.models]))
+        == consumer_result.periods.periods[2:]
     )
 
-    assert first.timesteps == [datetime(2017, 1, 1)]
-    assert second.timesteps == [
-        datetime(2018, 1, 1),
-        datetime(2019, 1, 1),
-        datetime(2020, 1, 1),
-        datetime(2021, 1, 1),
-        datetime(2022, 1, 1),
-        datetime(2023, 1, 1),
-    ]
-    assert third.timesteps == [datetime(2024, 1, 1)]
+    assert first.periods == Periods(
+        [
+            Period(
+                start=datetime(2017, 1, 1),
+                end=datetime(2018, 1, 1),
+            )
+        ]
+    )
+    assert second.periods == Periods.create_periods(
+        times=[
+            datetime(2018, 1, 1),
+            datetime(2019, 1, 1),
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2022, 1, 1),
+            datetime(2023, 1, 1),
+            datetime(2024, 1, 1),
+        ],
+        include_before=False,
+        include_after=False,
+    )
+    assert third.periods == Periods(
+        [
+            Period(
+                start=datetime(2024, 1, 1),
+                end=datetime(2025, 1, 1),
+            )
+        ]
+    )
 
     assert isinstance(first, GenericModelResult)
     assert isinstance(second, CompressorModelResult)
@@ -112,7 +132,7 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
     )
     input_variables_dict: Dict[str, List[float]] = {}
     expression_evaluator = VariablesMap(
-        time_vector=[datetime(year, 1, 1) for year in range(2017, 2025)], variables=input_variables_dict
+        time_vector=[datetime(year, 1, 1) for year in range(2017, 2026)], variables=input_variables_dict
     )
 
     result = el_consumer.evaluate(expression_evaluator=expression_evaluator)
@@ -123,21 +143,45 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
 
     first, second, third = model_results
 
-    assert len(consumer_result.timesteps) == 8
+    assert len(consumer_result.periods) == 8
 
     assert (
-        list(itertools.chain(*[model_result.timesteps for model_result in result.models])) == consumer_result.timesteps
+        list(itertools.chain(*[model_result.periods for model_result in result.models]))
+        == consumer_result.periods.periods
     )
 
-    assert first.timesteps == [datetime(2017, 1, 1), datetime(2018, 1, 1)]
-    assert second.timesteps == [
-        datetime(2019, 1, 1),
-        datetime(2020, 1, 1),
-        datetime(2021, 1, 1),
-        datetime(2022, 1, 1),
-        datetime(2023, 1, 1),
-    ]
-    assert third.timesteps == [datetime(2024, 1, 1)]
+    assert first.periods == Periods(
+        [
+            Period(
+                start=datetime(2017, 1, 1),
+                end=datetime(2018, 1, 1),
+            ),
+            Period(
+                start=datetime(2018, 1, 1),
+                end=datetime(2019, 1, 1),
+            ),
+        ]
+    )
+    assert second.periods == Periods.create_periods(
+        times=[
+            datetime(2019, 1, 1),
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2022, 1, 1),
+            datetime(2023, 1, 1),
+            datetime(2024, 1, 1),
+        ],
+        include_before=False,
+        include_after=False,
+    )
+    assert third.periods == Periods(
+        [
+            Period(
+                start=datetime(2024, 1, 1),
+                end=datetime(2025, 1, 1),
+            )
+        ]
+    )
 
     assert isinstance(first, GenericModelResult)
     assert isinstance(second, GenericModelResult)
@@ -156,8 +200,8 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
         consumes=time_slots_simplified_compressor_system.consumes,
         energy_usage_model=TemporalModel(
             {
-                start_time: EnergyModelMapper.from_dto_to_domain(model)
-                for start_time, model in time_slots_simplified_compressor_system.energy_usage_model.items()
+                period: EnergyModelMapper.from_dto_to_domain(model)
+                for period, model in time_slots_simplified_compressor_system.energy_usage_model.items()
             }
         ),
     )
@@ -165,7 +209,7 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
         "RATE": [1800000 - (x * 100000) for x in range(10)]  # 1 000 000 -> 100 000
     }
     expression_evaluator = VariablesMap(
-        time_vector=[datetime(year, 1, 1) for year in range(start_year, start_year + time_steps)],
+        time_vector=[datetime(year, 1, 1) for year in range(start_year, start_year + time_steps + 1)],
         variables=input_variables_dict,
     )
 

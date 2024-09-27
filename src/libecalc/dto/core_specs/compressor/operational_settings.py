@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import List
 
 from typing_extensions import Self
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
+from libecalc.common.time_utils import Period, Periods
 from libecalc.dto.core_specs.base.operational_settings import OperationalSettings
 
 
@@ -13,18 +13,18 @@ class CompressorOperationalSettings(OperationalSettings):
     inlet_streams: List[TimeSeriesStreamConditions]
     outlet_stream: TimeSeriesStreamConditions
 
-    timesteps: List[datetime]
+    periods: Periods
 
-    def get_subset_for_timestep(self, current_timestep: datetime) -> Self:
+    def get_subset_for_period(self, current_period: Period) -> Self:
         """
         For a given timestep, get the operational settings that is relevant
-        for that timestep only. Only valid for timesteps a part of the global timevector.
-        :param current_timestep: the timestep must be a part of the global timevector
+        for that timestep only. Only valid for periods a part of the global periods.
+        :param current_period: the period must be a part of the global periods
         :return:
         """
 
         return CompressorOperationalSettings(
-            inlet_streams=[stream_condition.for_timestep(current_timestep) for stream_condition in self.inlet_streams],
-            outlet_stream=self.outlet_stream.for_timestep(current_timestep),
-            timesteps=[current_timestep],
+            inlet_streams=[stream_condition.for_period(current_period) for stream_condition in self.inlet_streams],
+            outlet_stream=self.outlet_stream.for_timestep(current_period),
+            periods=[current_period],
         )

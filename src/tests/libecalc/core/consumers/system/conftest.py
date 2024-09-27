@@ -1,10 +1,10 @@
-from datetime import datetime
 from typing import List
 from unittest.mock import Mock
 
 import numpy as np
 import pytest
 
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
@@ -32,7 +32,7 @@ from libecalc.expression import Expression
 
 
 def get_pump_system_mock_operational_expressions(
-    timesteps: int, number_of_consumers: int
+    number_of_periods: int, number_of_consumers: int
 ) -> List[PumpSystemOperationalSettingExpressions]:
     expression = PumpSystemOperationalSettingExpressions(
         rates=[Expression.setup_from_expression(1)] * number_of_consumers,
@@ -40,18 +40,18 @@ def get_pump_system_mock_operational_expressions(
         discharge_pressures=[Expression.setup_from_expression(2)] * number_of_consumers,
         fluid_densities=[Expression.setup_from_expression(1)] * number_of_consumers,
     )
-    return [expression] * timesteps
+    return [expression] * number_of_periods
 
 
 def get_compressor_system_mock_operational_expressions(
-    timesteps: int, number_of_consumers: int
+    number_of_periods: int, number_of_consumers: int
 ) -> List[CompressorSystemOperationalSettingExpressions]:
     expression = CompressorSystemOperationalSettingExpressions(
         rates=[Expression.setup_from_expression(1)] * number_of_consumers,
         suction_pressures=[Expression.setup_from_expression(1)] * number_of_consumers,
         discharge_pressures=[Expression.setup_from_expression(2)] * number_of_consumers,
     )
-    return [expression] * timesteps
+    return [expression] * number_of_periods
 
 
 @pytest.fixture
@@ -62,7 +62,7 @@ def pump_system(pump_single_speed, pump_variable_speed) -> PumpSystemConsumerFun
             ConsumerSystemComponent(name="pump2", facility_model=pump_variable_speed),
         ],
         operational_settings_expressions=get_pump_system_mock_operational_expressions(
-            timesteps=3, number_of_consumers=2
+            number_of_periods=3, number_of_consumers=2
         ),
         condition_expression=None,
         power_loss_factor_expression=None,
@@ -76,7 +76,7 @@ def compressor_system_single(compressor_model_sampled) -> CompressorSystemConsum
             ConsumerSystemComponent(name="compressor1", facility_model=compressor_model_sampled),
         ],
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            timesteps=3, number_of_consumers=1
+            number_of_periods=3, number_of_consumers=1
         ),
         condition_expression=None,
         power_loss_factor_expression=None,
@@ -91,7 +91,7 @@ def compressor_system_sampled(compressor_model_sampled) -> CompressorSystemConsu
             ConsumerSystemComponent(name="compressor2", facility_model=compressor_model_sampled),
         ],
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            timesteps=3, number_of_consumers=2
+            number_of_periods=3, number_of_consumers=2
         ),
         condition_expression=None,
         power_loss_factor_expression=None,
@@ -106,7 +106,7 @@ def compressor_system_sampled_2(compressor_model_sampled_2) -> CompressorSystemC
             ConsumerSystemComponent(name="compressor2", facility_model=compressor_model_sampled_2),
         ],
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            timesteps=3, number_of_consumers=2
+            number_of_periods=3, number_of_consumers=2
         ),
         condition_expression=None,
         power_loss_factor_expression=None,
@@ -121,7 +121,7 @@ def compressor_system_sampled_3d(compressor_model_sampled_3d) -> CompressorSyste
             ConsumerSystemComponent(name="compressor2", facility_model=compressor_model_sampled_3d),
         ],
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            timesteps=3, number_of_consumers=2
+            number_of_periods=3, number_of_consumers=2
         ),
         condition_expression=None,
         power_loss_factor_expression=None,
@@ -141,7 +141,7 @@ def compressor_system_sampled_mix(
             ),
         ],
         operational_settings_expressions=get_compressor_system_mock_operational_expressions(
-            timesteps=3, number_of_consumers=2
+            number_of_periods=3, number_of_consumers=2
         ),
         condition_expression=None,
         power_loss_factor_expression=None,
@@ -263,7 +263,7 @@ def compressor_model_result_invalid_steps() -> CompressorTrainResult:
 def consumer_system_result() -> ConsumerSystemConsumerFunctionResult:
     a = np.array([1, 2, 3])
     return ConsumerSystemConsumerFunctionResult(
-        time_vector=np.array([Mock(datetime)] * 3),
+        periods=Periods([Mock(Period)] * 3),
         is_valid=np.array([True, True, True]),
         energy_usage=a,
         energy_usage_before_power_loss_factor=a,
