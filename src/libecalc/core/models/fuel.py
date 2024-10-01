@@ -4,7 +4,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
-from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
@@ -14,14 +13,14 @@ from libecalc.dto import FuelType
 
 
 class FuelModel:
-    """A function to evaluate fuel related attributes for different time intervals
-    For each time interval, there is a data object with expressions for fuel related
+    """A function to evaluate fuel related attributes for different time period
+    For each period, there is a data object with expressions for fuel related
     attributes which may be evaluated for some variables and a fuel_rate.
     """
 
     def __init__(self, fuel_time_function_dict: Dict[Period, FuelType]):
         logger.debug("Creating fuel model")
-        self.temporal_fuel_model = TemporalModel(fuel_time_function_dict)
+        self.temporal_fuel_model = fuel_time_function_dict
 
     def evaluate_emissions(
         self, expression_evaluator: ExpressionEvaluator, fuel_rate: NDArray[np.float64]
@@ -35,13 +34,12 @@ class FuelModel:
         Then the resulting emission volume is calculated based on the fuel rate:
         - emission_rate = emission_factor * fuel_rate
 
-        This is done per time interval and all fuel related results both in terms of
-        fuel types and time intervals, are merged into one common fuel collection results object.
+        This is done per time period and all fuel related results both in terms of
+        fuel types and time periods, are merged into one common fuel collection results object.
 
-        The length of the fuel_rate array must equal the length of the time_vector
-        array for the time_series. It is assumed that the fuel_rate array origins
-        from calculations based on the same time_series object and thus will have
-        the same length when used in this method.
+        The length of the fuel_rate array must equal the length of the global list of periods.
+        It is assumed that the fuel_rate array origins from calculations based on the same time_series
+        object and thus will have the same length when used in this method.
         """
         logger.debug("Evaluating fuel usage and emissions")
 
@@ -55,15 +53,12 @@ class FuelModel:
 
         for temporal_period, model in self.temporal_fuel_model.items():
             if Period.intersects(temporal_period, expression_evaluator.get_period()):
-                all_periods = expression_evaluator.get_periods()
-                common_periods = temporal_period.get_periods(all_periods)
-                variables_map_this_period = expression_evaluator.get_subset_for_period(common_periods.period)
-                fuel_rate_this_period = fuel_rate[
-                    all_periods.periods.index(common_periods.periods[0]) : all_periods.periods.index(
-                        common_periods.periods[-1]
-                    )
-                    + 1
-                ]
+                start_index, end_index = temporal_period.get_period_indices(expression_evaluator.get_periods())
+                variables_map_this_period = expression_evaluator.get_subset(
+                    start_index=start_index,
+                    end_index=end_index,
+                )
+                fuel_rate_this_period = fuel_rate[start_index:end_index]
                 for emission in model.emissions:
                     factor = variables_map_this_period.evaluate(expression=emission.factor)
 
