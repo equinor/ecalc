@@ -1,5 +1,4 @@
 import itertools
-from operator import attrgetter
 from typing import Protocol, TypeVar
 
 from pydantic import BaseModel
@@ -53,7 +52,7 @@ class TabularTimeSeriesUtils:
                 accumulated_value = merged_object.__getattribute__(key)
                 other_value = other.__getattribute__(key)
                 if key == "periods":
-                    merged_periods = sorted(itertools.chain(accumulated_value, other_value), key=attrgetter("start"))
+                    merged_periods = sorted(itertools.chain(accumulated_value, other_value))
                     merged_object.__setattr__(key, Periods(merged_periods))
                 elif isinstance(value, TimeSeries):
                     merged_object.__setattr__(key, accumulated_value.merge(other_value))

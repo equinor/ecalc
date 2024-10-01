@@ -148,9 +148,7 @@ def export_tsv(
     Returns:
 
     """
-    resampled_periods = resample_periods(results.periods, frequency)[
-        :-1
-    ]  # last step is always added as a STOP, and does infer the end of the time vector
+    resampled_periods = resample_periods(results.periods, frequency)
 
     prognosis_filter = config.filter(frequency=frequency)
     result = prognosis_filter.filter(ExportableGraphResult(results), resampled_periods)
