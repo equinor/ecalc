@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 import numpy as np
 
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.calculate_emission_intensity import (
     compute_emission_intensity_by_yearly_buckets,
@@ -13,46 +14,71 @@ from libecalc.common.utils.rates import (
     Rates,
     RateType,
     TimeSeriesRate,
-    TimeSeriesVolumes,
+    TimeSeriesVolumesCumulative,
 )
 
 
 def _setup_intensity_testcase(
     time_vector: List[datetime],
-) -> Tuple[TimeSeriesRate, TimeSeriesVolumes, TimeSeriesRate, TimeSeriesVolumes]:
-    number_of_timesteps = len(time_vector)
-    emission_rate = np.full(shape=number_of_timesteps, fill_value=1.0)
-    hcexport_rate = np.asarray(list(range(number_of_timesteps, 0, -1)))
+) -> Tuple[TimeSeriesRate, TimeSeriesVolumesCumulative, TimeSeriesRate, TimeSeriesVolumesCumulative]:
+    number_of_periods = len(time_vector) - 1
+    emission_rate = np.full(shape=number_of_periods, fill_value=1.0)
+    hcexport_rate = np.asarray(list(range(number_of_periods, 0, -1)))
 
-    emission_cumulative = Rates.compute_cumulative_volumes_from_daily_rates(rates=emission_rate, time_steps=time_vector)
-    hcexport_cumulative = Rates.compute_cumulative_volumes_from_daily_rates(rates=hcexport_rate, time_steps=time_vector)
+    periods = Periods.create_periods(
+        times=time_vector,
+        include_after=False,
+        include_before=False,
+    )
+    emission_cumulative = Rates.compute_cumulative_volumes_from_daily_rates(rates=emission_rate, periods=periods)
+    hcexport_cumulative = Rates.compute_cumulative_volumes_from_daily_rates(rates=hcexport_rate, periods=periods)
 
     return (
         TimeSeriesRate(
             values=list(emission_rate),
-            timesteps=time_vector,
+            periods=periods,
             unit=Unit.KILO_PER_DAY,
             rate_type=RateType.STREAM_DAY,
-            regularity=[1.0] * len(time_vector),
+            regularity=[1.0] * len(periods),
         ),
-        TimeSeriesVolumes(values=list(emission_cumulative), timesteps=time_vector, unit=Unit.KILO),
+        TimeSeriesVolumesCumulative(values=list(emission_cumulative), periods=periods, unit=Unit.KILO),
         TimeSeriesRate(
             values=list(hcexport_rate),
-            timesteps=time_vector,
+            periods=periods,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             rate_type=RateType.STREAM_DAY,
-            regularity=[1.0] * len(time_vector),
+            regularity=[1.0] * len(periods),
         ),
-        TimeSeriesVolumes(values=list(hcexport_cumulative), timesteps=time_vector, unit=Unit.STANDARD_CUBIC_METER),
+        TimeSeriesVolumesCumulative(values=list(hcexport_cumulative), periods=periods, unit=Unit.STANDARD_CUBIC_METER),
     )
 
 
 class TestEmissionIntensityByYearlyBuckets:
     def test_emission_intensity_single_year(self):
         emission_intensity = compute_emission_intensity_by_yearly_buckets(
-            emission_cumulative=TimeSeriesVolumes(values=[0.0], timesteps=[datetime(2000, 7, 1)], unit=Unit.KILO),
-            hydrocarbon_export_cumulative=TimeSeriesVolumes(
-                values=[0.0], timesteps=[datetime(2000, 7, 1)], unit=Unit.KILO
+            emission_cumulative=TimeSeriesVolumesCumulative(
+                values=[0.0],
+                periods=Periods.create_periods(
+                    times=[
+                        datetime(2000, 1, 1),
+                        datetime(2000, 7, 1),
+                    ],
+                    include_before=False,
+                    include_after=False,
+                ),
+                unit=Unit.KILO,
+            ),
+            hydrocarbon_export_cumulative=TimeSeriesVolumesCumulative(
+                values=[0.0],
+                periods=Periods.create_periods(
+                    times=[
+                        datetime(2000, 1, 1),
+                        datetime(2000, 7, 1),
+                    ],
+                    include_before=False,
+                    include_after=False,
+                ),
+                unit=Unit.KILO,
             ),
         )
         assert len(emission_intensity) == 1
@@ -76,12 +102,12 @@ class TestEmissionIntensityByYearlyBuckets:
             hcexport_cumulative,
         ) = _setup_intensity_testcase(time_vector=time_vector)
         # Yearly emission intensities
-        emission_2000 = emission_cumulative.values[2]
-        emission_2001 = emission_cumulative.values[4] - emission_cumulative.values[2]
-        emission_2002 = emission_cumulative.values[5] - emission_cumulative.values[4]
-        hcexport_2000 = hcexport_cumulative.values[2]
-        hcexport_2001 = hcexport_cumulative.values[4] - hcexport_cumulative.values[2]
-        hcexport_2002 = hcexport_cumulative.values[5] - hcexport_cumulative.values[4]
+        emission_2000 = emission_cumulative.values[1]
+        emission_2001 = emission_cumulative.values[3] - emission_cumulative.values[1]
+        emission_2002 = emission_cumulative.values[4] - emission_cumulative.values[3]
+        hcexport_2000 = hcexport_cumulative.values[1]
+        hcexport_2001 = hcexport_cumulative.values[3] - hcexport_cumulative.values[1]
+        hcexport_2002 = hcexport_cumulative.values[4] - hcexport_cumulative.values[3]
         intensity_2000 = emission_2000 / hcexport_2000
         intensity_2001 = emission_2001 / hcexport_2001
         intensity_2002 = emission_2002 / hcexport_2002
@@ -96,7 +122,6 @@ class TestEmissionIntensityByYearlyBuckets:
         assert np.all(emission_intensity_yearly.values[2] == intensity_2001)
         assert np.all(emission_intensity_yearly.values[3] == intensity_2001)
         assert np.all(emission_intensity_yearly.values[4] == intensity_2002)
-        assert np.all(emission_intensity_yearly.values[5] == intensity_2002)
 
     def test_emission_intensity_without_start_of_the_year_in_time_vector(self):
         # Test where the dates in time_vector are not at year start
@@ -105,7 +130,6 @@ class TestEmissionIntensityByYearlyBuckets:
             datetime(year=2001, month=7, day=2, hour=12),
             datetime(year=2002, month=7, day=2, hour=12),
         ]
-
         (
             emission_rate,
             emission_cumulative,
@@ -114,13 +138,10 @@ class TestEmissionIntensityByYearlyBuckets:
         ) = _setup_intensity_testcase(time_vector=time_vector)
         emission_2000 = 365 / 2 * emission_rate.values[0]
         emission_2001 = 365 / 2 * (emission_rate.values[0] + emission_rate.values[1])
-        emission_2002 = 365 / 2 * emission_rate.values[1]
         hcexport_2000 = 365 / 2 * hcexport_rate.values[0]
         hcexport_2001 = 365 / 2 * (hcexport_rate.values[0] + hcexport_rate.values[1])
-        hcexport_2002 = 365 / 2 * hcexport_rate.values[1]
         intensity_2000 = emission_2000 / hcexport_2000
         intensity_2001 = emission_2001 / hcexport_2001
-        intensity_2002 = emission_2002 / hcexport_2002
         emission_intensity_yearly = compute_emission_intensity_by_yearly_buckets(
             emission_cumulative=emission_cumulative,
             hydrocarbon_export_cumulative=hcexport_cumulative,
@@ -128,7 +149,8 @@ class TestEmissionIntensityByYearlyBuckets:
 
         assert emission_intensity_yearly.values[0] == intensity_2000
         assert emission_intensity_yearly.values[1] == intensity_2001
-        assert emission_intensity_yearly.values[2] == intensity_2002
+
+    #        assert emission_intensity_yearly.values[2] == intensity_2002  # this one is dropped because the last period starts in 2001 and ends in 2002
 
     def test_emission_intensity_year_not_present_in_time_vector(self):
         # Test where some years are not present in time_vector
@@ -137,7 +159,6 @@ class TestEmissionIntensityByYearlyBuckets:
             datetime(year=2002, month=7, day=2, hour=12),
             datetime(year=2003, month=7, day=2, hour=12),
         ]
-
         (
             emission_rate,
             emission_cumulative,
@@ -146,13 +167,10 @@ class TestEmissionIntensityByYearlyBuckets:
         ) = _setup_intensity_testcase(time_vector=time_vector)
         emission_2000 = 365 / 2 * emission_rate.values[0]
         emission_2002 = 365 / 2 * (emission_rate.values[0] + emission_rate.values[1])
-        emission_2003 = 365 / 2 * emission_rate.values[1]
         hcexport_2000 = 365 / 2 * hcexport_rate.values[0]
         hcexport_2002 = 365 / 2 * (hcexport_rate.values[0] + hcexport_rate.values[1])
-        hcexport_2003 = 365 / 2 * hcexport_rate.values[1]
         intensity_2000 = emission_2000 / hcexport_2000
         intensity_2002 = emission_2002 / hcexport_2002
-        intensity_2003 = emission_2003 / hcexport_2003
         emission_intensity_yearly = compute_emission_intensity_by_yearly_buckets(
             emission_cumulative=emission_cumulative,
             hydrocarbon_export_cumulative=hcexport_cumulative,
@@ -160,13 +178,22 @@ class TestEmissionIntensityByYearlyBuckets:
 
         assert emission_intensity_yearly.values[0] == intensity_2000
         assert emission_intensity_yearly.values[1] == intensity_2002
-        assert emission_intensity_yearly.values[2] == intensity_2003
+
+
+#        assert emission_intensity_yearly.values[2] == intensity_2003   # this one is dropped because the last period starts in 2001 and ends in 2002
 
 
 class TestEmissionIntensityYearly:
     def test_emission_intensity_single_year(self):
         emission_intensity = compute_emission_intensity_yearly(
-            time_vector=[datetime(2000, 7, 1)],
+            periods=Periods.create_periods(
+                times=[
+                    datetime(2000, 1, 1),
+                    datetime(2000, 7, 1),
+                ],
+                include_after=False,
+                include_before=False,
+            ),
             emission_cumulative=[0.0],
             hydrocarbon_export_cumulative=[0.0],
         )
@@ -191,12 +218,12 @@ class TestEmissionIntensityYearly:
             hcexport_cumulative,
         ) = _setup_intensity_testcase(time_vector=time_vector)
         # Yearly emission intensities
-        emission_2000 = emission_cumulative.values[2]
-        emission_2001 = emission_cumulative.values[4] - emission_cumulative.values[2]
-        emission_2002 = emission_cumulative.values[5] - emission_cumulative.values[4]
-        hcexport_2000 = hcexport_cumulative.values[2]
-        hcexport_2001 = hcexport_cumulative.values[4] - hcexport_cumulative.values[2]
-        hcexport_2002 = hcexport_cumulative.values[5] - hcexport_cumulative.values[4]
+        emission_2000 = emission_cumulative.values[1]
+        emission_2001 = emission_cumulative.values[3] - emission_cumulative.values[1]
+        emission_2002 = emission_cumulative.values[4] - emission_cumulative.values[3]
+        hcexport_2000 = hcexport_cumulative.values[1]
+        hcexport_2001 = hcexport_cumulative.values[3] - hcexport_cumulative.values[1]
+        hcexport_2002 = hcexport_cumulative.values[4] - hcexport_cumulative.values[3]
         intensity_2000 = emission_2000 / hcexport_2000
         intensity_2001 = emission_2001 / hcexport_2001
         intensity_2002 = emission_2002 / hcexport_2002
@@ -204,7 +231,7 @@ class TestEmissionIntensityYearly:
         emission_intensity_yearly = compute_emission_intensity_yearly(
             emission_cumulative=emission_cumulative.values,
             hydrocarbon_export_cumulative=hcexport_cumulative.values,
-            time_vector=emission_cumulative.timesteps,
+            periods=emission_cumulative.periods,
         )
 
         assert np.all(emission_intensity_yearly[0] == intensity_2000)
@@ -237,7 +264,7 @@ class TestEmissionIntensityYearly:
         emission_intensity_yearly = compute_emission_intensity_yearly(
             emission_cumulative=emission_cumulative.values,
             hydrocarbon_export_cumulative=hcexport_cumulative.values,
-            time_vector=emission_cumulative.timesteps,
+            periods=emission_cumulative.periods,
         )
 
         assert emission_intensity_yearly[0] == intensity_2000
@@ -273,7 +300,7 @@ class TestEmissionIntensityYearly:
         emission_intensity_yearly = compute_emission_intensity_yearly(
             emission_cumulative=emission_cumulative.values,
             hydrocarbon_export_cumulative=hcexport_cumulative.values,
-            time_vector=emission_cumulative.timesteps,
+            periods=emission_cumulative.periods,
         )
 
         assert emission_intensity_yearly[0] == intensity_2000

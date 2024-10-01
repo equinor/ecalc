@@ -9,7 +9,13 @@ from libecalc.expression import Expression
 class TestTemporalExpression:
     def test_single_value_expression(self):
         expression_evaluator = VariablesMap(
-            time_vector=[datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1), datetime(2022, 7, 1)]
+            time_vector=[
+                datetime(2020, 1, 1),
+                datetime(2021, 1, 1),
+                datetime(2022, 1, 1),
+                datetime(2022, 7, 1),
+                datetime(2023, 1, 1),
+            ]
         )
         assert expression_evaluator.evaluate(
             expression=TemporalModel({Period(datetime(2020, 1, 1)): Expression.setup_from_expression(1)}),
@@ -17,7 +23,13 @@ class TestTemporalExpression:
 
     def test_single_value_expression_with_start_date_after_time_vector_start(self):
         expression_evaluator = VariablesMap(
-            time_vector=[datetime(2019, 1, 1), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 7, 1)]
+            time_vector=[
+                datetime(2019, 1, 1),
+                datetime(2020, 1, 1),
+                datetime(2021, 1, 1),
+                datetime(2022, 7, 1),
+                datetime(2023, 1, 1),
+            ]
         )
         assert expression_evaluator.evaluate(
             expression=TemporalModel({Period(datetime(2020, 1, 1)): Expression.setup_from_expression(1)})
@@ -31,6 +43,7 @@ class TestTemporalExpression:
                 datetime(2021, 1, 1),
                 datetime(2022, 1, 1),
                 datetime(2022, 7, 1),
+                datetime(2023, 1, 1),
             ]
         )
         assert expression_evaluator.evaluate(
@@ -44,13 +57,14 @@ class TestTemporalExpression:
 
     def test_multiple_times_with_references(self):
         expression_evaluator = VariablesMap(
-            variables={"$var.var1": [5, 5, 5, 5]},
+            variables={"$var.var1": [5, 5, 5, 5, 5]},
             time_vector=[
                 datetime(2019, 1, 1),
                 datetime(2020, 1, 1),
                 datetime(2021, 1, 1),
                 datetime(2022, 1, 1),
                 datetime(2022, 7, 1),
+                datetime(2023, 1, 1),
             ],
         )
 

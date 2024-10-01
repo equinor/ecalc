@@ -9,7 +9,7 @@ import libecalc.dto.types
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -101,14 +101,19 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
 
 
 def get_emission_with_only_rate(rates: List[float], name: str):
-    timesteps = list(pd.date_range(start="2020-01-01", freq="Y", periods=len(rates)))
+    timesteps = pd.date_range(datetime(2020, 1, 1), datetime(2023, 1, 1), freq="YS").to_pydatetime().tolist()
+    periods = Periods.create_periods(
+        times=timesteps,
+        include_before=False,
+        include_after=False,
+    )
     return EmissionResult(
         rate=TimeSeriesStreamDayRate(
-            timesteps=timesteps,
+            periods=periods,
             values=rates,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         ),
-        timesteps=timesteps,
+        periods=periods,
         name=name,
     )
 
@@ -116,25 +121,30 @@ def get_emission_with_only_rate(rates: List[float], name: str):
 class TestAggregateEmissions:
     def test_aggregate_emissions(self):
         """Test that emissions are aggregated correctly and that order is preserved."""
-        timesteps = list(pd.date_range(start="2020-01-01", freq="Y", periods=3))
+        timesteps = pd.date_range(datetime(2020, 1, 1), datetime(2023, 1, 1), freq="YS").to_pydatetime().tolist()
+        periods = Periods.create_periods(
+            times=timesteps,
+            include_before=False,
+            include_after=False,
+        )
         emissions1 = {
             "CO2": PartialEmissionResult.from_emission_core_result(
                 get_emission_with_only_rate([1, 2, 3], name="CO2"),
-                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
             "CH4": PartialEmissionResult.from_emission_core_result(
                 get_emission_with_only_rate([2, 3, 4], name="CH4"),
-                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
         }
         emissions2 = {
             "CO2:": PartialEmissionResult.from_emission_core_result(
                 get_emission_with_only_rate([3, 6, 9], name="CO2"),
-                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
             "CH4": PartialEmissionResult.from_emission_core_result(
                 get_emission_with_only_rate([4, 8, 12], name="CH4"),
-                regularity=TimeSeriesFloat(values=[1.0] * 3, timesteps=timesteps, unit=Unit.NONE),
+                regularity=TimeSeriesFloat(values=[1.0] * 3, periods=periods, unit=Unit.NONE),
             ),
         }
         aggregated = aggregate_emissions(
@@ -154,8 +164,8 @@ class TestAggregateEmissions:
         are not summed for each installation
         """
 
-        time_vector = pd.date_range(datetime(2024, 1, 1), datetime(2025, 1, 1), freq="M").to_pydatetime().tolist()
-        variables = VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1]})
+        time_vector = pd.date_range(datetime(2024, 1, 1), datetime(2025, 1, 1), freq="MS").to_pydatetime().tolist()
+        variables = VariablesMap(time_vector=time_vector, variables={"RATE": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]})
 
         inst_a = get_installation(
             name_inst="INSTA", name_consumer="cons1", name_fuel="fuel1", co2_factor=1, fuel_rate=100
@@ -200,7 +210,7 @@ class TestAggregateEmissions:
                         emission_name: PartialEmissionResult.from_emission_core_result(
                             emission,
                             regularity=TimeSeriesFloat(
-                                values=[1.0] * len(emission.timesteps), timesteps=emission.timesteps, unit=Unit.NONE
+                                values=[1.0] * len(emission.periods), periods=emission.periods, unit=Unit.NONE
                             ),
                         )
                         for fuel_consumer_id in graph_result.graph.get_successors(installation.id)
@@ -217,8 +227,8 @@ class TestAggregateEmissions:
                         emission_name: PartialEmissionResult.from_emission_core_result(
                             emission_result=emission_result,
                             regularity=TimeSeriesFloat(
-                                values=[1.0] * len(emission_result.timesteps),
-                                timesteps=emission_result.timesteps,
+                                values=[1.0] * len(emission_result.periods),
+                                periods=emission_result.periods,
                                 unit=Unit.NONE,
                             ),
                         )
