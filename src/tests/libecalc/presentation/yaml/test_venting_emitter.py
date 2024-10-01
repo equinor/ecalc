@@ -47,10 +47,11 @@ def variables_map(methane_values):
     return VariablesMap(
         variables={"TSC1;Methane_rate": methane(), "TSC1;Oil_rate": oil_values()},
         time_vector=[
-            datetime(2000, 1, 1, 0, 0),
-            datetime(2001, 1, 1, 0, 0),
+            datetime(2000, 1, 1),
+            datetime(2001, 1, 1),
             datetime(2002, 1, 1),
-            datetime(2003, 1, 1, 0, 0),
+            datetime(2003, 1, 1),
+            datetime(2004, 1, 1),
         ],
     )
 
@@ -83,7 +84,7 @@ def test_venting_emitter(variables_map):
     emission_result = {
         venting_emitter.emissions[0].name: EmissionResult(
             name=venting_emitter.emissions[0].name,
-            timesteps=variables_map.time_vector,
+            periods=variables_map.periods,
             rate=emission_rate,
         )
     }
@@ -129,7 +130,7 @@ def test_venting_emitter_oil_volume(variables_map):
     emission_result = {
         venting_emitter.volume.emissions[0].name: EmissionResult(
             name=venting_emitter.volume.emissions[0].name,
-            timesteps=variables_map.time_vector,
+            periods=variables_map.periods,
             rate=emission_rate,
         )
     }
@@ -200,7 +201,7 @@ def test_venting_emitters_direct_multiple_emissions_ltp():
     ]
 
     ltp_result = get_consumption(
-        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
+        model=dto_case.ecalc_model, variables=dto_case.variables, periods=dto_case.variables.get_periods()
     )
 
     ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="co2VentingMass")
@@ -254,13 +255,13 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
     ]
 
     ltp_result = get_consumption(
-        model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
+        model=dto_case.ecalc_model, variables=dto_case.variables, periods=dto_case.variables.periods
     )
 
     ltp_result_stream_day = get_consumption(
         model=dto_case_stream_day.ecalc_model,
         variables=dto_case_stream_day.variables,
-        time_vector=dto_case_stream_day.variables.time_vector,
+        periods=dto_case_stream_day.variables.periods,
     )
 
     ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingNmvocMass")
