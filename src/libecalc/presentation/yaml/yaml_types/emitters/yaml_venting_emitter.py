@@ -12,7 +12,6 @@ from typing_extensions import Annotated
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
-
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
@@ -136,7 +135,7 @@ class YamlDirectTypeEmitter(YamlBase):
             emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                timesteps=expression_evaluator.get_time_vector(),
+                periods=expression_evaluator.get_periods(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -229,7 +228,7 @@ class YamlOilTypeEmitter(YamlBase):
             emission_rate = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                timesteps=expression_evaluator.get_time_vector(),
+                periods=expression_evaluator.get_periods(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -252,7 +251,7 @@ class YamlOilTypeEmitter(YamlBase):
         oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
         return TimeSeriesStreamDayRate(
-            timesteps=expression_evaluator.get_time_vector(),
+            periods=expression_evaluator.get_periods(),
             values=oil_rates,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         )

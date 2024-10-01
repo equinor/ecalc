@@ -48,7 +48,7 @@ def dataframe_to_csv(
     return df.to_csv(
         float_format=float_formatter,
         index=show_index,
-        index_label="timesteps",
+        index_label="periods",
         encoding="utf-8",
         sep=separator,
         date_format=date_format,
@@ -111,7 +111,7 @@ def get_result_output(
     if output_format == OutputFormat.JSON:
         return to_json(results, simple_output=simple_output, date_format_option=date_format_option)
     elif output_format == OutputFormat.CSV:
-        df = pd.DataFrame(index=results.timesteps)
+        df = pd.DataFrame(index=results.periods)
         for component in results.components:
             component_df = component.to_dataframe(
                 prefix=component.name,

@@ -1,7 +1,6 @@
 import abc
-from datetime import datetime
-from typing import List
 
+from libecalc.common.time_utils import Periods
 from libecalc.presentation.exporter.dto.dtos import DataSeries
 
 
@@ -9,7 +8,7 @@ class Generator(abc.ABC):
     @abc.abstractmethod
     def generate(
         self,
-        time_vector: List[datetime],
+        periods: Periods,
     ) -> DataSeries:
         pass
 
@@ -27,10 +26,10 @@ class TimeIndexGenerator(Generator):
 
     def generate(
         self,
-        time_vector: List[datetime],
+        periods: Periods,
     ) -> DataSeries:
         return DataSeries(
             name=self.name,
             title=self.title,
-            values=[datetime.strftime(time_step, self.time_format) for time_step in time_vector],
+            values=[str(period) for period in periods],
         )
