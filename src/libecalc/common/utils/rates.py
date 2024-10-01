@@ -200,6 +200,9 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     def end_dates(self):
         return [period.end for period in self.periods]
 
+    def max(self):
+        return max(self.values)
+
     @abstractmethod
     def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self: ...
 
@@ -253,7 +256,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             unit=self.unit,
         )
 
-    def datapoints(self) -> Iterator[Tuple[Periods, TimeSeriesValue]]:
+    def datapoints(self) -> Iterator[Tuple[Period, TimeSeriesValue]]:
         yield from zip(self.periods, self.values)
 
     def for_period(self, period: Period) -> Self:
@@ -447,8 +450,8 @@ class TimeSeriesInt(TimeSeries[int]):
         return TimeSeriesInt(
             periods=Periods.create_periods(
                 times=new_time_steps,
-                include_before=True,
-                include_after=True,
+                include_before=False,
+                include_after=False,
             ),
             values=list(ds_resampled.values.tolist())[:-1],
             unit=self.unit,
@@ -933,10 +936,13 @@ class TimeSeriesRate(TimeSeries[float]):
         Returns:
 
         """
-        if period.start not in self.periods.all_dates or period.end not in self.periods.all_dates:
-            raise ValueError(
-                f"Can not get time series for period {period}. "
-                f"The period start and end dates needs to be within the start and end dates of the original time series."
+        if not Period.intersects(self.period(), period):
+            return self.__class__(
+                periods=Periods([]),
+                values=[],
+                regularity=[],
+                unit=self.unit,
+                rate_type=self.rate_type,
             )
         start_index, end_index = period.get_period_indices(self.periods)
         return self.__class__(

@@ -12,6 +12,7 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
 from libecalc.common.variables import VariablesMap
@@ -98,7 +99,7 @@ class EnergyCalculator:
                         consumer_results[consumer_id].component_result.power.values
                         for consumer_id in self._graph.get_successors(component_dto.id)
                     ],
-                    timesteps=variables_map.time_vector,
+                    periods=variables_map.periods,
                 )
 
                 consumer_results[component_dto.id] = EcalcModelResult(
@@ -115,24 +116,20 @@ class EnergyCalculator:
                 )
                 optimizer = PriorityOptimizer()
 
-                results_per_timestep: Dict[str, Dict[datetime, ComponentResult]] = defaultdict(dict)
-                priorities_used = TimeSeriesString(
-                    timesteps=[],
-                    values=[],
-                    unit=Unit.NONE,
-                )
-                for timestep in variables_map.time_vector:
-                    consumers_for_timestep = [
+                results_per_period: Dict[str, Dict[Period, ComponentResult]] = defaultdict(dict)
+                priorities_used = []
+                for period in variables_map.periods:
+                    consumers_for_period = [
                         create_consumer(
                             consumer=consumer,
-                            timestep=timestep,
+                            period=period,
                         )
                         for consumer in component_dto.consumers
                     ]
 
                     consumer_system = ConsumerSystem(
                         id=component_dto.id,
-                        consumers=consumers_for_timestep,
+                        consumers=consumers_for_period,
                         component_conditions=component_dto.component_conditions,
                     )
 
@@ -140,7 +137,7 @@ class EnergyCalculator:
                         stream_conditions_for_priority = evaluated_stream_conditions[priority]
                         stream_conditions_for_timestep = {
                             component_id: [
-                                stream_condition.for_timestep(timestep) for stream_condition in stream_conditions
+                                stream_condition.for_period(period) for stream_condition in stream_conditions
                             ]
                             for component_id, stream_conditions in stream_conditions_for_priority.items()
                         }
@@ -150,15 +147,20 @@ class EnergyCalculator:
                         priorities=list(evaluated_stream_conditions.keys()),
                         evaluator=evaluator,
                     )
-                    priorities_used.append(timestep=timestep, value=optimizer_result.priority_used)
+                    priorities_used.append(optimizer_result.priority_used)
                     for consumer_result in optimizer_result.priority_results:
-                        results_per_timestep[consumer_result.id][timestep] = consumer_result
+                        results_per_period[consumer_result.id][period] = consumer_result
 
+                priorities_used = TimeSeriesString(
+                    periods=variables_map.periods,
+                    values=priorities_used,
+                    unit=Unit.NONE,
+                )
                 # merge consumer results
                 consumer_ids = [consumer.id for consumer in component_dto.consumers]
                 merged_consumer_results = []
                 for consumer_id in consumer_ids:
-                    first_result, *rest_results = list(results_per_timestep[consumer_id].values())
+                    first_result, *rest_results = list(results_per_period[consumer_id].values())
                     merged_consumer_results.append(first_result.merge(*rest_results))
 
                 # Convert to legacy compatible operational_settings_used
@@ -166,7 +168,7 @@ class EnergyCalculator:
                     priority_name: index + 1 for index, priority_name in enumerate(evaluated_stream_conditions.keys())
                 }
                 operational_settings_used = TimeSeriesInt(
-                    timesteps=priorities_used.timesteps,
+                    periods=priorities_used.periods,
                     values=[priorities_to_int_map[priority_name] for priority_name in priorities_used.values],
                     unit=priorities_used.unit,
                 )
@@ -226,7 +228,7 @@ class EnergyCalculator:
                 for emission_name, emission_rate in emission_rates.items():
                     emission_result = EmissionResult(
                         name=emission_name,
-                        timesteps=variables_map.time_vector,
+                        periods=variables_map.get_periods(),
                         rate=emission_rate,
                     )
                     venting_emitter_results[emission_name] = emission_result

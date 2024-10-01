@@ -1,9 +1,8 @@
-from datetime import datetime
-from typing import List, Union
+from typing import Union
 
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, Periods
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import Asset, Installation
 from libecalc.presentation.exporter.configs.configs import LTPConfig
@@ -12,7 +11,7 @@ from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
 
 
 def get_consumption(
-    model: Union[Installation, Asset], variables: VariablesMap, time_vector: List[datetime]
+    model: Union[Installation, Asset], variables: VariablesMap, periods: Periods
 ) -> FilteredResult:
     model = model
     graph = model.get_graph()
@@ -29,7 +28,7 @@ def get_consumption(
     )
 
     ltp_filter = LTPConfig.filter(frequency=Frequency.YEAR)
-    ltp_result = ltp_filter.filter(ExportableGraphResult(graph_result), time_vector)
+    ltp_result = ltp_filter.filter(ExportableGraphResult(graph_result), periods)
 
     return ltp_result
 

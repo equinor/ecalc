@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Iterator, List, Tuple, Union
 
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.domain.tabular.exceptions import ColumnNotFound
 from libecalc.presentation.exporter.formatters.formatter import (
@@ -59,11 +60,11 @@ class GroupedQueryResult:
 class FormattableGroupedQuery(Formattable):
     data_series: List[DataSeries]
     query_results: List[QueryResult]
-    time_vector: List[datetime]
+    periods: Periods
 
     @property
     def row_ids(self) -> List[RowIndex]:
-        return self.time_vector
+        return self.periods.periods
 
     @property
     def column_ids(self) -> List[ColumnIndex]:
@@ -96,7 +97,7 @@ class FormattableGroupedQuery(Formattable):
 class FilteredResult(FormattableGroup):
     data_series: List[DataSeries]
     query_results: List[GroupedQueryResult]
-    time_vector: List[datetime]
+    periods: Periods
 
     @property
     def groups(self) -> Iterator[Tuple[str, Formattable]]:
@@ -105,7 +106,7 @@ class FilteredResult(FormattableGroup):
                 group.group_name,
                 FormattableGroupedQuery(
                     data_series=self.data_series,
-                    time_vector=self.time_vector,
+                    periods=self.periods,
                     query_results=group.query_results,
                 ),
             )

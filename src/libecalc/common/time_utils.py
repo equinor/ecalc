@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
+from typing_extensions import Self
 
 from libecalc.common.errors.exceptions import (
     InvalidDateException,
@@ -26,20 +27,24 @@ class Period:
     end: datetime = datetime.max.replace(microsecond=0)
 
     def __str__(self) -> str:
-        return f"{self.start};{self.end}"
+        return f"{self.start};{self.end}"  #  need something other than : to be able to split a string into two dates
 
-    def __contains__(self, time: datetime) -> bool:
+    def __contains__(self, date_or_period: Union[datetime, Period]) -> bool:
         """
-        A period of time is defined as [start, end>,
-        ie inclusive start and exclusive end.
+        A period of time is defined as [start, end>, ie inclusive start and exclusive end.
+
+        Check if a date or another period is contained within this period.
 
         Args:
-            time:
+            date_or_period: A date or period of interest
 
         Returns:
-
+            Whether the given date or period is contained within this period
         """
-        return self.start <= time < self.end
+        if isinstance(date_or_period, datetime):
+            return self.start <= date_or_period < self.end
+        if isinstance(date_or_period, Period):
+            return self.start <= date_or_period.start < date_or_period.end <= self.end
 
     @property
     def duration(self):
@@ -49,52 +54,48 @@ class Period:
     def intersects(first: Period, second: Period) -> bool:
         """Decide if two periods intersects.
 
+        The function checks the opposite - if the two periods do not intersect.
+
         Args:
-            first:
-            second:
+            first: A period
+            second: Another period
 
         Returns:
-
+            Whether the two periods intersects
         """
-        return first.start in second or second.start in first
+        if first.start < second.start and first.end <= second.start:
+            return False
+        if second.start < first.start and second.end <= first.start:
+            return False
+        return True
 
     @staticmethod
     def intersection(first: Period, second: Period) -> Optional[Period]:
         """Find the intersection between two periods.
+
         Args:
-            first:
-            second:
+            first: A period
+            second: Another period
 
         Returns:
-
+            The intersection between the two periods. Returns None if the periods do not intersect.
         """
         if not Period.intersects(first, second):
             return None
 
         return Period(max(first.start, second.start), min(first.end, second.end))
 
-    def get_timestep_indices(self, timesteps: List[datetime]) -> Tuple[int, int]:
-        try:
-            start_index = timesteps.index(max(self.start, timesteps[0]))
-            if self.end > timesteps[-1]:
-                end_index = len(timesteps) + 1
-            else:
-                end_index = timesteps.index(self.end)
-
-            return start_index, end_index
-        except (IndexError, ValueError) as e:
-            raise ProgrammingError(
-                "Trying to access a timestep index that does not exist. Please contact eCalc support.\n\t"
-                f"Period: {self.start}:{self.end} - timesteps: {timesteps}"
-            ) from e
-
     def get_period_indices(self, periods: Periods) -> Tuple[int, int]:
+        """Given a list of periods, find the indices of the start and end of this objects period in the list.
+        Args:
+            periods: A Periods object, containing a list of Periods
+
+        Returns:
+
+        """
         try:
             start_index = periods.start_dates.index(max(self.start, periods.periods[0].start))
-            if self.end > periods.last_date:
-                end_index = len(periods.all_dates)
-            else:
-                end_index = periods.all_dates.index(self.end)
+            end_index = periods.all_dates.index(min(self.end, periods.periods[-1].end))
 
             return start_index, end_index
         except (IndexError, ValueError) as e:
@@ -112,13 +113,27 @@ class Period:
 
         return timesteps
 
+    def get_periods(self, periods: Periods) -> Periods:
+        """Given a list of periods, find those that are within this object's period.
+        Args:
+            periods: A Periods object, containing a list of Periods
 
-@dataclass
+        Returns:
+
+        """
+        if Period.intersects(periods.period, self):
+            start_index, end_index = self.get_period_indices(periods)
+            return periods[start_index:end_index]
+        else:
+            return Periods([])
+
+
+@dataclass(eq=True, frozen=True, order=True)
 class Periods:
     periods: List[Period]
 
-    @classmethod
-    def create_periods(cls, times: List[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
+    @staticmethod
+    def create_periods(times: List[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
         """
         Create periods from the provided datetimes
         :param times: the sorted times to create periods from
@@ -129,7 +144,7 @@ class Periods:
         :return:
         """
         if len(times) == 0:
-            return cls([])
+            return Periods([])
 
         periods = []
 
@@ -145,17 +160,17 @@ class Periods:
         if include_after:
             periods.append(Period(start=times[-1]))
 
-        return cls(periods)
+        return Periods(periods=periods)
 
     def __iter__(self):
         return self.periods.__iter__()
 
-    def get_period(self, time: datetime) -> Period:
-        for period in self.periods:
-            if time in period:
-                return period
+    def get_period(self, period: Period) -> Optional[Period]:
+        for _period in self.periods:
+            if period in _period:
+                return _period
 
-        raise ProgrammingError(f"Period for date '{time}' not found in periods")
+        return None
 
     @property
     def all_dates(self):
@@ -179,6 +194,24 @@ class Periods:
 
     def __add__(self, other):
         return Periods(self.periods + other.periods)
+
+    def __len__(self):
+        return len(self.periods)
+
+    def __getitem__(self, indices: Union[slice, int, List[int]]) -> Self:
+        if isinstance(indices, slice):
+            return Periods(self.periods[indices])
+        elif isinstance(indices, int):
+            return Periods([self.periods[indices]])
+        elif isinstance(indices, list):
+            return Periods([self.periods[i] for i in indices])
+        raise ValueError(
+            f"Unsupported indexing operation. Got '{type(indices)}', expected indices as a slice, single index or a list of indices"
+        )
+
+    @property
+    def period(self):
+        return Period(self.periods[0].start, self.periods[-1].end)
 
 
 def define_time_model_for_period(time_model_data: Optional[Any], target_period: Period) -> Optional[Dict[Period, Any]]:
@@ -397,14 +430,15 @@ def default_temporal_model(data: Any, default_period: Period) -> Optional[Dict[P
     elif is_temporal_model(data):
         # Already a temporal model dictionary. Convert all keys to periods if they are dates
         if isinstance(next(iter(data)), date):
-            _dates = [convert_date_to_datetime(key) for key in data.keys()] + [
-                datetime.max.replace(microsecond=0).replace(microsecond=0)
-            ]
+            _dates = [convert_date_to_datetime(key) for key in data.keys()] + [datetime.max.replace(microsecond=0)]
             return {
                 Period(start=start_date, end=end_date): value
                 for start_date, end_date, value in zip(_dates[:-1], _dates[1:], data.values())
             }
-        return data
+        return {
+            Period(start=convert_date_to_datetime(key.start), end=convert_date_to_datetime(key.end)): value
+            for key, value in data.items()
+        }
     else:
         # Set default start
         return {

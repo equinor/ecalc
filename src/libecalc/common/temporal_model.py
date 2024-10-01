@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Dict, Generic, Iterable, Iterator, Tuple, TypeVar
 
 from libecalc.common.time_utils import Period
@@ -30,9 +29,9 @@ class TemporalModel(Generic[ModelType]):
     def items(self) -> Iterator[Tuple[Period, ModelType]]:
         return ((model.period, model.model) for model in self.models)
 
-    def get_model(self, timestep: datetime) -> ModelType:
+    def get_model(self, period: Period) -> ModelType:
         for model in self.models:
-            if timestep in model.period:
+            if period in model.period:
                 return model.model
 
-        raise ValueError(f"Model for timestep '{timestep}' not found in Temporal model")
+        raise ValueError(f"Model for timestep '{period}' not found in Temporal model")

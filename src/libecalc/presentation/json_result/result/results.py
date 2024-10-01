@@ -274,8 +274,8 @@ class EcalcModelResult(EcalcResultBaseModel):
         return sorted(models, key=attrgetter("componentType", "name"))
 
     @property
-    def timesteps(self):
-        return self.component_result.timesteps
+    def periods(self):
+        return self.component_result.periods
 
     @property
     def components(self) -> List[ComponentResult]:

@@ -8,6 +8,7 @@ from typing_extensions import Self
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.string.string_utils import to_camel_case
+from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import TimeSeries
 
 
@@ -46,6 +47,8 @@ class EcalcResultBaseModel(BaseModel):
                     self.__setattr__(attribute, values + [other_values])
             elif isinstance(values, TimeSeries):
                 self.__setattr__(attribute, values.extend(other_values))
+            elif isinstance(values, Periods):
+                self.__setattr__(attribute, values + other_values)
             else:
                 msg = (
                     f"{self.__repr_name__()} attribute {attribute} does not have an extend strategy."

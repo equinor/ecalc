@@ -111,7 +111,7 @@ class InstallationExportable(Exportable):
                 max_usage_from_shore_rate = (
                     TimeSeriesRate.from_timeseries_stream_day_rate(
                         TimeSeriesStreamDayRate(
-                            timesteps=self._installation_graph.timesteps,
+                            periods=self._installation_graph.periods,
                             values=max_usage_from_shore_values,
                             unit=Unit.MEGA_WATT,
                         ),
@@ -161,8 +161,8 @@ class InstallationExportable(Exportable):
     def get_category(self) -> str:
         return self._installation_dto.user_defined_category
 
-    def get_timesteps(self) -> List[datetime]:
-        return self._installation_graph.timesteps
+    def get_periods(self) -> Periods:
+        return self._installation_graph.periods
 
     def _get_regularity(self) -> TimeSeriesFloat:
         return TimeSeriesFloat(
@@ -195,7 +195,7 @@ class InstallationExportable(Exportable):
 
         periods = Periods.create_periods(sorted(timesteps), include_before=False, include_after=False)
 
-        def _get_category(temporal_category: Optional[TemporalModel[str]], timestep: datetime) -> Optional[str]:
+        def _get_category(temporal_category: Optional[TemporalModel[str]], period: Period) -> Optional[str]:
             """
             Get category for a timestep, returning None if temporal category is None or not defined for timestep
             Args:
@@ -208,7 +208,7 @@ class InstallationExportable(Exportable):
                 return None
 
             try:
-                return temporal_category.get_model(timestep)
+                return temporal_category.get_model(period)
             except ValueError:
                 # category not defined for timestep
                 return None

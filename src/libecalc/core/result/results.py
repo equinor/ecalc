@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import Field
@@ -10,6 +9,7 @@ from typing_extensions import Annotated, Literal, Self
 from libecalc.common.component_type import ComponentType
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
+from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
     TimeSeriesFloat,
@@ -27,7 +27,7 @@ from libecalc.core.result.base import EcalcResultBaseModel
 class CommonResultBase(EcalcResultBaseModel):
     """Base component for all results: Model, Installation, GenSet, Consumer System, Consumer, etc."""
 
-    timesteps: List[datetime]
+    periods: Periods
     is_valid: TimeSeriesBoolean
 
     # We need both energy usage and power rate since we sometimes want both fuel and power usage.
@@ -77,7 +77,7 @@ class CompressorResult(GenericComponentResult):
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(
             id=self.id,
-            timesteps=[self.timesteps[index] for index in indices],
+            periods=Periods([self.periods.periods[index] for index in indices]),
             energy_usage=self.energy_usage[indices],
             is_valid=self.is_valid[indices],
             power=self.power[indices] if self.power is not None else None,
@@ -98,7 +98,7 @@ class PumpResult(GenericComponentResult):
     def get_subset(self, indices: List[int]) -> Self:
         return self.__class__(
             id=self.id,
-            timesteps=[self.timesteps[index] for index in indices],
+            periods=Periods([self.periods.periods[index] for index in indices]),
             energy_usage=self.energy_usage[indices],
             is_valid=self.is_valid[indices],
             power=self.power[indices] if self.power is not None else None,

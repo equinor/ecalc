@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
@@ -47,20 +47,23 @@ class FuelModel:
 
         # Creating a pseudo-default dict with all the emitters as keys. This is to handle changes in a temporal model.
         emissions = {
-            emission_name: EmissionResult.create_empty(name=emission_name, timesteps=[])
+            emission_name: EmissionResult.create_empty(name=emission_name, periods=Periods([]))
             for emission_name in {
                 emission.name for _, model in self.temporal_fuel_model.items() for emission in model.emissions
             }
         }
 
-        for period, model in self.temporal_fuel_model.items():
-            if Period.intersects(period, expression_evaluator.get_period()):
-                start_index, end_index = period.get_timestep_indices(expression_evaluator.get_time_vector())
-                variables_map_this_period = expression_evaluator.get_subset(
-                    start_index=start_index,
-                    end_index=end_index,
-                )
-                fuel_rate_this_period = fuel_rate[start_index:end_index]
+        for temporal_period, model in self.temporal_fuel_model.items():
+            if Period.intersects(temporal_period, expression_evaluator.get_period()):
+                all_periods = expression_evaluator.get_periods()
+                common_periods = temporal_period.get_periods(all_periods)
+                variables_map_this_period = expression_evaluator.get_subset_for_period(common_periods.period)
+                fuel_rate_this_period = fuel_rate[
+                    all_periods.periods.index(common_periods.periods[0]) : all_periods.periods.index(
+                        common_periods.periods[-1]
+                    )
+                    + 1
+                ]
                 for emission in model.emissions:
                     factor = variables_map_this_period.evaluate(expression=emission.factor)
 
@@ -69,9 +72,9 @@ class FuelModel:
 
                     result = EmissionResult(
                         name=emission.name,
-                        timesteps=variables_map_this_period.get_time_vector(),
+                        periods=variables_map_this_period.get_periods(),
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=variables_map_this_period.get_time_vector(),
+                            periods=variables_map_this_period.get_periods(),
                             values=emission_rate_tons_per_day.tolist(),
                             unit=Unit.TONS_PER_DAY,
                         ),
@@ -82,9 +85,7 @@ class FuelModel:
                 for name in emissions:
                     if name not in [emission.name for emission in model.emissions]:
                         emissions[name].extend(
-                            EmissionResult.create_empty(
-                                name=name, timesteps=variables_map_this_period.get_time_vector()
-                            )
+                            EmissionResult.create_empty(name=name, periods=variables_map_this_period.get_periods())
                         )
 
         return dict(sorted(emissions.items()))

@@ -262,7 +262,7 @@ class ConsumerSystem(BaseConsumer):
                         id=generate_id(consumer_name, stream_name),
                         name="-".join([consumer_name, stream_name]),
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=expression_evaluator.get_time_vector(),
+                            periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
                                     Expression.setup_from_expression(stream_conditions.rate.value)
@@ -273,7 +273,7 @@ class ConsumerSystem(BaseConsumer):
                         if stream_conditions.rate is not None
                         else None,
                         pressure=TimeSeriesFloat(
-                            timesteps=expression_evaluator.get_time_vector(),
+                            periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
                                     expression=Expression.setup_from_expression(stream_conditions.pressure.value)
@@ -284,7 +284,7 @@ class ConsumerSystem(BaseConsumer):
                         if stream_conditions.pressure is not None
                         else None,
                         fluid_density=TimeSeriesFloat(
-                            timesteps=expression_evaluator.get_time_vector(),
+                            periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
                                     expression=Expression.setup_from_expression(stream_conditions.fluid_density.value)
