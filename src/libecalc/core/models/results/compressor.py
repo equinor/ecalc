@@ -227,11 +227,11 @@ class CompressorTrainResult(EnergyFunctionResult):
         )
 
         stage_results_are_valid = (
-            np.alltrue([stage.is_valid for stage in self.stage_results], axis=0)
+            np.all([stage.is_valid for stage in self.stage_results], axis=0)
             if self.stage_results is not None
             else [not isnan(x) for x in self.energy_usage]
         )
-        return list(np.alltrue([failure_status_are_valid, turbine_are_valid, stage_results_are_valid], axis=0))
+        return list(np.all([failure_status_are_valid, turbine_are_valid, stage_results_are_valid], axis=0))
 
     @property
     def inlet_stream(self) -> CompressorStreamCondition:
