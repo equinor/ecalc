@@ -49,13 +49,13 @@ class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
         description="Pressure drop before compression stage [in bar]",
         title="PRESSURE_DROP_AHEAD_OF_STAGE",
     )
-    control_margin: Optional[float] = Field(
-        0.0,
+    control_margin: float = Field(
+        ge=0,
         description="Surge control margin, see documentation for more details.",
         title="CONTROL_MARGIN",
     )
-    control_margin_unit: Optional[YamlControlMarginUnits] = Field(
-        YamlControlMarginUnits.PERCENTAGE,
+    control_margin_unit: YamlControlMarginUnits = Field(
+        ...,
         description="The unit of the surge control margin.",
         title="CONTROL_MARGIN_UNIT",
     )
