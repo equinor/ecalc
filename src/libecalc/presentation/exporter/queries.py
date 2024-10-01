@@ -87,7 +87,7 @@ class FuelQuery(Query):
             }  # Fill missing periods with zeroes, also keep sort?
             period_keys = list(sorted_result.keys())
             reindexed_result = (
-                TimeSeriesVolumes(periods=period_keys, values=list(sorted_result.values()), unit=unit)
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
                 .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
                 .fill_nan(0)
             )
@@ -130,7 +130,7 @@ class StorageVolumeQuery(Query):
             period_keys = list(sorted_result.keys())
 
             reindexed_result = (
-                TimeSeriesVolumes(periods=period_keys, values=list(sorted_result.values()), unit=unit)
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
                 .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
                 .fill_nan(0)
             )
@@ -182,7 +182,7 @@ class EmissionQuery(Query):
             period_keys = list(sorted_result.keys())
 
             reindexed_result = (
-                TimeSeriesVolumes(periods=period_keys, values=list(sorted_result.values()), unit=unit)
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
                 .to_unit(Unit.KILO)
                 .to_unit(unit)
                 .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
@@ -225,7 +225,7 @@ class ElectricityGeneratedQuery(Query):
             period_keys = list(sorted_result.keys())
 
             reindexed_result = (
-                TimeSeriesVolumes(periods=period_keys, values=list(sorted_result.values()), unit=unit)
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
                 .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
                 .fill_nan(0)
             )
@@ -318,7 +318,7 @@ class PowerConsumptionQuery(Query):
             period_keys = list(sorted_result.keys())
 
             reindexed_result = (
-                TimeSeriesVolumes(periods=period_keys, values=list(sorted_result.values()), unit=unit)
+                TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
                 .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
                 .fill_nan(0)
             )

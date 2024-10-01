@@ -49,9 +49,6 @@ class Exportable(ABC):
     def get_category(self) -> str: ...
 
     @abstractmethod
-    def get_timesteps(self) -> List[datetime]: ...
-
-    @abstractmethod
     def get_periods(self) -> Periods: ...
 
     @abstractmethod

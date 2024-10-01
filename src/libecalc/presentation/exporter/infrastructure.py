@@ -65,7 +65,7 @@ class InstallationExportable(Exportable):
 
                     power_production_values = fuel_consumer_result.power.values * (1 + cable_loss)
                     power_production_rate = TimeSeriesStreamDayRate(
-                        timesteps=fuel_consumer_result.power.timesteps,
+                        periods=fuel_consumer_result.power.periods,
                         values=power_production_values,
                         unit=fuel_consumer_result.power.unit,
                     )
@@ -166,7 +166,7 @@ class InstallationExportable(Exportable):
 
     def _get_regularity(self) -> TimeSeriesFloat:
         return TimeSeriesFloat(
-            timesteps=self.get_timesteps(),
+            periods=self.get_periods(),
             values=self._installation_graph.variables_map.evaluate(
                 expression=TemporalModel(self._installation_dto.regularity)
             ).tolist(),
@@ -298,12 +298,12 @@ class InstallationExportable(Exportable):
 
             for period, consumer_category in TemporalModel(fuel_consumer.user_defined_category).items():
                 fuel_consumer_result = self._installation_graph.get_energy_result(fuel_consumer.id)
-                time_vector = fuel_consumer_result.timesteps
+                periods = fuel_consumer_result.periods
                 shaft_power = fuel_consumer_result.power
                 if (
                     shaft_power is not None
-                    and 0 < len(shaft_power) == len(time_vector)
-                    and len(fuel_consumer_result.timesteps) == len(self._installation_graph.timesteps)
+                    and 0 < len(shaft_power) == len(periods)
+                    and len(fuel_consumer_result.periods) == len(self._installation_graph.periods)
                 ):
                     shaft_power_volumes = (
                         TimeSeriesRate.from_timeseries_stream_day_rate(shaft_power, regularity=self._get_regularity())

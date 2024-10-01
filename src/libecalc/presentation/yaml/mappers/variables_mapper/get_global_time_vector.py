@@ -63,7 +63,7 @@ def get_global_time_vector(
         raise ValidationError("No time series found, please provide one or specify a start and end (or frequency).")
 
     # Store start, end before adding dates from yaml. This is to make sure dates in yaml are trimmed.
-    start = start or (min(time_vector.union(additional_dates)) if additional_dates else min(time_vector))
+    start = start or min(time_vector)
 
     # Add start
     time_vector.add(start)

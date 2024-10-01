@@ -7,7 +7,7 @@ import libecalc.common.time_utils
 from ecalc_cli.errors import EcalcCLIError
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
-from libecalc.common.time_utils import resample_time_steps
+from libecalc.common.time_utils import resample_periods
 from libecalc.dto import Asset, ResultOptions
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
@@ -148,12 +148,12 @@ def export_tsv(
     Returns:
 
     """
-    resampled_timevector = resample_time_steps(results.timesteps, frequency)[
+    resampled_periods = resample_periods(results.periods, frequency)[
         :-1
     ]  # last step is always added as a STOP, and does infer the end of the time vector
 
     prognosis_filter = config.filter(frequency=frequency)
-    result = prognosis_filter.filter(ExportableGraphResult(results), resampled_timevector)
+    result = prognosis_filter.filter(ExportableGraphResult(results), resampled_periods)
 
     row_based_data: Dict[str, List[str]] = CSVFormatter(separation_character="\t").format_groups(result)
 

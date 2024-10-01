@@ -37,7 +37,7 @@ from libecalc.common.time_utils import (
     calculate_delta_days,
     resample_time_steps,
 )
-from libecalc.common.units import Unit
+from libecalc.common.units import Unit, UnitConstants
 
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
 
