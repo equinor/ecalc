@@ -198,7 +198,7 @@
                             "to_node": "emission-output"
                         }
                     ],
-                    "end_date": "9999-12-31 23:59:59",
+                    "end_date": "2019-01-01 00:00:00",
                     "flows": [
                         {
                             "id": "fuel-flow",
@@ -1602,7 +1602,7 @@
                             "to_node": "emission-output"
                         }
                     ],
-                    "end_date": "2020-01-01 00:00:00",
+                    "end_date": "9999-12-31 23:59:59",
                     "flows": [
                         {
                             "id": "fuel-flow",
