@@ -24,7 +24,7 @@ def get_fuel(fuel_name: str, emission_name: str) -> Dict[Period, libecalc.dto.fu
         emission_name: name of emission, e.g. co2
 
     Returns:
-        Dict[datetime, dto.types.FuelType]
+        Dict[Period, dto.types.FuelType]
     """
     return {
         Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(

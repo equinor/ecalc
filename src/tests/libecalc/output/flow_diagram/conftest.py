@@ -62,9 +62,11 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> dto.FuelConsumer:
     return dto.FuelConsumer(
         name="Compressor system 1",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
-        user_defined_category={Period(datetime.datetime(1900, 1, 1)): "COMPRESSOR"},
-        fuel={Period(datetime.datetime(1900, 1, 1)): fuel_type_fd},
-        regularity={Period(datetime.datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
+        fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
+        regularity={
+            Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): Expression.setup_from_expression(1)
+        },
         energy_usage_model={
             Period(datetime.datetime(2018, 1, 1), datetime.datetime(2020, 1, 1)): dto.CompressorSystemConsumerFunction(
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
@@ -98,7 +100,7 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> dto.FuelConsumer:
                     ),
                 ],
             ),
-            Period(datetime.datetime(2020, 1, 1)): dto.CompressorSystemConsumerFunction(
+            Period(datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)): dto.CompressorSystemConsumerFunction(
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                 compressors=[
                     compressor_system_compressor_fd("compressor1"),
@@ -144,15 +146,17 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> dto.FuelConsumer:
     return dto.FuelConsumer(
         name="Compressor 1",
         component_type=ComponentType.GENERIC,
-        user_defined_category={Period(datetime.datetime(1900, 1, 1)): "COMPRESSOR"},
-        fuel={Period(datetime.datetime(1900, 1, 1)): fuel_type_fd},
+        user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
+        fuel={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): fuel_type_fd},
         energy_usage_model={
-            Period(datetime.datetime(2019, 1, 1)): dto.DirectConsumerFunction(
+            Period(datetime.datetime(2019, 1, 1), datetime.datetime(2021, 1, 1)): dto.DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(value=5),
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
             )
         },
-        regularity={Period(datetime.datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        regularity={
+            Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): Expression.setup_from_expression(1)
+        },
     )
 
 
@@ -167,8 +171,16 @@ def installation_with_dates_dto_fd(
             dto.Installation(
                 name="Installation1",
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
-                regularity={Period(datetime.datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
-                hydrocarbon_export={Period(datetime.datetime(1900, 1, 1)): Expression.setup_from_expression(0)},
+                regularity={
+                    Period(
+                        datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
+                    ): Expression.setup_from_expression(1)
+                },
+                hydrocarbon_export={
+                    Period(
+                        datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)
+                    ): Expression.setup_from_expression(0)
+                },
             )
         ],
     )
