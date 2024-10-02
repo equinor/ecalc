@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.24.0](https://github.com/equinor/ecalc/compare/v8.23.0...v8.24.0) (2024-10-02)
+
+
+### Bug Fixes
+
+* make sure default pressure control is set for all trains ([b233444](https://github.com/equinor/ecalc/commit/b233444fb1fb0fda5ee835ff4602bdf1eb79ffdc))
+
+
+### Miscellaneous Chores
+
+* create variables map protocol for use in core ([#623](https://github.com/equinor/ecalc/issues/623)) ([85ab065](https://github.com/equinor/ecalc/commit/85ab0652a7137d98fa460a1a1d78355035868878))
+* Ecalc-1622 setup devcontainer ([#624](https://github.com/equinor/ecalc/issues/624)) ([a7b7b10](https://github.com/equinor/ecalc/commit/a7b7b1070c76e37dff32b5b87714a706a300f680))
+* update dependencies ([039262a](https://github.com/equinor/ecalc/commit/039262afbeafbdd06f66b8800cb012c7d1cf8084))
+
 ## [8.23.0](https://github.com/equinor/ecalc/compare/v8.22.0...v8.23.0) (2024-09-26)
 
 
