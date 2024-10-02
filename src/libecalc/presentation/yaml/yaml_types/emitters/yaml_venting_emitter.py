@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 from typing import Dict, List, Literal, Union
 
 import numpy as np
@@ -13,7 +14,6 @@ from typing_extensions import Annotated
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
@@ -118,7 +118,7 @@ class YamlDirectTypeEmitter(YamlBase):
     )
 
     def get_emissions(
-        self, expression_evaluator: ExpressionEvaluator, regularity: Dict[Period, Expression]
+        self, expression_evaluator: ExpressionEvaluator, regularity: Dict[datetime, Expression]
     ) -> Dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = expression_evaluator.evaluate(
             expression=TemporalModel(regularity),
@@ -202,7 +202,7 @@ class YamlOilTypeEmitter(YamlBase):
     def get_emissions(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: Dict[Period, Expression],
+        regularity: Dict[datetime, Expression],
     ) -> Dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = expression_evaluator.evaluate(expression=TemporalModel(regularity))
 
