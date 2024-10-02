@@ -1,4 +1,5 @@
 import abc
+from datetime import datetime
 
 from libecalc.common.time_utils import Periods
 from libecalc.presentation.exporter.dto.dtos import DataSeries
@@ -28,8 +29,16 @@ class TimeIndexGenerator(Generator):
         self,
         periods: Periods,
     ) -> DataSeries:
+        """Generates a DataSeries object based on the provided periods.
+
+        Args:
+            periods (Periods): The periods for which the data series is generated.
+
+        Returns:
+            DataSeries: The generated data series containing the name, title, and formatted values.
+        """
         return DataSeries(
             name=self.name,
             title=self.title,
-            values=[str(period) for period in periods],
+            values=[datetime.strftime(period.start, self.time_format) for period in periods],
         )
