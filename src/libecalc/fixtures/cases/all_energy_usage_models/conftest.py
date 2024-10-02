@@ -240,7 +240,9 @@ def compressor_train_variable_speed_user_defined_fluid_and_compressor_chart_and_
 
 @pytest.fixture
 def regularity() -> Dict[Period, Expression]:
-    return {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value="SIM1;REGULARITY")}
+    return {
+        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): Expression.setup_from_expression(value="SIM1;REGULARITY")
+    }
 
 
 @pytest.fixture
