@@ -36,7 +36,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
 
         """
         periods = self.periods
-        df = pd.DataFrame(index=periods)
+        df = pd.DataFrame(index=periods.start_dates)
 
         for attribute_name, attribute_value in self.__dict__.items():
             if isinstance(attribute_value, TimeSeries):
@@ -57,7 +57,7 @@ class TabularTimeSeries(ABC, EcalcResultBaseModel):
                 else:
                     values = attribute_value.values
 
-                timeseries_df = pd.DataFrame({column_name: values}, index=attribute_value.periods)
+                timeseries_df = pd.DataFrame({column_name: values}, index=attribute_value.periods.start_dates)
                 df = df.join(timeseries_df)
             elif isinstance(attribute_value, list):
                 if len(attribute_value) > 0 and all(isinstance(item, TabularTimeSeries) for item in attribute_value):
