@@ -4,6 +4,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesCalendarDayRate,
@@ -14,7 +15,7 @@ from libecalc.common.utils.rates import (
 def compute_emission_intensity_yearly(
     emission_cumulative: List[float],
     hydrocarbon_export_cumulative: List[float],
-    time_vector: List[datetime],
+    periods: Periods,
 ) -> List[float]:
     """Standard emission intensity at time k, is the sum of emissions from startup until time k
     divided by the sum of export from startup until time k.
@@ -30,19 +31,20 @@ def compute_emission_intensity_yearly(
     first converted to number of seconds from the beginning of the time vector
     """
     df = pd.DataFrame(
-        index=time_vector,
-        data=list(zip(emission_cumulative, hydrocarbon_export_cumulative)),
+        index=[periods.period.start] + periods.end_dates,
+        data=list(zip([0.0] + emission_cumulative, [0.0] + hydrocarbon_export_cumulative)),
         columns=["emission_cumulative", "hydrocarbon_cumulative"],
     )
 
-    # Extending the time vector back and forth 1 year used as padding when calculating yearly buckets.
     time_vector_interpolated = pd.date_range(
-        start=datetime(time_vector[0].year - 1, 1, 1), end=datetime(time_vector[-1].year + 1, 1, 1), freq="YS"
+        start=datetime(periods.periods[0].start.year, 1, 1),
+        end=datetime(periods.periods[-1].end.year + 1, 1, 1),
+        freq="YS",
     )
 
     # Linearly interpolating by time using the built-in functionality in Pandas.
     cumulative_interpolated: Optional[pd.DataFrame] = df.reindex(
-        sorted(set(time_vector).union(time_vector_interpolated))
+        sorted(set(periods.all_dates).union(time_vector_interpolated))
     ).interpolate("time")
 
     if cumulative_interpolated is None:
@@ -50,9 +52,8 @@ def compute_emission_intensity_yearly(
 
     cumulative_yearly = cumulative_interpolated.bfill().loc[time_vector_interpolated]
 
-    # Remove the extrapolated timesteps
-    emissions_per_year = np.diff(cumulative_yearly.emission_cumulative[1:])
-    hcexport_per_year = np.diff(cumulative_yearly.hydrocarbon_cumulative[1:])
+    emissions_per_year = np.diff(cumulative_yearly.emission_cumulative)
+    hcexport_per_year = np.diff(cumulative_yearly.hydrocarbon_cumulative)
 
     yearly_emission_intensity = np.divide(
         emissions_per_year,
@@ -68,16 +69,20 @@ def compute_emission_intensity_by_yearly_buckets(
     emission_cumulative: TimeSeriesVolumesCumulative,
     hydrocarbon_export_cumulative: TimeSeriesVolumesCumulative,
 ) -> TimeSeriesCalendarDayRate:
-    """Legacy code that computes yearly intensity and casts the results back to the original time-vector."""
-    timesteps = emission_cumulative.timesteps
-    yearly_buckets = range(timesteps[0].year, timesteps[-1].year + 1)
+    """Legacy code that computes yearly intensity and casts the results back to the original time-vector.
+
+    TODO: I am a bit confused about the purpose of this function in a period context. Revisit.
+    """
+
+    periods = emission_cumulative.periods
+    yearly_buckets = range(periods.periods[0].start.year, periods.periods[-1].end.year + 1)
     yearly_intensity = compute_emission_intensity_yearly(
         emission_cumulative=emission_cumulative.values,
         hydrocarbon_export_cumulative=hydrocarbon_export_cumulative.values,
-        time_vector=timesteps,
+        periods=periods,
     )
     return TimeSeriesCalendarDayRate(
-        timesteps=timesteps,
-        values=[yearly_intensity[yearly_buckets.index(t.year)] for t in timesteps],
+        periods=periods,
+        values=[yearly_intensity[yearly_buckets.index(t.start.year)] for t in periods],
         unit=Unit.KG_SM3,
     )

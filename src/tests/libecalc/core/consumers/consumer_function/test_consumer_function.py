@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy as np
 
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
@@ -15,7 +16,14 @@ from libecalc.core.models.results import EnergyFunctionGenericResult
 def test_consumer_function_result_append():
     result = ConsumerFunctionResult(
         typ=ConsumerFunctionType.SINGLE,
-        time_vector=np.array([datetime(2018, 1, 1, 0, 0)]),
+        periods=Periods.create_periods(
+            times=[
+                datetime(2018, 1, 1, 0, 0),
+                datetime(2019, 1, 1, 0, 0),
+            ],
+            include_before=False,
+            include_after=False,
+        ),
         is_valid=~np.isnan(np.array([1.0])),
         energy_usage=np.array([1.0]),
         energy_usage_before_power_loss_factor=np.array([1.0]),
@@ -31,7 +39,14 @@ def test_consumer_function_result_append():
 
     other_result = ConsumerFunctionResult(
         typ=ConsumerFunctionType.SINGLE,
-        time_vector=np.array([datetime(2019, 1, 1, 0, 0)]),
+        periods=Periods.create_periods(
+            times=[
+                datetime(2019, 1, 1, 0, 0),
+                datetime(2020, 1, 1, 0, 0),
+            ],
+            include_before=False,
+            include_after=False,
+        ),
         is_valid=~np.isnan(np.array([2.0])),
         energy_usage=np.array([2.0]),
         energy_usage_before_power_loss_factor=np.array([2.0]),
@@ -49,7 +64,16 @@ def test_consumer_function_result_append():
 
     assert updated_result.typ == ConsumerFunctionType.SINGLE
     np.testing.assert_equal(
-        updated_result.time_vector, np.array([datetime(2018, 1, 1, 0, 0), datetime(2019, 1, 1, 0, 0)])
+        updated_result.periods,
+        Periods.create_periods(
+            times=[
+                datetime(2018, 1, 1, 0, 0),
+                datetime(2019, 1, 1, 0, 0),
+                datetime(2020, 1, 1, 0, 0),
+            ],
+            include_after=False,
+            include_before=False,
+        ),
     )
     np.testing.assert_equal(updated_result.energy_usage, np.array([1.0, 2.0]))
     np.testing.assert_equal(updated_result.energy_usage_before_power_loss_factor, np.array([1.0, 2.0]))

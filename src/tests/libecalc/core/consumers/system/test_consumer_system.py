@@ -212,13 +212,13 @@ class TestPumpSystemConsumerFunction:
         """
         operational_settings_expressions_evaluated = pump_system.get_operational_settings_from_expressions(
             expression_evaluator=consumer_system_variables_map,
-            regularity=[1.0] * len(consumer_system_variables_map.time_vector),
+            regularity=[1.0] * consumer_system_variables_map.number_of_periods,
         )
 
         operational_settings_expressions_evaluated_with_regularity = (
             pump_system.get_operational_settings_from_expressions(
                 expression_evaluator=consumer_system_variables_map,
-                regularity=[0.9] * len(consumer_system_variables_map.time_vector),
+                regularity=[0.9] * consumer_system_variables_map.number_of_periods,
             )
         )
 
@@ -228,16 +228,20 @@ class TestPumpSystemConsumerFunction:
         )
 
     def test_evaluate_evaluate_operational_setting_expressions(self, pump_system):
-        expression_evaluator = VariablesMap(
-            variables={
-                "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
-                "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
-            },
-            time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
-        )
         result = pump_system.evaluate_operational_setting_expressions(
             operational_setting_expressions=pump_system.operational_settings_expressions[0],
-            expression_evaluator=expression_evaluator,
+            expression_evaluator=VariablesMap(
+                variables={
+                    "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
+                    "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
+                },
+                time_vector=[
+                    datetime(1995, 10, 18, 0, 0),
+                    datetime(1995, 10, 27, 0, 0),
+                    datetime(1995, 11, 1, 0, 0),
+                    datetime(1995, 11, 9, 0, 0),
+                ],
+            ),
         )
 
         assert result.rates[0].tolist() == [1, 1, 1]
@@ -349,11 +353,16 @@ class TestPumpSystemConsumerFunction:
                 "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                 "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
             },
-            time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
+            time_vector=[
+                datetime(1995, 10, 18, 0, 0),
+                datetime(1995, 10, 27, 0, 0),
+                datetime(1995, 11, 1, 0, 0),
+                datetime(1995, 11, 9, 0, 0),
+            ],
         )
 
         regularity = Expression.setup_from_expression(1).evaluate(
-            variables=variables_map.variables, fill_length=len(variables_map.time_vector)
+            variables=variables_map.variables, fill_length=variables_map.number_of_periods
         )
         result = pump_system_consumer_function.evaluate(
             expression_evaluator=variables_map,
@@ -397,13 +406,13 @@ class TestCompressorSystemConsumerFunction:
         """
         operational_settings_expressions_evaluated = compressor_system_single.get_operational_settings_from_expressions(
             expression_evaluator=consumer_system_variables_map,
-            regularity=[1.0] * len(consumer_system_variables_map.time_vector),
+            regularity=[1.0] * consumer_system_variables_map.number_of_periods,
         )
 
         operational_settings_expressions_evaluated_with_regularity = (
             compressor_system_single.get_operational_settings_from_expressions(
                 expression_evaluator=consumer_system_variables_map,
-                regularity=[0.9] * len(consumer_system_variables_map.time_vector),
+                regularity=[0.9] * consumer_system_variables_map.number_of_periods,
             )
         )
 
@@ -418,7 +427,12 @@ class TestCompressorSystemConsumerFunction:
                 "SIM1;OIL_PROD_TOTAL": [25467.30664, 63761.23828, 145408.54688],
                 "SIM1;OIL_PROD_RATE": [2829.70068, 7658.78613, 10205.91406],
             },
-            time_vector=[datetime(1995, 10, 27, 0, 0), datetime(1995, 11, 1, 0, 0), datetime(1995, 11, 9, 0, 0)],
+            time_vector=[
+                datetime(1995, 10, 18, 0, 0),
+                datetime(1995, 10, 27, 0, 0),
+                datetime(1995, 11, 1, 0, 0),
+                datetime(1995, 11, 9, 0, 0),
+            ],
         )
         result = compressor_system_single.evaluate_operational_setting_expressions(
             operational_setting_expressions=compressor_system_single.operational_settings_expressions[0],
@@ -491,15 +505,15 @@ class TestCompressorSystemConsumerFunction:
         gas_prod_values = [0.005, 1.5, 4, 4, 4, 4, 4, 4, 4, 4]
         variables_map = VariablesMap(
             variables={"SIM1;GAS_PROD": gas_prod_values},
-            time_vector=[datetime(2000 + i, 1, 1) for i in range(10)],
+            time_vector=[datetime(2000 + i, 1, 1) for i in range(11)],
         )
         result = consumer_system_function.evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         result_with_power_loss = consumer_system_function_with_power_loss.evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         np.testing.assert_equal(
             result_with_power_loss.energy_usage,
@@ -519,7 +533,7 @@ class TestCompressorSystemConsumerFunction:
 
         result_with_condition = consumer_system_function_with_condition.evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
 
         assert np.all(result_with_condition.condition == [0, 0, 1, 1, 1, 1, 1, 1, 1, 1])

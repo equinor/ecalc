@@ -9,12 +9,13 @@ import libecalc.dto.types
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.time_utils import Period
 from libecalc.expression import Expression
 
-regularity = {datetime(2000, 1, 1): Expression.setup_from_expression(1)}
+regularity = {Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)}
 
 
-def get_fuel(fuel_name: str, emission_name: str) -> Dict[datetime, libecalc.dto.fuel_type.FuelType]:
+def get_fuel(fuel_name: str, emission_name: str) -> Dict[Period, libecalc.dto.fuel_type.FuelType]:
     """
     Generates a fuel type dto for use in testing
 
@@ -23,10 +24,10 @@ def get_fuel(fuel_name: str, emission_name: str) -> Dict[datetime, libecalc.dto.
         emission_name: name of emission, e.g. co2
 
     Returns:
-        Dict[datetime, dto.types.FuelType]
+        Dict[Period, dto.types.FuelType]
     """
     return {
-        datetime(2000, 1, 1): libecalc.dto.fuel_type.FuelType(
+        Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
             name=fuel_name,
             emissions=[
                 dto.Emission(
@@ -53,7 +54,7 @@ def get_installation(installation_name: str, fuel_consumer: dto.FuelConsumer) ->
     return dto.Installation(
         name=installation_name,
         regularity=regularity,
-        hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression("sim1;var1")},
+        hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression("sim1;var1")},
         fuel_consumers=[fuel_consumer],
         user_defined_category=libecalc.dto.types.InstallationUserDefinedCategoryType.FIXED,
     )
@@ -61,8 +62,8 @@ def get_installation(installation_name: str, fuel_consumer: dto.FuelConsumer) ->
 
 def get_fuel_consumer(
     consumer_name: str,
-    fuel_type: Dict[datetime, libecalc.dto.fuel_type.FuelType],
-    category: Dict[datetime, libecalc.dto.types.ConsumerUserDefinedCategoryType],
+    fuel_type: Dict[Period, libecalc.dto.fuel_type.FuelType],
+    category: Dict[Period, libecalc.dto.types.ConsumerUserDefinedCategoryType],
 ) -> dto.FuelConsumer:
     """
     Generates a fuel consumer dto for use in testing
@@ -80,7 +81,7 @@ def get_fuel_consumer(
         fuel=fuel_type,
         component_type=ComponentType.GENERIC,
         energy_usage_model={
-            datetime(2000, 1, 1): dto.DirectConsumerFunction(
+            Period(datetime(2000, 1, 1)): dto.DirectConsumerFunction(
                 fuel_rate=Expression.setup_from_expression(1),
                 energy_usage_type=EnergyUsageType.FUEL,
             )
@@ -98,7 +99,7 @@ class TestFuelConsumer:
                 fuel={},
                 component_type=ComponentType.GENERIC,
                 energy_usage_model={
-                    datetime(2000, 1, 1): dto.DirectConsumerFunction(
+                    Period(datetime(2000, 1, 1)): dto.DirectConsumerFunction(
                         fuel_rate=Expression.setup_from_expression(1),
                         energy_usage_type=EnergyUsageType.FUEL,
                     )
@@ -120,13 +121,13 @@ class TestFuelConsumer:
         fuel_consumer1 = get_fuel_consumer(
             consumer_name="flare",
             fuel_type=get_fuel("fuel1", emission_name="co2"),
-            category={datetime(2000, 1, 1): libecalc.dto.types.ConsumerUserDefinedCategoryType.FLARE},
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.FLARE},
         )
 
         fuel_consumer2 = get_fuel_consumer(
             consumer_name="boiler",
             fuel_type=get_fuel("fuel1", emission_name="ch4"),
-            category={datetime(2000, 1, 1): libecalc.dto.types.ConsumerUserDefinedCategoryType.BOILER},
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.BOILER},
         )
 
         installation1 = get_installation("INST1", fuel_consumer1)
@@ -156,13 +157,13 @@ class TestFuelConsumer:
         fuel_consumer1 = get_fuel_consumer(
             consumer_name="flare",
             fuel_type=get_fuel("fuel1", emission_name="co2"),
-            category={datetime(2000, 1, 1): libecalc.dto.types.ConsumerUserDefinedCategoryType.FLARE},
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.FLARE},
         )
 
         fuel_consumer2 = get_fuel_consumer(
             consumer_name="boiler",
             fuel_type=get_fuel("fuel1", emission_name="co2"),
-            category={datetime(2000, 1, 1): libecalc.dto.types.ConsumerUserDefinedCategoryType.BOILER},
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.BOILER},
         )
 
         installation1 = get_installation("INST1", fuel_consumer1)

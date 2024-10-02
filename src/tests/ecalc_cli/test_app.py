@@ -192,7 +192,7 @@ class TestCsvOutput:
         df = pd.read_csv(run_csv_output_file, index_col="timesteps")
         operational_settings_used = df["Water injection pump system A.operational_settings_used[N/A]"].tolist()
         is_valid = df["Water injection pump system A.is_valid[N/A]"].tolist()
-        assert operational_settings_used == [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        assert operational_settings_used == [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         assert is_valid == [1] * len(operational_settings_used)
 
 
@@ -594,20 +594,21 @@ class TestShowResultsCommand:
 
         output_text = result.stdout
         data = json.loads(output_text)
-        assert data["component_result"]["timesteps"] == [
-            "01.01.2020 00:00:00",
-            "01.01.2021 00:00:00",
-            "01.01.2022 00:00:00",
-            "01.01.2023 00:00:00",
-            "01.01.2024 00:00:00",
-            "01.12.2024 00:00:00",
-            "01.01.2026 00:00:00",
-            "01.01.2027 00:00:00",
-            "01.01.2028 00:00:00",
-            "01.01.2029 00:00:00",
-            "01.01.2030 00:00:00",
-            "01.01.2031 00:00:00",
-        ]
+        assert data["component_result"]["periods"] == {
+            "periods": [
+                {"start": "01.01.2020 00:00:00", "end": "01.01.2021 00:00:00"},
+                {"start": "01.01.2021 00:00:00", "end": "01.01.2022 00:00:00"},
+                {"start": "01.01.2022 00:00:00", "end": "01.01.2023 00:00:00"},
+                {"start": "01.01.2023 00:00:00", "end": "01.01.2024 00:00:00"},
+                {"start": "01.01.2024 00:00:00", "end": "01.12.2024 00:00:00"},
+                {"start": "01.12.2024 00:00:00", "end": "01.01.2026 00:00:00"},
+                {"start": "01.01.2026 00:00:00", "end": "01.01.2027 00:00:00"},
+                {"start": "01.01.2027 00:00:00", "end": "01.01.2028 00:00:00"},
+                {"start": "01.01.2028 00:00:00", "end": "01.01.2029 00:00:00"},
+                {"start": "01.01.2029 00:00:00", "end": "01.01.2030 00:00:00"},
+                {"start": "01.01.2030 00:00:00", "end": "01.01.2031 00:00:00"},
+            ]
+        }
 
     def test_csv_custom_date_format(self, simple_run, monkeypatch, snapshot):
         result = runner.invoke(
@@ -639,7 +640,6 @@ class TestShowResultsCommand:
             "01.01.2028 00:00:00",
             "01.01.2029 00:00:00",
             "01.01.2030 00:00:00",
-            "01.01.2031 00:00:00",
         ]
 
     @pytest.mark.snapshot

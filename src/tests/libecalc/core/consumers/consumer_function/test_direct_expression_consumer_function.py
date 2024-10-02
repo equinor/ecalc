@@ -8,6 +8,7 @@ import libecalc.common.utils.rates
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression_consumer_function import (
@@ -17,9 +18,13 @@ from libecalc.expression import Expression
 
 
 @pytest.fixture
-def direct_variables_map():
-    time_vector = [datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2003, 1, 1)]
-    return VariablesMap(variables={"foo;bar": [1.0] * len(time_vector)}, time_vector=time_vector)
+def direct_variables_map() -> VariablesMap:
+    time_vector = [
+        datetime(2000, 1, 1),
+        datetime(2001, 1, 1),
+        datetime(2003, 1, 1),
+    ]
+    return VariablesMap(variables={"foo;bar": [1.0, 1.0]}, time_vector=time_vector)
 
 
 def test_direct_expression_consumer_function():
@@ -27,7 +32,11 @@ def test_direct_expression_consumer_function():
 
     # Test evaluation
     variables_map = VariablesMap(
-        time_vector=[datetime(2000, 1, 1, 0, 0), datetime(2001, 1, 1, 0, 0)],
+        time_vector=[
+            datetime(2000, 1, 1, 0, 0),
+            datetime(2001, 1, 1, 0, 0),
+            datetime(2002, 1, 1, 0, 0),
+        ],
         variables={"SIM1;Flare": [10.0, 3.0], "SIM1;Vent": [5.0, 2.0]},
     )
 
@@ -36,7 +45,7 @@ def test_direct_expression_consumer_function():
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     ).evaluate(
         expression_evaluator=variables_map,
-        regularity=[1.0] * len(variables_map.time_vector),
+        regularity=[1.0] * variables_map.number_of_periods,
     )
     expected_result = [15, 5]
     np.testing.assert_allclose(result.energy_usage, expected_result)
@@ -48,16 +57,16 @@ def test_direct_expression_consumer_function():
         component_type=ComponentType.GENERIC,
         energy_usage_model=TemporalModel(
             {
-                datetime(1900, 1, 1): DirectExpressionConsumerFunction(
+                Period(datetime(1900, 1, 1)): DirectExpressionConsumerFunction(
                     fuel_rate=Expression.setup_from_expression(
                         time_series_name + ";Flare {+} " + time_series_name + ";Vent"
                     ),
                     energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
                 )
-            }
+            },
         ),
         consumes=ConsumptionType.FUEL,
-        regularity=TemporalModel({datetime(1900, 1, 1): Expression.setup_from_expression(1)}),
+        regularity=TemporalModel({Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}),
     )
     result = fuel_consumer.evaluate(expression_evaluator=variables_map)
     consumer_result = result.component_result
@@ -88,7 +97,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         .energy_usage,
         desired=[2.1, 2.1],
@@ -101,7 +110,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         .energy_usage,
         desired=[5.1, 5.1],
@@ -114,7 +123,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         .energy_usage,
         desired=[0, 0],
@@ -127,7 +136,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         .energy_usage,
         desired=[0, 0],
@@ -141,7 +150,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         .energy_usage,
         desired=[0, 0],
@@ -157,7 +166,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         .energy_usage,
         desired=[3.1, 0],
@@ -171,7 +180,7 @@ def test_direct_expression_consumer_function():
         )
         .evaluate(
             expression_evaluator=variables_map,
-            regularity=[1.0] * len(variables_map.time_vector),
+            regularity=[1.0] * variables_map.number_of_periods,
         )
         .energy_usage,
         desired=[2.5, 2.5],
@@ -198,7 +207,7 @@ def test_direct_expression_consumer_function_consumption_rate_type(direct_variab
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
     )
 
-    evaluated_regularity = [regularity] * len(direct_variables_map.time_vector)
+    evaluated_regularity = [regularity] * direct_variables_map.number_of_periods
 
     stream_day_function_result = stream_day_function.evaluate(
         expression_evaluator=direct_variables_map,

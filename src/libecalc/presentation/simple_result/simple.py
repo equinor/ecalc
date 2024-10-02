@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -8,6 +7,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.presentation.json_result.result import ComponentResult, EcalcModelResult
 
@@ -75,7 +75,7 @@ class SimpleComponentResult(SimpleBase):
     component_level: ComponentLevel
     parent: Optional[str] = None
     name: str
-    timesteps: List[datetime]
+    periods: Periods
     is_valid: List[int]
     emissions: Dict[str, SimpleEmissionResult]
 
@@ -116,16 +116,27 @@ class SimpleComponentResult(SimpleBase):
         return ComponentID(componentType=self.componentType, name=self.name)
 
     @classmethod
-    def fit_to_timesteps(
+    def fit_to_periods(
         cls,
         component: "SimpleComponentResult",
-        timesteps: List[datetime],
+        periods: Periods,
     ) -> "SimpleComponentResult":
-        """Fit the component to the provided timesteps. Only the same or a subset of timesteps is supported.
+        """Fits the component to the given periods.
 
-        :param component: The component that should be normalized
-        :param timesteps: the target timesteps. The provided timesteps should all exist in the component.
-        :return: the component with the new timesteps
+        * The given periods needs to cover at least the same time span as the original periods.
+        * If a given period extends beyond the first and last dates in the original periods,
+            it will be cut/forced to cover the same time span as the original periods.
+        * After being constrained to the original periods, the given periods should contain all dates
+            in the original periods (and likely some more). This means that some of the original periods
+            will be split into multiple periods - each with the same energy usage, power, etc. - to make
+            delta profile comparisons easier/possible.
+
+        Args:
+            component (SimpleComponentResult): The component that should be fitted.
+            periods (Periods): The target periods. The provided periods should all exist in the component.
+
+        Returns:
+            SimpleComponentResult: The component with the new periods.
         """
         power = []
         energy_usage = []
@@ -134,24 +145,24 @@ class SimpleComponentResult(SimpleBase):
             emission.name: SimpleEmissionResult(name=emission.name, rate=[])
             for emission in component.emissions.values()
         }
-        for timestep in timesteps:
-            if timestep in component.timesteps:
-                timestep_index = component.timesteps.index(timestep)
-
-                if component.power is not None:
-                    power.append(component.power[timestep_index])
-
-                energy_usage.append(component.energy_usage[timestep_index])
-
-                is_valid.append(component.is_valid[timestep_index])
-                for emission in emissions.values():
-                    # Assume index exist if emission exist
-                    emission.rate.append(component.emissions[emission.name].rate[timestep_index])
+        for period_index, _period in enumerate(component.periods):
+            period = Period.intersection(_period, periods.period)
+            if period:
+                start = periods.start_dates.index(period.start)
+                end = periods.end_dates.index(period.end)
+                for _ in range(start, end + 1):
+                    if component.power is not None:
+                        power.append(component.power[period_index])
+                    energy_usage.append(component.energy_usage[period_index])
+                    is_valid.append(component.is_valid[period_index])
+                    for emission in emissions.values():
+                        # Assume index exist if emission exist
+                        emission.rate.append(component.emissions[emission.name].rate[period_index])
             else:
-                # This is a developer error, we should provide the correct timesteps.
+                # This is a developer error, we should provide the correct period.
                 raise ProgrammingError(
-                    f"Provided timesteps includes timestep not found in component {component.id}. "
-                    f"Extraneous timestep: {timestep}. This should not happen, contact support."
+                    f"Provided periods includes period not found in component {component.id}. "
+                    f"Extraneous period: {period}. This should not happen, contact support."
                 )
 
         return cls(
@@ -164,7 +175,7 @@ class SimpleComponentResult(SimpleBase):
             energy_usage_unit=component.energy_usage_unit,
             emissions=emissions,
             is_valid=is_valid,
-            timesteps=timesteps,
+            periods=periods,
         )
 
     def __sub__(self, reference_component) -> "SimpleComponentResult":
@@ -177,9 +188,9 @@ class SimpleComponentResult(SimpleBase):
             raise ValueError(
                 f"Can not compare different components, id does not match: {self.id} and {reference_component.id}"
             )
-        if self.timesteps != reference_component.timesteps:
+        if self.periods != reference_component.periods:
             raise ValueError(
-                f"Can not compare components with differing timesteps: {self.id} and {reference_component.id}"
+                f"Can not compare components with differing periods: {self.id} and {reference_component.id}"
             )
         if self.energy_usage_unit != reference_component.energy_usage_unit:
             raise ValueError(
@@ -193,7 +204,7 @@ class SimpleComponentResult(SimpleBase):
             parent=self.parent if self.parent == reference_component.parent else None,
             componentType=self.componentType,
             component_level=self.component_level,
-            timesteps=self.timesteps,
+            periods=self.periods,
             is_valid=[changed and reference for changed, reference in zip(self.is_valid, reference_component.is_valid)],
             energy_usage=_subtract_list(self.energy_usage, reference_component.energy_usage),
             energy_usage_unit=self.energy_usage_unit,
@@ -214,51 +225,51 @@ def _create_empty_component(component: SimpleComponentResult) -> SimpleComponent
         component_level=component.component_level,
         name=component.name,
         parent=component.parent,
-        timesteps=component.timesteps,
-        energy_usage=[0] * len(component.timesteps),
+        periods=component.periods,
+        energy_usage=[0] * len(component.periods),
         energy_usage_unit=component.energy_usage_unit,
-        power=[0] * len(component.timesteps),
+        power=[0] * len(component.periods),
         emissions={
             emission.name: SimpleEmissionResult(
                 name=emission.name,
-                rate=[0] * len(component.timesteps),
+                rate=[0] * len(component.periods),
             )
             for emission in component.emissions.values()
         },
-        is_valid=[True] * len(component.timesteps),
+        is_valid=[True] * len(component.periods),
     )
 
 
 class SimpleResultData(SimpleBase):
-    timesteps: List[datetime]
+    periods: Periods
     components: List[SimpleComponentResult]
 
     @classmethod
     def from_dto(cls, result: EcalcModelResult) -> "SimpleResultData":
         return SimpleResultData(
-            timesteps=result.timesteps,
+            periods=result.periods,
             components=[SimpleComponentResult.from_dto(component) for component in result.components],
         )
 
     @classmethod
-    def fit_to_timesteps(
+    def fit_to_periods(
         cls,
         model: "SimpleResultData",
-        timesteps: List[datetime],
+        periods: Periods,
     ):
         """
-        Fit result to timesteps. Only a subset or the same set of timesteps is supported.
+        Fit result to periods. Only a subset or the same set of periods is supported.
         Args:
             model:
-            timesteps:
+            periods:
 
         Returns:
 
         """
         return cls(
-            timesteps=timesteps,
+            periods=periods,
             components=[
-                SimpleComponentResult.fit_to_timesteps(component=component, timesteps=timesteps)
+                SimpleComponentResult.fit_to_periods(component=component, periods=periods)
                 for component in model.components
             ],
         )
@@ -273,12 +284,12 @@ class SimpleResultData(SimpleBase):
 
         Timesteps and components should be equal between the models.
         """
-        if changed_model.timesteps != reference_model.timesteps:
+        if changed_model.periods != reference_model.periods:
             raise ValueError(
                 "Timesteps should be equal between models when calculating delta profile. "
                 "Use separate methods to normalize."
             )
-        timesteps = reference_model.timesteps
+        periods = reference_model.periods
 
         errors = []
         components = []
@@ -289,7 +300,7 @@ class SimpleResultData(SimpleBase):
                 logger.error(e)
                 errors.append(e)
 
-        return SimpleResultData(timesteps=timesteps, components=components), errors
+        return SimpleResultData(periods=periods, components=components), errors
 
     @classmethod
     def _normalize_emissions(cls, changed_component, reference_component):
@@ -298,7 +309,7 @@ class SimpleResultData(SimpleBase):
         for emission_name in emission_names:
             for component in [changed_component, reference_component]:
                 if emission_name not in list(component.emissions):
-                    vector_length = len(component.timesteps)
+                    vector_length = len(component.periods)
                     component.emissions[emission_name] = SimpleEmissionResult(
                         name=emission_name,
                         rate=[0] * vector_length,
@@ -345,8 +356,8 @@ class SimpleResultData(SimpleBase):
             normalized_changed_components.append(changed_component)
 
         return (
-            cls(timesteps=changed_model.timesteps, components=normalized_changed_components),
-            cls(timesteps=reference_model.timesteps, components=normalized_reference_components),
+            cls(periods=changed_model.periods, components=normalized_changed_components),
+            cls(periods=reference_model.periods, components=normalized_reference_components),
         )
 
     @classmethod
@@ -355,15 +366,38 @@ class SimpleResultData(SimpleBase):
         reference_model: "SimpleResultData",
         changed_model: "SimpleResultData",
     ) -> Tuple["SimpleResultData", "SimpleResultData", "SimpleResultData", List[str]]:
-        timesteps = sorted(set(changed_model.timesteps).intersection(reference_model.timesteps))
+        """
+
+        Args:
+            reference_model:
+            changed_model:
+
+        Returns:
+
+        """
+        # find all dates in both models for the period both models are defined
+        first_date = max(changed_model.periods.first_date, reference_model.periods.first_date)
+        last_date = min(changed_model.periods.last_date, reference_model.periods.last_date)
+
+        all_dates_in_models = sorted(
+            {date for date in reference_model.periods.all_dates if first_date <= date <= last_date}.union(
+                {date for date in changed_model.periods.all_dates if first_date <= date <= last_date}
+            )
+        )
+        # define new periods using all dates in both models
+        periods = Periods.create_periods(
+            times=all_dates_in_models,
+            include_after=False,
+            include_before=False,
+        )
 
         # Normalize components first as we need to filter out CONSUMER_MODELs for normalize_timesteps to work.
         changed_model, reference_model = cls.normalize_components(
             reference_model=reference_model, changed_model=changed_model
         )
 
-        changed_model = cls.fit_to_timesteps(changed_model, timesteps)
-        reference_model = cls.fit_to_timesteps(reference_model, timesteps)
+        changed_model = cls.fit_to_periods(changed_model, periods)
+        reference_model = cls.fit_to_periods(reference_model, periods)
 
         delta_profile, errors = cls.subtract(changed_model=changed_model, reference_model=reference_model)
 

@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.time_utils import Period
 from libecalc.expression import Expression
 
 
@@ -15,13 +16,13 @@ class TestElectricityConsumer:
             dto.ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
-                user_defined_category={datetime(1900, 1, 1): "MISCELLANEOUS"},
+                user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
                 energy_usage_model={
-                    datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                    Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                         fuel_rate=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.FUEL
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
         assert "Model does not consume POWER" in str(e.value)
 
@@ -30,11 +31,11 @@ class TestElectricityConsumer:
         dto.ElectricityConsumer(
             name="Test",
             component_type=ComponentType.GENERIC,
-            user_defined_category={datetime(1900, 1, 1): "MISCELLANEOUS"},
+            user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             energy_usage_model={
-                datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                     load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                 )
             },
-            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
         )

@@ -8,6 +8,7 @@ import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.types import (
     ConsumerUserDefinedCategoryType,
@@ -163,8 +164,8 @@ class TestCategories:
             dto.components.Installation(
                 name="test",
                 user_defined_category="PLATFORM",
-                hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(0)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
 
         assert (
@@ -177,8 +178,8 @@ class TestCategories:
             dto.components.Installation(
                 name="test",
                 user_defined_category="fixed",
-                hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(0)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
 
         assert (
@@ -191,8 +192,8 @@ class TestCategories:
             dto.components.Installation(
                 name="test",
                 user_defined_category="",
-                hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(0)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
 
         assert (
@@ -205,8 +206,8 @@ class TestCategories:
             dto.components.Installation(
                 name="test",
                 user_defined_category=InstallationUserDefinedCategoryType.MOBILE,
-                hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(0)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 fuel_consumers=[flare],
             ).user_defined_category
             == InstallationUserDefinedCategoryType.MOBILE
@@ -217,8 +218,8 @@ class TestCategories:
             dto.components.Installation(
                 name="test",
                 user_defined_category=InstallationUserDefinedCategoryType.FIXED,
-                hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(0)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 fuel_consumers=[flare],
             ).user_defined_category
             == InstallationUserDefinedCategoryType.FIXED
@@ -228,8 +229,8 @@ class TestCategories:
         assert (
             dto.components.Installation(
                 name="test",
-                hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(0)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 fuel_consumers=[flare],
             ).user_defined_category
             is None
@@ -241,13 +242,13 @@ class TestCategories:
             dto.ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
-                user_defined_category={datetime(1900, 1, 1): "HUGE-SINGLE-SPEED-PUMP"},
+                user_defined_category={Period(datetime(1900, 1, 1)): "HUGE-SINGLE-SPEED-PUMP"},
                 energy_usage_model={
-                    datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                    Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                         load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
 
         assert (
@@ -260,14 +261,14 @@ class TestCategories:
             dto.ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
-                user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP},
+                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.PUMP},
                 energy_usage_model={
-                    datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                    Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                         load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
-            ).user_defined_category[datetime(1900, 1, 1)]
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+            ).user_defined_category[Period(datetime(1900, 1, 1))]
             == ConsumerUserDefinedCategoryType.PUMP
         )
 
@@ -276,13 +277,13 @@ class TestCategories:
             dto.ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
-                user_defined_category={datetime(1900, 1, 1): ""},
+                user_defined_category={Period(datetime(1900, 1, 1)): ""},
                 energy_usage_model={
-                    datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                    Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                         load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
 
         assert (
@@ -296,11 +297,11 @@ class TestCategories:
                 name="Test",
                 component_type=ComponentType.GENERIC,
                 energy_usage_model={
-                    datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                    Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                         load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
 
         exception: ValidationError = typing.cast(ValidationError, exc_info.value)
@@ -311,42 +312,54 @@ class TestCategories:
             name="Test",
             component_type=ComponentType.GENERIC,
             user_defined_category={
-                datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP,
-                datetime(1920, 1, 1): ConsumerUserDefinedCategoryType.PUMP,
-                datetime(1940, 1, 1): ConsumerUserDefinedCategoryType.PUMP,
+                Period(datetime(1900, 1, 1), datetime(1920, 1, 1)): ConsumerUserDefinedCategoryType.PUMP,
+                Period(datetime(1920, 1, 1), datetime(1940, 1, 1)): ConsumerUserDefinedCategoryType.PUMP,
+                Period(datetime(1940, 1, 1)): ConsumerUserDefinedCategoryType.PUMP,
             },
             energy_usage_model={
-                datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                     load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                 )
             },
-            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
         )
 
-        assert test.user_defined_category[datetime(1900, 1, 1)] == ConsumerUserDefinedCategoryType.PUMP
-        assert test.user_defined_category[datetime(1920, 1, 1)] == ConsumerUserDefinedCategoryType.PUMP
-        assert test.user_defined_category[datetime(1940, 1, 1)] == ConsumerUserDefinedCategoryType.PUMP
+        assert (
+            test.user_defined_category[Period(datetime(1900, 1, 1), datetime(1920, 1, 1))]
+            == ConsumerUserDefinedCategoryType.PUMP
+        )
+        assert (
+            test.user_defined_category[Period(datetime(1920, 1, 1), datetime(1940, 1, 1))]
+            == ConsumerUserDefinedCategoryType.PUMP
+        )
+        assert test.user_defined_category[Period(datetime(1940, 1, 1))] == ConsumerUserDefinedCategoryType.PUMP
 
         # Check correct multiple categories and multiple dates
         test = dto.ElectricityConsumer(
             name="Test",
             component_type=ComponentType.GENERIC,
             user_defined_category={
-                datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP,
-                datetime(1920, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR,
-                datetime(1940, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                Period(datetime(1900, 1, 1), datetime(1920, 1, 1)): ConsumerUserDefinedCategoryType.PUMP,
+                Period(datetime(1920, 1, 1), datetime(1940, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR,
+                Period(datetime(1940, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS,
             },
             energy_usage_model={
-                datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                     load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                 )
             },
-            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
         )
 
-        assert test.user_defined_category[datetime(1900, 1, 1)] == ConsumerUserDefinedCategoryType.PUMP
-        assert test.user_defined_category[datetime(1920, 1, 1)] == ConsumerUserDefinedCategoryType.COMPRESSOR
-        assert test.user_defined_category[datetime(1940, 1, 1)] == ConsumerUserDefinedCategoryType.MISCELLANEOUS
+        assert (
+            test.user_defined_category[Period(datetime(1900, 1, 1), datetime(1920, 1, 1))]
+            == ConsumerUserDefinedCategoryType.PUMP
+        )
+        assert (
+            test.user_defined_category[Period(datetime(1920, 1, 1), datetime(1940, 1, 1))]
+            == ConsumerUserDefinedCategoryType.COMPRESSOR
+        )
+        assert test.user_defined_category[Period(datetime(1940, 1, 1))] == ConsumerUserDefinedCategoryType.MISCELLANEOUS
 
         # Check multiple categories and multiple dates, some are correct, some are wrong
         # Should raise error
@@ -355,16 +368,16 @@ class TestCategories:
                 name="Test",
                 component_type=ComponentType.GENERIC,
                 user_defined_category={
-                    datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.PUMP,
-                    datetime(1920, 1, 1): "FIRST-COMPRESSOR",
-                    datetime(1940, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                    Period(datetime(1900, 1, 1), datetime(1920, 1, 1)): ConsumerUserDefinedCategoryType.PUMP,
+                    Period(datetime(1920, 1, 1), datetime(1940, 1, 1)): "FIRST-COMPRESSOR",
+                    Period(datetime(1940, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS,
                 },
                 energy_usage_model={
-                    datetime(1900, 1, 1): dto.DirectConsumerFunction(
+                    Period(datetime(1900, 1, 1)): dto.DirectConsumerFunction(
                         load=Expression.setup_from_expression(value=5), energy_usage_type=EnergyUsageType.POWER
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             )
 
         assert (
@@ -377,19 +390,19 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): "GENERATOR-SET"},
+                user_defined_category={Period(datetime(1900, 1, 1)): "GENERATOR-SET"},
                 generator_set_model={
-                    datetime(1900, 1, 1): dto.GeneratorSetSampled(
+                    Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
                         headers=["FUEL", "POWER"],
                         data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                         energy_usage_adjustment_constant=0.0,
                         energy_usage_adjustment_factor=1.0,
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 consumers=[],
                 fuel={
-                    datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
+                    Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
                         name="fuel-gas",
                         emissions=[],
                     )
@@ -405,19 +418,19 @@ class TestCategories:
         with pytest.raises(ValidationError) as exc_info:
             dto.GeneratorSet(
                 name="Test",
-                user_defined_category={datetime(1900, 1, 1): "turbine-generator"},
+                user_defined_category={Period(datetime(1900, 1, 1)): "turbine-generator"},
                 generator_set_model={
-                    datetime(1900, 1, 1): dto.GeneratorSetSampled(
+                    Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
                         headers=["FUEL", "POWER"],
                         data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                         energy_usage_adjustment_constant=0.0,
                         energy_usage_adjustment_factor=1.0,
                     )
                 },
-                regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
                 consumers=[],
                 fuel={
-                    datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
+                    Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
                         name="fuel-gas",
                         emissions=[],
                     )
@@ -432,19 +445,19 @@ class TestCategories:
         # Check correct category
         generator_set_dto = dto.GeneratorSet(
             name="Test",
-            user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
+            user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
             generator_set_model={
-                datetime(1900, 1, 1): dto.GeneratorSetSampled(
+                Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
                     headers=["FUEL", "POWER"],
                     data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                     energy_usage_adjustment_constant=0.0,
                     energy_usage_adjustment_factor=1.0,
                 )
             },
-            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
             consumers=[],
             fuel={
-                datetime(1900, 1, 1): libecalc.dto.fuel_type.FuelType(
+                Period(datetime(1900, 1, 1)): libecalc.dto.fuel_type.FuelType(
                     name="fuel-gas",
                     emissions=[],
                 )
@@ -452,6 +465,6 @@ class TestCategories:
         )
 
         assert (
-            generator_set_dto.user_defined_category[datetime(1900, 1, 1)]
+            generator_set_dto.user_defined_category[Period(datetime(1900, 1, 1))]
             == ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
         )
