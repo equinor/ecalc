@@ -24,7 +24,7 @@ def rich_fluid_dto() -> FluidModel:
 @pytest.fixture
 def fuel_gas() -> Dict[Period, FuelType]:
     return {
-        Period(datetime(1900, 1, 1)): FuelType(
+        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): FuelType(
             name="fuel_gas",
             user_defined_category=FuelTypeUserDefinedCategoryType.FUEL_GAS,
             emissions=[
