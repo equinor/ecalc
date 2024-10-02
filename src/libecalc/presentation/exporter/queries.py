@@ -1,6 +1,5 @@
 import abc
 from collections import defaultdict
-from datetime import datetime
 from typing import DefaultDict, Dict, List, Optional
 
 from libecalc.common.decorators.feature_flags import Feature
@@ -25,7 +24,7 @@ class Query(abc.ABC):
         installation_graph: Exportable,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         pass
 
 
