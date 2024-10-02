@@ -131,7 +131,7 @@ class VariablesMap(BaseModel):
         """Get the number of periods covered by the time vector"""
         return len(self.time_vector) - 1
 
-    def evaluate(self, expression: Union[Expression, Dict[datetime, Expression], TemporalModel]) -> NDArray[np.float64]:
+    def evaluate(self, expression: Union[Expression, Dict[Period, Expression], TemporalModel]) -> NDArray[np.float64]:
         # Should we only allow Expression and Temporal model?
         if isinstance(expression, Expression):
             return expression.evaluate(variables=self.variables, fill_length=len(self.get_periods()))
@@ -175,5 +175,5 @@ class ExpressionEvaluator(Protocol):
 
     @abc.abstractmethod
     def evaluate(
-        self, expression: Union[Expression, TemporalModel, Dict[datetime, Expression]]
+        self, expression: Union[Expression, TemporalModel, Dict[Period, Expression]]
     ) -> NDArray[np.float64]: ...

@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Dict, Iterator, List, Tuple, Union
 
-from libecalc.common.time_utils import Periods
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.domain.tabular.exceptions import ColumnNotFound
 from libecalc.presentation.exporter.formatters.formatter import (
@@ -38,7 +37,7 @@ class QueryResult:
     name: str
     title: str
     unit: Unit  # Needed! in order to know how to handler further....parse
-    values: Dict[datetime, float]
+    values: Dict[Period, float]
 
     def get_title(self) -> str:
         return f"{self.title}[{self.unit}]"

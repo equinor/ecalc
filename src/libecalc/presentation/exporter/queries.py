@@ -1,6 +1,5 @@
 import abc
 from collections import defaultdict
-from datetime import datetime
 from typing import DefaultDict, Dict, List, Optional
 
 import libecalc.dto
@@ -35,7 +34,7 @@ class Query(abc.ABC):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         pass
 
 
@@ -71,7 +70,7 @@ class FuelQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods
@@ -149,7 +148,7 @@ class VolumeQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods
@@ -230,7 +229,7 @@ class EmissionQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods
@@ -327,7 +326,7 @@ class ElectricityGeneratedQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods
@@ -399,7 +398,7 @@ class PowerSupplyOnshoreQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods
@@ -480,7 +479,7 @@ class MaxUsageFromShoreQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods
@@ -557,7 +556,7 @@ class FuelConsumerPowerConsumptionQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods
@@ -644,7 +643,7 @@ class ElConsumerPowerConsumptionQuery(Query):
         installation_graph: GraphResult,
         unit: Unit,
         frequency: Frequency,
-    ) -> Optional[Dict[datetime, float]]:
+    ) -> Optional[Dict[Period, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
 
         installation_periods = installation_graph.periods

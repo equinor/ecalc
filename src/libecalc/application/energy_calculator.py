@@ -1,5 +1,4 @@
 from collections import defaultdict
-from datetime import datetime
 from functools import reduce
 from typing import Dict
 
@@ -44,8 +43,8 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 
 
-def merge_results(results_per_timestep: Dict[datetime, EcalcModelResult]) -> EcalcModelResult:
-    return reduce(lambda acc, x: acc.merge(x), results_per_timestep.values())
+def merge_results(results_per_period: Dict[Period, EcalcModelResult]) -> EcalcModelResult:
+    return reduce(lambda acc, x: acc.merge(x), results_per_period.values())
 
 
 class EnergyCalculator:

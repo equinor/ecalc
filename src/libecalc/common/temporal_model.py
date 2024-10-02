@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Dict, Generic, Iterator, Tuple, TypeVar
+from datetime import datetime
+from typing import Dict, Generic, Iterator, Tuple, TypeVar, Union
 
 from libecalc.common.time_utils import Period
 
@@ -13,7 +14,16 @@ class Model(Generic[ModelType]):
 
 
 class TemporalModel(Generic[ModelType]):
-    def __init__(self, data: Dict[Period, ModelType]):
+    """If data has datetime keys, convert to Period keys"""
+
+    def __init__(self, data: Dict[Union[datetime, Period], ModelType]):
+        if all(isinstance(key, datetime) for key in data.keys()):
+            # convert date keys to Period keys
+            model_dates = list(data.keys()) + [datetime.max.replace(microsecond=0)]
+            data = {
+                Period(start=start_time, end=end_time): model
+                for start_time, end_time, model in zip(model_dates[:-1], model_dates[1:], data.values())
+            }
         self._data = data
         self.models = [
             Model(
