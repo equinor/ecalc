@@ -75,7 +75,7 @@ def test_venting_emitter(variables_map):
         ],
     )
 
-    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}
+    regularity = {datetime(1900, 1, 1): Expression.setup_from_expression(1)}
 
     emission_rate = venting_emitter.get_emissions(expression_evaluator=variables_map, regularity=regularity)[
         "ch4"
