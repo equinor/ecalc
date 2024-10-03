@@ -39,7 +39,7 @@ class YamlInstallation(YamlBase):
     )
     category: InstallationUserDefinedCategoryType = CategoryField(None)
     hydrocarbon_export: YamlTemporalModel[YamlExpressionType] = Field(
-        None,
+        0,
         title="HCEXPORT",
         description="Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/HCEXPORT",
         alias="HCEXPORT",
@@ -50,7 +50,7 @@ class YamlInstallation(YamlBase):
         description="Main fuel type for installation." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
     regularity: YamlTemporalModel[YamlExpressionType] = Field(
-        None,
+        1,
         title="REGULARITY",
         description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
     )
@@ -83,12 +83,10 @@ class YamlInstallation(YamlBase):
 
     @model_validator(mode="after")
     def check_some_consumer_or_emitter(self):
-        try:
-            if self.fuel_consumers or self.venting_emitters or self.generator_sets:
-                return self
-        except AttributeError:
+        if self.fuel_consumers or self.venting_emitters or self.generator_sets:
+            return self
+        else:
             raise ValueError(
                 f"Keywords are missing:\n It is required to specify at least one of the keywords "
                 f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model.",
             ) from None
-        return self

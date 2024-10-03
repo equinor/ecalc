@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
 
-from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidReferenceException
+from libecalc.common.errors.exceptions import HeaderNotFoundException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
 from libecalc.dto.types import (
@@ -12,6 +12,7 @@ from libecalc.dto.types import (
     ChartPolytropicHeadUnit,
     ChartRateUnit,
 )
+from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.validation_errors import (
     ResourceValidationError,

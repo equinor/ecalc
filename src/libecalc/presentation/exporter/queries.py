@@ -18,6 +18,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.core.result import GeneratorSetResult
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.domain.components.installation_component import InstallationComponent
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
 )
@@ -73,6 +74,7 @@ class FuelQuery(Query):
         frequency: Frequency,
     ) -> Optional[Dict[datetime, float]]:
         installation_dto = installation_graph.graph.get_node(installation_graph.graph.root)
+        assert isinstance(installation_dto, InstallationComponent)
 
         installation_time_steps = installation_graph.timesteps
         time_steps = resample_time_steps(
@@ -80,13 +82,7 @@ class FuelQuery(Query):
             time_steps=installation_time_steps,
         )
 
-        regularity = TimeSeriesFloat(
-            timesteps=installation_time_steps,
-            values=installation_graph.variables_map.evaluate(
-                expression=TemporalModel(installation_dto.regularity)
-            ).tolist(),
-            unit=Unit.NONE,
-        )
+        regularity = installation_dto.regularity
 
         aggregated_result: DefaultDict[datetime, float] = defaultdict(float)
         aggregated_result_volume = {}

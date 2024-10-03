@@ -41,6 +41,9 @@ class Period:
         """
         return self.start <= time < self.end
 
+    def __eq__(self, other):
+        return self.start == other.start and self.end == other.end
+
     @staticmethod
     def intersects(first: Period, second: Period) -> bool:
         """

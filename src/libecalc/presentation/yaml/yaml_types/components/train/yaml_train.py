@@ -9,7 +9,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period
 from libecalc.dto.components import Stream, TrainComponent
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_entities import References
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import YamlConsumerBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_compressor import (
     YamlCompressor,
@@ -34,7 +34,7 @@ class YamlTrain(YamlConsumerBase, Generic[TYamlConsumer]):
         consumes: ConsumptionType,
         regularity: Dict[datetime, Expression],
         target_period: Period,
-        references: References,
+        references: ReferenceService,
         category: str,
         fuel: Optional[Dict[datetime, libecalc.dto.fuel_type.FuelType]],
     ):

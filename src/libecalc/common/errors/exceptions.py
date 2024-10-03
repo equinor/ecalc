@@ -64,13 +64,6 @@ class IllegalStateException(EcalcError):
         super().__init__("Illegal state", message, error_type=EcalcErrorType.SERVER_ERROR)
 
 
-class InvalidReferenceException(EcalcError):
-    """The data provided is missing a required reference."""
-
-    def __init__(self, message: str):
-        super().__init__("Invalid reference", message, error_type=EcalcErrorType.CLIENT_ERROR)
-
-
 class InvalidDateException(EcalcError): ...
 
 

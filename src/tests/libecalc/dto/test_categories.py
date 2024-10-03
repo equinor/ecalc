@@ -15,6 +15,7 @@ from libecalc.dto.types import (
     InstallationUserDefinedCategoryType,
 )
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlVentingEmission,
@@ -174,9 +175,9 @@ class TestCategories:
 
         # Check that lower case raises error
         with pytest.raises(ValidationError) as exc_info:
-            dto.components.Installation(
+            YamlInstallation(
                 name="test",
-                user_defined_category="fixed",
+                category="fixed",
                 hydrocarbon_export={datetime(1900, 1, 1): Expression.setup_from_expression(0)},
                 regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
             )

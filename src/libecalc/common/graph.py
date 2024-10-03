@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 from typing import Dict, Generic, List, Protocol, TypeVar
 
 import networkx as nx
@@ -10,6 +11,7 @@ NodeID = str
 
 class NodeWithID(Protocol):
     @property
+    @abc.abstractmethod
     def id(self) -> NodeID: ...
 
 
@@ -17,9 +19,9 @@ TNode = TypeVar("TNode", bound=NodeWithID)
 
 
 class Graph(Generic[TNode]):
-    def __init__(self):
-        self.graph = nx.DiGraph()
-        self.nodes: Dict[NodeID, TNode] = {}
+    def __init__(self, graph: nx.DiGraph = None, nodes: Dict[NodeID, TNode] = None):
+        self.graph = nx.DiGraph() if graph is None else graph
+        self.nodes: Dict[NodeID, TNode] = {} if nodes is None else nodes
 
     def add_node(self, node: TNode) -> Self:
         self.graph.add_node(node.id)
@@ -37,6 +39,19 @@ class Graph(Generic[TNode]):
         self.nodes.update(subgraph.nodes)
         self.graph = nx.compose(self.graph, subgraph.graph)
         return self
+
+    def get_subgraph(self, node_id: NodeID) -> Self:
+        node_ids = {node_id, *self.get_successors(node_id, recursively=True)}
+        sub_graph = self.__class__()
+        for node in self.nodes.values():
+            if node.id in node_ids:
+                sub_graph.add_node(node)
+
+        for from_id, to_id in self.graph.edges:
+            if from_id in node_ids and to_id in node_ids:
+                sub_graph.add_edge(from_id, to_id)
+
+        return sub_graph
 
     def get_successors(self, node_id: NodeID, recursively=False) -> List[NodeID]:
         if recursively:

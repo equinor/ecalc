@@ -10,7 +10,7 @@ from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto import FuelType
 from libecalc.dto.components import ConsumerSystem, Crossover, SystemComponentConditions
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_entities import References
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_system_component_conditions import (
     YamlSystemComponentConditions,
 )
@@ -72,7 +72,7 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
         self,
         regularity: Dict[datetime, Expression],
         consumes: ConsumptionType,
-        references: References,
+        references: ReferenceService,
         target_period: Period,
         fuel: Optional[Dict[datetime, FuelType]] = None,
     ) -> ConsumerSystem:

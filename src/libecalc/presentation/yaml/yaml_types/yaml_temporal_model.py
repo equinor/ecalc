@@ -1,10 +1,11 @@
 from typing import Any, Dict, TypeVar, Union
 
-from pydantic import Discriminator, Tag
+from pydantic import AfterValidator, Discriminator, Tag
 from typing_extensions import Annotated, Literal
 
 from libecalc.common.errors.exceptions import InvalidDateException
 from libecalc.common.time_utils import is_temporal_model
+from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import (
     YamlDefaultDatetime,
 )
@@ -38,7 +39,7 @@ YamlTemporalModel = Annotated[
     Union[
         Annotated[TModel, Tag("single")],
         Annotated[
-            Dict[YamlDefaultDatetime, TModel],
+            Annotated[Dict[YamlDefaultDatetime, TModel], AfterValidator(validate_temporal_model)],
             Tag("temporal"),
         ],
     ],

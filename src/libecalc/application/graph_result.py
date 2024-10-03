@@ -28,7 +28,7 @@ class GraphResult:
         self.variables_map = variables_map
 
     def get_subgraph(self, node_id: str) -> "GraphResult":
-        subgraph = self.graph.get_node(node_id).get_graph()
+        subgraph = self.graph.get_subgraph(node_id)
 
         return GraphResult(
             graph=subgraph,
