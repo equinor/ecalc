@@ -52,7 +52,7 @@ class TimeSeriesStreamConditions(BaseModel):
 
         target_pressure = self.pressure  # Assuming 'self' decides the target pressure
         if any(stream.pressure < target_pressure for stream in other_streams):  # type: ignore
-            # TODO: return a warning object with the specific timesteps?
+            # TODO: return a warning object with the specific periods?
             raise ValueError("Increasing pressure when mixing streams. That should not happen.")
 
         return TimeSeriesStreamConditions(

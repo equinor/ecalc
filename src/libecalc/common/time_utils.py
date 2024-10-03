@@ -23,6 +23,8 @@ def calculate_delta_days(time_vector: ArrayLike) -> NDArray[np.float64]:
 
 @dataclass(eq=True, frozen=True, order=True)
 class Period:
+    """A period of time, defined by a start and end date."""
+
     start: datetime = datetime.min
     end: datetime = datetime.max.replace(microsecond=0)
 
@@ -45,10 +47,6 @@ class Period:
             return self.start <= date_or_period < self.end
         if isinstance(date_or_period, Period):
             return self.start <= date_or_period.start < date_or_period.end <= self.end
-
-    @property
-    def duration(self):
-        return self.end - self.start
 
     @staticmethod
     def intersects(first: Period, second: Period) -> bool:
@@ -87,6 +85,9 @@ class Period:
 
     def get_period_indices(self, periods: Periods) -> Tuple[int, int]:
         """Given a list of periods, find the indices of the start and end of this objects period in the list.
+
+           The start and end dates of this object's period must be within the start and end dates within
+           the given list of periods.
         Args:
             periods: A Periods object, containing a list of Periods
 

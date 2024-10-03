@@ -81,7 +81,7 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     assert results.power.unit == Unit.MEGA_WATT
     assert results.power.periods == variables.periods
 
-    # The resulting fuel rate will be zero and the result is invalid for the NaN-timesteps.
+    # The resulting fuel rate will be zero and the result is invalid for the NaN periods.
     assert results.energy_usage == TimeSeriesStreamDayRate(
         periods=variables.periods,
         values=[0, 0, 0.6, 0.6, 0.0, 0.0],
