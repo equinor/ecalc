@@ -711,47 +711,6 @@ class TimeSeriesVolumes(TimeSeries[float]):
         )
 
 
-class TimeSeriesIntensity(TimeSeries[float]):
-    @field_validator("values", mode="before")
-    @classmethod
-    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
-        if isinstance(v, list):
-            # convert None to nan
-            return [i if i is not None else math.nan for i in v]
-        return v
-
-    def resample(
-        self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
-    ) -> TimeSeriesIntensity:
-        """
-        Resample emission intensity according to given frequency.
-        Slinear is used in order to only interpolate, not extrapolate.
-
-        Args:
-            freq: The frequency the time series should be resampled to
-
-        Returns:
-            TimeSeriesIntensity resampled to the given frequency
-        """
-        if freq is Frequency.NONE:
-            return self.model_copy()
-
-        ds = pd.Series(index=self.timesteps, data=self.values)
-        new_timeseries = resample_time_steps(
-            self.timesteps, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
-        )
-        ds_interpolated = ds.reindex(ds.index.union(new_timeseries)).interpolate("slinear")
-
-        # New resampled pd.Series
-        ds_resampled = ds_interpolated.reindex(new_timeseries)
-
-        return TimeSeriesIntensity(
-            timesteps=new_timeseries,
-            values=ds_resampled.to_numpy().tolist(),
-            unit=self.unit,
-        )
-
-
 class TimeSeriesStreamDayRate(TimeSeriesFloat):
     """
     Domain/core layer only.
