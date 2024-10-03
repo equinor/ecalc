@@ -1,13 +1,12 @@
 from datetime import datetime
 
 import pytest
+from inline_snapshot import snapshot
 
 import libecalc.dto.fuel_type
-from libecalc.common.errors.exceptions import InvalidReferenceException
 from libecalc.common.time_utils import Period
+from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException
 from libecalc.presentation.yaml.mappers.component_mapper import _resolve_fuel
-
-# from libecalc.presentation.yaml.mappers import _resolve_fuel
 from libecalc.presentation.yaml.yaml_entities import References
 
 
@@ -45,12 +44,16 @@ class TestResolveFuel:
     def test_both(self, references, all_the_time):
         assert _resolve_fuel("diesel", "fuel_gas", references, target_period=all_the_time).popitem()[1].name == "diesel"
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_invalid(self, references, all_the_time):
         with pytest.raises(InvalidReferenceException) as exc_info:
             assert (
                 _resolve_fuel("diessel", "fuel_gass", references, target_period=all_the_time).popitem()[1] == "diessel"
             )
-        assert "Invalid reference: 'diessel' not found." in str(exc_info.value)
+        assert str(exc_info.value) == snapshot(
+            "Invalid fuel reference 'diessel'. Available references: fuel_gas, diesel"
+        )
 
     def test_resolve_multiple_fuels(self, references, all_the_time):
         _resolve_fuel(

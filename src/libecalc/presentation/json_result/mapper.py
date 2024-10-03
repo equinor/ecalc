@@ -48,6 +48,9 @@ from libecalc.presentation.json_result.result.results import (
     PumpModelResult,
     TurbineModelResult,
 )
+from libecalc.presentation.yaml.domain.components.asset_component import AssetComponent
+from libecalc.presentation.yaml.domain.components.electricity_consumer_component import ElectricityConsumerComponent
+from libecalc.presentation.yaml.domain.components.fuel_consumer_component import FuelConsumerComponent
 
 
 def get_operational_setting_used_id(timestep: datetime, operational_settings_used: TimeSeriesInt) -> int:
@@ -279,24 +282,14 @@ def _evaluate_installations(
     """
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
+
+    if not isinstance(asset, AssetComponent):
+        raise ProgrammingError("This should be an asset")
+
     installation_results = []
     for installation in asset.installations:
-        regularity = TimeSeriesFloat(
-            timesteps=expression_evaluator.get_time_vector(),
-            values=expression_evaluator.evaluate(expression=TemporalModel(installation.regularity)),
-            unit=Unit.NONE,
-        )
-        hydrocarbon_export_rate = expression_evaluator.evaluate(
-            expression=TemporalModel(installation.hydrocarbon_export)
-        )
-
-        hydrocarbon_export_rate = TimeSeriesRate(
-            timesteps=expression_evaluator.get_time_vector(),
-            values=hydrocarbon_export_rate,
-            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            rate_type=RateType.CALENDAR_DAY,
-            regularity=regularity.values,
-        )
+        regularity = installation.regularity
+        hydrocarbon_export_rate = installation.hydrocarbon_export_rate
 
         sub_components = [
             graph_result.consumer_results[component_id].component_result
@@ -403,7 +396,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
 
-    if not isinstance(asset, libecalc.dto.Asset):
+    if not isinstance(asset, AssetComponent):
         raise ProgrammingError("Need an asset graph to get asset result")
 
     installation_results = _evaluate_installations(
@@ -412,7 +405,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     )
 
     regularities: Dict[str, TimeSeriesFloat] = {
-        installation.id: installation.regularity for installation in installation_results
+        installation.id: installation.regularity for installation in asset.installations
     }
 
     models = []
@@ -424,12 +417,15 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         parent_installation_id = graph_result.graph.get_parent_installation_id(consumer_id)
         regularity: TimeSeriesFloat = regularities[parent_installation_id]
 
-        if consumer_node_info.component_type in [ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_SYSTEM]:
-            component = graph_result.graph.get_node(consumer_id)
-
+        component = graph_result.graph.get_node(consumer_id)
+        if consumer_node_info.component_type in [
+            ComponentType.COMPRESSOR,
+            ComponentType.COMPRESSOR_SYSTEM,
+        ] and isinstance(component, (FuelConsumerComponent, ElectricityConsumerComponent)):
             for model in consumer_result.models:
                 period = Period(model.timesteps[0], model.timesteps[-1])
 
+                # TODO: Deal with this
                 inlet_pressure_eval = get_requested_compressor_pressures(
                     energy_usage_model=component.energy_usage_model,
                     pressure_type=CompressorPressureType.INLET_PRESSURE,
@@ -1008,7 +1004,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     ]
                 )
         elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
-            component = graph_result.graph.get_node(consumer_id)
             for model in consumer_result.models:
                 models.extend(
                     [
@@ -1393,17 +1388,8 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         sub_components.append(obj)
 
     # When only venting emitters are specified, without a generator set: the installation result
-    # is empty for this installation. Ensure that the installation regularity is found, even if only
-    # venting emitters are defined for one installation:
-    if len(installation_results) < len(asset.installations):
-        regularities = {
-            installation.id: TimeSeriesFloat(
-                values=graph_result.variables_map.evaluate(expression=TemporalModel(installation.regularity)).tolist(),
-                unit=Unit.NONE,
-                timesteps=graph_result.variables_map.get_time_vector(),
-            )
-            for installation in asset.installations
-        }
+    # is empty for this installation.
+    # TODO: We should probably provide an installation result when only venting emitters are specified.
 
     time_series_zero = TimeSeriesRate(
         values=[0] * graph_result.variables_map.length,
@@ -1415,16 +1401,17 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
 
     for installation in asset.installations:
         for venting_emitter in installation.venting_emitters:
+            node_info = venting_emitter.get_node_info()
             energy_usage = time_series_zero
             sub_components.append(
                 libecalc.presentation.json_result.result.VentingEmitterResult(
-                    id=venting_emitter.id,
-                    name=venting_emitter.name,
-                    componentType=venting_emitter.component_type.value,
+                    id=node_info.id,
+                    name=node_info.name,
+                    componentType=node_info.component_type.value,
                     component_level=ComponentLevel.CONSUMER,
                     parent=installation.id,
                     emissions=_parse_emissions(
-                        graph_result.emission_results[venting_emitter.id], regularities[installation.id]
+                        graph_result.emission_results[node_info.id], regularities[installation.id]
                     ),
                     timesteps=graph_result.variables_map.time_vector,
                     is_valid=TimeSeriesBoolean(

@@ -30,8 +30,8 @@ def test_asset_with_multiple_installations(asset_with_two_installations):
     energy_calculator = EnergyCalculator(graph)
     timesteps = [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
     variables_map = VariablesMap(time_vector=timesteps)
-    consumer_results = energy_calculator.evaluate_energy_usage(variables_map)
-    emission_results = energy_calculator.evaluate_emissions(variables_map, consumer_results)
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
     graph_result = GraphResult(
         graph=graph,
         variables_map=variables_map,

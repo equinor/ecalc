@@ -1,12 +1,11 @@
 from io import StringIO
 from pathlib import Path
-from typing import List
+from typing import Callable, List
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -19,13 +18,12 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 from tests.libecalc.input.mappers.test_model_mapper import OverridableStreamConfigurationService
 
 
-def venting_emitter_yaml_factory(
+def venting_emitter_installation_factory(
     rate_types: List[RateType],
     units: List[YamlEmissionRateUnits],
     emission_names: List[str],
     regularity: float,
     names: List[str],
-    path: Path,
     emission_rates: List[float] = None,
     emitter_types: List[str] = None,
     categories: List[str] = None,
@@ -36,7 +34,7 @@ def venting_emitter_yaml_factory(
     units_oil_rates: List[YamlOilRateUnits] = None,
     include_emitters: bool = True,
     include_fuel_consumers: bool = True,
-) -> DTOCase:
+) -> str:
     if categories is None:
         categories = ["STORAGE"] * len(names)
     if emitter_types is None:
@@ -49,36 +47,41 @@ def venting_emitter_yaml_factory(
         units_oil_rates = [Unit.KILO_PER_DAY] * len(names)
     if emission_rates is None:
         emission_rates = [10] * len(names)
+    installation_yaml = f"""
+    - NAME: {installation_name}
+      HCEXPORT: 0
+      FUEL: fuel
+      CATEGORY: FIXED
+      REGULARITY: {regularity}
 
-    input_text = f"""
-        FACILITY_INPUTS:
-          - NAME: generator_energy_function
-            FILE: '../ltp_export/data/einput/genset_17MW.csv'
-            TYPE: ELECTRICITY2FUEL
-        FUEL_TYPES:
-        - NAME: fuel
-          EMISSIONS:
-          - NAME: co2
-            FACTOR: 2
+        {create_fuel_consumers(include_fuel_consumers=include_fuel_consumers, )}
 
-        START: 2027-01-01
-        END: 2029-01-01
-
-        INSTALLATIONS:
-        - NAME: {installation_name}
-          HCEXPORT: 0
-          FUEL: fuel
-          CATEGORY: FIXED
-          REGULARITY: {regularity}
-
-            {create_fuel_consumers(include_fuel_consumers=include_fuel_consumers,)}
-
-          {create_venting_emitters_yaml(
+    {create_venting_emitters_yaml(
         categories=categories, rate_types=rate_types, emitter_names=names, emission_names=emission_names,
         emission_rates=emission_rates, units=units, emission_keyword_name=emission_keyword_name, include_emitters=include_emitters,
         emitter_types=emitter_types, oil_rates=oil_rates, emission_factors=emission_factors, units_oil_rates=units_oil_rates,
     )}
+"""
+    return installation_yaml
 
+
+def get_configuration_service(installation_factories: List[Callable[[], str]]):
+    input_text = f"""
+FACILITY_INPUTS:
+  - NAME: generator_energy_function
+    FILE: '../ltp_export/data/einput/genset_17MW.csv'
+    TYPE: ELECTRICITY2FUEL
+FUEL_TYPES:
+- NAME: fuel
+  EMISSIONS:
+  - NAME: co2
+    FACTOR: 2
+
+START: 2027-01-01
+END: 2029-01-01
+
+INSTALLATIONS:
+    {''.join(installation_factory() for installation_factory in installation_factories)}
         """
 
     configuration_service = OverridableStreamConfigurationService(
@@ -87,12 +90,23 @@ def venting_emitter_yaml_factory(
             stream=StringIO(input_text),
         )
     )
+    return configuration_service
+
+
+def venting_emitter_yaml_factory(
+    path: Path,
+    **installation_kwargs,
+) -> YamlModel:
+    configuration_service = get_configuration_service(
+        [lambda: venting_emitter_installation_factory(**installation_kwargs)]
+    )
     resource_service = FileResourceService(working_directory=path)
     model = YamlModel(
         configuration_service=configuration_service, resource_service=resource_service, output_frequency=Frequency.YEAR
     )
+    model.validate_for_run()
 
-    return DTOCase(ecalc_model=model.dto, variables=model.variables)
+    return model
 
 
 def create_fuel_consumers(include_fuel_consumers: bool) -> str:

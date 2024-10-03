@@ -23,10 +23,7 @@ from libecalc.dto import (
     VariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.mappers.utils import (
-    resolve_reference,
-)
-from libecalc.presentation.yaml.yaml_entities import References
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
@@ -94,15 +91,12 @@ def _get_compressor_train_energy_usage_type(
 
 
 def _compressor_system_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressorSystem, references: References = None
+    energy_usage_model: YamlEnergyUsageModelCompressorSystem, references: ReferenceService
 ) -> CompressorSystemConsumerFunction:
     compressors = []
     compressor_power_usage_type = set()
     for compressor in energy_usage_model.compressors:
-        compressor_train = resolve_reference(
-            value=compressor.compressor_model,
-            references=references.models,
-        )
+        compressor_train = references.get_compressor_model(compressor.compressor_model)
 
         compressors.append(
             CompressorSystemCompressor(
@@ -145,7 +139,7 @@ def _compressor_system_mapper(
 
 
 def _pump_system_mapper(
-    energy_usage_model: YamlEnergyUsageModelPumpSystem, references: References = None
+    energy_usage_model: YamlEnergyUsageModelPumpSystem, references: ReferenceService
 ) -> PumpSystemConsumerFunction:
     """Remove references from pump system and map yaml to DTO
     :param energy_usage_model: dict representing PumpSystem
@@ -153,10 +147,7 @@ def _pump_system_mapper(
     """
     pumps = []
     for pump in energy_usage_model.pumps:
-        pump_model = resolve_reference(
-            pump.chart,
-            references=references.models,
-        )
+        pump_model = references.get_pump_model(pump.chart)
         pumps.append(PumpSystemPump(name=pump.name, pump_model=pump_model))
 
     return PumpSystemConsumerFunction(
@@ -182,7 +173,7 @@ def _pump_system_mapper(
 
 
 def _direct_mapper(
-    energy_usage_model: YamlEnergyUsageModelDirect, references: References = None
+    energy_usage_model: YamlEnergyUsageModelDirect, references: ReferenceService
 ) -> DirectConsumerFunction:
     """Change type to match DTOs, then pass the dict on to DTO to automatically create the correct DTO.
     :param energy_usage_model:
@@ -200,12 +191,9 @@ def _direct_mapper(
 
 
 def _tabulated_mapper(
-    energy_usage_model: YamlEnergyUsageModelTabulated, references: References = None
+    energy_usage_model: YamlEnergyUsageModelTabulated, references: ReferenceService
 ) -> TabulatedConsumerFunction:
-    energy_model = resolve_reference(
-        energy_usage_model.energy_function,
-        references.models,
-    )
+    energy_model = references.get_tabulated_model(energy_usage_model.energy_function)
     return TabulatedConsumerFunction(
         energy_usage_type=EnergyUsageType.POWER
         if EnergyUsageType.POWER.value in energy_model.headers
@@ -223,11 +211,8 @@ def _tabulated_mapper(
     )
 
 
-def _pump_mapper(energy_usage_model: YamlEnergyUsageModelPump, references: References = None) -> PumpConsumerFunction:
-    energy_model = resolve_reference(
-        energy_usage_model.energy_function,
-        references=references.models,
-    )
+def _pump_mapper(energy_usage_model: YamlEnergyUsageModelPump, references: ReferenceService) -> PumpConsumerFunction:
+    energy_model = references.get_pump_model(energy_usage_model.energy_function)
     return PumpConsumerFunction(
         power_loss_factor=energy_usage_model.power_loss_factor,
         condition=_map_condition(energy_usage_model),
@@ -240,12 +225,9 @@ def _pump_mapper(energy_usage_model: YamlEnergyUsageModelPump, references: Refer
 
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressorTrainMultipleStreams, references: References = None
+    energy_usage_model: YamlEnergyUsageModelCompressorTrainMultipleStreams, references: ReferenceService
 ) -> CompressorConsumerFunction:
-    compressor_train_model = resolve_reference(
-        energy_usage_model.compressor_train_model,
-        references=references.models,
-    )
+    compressor_train_model = references.get_compressor_model(energy_usage_model.compressor_train_model)
     rates_per_stream = [
         Expression.setup_from_expression(value=rate_expression)
         for rate_expression in energy_usage_model.rate_per_stream
@@ -293,13 +275,9 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
 
 
 def _compressor_mapper(
-    energy_usage_model: YamlEnergyUsageModelCompressor, references: References = None
+    energy_usage_model: YamlEnergyUsageModelCompressor, references: ReferenceService
 ) -> CompressorConsumerFunction:
-    energy_model = resolve_reference(
-        energy_usage_model.energy_function,
-        references=references.models,
-    )
-
+    energy_model = references.get_compressor_model(energy_usage_model.energy_function)
     compressor_train_energy_usage_type = _get_compressor_train_energy_usage_type(compressor_train=energy_model)
 
     return CompressorConsumerFunction(
@@ -325,14 +303,14 @@ _consumer_function_mapper = {
 
 
 class ConsumerFunctionMapper:
-    def __init__(self, references: References, target_period: Period):
+    def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
 
     @staticmethod
     def create_model(
         model: Union[YamlFuelEnergyUsageModel, YamlElectricityEnergyUsageModel],
-        references: References = None,
+        references: ReferenceService,
     ):
         model_creator = _consumer_function_mapper.get(model.type)
         if model_creator is None:

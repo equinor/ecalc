@@ -1,11 +1,13 @@
+from io import StringIO
+from pathlib import Path
 from typing import List
 
-import yaml
-
+from ecalc_cli.infrastructure.file_resource_service import FileResourceService
+from ecalc_cli.types import Frequency
 from libecalc.common.utils.rates import RateType
-from libecalc.dto import Asset
-from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.fixtures.cases.ltp_export.ltp_power_from_shore_yaml import OverridableStreamConfigurationService
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
 
 
 def ltp_oil_loaded_yaml_factory(
@@ -16,7 +18,7 @@ def ltp_oil_loaded_yaml_factory(
     regularity: float,
     categories: List[str],
     consumer_names: List[str],
-) -> Asset:
+) -> YamlModel:
     input_text = f"""
     FUEL_TYPES:
     - NAME: fuel
@@ -36,15 +38,17 @@ def ltp_oil_loaded_yaml_factory(
 
     """
 
-    create_direct_consumers_yaml(categories, fuel_rates, rate_types, consumer_names)
-    yaml_text = yaml.safe_load(input_text)
-    configuration = PyYamlYamlModel(
-        internal_datamodel=yaml_text,
-        name="test",
-        instantiated_through_read=True,
+    configuration_service = OverridableStreamConfigurationService(
+        stream=ResourceStream(name="ltp_export", stream=StringIO(input_text))
     )
-    yaml_model = map_yaml_to_dto(configuration=configuration, resources={})
-    return yaml_model
+    resource_service = FileResourceService(working_directory=Path("dummy_path"))
+
+    model = YamlModel(
+        configuration_service=configuration_service,
+        resource_service=resource_service,
+        output_frequency=Frequency.YEAR,
+    )
+    return model
 
 
 def create_direct_consumers_yaml(

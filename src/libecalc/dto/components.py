@@ -7,6 +7,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
+from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -33,6 +34,7 @@ from libecalc.dto.models import (
 )
 from libecalc.dto.models.compressor import CompressorModel
 from libecalc.dto.models.pump import PumpModel
+from libecalc.dto.node_info import NodeInfo
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.dto.utils.validators import (
     ComponentNameStr,
@@ -44,7 +46,6 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.ltp_validation import (
     validate_generator_set_power_from_shore,
 )
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
@@ -135,6 +136,14 @@ class ElectricityConsumer(BaseConsumer):
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.POWER)
     )
 
+    def get_node_info(self) -> NodeInfo:
+        return NodeInfo(
+            id=self.id,
+            name=self.name,
+            component_level=ComponentLevel.CONSUMER,
+            component_type=self.component_type,
+        )
+
 
 class FuelConsumer(BaseConsumer):
     component_type: Literal[
@@ -151,6 +160,14 @@ class FuelConsumer(BaseConsumer):
     _check_model_energy_usage = field_validator("energy_usage_model")(
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.FUEL)
     )
+
+    def get_node_info(self) -> NodeInfo:
+        return NodeInfo(
+            id=self.id,
+            name=self.name,
+            component_level=ComponentLevel.CONSUMER,
+            component_type=self.component_type,
+        )
 
 
 Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]
@@ -242,6 +259,14 @@ class ConsumerSystem(BaseConsumer):
     component_conditions: SystemComponentConditions
     stream_conditions_priorities: Priorities[SystemStreamConditions]
     consumers: Union[List[CompressorComponent], List[PumpComponent]]
+
+    def get_node_info(self) -> NodeInfo:
+        return NodeInfo(
+            id=self.id,
+            name=self.name,
+            component_level=ComponentLevel.SYSTEM,
+            component_type=self.component_type,
+        )
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
@@ -355,6 +380,14 @@ class GeneratorSet(BaseEquipment):
 
         return graph
 
+    def get_node_info(self) -> NodeInfo:
+        return NodeInfo(
+            id=self.id,
+            name=self.name,
+            component_level=ComponentLevel.GENERATOR_SET,
+            component_type=self.component_type,
+        )
+
 
 class Installation(BaseComponent):
     component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
@@ -378,32 +411,6 @@ class Installation(BaseComponent):
         convert_expression
     )
 
-    @field_validator("user_defined_category", mode="before")
-    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo):
-        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
-        if user_defined_category is not None:
-            if user_defined_category not in list(InstallationUserDefinedCategoryType):
-                name_context_str = ""
-                if (name := info.data.get("name")) is not None:
-                    name_context_str = f"with the name {name}"
-
-                raise ValueError(
-                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name_context_str}. Valid categories are: {[str(installation_user_defined_category.value) for installation_user_defined_category in InstallationUserDefinedCategoryType]}"
-                )
-
-        return user_defined_category
-
-    @model_validator(mode="after")
-    def check_fuel_consumers_or_venting_emitters_exist(self):
-        try:
-            if self.fuel_consumers or self.venting_emitters or self.generator_sets:
-                return self
-        except AttributeError:
-            raise ValueError(
-                f"Keywords are missing:\n It is required to specify at least one of the keywords "
-                f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model.",
-            ) from None
-
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
         graph.add_node(self)
@@ -416,6 +423,14 @@ class Installation(BaseComponent):
             graph.add_edge(self.id, component.id)
 
         return graph
+
+    def get_node_info(self) -> NodeInfo:
+        return NodeInfo(
+            id=self.id,
+            name=self.name,
+            component_level=ComponentLevel.INSTALLATION,
+            component_type=self.component_type,
+        )
 
 
 class Asset(Component):
@@ -482,6 +497,14 @@ class Asset(Component):
             graph.add_edge(self.id, installation.id)
 
         return graph
+
+    def get_node_info(self) -> NodeInfo:
+        return NodeInfo(
+            id=self.id,
+            name=self.name,
+            component_level=ComponentLevel.ASSET,
+            component_type=self.component_type,
+        )
 
 
 ComponentDTO = Union[

@@ -4,6 +4,7 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.dto import EnergyModel
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
 from libecalc.presentation.yaml.mappers.fuel_and_emission_mapper import FuelMapper
 from libecalc.presentation.yaml.mappers.model import ModelMapper
@@ -14,7 +15,7 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 
 
-def create_references(configuration: YamlValidator, resources: Resources) -> References:
+def create_references(configuration: YamlValidator, resources: Resources) -> ReferenceService:
     """Create references-lookup used throughout the yaml.
 
     :param resources: list of resources containing data for the FILE reference in facility input

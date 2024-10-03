@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, TextIO, Union
+from typing import Dict, List, TextIO, TypeVar, Union, get_args
 
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
-from libecalc.dto import EnergyModel, FuelType
+from libecalc.dto import CompressorModel, EnergyModel, FuelType, GeneratorSetSampled, PumpModel, TabulatedData
+from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.resource import Resource
 
 
@@ -30,10 +31,49 @@ class MemoryResource(Resource):
             raise ColumnNotFoundException(header=header) from e
 
 
+TModelType = TypeVar("TModelType", bound=Union[GeneratorSetSampled, CompressorModel, PumpModel, TabulatedData])
+
+
 @dataclass
-class References:
+class References(ReferenceService):
     models: Dict[str, EnergyModel] = None
     fuel_types: Dict[str, FuelType] = None
+
+    def get_fuel_reference(self, reference: str) -> FuelType:
+        try:
+            return self.fuel_types[reference]
+        except KeyError as e:
+            raise InvalidReferenceException("fuel", reference, self.fuel_types.keys()) from e
+
+    def _get_model_reference(self, reference: str, reference_type_name: str) -> EnergyModel:
+        try:
+            return self.models[reference]
+        except KeyError as e:
+            raise InvalidReferenceException(reference_type_name, reference, self.models.keys()) from e
+
+    def get_generator_set_model(self, reference: str) -> GeneratorSetSampled:
+        model = self._get_model_reference(reference, "generator set model")
+        if not isinstance(model, GeneratorSetSampled):
+            raise InvalidReferenceException("generator set model", reference)
+        return model
+
+    def get_compressor_model(self, reference: str) -> CompressorModel:
+        model = self._get_model_reference(reference, "compressor model")
+        if not isinstance(model, get_args(CompressorModel)):
+            raise InvalidReferenceException("compressor model", reference)
+        return model  # noqa
+
+    def get_pump_model(self, reference: str) -> PumpModel:
+        model = self._get_model_reference(reference, "compressor model")
+        if not isinstance(model, PumpModel):
+            raise InvalidReferenceException("pump model", reference)
+        return model
+
+    def get_tabulated_model(self, reference: str) -> TabulatedData:
+        model = self._get_model_reference(reference, "tabulated")
+        if not isinstance(model, TabulatedData):
+            raise InvalidReferenceException("tabulated", reference)
+        return model
 
 
 class YamlTimeseriesType(str, Enum):
