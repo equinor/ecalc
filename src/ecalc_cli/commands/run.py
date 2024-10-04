@@ -7,7 +7,6 @@ import libecalc.common.time_utils
 import libecalc.version
 from ecalc_cli.errors import EcalcCLIError
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from ecalc_cli.io.cache import Cache
 from ecalc_cli.io.output import (
     write_flow_diagram,
     write_json,
@@ -147,13 +146,6 @@ def run(
     )
 
     run_info.end = datetime.now()
-
-    cache = Cache(user_specified_output_path=output_folder)
-    cache.write_run_info(run_info)
-    cache.write_results(
-        results=results_core,
-        component_dto=model.dto,
-    )
 
     output_prefix: Path = output_folder / name_prefix
 

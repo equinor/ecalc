@@ -1,5 +1,4 @@
 import enum
-import sys
 from datetime import datetime
 from typing import Any, Callable, Optional, Union
 
@@ -125,57 +124,6 @@ def get_result_output(
                 )
                 df = pd.concat([df, component_df], axis=1)
         return dataframe_to_csv(df.fillna("nan"), date_format=DateTimeFormats.get_format(date_format_option))
-    else:
-        raise ValueError(
-            f"Invalid output format. Expected {OutputFormat.CSV} or {OutputFormat.JSON}, got '{output_format}'"
-        )
-
-
-def get_component_output(
-    results: EcalcModelResult,
-    component_name: str,
-    output_format: OutputFormat,
-    simple_output: bool,
-    date_format_option: int,
-) -> str:
-    """Get eCalc output for a single component by name
-
-    Args:
-        results: Complete from eCalc model
-        component_name: Name of component to output results from
-        output_format: Format of output file, CSV and JSON is currently supported
-        simple_output: If true, will provide a simplified output format. Only supported for json format
-        date_format_option:
-
-    Returns:
-
-    """
-    components = [component for component in results.components if component.name == component_name]
-
-    if len(components) == 0:
-        msg = f"Unable to find component with name '{component_name}'"
-        logger.error(msg)
-        raise ValueError(msg)
-    elif len(components) == 1:
-        component = components[0]
-    else:
-        print("Several components match this name\n")
-        format_str = "{:<5} {:<18} {:<10}"
-        print(format_str.format("index", "type", "name"))
-        for index, component in enumerate(components):
-            print(format_str.format(index, component.componentType.value, component.name))
-        print()
-        selected_component_index = input("Enter the index of the component you want to select (q to quit): ")
-        if selected_component_index == "q":
-            sys.exit(0)
-
-        component = components[int(selected_component_index)]
-
-    if output_format == OutputFormat.JSON:
-        return to_json(component, simple_output=simple_output, date_format_option=date_format_option)
-    elif output_format == OutputFormat.CSV:
-        df = component.to_dataframe()
-        return dataframe_to_csv(df, date_format=DateTimeFormats.get_format(date_format_option))
     else:
         raise ValueError(
             f"Invalid output format. Expected {OutputFormat.CSV} or {OutputFormat.JSON}, got '{output_format}'"
