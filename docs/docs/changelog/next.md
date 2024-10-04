@@ -39,3 +39,5 @@ sidebar_position: -1002
     - Misplaced keywords will now cause an error instead of being ignored.
 
 - H2O is no longer supported in composition. Use 'water' instead.
+
+- The CLI command `ecalc show results` has been removed. The reason being additional maintenance for something that did not seem to be used a lot.
