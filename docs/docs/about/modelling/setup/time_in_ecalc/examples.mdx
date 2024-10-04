@@ -1,0 +1,40 @@
+import CodeBlock from '@theme/CodeBlock';
+import timeSeriesA from '!!raw-loader!./time_series_A.csv';
+import timeSeriesB from '!!raw-loader!./time_series_B.csv';
+
+# Examples
+
+The following is an example which has two time series as input, in two different csv files. with different dates. One
+time series has quarterly input, the other has monthly input over a slightly longer period of time. The csv files and a
+figure showing the data is shown below:
+
+<CodeBlock title="time_series_A.csv">{timeSeriesA}</CodeBlock>
+<CodeBlock title="time_series_B.csv">{timeSeriesB}</CodeBlock>
+
+![](/img/docs/time_series_data_for_example.png)
+
+In this case there is no information about the global start and end dates in the YAML model file. Then eCalc™ needs to
+extract this information from the time series csv files. In this case the start will be 01/09/2019 and the end will be
+01/04/2021. Time series B also needs values for all the dates where time series A has values. Between dates where time
+series B already has values, this will be done through interpolation. The type of interpolation used is determined by
+the [INTERPOLATION_TYPE](/about/references/INTERPOLATION_TYPE.md).
+
+
+![](/img/docs/right_interpolation.png)
+![](/img/docs/left_interpolation.png)
+![](/img/docs/linear_interpolation.png)
+
+
+Dates that are prior to or after the existing dates, will be filled using extrapolation.
+![](/img/docs/extrapolation_true.png)
+![](/img/docs/extrapolation_false.png)
+
+:::note
+Notice that the last value given in time series B will be used for the period starting at the last date in the original
+time series B, even when extrapolation is set to false
+:::
+
+Calculations within eCalc™ will only happen at the dates in the input time series. Within a period between two input
+dates, the values are assumed to be constant, as shown in this plot.
+![](/img/docs/time_series_with_interpolation_and_extrapolation.png)
+

@@ -1,6 +1,6 @@
 ---
 title: Fuel types
-sidebar_position: 5
+sidebar_position: 4
 description: Guide on how to use fuel types
 ---
 

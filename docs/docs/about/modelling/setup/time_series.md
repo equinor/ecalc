@@ -1,6 +1,6 @@
 ---
 title: Time series
-sidebar_position: 2
+sidebar_position: 1
 description: Time series guide and description
 ---
 
