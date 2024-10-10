@@ -1,5 +1,26 @@
 # Changelog
 
+## [8.25.0](https://github.com/equinor/ecalc/compare/v8.24.0...v8.25.0) (2024-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **cli:** Removed `ecalc show results` from the cli. This feature is assumed to be of little use and causes additional maintenance.
+
+### Features
+
+* **cli:** remove ecalc show results command ([6d1f104](https://github.com/equinor/ecalc/commit/6d1f104cfdff065fc36b2dbb0acc9ee2c86cee68))
+
+
+### Miscellaneous Chores
+
+* update dependencies week 41 ([#643](https://github.com/equinor/ecalc/issues/643)) ([3c4c778](https://github.com/equinor/ecalc/commit/3c4c778ff6402a1ab0d76c33858647ba1f01104b))
+
+
+### Tests
+
+* test yaml categories instead of dto ([29cdaab](https://github.com/equinor/ecalc/commit/29cdaab4289e212b28a237437a22c61756ab9185))
+
 ## [8.24.0](https://github.com/equinor/ecalc/compare/v8.23.0...v8.24.0) (2024-10-02)
 
 
