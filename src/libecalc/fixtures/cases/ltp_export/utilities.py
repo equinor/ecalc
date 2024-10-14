@@ -8,6 +8,7 @@ from libecalc.common.variables import VariablesMap
 from libecalc.dto import Asset, Installation
 from libecalc.presentation.exporter.configs.configs import LTPConfig
 from libecalc.presentation.exporter.dto.dtos import FilteredResult
+from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
 
 
 def get_consumption(
@@ -28,7 +29,7 @@ def get_consumption(
     )
 
     ltp_filter = LTPConfig.filter(frequency=Frequency.YEAR)
-    ltp_result = ltp_filter.filter(graph_result, time_vector)
+    ltp_result = ltp_filter.filter(ExportableGraphResult(graph_result), time_vector)
 
     return ltp_result
 

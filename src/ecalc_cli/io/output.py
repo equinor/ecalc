@@ -14,6 +14,7 @@ from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
 from libecalc.presentation.exporter.exporter import Exporter
 from libecalc.presentation.exporter.formatters.formatter import CSVFormatter
 from libecalc.presentation.exporter.handlers.handler import MultiFileHandler
+from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
 from libecalc.presentation.flow_diagram.EcalcModelMapper import EcalcModelMapper
 from libecalc.presentation.json_result.result import (
     EcalcModelResult as EcalcModelResultDTO,
@@ -152,7 +153,7 @@ def export_tsv(
     ]  # last step is always added as a STOP, and does infer the end of the time vector
 
     prognosis_filter = config.filter(frequency=frequency)
-    result = prognosis_filter.filter(results, resampled_timevector)
+    result = prognosis_filter.filter(ExportableGraphResult(results), resampled_timevector)
 
     row_based_data: Dict[str, List[str]] = CSVFormatter(separation_character="\t").format_groups(result)
 

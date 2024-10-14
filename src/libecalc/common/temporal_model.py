@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Generic, Iterator, Tuple, TypeVar
+from typing import Dict, Generic, Iterable, Iterator, Tuple, TypeVar
 
 from libecalc.common.time_utils import Period
 
@@ -25,6 +25,9 @@ class TemporalModel(Generic[ModelType]):
             )
             for start_time, end_time, model in zip(start_times, end_times, data.values())
         ]
+
+    def get_periods(self) -> Iterable[Period]:
+        return [model.period for model in self.models]
 
     def items(self) -> Iterator[Tuple[Period, ModelType]]:
         return ((model.period, model.model) for model in self.models)
