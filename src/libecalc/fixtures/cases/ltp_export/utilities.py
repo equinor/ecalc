@@ -7,9 +7,12 @@ from libecalc.common.time_utils import Frequency
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import Asset, Installation
 from libecalc.presentation.exporter.configs.configs import LTPConfig
+from libecalc.presentation.exporter.dto.dtos import FilteredResult
 
 
-def get_consumption(model: Union[Installation, Asset], variables: VariablesMap, time_vector: List[datetime]):
+def get_consumption(
+    model: Union[Installation, Asset], variables: VariablesMap, time_vector: List[datetime]
+) -> FilteredResult:
     model = model
     graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
@@ -30,8 +33,9 @@ def get_consumption(model: Union[Installation, Asset], variables: VariablesMap, 
     return ltp_result
 
 
-def get_sum_ltp_column(ltp_result, installation_nr, ltp_column_nr) -> float:
-    ltp_sum = sum(
-        float(v) for (k, v) in ltp_result.query_results[installation_nr].query_results[ltp_column_nr].values.items()
-    )
+def get_sum_ltp_column(ltp_result: FilteredResult, installation_nr, ltp_column: str) -> float:
+    installation_query_results = ltp_result.query_results[installation_nr].query_results
+    column = [column for column in installation_query_results if column.id == ltp_column][0]
+
+    ltp_sum = sum(float(v) for (k, v) in column.values.items())
     return ltp_sum

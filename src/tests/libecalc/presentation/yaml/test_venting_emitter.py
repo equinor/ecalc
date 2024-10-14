@@ -202,8 +202,8 @@ def test_venting_emitters_direct_multiple_emissions_ltp():
         model=dto_case.ecalc_model, variables=dto_case.variables, time_vector=dto_case.variables.time_vector
     )
 
-    ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
-    co2_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
+    ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="co2VentingMass")
+    co2_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="coldVentAndFugitivesCh4Mass")
 
     assert ch4_emissions == sum(emission_rates[0] * days * regularity / 1000 for days in delta_days)
     assert co2_emissions == sum(emission_rates[1] * days * regularity / 1000 for days in delta_days)
@@ -262,11 +262,13 @@ def test_venting_emitters_volume_multiple_emissions_ltp():
         time_vector=dto_case_stream_day.variables.time_vector,
     )
 
-    ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
-    nmvoc_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
-    oil_volume = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
+    ch4_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingNmvocMass")
+    nmvoc_emissions = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingCh4Mass")
+    oil_volume = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadedAndStoredOil")
 
-    oil_volume_stream_day = get_sum_ltp_column(ltp_result_stream_day, installation_nr=0, ltp_column_nr=2)
+    oil_volume_stream_day = get_sum_ltp_column(
+        ltp_result_stream_day, installation_nr=0, ltp_column="loadedAndStoredOil"
+    )
 
     assert ch4_emissions == sum(oil_rates[0] * days * emission_factors[0] / 1000 for days in delta_days)
     assert nmvoc_emissions == sum(oil_rates[0] * days * emission_factors[1] / 1000 for days in delta_days)
