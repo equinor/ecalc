@@ -152,13 +152,18 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
         if info.context is not None:
             train = self.compressor_train
             # If known compressor stages
-            if hasattr(self, EcalcYamlKeywords.models_type_compressor_train_stages.lower()):
+            if hasattr(train, EcalcYamlKeywords.models_type_compressor_train_stages.lower()):
                 for stage in train.stages:
-                    compressor_chart = info.context["model_types"][stage.compressor_chart]
+                    compressor_chart = (
+                        info.context["model_types"][stage.compressor_chart]
+                        if stage.compressor_chart is not None
+                        else None
+                    )
             else:
                 # Unknown compressor stages
                 if train.compressor_chart is not None:
                     compressor_chart = info.context["model_types"][train.compressor_chart]
+        return self
 
 
 class YamlMultipleStreamsStream(YamlBase):
