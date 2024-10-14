@@ -2,23 +2,23 @@ import abc
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.presentation.exporter.configs import configs
+from libecalc.presentation.exporter.domain.exportable import Exportable
 from libecalc.presentation.exporter.dto.dtos import QueryResult
 from libecalc.presentation.exporter.queries import Query
 
 
 class Modifier(abc.ABC):
-    def __init__(self, modifier: Optional["Modifier"] = None):
+    def __init__(self, before_modifier: Optional["Modifier"] = None):
         """Modifiers can be chained, just make sure in/output of the modifiers are compatible.
 
         Modifier is completely private, to not be inherited by children
-        :param modifier:
+        :param before_modifier:
         """
-        self.__modifier = modifier
+        self.__before_modifier = before_modifier
 
     def modify(self, data: Dict[datetime, float]) -> Dict[datetime, Any]:
         """Public modify() method that is used in order to be able
@@ -26,8 +26,8 @@ class Modifier(abc.ABC):
         :param data:
         :return:
         """
-        if self.__modifier is not None:
-            return self._modify(self.__modifier._modify(data))
+        if self.__before_modifier is not None:
+            return self._modify(self.__before_modifier.modify(data))
 
         return self._modify(data)
 
@@ -88,7 +88,7 @@ class Applier:
 
     def apply(
         self,
-        installation_graph: GraphResult,
+        installation_graph: Exportable,
         frequency: Frequency,
     ) -> Optional[QueryResult]:
         values = self.query.query(installation_graph, self.unit, frequency)

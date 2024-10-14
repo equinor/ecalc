@@ -86,7 +86,7 @@ class Periods:
     def create_periods(cls, times: List[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
         """
         Create periods from the provided datetimes
-        :param times: the datetimes to create periods from
+        :param times: the sorted times to create periods from
         :param include_before: whether to add a period that ends with the first provided datetime, i.e. define a period
         before the earliest provided datetime.
         :param include_after: whether to add a period that starts with the last provided datetime, i.e. define a period

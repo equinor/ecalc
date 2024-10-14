@@ -15,14 +15,12 @@ from libecalc.presentation.exporter.appliers import (
 from libecalc.presentation.exporter.filters import Filter
 from libecalc.presentation.exporter.generators import Generator, TimeIndexGenerator
 from libecalc.presentation.exporter.queries import (
-    ElConsumerPowerConsumptionQuery,
     ElectricityGeneratedQuery,
     EmissionQuery,
-    FuelConsumerPowerConsumptionQuery,
     FuelQuery,
     MaxUsageFromShoreQuery,
-    PowerSupplyOnshoreQuery,
-    VolumeQuery,
+    PowerConsumptionQuery,
+    StorageVolumeQuery,
 )
 
 """
@@ -605,7 +603,7 @@ class LTPConfig(ResultConfig):
                     name="loadedAndStoredOil",  # TODO: Get correct Centuries name here
                     title="Total Oil Loaded/Stored",
                     unit=Unit.STANDARD_CUBIC_METER,
-                    query=VolumeQuery(
+                    query=StorageVolumeQuery(
                         installation_category="FIXED",
                         consumer_categories=["LOADING"],
                     ),
@@ -623,7 +621,7 @@ class LTPConfig(ResultConfig):
                     name="gasTurbineCompressorConsumption",
                     title="Total Power Consumed By Gas-Turbine Driven Compressors",
                     unit=Unit.GIGA_WATT_HOURS,
-                    query=FuelConsumerPowerConsumptionQuery(
+                    query=PowerConsumptionQuery(
                         installation_category="FIXED",
                         consumer_categories=["GAS-DRIVEN-COMPRESSOR"],
                     ),
@@ -632,7 +630,7 @@ class LTPConfig(ResultConfig):
                     name="offshoreWindConsumption",
                     title="Total Electricity Consumed From Offshore Wind",
                     unit=Unit.GIGA_WATT_HOURS,
-                    query=ElConsumerPowerConsumptionQuery(
+                    query=PowerConsumptionQuery(
                         installation_category="FIXED",
                         consumer_categories=["OFFSHORE-WIND"],
                     ),
@@ -642,7 +640,7 @@ class LTPConfig(ResultConfig):
                     name="fromShoreConsumption",
                     title="Total Electricity Consumed From Power-From-Shore",
                     unit=Unit.GIGA_WATT_HOURS,
-                    query=ElectricityGeneratedQuery(
+                    query=PowerConsumptionQuery(
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
@@ -650,7 +648,7 @@ class LTPConfig(ResultConfig):
                     name="powerSupplyOnshore",
                     title="Power Supply Onshore",
                     unit=Unit.GIGA_WATT_HOURS,
-                    query=PowerSupplyOnshoreQuery(
+                    query=ElectricityGeneratedQuery(
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
@@ -666,7 +664,7 @@ class LTPConfig(ResultConfig):
                     name="steamTurbineGeneratorConsumption",
                     title="Total Electricity Consumed From Steam Turbine Generators",
                     unit=Unit.GIGA_WATT_HOURS,
-                    query=ElConsumerPowerConsumptionQuery(
+                    query=PowerConsumptionQuery(
                         installation_category="FIXED",
                         consumer_categories=["STEAM-TURBINE-GENERATOR"],
                     ),

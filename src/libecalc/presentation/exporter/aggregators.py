@@ -1,11 +1,10 @@
 import abc
 from typing import List
 
-from libecalc.application.graph_result import GraphResult
-from libecalc.common.component_type import ComponentType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
 from libecalc.presentation.exporter.appliers import Applier
+from libecalc.presentation.exporter.domain.exportable import ExportableSet, ExportableType
 from libecalc.presentation.exporter.dto.dtos import GroupedQueryResult, QueryResult
 
 
@@ -13,7 +12,7 @@ class Aggregator(abc.ABC):
     @abc.abstractmethod
     def aggregate(
         self,
-        energy_calculator_result: GraphResult,
+        energy_calculator_result: ExportableSet,
     ) -> List[GroupedQueryResult]:
         """Each entry in this list will be handled separately
         Should ideally only work on one level in the hierarchy, more than one level
@@ -50,7 +49,7 @@ class InstallationAggregator(Aggregator):
 
     def aggregate(
         self,
-        energy_calculator_result: GraphResult,
+        energy_calculator_result: ExportableSet,
     ) -> List[GroupedQueryResult]:
         """Aggregates data at installation level.
 
@@ -71,12 +70,11 @@ class InstallationAggregator(Aggregator):
         :return:
         """
         aggregated_installation_results: List[GroupedQueryResult] = []
-        for installation_id in energy_calculator_result.graph.get_nodes_of_type(ComponentType.INSTALLATION):
-            installation_graph = energy_calculator_result.get_subgraph(installation_id)
-            installation_name = installation_graph.graph.get_node_info(installation_graph.graph.root).name
+        for installation in energy_calculator_result.get_from_type(ExportableType.INSTALLATION):
+            installation_name = installation.get_name()
             single_results: List[QueryResult] = []
             for applier in self.appliers:
-                applier_result = applier.apply(installation_graph, self.frequency)
+                applier_result = applier.apply(installation, self.frequency)
 
                 if applier_result:
                     single_results.append(applier_result)

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from libecalc.application.graph_result import GraphResult
 from libecalc.presentation.exporter.aggregators import Aggregator
+from libecalc.presentation.exporter.domain.exportable import ExportableSet
 from libecalc.presentation.exporter.dto.dtos import FilteredResult
 from libecalc.presentation.exporter.generators import Generator
 
@@ -27,7 +27,7 @@ class Filter:
 
     def filter(
         self,
-        energy_calculator_result: GraphResult,
+        energy_calculator_result: ExportableSet,
         time_vector: List[datetime],
     ) -> FilteredResult:
         data_series_collection = [generator.generate(time_vector) for generator in self.generators]

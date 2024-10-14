@@ -82,7 +82,7 @@ class VariablesMap(BaseModel):
         if isinstance(expression, Expression):
             return expression.evaluate(variables=self.variables, fill_length=len(self.get_time_vector()))
         elif isinstance(expression, dict):
-            return self._evaluate_temporal(temporal_expression=TemporalModel[expression])
+            return self._evaluate_temporal(temporal_expression=TemporalModel(expression))
         elif isinstance(expression, TemporalModel):
             return self._evaluate_temporal(temporal_expression=expression)
 
