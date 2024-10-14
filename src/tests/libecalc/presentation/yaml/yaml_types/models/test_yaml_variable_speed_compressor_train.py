@@ -38,7 +38,7 @@ def test_control_margin_required(yaml_resource_variable_speed_without_control_ma
         )
     errors = exc_info.value.errors()
 
-    # Control margin is required for single speed compressor train:
+    # Control margin is required for variable speed compressor train:
     error_1 = str(errors[1])
 
     assert (
@@ -47,7 +47,7 @@ def test_control_margin_required(yaml_resource_variable_speed_without_control_ma
     )
     assert "This keyword is missing, it is required" in error_1
 
-    # Control margin unit is required for single speed compressor train:
+    # Control margin unit is required for variable speed compressor train:
     error_2 = str(errors[2])
 
     assert (
