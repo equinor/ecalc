@@ -107,17 +107,19 @@ def test_emissions_diesel_fixed_and_mobile():
 
     ltp_result = get_consumption(model=asset, variables=variables, time_vector=time_vector_yearly)
 
-    co2_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
-    co2_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=1)
+    co2_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCo2Mass")
+    co2_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselCo2Mass")
 
-    nox_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
-    nox_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=2)
+    nox_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselNoxMass")
+    nox_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselNoxMass")
 
-    nmvoc_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
-    nmvoc_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=3)
+    nmvoc_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselNmvocMass")
+    nmvoc_from_diesel_mobile = get_sum_ltp_column(
+        ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselNmvocMass"
+    )
 
-    ch4_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=4)
-    ch4_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column_nr=4)
+    ch4_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCh4Mass")
+    ch4_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselCh4Mass")
 
     assert co2_from_diesel_fixed == expected_co2_from_diesel()
     assert co2_from_diesel_mobile == expected_co2_from_diesel()
@@ -143,14 +145,16 @@ def test_temporal_models_detailed():
         model=installation_direct_consumer_dto(), variables=variables, time_vector=time_vector_yearly
     )
 
-    turbine_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
-    engine_diesel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
+    turbine_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="turbineFuelGasConsumption")
+    engine_diesel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselConsumption")
 
-    gas_turbine_el_generated = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=4)
-    pfs_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=5)
+    gas_turbine_el_generated = get_sum_ltp_column(
+        ltp_result, installation_nr=0, ltp_column="gasTurbineGeneratorConsumption"
+    )
+    pfs_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="fromShoreConsumption")
 
-    co2_from_fuel = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
-    co2_from_diesel = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
+    co2_from_fuel = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="turbineFuelGasCo2Mass")
+    co2_from_diesel = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCo2Mass")
 
     # FuelQuery: Check that turbine fuel consumption is included,
     # even if the temporal model starts with diesel every year
@@ -192,7 +196,9 @@ def test_temporal_models_offshore_wind():
         model=installation_offshore_wind_dto(), variables=variables, time_vector=time_vector_yearly
     )
 
-    offshore_wind_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
+    offshore_wind_el_consumption = get_sum_ltp_column(
+        ltp_result, installation_nr=0, ltp_column="offshoreWindConsumption"
+    )
 
     # ElConsumerPowerConsumptionQuery: Check that offshore wind el-consumption is correct.
     assert offshore_wind_el_consumption == expected_offshore_wind_el_consumption()
@@ -210,7 +216,9 @@ def test_temporal_models_compressor():
         model=installation_compressor_dto([no_el_consumption()]), variables=variables, time_vector=time_vector_yearly
     )
 
-    gas_turbine_compressor_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
+    gas_turbine_compressor_el_consumption = get_sum_ltp_column(
+        ltp_result, installation_nr=0, ltp_column="gasTurbineCompressorConsumption"
+    )
 
     # FuelConsumerPowerConsumptionQuery. Check gas turbine compressor el consumption.
     assert gas_turbine_compressor_el_consumption == expected_gas_turbine_compressor_el_consumption()
@@ -223,10 +231,10 @@ def test_boiler_heater_categories():
         model=installation_boiler_heater_dto(), variables=variables, time_vector=time_vector_yearly
     )
 
-    boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=0)
-    heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=1)
-    co2_from_boiler = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=2)
-    co2_from_heater = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column_nr=3)
+    boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="boilerFuelGasConsumption")
+    heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="heaterFuelGasConsumption")
+    co2_from_boiler = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="boilerFuelGasCo2Mass")
+    co2_from_heater = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="heaterFuelGasCo2Mass")
 
     # FuelConsumerPowerConsumptionQuery. Check gas turbine compressor el consumption.
     assert boiler_fuel_consumption == expected_boiler_fuel_consumption()
@@ -292,13 +300,13 @@ def test_venting_emitters():
     )
 
     emission_input_sd_kg_per_day = get_sum_ltp_column(
-        ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column_nr=0
+        ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
     )
     emission_input_sd_tons_per_day = get_sum_ltp_column(
-        ltp_result_input_sd_tons_per_day, installation_nr=0, ltp_column_nr=0
+        ltp_result_input_sd_tons_per_day, installation_nr=0, ltp_column="storageCh4Mass"
     )
     emission_input_cd_kg_per_day = get_sum_ltp_column(
-        ltp_result_input_cd_kg_per_day, installation_nr=0, ltp_column_nr=0
+        ltp_result_input_cd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
     )
 
     # Verify correct emissions when input is kg per day. Output should be in tons per day - hence dividing by 1000
@@ -352,7 +360,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     )
 
     # Verify correct emissions:
-    emissions_ch4 = get_sum_ltp_column(venting_emitter_results, installation_nr=0, ltp_column_nr=0)
+    emissions_ch4 = get_sum_ltp_column(venting_emitter_results, installation_nr=0, ltp_column="storageCh4Mass")
     assert emissions_ch4 == (emission_rate / 1000) * 365 * regularity
 
     # Installation with only fuel consumers:
@@ -387,7 +395,7 @@ def test_only_venting_emitters_no_fuelconsumers():
     # Check that the results are the same: For the case with only one installation (only venting emitters),
     # compared to the multi-installation case with two installations. The fuel-consumer installation should
     # give no CH4-contribution (only CO2)
-    emissions_ch4_asset = get_sum_ltp_column(asset_ltp_result, installation_nr=0, ltp_column_nr=0)
+    emissions_ch4_asset = get_sum_ltp_column(asset_ltp_result, installation_nr=0, ltp_column="storageCh4Mass")
     assert emissions_ch4 == emissions_ch4_asset
 
 
@@ -464,9 +472,11 @@ def test_total_oil_loaded_old_method():
     )
 
     loaded_and_stored_oil_loading_and_storage = get_sum_ltp_column(
-        ltp_result_loading_storage, installation_nr=0, ltp_column_nr=2
+        ltp_result_loading_storage, installation_nr=0, ltp_column="loadedAndStoredOil"
     )
-    loaded_and_stored_oil_loading_only = get_sum_ltp_column(ltp_result_loading_only, installation_nr=0, ltp_column_nr=1)
+    loaded_and_stored_oil_loading_only = get_sum_ltp_column(
+        ltp_result_loading_only, installation_nr=0, ltp_column="loadedAndStoredOil"
+    )
 
     # Verify output for total oil loaded/stored, if only loading is specified.
     assert loaded_and_stored_oil_loading_only is not None
@@ -600,11 +610,17 @@ def test_power_from_shore(ltp_pfs_yaml_factory):
         model=dto_case_csv.ecalc_model, variables=dto_case.variables, time_vector=time_vector_yearly
     )
 
-    power_from_shore_consumption = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=1)
-    power_supply_onshore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=2)
-    max_usage_from_shore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column_nr=3)
+    power_from_shore_consumption = get_sum_ltp_column(
+        ltp_result=ltp_result, installation_nr=0, ltp_column="fromShoreConsumption"
+    )
+    power_supply_onshore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column="powerSupplyOnshore")
+    max_usage_from_shore = get_sum_ltp_column(
+        ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum"
+    )
 
-    power_supply_onshore_csv = get_sum_ltp_column(ltp_result=ltp_result_csv, installation_nr=0, ltp_column_nr=2)
+    power_supply_onshore_csv = get_sum_ltp_column(
+        ltp_result=ltp_result_csv, installation_nr=0, ltp_column="powerSupplyOnshore"
+    )
 
     # In the temporal model, the category is POWER_FROM_SHORE the last three years, within the period 2025 - 2030:
     delta_days = calculate_delta_days(time_vector_yearly)[2:5]
