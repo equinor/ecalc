@@ -1,7 +1,6 @@
 import math
 import operator
 from collections import defaultdict
-from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
@@ -16,7 +15,7 @@ from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
-from libecalc.common.time_utils import Frequency, Period, Periods
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
