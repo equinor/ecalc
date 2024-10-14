@@ -128,6 +128,10 @@ class Period:
         else:
             return Periods([])
 
+    @property
+    def duration(self) -> timedelta:
+        return self.end - self.start
+
 
 @dataclass(eq=True, frozen=True, order=True)
 class Periods:
