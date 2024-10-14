@@ -1,6 +1,7 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field
+from pydantic import Field, model_validator
+from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -145,6 +146,19 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 
     def to_dto(self):
         raise NotImplementedError
+
+    @model_validator(mode="after")
+    def check_compressor_chart(self, info: ValidationInfo):
+        if info.context is not None:
+            train = self.compressor_train
+            # If known compressor stages
+            if hasattr(self, EcalcYamlKeywords.models_type_compressor_train_stages.lower()):
+                for stage in train.stages:
+                    compressor_chart = info.context["model_types"][stage.compressor_chart]
+            else:
+                # Unknown compressor stages
+                if train.compressor_chart is not None:
+                    compressor_chart = info.context["model_types"][train.compressor_chart]
 
 
 class YamlMultipleStreamsStream(YamlBase):
