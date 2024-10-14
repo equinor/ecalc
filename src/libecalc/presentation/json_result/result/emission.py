@@ -8,7 +8,6 @@ from typing_extensions import Self
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
-    TimeSeriesIntensity,
     TimeSeriesRate,
     TimeSeriesVolumesCumulative,
 )
@@ -65,11 +64,3 @@ class PartialEmissionResult(TabularTimeSeries):
             timesteps=emission_result.timesteps,
             rate=TimeSeriesRate.from_timeseries_stream_day_rate(emission_result.rate, regularity),
         )
-
-
-class EmissionIntensityResult(TabularTimeSeries):
-    name: str
-    intensity_sm3: TimeSeriesIntensity
-    intensity_boe: TimeSeriesIntensity
-    intensity_yearly_sm3: TimeSeriesIntensity
-    intensity_yearly_boe: TimeSeriesIntensity
