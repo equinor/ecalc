@@ -91,7 +91,9 @@ class FuelQuery(Query):
                 .fill_nan(0)
             )
 
-            return {reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+            }
         return None
 
 
@@ -134,7 +136,9 @@ class StorageVolumeQuery(Query):
                 .fill_nan(0)
             )
 
-            return {reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+            }
         return None
 
 
@@ -188,7 +192,9 @@ class EmissionQuery(Query):
                 .fill_nan(0)
             )
 
-            return {reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+            }
         return None
 
 
@@ -229,7 +235,9 @@ class ElectricityGeneratedQuery(Query):
                 .fill_nan(0)
             )
 
-            return {reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+            }
         return None
 
 
@@ -267,12 +275,10 @@ class MaxUsageFromShoreQuery(Query):
             # Max usage from shore is time series float (values)
             # The maximum value with in each period in sorted_results should be found for the new periods
             return {
-                period: TimeSeriesFloat(
-                    periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit
-                )
+                period: TimeSeriesFloat(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
                 .for_period(period)
                 .max()
-                for period in installation_graph.get_periods()
+                for period in resample_periods(periods=installation_graph.get_periods(), frequency=frequency)
             }
         return None
 
@@ -322,6 +328,8 @@ class PowerConsumptionQuery(Query):
                 .fill_nan(0)
             )
 
-            return {reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))}
+            return {
+                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+            }
 
         return None
