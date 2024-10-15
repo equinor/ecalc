@@ -56,6 +56,10 @@ class InstallationExportable(Exportable):
             assert isinstance(fuel_consumer_result, GeneratorSetResult)
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
             for period, category in consumer_category.items():
+                if category == "POWER-FROM-SHORE" and fuel_consumer.cable_loss is None:
+                    # Edge case; we don't want to assume cable loss = 0 if power from shore. So we skip reporting produced electricity if cable loss isn't specified
+                    continue
+
                 if fuel_consumer.cable_loss is not None:
                     # TODO: Move this calculation into generator set
                     cable_loss = self._installation_graph.variables_map.evaluate(
