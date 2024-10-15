@@ -10,9 +10,7 @@ from libecalc.presentation.exporter.dto.dtos import FilteredResult
 from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
 
 
-def get_consumption(
-    model: Union[Installation, Asset], variables: VariablesMap, periods: Periods
-) -> FilteredResult:
+def get_consumption(model: Union[Installation, Asset], variables: VariablesMap, periods: Periods) -> FilteredResult:
     model = model
     graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
