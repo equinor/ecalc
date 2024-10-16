@@ -5,8 +5,6 @@ from pydantic_core import PydanticCustomError
 from pydantic_core.core_schema import ValidationInfo
 from typing_extensions import Annotated
 
-from libecalc.common.chart_type import ChartType
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModelType,
 )
@@ -80,27 +78,6 @@ def check_field_model_reference(allowed_types: List[str]):
                 ) from e
 
             model = models_context[model_reference]
-
-            # Check compressor charts for simplified compressor trains
-            if model.type == YamlModelType.SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN:
-                allowed_charts_simplified_trains = [ChartType.GENERIC_FROM_INPUT, ChartType.GENERIC_FROM_DESIGN_POINT]
-                if hasattr(model.compressor_train, EcalcYamlKeywords.models_type_compressor_train_stages.lower()):
-                    # Known compressor stages
-                    for stage in model.compressor_train.stages:
-                        compressor_chart = models_context[stage.compressor_chart]
-                        if compressor_chart.chart_type not in allowed_charts_simplified_trains:
-                            raise ValueError(
-                                f"{compressor_chart.chart_type} compressor chart is not supported for {model.type}. "
-                                f"Allowed charts are {', '.join(allowed_charts_simplified_trains)}."
-                            )
-                else:
-                    # Unknown compressor stages
-                    compressor_chart = models_context[model.compressor_train.compressor_chart]
-                    if compressor_chart.chart_type not in allowed_charts_simplified_trains:
-                        raise ValueError(
-                            f"{compressor_chart.chart_type} compressor chart is not supported for {model.type}. "
-                            f"Allowed charts are {', '.join(allowed_charts_simplified_trains)}."
-                        )
 
             # Also check compressor models in turbine
             if model.type == YamlModelType.COMPRESSOR_WITH_TURBINE:
