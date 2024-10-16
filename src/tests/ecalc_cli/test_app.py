@@ -190,7 +190,7 @@ class TestCsvOutput:
         df = pd.read_csv(run_csv_output_file, index_col="timesteps")
         operational_settings_used = df["Water injection pump system A.operational_settings_used[N/A]"].tolist()
         is_valid = df["Water injection pump system A.is_valid[N/A]"].tolist()
-        assert operational_settings_used == [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        assert operational_settings_used == [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         assert is_valid == [1] * len(operational_settings_used)
 
 

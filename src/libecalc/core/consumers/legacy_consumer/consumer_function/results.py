@@ -8,6 +8,7 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
+from libecalc.common.time_utils import Periods
 from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
@@ -24,7 +25,7 @@ class ConsumerFunctionResultBase(BaseModel):
 
     typ: ConsumerFunctionType
 
-    time_vector: PydanticNDArray
+    periods: Periods
     is_valid: PydanticNDArray
     energy_usage: PydanticNDArray
     energy_usage_before_power_loss_factor: Optional[PydanticNDArray] = None
@@ -68,6 +69,8 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
                     values.extend(other_values)
                 else:
                     values.append(other_values)
+            elif isinstance(values, Periods):
+                self.__setattr__(attribute, values + other_values)
             else:
                 msg = (
                     f"{self.__repr_name__()} attribute {attribute} does not have an append method."
@@ -80,4 +83,4 @@ class ConsumerFunctionResult(ConsumerFunctionResultBase):
     @classmethod
     def create_empty(cls) -> ConsumerFunctionResult:
         """Create empty consumer function result"""
-        return cls(time_vector=np.array([]), is_valid=np.array([]), energy_usage=np.array([]))
+        return cls(periods=Periods([]), is_valid=np.array([]), energy_usage=np.array([]))

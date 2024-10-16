@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import List
 
+from libecalc.common.time_utils import Periods
 from libecalc.presentation.exporter.aggregators import Aggregator
 from libecalc.presentation.exporter.domain.exportable import ExportableSet
 from libecalc.presentation.exporter.dto.dtos import FilteredResult
@@ -28,11 +28,11 @@ class Filter:
     def filter(
         self,
         energy_calculator_result: ExportableSet,
-        time_vector: List[datetime],
+        periods: Periods,
     ) -> FilteredResult:
-        data_series_collection = [generator.generate(time_vector) for generator in self.generators]
+        data_series_collection = [generator.generate(periods) for generator in self.generators]
         query_result_collection = self.aggregator.aggregate(energy_calculator_result)
 
         return FilteredResult(
-            data_series=data_series_collection, query_results=query_result_collection, time_vector=time_vector
+            data_series=data_series_collection, query_results=query_result_collection, periods=periods
         )

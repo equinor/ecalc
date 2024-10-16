@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.domain.stream_conditions import Pressure, Rate, StreamConditions
@@ -11,7 +12,7 @@ def create_stream_from_rate(rate: float, name: str = "inlet") -> StreamCondition
     return StreamConditions(
         id="name",
         name=name,
-        timestep=datetime(2019, 1, 1),
+        period=Period(datetime(2019, 1, 1), datetime(2020, 1, 1)),
         rate=Rate(
             value=rate,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,

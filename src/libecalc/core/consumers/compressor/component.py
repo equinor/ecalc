@@ -5,6 +5,7 @@ from typing import List, Optional
 import numpy as np
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -54,34 +55,34 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
         # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
         total_requested_inlet_stream = StreamConditions.mix_all(inlet_streams)
         total_requested_inlet_stream.name = "Total inlet"
-        current_timestep = total_requested_inlet_stream.timestep
+        current_period = total_requested_inlet_stream.period
 
         outlet_stream.rate = total_requested_inlet_stream.rate
 
         energy_usage = TimeSeriesStreamDayRate(
             values=model_result.energy_usage,
-            timesteps=[current_timestep],
+            periods=Periods([current_period]),
             unit=model_result.energy_usage_unit,
         )
 
         component_result = core_results.CompressorResult(
-            timesteps=[current_timestep],
+            periods=Periods([current_period]),
             power=TimeSeriesStreamDayRate(
                 values=model_result.power,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=model_result.power_unit,
             ).fill_nan(0.0),
             energy_usage=energy_usage.fill_nan(0.0),
-            is_valid=TimeSeriesBoolean(values=model_result.is_valid, timesteps=[current_timestep], unit=Unit.NONE),
+            is_valid=TimeSeriesBoolean(values=model_result.is_valid, periods=Periods([current_period]), unit=Unit.NONE),
             id=self.id,
             recirculation_loss=TimeSeriesStreamDayRate(
                 values=model_result.recirculation_loss,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=Unit.MEGA_WATT,
             ),
             rate_exceeds_maximum=TimeSeriesBoolean(
                 values=model_result.rate_exceeds_maximum,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=Unit.NONE,
             ),
             streams=[
@@ -100,21 +101,21 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
             models=[
                 core_results.CompressorModelResult(
                     name="N/A",  # No context available to populate model name
-                    timesteps=[current_timestep],
+                    periods=Periods([current_period]),
                     is_valid=TimeSeriesBoolean(
-                        timesteps=[current_timestep],
+                        periods=Periods([current_period]),
                         values=model_result.is_valid,
                         unit=Unit.NONE,
                     ),
                     power=TimeSeriesStreamDayRate(
-                        timesteps=[current_timestep],
+                        periods=Periods([current_period]),
                         values=model_result.power,
                         unit=model_result.power_unit,
                     )
                     if model_result.power is not None
                     else None,
                     energy_usage=TimeSeriesStreamDayRate(
-                        timesteps=[current_timestep],
+                        periods=Periods([current_period]),
                         values=model_result.energy_usage,
                         unit=model_result.energy_usage_unit,
                     ),

@@ -341,16 +341,16 @@ class TestDatedModelFilter:
         )
 
         assert list(model.installations[0].fuel_consumers[0].energy_usage_model.keys()) == [
-            datetime(2020, 1, 1),
-            datetime(2022, 1, 1),
-            datetime(2030, 1, 1),
+            Period(datetime(2020, 1, 1), datetime(2022, 1, 1)),
+            Period(datetime(2022, 1, 1), datetime(2030, 1, 1)),
+            Period(datetime(2030, 1, 1), datetime(2040, 1, 1)),
         ]
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
-            datetime(2020, 1, 1),
+            Period(datetime(2020, 1, 1), datetime(2040, 1, 1))
         ]
         assert list(model.installations[0].hydrocarbon_export.keys()) == [
-            datetime(2020, 1, 1),
-            datetime(2025, 1, 1),
+            Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
+            Period(datetime(2025, 1, 1), datetime(2040, 1, 1)),
         ]
 
     def test_include_start(self, dated_model_data):
@@ -361,12 +361,14 @@ class TestDatedModelFilter:
         )
 
         assert list(model.installations[0].fuel_consumers[0].energy_usage_model.keys()) == [
-            datetime(2020, 1, 1),
-            datetime(2022, 1, 1),
+            Period(datetime(2020, 1, 1), datetime(2022, 1, 1)),
+            Period(datetime(2022, 1, 1), datetime(2025, 1, 1)),
         ]
-        assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [datetime(2020, 1, 1)]
+        assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
+            Period(datetime(2020, 1, 1), datetime(2025, 1, 1))
+        ]
         assert list(model.installations[0].hydrocarbon_export.keys()) == [
-            datetime(2020, 1, 1),
+            Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
         ]
 
     def test_include_end(self, dated_model_data):
@@ -377,14 +379,14 @@ class TestDatedModelFilter:
         )
 
         assert list(model.installations[0].fuel_consumers[0].energy_usage_model.keys()) == [
-            datetime(2026, 1, 1),
-            datetime(2030, 1, 1),
+            Period(datetime(2026, 1, 1), datetime(2030, 1, 1)),
+            Period(datetime(2030, 1, 1), datetime(2040, 1, 1)),
         ]
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
-            datetime(2026, 1, 1),
+            Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
         ]
         assert list(model.installations[0].hydrocarbon_export.keys()) == [
-            datetime(2026, 1, 1),
+            Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
         ]
 
     def test_include_middle(self, dated_model_data):
@@ -395,12 +397,12 @@ class TestDatedModelFilter:
         )
 
         assert list(model.installations[0].fuel_consumers[0].energy_usage_model.keys()) == [
-            datetime(2023, 1, 1),
+            Period(datetime(2023, 1, 1), datetime(2029, 1, 1)),
         ]
         assert list(model.installations[0].fuel_consumers[0].fuel.keys()) == [
-            datetime(2023, 1, 1),
+            Period(datetime(2023, 1, 1), datetime(2029, 1, 1)),
         ]
         assert list(model.installations[0].hydrocarbon_export.keys()) == [
-            datetime(2023, 1, 1),
-            datetime(2025, 1, 1),
+            Period(datetime(2023, 1, 1), datetime(2025, 1, 1)),
+            Period(datetime(2025, 1, 1), datetime(2029, 1, 1)),
         ]

@@ -145,7 +145,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
         number_of_stages = max([len(t.stage_results) for t in result_list])
 
         # Create empty compressor stage results and inlet/outlet stream conditions. This is to ensure correct
-        # number of values and timesteps in case of None etc.
+        # number of values and periods in case of None etc.
         compressor_stage_result = [
             CompressorStageResult.create_empty(len(result_list)) for i in range(number_of_stages)
         ]
@@ -183,7 +183,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
 
             # For inlet- and outlet stream condition it is necessary to check if inlet- or outlet
             # streams exist. They may not exist, e.g. in case of zero rate etc. In this case, nan should
-            # be set, to ensure match between timesteps and values.
+            # be set, to ensure match between periods and values.
             inlet_stream_condition_per_stage[i].pressure = [
                 result_list[t].stage_results[i].inlet_stream.pressure_bara
                 if result_list[t].stage_results[i].inlet_stream is not None

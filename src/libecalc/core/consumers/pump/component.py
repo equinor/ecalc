@@ -5,6 +5,7 @@ from typing import List, Optional
 import numpy as np
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
+from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -55,44 +56,44 @@ class Pump(BaseConsumerWithoutOperationalSettings):
         # Mixing all input rates to get total rate passed through compressor. Used when reporting streams.
         total_requested_inlet_stream = StreamConditions.mix_all(inlet_streams)
         total_requested_inlet_stream.name = "Total inlet"
-        current_timestep = total_requested_inlet_stream.timestep
+        current_period = total_requested_inlet_stream.period
 
         outlet_stream.rate = total_requested_inlet_stream.rate
 
         component_result = core_results.PumpResult(
             id=self.id,
-            timesteps=[current_timestep],
+            periods=Periods([current_period]),
             power=TimeSeriesStreamDayRate(
                 values=model_result.power,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=model_result.power_unit,
             ).fill_nan(0.0),
             energy_usage=TimeSeriesStreamDayRate(
                 values=model_result.energy_usage,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=model_result.energy_usage_unit,
             ).fill_nan(0.0),
             inlet_liquid_rate_m3_per_day=TimeSeriesStreamDayRate(
                 values=model_result.rate,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
             ),
             inlet_pressure_bar=TimeSeriesFloat(
                 values=model_result.suction_pressure,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=Unit.BARA,
             ),
             outlet_pressure_bar=TimeSeriesFloat(
                 values=model_result.discharge_pressure,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=Unit.BARA,
             ),
             operational_head=TimeSeriesFloat(
                 values=model_result.operational_head,
-                timesteps=[current_timestep],
+                periods=Periods([current_period]),
                 unit=Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
             ),
-            is_valid=TimeSeriesBoolean(values=model_result.is_valid, timesteps=[current_timestep], unit=Unit.NONE),
+            is_valid=TimeSeriesBoolean(values=model_result.is_valid, periods=Periods([current_period]), unit=Unit.NONE),
             streams=[
                 TimeSeriesStreamConditions.from_stream_condition(total_requested_inlet_stream),
                 *[
@@ -109,21 +110,21 @@ class Pump(BaseConsumerWithoutOperationalSettings):
             models=[
                 core_results.PumpModelResult(
                     name="N/A",  # No context available to populate model name
-                    timesteps=[current_timestep],
+                    periods=Periods([current_period]),
                     is_valid=TimeSeriesBoolean(
-                        timesteps=[current_timestep],
+                        periods=Periods([current_period]),
                         values=model_result.is_valid,
                         unit=Unit.NONE,
                     ),
                     power=TimeSeriesStreamDayRate(
-                        timesteps=[current_timestep],
+                        periods=Periods([current_period]),
                         values=model_result.power,
                         unit=model_result.power_unit,
                     )
                     if model_result.power is not None
                     else None,
                     energy_usage=TimeSeriesStreamDayRate(
-                        timesteps=[current_timestep],
+                        periods=Periods([current_period]),
                         values=model_result.energy_usage,
                         unit=model_result.energy_usage_unit,
                     ),

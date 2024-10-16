@@ -5,6 +5,7 @@ import pytest
 import libecalc.common.energy_usage_type
 from libecalc import dto
 from libecalc.common.component_type import ComponentType
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
@@ -44,9 +45,9 @@ def tabulated_fuel_consumer(fuel_gas) -> dto.FuelConsumer:
         name="fuel_consumer",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
-        energy_usage_model={datetime(1900, 1, 1): tabulated},
-        user_defined_category={datetime(1900, 1, 1): "MISCELLANEOUS"},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        energy_usage_model={Period(datetime(1900, 1, 1)): tabulated},
+        user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
     )
 
 
@@ -55,30 +56,30 @@ def direct_el_consumer() -> dto.ElectricityConsumer:
     return dto.ElectricityConsumer(
         name="direct_consumer",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): "FIXED-PRODUCTION-LOAD"},
+        user_defined_category={Period(datetime(1900, 1, 1)): "FIXED-PRODUCTION-LOAD"},
         energy_usage_model={
-            datetime(2020, 1, 1): dto.DirectConsumerFunction(
+            Period(datetime(2020, 1, 1), datetime(2021, 1, 1)): dto.DirectConsumerFunction(
                 load=Expression.setup_from_expression(value=1),
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
-            datetime(2021, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
+            Period(datetime(2021, 1, 1), datetime(2022, 1, 1)): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=2),
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
-            datetime(2022, 1, 1): dto.DirectConsumerFunction(  # Run above capacity
+            Period(datetime(2022, 1, 1), datetime(2023, 1, 1)): dto.DirectConsumerFunction(  # Run above capacity
                 load=Expression.setup_from_expression(value=10),
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
-            datetime(2023, 1, 1): dto.DirectConsumerFunction(  # Ensure we handle 0 load as well.
+            Period(datetime(2023, 1, 1)): dto.DirectConsumerFunction(  # Ensure we handle 0 load as well.
                 load=Expression.setup_from_expression(value=0),
                 energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.POWER,
                 consumption_rate_type=RateType.STREAM_DAY,
             ),
         },
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
     )
 
 
@@ -106,13 +107,13 @@ def generator_set_sampled_model_1000mw() -> dto.GeneratorSetSampled:
 def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw) -> dto.GeneratorSet:
     return dto.GeneratorSet(
         name="genset",
-        user_defined_category={datetime(1900, 1, 1): "TURBINE-GENERATOR"},
-        fuel={datetime(1900, 1, 1): fuel_dto},
+        user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
+        fuel={Period(datetime(1900, 1, 1)): fuel_dto},
         generator_set_model={
-            datetime(1900, 1, 1): generator_set_sampled_model_2mw,
+            Period(datetime(1900, 1, 1)): generator_set_sampled_model_2mw,
         },
         consumers=[direct_el_consumer],
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
     )
 
 
@@ -122,11 +123,11 @@ def genset_1000mw_late_startup_dto(
 ) -> dto.GeneratorSet:
     return dto.GeneratorSet(
         name="genset_late_startup",
-        user_defined_category={datetime(1900, 1, 1): "TURBINE-GENERATOR"},
-        fuel={datetime(1900, 1, 1): fuel_dto},
+        user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
+        fuel={Period(datetime(1900, 1, 1)): fuel_dto},
         generator_set_model={
-            datetime(2022, 1, 1): generator_set_sampled_model_1000mw,
+            Period(datetime(2022, 1, 1)): generator_set_sampled_model_1000mw,
         },
         consumers=[direct_el_consumer],
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(1)},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
     )
