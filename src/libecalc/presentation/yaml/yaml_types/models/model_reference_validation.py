@@ -77,8 +77,9 @@ def check_field_model_reference(allowed_types: List[str]):
                     },
                 ) from e
 
-            # Also check compressor models in turbine
             model = models_context[model_reference]
+
+            # Also check compressor models in turbine
             if model.type == YamlModelType.COMPRESSOR_WITH_TURBINE:
                 # Handle the compressor_model in turbine, it should be limited to the specified types.
                 try:
