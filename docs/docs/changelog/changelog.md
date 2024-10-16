@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.26.0](https://github.com/equinor/ecalc/compare/v8.25.0...v8.26.0) (2024-10-16)
+
+
+### Bug Fixes
+
+* remove emission intensities ([#637](https://github.com/equinor/ecalc/issues/637)) ([fb2b638](https://github.com/equinor/ecalc/commit/fb2b638de4b80c45cdf1ce454b6d00d4b7f1ec22))
+
+
+### Miscellaneous Chores
+
+* update deps week 45 ([#649](https://github.com/equinor/ecalc/issues/649)) ([f895c8d](https://github.com/equinor/ecalc/commit/f895c8d57d362c2d7507044c2f05ec368f9017f9))
+
+
+### Code Refactoring
+
+* exporter queries ([8d35f85](https://github.com/equinor/ecalc/commit/8d35f852d33772c9dee3a742824c385c5c963bb8))
+
+
+### Tests
+
+* use column id instead of index ([2760c05](https://github.com/equinor/ecalc/commit/2760c055627fef88336cf87f78fa0478da53940c))
+
 ## [8.25.0](https://github.com/equinor/ecalc/compare/v8.24.0...v8.25.0) (2024-10-10)
 
 
