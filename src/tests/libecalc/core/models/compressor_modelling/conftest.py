@@ -16,35 +16,35 @@ from libecalc.core.models.compressor.train.single_speed_compressor_train_common_
     SingleSpeedCompressorTrainCommonShaft,
 )
 from libecalc.core.models.compressor.train.stage import CompressorTrainStage
-from libecalc.core.models.compressor.train.types import (
-    FluidStreamObjectForMultipleStreams,
-)
+from libecalc.core.models.compressor.train.types import FluidStreamObjectForMultipleStreams
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft import (
     VariableSpeedCompressorTrainCommonShaft,
 )
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
-from libecalc.presentation.yaml.mappers.fluid_mapper import (
-    DRY_MW_18P3,
-    MEDIUM_MW_19P4,
-    RICH_MW_21P4,
-)
+from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 
 
 @pytest.fixture
 def medium_fluid() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(MEDIUM_MW_19P4))
+    return dto.FluidModel(
+        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(MEDIUM_MW_19P4)
+    )
 
 
 @pytest.fixture
 def rich_fluid() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(RICH_MW_21P4))
+    return dto.FluidModel(
+        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(RICH_MW_21P4)
+    )
 
 
 @pytest.fixture
 def dry_fluid() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(DRY_MW_18P3))
+    return dto.FluidModel(
+        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(DRY_MW_18P3)
+    )
 
 
 @pytest.fixture
