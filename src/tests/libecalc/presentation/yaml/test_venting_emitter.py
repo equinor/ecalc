@@ -11,13 +11,8 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.cases import venting_emitters
-from libecalc.fixtures.cases.ltp_export.utilities import (
-    get_consumption,
-    get_sum_ltp_column,
-)
-from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
-    venting_emitter_yaml_factory,
-)
+from libecalc.fixtures.cases.ltp_export.utilities import get_consumption, get_sum_ltp_column
+from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import venting_emitter_yaml_factory
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -136,9 +131,22 @@ def test_venting_emitter_oil_volume(variables_map):
     }
     emissions_ch4 = emission_result["ch4"]
 
-    regularity_evaluated = float(
-        Expression.evaluate(regularity[Period(datetime(1900, 1, 1))], fill_length=1, variables=variables_map.variables)
-    )
+    try:
+        regularity_array = Expression.evaluate(
+            regularity[Period(datetime(1900, 1, 1))], fill_length=1, variables=variables_map.variables
+        )
+
+        if regularity_array.size == 0:
+            raise ValueError("Regularity array is empty, cannot proceed with test.")
+
+        regularity_evaluated = float(regularity_array[0])
+
+    except IndexError as e:
+        raise IndexError("Failed to evaluate regularity: array index out of range.") from e
+
+    except Exception as e:
+        raise RuntimeError("An unexpected error occurred during regularity evaluation in the test.") from e
+
     expected_result = [oil_value * regularity_evaluated * emission_factor / 1000 for oil_value in oil_values()]
 
     assert emissions_ch4.rate.values == expected_result

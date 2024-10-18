@@ -15,14 +15,9 @@ from libecalc.core.models.compressor.results import (
 )
 from libecalc.core.models.compressor.train.base import CompressorTrainModel
 from libecalc.core.models.compressor.train.chart import VariableSpeedCompressorChart
-from libecalc.core.models.compressor.train.chart.chart_creator import (
-    CompressorChartCreator,
-)
+from libecalc.core.models.compressor.train.chart.chart_creator import CompressorChartCreator
 from libecalc.core.models.compressor.train.fluid import FluidStream
-from libecalc.core.models.compressor.train.stage import (
-    CompressorTrainStage,
-    UndefinedCompressorStage,
-)
+from libecalc.core.models.compressor.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
@@ -517,12 +512,24 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
                     extrapolate_heads_below_minimum=False,
                 )
             )
-            polytropic_efficiency = float(
-                compressor_chart.efficiency_as_function_of_rate_and_head(
+
+            try:
+                efficiency_array: NDArray[np.float64] = compressor_chart.efficiency_as_function_of_rate_and_head(
                     rates=np.atleast_1d(maximum_actual_volume_rate),
                     heads=np.atleast_1d(polytropic_head),
                 )
-            )
+
+                if efficiency_array.size == 0:
+                    raise ValueError("Efficiency array is empty, cannot proceed with calculation.")
+
+                polytropic_efficiency = efficiency_array[0]
+
+            except IndexError as e:
+                raise IndexError("Failed to extract efficiency: array index out of range.") from e
+
+            except Exception as e:
+                raise RuntimeError("An unexpected error occurred during efficiency extraction.") from e
+
             polytropic_head = calculate_polytropic_head_campbell(
                 polytropic_efficiency=polytropic_efficiency,
                 kappa=kappa,
