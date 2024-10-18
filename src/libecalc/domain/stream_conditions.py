@@ -7,11 +7,11 @@ from __future__ import annotations
 import dataclasses
 import operator
 from dataclasses import dataclass
-from datetime import datetime
 from functools import reduce
 from typing import Dict, List
 
 from libecalc.common.string.string_utils import generate_id
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 
 
@@ -58,7 +58,7 @@ class Temperature:
 class StreamConditions:
     id: str
     name: str
-    timestep: datetime
+    period: Period
     rate: Rate
     pressure: Pressure
     density: Density = None
@@ -91,7 +91,7 @@ class StreamConditions:
         return StreamConditions(
             id=generate_id(*[stream.id for stream in streams]),
             name=f"{'-'.join(stream.name for stream in streams)}",
-            timestep=self.timestep,
+            period=self.period,
             rate=reduce(operator.add, [stream.rate for stream in streams]),
             pressure=target_pressure,
             density=self.density,  # TODO: Check that they are equal? Or handle it?

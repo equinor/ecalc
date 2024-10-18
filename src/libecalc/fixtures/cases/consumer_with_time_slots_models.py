@@ -7,6 +7,7 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
+from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import (
     Asset,
@@ -65,12 +66,12 @@ def tabulated_fuel_consumer_with_time_slots(fuel_gas) -> FuelConsumer:
         name="fuel_consumer_with_time_slots",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
         energy_usage_model={
-            datetime(1900, 1, 1): tabulated_energy_usage_model(),
-            datetime(2019, 1, 1): tabulated_energy_usage_model(),
+            Period(datetime(1900, 1, 1), datetime(2019, 1, 1)): tabulated_energy_usage_model(),
+            Period(datetime(2019, 1, 1)): tabulated_energy_usage_model(),
         },
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
+        user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
     )
 
 
@@ -127,15 +128,15 @@ def time_slot_electricity_consumer_with_changing_model_type(simple_compressor_mo
     return ElectricityConsumer(
         name="el-consumer1",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+        user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
         energy_usage_model={
             # Starting with a direct consumer because we don't know everything in the past
-            datetime(2017, 1, 1): direct_consumer(power=5),
+            Period(datetime(2017, 1, 1), datetime(2018, 1, 1)): direct_consumer(power=5),
             # Then we know some more. So we model it as a simplified model
-            datetime(2018, 1, 1): simple_compressor_model,
+            Period(datetime(2018, 1, 1), datetime(2024, 1, 1)): simple_compressor_model,
             # Finally we decommission the equipment by setting direct consumer to zero load.
-            datetime(2024, 1, 1): direct_consumer(power=0),
+            Period(datetime(2024, 1, 1)): direct_consumer(power=0),
         },
     )
 
@@ -145,12 +146,12 @@ def time_slot_electricity_consumer_with_same_model_type() -> ElectricityConsumer
     return ElectricityConsumer(
         name="el-consumer2",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+        user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
         energy_usage_model={
-            datetime(2017, 1, 1): direct_consumer(power=5),
-            datetime(2019, 1, 1): direct_consumer(power=10),
-            datetime(2024, 1, 1): direct_consumer(power=0),
+            Period(datetime(2017, 1, 1), datetime(2019, 1, 1)): direct_consumer(power=5),
+            Period(datetime(2019, 1, 1), datetime(2024, 1, 1)): direct_consumer(power=10),
+            Period(datetime(2024, 1, 1)): direct_consumer(power=0),
         },
     )
 
@@ -163,12 +164,12 @@ def time_slot_electricity_consumer_with_same_model_type2() -> ElectricityConsume
     return ElectricityConsumer(
         name="el-consumer4",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+        user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
         energy_usage_model={
-            datetime(2017, 1, 1): direct_consumer(power=5),
-            datetime(2019, 1, 1): direct_consumer(power=10),
-            datetime(2024, 1, 1): direct_consumer(power=0),
+            Period(datetime(2017, 1, 1), datetime(2019, 1, 1)): direct_consumer(power=5),
+            Period(datetime(2019, 1, 1), datetime(2024, 1, 1)): direct_consumer(power=10),
+            Period(datetime(2024, 1, 1)): direct_consumer(power=0),
         },
     )
 
@@ -178,12 +179,12 @@ def time_slot_electricity_consumer_with_same_model_type3(simple_compressor_model
     return ElectricityConsumer(
         name="el-consumer-simple-compressor-model-with-timeslots",
         component_type=ComponentType.COMPRESSOR,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+        user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
         energy_usage_model={
-            datetime(2017, 1, 1): simple_compressor_model,
-            datetime(2019, 1, 1): simple_compressor_model,
-            datetime(2024, 1, 1): simple_compressor_model,
+            Period(datetime(2017, 1, 1), datetime(2019, 1, 1)): simple_compressor_model,
+            Period(datetime(2019, 1, 1), datetime(2024, 1, 1)): simple_compressor_model,
+            Period(datetime(2024, 1, 1)): simple_compressor_model,
         },
     )
 
@@ -193,9 +194,9 @@ def time_slot_electricity_consumer_too_late_startup() -> ElectricityConsumer:
     return ElectricityConsumer(
         name="el-consumer3",
         component_type=ComponentType.GENERIC,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
-        energy_usage_model={datetime(2050, 1, 1): direct_consumer(power=5)},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+        user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR},
+        energy_usage_model={Period(datetime(2050, 1, 1)): direct_consumer(power=5)},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
     )
 
 
@@ -241,9 +242,12 @@ def time_slots_simplified_compressor_system(
     return ElectricityConsumer(
         name="simplified_compressor_system",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
-        user_defined_category={datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.COMPRESSOR},
-        regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
-        energy_usage_model={datetime(1900, 1, 1): energy_usage_model, datetime(2019, 1, 1): energy_usage_model_upgrade},
+        user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.COMPRESSOR},
+        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
+        energy_usage_model={
+            Period(datetime(1900, 1, 1), datetime(2019, 1, 1)): energy_usage_model,
+            Period(datetime(2019, 1, 1)): energy_usage_model_upgrade,
+        },
     )
 
 
@@ -259,7 +263,7 @@ def consumer_with_time_slots_models_dto(
 ) -> DTOCase:
     start_year = 2010
     number_of_years = 20
-    time_vector = [datetime(year, 1, 1) for year in range(start_year, start_year + number_of_years)]
+    time_vector = [datetime(year, 1, 1) for year in range(start_year, start_year + number_of_years + 1)]
 
     return DTOCase(
         ecalc_model=Asset(
@@ -268,21 +272,21 @@ def consumer_with_time_slots_models_dto(
                 Installation(
                     user_defined_category=InstallationUserDefinedCategoryType.FIXED,
                     name="some_installation",
-                    regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+                    regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
                     hydrocarbon_export={
-                        datetime(1900, 1, 1): Expression.setup_from_expression(value="RATE"),
+                        Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value="RATE"),
                     },
                     fuel_consumers=[
                         GeneratorSet(
                             name="some_genset",
                             user_defined_category={
-                                datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+                                Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
                             },
                             generator_set_model={
-                                datetime(1900, 1, 1): generator_set_sampled_300mw(),
+                                Period(datetime(1900, 1, 1)): generator_set_sampled_300mw(),
                             },
                             fuel=fuel_gas,
-                            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+                            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
                             consumers=[
                                 time_slot_electricity_consumer_with_changing_model_type,
                                 time_slot_electricity_consumer_with_same_model_type,
@@ -294,14 +298,14 @@ def consumer_with_time_slots_models_dto(
                         GeneratorSet(
                             name="some_genset_startup_after_consumer",
                             user_defined_category={
-                                datetime(1900, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+                                Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
                             },
                             generator_set_model={
                                 # 2 years after the consumers start.
-                                datetime(2019, 1, 1): generator_set_sampled_300mw(),
+                                Period(datetime(2019, 1, 1)): generator_set_sampled_300mw(),
                             },
                             fuel=fuel_gas,
-                            regularity={datetime(1900, 1, 1): Expression.setup_from_expression(value=1)},
+                            regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(value=1)},
                             consumers=[time_slot_electricity_consumer_with_same_model_type2],
                         ),
                         tabulated_fuel_consumer_with_time_slots(fuel_gas),

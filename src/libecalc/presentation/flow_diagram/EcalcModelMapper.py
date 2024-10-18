@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, Iterable, List, Set, Tuple, Union
 
 from libecalc.common.component_type import ComponentType
@@ -55,7 +55,7 @@ def _create_generator_set_node(generator_set: GeneratorSet, installation: Instal
 
 
 def _create_legacy_pump_system_diagram(
-    energy_usage_model: Dict[datetime, PumpSystemConsumerFunction],
+    energy_usage_model: Dict[Period, PumpSystemConsumerFunction],
     consumer_id: str,
     consumer_title: str,
     global_end_date: datetime,
@@ -65,9 +65,9 @@ def _create_legacy_pump_system_diagram(
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
-    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
+    periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
     for period in periods:
-        energy_usage_model_step = energy_usage_model[period.start]
+        energy_usage_model_step = energy_usage_model[period]
         flow_diagrams.append(
             FlowDiagram(
                 id=consumer_id,
@@ -90,7 +90,7 @@ def _create_legacy_pump_system_diagram(
 
 
 def _create_legacy_compressor_system_diagram(
-    energy_usage_model: Dict[datetime, CompressorSystemConsumerFunction],
+    energy_usage_model: Dict[Period, CompressorSystemConsumerFunction],
     consumer_id: str,
     consumer_title: str,
     global_end_date: datetime,
@@ -100,9 +100,9 @@ def _create_legacy_compressor_system_diagram(
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
-    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
+    periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
     for period in periods:
-        energy_usage_model_step = energy_usage_model[period.start]
+        energy_usage_model_step = energy_usage_model[period]
 
         flow_diagrams.append(
             FlowDiagram(
@@ -179,7 +179,7 @@ _dto_model_type_to_fde_render_type_map = {
 
 
 def _create_compressor_train_diagram(
-    energy_usage_model: Dict[datetime, CompressorConsumerFunction],
+    energy_usage_model: Dict[Period, CompressorConsumerFunction],
     node_id: str,
     title: str,
     global_end_date: datetime,
@@ -188,7 +188,7 @@ def _create_compressor_train_diagram(
     :param energy_usage_model:
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
-    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
+    periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
     compressor_train_step = list(energy_usage_model.values())[0].model
     return [
         FlowDiagram(
@@ -213,7 +213,7 @@ def _create_compressor_train_diagram(
 
 
 def _create_compressor_with_turbine_stages_diagram(
-    energy_usage_model: Dict[datetime, CompressorConsumerFunction],
+    energy_usage_model: Dict[Period, CompressorConsumerFunction],
     node_id: str,
     title: str,
     global_end_date: datetime,
@@ -223,7 +223,7 @@ def _create_compressor_with_turbine_stages_diagram(
     :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
-    periods = _get_periods(set(energy_usage_model.keys()), global_end_date)
+    periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
     for period in periods:
         compressor_train_type = list(energy_usage_model.values())[0].model.compressor_train
 
@@ -250,7 +250,7 @@ def _create_compressor_with_turbine_stages_diagram(
 
 
 def _is_compressor_with_turbine(
-    temporal_energy_usage_model: Dict[datetime, ConsumerFunction],
+    temporal_energy_usage_model: Dict[Period, ConsumerFunction],
 ) -> bool:
     """Checking if compressor type is compressor with turbine.
 
@@ -314,7 +314,7 @@ def _create_consumer_node(
 
 def _is_compressor_train(
     energy_usage_models: Dict[
-        datetime,
+        Period,
         Union[ElectricEnergyUsageModel, FuelEnergyUsageModel],
     ],
 ) -> bool:
@@ -361,7 +361,7 @@ def _get_timesteps(
         elif isinstance(component, Installation):
             timesteps = timesteps.union(_get_timesteps(component.fuel_consumers, shallow=shallow))
         elif isinstance(component, GeneratorSet):
-            timesteps = timesteps.union(set(component.generator_set_model.keys()))
+            timesteps = timesteps.union({key.start for key in component.generator_set_model.keys()})
             if not shallow:
                 timesteps = timesteps.union(_get_timesteps(component.consumers, shallow=shallow))
         elif isinstance(
@@ -373,7 +373,7 @@ def _get_timesteps(
                 CompressorComponent,
             ),
         ):
-            timesteps = timesteps.union(set(component.energy_usage_model.keys()))
+            timesteps = timesteps.union({key.start for key in component.energy_usage_model.keys()})
         elif isinstance(component, ConsumerSystem):
             timesteps = timesteps.union(_get_timesteps(component.consumers, shallow=shallow))
         else:
@@ -549,7 +549,7 @@ def _get_global_dates(ecalc_model: Asset, result_options: ResultOptions) -> Tupl
 
     start_dates = _get_sorted_start_dates(ecalc_model)
     start_date = user_defined_start_date or start_dates[0]
-    end_date = user_defined_end_date or start_dates[-1] + timedelta(days=365)
+    end_date = user_defined_end_date or datetime(start_dates[-1].year + 1, 1, 1)
     return start_date, end_date
 
 

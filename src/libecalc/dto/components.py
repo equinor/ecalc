@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, TypeVar, Union
+from typing import Any, Dict, List, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -13,6 +13,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id, get_duplicates
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
@@ -50,7 +51,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 
 
-def check_model_energy_usage_type(model_data: Dict[datetime, ConsumerFunction], energy_type: EnergyUsageType):
+def check_model_energy_usage_type(model_data: Dict[Period, ConsumerFunction], energy_type: EnergyUsageType):
     for model in model_data.values():
         if model.energy_usage_type != energy_type:
             raise ValueError(f"Model does not consume {energy_type.value}")
@@ -68,13 +69,20 @@ class Component(EcalcBaseModel, ABC):
 class BaseComponent(Component, ABC):
     name: ComponentNameStr
 
-    regularity: Dict[datetime, Expression]
+    regularity: Dict[Period, Expression]
 
     _validate_base_temporal_model = field_validator("regularity")(validate_temporal_model)
 
+    @field_validator("regularity", mode="before")
+    @classmethod
+    def check_regularity(cls, regularity):
+        if isinstance(regularity, dict) and len(regularity.values()) > 0:
+            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
+        return regularity
+
 
 class BaseEquipment(BaseComponent, ABC):
-    user_defined_category: Dict[datetime, ConsumerUserDefinedCategoryType] = Field(..., validate_default=True)
+    user_defined_category: Dict[Period, ConsumerUserDefinedCategoryType] = Field(..., validate_default=True)
 
     @property
     def id(self) -> str:
@@ -84,6 +92,7 @@ class BaseEquipment(BaseComponent, ABC):
     def check_user_defined_category(cls, user_defined_category, info: ValidationInfo):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
         if isinstance(user_defined_category, dict) and len(user_defined_category.values()) > 0:
+            user_defined_category = _convert_keys_in_dictionary_from_str_to_periods(user_defined_category)
             for user_category in user_defined_category.values():
                 if user_category not in list(ConsumerUserDefinedCategoryType):
                     name_context_str = ""
@@ -101,14 +110,16 @@ class BaseConsumer(BaseEquipment, ABC):
     """Base class for all consumers."""
 
     consumes: ConsumptionType
-    fuel: Optional[Dict[datetime, FuelType]] = None
+    fuel: Optional[Dict[Period, FuelType]] = None
 
-    @field_validator("fuel")
+    @field_validator("fuel", mode="before")
     @classmethod
     def validate_fuel_exist(cls, fuel, info: ValidationInfo):
         """
         Make sure fuel is set if consumption type is FUEL.
         """
+        if isinstance(fuel, dict) and len(fuel.values()) > 0:
+            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
         if info.data.get("consumes") == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
             msg = f"Missing fuel for fuel consumer '{info.data.get('name')}'"
             raise ValueError(msg)
@@ -125,7 +136,7 @@ class ElectricityConsumer(BaseConsumer):
     ]
     consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY
     energy_usage_model: Dict[
-        datetime,
+        Period,
         ElectricEnergyUsageModel,
     ]
 
@@ -135,6 +146,16 @@ class ElectricityConsumer(BaseConsumer):
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.POWER)
     )
 
+    @field_validator("energy_usage_model", mode="before")
+    @classmethod
+    def check_energy_usage_model(cls, energy_usage_model):
+        """
+        Make sure that temporal models are converted to Period objects if they are strings
+        """
+        if isinstance(energy_usage_model, dict) and len(energy_usage_model.values()) > 0:
+            energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)
+        return energy_usage_model
+
 
 class FuelConsumer(BaseConsumer):
     component_type: Literal[
@@ -143,14 +164,34 @@ class FuelConsumer(BaseConsumer):
         ComponentType.COMPRESSOR_SYSTEM,
     ]
     consumes: Literal[ConsumptionType.FUEL] = ConsumptionType.FUEL
-    fuel: Dict[datetime, FuelType]
-    energy_usage_model: Dict[datetime, FuelEnergyUsageModel]
+    fuel: Dict[Period, FuelType]
+    energy_usage_model: Dict[Period, FuelEnergyUsageModel]
 
     _validate_fuel_consumer_temporal_models = field_validator("energy_usage_model", "fuel")(validate_temporal_model)
 
     _check_model_energy_usage = field_validator("energy_usage_model")(
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.FUEL)
     )
+
+    @field_validator("energy_usage_model", mode="before")
+    @classmethod
+    def check_energy_usage_model(cls, energy_usage_model, info: ValidationInfo):
+        """
+        Make sure that temporal models are converted to Period objects if they are strings
+        """
+        if isinstance(energy_usage_model, dict) and len(energy_usage_model.values()) > 0:
+            energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)
+        return energy_usage_model
+
+    @field_validator("fuel", mode="before")
+    @classmethod
+    def check_fuel(cls, fuel):
+        """
+        Make sure that temporal models are converted to Period objects if they are strings
+        """
+        if isinstance(fuel, dict) and len(fuel.values()) > 0:
+            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
+        return fuel
 
 
 Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]
@@ -171,12 +212,12 @@ class PumpOperationalSettings(EcalcBaseModel):
 
 class CompressorComponent(BaseConsumer):
     component_type: Literal[ComponentType.COMPRESSOR] = ComponentType.COMPRESSOR
-    energy_usage_model: Dict[datetime, CompressorModel]
+    energy_usage_model: Dict[Period, CompressorModel]
 
 
 class PumpComponent(BaseConsumer):
     component_type: Literal[ComponentType.PUMP] = ComponentType.PUMP
-    energy_usage_model: Dict[datetime, PumpModel]
+    energy_usage_model: Dict[Period, PumpModel]
 
 
 class Stream(EcalcBaseModel):
@@ -262,7 +303,7 @@ class ConsumerSystem(BaseConsumer):
                         id=generate_id(consumer_name, stream_name),
                         name="-".join([consumer_name, stream_name]),
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=expression_evaluator.get_time_vector(),
+                            periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
                                     Expression.setup_from_expression(stream_conditions.rate.value)
@@ -273,7 +314,7 @@ class ConsumerSystem(BaseConsumer):
                         if stream_conditions.rate is not None
                         else None,
                         pressure=TimeSeriesFloat(
-                            timesteps=expression_evaluator.get_time_vector(),
+                            periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
                                     expression=Expression.setup_from_expression(stream_conditions.pressure.value)
@@ -284,7 +325,7 @@ class ConsumerSystem(BaseConsumer):
                         if stream_conditions.pressure is not None
                         else None,
                         fluid_density=TimeSeriesFloat(
-                            timesteps=expression_evaluator.get_time_vector(),
+                            periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
                                     expression=Expression.setup_from_expression(stream_conditions.fluid_density.value)
@@ -302,8 +343,8 @@ class ConsumerSystem(BaseConsumer):
 
 class GeneratorSet(BaseEquipment):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
-    fuel: Dict[datetime, FuelType]
-    generator_set_model: Dict[datetime, GeneratorSetSampled]
+    fuel: Dict[Period, FuelType]
+    generator_set_model: Dict[Period, GeneratorSetSampled]
     consumers: List[
         Annotated[
             Union[ElectricityConsumer, ConsumerSystem],
@@ -330,6 +371,23 @@ class GeneratorSet(BaseEquipment):
             raise ValueError(f"CATEGORY is mandatory and must be set for '{info.data.get('name', cls.__name__)}'")
 
         return user_defined_category
+
+    @field_validator("generator_set_model", mode="before")
+    @classmethod
+    def check_generator_set_model(cls, generator_set_model, info: ValidationInfo):
+        if isinstance(generator_set_model, dict) and len(generator_set_model.values()) > 0:
+            generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)
+        return generator_set_model
+
+    @field_validator("fuel", mode="before")
+    @classmethod
+    def check_fuel(cls, fuel, info: ValidationInfo):
+        """
+        Make sure that temporal models are converted to Period objects if they are strings
+        """
+        if isinstance(fuel, dict) and len(fuel.values()) > 0:
+            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
+        return fuel
 
     @model_validator(mode="after")
     def check_power_from_shore(self):
@@ -359,7 +417,7 @@ class GeneratorSet(BaseEquipment):
 class Installation(BaseComponent):
     component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = Field(default=None, validate_default=True)
-    hydrocarbon_export: Dict[datetime, Expression]
+    hydrocarbon_export: Dict[Period, Expression]
     fuel_consumers: List[
         Annotated[
             Union[GeneratorSet, FuelConsumer, ConsumerSystem],
@@ -494,3 +552,16 @@ ComponentDTO = Union[
     CompressorComponent,
     PumpComponent,
 ]
+
+
+def _convert_keys_in_dictionary_from_str_to_periods(data: Dict[Union[str, Period], Any]) -> Dict[Period, Any]:
+    if all(isinstance(key, str) for key in data.keys()):
+        return {
+            Period(
+                start=datetime.strptime(period.split(";")[0], "%Y-%m-%d %H:%M:%S"),
+                end=datetime.strptime(period.split(";")[1], "%Y-%m-%d %H:%M:%S"),
+            ): value
+            for period, value in data.items()
+        }
+    else:
+        return data

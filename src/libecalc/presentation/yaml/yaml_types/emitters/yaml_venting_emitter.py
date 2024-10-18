@@ -135,7 +135,7 @@ class YamlDirectTypeEmitter(YamlBase):
             emission_rate = unit.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                timesteps=expression_evaluator.get_time_vector(),
+                periods=expression_evaluator.get_periods(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -228,7 +228,7 @@ class YamlOilTypeEmitter(YamlBase):
             emission_rate = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_rate)
 
             emissions[emission.name] = TimeSeriesStreamDayRate(
-                timesteps=expression_evaluator.get_time_vector(),
+                periods=expression_evaluator.get_periods(),
                 values=emission_rate,
                 unit=Unit.TONS_PER_DAY,
             )
@@ -251,7 +251,7 @@ class YamlOilTypeEmitter(YamlBase):
         oil_rates = unit.to(Unit.STANDARD_CUBIC_METER_PER_DAY)(oil_rates)
 
         return TimeSeriesStreamDayRate(
-            timesteps=expression_evaluator.get_time_vector(),
+            periods=expression_evaluator.get_periods(),
             values=oil_rates,
             unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
         )

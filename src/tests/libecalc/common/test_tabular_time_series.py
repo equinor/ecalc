@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.tabular_time_series import TabularTimeSeriesUtils
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesFloat,
@@ -27,43 +28,51 @@ class MergeableObject(BaseModel):
 
 class TestMerge:
     def test_valid_merge(self):
-        first_timesteps = [datetime(2020, 1, 1), datetime(2022, 1, 1)]
+        first_periods = Periods.create_periods(
+            times=[
+                datetime(2020, 1, 1),
+                datetime(2021, 1, 1),
+                datetime(2022, 1, 1),
+            ],
+            include_after=False,
+            include_before=False,
+        )
         first = MergeableObject(
             string_test="1",
             int_test=15,
             float_test=1.0,
             list_of_float_test=[11, 12, 13, 14, 15],
             time_series_rate=TimeSeriesStreamDayRate(
-                timesteps=first_timesteps,
+                periods=first_periods,
                 values=[11, 12],
                 unit=Unit.TONS,
             ),
             time_series_float=TimeSeriesFloat(
-                timesteps=first_timesteps,
+                periods=first_periods,
                 values=[11, 12],
                 unit=Unit.TONS,
             ),
             time_series_float_list_test=[
                 TimeSeriesFloat(
-                    timesteps=first_timesteps,
+                    periods=first_periods,
                     values=[111, 112],
                     unit=Unit.TONS,
                 ),
                 TimeSeriesFloat(
-                    timesteps=first_timesteps,
-                    values=[-121, -122],
+                    periods=first_periods,
+                    values=[-111, -112],
                     unit=Unit.TONS,
                 ),
             ],
             time_series_rate_list_test=[
                 TimeSeriesStreamDayRate(
-                    timesteps=first_timesteps,
+                    periods=first_periods,
                     values=[111, 112],
                     unit=Unit.TONS,
                 ),
                 TimeSeriesStreamDayRate(
-                    timesteps=first_timesteps,
-                    values=[-121, -122],
+                    periods=first_periods,
+                    values=[-111, -112],
                     unit=Unit.TONS,
                 ),
             ],
@@ -72,12 +81,12 @@ class TestMerge:
                     id="inlet",
                     name="inlet",
                     rate=TimeSeriesStreamDayRate(
-                        timesteps=first_timesteps,
+                        periods=first_periods,
                         values=[-111, -112],
                         unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
-                        timesteps=first_timesteps,
+                        periods=first_periods,
                         values=[-111, -112],
                         unit=Unit.BARA,
                     ),
@@ -86,56 +95,64 @@ class TestMerge:
                     id="outlet",
                     name="outlet",
                     rate=TimeSeriesStreamDayRate(
-                        timesteps=first_timesteps,
-                        values=[-121, -122],
+                        periods=first_periods,
+                        values=[-111, -112],
                         unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
-                        timesteps=first_timesteps,
-                        values=[-121, -122],
+                        periods=first_periods,
+                        values=[-111, -112],
                         unit=Unit.BARA,
                     ),
                 ),
             ],
         )
 
-        second_timesteps = [datetime(2021, 1, 1), datetime(2023, 1, 1)]
+        second_periods = Periods.create_periods(
+            times=[
+                datetime(2022, 1, 1),
+                datetime(2023, 1, 1),
+                datetime(2024, 1, 1),
+            ],
+            include_after=False,
+            include_before=False,
+        )
         second = MergeableObject(
             string_test="2",
             int_test=25,
             float_test=2.0,
             list_of_float_test=[21, 22, 23, 24, 25],
             time_series_float=TimeSeriesFloat(
-                timesteps=second_timesteps,
+                periods=second_periods,
                 values=[21, 22],
                 unit=Unit.TONS,
             ),
             time_series_rate=TimeSeriesStreamDayRate(
-                timesteps=second_timesteps,
+                periods=second_periods,
                 values=[21, 22],
                 unit=Unit.TONS,
             ),
             time_series_float_list_test=[
                 TimeSeriesFloat(
-                    timesteps=second_timesteps,
+                    periods=second_periods,
                     values=[211, 212],
                     unit=Unit.TONS,
                 ),
                 TimeSeriesFloat(
-                    timesteps=second_timesteps,
-                    values=[-221, -222],
+                    periods=second_periods,
+                    values=[-211, -212],
                     unit=Unit.TONS,
                 ),
             ],
             time_series_rate_list_test=[
                 TimeSeriesStreamDayRate(
-                    timesteps=second_timesteps,
+                    periods=second_periods,
                     values=[211, 212],
                     unit=Unit.TONS,
                 ),
                 TimeSeriesStreamDayRate(
-                    timesteps=second_timesteps,
-                    values=[-221, -222],
+                    periods=second_periods,
+                    values=[-211, -212],
                     unit=Unit.TONS,
                 ),
             ],
@@ -144,12 +161,12 @@ class TestMerge:
                     id="inlet",
                     name="inlet",
                     rate=TimeSeriesStreamDayRate(
-                        timesteps=second_timesteps,
+                        periods=second_periods,
                         values=[-211, -212],
                         unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
-                        timesteps=second_timesteps,
+                        periods=second_periods,
                         values=[-211, -212],
                         unit=Unit.BARA,
                     ),
@@ -158,13 +175,13 @@ class TestMerge:
                     id="outlet",
                     name="outlet",
                     rate=TimeSeriesStreamDayRate(
-                        timesteps=second_timesteps,
-                        values=[-221, -222],
+                        periods=second_periods,
+                        values=[-211, -212],
                         unit=Unit.TONS,
                     ),
                     pressure=TimeSeriesFloat(
-                        timesteps=second_timesteps,
-                        values=[-221, -222],
+                        periods=second_periods,
+                        values=[-211, -212],
                         unit=Unit.BARA,
                     ),
                 ),
@@ -173,7 +190,17 @@ class TestMerge:
 
         merged = TabularTimeSeriesUtils.merge(first, second)
 
-        expected_timesteps = [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1), datetime(2023, 1, 1)]
+        expected_periods = Periods.create_periods(
+            times=[
+                datetime(2020, 1, 1),
+                datetime(2021, 1, 1),
+                datetime(2022, 1, 1),
+                datetime(2023, 1, 1),
+                datetime(2024, 1, 1),
+            ],
+            include_after=False,
+            include_before=False,
+        )
 
         assert (
             merged.model_dump()
@@ -183,36 +210,36 @@ class TestMerge:
                 float_test=1.0,
                 list_of_float_test=[11, 12, 13, 14, 15],
                 time_series_float=TimeSeriesFloat(
-                    timesteps=expected_timesteps,
-                    values=[11, 21, 12, 22],
+                    periods=expected_periods,
+                    values=[11, 12, 21, 22],
                     unit=Unit.TONS,
                 ),
                 time_series_rate=TimeSeriesStreamDayRate(
-                    timesteps=expected_timesteps,
-                    values=[11, 21, 12, 22],
+                    periods=expected_periods,
+                    values=[11, 12, 21, 22],
                     unit=Unit.TONS,
                 ),
                 time_series_float_list_test=[
                     TimeSeriesFloat(
-                        timesteps=expected_timesteps,
-                        values=[111, 211, 112, 212],
+                        periods=expected_periods,
+                        values=[111, 112, 211, 212],
                         unit=Unit.TONS,
                     ),
                     TimeSeriesFloat(
-                        timesteps=expected_timesteps,
-                        values=[-121, -221, -122, -222],
+                        periods=expected_periods,
+                        values=[-111, -112, -211, -212],
                         unit=Unit.TONS,
                     ),
                 ],
                 time_series_rate_list_test=[
                     TimeSeriesStreamDayRate(
-                        timesteps=expected_timesteps,
-                        values=[111, 211, 112, 212],
+                        periods=expected_periods,
+                        values=[111, 112, 211, 212],
                         unit=Unit.TONS,
                     ),
                     TimeSeriesStreamDayRate(
-                        timesteps=expected_timesteps,
-                        values=[-121, -221, -122, -222],
+                        periods=expected_periods,
+                        values=[-111, -112, -211, -212],
                         unit=Unit.TONS,
                     ),
                 ],
@@ -221,13 +248,13 @@ class TestMerge:
                         id="inlet",
                         name="inlet",
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=expected_timesteps,
-                            values=[-111, -211, -112, -212],
+                            periods=expected_periods,
+                            values=[-111, -112, -211, -212],
                             unit=Unit.TONS,
                         ),
                         pressure=TimeSeriesFloat(
-                            timesteps=expected_timesteps,
-                            values=[-111, -211, -112, -212],
+                            periods=expected_periods,
+                            values=[-111, -112, -211, -212],
                             unit=Unit.BARA,
                         ),
                     ),
@@ -235,13 +262,13 @@ class TestMerge:
                         id="outlet",
                         name="outlet",
                         rate=TimeSeriesStreamDayRate(
-                            timesteps=expected_timesteps,
-                            values=[-121, -221, -122, -222],
+                            periods=expected_periods,
+                            values=[-111, -112, -211, -212],
                             unit=Unit.TONS,
                         ),
                         pressure=TimeSeriesFloat(
-                            timesteps=expected_timesteps,
-                            values=[-121, -221, -122, -222],
+                            periods=expected_periods,
+                            values=[-111, -112, -211, -212],
                             unit=Unit.BARA,
                         ),
                     ),
@@ -255,7 +282,9 @@ class TestMerge:
 
         first = First(
             something=TimeSeriesFloat(
-                timesteps=[datetime(2022, 1, 1)],
+                periods=Periods(
+                    [Period(datetime(2022, 1, 1))],
+                ),
                 values=[1],
                 unit=Unit.NONE,
             )

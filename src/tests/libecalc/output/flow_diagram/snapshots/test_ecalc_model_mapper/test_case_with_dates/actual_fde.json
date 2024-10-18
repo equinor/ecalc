@@ -11,7 +11,7 @@
             "to_node": "emission-output"
         }
     ],
-    "end_date": "2020-12-31 00:00:00",
+    "end_date": "2021-01-01 00:00:00",
     "flows": [
         {
             "id": "fuel-flow",
@@ -101,7 +101,7 @@
                                 },
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "Installation1-consumer-Compressor system 1",
                                     "nodes": [
@@ -164,7 +164,7 @@
                             "to_node": "emission-output"
                         }
                     ],
-                    "end_date": "2020-12-31 00:00:00",
+                    "end_date": "2021-01-01 00:00:00",
                     "flows": [
                         {
                             "id": "fuel-flow",
@@ -217,7 +217,7 @@
                                 },
                                 {
                                     "edges": [],
-                                    "end_date": "2020-12-31 00:00:00",
+                                    "end_date": "2021-01-01 00:00:00",
                                     "flows": [],
                                     "id": "Installation1-consumer-Compressor system 1",
                                     "nodes": [

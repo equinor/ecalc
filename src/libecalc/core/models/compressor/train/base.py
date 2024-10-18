@@ -111,8 +111,8 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
             Calculate power for valid points (positive pressures, discharge pressure larger than suction pressure)
 
         Note:
-            Rate when containing multiple streams can be indexed rate[stream, time_step].
-            If two stream and 3 timesteps, then the array will be created like: np.array([[t1, t2, t3], [t1, t2, t3]]).
+            Rate when containing multiple streams can be indexed rate[stream, period].
+            If two stream and 3 periods, then the array will be created like: np.array([[t1, t2, t3], [t1, t2, t3]]).
 
             When pre-processing the data we need to compare rates per timestep by using e.g. np.min(rate, axis=0)
 

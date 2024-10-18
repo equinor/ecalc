@@ -4,6 +4,7 @@ import numpy as np
 
 import libecalc.dto.fuel_type
 from libecalc import dto
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import VariablesMap
@@ -14,7 +15,7 @@ from libecalc.expression import Expression
 def test_fuel_model():
     fuel_model = FuelModel(
         {
-            datetime(2000, 1, 1): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(
@@ -25,9 +26,10 @@ def test_fuel_model():
             )
         }
     )
-    timesteps = [datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1)]
+    timesteps = [datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1), datetime(2003, 1, 1)]
+    variables_map = VariablesMap(time_vector=timesteps)
     emissions = fuel_model.evaluate_emissions(
-        expression_evaluator=VariablesMap(time_vector=timesteps),
+        expression_evaluator=variables_map,
         fuel_rate=np.asarray([1, 2, 3]),
     )
 
@@ -35,7 +37,7 @@ def test_fuel_model():
 
     assert emission_result.name == "co2"
     assert emission_result.rate == TimeSeriesRate(
-        timesteps=timesteps,
+        periods=variables_map.get_periods(),
         values=[0.001, 0.002, 0.003],
         unit=Unit.TONS_PER_DAY,
         rate_type=RateType.CALENDAR_DAY,
@@ -47,7 +49,7 @@ def test_temporal_fuel_model():
     """Assure that emissions are concatenated correctly when the emission name changes in a temporal model."""
     fuel_model = FuelModel(
         {
-            datetime(2000, 1, 1): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2000, 1, 1), datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(
@@ -56,7 +58,7 @@ def test_temporal_fuel_model():
                     ),
                 ],
             ),
-            datetime(2001, 1, 1): libecalc.dto.fuel_type.FuelType(
+            Period(datetime(2001, 1, 1)): libecalc.dto.fuel_type.FuelType(
                 name="fuel_gas",
                 emissions=[
                     dto.Emission(
@@ -70,7 +72,12 @@ def test_temporal_fuel_model():
 
     emissions = fuel_model.evaluate_emissions(
         expression_evaluator=VariablesMap(
-            time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1)]
+            time_vector=[
+                datetime(2000, 1, 1),
+                datetime(2001, 1, 1),
+                datetime(2002, 1, 1),
+                datetime(2003, 1, 1),
+            ]
         ),
         fuel_rate=np.asarray([1, 2, 3]),
     )
