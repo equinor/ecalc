@@ -3,9 +3,9 @@ from typing import List, Union
 
 from libecalc.common.units import Unit
 from libecalc.domain.tabular.tabular import ColumnIndex
+from libecalc.presentation.exporter.formatters.formattable import Formattable
 from libecalc.presentation.exporter.formatters.formatter import (
     CSVFormatter,
-    Formattable,
 )
 
 
