@@ -5,18 +5,12 @@ from typing import List
 from libecalc.presentation.exporter.aggregators import Aggregator
 from libecalc.presentation.exporter.domain.exportable import ExportableSet
 from libecalc.presentation.exporter.dto.dtos import FilteredResult
-from libecalc.presentation.exporter.generators import Generator
 
 
 @dataclass
 class Filter:
     """A filter is a collection of all the settings required in order to filter
     the complete result object.
-    """
-
-    generators: List[Generator]
-    """
-    The index all the data relate to is a bit special...
     """
 
     aggregator: Aggregator
@@ -30,9 +24,6 @@ class Filter:
         energy_calculator_result: ExportableSet,
         time_vector: List[datetime],
     ) -> FilteredResult:
-        data_series_collection = [generator.generate(time_vector) for generator in self.generators]
         query_result_collection = self.aggregator.aggregate(energy_calculator_result)
 
-        return FilteredResult(
-            data_series=data_series_collection, query_results=query_result_collection, time_vector=time_vector
-        )
+        return FilteredResult(query_results=query_result_collection, time_vector=time_vector)
