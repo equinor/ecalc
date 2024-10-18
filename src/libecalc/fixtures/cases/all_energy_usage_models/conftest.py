@@ -138,7 +138,7 @@ def simplified_variable_speed_compressor_train_with_gerg_fluid2(predefined_varia
                 compressor_chart=GenericChartFromDesignPoint(
                     polytropic_efficiency_fraction=0.75,
                     design_rate_actual_m3_per_hour=5000,
-                    design_polytropic_head_J_per_kg=1000,
+                    design_polytropic_head_J_per_kg=100000,
                 ),
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
@@ -272,7 +272,7 @@ def simplified_variable_speed_compressor_train_known_stages(
                 compressor_chart=GenericChartFromDesignPoint(
                     polytropic_efficiency_fraction=0.75,
                     design_rate_actual_m3_per_hour=5000,
-                    design_polytropic_head_J_per_kg=1000,
+                    design_polytropic_head_J_per_kg=100000,
                 ),
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
