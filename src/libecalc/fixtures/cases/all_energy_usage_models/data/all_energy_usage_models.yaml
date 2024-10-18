@@ -125,9 +125,9 @@ MODELS:
     COMPRESSOR_TRAIN:
       STAGES: # stages for train with predefined number of compressors
         - INLET_TEMPERATURE: 30
-          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+          COMPRESSOR_CHART: generic_chart
         - INLET_TEMPERATURE: 30
-          COMPRESSOR_CHART: predefined_compressor_chart
+          COMPRESSOR_CHART: generic_chart_from_design_point
   - NAME: generic_chart_from_design_point
     TYPE: COMPRESSOR_CHART
     CHART_TYPE: GENERIC_FROM_DESIGN_POINT
@@ -356,9 +356,9 @@ MODELS:
     COMPRESSOR_TRAIN:
       STAGES: # stages for train with predefined number of compressors
         - INLET_TEMPERATURE: 30
-          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+          COMPRESSOR_CHART: generic_chart
         - INLET_TEMPERATURE: 30
-          COMPRESSOR_CHART: predefined_compressor_chart
+          COMPRESSOR_CHART: generic_chart_from_design_point
     POWER_ADJUSTMENT_CONSTANT: 1
 
 FUEL_TYPES:

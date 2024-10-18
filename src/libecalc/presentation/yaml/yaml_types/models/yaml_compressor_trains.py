@@ -3,7 +3,6 @@ from typing import List, Literal, Optional, Union
 from pydantic import Field, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
-from libecalc.common.chart_type import ChartType
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
@@ -17,6 +16,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
     YamlUnknownCompressorStages,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
+    YamlChartType,
     YamlModelType,
     YamlPressureControl,
 )
@@ -152,7 +152,10 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
     def check_compressor_chart(self, info: ValidationInfo):
         if info.context is not None:
             train = info.context["model_types"][self.name].compressor_train
-            allowed_charts_simplified_trains = [ChartType.GENERIC_FROM_INPUT, ChartType.GENERIC_FROM_DESIGN_POINT]
+            allowed_charts_simplified_trains = [
+                YamlChartType.GENERIC_FROM_INPUT,
+                YamlChartType.GENERIC_FROM_DESIGN_POINT,
+            ]
             # If known compressor stages
             if hasattr(train, EcalcYamlKeywords.models_type_compressor_train_stages.lower()):
                 for stage in train.stages:
