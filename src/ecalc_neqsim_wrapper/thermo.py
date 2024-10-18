@@ -419,7 +419,7 @@ def mix_neqsim_streams(
             else:
                 composition_dict[composition_name] = composition_moles
 
-    ecalc_fluid_composition = FluidComposition.parse_obj(
+    ecalc_fluid_composition = FluidComposition.model_validate(
         {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()}
     )
 
