@@ -10,13 +10,7 @@ from pydantic_core import CoreSchema, core_schema
 
 from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
 from libecalc.common.logger import logger
-from libecalc.expression.expression_evaluator import (
-    Operators,
-    Token,
-    TokenTag,
-    eval_tokens,
-    lexer,
-)
+from libecalc.expression.expression_evaluator import Operators, Token, TokenTag, eval_tokens, lexer
 
 LEFT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.left_parenthesis.value)
 RIGHT_PARENTHESIS_TOKEN = Token(tag=TokenTag.operator, value=Operators.right_parenthesis.value)
