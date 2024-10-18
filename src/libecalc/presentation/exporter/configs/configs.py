@@ -1,5 +1,4 @@
 import abc
-from typing import List
 
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
@@ -13,7 +12,6 @@ from libecalc.presentation.exporter.appliers import (
     InvertValuesModifier,
 )
 from libecalc.presentation.exporter.filters import Filter
-from libecalc.presentation.exporter.generators import Generator, TimeIndexGenerator
 from libecalc.presentation.exporter.queries import (
     ElectricityGeneratedQuery,
     EmissionQuery,
@@ -30,15 +28,6 @@ LTP_PRECISION = 6
 
 
 class ResultConfig(abc.ABC):
-    @staticmethod
-    @abc.abstractmethod
-    def generators() -> List[Generator]:
-        """Currently we consider every config to relate to _one_ time vector, representing
-        the resolution/frequency of all data provided by all appliers for a given aggregation...
-        :return:
-        """
-        pass
-
     @staticmethod
     @abc.abstractmethod
     def aggregator(frequency: Frequency) -> Aggregator:
@@ -59,24 +48,8 @@ class LTPConfig(ResultConfig):
     @staticmethod
     def filter(frequency: Frequency) -> Filter:
         return Filter(
-            generators=LTPConfig.generators(),
             aggregator=LTPConfig.aggregator(frequency=frequency),
         )
-
-    @staticmethod
-    def generators() -> List[Generator]:
-        return [
-            TimeIndexGenerator(
-                name="forecastYear",
-                title="Years",
-                time_format="%Y",
-            ),
-            TimeIndexGenerator(
-                name="forecastMonth",
-                title="Months",
-                time_format="%m",
-            ),
-        ]
 
     @staticmethod
     def aggregator(frequency: Frequency) -> Aggregator:
@@ -683,24 +656,8 @@ class STPConfig(ResultConfig):
     @staticmethod
     def filter(frequency: Frequency) -> Filter:
         return Filter(
-            generators=STPConfig.generators(),
             aggregator=STPConfig.aggregator(frequency=frequency),
         )
-
-    @staticmethod
-    def generators() -> List[Generator]:
-        return [
-            TimeIndexGenerator(
-                name="forecastYear",
-                title="Years",
-                time_format="%Y",
-            ),
-            TimeIndexGenerator(
-                name="forecastMonth",
-                title="Months",
-                time_format="%m",
-            ),
-        ]
 
     @staticmethod
     def aggregator(frequency: Frequency) -> Aggregator:
