@@ -558,7 +558,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         return v
 
     def resample(
-        self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
+        self, freq: Union[Frequency, Periods], include_start_date: bool = True, include_end_date: bool = True
     ) -> TimeSeriesVolumesCumulative:
         """
         Resample cumulative production volumes according to given frequency. Since the production rates between
@@ -579,8 +579,12 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
             return self.model_copy()
 
         ds = pd.Series(index=self.all_dates(), data=[0] + self.values)  # cumulative volume always zero at start date
-        new_periods = resample_periods(
-            self.periods, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        new_periods = (
+            resample_periods(
+                self.periods, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+            )
+            if isinstance(freq, Frequency)
+            else freq
         )
         new_dates = new_periods.all_dates
         if ds.index[-1] not in new_dates:
@@ -651,39 +655,8 @@ class TimeSeriesVolumes(TimeSeries[float]):
             return [i if i is not None else math.nan for i in v]
         return v
 
-    def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True):
-        msg = (
-            f"{self.__class__.__name__} does not have an resample method."
-            f" You should not land here. Please contact the eCalc Support."
-        )
-        logger.warning(msg)
-        raise NotImplementedError(msg)
-
-    def reindex(self, periods: Periods) -> Self:
-        """
-        Note: we do not allow up-sampling, hence the ValueError if a new value is discovered within the existing
-            time-vector.
-        """
-        new_time_steps = [periods.periods[0].start] + [period.end for period in periods.periods]
-        original_time_steps = self.all_dates()
-        for time_step in new_time_steps:
-            if (original_time_steps[0] <= time_step <= original_time_steps[-1]) and time_step not in self.all_dates():
-                raise ValueError(f"Could not reindex volumes. Missing date {time_step} in original periods.")
-
-        cumulative_volumes = np.append([0], Rates.compute_cumulative(self.values))
-
-        re_indexed_cumulative_values = pd.Series(index=self.all_dates(), data=cumulative_volumes).reindex(
-            new_time_steps
-        )
-
-        # Diffing cumulative volume in order to go back to volumes per period.
-        re_indexed_volumes = re_indexed_cumulative_values.diff().shift(-1)[:-1]
-
-        return self.__class__(
-            periods=periods,
-            values=re_indexed_volumes.tolist(),
-            unit=self.unit,
-        )
+    def resample(self, freq: Union[Frequency, Periods], include_start_date: bool = True, include_end_date: bool = True):
+        return self.cumulative().resample(freq, include_start_date, include_end_date).to_volumes()
 
     def cumulative(self) -> TimeSeriesVolumesCumulative:
         """

@@ -85,14 +85,13 @@ class FuelQuery(Query):
                 **sorted_result,
             }  # Fill missing periods with zeroes, also keep sort?
             period_keys = list(sorted_result.keys())
-            reindexed_result = (
+            resampled_results = (
                 TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
-
             return {
-                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
             }
         return None
 
@@ -129,15 +128,13 @@ class StorageVolumeQuery(Query):
             sorted_result = dict(dict(sorted(zip(aggregated_result.keys(), aggregated_result.values()))).items())
             sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
             period_keys = list(sorted_result.keys())
-
-            reindexed_result = (
+            resampled_results = (
                 TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
-
             return {
-                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                resampled_results.periods.periods[i]: resampled_results.values[i] for i in range(len(resampled_results))
             }
         return None
 
@@ -184,16 +181,16 @@ class EmissionQuery(Query):
             sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
             period_keys = list(sorted_result.keys())
 
-            reindexed_result = (
+            resampled_result = (
                 TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
+                .resample(freq=frequency)
                 .to_unit(Unit.KILO)
                 .to_unit(unit)
-                .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
                 .fill_nan(0)
             )
 
             return {
-                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
             }
         return None
 
@@ -229,14 +226,14 @@ class ElectricityGeneratedQuery(Query):
             sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
             period_keys = list(sorted_result.keys())
 
-            reindexed_result = (
+            resampled_result = (
                 TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
 
             return {
-                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
             }
         return None
 
@@ -322,14 +319,14 @@ class PowerConsumptionQuery(Query):
             sorted_result = {**dict.fromkeys(installation_graph.get_periods(), 0.0), **sorted_result}
             period_keys = list(sorted_result.keys())
 
-            reindexed_result = (
+            resampled_result = (
                 TimeSeriesVolumes(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
-                .reindex(resample_periods(periods=installation_graph.get_periods(), frequency=frequency))
+                .resample(freq=frequency)
                 .fill_nan(0)
             )
 
             return {
-                reindexed_result.periods.periods[i]: reindexed_result.values[i] for i in range(len(reindexed_result))
+                resampled_result.periods.periods[i]: resampled_result.values[i] for i in range(len(resampled_result))
             }
 
         return None
