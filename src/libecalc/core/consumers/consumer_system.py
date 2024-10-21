@@ -1,7 +1,7 @@
 import itertools
 import operator
 from functools import reduce
-from typing import Dict, List, Optional, Protocol, Tuple, TypeVar, Union
+from typing import Dict, Generic, List, Optional, Protocol, Tuple, TypeVar
 
 import networkx as nx
 
@@ -9,12 +9,11 @@ from libecalc.common.priority_optimizer import EvaluatorResult
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
 )
-from libecalc.core.consumers.compressor import Compressor
-from libecalc.core.consumers.pump import Pump
+from libecalc.core.consumers.base import BaseConsumerWithoutOperationalSettings
 from libecalc.core.result import ComponentResult, ConsumerSystemResult, EcalcModelResult
 from libecalc.domain.stream_conditions import Rate, StreamConditions
 
-Consumer = TypeVar("Consumer", bound=Union[Compressor, Pump])
+Consumer = TypeVar("Consumer", bound=BaseConsumerWithoutOperationalSettings)
 
 
 class Crossover(Protocol):
@@ -27,7 +26,7 @@ class SystemComponentConditions(Protocol):
     crossover: List[Crossover]
 
 
-class ConsumerSystem:
+class ConsumerSystem(Generic[Consumer]):
     """
     A system of possibly interdependent consumers and or other consumer systems.
 
@@ -37,9 +36,7 @@ class ConsumerSystem:
     for a period of time -> Turn of compressor #2, and vice versa.
     """
 
-    def __init__(
-        self, id: str, consumers: List[Union[Compressor, Pump]], component_conditions: SystemComponentConditions
-    ):
+    def __init__(self, id: str, consumers: List[Consumer], component_conditions: SystemComponentConditions):
         self.id = id
         self._consumers = consumers
         self._component_conditions = component_conditions
@@ -76,8 +73,8 @@ class ConsumerSystem:
             if has_crossover_out:
                 # TODO: Mix inlet streams and check pressure? Is consumer a Compressor or Pump or should it actually be trains also? Currently it is trains also.
                 max_rate = consumer.get_max_rate(
-                    inlet_stream=inlet_streams[0],
-                    target_pressure=consumer_stream_conditions[-1].pressure,
+                    inlet_stream=inlet_streams[0],  # First inlet stream
+                    target_pressure=consumer_stream_conditions[-1].pressure,  # Outlet stream pressure
                 )
                 crossover_stream, inlet_streams = ConsumerSystem._get_crossover_stream(
                     max_rate,
