@@ -12,6 +12,7 @@ from libecalc.dto.types import (
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import YamlEnergyUsageModelDirect
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
@@ -36,6 +37,15 @@ def create_direct_energy_usage_model() -> YamlEnergyUsageModelDirect:
     return YamlEnergyUsageModelDirect(
         type="DIRECT",
         load=1,
+    )
+
+
+def create_valid_fuel_consumer() -> YamlFuelConsumer:
+    return YamlFuelConsumer(
+        name="dummy",
+        category="BASE-LOAD",
+        energy_usage_model=create_direct_energy_usage_model(),
+        fuel="fuel",
     )
 
 
@@ -185,12 +195,14 @@ class TestCategories:
 
         assert str(get_category_error(exc_info.value)) == snapshot("Input should be 'FIXED' or 'MOBILE'")
 
+        fuel_consumer = create_valid_fuel_consumer()
+
         # Check that correct category 1 is ok
         assert (
             YamlInstallation(
                 name="test",
                 category=InstallationUserDefinedCategoryType.MOBILE,
-                fuel_consumers=[],
+                fuel_consumers=[fuel_consumer],
             ).category
             == InstallationUserDefinedCategoryType.MOBILE
         )
@@ -200,7 +212,7 @@ class TestCategories:
             YamlInstallation(
                 name="test",
                 category=InstallationUserDefinedCategoryType.FIXED,
-                fuel_consumers=[],
+                fuel_consumers=[fuel_consumer],
             ).category
             == InstallationUserDefinedCategoryType.FIXED
         )
@@ -209,7 +221,7 @@ class TestCategories:
         assert (
             YamlInstallation(
                 name="test",
-                fuel_consumers=[],
+                fuel_consumers=[fuel_consumer],
             ).category
             is None
         )

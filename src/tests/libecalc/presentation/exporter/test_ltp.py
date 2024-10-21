@@ -50,7 +50,7 @@ from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
 )
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
-from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
@@ -407,7 +407,7 @@ def test_no_emitters_or_fuelconsumers():
     regularity = 0.2
     emission_rate = 10
 
-    with pytest.raises(DtoValidationError) as ee:
+    with pytest.raises(ModelValidationException) as ee:
         venting_emitter_yaml_factory(
             emission_rates=[emission_rate],
             regularity=regularity,
@@ -420,7 +420,7 @@ def test_no_emitters_or_fuelconsumers():
             path=Path(venting_emitters.__path__[0]),
         )
 
-    error_message = ee.value.extended_message
+    error_message = str(ee.value)
     assert "minimal_installation" in error_message
     assert f"It is required to specify at least one of the keywords {EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model."
 
