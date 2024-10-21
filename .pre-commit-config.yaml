@@ -20,7 +20,6 @@ repos:
     hooks:
       - id: mypy
         files: ^(src/)
-        exclude: tests|conftest.py
         args: ['--config-file=./pyproject.toml']
         additional_dependencies:
           - types-PyYAML
