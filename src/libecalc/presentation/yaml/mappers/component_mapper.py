@@ -7,22 +7,20 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
-from libecalc.common.errors.exceptions import InvalidReferenceException
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.dto import ConsumerFunction, FuelType
 from libecalc.dto.components import Asset, Consumer, ElectricityConsumer, FuelConsumer, GeneratorSet, Installation
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import (
     ConsumerFunctionMapper,
 )
-from libecalc.presentation.yaml.mappers.utils import resolve_reference
 from libecalc.presentation.yaml.validation_errors import (
     DataValidationError,
     DtoValidationError,
 )
-from libecalc.presentation.yaml.yaml_entities import References
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
@@ -65,7 +63,7 @@ def _get_component_type(energy_usage_models: Dict[datetime, ConsumerFunction]) -
 def _resolve_fuel(
     consumer_fuel: Union[Optional[str], Dict],
     default_fuel: Optional[str],
-    references: References,
+    references: ReferenceService,
     target_period: Period,
 ) -> Optional[Dict[datetime, FuelType]]:
     fuel = consumer_fuel or default_fuel  # Use parent fuel only if not specified on this consumer
@@ -77,10 +75,7 @@ def _resolve_fuel(
 
     temporal_fuel_model = {}
     for start_time, fuel in time_adjusted_fuel.items():
-        resolved_fuel = resolve_reference(
-            fuel,
-            references=references.fuel_types,
-        )
+        resolved_fuel = references.get_fuel_reference(fuel)
 
         temporal_fuel_model[start_time] = resolved_fuel
 
@@ -88,7 +83,7 @@ def _resolve_fuel(
 
 
 class ConsumerMapper:
-    def __init__(self, references: References, target_period: Period):
+    def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
         self.__energy_usage_model_mapper = ConsumerFunctionMapper(references=references, target_period=target_period)
@@ -116,7 +111,7 @@ class ConsumerMapper:
             except InvalidReferenceException as e:
                 raise DataValidationError(
                     data=data.model_dump(),
-                    message=f"Fuel '{consumer_fuel or default_fuel}' does not exist",
+                    message=str(e),
                     error_key="fuel",
                 ) from e
 
@@ -132,13 +127,8 @@ class ConsumerMapper:
             except ValidationError as e:
                 raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
-        energy_usage_model = resolve_reference(
-            data.energy_usage_model,
-            references=self.__references.models,
-        )  # TODO: This is never a reference? So resolve_reference always return the same value, remove
-
         try:
-            energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(energy_usage_model)
+            energy_usage_model = self.__energy_usage_model_mapper.from_yaml_to_dto(data.energy_usage_model)
         except ValidationError as e:
             raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
 
@@ -174,7 +164,7 @@ class ConsumerMapper:
 
 
 class GeneratorSetMapper:
-    def __init__(self, references: References, target_period: Period):
+    def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
         self.__consumer_mapper = ConsumerMapper(references=references, target_period=target_period)
@@ -197,11 +187,8 @@ class GeneratorSetMapper:
             data.electricity2fuel, target_period=self._target_period
         )
         generator_set_model = {
-            start_time: resolve_reference(
-                model_timestep,
-                references=self.__references.models,
-            )
-            for start_time, model_timestep in generator_set_model_data.items()
+            start_time: self.__references.get_generator_set_model(model_reference)
+            for start_time, model_reference in generator_set_model_data.items()
         }
 
         # When consumers was created directly in the return dto.GeneratorSet - function,
@@ -237,7 +224,7 @@ class GeneratorSetMapper:
 
 
 class InstallationMapper:
-    def __init__(self, references: References, target_period: Period):
+    def __init__(self, references: ReferenceService, target_period: Period):
         self.__references = references
         self._target_period = target_period
         self.__generator_set_mapper = GeneratorSetMapper(references=references, target_period=target_period)
@@ -290,7 +277,7 @@ class InstallationMapper:
 class EcalcModelMapper:
     def __init__(
         self,
-        references: References,
+        references: ReferenceService,
         target_period: Period,
     ):
         self.__references = references

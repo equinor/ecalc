@@ -4,16 +4,18 @@ from typing import Dict, List, Optional
 
 from typing_extensions import Self, deprecated
 
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
+from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
+from libecalc.presentation.yaml.mappers.create_references import create_references
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.parse_input import map_yaml_to_dto
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.validation_errors import DtoValidationError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
@@ -23,6 +25,8 @@ from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
     YamlModelValidationContextNames,
 )
+
+DEFAULT_START_TIME = datetime(1900, 1, 1)
 
 
 class YamlModel:
@@ -52,13 +56,27 @@ class YamlModel:
 
         self._is_validated = False
 
+    def _get_reference_service(self) -> ReferenceService:
+        return create_references(self._configuration, self.resources)
+
     @cached_property
     @deprecated(
         "Avoid using the dto objects directly, we want to remove them. get_graph() might be useful instead, although the nodes will change."
     )
     def dto(self):
         self.validate_for_run()
-        return map_yaml_to_dto(configuration=self._configuration, resources=self.resources)
+        model_mapper = EcalcModelMapper(
+            references=self._get_reference_service(),
+            target_period=self.period,
+        )
+        return model_mapper.from_yaml_to_dto(configuration=self._configuration)
+
+    @property
+    def period(self) -> Period:
+        return Period(
+            start=self.start or DEFAULT_START_TIME,
+            end=self.end or datetime.max,
+        )
 
     @property
     def start(self) -> Optional[datetime]:
@@ -74,8 +92,8 @@ class YamlModel:
     def _get_time_vector(self):
         return get_global_time_vector(
             time_series_time_vector=self._get_time_series_collections().get_time_vector(),
-            start=self.start,
-            end=self.end,
+            start=self._configuration.start,
+            end=self._configuration.end,
             frequency=self._output_frequency,
             additional_dates=self._configuration.dates,
         )
