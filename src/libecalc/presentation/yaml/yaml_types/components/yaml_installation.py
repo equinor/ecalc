@@ -39,7 +39,7 @@ class YamlInstallation(YamlBase):
     )
     category: InstallationUserDefinedCategoryType = CategoryField(None)
     hydrocarbon_export: YamlTemporalModel[YamlExpressionType] = Field(
-        None,
+        0,
         title="HCEXPORT",
         description="Defines the export of hydrocarbons as number of oil equivalents in Sm3.\n\n$ECALC_DOCS_KEYWORDS_URL/HCEXPORT",
         alias="HCEXPORT",
@@ -50,7 +50,7 @@ class YamlInstallation(YamlBase):
         description="Main fuel type for installation." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
     regularity: YamlTemporalModel[YamlExpressionType] = Field(
-        None,
+        1,
         title="REGULARITY",
         description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
     )
