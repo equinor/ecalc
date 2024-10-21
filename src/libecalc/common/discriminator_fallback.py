@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BeforeValidator
+from pydantic import BaseModel, BeforeValidator
 
 
 def DiscriminatorWithFallback(discriminator_alias: str, discriminator_fallback: str) -> BeforeValidator:
@@ -15,6 +15,9 @@ def DiscriminatorWithFallback(discriminator_alias: str, discriminator_fallback: 
     """
 
     def fallback_discriminator(data: Any):
+        if isinstance(data, BaseModel):
+            # Don't add a fallback if the pydantic type is already created
+            return data
         if not isinstance(data, dict):
             raise ValueError("data must be dict")
         if discriminator_alias not in data:
