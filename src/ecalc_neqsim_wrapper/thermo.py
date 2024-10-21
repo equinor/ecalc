@@ -110,7 +110,7 @@ class NeqsimFluid:
             neqsim_fluid_state = NeqsimFluidState(
                 fluid_composition=fluid_composition, fluid_properties=fluid_properties
             )
-            return neqsim_fluid_state.json()
+            return neqsim_fluid_state.model_dump_json()
 
         except Exception as e:
             logger.warning(f"Failed to parse NeqSimState dump for JSON Serialization. Not critical: {e}")
