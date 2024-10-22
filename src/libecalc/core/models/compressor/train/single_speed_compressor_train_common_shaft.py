@@ -354,7 +354,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         an iterative algorithm is used on the forward model which flash the fluid at each stage given the inlet conditions
         and the additional recirculated mass rate.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
+        :param mass_rate_kg_per_hour: Mass rate [kg/hour]
         :param suction_pressure: Suction pressure per time step [bara]
         :param discharge_pressure: Discharge pressure per time step [bara]
         :return: A list of results per compressor stage and a list of failure status per compressor stage
@@ -375,8 +375,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """Evaluate the single speed compressor train total power given mass rate and suction pressure. The discharge
         pressure is a result of the inlet conditions, fluid rate and the resulting process.
 
-        :param mass_rates_kg_per_hour: Mass rate [kg/hour]
-        :param inlet_pressures_train_bara: Inlet pressure per time step [bara]
+        :param mass_rate_kg_per_hour: Mass rate [kg/hour]
+        :param inlet_pressure_train_bara: Inlet pressure per time step [bara]
         :return: A list of results per compressor stage
         """
         if mass_rate_kg_per_hour > 0:
@@ -457,9 +457,9 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         To find the asv_fraction that results in the target discharge pressure, a Newton iteration is used on the
         forward model which flash the fluid at each stage given the inlet conditions and the asv_fraction.
 
-        :param minimum_mass_rates_kg_per_hour: Mass rate which is the minimum gross mass rate for each stage [kg/hour]
-        :param inlet_pressures_train_bara: Suction pressure per time step [bara]
-        :param outlet_pressures_train_bara: Discharge pressure per time step [bara]
+        :param minimum_mass_rate_kg_per_hour: Mass rate which is the minimum gross mass rate for each stage [kg/hour]
+        :param inlet_pressure_train_bara: Suction pressure per time step [bara]
+        :param outlet_pressure_train_bara: Discharge pressure per time step [bara]
         :return: A list of results per compressor stage and a list of failure status per compressor stage
         """
         # Iterate on rate until pressures are met
@@ -792,6 +792,16 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 mass_rate_kg_per_hour_per_stage=[mass_rate] * self.number_of_compressor_stages,
             )
 
+        def _calculate_train_result_given_ps_pd(mass_rate: float) -> CompressorTrainResultSingleTimeStep:
+            """Partial function of self._evaluate_rate_ps_pd
+            where we only pass mass_rate.
+            """
+            return self._evaluate_rate_ps_pd(
+                rate=np.asarray([inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate)]),
+                suction_pressure=np.asarray([inlet_stream.pressure_bara]),
+                discharge_pressure=np.asarray([target_discharge_pressure]),
+            )[0]
+
         # Using first stage as absolute (initial) bounds on min and max rate at max speed. Checking validity later.
         min_mass_rate_first_stage = self.stages[0].compressor_chart.minimum_rate * inlet_density
         max_mass_rate_first_stage = self.stages[0].compressor_chart.maximum_rate * inlet_density
@@ -870,8 +880,8 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 discharge_pressure=target_discharge_pressure,
             )
 
-        # If solution not found along max speed curve, run at max_mass_rate, but using the defined pressure control.
-        elif self.data_transfer_object.pressure_control is not None:
+        # If solution not found along chart curve, and pressure control is DOWNSTREAM_CHOKE, run at max_mass_rate
+        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             if self._evaluate_rate_ps_pd(
                 rate=np.asarray([inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate)]),
                 suction_pressure=np.asarray([inlet_stream.pressure_bara]),
@@ -882,6 +892,23 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                     suction_pressure=inlet_stream.pressure_bara,
                     discharge_pressure=target_discharge_pressure,
                 )
+
+        # If solution not found along chart curve, and pressure control is UPSTREAM_CHOKE, find new max_mass_rate
+        # with the new reduced suction pressure.
+        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
+            # lowering the inlet pressure using upstream choke will alter the max mass rate
+            max_mass_rate_with_upstream_choke = maximize_x_given_boolean_condition_function(
+                x_min=min_mass_rate,
+                x_max=max_mass_rate_first_stage,
+                bool_func=lambda x: _calculate_train_result_given_ps_pd(mass_rate=x).within_capacity,
+                convergence_tolerance=1e-3,
+                maximum_number_of_iterations=20,
+            )
+            return self._check_maximum_rate_against_maximum_power(
+                maximum_mass_rate=max_mass_rate_with_upstream_choke,
+                suction_pressure=inlet_stream.pressure_bara,
+                discharge_pressure=target_discharge_pressure,
+            )
 
         # Solution scenario 3. Too high pressure even at max flow rate. No pressure control mechanisms.
         elif result_max_mass_rate.discharge_pressure > target_discharge_pressure:
@@ -897,7 +924,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """Check if the maximum_rate, suction and discharge pressure power requirement exceeds a potential maximum power
 
         Args:
-            maximum_rate:  Found maximum mass rate for the train (at given suction and discharge pressure)
+            maximum_mass_rate:  Found maximum mass rate for the train (at given suction and discharge pressure)
             suction_pressure: Suction pressure for the train
             discharge_pressure: Discharge pressure for the train
 
