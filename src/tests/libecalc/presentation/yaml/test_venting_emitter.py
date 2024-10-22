@@ -96,6 +96,7 @@ def test_venting_emitter_oil_volume(variables_map):
     """
     emitter_name = "venting_emitter"
     emission_factor = 0.1
+    regularity_expected = 1.0
 
     venting_emitter = YamlOilTypeEmitter(
         name=emitter_name,
@@ -116,7 +117,7 @@ def test_venting_emitter_oil_volume(variables_map):
         ),
     )
 
-    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}
+    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(regularity_expected)}
 
     emission_rate = venting_emitter.get_emissions(expression_evaluator=variables_map, regularity=regularity)[
         "ch4"
@@ -136,16 +137,12 @@ def test_venting_emitter_oil_volume(variables_map):
             regularity[Period(datetime(1900, 1, 1))], fill_length=1, variables=variables_map.variables
         )
 
-        if regularity_array.size == 0:
-            raise ValueError("Regularity array is empty, cannot proceed with test.")
-
         regularity_evaluated = float(regularity_array[0])
 
     except IndexError as e:
         raise IndexError("Failed to evaluate regularity: array index out of range.") from e
 
-    except Exception as e:
-        raise RuntimeError("An unexpected error occurred during regularity evaluation in the test.") from e
+    assert regularity_evaluated == regularity_expected
 
     expected_result = [oil_value * regularity_evaluated * emission_factor / 1000 for oil_value in oil_values()]
 
