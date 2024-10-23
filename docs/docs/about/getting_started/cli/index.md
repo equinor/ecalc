@@ -12,6 +12,8 @@ It is currently **recommended** to use the CLI instead of the Python library dir
 The current recommended way to use eCalc is through the CLI (Command Line Interpreter). This is a part of the
 eCalc Python library, and should be accessible from the command line as `ecalc`.
 
+You must minimum have **Python 3.11** installed to use eCalc.
+
 See all commands and options in the [CLI reference](/about/getting_started/cli/cli_reference.md)
 
 ## Example Usage
