@@ -154,21 +154,18 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     unit: Unit
     model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True, extra="forbid")
 
-    @field_validator("values", mode="before")
+    @field_validator("values")
     @classmethod
-    def period_values_one_to_one(cls, v: List[Any], info: ValidationInfo):
-        nr_periods = len(info.data["periods"].periods)
+    def period_values_one_to_one(cls, v: List[TimeSeriesValue], info: ValidationInfo):
+        periods = info.data["periods"]
+        nr_periods = len(periods)
         nr_values = len(v)
 
         if nr_periods != nr_values:
-            if all(math.isnan(i) for i in v):
-                # TODO: This should probably be solved another place. Temporary solution to make things run
-                return [math.nan] * len(info.data["periods"])
-            else:
-                raise ProgrammingError(
-                    "Time series: number of periods do not match number "
-                    "of values. Most likely a bug, report to eCalc Dev Team."
-                )
+            raise ValueError(
+                "Time series: number of periods do not match number "
+                "of values. Most likely a bug, report to eCalc Dev Team."
+            )
         return v
 
     def __len__(self) -> int:
@@ -783,7 +780,7 @@ class TimeSeriesRate(TimeSeries[float]):
         regularity_length = len(regularity)
         periods_length = len(info.data["periods"].periods)
         if regularity_length != periods_length:
-            raise ProgrammingError(
+            raise ValueError(
                 f"Regularity must correspond to nr of periods. Length of periods ({periods_length}) !=  length of regularity ({regularity_length})."
             )
 

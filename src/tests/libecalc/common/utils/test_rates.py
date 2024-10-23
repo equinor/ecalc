@@ -2,8 +2,8 @@ from datetime import datetime
 
 import numpy as np
 import pytest
+from pydantic import ValidationError
 
-from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import Frequency, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -361,7 +361,7 @@ class TestTimeSeriesRate:
         assert sum_of_rates.regularity == expected_regularity
 
     def test_mismatch_timesteps_values(self):
-        with pytest.raises(ProgrammingError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             TimeSeriesRate(
                 periods=Periods.create_periods(
                     times=[
@@ -374,15 +374,39 @@ class TestTimeSeriesRate:
                     include_after=False,
                 ),
                 values=[10] * 4,
+                regularity=[1, 1, 1],
+                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+                rate_type=RateType.STREAM_DAY,
+            )
+
+        assert (
+            "Time series: "
+            "number of periods do not match number of values. "
+            "Most likely a bug, report to eCalc Dev Team."
+        ) in str(exc_info.value)
+
+    def test_mismatch_regularity_values(self):
+        with pytest.raises(ValidationError) as exc_info:
+            TimeSeriesRate(
+                periods=Periods.create_periods(
+                    times=[
+                        datetime(2023, 1, 1),
+                        datetime(2023, 1, 4),
+                        datetime(2023, 1, 7),
+                        datetime(2023, 1, 9),
+                    ],
+                    include_before=False,
+                    include_after=False,
+                ),
+                values=[10] * 3,
                 regularity=[1, 1, 1, 1],
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
                 rate_type=RateType.STREAM_DAY,
             )
 
-        assert str(exc_info.value) == (
-            "Violation of programming rules: Time series: "
-            "number of periods do not match number of values. "
-            "Most likely a bug, report to eCalc Dev Team."
+        assert (
+            "Regularity must correspond to nr of periods. Length of periods (3) !=  length of regularity (4)."
+            in str(exc_info.value)
         )
 
     def test_for_period(self):
