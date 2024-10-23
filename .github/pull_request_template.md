@@ -1,7 +1,7 @@
 ## Have you remembered and considered?
 
 - [ ] I have remembered to update documentation
-- [ ] I have remembered to update manual changelog (`docs/docs/changelog/next.md`)
+- [ ] I have remembered to update manual changelog (`docs/drafts/next.draft.md`)
 - [ ] I have remembered to update migration guide (`docs/docs/migration_guides/`)
 - [ ] I have committed with `BREAKING:` in footer or `!` in header, if breaking
 - [ ] I have added tests (if not, comment why)
