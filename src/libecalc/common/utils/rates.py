@@ -390,10 +390,6 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             and self.unit == other.unit
         )
 
-    def append(self, period: Period, value: TimeSeriesValue):
-        self.periods.append(period)
-        self.values.append(value)
-
 
 class TimeSeriesString(TimeSeries[str]):
     def resample(self, freq: Frequency, include_start_date: bool, include_end_date: bool) -> Self:
