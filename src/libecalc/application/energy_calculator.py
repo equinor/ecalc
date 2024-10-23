@@ -1,5 +1,4 @@
 from collections import defaultdict
-from functools import reduce
 from typing import Dict
 
 import numpy as np
@@ -41,10 +40,6 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
 )
-
-
-def merge_results(results_per_period: Dict[Period, EcalcModelResult]) -> EcalcModelResult:
-    return reduce(lambda acc, x: acc.merge(x), results_per_period.values())
 
 
 class EnergyCalculator:
