@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
 
       - name: Get Test Coverage score
         id: total
-        if: matrix.python-version == '3.8'
+        if: matrix.python-version == '3.11'
         run: |
           poetry run python -m coverage report --fail-under 50
           poetry run python -m coverage html -d build/
@@ -57,7 +57,7 @@ jobs:
         run: poetry build
 
       - name: Push coverage report to coverage-report branch
-        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.8'
+        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.11'
         run: |
           cd build
           CREATED_FROM_REF=$(git rev-parse --short HEAD)
