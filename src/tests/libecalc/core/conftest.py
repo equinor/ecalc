@@ -12,26 +12,28 @@ from libecalc.core.models.compressor.sampled import CompressorModelSampled
 from libecalc.core.models.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.core.models.turbine import TurbineModel
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.mappers.fluid_mapper import (
-    DRY_MW_18P3,
-    MEDIUM_MW_19P4,
-    RICH_MW_21P4,
-)
+from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 
 
 @pytest.fixture
 def medium_fluid() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(MEDIUM_MW_19P4))
+    return dto.FluidModel(
+        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(MEDIUM_MW_19P4)
+    )
 
 
 @pytest.fixture
 def rich_fluid() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(RICH_MW_21P4))
+    return dto.FluidModel(
+        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(RICH_MW_21P4)
+    )
 
 
 @pytest.fixture
 def dry_fluid() -> dto.FluidModel:
-    return dto.FluidModel(eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.parse_obj(DRY_MW_18P3))
+    return dto.FluidModel(
+        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(DRY_MW_18P3)
+    )
 
 
 @pytest.fixture

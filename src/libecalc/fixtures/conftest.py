@@ -13,12 +13,12 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH
 
 @pytest.fixture
 def medium_fluid_dto() -> FluidModel:
-    return FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.parse_obj(MEDIUM_MW_19P4))
+    return FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.model_validate(MEDIUM_MW_19P4))
 
 
 @pytest.fixture
 def rich_fluid_dto() -> FluidModel:
-    return FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.parse_obj(RICH_MW_21P4))
+    return FluidModel(eos_model=EoSModel.SRK, composition=FluidComposition.model_validate(RICH_MW_21P4))
 
 
 @pytest.fixture

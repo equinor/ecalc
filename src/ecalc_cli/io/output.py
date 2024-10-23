@@ -17,9 +17,7 @@ from libecalc.presentation.exporter.formatters.formatter import CSVFormatter
 from libecalc.presentation.exporter.handlers.handler import MultiFileHandler
 from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
 from libecalc.presentation.flow_diagram.EcalcModelMapper import EcalcModelMapper
-from libecalc.presentation.json_result.result import (
-    EcalcModelResult as EcalcModelResultDTO,
-)
+from libecalc.presentation.json_result.result import EcalcModelResult as EcalcModelResultDTO
 
 
 def write_output(output: str, output_file: Path = None):
@@ -70,7 +68,7 @@ def write_json(
     write_output(output=json_v3, output_file=json_v3_path)
 
     run_info_path = output_folder / f"{name_prefix}_run_info.json"
-    run_info_json = run_info.json()
+    run_info_json = run_info.model_dump_json()
     write_output(output=run_info_json, output_file=run_info_path)
 
 
@@ -193,6 +191,6 @@ def write_flow_diagram(model_dto: Asset, result_options: ResultOptions, output_f
     flow_diagram_filename = f"{name_prefix}.flow-diagram.json" if name_prefix != "" else "flow-diagram.json"
     flow_diagram_path = output_folder / flow_diagram_filename
     try:
-        flow_diagram_path.write_text(json.dumps([json.loads(flow_diagram.json(by_alias=True))]))
+        flow_diagram_path.write_text(json.dumps([json.loads(flow_diagram.model_dump_json(by_alias=True))]))
     except OSError as e:
         raise EcalcCLIError(f"Failed to write flow diagram: {str(e)}") from e

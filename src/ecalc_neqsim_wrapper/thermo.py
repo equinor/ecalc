@@ -110,7 +110,7 @@ class NeqsimFluid:
             neqsim_fluid_state = NeqsimFluidState(
                 fluid_composition=fluid_composition, fluid_properties=fluid_properties
             )
-            return neqsim_fluid_state.json()
+            return neqsim_fluid_state.model_dump_json()
 
         except Exception as e:
             logger.warning(f"Failed to parse NeqSimState dump for JSON Serialization. Not critical: {e}")
@@ -419,7 +419,7 @@ def mix_neqsim_streams(
             else:
                 composition_dict[composition_name] = composition_moles
 
-    ecalc_fluid_composition = FluidComposition.parse_obj(
+    ecalc_fluid_composition = FluidComposition.model_validate(
         {_map_fluid_component_from_neqsim[key]: value for (key, value) in composition_dict.items()}
     )
 

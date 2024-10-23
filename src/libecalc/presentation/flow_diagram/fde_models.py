@@ -76,4 +76,4 @@ class Node(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-FlowDiagram.update_forward_refs()
+FlowDiagram.model_rebuild()

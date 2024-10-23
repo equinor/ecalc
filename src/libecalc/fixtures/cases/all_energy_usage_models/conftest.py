@@ -120,7 +120,9 @@ def variable_speed_pump() -> PumpModel:
 @pytest.fixture
 def simplified_variable_speed_compressor_train_with_gerg_fluid2(predefined_variable_speed_compressor_chart_dto):
     return CompressorTrainSimplifiedWithKnownStages(
-        fluid_model=FluidModel(eos_model=EoSModel.GERG_SRK, composition=FluidComposition.parse_obj(MEDIUM_MW_19P4)),
+        fluid_model=FluidModel(
+            eos_model=EoSModel.GERG_SRK, composition=FluidComposition.model_validate(MEDIUM_MW_19P4)
+        ),
         stages=[
             CompressorStage(
                 inlet_temperature_kelvin=303.15,
