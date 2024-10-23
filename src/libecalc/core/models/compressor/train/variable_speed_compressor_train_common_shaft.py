@@ -346,6 +346,16 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 speed=speed,
             )
 
+        def _calculate_train_result_given_ps_pd(mass_rate: float) -> CompressorTrainResultSingleTimeStep:
+            """Partial function of self._evaluate_rate_ps_pd
+            where we only pass mass_rate.
+            """
+            return self._evaluate_rate_ps_pd(
+                rate=np.asarray([inlet_stream.mass_rate_to_standard_rate(mass_rate_kg_per_hour=mass_rate)]),
+                suction_pressure=np.asarray([inlet_stream.pressure_bara]),
+                discharge_pressure=np.asarray([target_discharge_pressure]),
+            )[0]
+
         def _calculate_train_result_given_speed_at_stone_wall(
             speed: float,
         ) -> CompressorTrainResultSingleTimeStep:
@@ -471,10 +481,10 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             )
             rate_to_return = result_mass_rate * (1 - RATE_CALCULATION_TOLERANCE)
 
-        # Solution 3: If solution not found along max speed curve,
+        # Solution 3: If solution not found along max speed curve, and pressure control is downstream choke, we should
         # run at max_mass_rate, but using the defined pressure control.
         elif (
-            self.data_transfer_object.pressure_control is not None
+            self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE
             and self.calculate_compressor_train_given_rate_ps_pd_speed(
                 speed=self.maximum_speed,
                 inlet_pressure=suction_pressure,
@@ -483,6 +493,16 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             ).is_valid
         ):
             rate_to_return = max_mass_rate_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
+
+        # if pressure control is upstream choke, we find the new maximum rate with the reduced inlet pressure
+        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.UPSTREAM_CHOKE:
+            rate_to_return = maximize_x_given_boolean_condition_function(
+                x_min=0,
+                x_max=max_mass_rate_at_max_speed_first_stage,
+                bool_func=lambda x: _calculate_train_result_given_ps_pd(mass_rate=x).within_capacity,
+                convergence_tolerance=1e-3,
+                maximum_number_of_iterations=20,
+            )
 
         # Solution scenario 4. Solution at the "Stone wall".
         else:
