@@ -118,7 +118,7 @@ class TestBooleanTimeSeries:
         # resample including start and end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR)
         assert yearly_values.values == [False, True, False, False]
-        assert yearly_values.all_dates() == [
+        assert yearly_values.all_dates == [
             datetime(2019, 7, 1),
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
@@ -129,7 +129,7 @@ class TestBooleanTimeSeries:
         # resample including start and without end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_end_date=False)
         assert yearly_values.values == [False, True, False]
-        assert yearly_values.all_dates() == [
+        assert yearly_values.all_dates == [
             datetime(2019, 7, 1),
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
@@ -139,7 +139,7 @@ class TestBooleanTimeSeries:
         # resample without start and including end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False)
         assert yearly_values.values == [True, False, False]
-        assert yearly_values.all_dates() == [
+        assert yearly_values.all_dates == [
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
             datetime(2022, 1, 1),
@@ -149,7 +149,7 @@ class TestBooleanTimeSeries:
         # resample without start and end date
         yearly_values = boolean_series.resample(freq=Frequency.YEAR, include_start_date=False, include_end_date=False)
         assert yearly_values.values == [True, False]
-        assert yearly_values.all_dates() == [
+        assert yearly_values.all_dates == [
             datetime(2020, 1, 1),
             datetime(2021, 1, 1),
             datetime(2022, 1, 1),
@@ -265,7 +265,7 @@ class TestTimeSeriesVolumesResample:
         )
 
         resampled_volumes = volumes.resample(freq=Frequency.YEAR)
-        assert resampled_volumes.all_dates() == [
+        assert resampled_volumes.all_dates == [
             datetime(2022, 1, 1),
             datetime(2023, 1, 1),
             datetime(2024, 1, 1),
@@ -463,7 +463,7 @@ class TestTimeseriesRateToVolumes:
         )
         volumes = rates.to_volumes()
         assert volumes.values == [9, 12, 10]
-        assert volumes.all_dates() == [
+        assert volumes.all_dates == [
             datetime(2023, 1, 1),
             datetime(2023, 1, 4),
             datetime(2023, 1, 7),
