@@ -54,11 +54,11 @@ or follow the quick guide below:
 
 ### Prerequisites
 
-* [Python](https://www.python.org/), version 3.8 or higher
+* [Python](https://www.python.org/), version 3.11 or higher
 * Java, version 8 or higher
 * [Docker](https://www.docker.com/) (Optional), Linux or MacOS
 
-eCalc™ only supports Python 3, and will follow [Komodo](https://github.com/equinor/komodo) wrt. minimum requirement for Python, which currently is 3.8.
+eCalc™ only supports Python 3, and will follow [Komodo](https://github.com/equinor/komodo) wrt. minimum requirement for Python, which currently is 3.11.
 
 ### Installation
 
