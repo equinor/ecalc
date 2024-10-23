@@ -48,7 +48,7 @@ class YamlVentingVolumeEmission(YamlBase):
         description="Name of emission",
     )
     emission_factor: ExpressionType = Field(
-        None, title="EMISSION_FACTOR", description="Loading/storage volume-emission factor"
+        ..., title="EMISSION_FACTOR", description="Loading/storage volume-emission factor"
     )
 
     @field_validator("name", mode="before")
