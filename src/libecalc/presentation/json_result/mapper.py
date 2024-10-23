@@ -242,12 +242,6 @@ def _evaluate_installations(
 ) -> List[libecalc.presentation.json_result.result.InstallationResult]:
     """
     All subcomponents have already been evaluated, here we basically collect and aggregate the results
-
-    Args:
-        variables_map:
-
-    Returns:
-
     """
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
@@ -976,7 +970,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                     ]
                 )
         elif consumer_node_info.component_type in [ComponentType.PUMP, ComponentType.PUMP_SYSTEM]:
-            component = graph_result.graph.get_node(consumer_id)
             for model in consumer_result.models:
                 models.extend(
                     [
@@ -1197,82 +1190,6 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
                 id=consumer_result.component_result.id,
                 is_valid=consumer_result.component_result.is_valid,
                 streams=consumer_result.component_result.streams,
-            )
-        elif consumer_node_info.component_type == ComponentType.ASSET:
-            obj = libecalc.presentation.json_result.result.results.AssetResult(
-                name=consumer_node_info.name,
-                parent=graph_result.graph.get_predecessor(consumer_id),
-                component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type.value,
-                emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
-                if consumer_id in graph_result.emission_results
-                else {},
-                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                )
-                .to_volumes()
-                .cumulative(),
-                power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power, regularity=regularity
-                )
-                .to_volumes()
-                .to_unit(Unit.GIGA_WATT_HOURS)
-                .cumulative()
-                if consumer_result.component_result.power is not None
-                else None,
-                power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power, regularity=regularity
-                ),
-                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_calendar_day()
-                if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                else TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_stream_day(),
-                hydrocarbon_export_rate=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.hydrocarbon_export_rate, regularity=regularity
-                ),
-                timesteps=consumer_result.component_result.timesteps,
-                id=consumer_result.component_result.id,
-                is_valid=consumer_result.component_result.is_valid,
-            )
-        elif consumer_node_info.component_type == ComponentType.INSTALLATION:
-            obj = libecalc.presentation.json_result.result.results.InstallationResult(
-                name=consumer_node_info.name,
-                parent=graph_result.graph.get_predecessor(consumer_id),
-                component_level=consumer_node_info.component_level,
-                componentType=consumer_node_info.component_type.value,
-                emissions=_parse_emissions(graph_result.emission_results[consumer_id], regularity)
-                if consumer_id in graph_result.emission_results
-                else {},
-                energy_usage_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                )
-                .to_volumes()
-                .cumulative(),
-                power_cumulative=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power, regularity=regularity
-                )
-                .to_volumes()
-                .to_unit(Unit.GIGA_WATT_HOURS)
-                .cumulative()
-                if consumer_result.component_result.power is not None
-                else None,
-                power=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.power, regularity=regularity
-                ),
-                energy_usage=TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_calendar_day()
-                if consumer_result.component_result.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                else TimeSeriesRate.from_timeseries_stream_day_rate(
-                    consumer_result.component_result.energy_usage, regularity=regularity
-                ).to_stream_day(),
-                regularity=consumer_result.component_result.regularity,
-                periods=consumer_result.component_result.periods,
-                id=consumer_result.component_result.id,
-                is_valid=consumer_result.component_result.is_valid,
             )
         elif consumer_node_info.component_type == ComponentType.CONSUMER_SYSTEM_V2:
             obj = libecalc.presentation.json_result.result.ConsumerSystemResult(
