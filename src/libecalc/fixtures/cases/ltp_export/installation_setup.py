@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Dict, List
 
+import numpy as np
+
 import libecalc.common.component_type
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
@@ -457,7 +459,7 @@ def expected_heater_fuel_consumption() -> float:
 
 
 def expected_co2_from_boiler() -> float:
-    emission_kg_per_day = fuel_rate * co2_factor
+    emission_kg_per_day = float(fuel_rate * co2_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
     n_days = np.sum([days_year1_first_half, days_year1_second_half, days_year2_first_half])
     emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
