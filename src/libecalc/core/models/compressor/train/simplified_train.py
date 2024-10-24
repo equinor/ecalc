@@ -15,14 +15,9 @@ from libecalc.core.models.compressor.results import (
 )
 from libecalc.core.models.compressor.train.base import CompressorTrainModel
 from libecalc.core.models.compressor.train.chart import VariableSpeedCompressorChart
-from libecalc.core.models.compressor.train.chart.chart_creator import (
-    CompressorChartCreator,
-)
+from libecalc.core.models.compressor.train.chart.chart_creator import CompressorChartCreator
 from libecalc.core.models.compressor.train.fluid import FluidStream
-from libecalc.core.models.compressor.train.stage import (
-    CompressorTrainStage,
-    UndefinedCompressorStage,
-)
+from libecalc.core.models.compressor.train.stage import CompressorTrainStage, UndefinedCompressorStage
 from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
     calculate_polytropic_head_campbell,
@@ -511,18 +506,19 @@ class CompressorTrainSimplifiedKnownStages(CompressorTrainSimplified):
         expected_diff = 1e-3
         max_iterations = 20
         while not converged and i < max_iterations:
-            maximum_actual_volume_rate = float(
+            maximum_actual_volume_rate: float = float(
                 maximum_rate_function(
                     heads=polytropic_head,
                     extrapolate_heads_below_minimum=False,
                 )
             )
-            polytropic_efficiency = float(
-                compressor_chart.efficiency_as_function_of_rate_and_head(
-                    rates=np.atleast_1d(maximum_actual_volume_rate),
-                    heads=np.atleast_1d(polytropic_head),
-                )
+
+            efficiency_array: NDArray[np.float64] = compressor_chart.efficiency_as_function_of_rate_and_head(
+                rates=np.atleast_1d(maximum_actual_volume_rate),
+                heads=np.atleast_1d(polytropic_head),
             )
+            polytropic_efficiency = efficiency_array[0]
+
             polytropic_head = calculate_polytropic_head_campbell(
                 polytropic_efficiency=polytropic_efficiency,
                 kappa=kappa,

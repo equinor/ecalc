@@ -11,13 +11,8 @@ from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.cases import venting_emitters
-from libecalc.fixtures.cases.ltp_export.utilities import (
-    get_consumption,
-    get_sum_ltp_column,
-)
-from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
-    venting_emitter_yaml_factory,
-)
+from libecalc.fixtures.cases.ltp_export.utilities import get_consumption, get_sum_ltp_column
+from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import venting_emitter_yaml_factory
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
@@ -101,6 +96,7 @@ def test_venting_emitter_oil_volume(variables_map):
     """
     emitter_name = "venting_emitter"
     emission_factor = 0.1
+    regularity_expected = 1.0
 
     venting_emitter = YamlOilTypeEmitter(
         name=emitter_name,
@@ -121,7 +117,7 @@ def test_venting_emitter_oil_volume(variables_map):
         ),
     )
 
-    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)}
+    regularity = {Period(datetime(1900, 1, 1)): Expression.setup_from_expression(regularity_expected)}
 
     emission_rate = venting_emitter.get_emissions(expression_evaluator=variables_map, regularity=regularity)[
         "ch4"
@@ -136,10 +132,7 @@ def test_venting_emitter_oil_volume(variables_map):
     }
     emissions_ch4 = emission_result["ch4"]
 
-    regularity_evaluated = float(
-        Expression.evaluate(regularity[Period(datetime(1900, 1, 1))], fill_length=1, variables=variables_map.variables)
-    )
-    expected_result = [oil_value * regularity_evaluated * emission_factor / 1000 for oil_value in oil_values()]
+    expected_result = [oil_value * regularity_expected * emission_factor / 1000 for oil_value in oil_values()]
 
     assert emissions_ch4.rate.values == expected_result
 

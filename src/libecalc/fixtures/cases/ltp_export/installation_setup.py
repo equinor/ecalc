@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Dict, List
 
+import numpy as np
+
 import libecalc.common.component_type
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
@@ -363,107 +365,112 @@ def generator_set_mobile_diesel() -> GeneratorSet:
     )
 
 
-def expected_fuel_consumption():
-    consumption = float(fuel_rate * days_year2_second_half * regularity_consumer)
+def expected_fuel_consumption() -> float:
+    n_days = np.sum(days_year2_second_half)
+    consumption = float(fuel_rate * n_days * regularity_consumer)
     return consumption
 
 
-def expected_diesel_consumption():
-    consumption = float(diesel_rate * (days_year1_first_half + days_year2_first_half) * regularity_consumer)
+def expected_diesel_consumption() -> float:
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    consumption = float(diesel_rate * n_days * regularity_consumer)
     return consumption
 
 
-def expected_pfs_el_consumption():
-    consumption_mw_per_day = power_usage_mw * days_year1_second_half * regularity_consumer
+def expected_pfs_el_consumption() -> float:
+    n_days = np.sum(days_year1_second_half)
+    consumption_mw_per_day = power_usage_mw * n_days * regularity_consumer
     consumption = float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
     return consumption
 
 
-def expected_gas_turbine_el_generated():
-    consumption_mw_per_day = (
-        power_usage_mw * (days_year1_first_half + days_year2_first_half + days_year2_second_half) * regularity_consumer
-    )
+def expected_gas_turbine_el_generated() -> float:
+    n_days = np.sum([(days_year1_first_half + days_year2_first_half + days_year2_second_half)])
+    consumption_mw_per_day = power_usage_mw * n_days * regularity_consumer
     consumption = float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
     return consumption
 
 
-def expected_co2_from_fuel():
+def expected_co2_from_fuel() -> float:
     emission_kg_per_day = float(fuel_rate * co2_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
-    emission_tons = float(emission_tons_per_day * days_year2_second_half * regularity_consumer)
+    n_days = np.sum(days_year2_second_half)
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
 
 
-def expected_co2_from_diesel():
+def expected_co2_from_diesel() -> float:
     emission_kg_per_day = float(diesel_rate * co2_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
-    emission_tons = float(emission_tons_per_day * (days_year1_first_half + days_year2_first_half) * regularity_consumer)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
 
 
-def expected_ch4_from_diesel():
+def expected_ch4_from_diesel() -> float:
     emission_kg_per_day = float(diesel_rate * ch4_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
-    emission_tons = float(emission_tons_per_day * (days_year1_first_half + days_year2_first_half) * regularity_consumer)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
 
 
-def expected_nox_from_diesel():
+def expected_nox_from_diesel() -> float:
     emission_kg_per_day = float(diesel_rate * nox_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
-    emission_tons = float(emission_tons_per_day * (days_year1_first_half + days_year2_first_half) * regularity_consumer)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
 
 
-def expected_nmvoc_from_diesel():
+def expected_nmvoc_from_diesel() -> float:
     emission_kg_per_day = float(diesel_rate * nmvoc_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
-    emission_tons = float(emission_tons_per_day * (days_year1_first_half + days_year2_first_half) * regularity_consumer)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
 
 
-def expected_offshore_wind_el_consumption():
-    consumption_mw_per_day = (
-        power_offshore_wind_mw * (days_year1_second_half + days_year2_second_half) * regularity_consumer
-    )
+def expected_offshore_wind_el_consumption() -> float:
+    n_days = np.sum([days_year1_second_half, days_year2_second_half])
+    consumption_mw_per_day = power_offshore_wind_mw * n_days * regularity_consumer
     consumption = -float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
     return consumption
 
 
 # Why is this the only one without regularity?
-def expected_gas_turbine_compressor_el_consumption():
-    consumption_mw_per_day = power_compressor_mw * (days_year1_second_half + days_year2_second_half)
+def expected_gas_turbine_compressor_el_consumption() -> float:
+    n_days = np.sum([days_year1_second_half, days_year2_second_half])
+    consumption_mw_per_day = power_compressor_mw * n_days
     consumption = float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
     return consumption
 
 
-def expected_boiler_fuel_consumption():
-    consumption = float(
-        fuel_rate * (days_year1_first_half + days_year1_second_half + days_year2_first_half) * regularity_consumer
-    )
+def expected_boiler_fuel_consumption() -> float:
+    n_days = np.sum([days_year1_first_half, days_year1_second_half, days_year2_first_half])
+    consumption = float(fuel_rate * n_days * regularity_consumer)
     return consumption
 
 
-def expected_heater_fuel_consumption():
-    consumption = float(fuel_rate * days_year2_second_half * regularity_consumer)
+def expected_heater_fuel_consumption() -> float:
+    n_days = np.sum(days_year2_second_half)
+    consumption = float(fuel_rate * n_days * regularity_consumer)
     return consumption
 
 
-def expected_co2_from_boiler():
+def expected_co2_from_boiler() -> float:
     emission_kg_per_day = float(fuel_rate * co2_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
-    emission_tons = float(
-        emission_tons_per_day
-        * (days_year1_first_half + days_year1_second_half + days_year2_first_half)
-        * regularity_consumer
-    )
+    n_days = np.sum([days_year1_first_half, days_year1_second_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
 
 
-def expected_co2_from_heater():
+def expected_co2_from_heater() -> float:
     emission_kg_per_day = float(fuel_rate * co2_factor)
     emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
-    emission_tons = float(emission_tons_per_day * days_year2_second_half * regularity_consumer)
+    n_days = np.sum(days_year2_second_half)
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
 
 
