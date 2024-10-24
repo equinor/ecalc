@@ -16,6 +16,8 @@ from libecalc.dto import (
     CompressorWithTurbine,
     FluidComposition,
     FluidModel,
+    GenericChartFromDesignPoint,
+    GenericChartFromInput,
     PumpModel,
     Turbine,
     VariableSpeedCompressorTrain,
@@ -126,14 +128,18 @@ def simplified_variable_speed_compressor_train_with_gerg_fluid2(predefined_varia
         stages=[
             CompressorStage(
                 inlet_temperature_kelvin=303.15,
-                compressor_chart=predefined_variable_speed_compressor_chart_dto,
+                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.75),
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
                 control_margin=0,
             ),
             CompressorStage(
                 inlet_temperature_kelvin=303.15,
-                compressor_chart=predefined_variable_speed_compressor_chart_dto,
+                compressor_chart=GenericChartFromDesignPoint(
+                    polytropic_efficiency_fraction=0.75,
+                    design_rate_actual_m3_per_hour=5000,
+                    design_polytropic_head_J_per_kg=100000,
+                ),
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
                 control_margin=0,
@@ -256,14 +262,18 @@ def simplified_variable_speed_compressor_train_known_stages(
         stages=[
             CompressorStage(
                 inlet_temperature_kelvin=303.15,
-                compressor_chart=predefined_variable_speed_compressor_chart_dto,
+                compressor_chart=GenericChartFromInput(polytropic_efficiency_fraction=0.75),
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
                 control_margin=0,
             ),
             CompressorStage(
                 inlet_temperature_kelvin=303.15,
-                compressor_chart=predefined_variable_speed_compressor_chart_dto,
+                compressor_chart=GenericChartFromDesignPoint(
+                    polytropic_efficiency_fraction=0.75,
+                    design_rate_actual_m3_per_hour=5000,
+                    design_polytropic_head_J_per_kg=100000,
+                ),
                 remove_liquid_after_cooling=True,
                 pressure_drop_before_stage=0,
                 control_margin=0,

@@ -76,7 +76,7 @@ MODELS:
         - INLET_TEMPERATURE: 30
           COMPRESSOR_CHART: generic_from_design_point_compressor_chart
         - INLET_TEMPERATURE: 30
-          COMPRESSOR_CHART: predefined_variable_speed_compressor_chart
+          COMPRESSOR_CHART: generic_from_design_point_compressor_chart
 
 VARIABLES:
   hydrocarbon_export_sm3_per_day:
