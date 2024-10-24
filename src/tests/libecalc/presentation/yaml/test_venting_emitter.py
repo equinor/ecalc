@@ -132,19 +132,7 @@ def test_venting_emitter_oil_volume(variables_map):
     }
     emissions_ch4 = emission_result["ch4"]
 
-    try:
-        regularity_array = Expression.evaluate(
-            regularity[Period(datetime(1900, 1, 1))], fill_length=1, variables=variables_map.variables
-        )
-
-        regularity_evaluated = float(regularity_array[0])
-
-    except IndexError as e:
-        raise IndexError("Failed to evaluate regularity: array index out of range.") from e
-
-    assert regularity_evaluated == regularity_expected
-
-    expected_result = [oil_value * regularity_evaluated * emission_factor / 1000 for oil_value in oil_values()]
+    expected_result = [oil_value * regularity_expected * emission_factor / 1000 for oil_value in oil_values()]
 
     assert emissions_ch4.rate.values == expected_result
 
