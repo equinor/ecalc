@@ -1,0 +1,278 @@
+END: 2021-01-01
+TIME_SERIES:
+  - NAME: SIM1
+    TYPE: MISCELLANEOUS
+    FILE: base_profile.csv
+    INTERPOLATION_TYPE: LEFT
+  - NAME: FLARE
+    TYPE: MISCELLANEOUS
+    FILE: flare.csv #!include, commented !include is now supported
+    INTERPOLATION_TYPE: RIGHT
+    EXTRAPOLATION: false
+    INFLUENCE_TIME_VECTOR: false
+
+FACILITY_INPUTS:
+  - NAME: genset
+    FILE: genset.csv
+    TYPE: ELECTRICITY2FUEL
+  - NAME: compressor_sampled_1d
+    FILE: compressor_sampled_1d.csv
+    TYPE: COMPRESSOR_TABULAR
+
+VARIABLES:
+  salt_water_injection:
+    2017-01-01:
+      VALUE:
+        SIM1;WATER_INJ {-} SIM1;WATER_PROD {+} SIM1;WATER_PROD {*} (SIM1;WATER_PROD
+        < 1500) {+} (SIM1;WATER_PROD {-} 17000) {*} (SIM1;WATER_PROD > 17000) {*}
+        (SIM1;WATER_PROD < 18500)
+
+MODELS:
+  - NAME: predefined_compressor_chart_curves_from_file
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: VARIABLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: M # M or KJ_PER_KG
+      EFFICIENCY: FRACTION
+    CURVES:
+      FILE: predefined_compressor_chart_curves.csv
+  - NAME: predefined_compressor_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: VARIABLE_SPEED
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: M # M or KJ_PER_KG
+      EFFICIENCY: FRACTION
+    CURVES:
+      - SPEED: 7689
+        RATE: [2900.0666, 3503.8068, 4002.5554, 4595.0148]
+        HEAD: [8412.9156, 7996.2541, 7363.8161, 6127.1702]
+        EFFICIENCY: [0.723, 0.7469, 0.7449, 0.7015]
+      - SPEED: 8787
+        RATE: [3305.5723, 4000.1546, 4499.2342, 4996.8728, 5241.9892]
+        HEAD: [10950.9557, 10393.3867, 9707.491, 8593.8586, 7974.6002]
+        EFFICIENCY: [0.7241, 0.7449, 0.7464, 0.722, 0.7007]
+      - SPEED: 9886
+        RATE: [3708.8713, 4502.2531, 4993.5959, 5507.8114, 5924.3308]
+        HEAD: [13845.3808, 13182.6922, 12425.3699, 11276.3984, 10054.3539]
+        EFFICIENCY: [0.723, 0.7473, 0.748, 0.7306, 0.704]
+      - SPEED: 10435
+        RATE: [3928.0389, 4507.4654, 5002.1249, 5498.9912, 6248.5937]
+        HEAD: [15435.484, 14982.7351, 14350.2222, 13361.3245, 11183.0276]
+        EFFICIENCY: [0.7232, 0.7437, 0.7453, 0.7414, 0.701]
+      - SPEED: 10984
+        RATE: [4138.6974, 5002.4758, 5494.3704, 6008.6962, 6560.148]
+        HEAD: [17078.8952, 16274.9249, 15428.5063, 14261.7156, 12382.7538]
+        EFFICIENCY: [0.7226, 0.7462, 0.7468, 0.7349, 0.7023]
+      - SPEED: 11533
+        RATE: [4327.9175, 4998.517, 5505.8851, 6027.6167, 6506.9064, 6908.2832]
+        HEAD:
+          [
+            18882.3055,
+            18235.1912,
+            17531.6259,
+            16489.7195,
+            15037.1474,
+            13618.7919,
+          ]
+        EFFICIENCY: [0.7254, 0.7444, 0.745, 0.7466, 0.7266, 0.7019]
+      - SPEED: 10767
+        RATE: [4052.9057, 4500.6637, 4999.41, 5492.822, 6000.6263, 6439.4876]
+        HEAD: [16447, 16081, 15546, 14640, 13454, 11973]
+        EFFICIENCY: [0.724, 0.738, 0.7479, 0.74766, 0.7298, 0.7014]
+  - NAME: medium_gas
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: MEDIUM
+  - NAME: rich_gas
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: RICH
+  - NAME: user_defined_fluid_composition
+    TYPE: FLUID
+    FLUID_MODEL_TYPE: COMPOSITION
+    EOS_MODEL: SRK
+    COMPOSITION:
+      water: 0
+      nitrogen: 0.74373
+      CO2: 2.415619
+      methane: 85.60145
+      ethane: 6.707826
+      propane: 2.611471
+      i_butane: 0.45077
+      n_butane: 0.691702
+      i_pentane: 0.210714
+      n_pentane: 0.197937
+      n_hexane: 0.368786
+  - NAME: simplified_variable_speed_compressor_train_known_stages
+    TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: generic_chart
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: generic_chart_from_design_point
+  - NAME: generic_chart_from_design_point
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: GENERIC_FROM_DESIGN_POINT
+    UNITS:
+      RATE: AM3_PER_HOUR
+      HEAD: KJ_PER_KG
+      EFFICIENCY: FRACTION
+    POLYTROPIC_EFFICIENCY: 0.75
+    DESIGN_RATE: 5000
+    DESIGN_HEAD: 100
+  - NAME: generic_chart
+    TYPE: COMPRESSOR_CHART
+    CHART_TYPE: GENERIC_FROM_INPUT
+    UNITS:
+      EFFICIENCY: FRACTION
+    POLYTROPIC_EFFICIENCY: 0.75
+  - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_medium_gas
+    TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_gas
+    PRESSURE_CONTROL: DOWNSTREAM_CHOKE
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+          CONTROL_MARGIN: 10
+          CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart
+          CONTROL_MARGIN: 0
+          CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
+    TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: user_defined_fluid_composition
+    COMPRESSOR_TRAIN:
+      STAGES: # stages for train with predefined number of compressors
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart_curves_from_file
+          CONTROL_MARGIN: 0
+          CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_compressor_chart
+          CONTROL_MARGIN: 0
+          CONTROL_MARGIN_UNIT: PERCENTAGE # PERCENTAGE is default, FRACTION is other possible value
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: turbine
+    TYPE: TURBINE
+    LOWER_HEATING_VALUE: 38 # MJ/Sm3
+    TURBINE_LOADS: [
+        0,
+        2.352,
+        4.589,
+        6.853,
+        9.125,
+        11.399,
+        13.673,
+        15.947,
+        18.223,
+        20.496,
+        22.767,
+      ] # MW
+    TURBINE_EFFICIENCIES:
+      [0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362]
+    POWER_ADJUSTMENT_CONSTANT: 1
+  - NAME: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition
+    TURBINE_MODEL: turbine
+    POWER_ADJUSTMENT_CONSTANT: 1
+
+FUEL_TYPES:
+  - NAME: fuel_gas
+    CATEGORY: FUEL-GAS
+    EMISSIONS:
+      - NAME: co2
+        FACTOR: "2.20" # kg/Sm3
+
+INSTALLATIONS:
+  - NAME: MAIN_INSTALLATION
+    HCEXPORT: SIM1;OIL_PROD {+} SIM1;GAS_PROD {/} 1000
+    REGULARITY: SIM1;REGULARITY
+    FUEL: fuel_gas
+    CATEGORY: FIXED
+    GENERATORSETS:
+      - NAME: GeneratorSet
+        CATEGORY: TURBINE-GENERATOR
+        FUEL: fuel_gas
+        ELECTRICITY2FUEL: genset
+        CONSUMERS:
+          - NAME: simplified_variable_speed_compressor_train_known_stages_consumer_temporal_model
+            CATEGORY: COMPRESSOR
+            ENERGY_USAGE_MODEL:
+              2018-01-01:
+                TYPE: COMPRESSOR
+                RATE: 5000000
+                SUCTION_PRESSURE: 50
+                DISCHARGE_PRESSURE: 250
+                ENERGYFUNCTION: simplified_variable_speed_compressor_train_known_stages
+              2019-01-01:
+                TYPE: COMPRESSOR
+                RATE: 5000000
+                SUCTION_PRESSURE: 40
+                DISCHARGE_PRESSURE: 260
+                ENERGYFUNCTION: simplified_variable_speed_compressor_train_known_stages
+    FUELCONSUMERS:
+      - NAME: compressor_system_variable_speed_compressor_trains_multiple_pressures
+        CATEGORY: COMPRESSOR
+        ENERGY_USAGE_MODEL:
+          2018-01-01:
+            TYPE: COMPRESSOR_SYSTEM
+            COMPRESSORS:
+              - NAME: train1
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+              - NAME: train2
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+              - NAME: train3
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+            OPERATIONAL_SETTINGS:
+              - RATES:
+                  - SIM1;GAS_PROD {/} 2
+                  - SIM1;GAS_PROD {/} 2
+                  - SIM1;GAS_PROD {/} 2
+                SUCTION_PRESSURES:
+                  - 20
+                  - 30
+                  - 40
+                DISCHARGE_PRESSURES:
+                  - 220
+                  - 230
+                  - 240
+              - RATES:
+                - SIM1;GAS_PROD {/} 3
+                - SIM1;GAS_PROD {/} 3
+                - SIM1;GAS_PROD {/} 3
+                SUCTION_PRESSURES:
+                  - 50
+                  - 60
+                  - 70
+                DISCHARGE_PRESSURES:
+                  - 250
+                  - 260
+                  - 270
+          2019-01-01:
+            TYPE: COMPRESSOR_SYSTEM
+            COMPRESSORS:
+              - NAME: train1_upgraded
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+              - NAME: train2_upgraded
+                COMPRESSOR_MODEL: variable_speed_compressor_train_predefined_variable_speed_chart_user_defined_fluid_composition_with_turbine
+            OPERATIONAL_SETTINGS:
+              - RATES:
+                  - SIM1;GAS_PROD {/} 2
+                  - SIM1;GAS_PROD {/} 2
+                SUCTION_PRESSURES:
+                  - 40
+                  - 45
+                DISCHARGE_PRESSURES:
+                  - 240
+                  - 245
+              

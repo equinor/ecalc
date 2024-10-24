@@ -14,19 +14,19 @@ from libecalc.presentation.json_result.result.results import CompressorModelResu
 
 
 @pytest.fixture
-def result(compressor_systems_and_compressor_train_temporal_dto) -> EcalcModelResult:
-    ecalc_model = compressor_systems_and_compressor_train_temporal_dto.ecalc_model
-    variables = compressor_systems_and_compressor_train_temporal_dto.variables
-
-    graph = ecalc_model.get_graph()
+def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult:
+    model = compressor_systems_and_compressor_train_temporal.get_yaml_model()
+    model.validate_for_run()
+    graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
+    variables = model.variables
     consumer_results = energy_calculator.evaluate_energy_usage(variables)
     emission_results = energy_calculator.evaluate_emissions(
         variables_map=variables,
         consumer_results=consumer_results,
     )
 
-    result = get_asset_result(
+    return get_asset_result(
         GraphResult(
             graph=graph,
             consumer_results=consumer_results,
@@ -34,8 +34,6 @@ def result(compressor_systems_and_compressor_train_temporal_dto) -> EcalcModelRe
             emission_results=emission_results,
         )
     )
-
-    return result
 
 
 def get_inlet_pressure(list_index: int, period: Period, models: list[CompressorModelResult]) -> list[float]:
