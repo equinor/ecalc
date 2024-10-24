@@ -212,6 +212,12 @@ class Periods:
     def period(self):
         return Period(self.periods[0].start, self.periods[-1].end)
 
+    def append(self, period: Period):
+        """Append a period to the list of periods."""
+        if self.last_date != period.start:
+            raise ValueError("The period to append must start where the last period ends.")
+        self.periods.append(period)
+
 
 def define_time_model_for_period(time_model_data: Optional[Any], target_period: Period) -> Optional[Dict[Period, Any]]:
     """Process time model based on the target period.
