@@ -10,11 +10,19 @@ from libecalc.common.time_utils import Frequency, Period
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart
-from tests.libecalc.input.test_yaml_model import DirectResourceService
+
+
+class DirectResourceService(ResourceService):
+    def __init__(self, resources: Dict[str, MemoryResource]):
+        self._resources = resources
+
+    def get_resources(self, configuration: YamlValidator) -> Dict[str, MemoryResource]:
+        return self._resources
 
 
 class TestModelMapper:

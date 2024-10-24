@@ -3,8 +3,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, NamedTuple, TextIO
 
+from ecalc_cli.infrastructure.file_resource_service import FileResourceService
+from libecalc.common.time_utils import Frequency
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import Asset
+from libecalc.presentation.yaml.file_configuration_service import FileConfigurationService
+from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 
@@ -18,6 +22,15 @@ class YamlCase:
         with open(self.main_file_path) as f:
             lines = f.read()
             return io.StringIO(lines)
+
+    def get_yaml_model(self, frequency: Frequency = Frequency.NONE) -> YamlModel:
+        configuration_service = FileConfigurationService(self.main_file_path)
+        resource_service = FileResourceService(self.main_file_path.parent)
+        return YamlModel(
+            configuration_service=configuration_service,
+            resource_service=resource_service,
+            output_frequency=frequency,
+        )
 
 
 class DTOCase(NamedTuple):

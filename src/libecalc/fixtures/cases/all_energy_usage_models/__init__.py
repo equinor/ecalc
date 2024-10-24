@@ -6,7 +6,6 @@ from libecalc.fixtures import YamlCase
 from libecalc.fixtures.case_utils import YamlCaseLoader
 
 from .all_models_dto import (
-    all_energy_usage_models_dto,
     compressor,
     compressor_system,
     compressor_system_variable_speed_compressor_trains,

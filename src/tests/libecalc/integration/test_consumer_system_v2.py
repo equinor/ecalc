@@ -5,45 +5,43 @@ from pathlib import Path
 import pytest
 
 from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import EnergyCalculatorResult, GraphResult
-from libecalc.fixtures import DTOCase, consumer_system_v2_dto
+from libecalc.application.graph_result import EnergyCalculatorResult
+from libecalc.fixtures import YamlCase
 
 
-def result(consumer_system_v2: DTOCase) -> EnergyCalculatorResult:
-    ecalc_model = consumer_system_v2.ecalc_model
-    variables = consumer_system_v2.variables
-
-    graph = ecalc_model.get_graph()
+def result(consumer_system_v2: YamlCase) -> EnergyCalculatorResult:
+    model = consumer_system_v2.get_yaml_model()
+    model.validate_for_run()
+    graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
+    variables = model.variables
     consumer_results = energy_calculator.evaluate_energy_usage(variables)
     emission_results = energy_calculator.evaluate_emissions(
         variables_map=variables,
         consumer_results=consumer_results,
     )
-    result = GraphResult(
-        graph=graph,
+
+    return EnergyCalculatorResult(
         consumer_results=consumer_results,
         variables_map=variables,
         emission_results=emission_results,
-    ).get_results()
-
-    return result
+    )
 
 
 parameterized_v2_parameters = [
     (
         "consumer_system_v2",
-        consumer_system_v2_dto(),
+        "consumer_system_v2_yaml",  # Fixture name
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "name, consumer_system_v2",
+    "name, consumer_system_v2_fixture_name",
     parameterized_v2_parameters,
 )
 @pytest.mark.snapshot
-def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, request):
+def test_compressor_system_v2_results(name: str, consumer_system_v2_fixture_name: str, request):
     """
     NOTE: The test below depends on this test. If the order of parameters or names of the parameters are
     changed, the test below will fail. This test is meant to show that despite different permutations of
@@ -70,11 +68,12 @@ def test_compressor_system_v2_results(name: str, consumer_system_v2: DTOCase, re
     Note: Consumer system v2 for pump and compressor are very similar. We should consider if they can share most
     of the code. Right now we duplicate code.
     """
+    consumer_system_v2 = request.getfixturevalue(consumer_system_v2_fixture_name)
     rounded_snapshot = request.getfixturevalue("rounded_snapshot")
 
     ecalc_result = result(consumer_system_v2)
 
-    asset_graph = consumer_system_v2.ecalc_model.get_graph()
+    asset_graph = consumer_system_v2.get_yaml_model().get_graph()
     pump_system_id = asset_graph.get_node_id_by_name("pump_system")
     pump_system_v2_id = asset_graph.get_node_id_by_name("pump_system_v2")
     compressor_system_id = asset_graph.get_node_id_by_name("compressor_system")
@@ -123,17 +122,15 @@ def test_compare_snapshots(snapshot):
 
     consumer_system_v2_snapshots = []
 
-    for consumer_system_v2_snapshot_index, consumer_system_v2_snapshot in enumerate(parameterized_v2_parameters):
-        consumer_system_v2_snapshot_name, _ = consumer_system_v2_snapshot
-
-        print(f"testing {consumer_system_v2_snapshot_name}")
+    for case_name, fixture_name in parameterized_v2_parameters:
+        print(f"testing {case_name}")
         # NOTE: When we use parameterized tests, there is some magic wrt. the name the snapshots are given, to make sure that they are 1. unique and 2. retrievable
         with open(
             Path(
                 snapshot.snapshot_dir.parent
                 / "test_compressor_system_v2_results"
-                / f"{consumer_system_v2_snapshot_name}-consumer_system_v2{consumer_system_v2_snapshot_index}"
-                / f"{consumer_system_v2_snapshot_name}.json"
+                / f"{case_name}-{fixture_name}"
+                / f"{case_name}.json"
             )
         ) as snapshot_file:
             consumer_system_v2_snapshots.append(json.loads(snapshot_file.read()))

@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import pytest
 
 from libecalc import dto
-from libecalc.fixtures import DTOCase
+from libecalc.fixtures import YamlCase
 from libecalc.presentation.flow_diagram.EcalcModelMapper import (
     EcalcModelMapper,
     FlowDiagram,
@@ -17,10 +17,9 @@ from libecalc.presentation.flow_diagram.EcalcModelMapper import (
 
 class TestEcalcModelMapper:
     @pytest.mark.snapshot
-    def test_all_energy_usage_models(self, all_energy_usage_models_dto: DTOCase, snapshot):
-        actual_fd = EcalcModelMapper.from_dto_to_fde(
-            all_energy_usage_models_dto.ecalc_model, result_options=dto.ResultOptions()
-        )
+    def test_all_energy_usage_models(self, all_energy_usage_models_yaml: YamlCase, snapshot):
+        model = all_energy_usage_models_yaml.get_yaml_model()
+        actual_fd = EcalcModelMapper.from_dto_to_fde(model.dto, result_options=dto.ResultOptions())
 
         snapshot_name = "all_energy_usage_models_fde.json"
         snapshot.assert_match(
