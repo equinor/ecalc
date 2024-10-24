@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocumentation=self.webpackChunkdocumentation||[]).push([[7741],{78497:e=>{e.exports=JSON.parse('{"tags":[{"label":"release","permalink":"/ecalc/docs/tags/release","count":33},{"label":"eCalc","permalink":"/ecalc/docs/tags/e-calc","count":33}]}')}}]);
