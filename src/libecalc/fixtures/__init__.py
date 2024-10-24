@@ -1,8 +1,6 @@
 from .case_types import DTOCase, YamlCase
 from .cases.all_energy_usage_models import *  # noqa: F403
 from .cases.consumer_system_v2 import (
-    consumer_system_v2_dto,
-    consumer_system_v2_dto_fixture,
     consumer_system_v2_yaml,
 )
 from .cases.consumer_with_time_slots_models import *  # noqa: F403
