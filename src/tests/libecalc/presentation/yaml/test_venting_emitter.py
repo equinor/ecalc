@@ -38,7 +38,7 @@ def methane():
 
 
 @pytest.fixture
-def variables_map(methane_values):
+def variables_map():
     return VariablesMap(
         variables={"TSC1;Methane_rate": methane(), "TSC1;Oil_rate": oil_values()},
         time_vector=[
