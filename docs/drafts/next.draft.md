@@ -3,7 +3,7 @@ slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
 tags: [release, eCalc]
-sidebar_position: -36
+sidebar_position: -37
 ---
 
 # eCalc {{ version }}
@@ -13,7 +13,3 @@ sidebar_position: -36
 ## Bug Fixes
 
 ## Breaking changes
-
-* Removing support for Python 3.8, 3.9, 3.10. If you have downloaded/installed libeCalc manually, you will need to
-run with at least Python 3.11 from now on.
-* control margin is required for compressors, except for simplified trains (control margin not allowed). Simplified trains have to use generic charts.
