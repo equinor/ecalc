@@ -1,5 +1,6 @@
 from .case_types import DTOCase, YamlCase
 from .cases.all_energy_usage_models import *  # noqa: F403
+from .cases.compressor_systems_and_compressor_train_temporal import compressor_systems_and_compressor_train_temporal
 from .cases.consumer_system_v2 import (
     consumer_system_v2_yaml,
 )
