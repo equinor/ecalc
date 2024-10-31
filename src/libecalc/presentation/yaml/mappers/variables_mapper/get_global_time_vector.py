@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import Iterable, List, Optional, Set
+from typing import List, Optional, Set
 
 import pandas as pd
 

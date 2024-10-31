@@ -7,8 +7,9 @@ To find outlet z and kappa, an iteration of polytropic head is performed and out
 kappa are updated until polytropic head converges
 """
 
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Callable, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 from numpy.typing import NDArray

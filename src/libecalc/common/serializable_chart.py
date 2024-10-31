@@ -1,8 +1,7 @@
-from typing import List, Literal, Optional
+from typing import Annotated, List, Literal, Optional, Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from typing_extensions import Annotated, Self
 
 from libecalc.common.chart_type import ChartType
 from libecalc.common.logger import logger

@@ -1,8 +1,7 @@
 from abc import ABC
-from typing import Optional
+from typing import Optional, Self
 
 import pandas as pd
-from typing_extensions import Self
 
 from libecalc.common.time_utils import Frequency, Periods, resample_periods
 from libecalc.common.units import Unit

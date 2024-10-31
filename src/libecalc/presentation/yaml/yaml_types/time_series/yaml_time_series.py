@@ -1,7 +1,6 @@
-from typing import Literal, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import ConfigDict, Field, field_validator
-from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_validators.file_validators import (

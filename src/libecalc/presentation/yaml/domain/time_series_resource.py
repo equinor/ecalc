@@ -1,10 +1,10 @@
 import re
+from collections.abc import Iterable
 from datetime import datetime
 from math import isnan
-from typing import Iterable, List, Union
+from typing import List, Self, Union
 
 from pandas.errors import ParserError
-from typing_extensions import Self
 
 from libecalc.common.errors.exceptions import (
     InvalidColumnException,

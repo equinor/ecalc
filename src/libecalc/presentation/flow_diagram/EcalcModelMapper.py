@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Dict, Iterable, List, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumer_type import ConsumerType

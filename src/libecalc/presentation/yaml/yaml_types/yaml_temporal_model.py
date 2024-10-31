@@ -1,7 +1,6 @@
-from typing import Any, Dict, TypeVar, Union
+from typing import Annotated, Any, Dict, Literal, TypeVar, Union
 
 from pydantic import Discriminator, Tag
-from typing_extensions import Annotated, Literal
 
 from libecalc.common.errors.exceptions import InvalidDateException
 from libecalc.common.time_utils import is_temporal_model

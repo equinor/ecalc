@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Sequence, Union, cast
+from collections.abc import Sequence
+from typing import Any, Dict, List, Optional, Union, cast
 
 import numpy as np
 from numpy import float64

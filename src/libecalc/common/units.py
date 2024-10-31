@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable
 from enum import Enum
 from functools import singledispatch
-from typing import Callable, Dict, TypeVar, Union
+from typing import Dict, TypeVar, Union
 
 import numpy as np
 from numpy.typing import NDArray

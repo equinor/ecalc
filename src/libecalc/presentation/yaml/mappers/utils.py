@@ -1,5 +1,6 @@
 from collections import namedtuple
-from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union
+from collections.abc import Sequence
+from typing import Any, Dict, List, Optional, TypeVar, Union
 
 import pandas as pd
 

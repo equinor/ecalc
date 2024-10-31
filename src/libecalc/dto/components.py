@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional, TypeVar, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
-from typing_extensions import Annotated
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType

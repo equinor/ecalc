@@ -1,8 +1,7 @@
 import enum
-from typing import Literal, Optional
+from typing import Literal, Optional, assert_never
 
 from pydantic import ConfigDict, Field
-from typing_extensions import assert_never
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Dict, Generic, List, Protocol, TypeVar
+from typing import Dict, Generic, List, Protocol, Self, TypeVar
 
 import networkx as nx
-from typing_extensions import Self
 
 NodeID = str
 

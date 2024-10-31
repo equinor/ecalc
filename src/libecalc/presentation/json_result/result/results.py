@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from _operator import attrgetter
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
-from typing_extensions import Annotated
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType

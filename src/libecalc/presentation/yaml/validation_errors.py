@@ -3,12 +3,11 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from textwrap import indent
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Self, Tuple, Union
 
 import yaml
 from pydantic import ValidationError as PydanticValidationError
 from pydantic_core import ErrorDetails
-from typing_extensions import Self
 from yaml import Dumper, Mark
 
 from libecalc.common.logger import logger

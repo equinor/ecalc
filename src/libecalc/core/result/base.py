@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
-from typing_extensions import Self
 
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO

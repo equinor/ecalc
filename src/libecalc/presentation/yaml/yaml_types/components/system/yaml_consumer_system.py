@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Dict, Generic, List, Literal, Optional, TypeVar, Union
+from typing import Annotated, Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field, TypeAdapter
-from typing_extensions import Annotated
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType

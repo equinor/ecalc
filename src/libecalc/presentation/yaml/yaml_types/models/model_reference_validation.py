@@ -1,9 +1,8 @@
-from typing import Any, Dict, List
+from typing import Annotated, Any, Dict, List
 
 from pydantic import AfterValidator
 from pydantic_core import PydanticCustomError
 from pydantic_core.core_schema import ValidationInfo
-from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModelType,

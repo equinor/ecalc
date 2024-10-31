@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import abc
 from datetime import datetime
-from typing import Dict, List, Protocol, Union
+from typing import Annotated, Dict, List, Protocol, Union, assert_never
 
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from typing_extensions import Annotated, assert_never
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalModel

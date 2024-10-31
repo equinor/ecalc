@@ -1,8 +1,7 @@
 from datetime import date, datetime
-from typing import Dict, List, Optional, TypeVar, Union
+from typing import Annotated, Dict, List, Optional, TypeVar, Union
 
 from pydantic import StringConstraints
-from typing_extensions import Annotated
 
 from libecalc.common.time_utils import Period, is_temporal_model
 from libecalc.expression import Expression

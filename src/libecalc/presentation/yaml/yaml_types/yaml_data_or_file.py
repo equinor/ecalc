@@ -1,7 +1,7 @@
-from typing import Union
+from typing import Annotated, Union
 
 from pydantic import Discriminator, Field, Tag, field_validator
-from typing_extensions import Annotated, TypeVar
+from typing_extensions import TypeVar
 
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase

@@ -1,6 +1,7 @@
 import abc
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Iterator, Protocol, Tuple, Union
+from typing import Protocol, Tuple, Union
 
 from libecalc.common.time_utils import Period
 from libecalc.domain.tabular.tabular import HasColumns, Tabular

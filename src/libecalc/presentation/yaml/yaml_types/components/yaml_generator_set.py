@@ -1,7 +1,6 @@
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 
 from pydantic import ConfigDict, Field, model_validator
-from typing_extensions import Annotated
 
 from libecalc.common.discriminator_fallback import DiscriminatorWithFallback
 from libecalc.dto.types import ConsumerUserDefinedCategoryType

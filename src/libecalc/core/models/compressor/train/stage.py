@@ -1,7 +1,6 @@
-from typing import Dict, Optional, Union
+from typing import Annotated, Dict, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from typing_extensions import Annotated
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger

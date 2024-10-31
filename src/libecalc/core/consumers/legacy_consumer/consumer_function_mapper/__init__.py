@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, Union
+from collections.abc import Callable
+from typing import Any, Dict, Union
 
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.logger import logger

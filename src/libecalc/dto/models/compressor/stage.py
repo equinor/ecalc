@@ -1,7 +1,6 @@
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 from pydantic import Field
-from typing_extensions import Annotated
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.serializable_chart import VariableSpeedChartDTO

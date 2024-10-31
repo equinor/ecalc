@@ -1,8 +1,9 @@
 import os
 import typing
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from libecalc.common.logger import logger
 
