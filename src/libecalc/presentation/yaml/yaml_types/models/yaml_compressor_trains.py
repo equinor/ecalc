@@ -1,6 +1,7 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field
+from pydantic import Field, model_validator
+from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -15,6 +16,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
     YamlUnknownCompressorStages,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
+    YamlChartType,
     YamlModelType,
     YamlPressureControl,
 )
@@ -145,6 +147,34 @@ class YamlSimplifiedVariableSpeedCompressorTrain(YamlCompressorTrainBase):
 
     def to_dto(self):
         raise NotImplementedError
+
+    @model_validator(mode="after")
+    def check_compressor_chart(self, info: ValidationInfo):
+        if info.context is not None:
+            train = info.context["model_types"][self.name].compressor_train
+            allowed_charts_simplified_trains = [
+                YamlChartType.GENERIC_FROM_INPUT.value,
+                YamlChartType.GENERIC_FROM_DESIGN_POINT.value,
+            ]
+            # If known compressor stages
+            if hasattr(train, EcalcYamlKeywords.models_type_compressor_train_stages.lower()):
+                for stage in train.stages:
+                    compressor_chart = info.context["model_types"][stage.compressor_chart]
+
+                    if compressor_chart.chart_type not in allowed_charts_simplified_trains:
+                        raise ValueError(
+                            f"{compressor_chart.chart_type.value} compressor chart is not supported for {self.type.value}. "
+                            f"Allowed charts are {', '.join(allowed_charts_simplified_trains)}."
+                        )
+            else:
+                # Unknown compressor stages
+                compressor_chart = info.context["model_types"][train.compressor_chart]
+                if compressor_chart.chart_type not in allowed_charts_simplified_trains:
+                    raise ValueError(
+                        f"{compressor_chart.chart_type} compressor chart is not supported for {self.type}. "
+                        f"Allowed charts are {', '.join(allowed_charts_simplified_trains)}."
+                    )
+        return self
 
 
 class YamlMultipleStreamsStream(YamlBase):
