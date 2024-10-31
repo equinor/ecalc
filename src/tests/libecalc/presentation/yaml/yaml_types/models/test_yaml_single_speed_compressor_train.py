@@ -30,18 +30,16 @@ def test_control_margin_required():
     with pytest.raises(ValidationError) as exc_info:
         model.validate_for_run()
 
-    errors = exc_info.value.errors()
-
     # Control margin is required for single speed compressor train:
     assert (
-        f"MODELS[2].{EcalcYamlKeywords.models_type_compressor_train_single_speed}.COMPRESSOR_TRAIN.STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}"
-        in str(errors[0])
+        f"{EcalcYamlKeywords.models_type_compressor_train_single_speed}.COMPRESSOR_TRAIN.STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}\n"
+        f"\tMessage: This keyword is missing, it is required" in str(exc_info.value)
     )
-    assert "This keyword is missing, it is required" in str(errors[0])
 
     # Control margin unit is required for single speed compressor train:
     assert (
-        f"MODELS[2].{EcalcYamlKeywords.models_type_compressor_train_single_speed}.COMPRESSOR_TRAIN.STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit}"
-        in str(errors[1])
+        f"{EcalcYamlKeywords.models_type_compressor_train_single_speed}.COMPRESSOR_TRAIN.STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit}\n"
+        f"\tMessage: This keyword is missing, it is required" in str(exc_info.value)
     )
-    assert "This keyword is missing, it is required" in str(errors[1])

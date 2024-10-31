@@ -31,28 +31,29 @@ def test_control_margin_and_pressure_drop_not_allowed():
     with pytest.raises(ValidationError) as exc_info:
         model.validate_for_run()
 
-    errors = exc_info.value.errors()
-
     # Control margin is not allowed:
     assert (
-        f"MODELS[2].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}"
-        in str(errors[0])
+        f"{EcalcYamlKeywords.models_type_compressor_train_simplified}"
+        f".COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin}\n"
+        f"\tMessage: This is not a valid keyword" in str(exc_info.value)
     )
-    assert "This is not a valid keyword" in str(errors[0])
 
     # Control margin unit is not allowed:
     assert (
-        f"MODELS[2].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit}"
-        in str(errors[1])
+        f"{EcalcYamlKeywords.models_type_compressor_train_simplified}."
+        f"COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_stage_control_margin_unit}\n"
+        f"\tMessage: This is not a valid keyword" in str(exc_info.value)
     )
-    assert "This is not a valid keyword" in str(errors[1])
 
     # Pressure drop ahead of stage is not allowed:
     assert (
-        f"MODELS[2].{EcalcYamlKeywords.models_type_compressor_train_simplified}.COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0].{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}"
-        in str(errors[2])
+        f"{EcalcYamlKeywords.models_type_compressor_train_simplified}."
+        f"COMPRESSOR_TRAIN.YamlCompressorStages[YamlCompressorStage].STAGES[0]."
+        f"{EcalcYamlKeywords.models_type_compressor_train_pressure_drop_ahead_of_stage}\n"
+        f"\tMessage: This is not a valid keyword" in str(exc_info.value)
     )
-    assert "This is not a valid keyword" in str(errors[2])
 
 
 def test_single_speed_chart_not_allowed():
@@ -70,10 +71,8 @@ def test_single_speed_chart_not_allowed():
     with pytest.raises(ValidationError) as exc_info:
         model.validate_for_run()
 
-    errors = exc_info.value.errors()
-
     # Single speed compressor chart is not allowed for simplified trains:
     assert (
-        f"{EcalcYamlKeywords.consumer_chart_type_single_speed} compressor chart is not supported for {EcalcYamlKeywords.models_type_compressor_train_simplified}."
-        in str(errors[0])
+        f"{EcalcYamlKeywords.consumer_chart_type_single_speed} compressor chart is not supported for "
+        f"{EcalcYamlKeywords.models_type_compressor_train_simplified}." in str(exc_info.value)
     )
