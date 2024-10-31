@@ -30,9 +30,7 @@
         "github.copilot",
         "charliermarsh.ruff",
         "shardulm94.trailing-spaces",
-        "esbenp.prettier-vscode",
-        "ms-vscode.test-adapter-converter",
-        "littlefoxteam.vscode-python-test-adapter"
+        "esbenp.prettier-vscode"
       ]
     }
   },
