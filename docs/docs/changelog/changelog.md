@@ -1,5 +1,65 @@
 # Changelog
 
+## [9.0.0](https://github.com/equinor/ecalc/compare/v8.26.0...v9.0.0) (2024-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* control margin required for compressors ([#635](https://github.com/equinor/ecalc/issues/635))
+
+### Bug Fixes
+
+* missing validation on venting emitter type oil volume ([#662](https://github.com/equinor/ecalc/issues/662)) ([68ef074](https://github.com/equinor/ecalc/commit/68ef074337cf6d36872462113410b4cc32aff361))
+* some consumer or emitter validation ([7f808da](https://github.com/equinor/ecalc/commit/7f808dac711d1bcf619e6832558065371f011206))
+* support python types in DiscriminatorWithFallback ([44dbb50](https://github.com/equinor/ecalc/commit/44dbb503f13af0c01da8f09f0ddec24948a0fb8b))
+* validate lengths after data validation ([a2e3f59](https://github.com/equinor/ecalc/commit/a2e3f595611550ee8dabc8d39fe164eab953e03b))
+
+
+### Documentation
+
+* changed from dockerfile to docker-compose.yml ([48732d4](https://github.com/equinor/ecalc/commit/48732d497783c755434093465a806ab02fa99402))
+* inform how to run tests locally ([#675](https://github.com/equinor/ecalc/issues/675)) ([15fdf2f](https://github.com/equinor/ecalc/commit/15fdf2fc6d884084fc00a8b375bc22defdb89018))
+
+
+### Miscellaneous Chores
+
+* automatic ruff fixes for python 3.11 ([77897a4](https://github.com/equinor/ecalc/commit/77897a45292d99e6a3c3cc04f8dcbd5f1973568e))
+* avoid tests to reference other tests except fixtures ([4b15aab](https://github.com/equinor/ecalc/commit/4b15aab00c5c187026ce561ceaae41bce07fed94))
+* back to python 3.8 to make 3.11 changes in separate commit ([6e88619](https://github.com/equinor/ecalc/commit/6e8861981f5393f96ab6f2cddd54c5e5eff9cdd0))
+* change to use python 3.11 as default ([d2a9145](https://github.com/equinor/ecalc/commit/d2a9145d02499657a6ca97e8d0146e3d76b72825))
+* control margin required for compressors ([#635](https://github.com/equinor/ecalc/issues/635)) ([2b3ea2a](https://github.com/equinor/ecalc/commit/2b3ea2a8133a71ad54274bfbdf9172dadbfd730d))
+* make it easier to generate changelog on release ([#660](https://github.com/equinor/ecalc/issues/660)) ([66c7c10](https://github.com/equinor/ecalc/commit/66c7c100390601267eba80ba62916592e37e0984))
+* make ruff happy ([9d7d23f](https://github.com/equinor/ecalc/commit/9d7d23fbea0c39d2bb29ebec52756ca1455e7e33))
+* more info on python 3.11 minimum ([8664182](https://github.com/equinor/ecalc/commit/8664182b3df280b2443f487bd9395f77228eeaab))
+* refix additional python 3.11 ruff complaints ([0a711a3](https://github.com/equinor/ecalc/commit/0a711a382f97fded6e08edc5f731ae8895c52b63))
+* release 9.0.0 ([#677](https://github.com/equinor/ecalc/issues/677)) ([c4f238a](https://github.com/equinor/ecalc/commit/c4f238a89bbc1bafefbd911c153f21eaceeb8413))
+* remove python 3.8,3.9,3.10, add 3.13 support ([bd592b4](https://github.com/equinor/ecalc/commit/bd592b4c82df80d9af43bca60ba7f200218463fc))
+* remove unused code ([dbdb6dd](https://github.com/equinor/ecalc/commit/dbdb6dde23689456b786e436404349930474ee2d))
+* remove unused code ([436c05b](https://github.com/equinor/ecalc/commit/436c05b55f6d1b6b00117113cb1e9a78d30d9a11))
+* run ruff with python 3.11 ([2981ced](https://github.com/equinor/ecalc/commit/2981ced3a1c1bc2e5ec24a540d71921705aa9afb))
+* update changelog regarding python support ([2e8cb13](https://github.com/equinor/ecalc/commit/2e8cb13f7e42578cf8202757374e1829fde15d8b))
+* update pr template to reflect next.md change ([dcbd43a](https://github.com/equinor/ecalc/commit/dcbd43a89046cc658e006eac4296171006a866dd))
+* update to python 3.11 syntax ([a2c4a74](https://github.com/equinor/ecalc/commit/a2c4a74d74aba486820d52552d1a5ae3c7678ff9))
+* upgrade dependencies for week 43 ([#657](https://github.com/equinor/ecalc/issues/657)) ([19ef808](https://github.com/equinor/ecalc/commit/19ef8085bac0281519453c7948aa435608f0169e))
+
+
+### Code Refactoring
+
+* consumer system v2 types ([a7177b1](https://github.com/equinor/ecalc/commit/a7177b1795067baba0878dfe3779474595a34faf))
+* move generator to formatter ([0937014](https://github.com/equinor/ecalc/commit/09370148889e4d8161bb48838fcd27199fac5f8c))
+* numpy2 ready - avoid Numpy DeprecationWarnings ([7cbf9db](https://github.com/equinor/ecalc/commit/7cbf9dba5a382a1c67c4cf4659378a94d5ee5228))
+* reference service interface ([d8f28ab](https://github.com/equinor/ecalc/commit/d8f28ab3235a25bcc0fcae20f4e39551db164d59))
+* set defaults in yaml ([cdf3864](https://github.com/equinor/ecalc/commit/cdf38640a33e7db84d51149a07048b9e359ddfcd))
+* use Periods instead of datetime for temporal model dicts ([4068795](https://github.com/equinor/ecalc/commit/4068795917d5591ea6abdab8f3e04c502e222468))
+
+
+### Tests
+
+* remove dto cases ([400374d](https://github.com/equinor/ecalc/commit/400374d34a1614203ff07d6803d5cbdfc1990527))
+* update and fix tests ([7c1f2e6](https://github.com/equinor/ecalc/commit/7c1f2e6deed557388763f72454f7ad9dd8c25a0b))
+* use pytest marker and run stp/ltp tests in Docker ([c304705](https://github.com/equinor/ecalc/commit/c304705e45808fc2bf81757fb7a18375b154399e))
+* use yaml model in requested pressure test ([8c855e1](https://github.com/equinor/ecalc/commit/8c855e10a9817aa41c922d25c1d9b3a5ea74ba9e))
+
 ## [8.26.0](https://github.com/equinor/ecalc/compare/v8.25.0...v8.26.0) (2024-10-16)
 
 
