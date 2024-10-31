@@ -1,4 +1,4 @@
-from typing import Dict, List, Protocol, Union
+from typing import Protocol, Union
 
 
 class Resource(Protocol):
@@ -6,9 +6,9 @@ class Resource(Protocol):
     A resource containing tabular data
     """
 
-    def get_headers(self) -> List[str]: ...
+    def get_headers(self) -> list[str]: ...
 
-    def get_column(self, header: str) -> List[Union[float, int, str]]: ...
+    def get_column(self, header: str) -> list[Union[float, int, str]]: ...
 
 
-Resources = Dict[str, Resource]
+Resources = dict[str, Resource]

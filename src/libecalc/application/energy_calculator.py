@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict
 
 import numpy as np
 
@@ -49,14 +48,14 @@ class EnergyCalculator:
     ):
         self._graph = graph
 
-    def evaluate_energy_usage(self, variables_map: VariablesMap) -> Dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(self, variables_map: VariablesMap) -> dict[str, EcalcModelResult]:
         component_ids = list(reversed(self._graph.sorted_node_ids))
         component_dtos = [self._graph.get_node(component_id) for component_id in component_ids]
 
-        consumer_results: Dict[str, EcalcModelResult] = {}
+        consumer_results: dict[str, EcalcModelResult] = {}
 
         for component_dto in component_dtos:
-            if isinstance(component_dto, (ElectricityConsumerDTO, FuelConsumerDTO)):
+            if isinstance(component_dto, ElectricityConsumerDTO | FuelConsumerDTO):
                 consumer = Consumer(
                     id=component_dto.id,
                     name=component_dto.name,
@@ -110,7 +109,7 @@ class EnergyCalculator:
                 )
                 optimizer = PriorityOptimizer()
 
-                results_per_period: Dict[str, Dict[Period, ComponentResult]] = defaultdict(dict)
+                results_per_period: dict[str, dict[Period, ComponentResult]] = defaultdict(dict)
                 priorities_used = []
                 for period in variables_map.periods:
                     consumers_for_period = [
@@ -183,8 +182,8 @@ class EnergyCalculator:
         return Numbers.format_results_to_precision(consumer_results, precision=6)
 
     def evaluate_emissions(
-        self, variables_map: VariablesMap, consumer_results: Dict[str, EcalcModelResult]
-    ) -> Dict[str, Dict[str, EmissionResult]]:
+        self, variables_map: VariablesMap, consumer_results: dict[str, EcalcModelResult]
+    ) -> dict[str, dict[str, EmissionResult]]:
         """
         Calculate emissions for fuel consumers and emitters
 
@@ -194,9 +193,9 @@ class EnergyCalculator:
 
         Returns: a mapping from consumer_id to emissions
         """
-        emission_results: Dict[str, Dict[str, EmissionResult]] = {}
+        emission_results: dict[str, dict[str, EmissionResult]] = {}
         for consumer_dto in self._graph.nodes.values():
-            if isinstance(consumer_dto, (FuelConsumerDTO, GeneratorSetDTO)):
+            if isinstance(consumer_dto, FuelConsumerDTO | GeneratorSetDTO):
                 fuel_model = FuelModel(consumer_dto.fuel)
                 energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
                 emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
@@ -210,7 +209,7 @@ class EnergyCalculator:
                     emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
                         expression_evaluator=variables_map, fuel_rate=np.asarray(energy_usage.values)
                     )
-            elif isinstance(consumer_dto, (YamlDirectTypeEmitter, YamlOilTypeEmitter)):
+            elif isinstance(consumer_dto, YamlDirectTypeEmitter | YamlOilTypeEmitter):
                 installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
                 installation = self._graph.get_node(installation_id)
 

@@ -1,5 +1,4 @@
 import itertools
-from typing import List
 
 import numpy as np
 import pytest
@@ -9,7 +8,7 @@ from libecalc.core.models.compressor.train.fluid import FluidStream
 
 
 @pytest.fixture
-def fluid_streams(dry_fluid, medium_fluid, rich_fluid) -> List[List[FluidStream]]:
+def fluid_streams(dry_fluid, medium_fluid, rich_fluid) -> list[list[FluidStream]]:
     fluid_dry = FluidStream(dry_fluid)
     fluid_medium = FluidStream(medium_fluid)
     fluid_rich = FluidStream(rich_fluid)
@@ -31,7 +30,7 @@ def fluid_streams(dry_fluid, medium_fluid, rich_fluid) -> List[List[FluidStream]
     return streams
 
 
-def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: List[List[FluidStream]]):
+def test_set_new_pressure_and_enthalpy_or_temperature(fluid_streams: list[list[FluidStream]]):
     enthalpy_change_joule_per_kg = 100000.0
     pressure_increase_factor = 3.0
 

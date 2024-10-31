@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Dict
 
 import pytest
 
@@ -22,7 +21,7 @@ def rich_fluid_dto() -> FluidModel:
 
 
 @pytest.fixture
-def fuel_gas() -> Dict[Period, FuelType]:
+def fuel_gas() -> dict[Period, FuelType]:
     return {
         Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): FuelType(
             name="fuel_gas",

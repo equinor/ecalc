@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Annotated, Dict, List, Literal, Union
+from typing import Annotated, Literal, Union
 
 import numpy as np
 from pydantic import (
@@ -58,7 +58,7 @@ class YamlVentingVolumeEmission(YamlBase):
 
 class YamlVentingVolume(YamlBase):
     rate: YamlOilVolumeRate = Field(..., title="RATE", description="The oil loading/storage volume or volume/rate")
-    emissions: List[YamlVentingVolumeEmission] = Field(
+    emissions: list[YamlVentingVolumeEmission] = Field(
         ...,
         title="EMISSIONS",
         description="The emission types and volume-emission-factors associated with oil loading/storage",
@@ -110,15 +110,15 @@ class YamlDirectTypeEmitter(YamlBase):
         description="Type of venting emitter",
     )
 
-    emissions: List[YamlVentingEmission] = Field(
+    emissions: list[YamlVentingEmission] = Field(
         ...,
         title="EMISSIONS",
         description="The emissions for the emitter of type DIRECT_EMISSION",
     )
 
     def get_emissions(
-        self, expression_evaluator: ExpressionEvaluator, regularity: Dict[datetime, Expression]
-    ) -> Dict[str, TimeSeriesStreamDayRate]:
+        self, expression_evaluator: ExpressionEvaluator, regularity: dict[datetime, Expression]
+    ) -> dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = expression_evaluator.evaluate(
             expression=TemporalModel(regularity),
         )
@@ -201,8 +201,8 @@ class YamlOilTypeEmitter(YamlBase):
     def get_emissions(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: Dict[datetime, Expression],
-    ) -> Dict[str, TimeSeriesStreamDayRate]:
+        regularity: dict[datetime, Expression],
+    ) -> dict[str, TimeSeriesStreamDayRate]:
         regularity_evaluated = expression_evaluator.evaluate(expression=TemporalModel(regularity))
 
         oil_rates = expression_evaluator.evaluate(

@@ -1,4 +1,4 @@
-from typing import Dict, List, Protocol, TypedDict, Union
+from typing import Protocol, TypedDict, Union
 
 ModelName = str
 
@@ -23,9 +23,9 @@ class YamlModelValidationContextNames:
 YamlModelValidationContext = TypedDict(
     "YamlModelValidationContext",
     {
-        YamlModelValidationContextNames.resource_file_names: List[str],  # type: ignore
-        YamlModelValidationContextNames.expression_tokens: List[str],
-        YamlModelValidationContextNames.model_types: Dict[ModelName, ModelContext],
+        YamlModelValidationContextNames.resource_file_names: list[str],  # type: ignore
+        YamlModelValidationContextNames.expression_tokens: list[str],
+        YamlModelValidationContextNames.model_types: dict[ModelName, ModelContext],
     },
     total=True,
 )

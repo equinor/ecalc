@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -11,7 +11,7 @@ from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 class FuelType(EcalcBaseModel):
     name: str
     user_defined_category: Optional[FuelTypeUserDefinedCategoryType] = Field(default=None, validate_default=True)
-    emissions: List[Emission] = Field(default_factory=list)
+    emissions: list[Emission] = Field(default_factory=list)
 
     @field_validator("user_defined_category", mode="before")
     @classmethod

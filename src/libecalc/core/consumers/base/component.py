@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.common.variables import ExpressionEvaluator
@@ -19,7 +18,7 @@ class BaseConsumerWithoutOperationalSettings(ABC):
     id: str
 
     @abstractmethod
-    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: TimeSeriesFloat) -> List[float]: ...
+    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: TimeSeriesFloat) -> list[float]: ...
 
     @abstractmethod
-    def evaluate(self, streams: List[StreamConditions]) -> EcalcModelResult: ...
+    def evaluate(self, streams: list[StreamConditions]) -> EcalcModelResult: ...

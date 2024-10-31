@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Dict, List, Optional, TypeVar, Union
+from typing import Annotated, Optional, TypeVar, Union
 
 from pydantic import StringConstraints
 
@@ -17,8 +17,8 @@ ExpressionType = Union[str, int, float, Expression]
 
 
 def convert_expression(
-    value: Optional[Union[ExpressionType, Dict[Union[str, date, Period], ExpressionType]]],
-) -> Optional[Union[Expression, Dict[Period, Expression]]]:
+    value: Optional[Union[ExpressionType, dict[Union[str, date, Period], ExpressionType]]],
+) -> Optional[Union[Expression, dict[Period, Expression]]]:
     if value is None or isinstance(value, Expression):
         return value
     elif is_temporal_model(value):
@@ -42,8 +42,8 @@ def convert_expression(
 
 
 def convert_expressions(
-    value: Optional[List[Optional[Union[ExpressionType, Dict[Period, ExpressionType]]]]],
-) -> Optional[List[Optional[Union[Expression, Dict[Period, Expression]]]]]:
+    value: Optional[list[Optional[Union[ExpressionType, dict[Period, ExpressionType]]]]],
+) -> Optional[list[Optional[Union[Expression, dict[Period, Expression]]]]]:
     if value is None:
         return value
     if not isinstance(value, list):
@@ -63,7 +63,7 @@ def uppercase_user_defined_category(value):
 TModel = TypeVar("TModel")
 
 
-def validate_temporal_model(model: Dict[Period, TModel]) -> Dict[Period, TModel]:
+def validate_temporal_model(model: dict[Period, TModel]) -> dict[Period, TModel]:
     if not (list(model.keys()) == sorted(model)):
         raise ValueError("Dates in a temporal model should be sorted with the earliest date first")
 

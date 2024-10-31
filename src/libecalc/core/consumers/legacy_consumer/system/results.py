@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -28,7 +28,7 @@ class ConsumerSystemComponentResult(BaseModel):
     consumer_model_result: Union[PumpModelResult, CompressorTrainResult]
 
     @property
-    def energy_usage(self) -> List[Optional[float]]:
+    def energy_usage(self) -> list[Optional[float]]:
         return self.consumer_model_result.energy_usage
 
     @property
@@ -39,7 +39,7 @@ class ConsumerSystemComponentResult(BaseModel):
             return np.zeros_like(self.consumer_model_result.energy_usage)
 
     @property
-    def rate(self) -> List[Optional[float]]:
+    def rate(self) -> list[Optional[float]]:
         return self.consumer_model_result.rate
 
 
@@ -56,7 +56,7 @@ class CompressorResult(ConsumerSystemComponentResult):
 
 
 class ConsumerSystemOperationalSettingResult(BaseModel):
-    consumer_results: List[ConsumerSystemComponentResult]
+    consumer_results: list[ConsumerSystemComponentResult]
     model_config = ConfigDict(frozen=True)
 
     @property
@@ -81,7 +81,7 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
 
         for result in self.consumer_results:
             energy_function_result = result.consumer_model_result
-            if isinstance(energy_function_result, (CompressorTrainResult, PumpModelResult)):
+            if isinstance(energy_function_result, CompressorTrainResult | PumpModelResult):
                 invalid_indices = np.add(
                     invalid_indices,
                     np.array([0 if x else 1 for x in energy_function_result.is_valid]),
@@ -113,9 +113,9 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
     typ: Literal[ConsumerFunctionType.SYSTEM] = ConsumerFunctionType.SYSTEM  # type: ignore[valid-type]
 
     operational_setting_used: PydanticNDArray  # integers in the range of number of operational settings
-    operational_settings: List[List[ConsumerSystemOperationalSetting]]
-    operational_settings_results: List[List[ConsumerSystemOperationalSettingResult]]
-    consumer_results: List[List[ConsumerSystemComponentResult]]
+    operational_settings: list[list[ConsumerSystemOperationalSetting]]
+    operational_settings_results: list[list[ConsumerSystemOperationalSettingResult]]
+    consumer_results: list[list[ConsumerSystemComponentResult]]
     cross_over_used: Optional[PydanticNDArray] = (
         None  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
     )

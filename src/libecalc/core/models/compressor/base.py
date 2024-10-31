@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import partial
-from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
@@ -41,7 +40,7 @@ class CompressorModel(BaseModel):
     @abstractmethod
     def get_max_standard_rate_from_streams(
         self,
-        inlet_streams: List[StreamConditions],
+        inlet_streams: list[StreamConditions],
         outlet_stream: StreamConditions,
     ):
         raise NotImplementedError
@@ -64,7 +63,7 @@ class CompressorModel(BaseModel):
     @abstractmethod
     def evaluate_streams(
         self,
-        inlet_streams: List[StreamConditions],
+        inlet_streams: list[StreamConditions],
         outlet_stream: StreamConditions,
     ):
         raise NotImplementedError
@@ -97,7 +96,7 @@ class CompressorWithTurbineModel(CompressorModel):
 
     def evaluate_streams(
         self,
-        inlet_streams: List[StreamConditions],
+        inlet_streams: list[StreamConditions],
         outlet_stream: StreamConditions,
     ) -> CompressorTrainResult:
         return self.evaluate_turbine_based_on_compressor_model_result(

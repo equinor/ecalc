@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -9,15 +9,15 @@ from libecalc.core.models.results import EnergyFunctionResult
 
 
 class TurbineResult(EnergyFunctionResult):
-    load: List[Optional[float]]  # MW
-    efficiency: List[Optional[float]]  # % Fraction between 0 and 1
-    fuel_rate: List[Optional[float]]  # Sm3/day?
+    load: list[Optional[float]]  # MW
+    efficiency: list[Optional[float]]  # % Fraction between 0 and 1
+    fuel_rate: list[Optional[float]]  # Sm3/day?
 
-    power: List[Optional[float]]
+    power: list[Optional[float]]
     power_unit: Unit
 
-    exceeds_maximum_load: List[bool]
+    exceeds_maximum_load: list[bool]
 
     @property
-    def is_valid(self) -> List[bool]:
+    def is_valid(self) -> list[bool]:
         return np.invert(self.exceeds_maximum_load).tolist()

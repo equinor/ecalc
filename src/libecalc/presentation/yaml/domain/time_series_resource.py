@@ -2,7 +2,7 @@ import re
 from collections.abc import Iterable
 from datetime import datetime
 from math import isnan
-from typing import List, Self, Union
+from typing import Self, Union
 
 from pandas.errors import ParserError
 
@@ -67,7 +67,7 @@ class TimeSeriesResource(Resource):
             headers = headers[1:]
 
         try:
-            if not all(isinstance(time, (int, str)) for time in time_vector):
+            if not all(isinstance(time, int | str) for time in time_vector):
                 # time_vector may be a list of floats for example.
                 # This might happen if the resource contains an extra comma only in a single row.
                 raise InvalidTimeSeriesResourceException("could not parse time vector.")
@@ -117,7 +117,7 @@ class TimeSeriesResource(Resource):
 
             for index, value in enumerate(column):
                 row = index + 1
-                if not isinstance(value, (float, int)):
+                if not isinstance(value, float | int):
                     raise InvalidColumnException(
                         header=header,
                         row=row,
@@ -137,12 +137,12 @@ class TimeSeriesResource(Resource):
 
         return self
 
-    def get_time_vector(self) -> List[datetime]:
+    def get_time_vector(self) -> list[datetime]:
         return self._time_vector
 
-    def get_headers(self) -> List[str]:
+    def get_headers(self) -> list[str]:
         return self._headers
 
-    def get_column(self, header: str) -> List[Union[float, int, str]]:
+    def get_column(self, header: str) -> list[Union[float, int, str]]:
         # TODO: Add validation on column so that we can remove 'str' from return type
         return self._resource.get_column(header)

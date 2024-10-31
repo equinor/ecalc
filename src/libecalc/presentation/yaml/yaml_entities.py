@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, TextIO, Union, get_args
+from typing import TextIO, Union, get_args
 
 from libecalc.common.errors.exceptions import ColumnNotFoundException, HeaderNotFoundException
 from libecalc.dto import CompressorModel, EnergyModel, FuelType, GeneratorSetSampled, PumpModel, TabulatedData
@@ -14,13 +14,13 @@ class MemoryResource(Resource):
     Resource object where the data is already read and parsed.
     """
 
-    headers: List[str]
-    data: List[List[Union[float, int, str]]]
+    headers: list[str]
+    data: list[list[Union[float, int, str]]]
 
-    def get_headers(self) -> List[str]:
+    def get_headers(self) -> list[str]:
         return self.headers
 
-    def get_column(self, header: str) -> List[Union[float, int, str]]:
+    def get_column(self, header: str) -> list[Union[float, int, str]]:
         try:
             header_index = self.headers.index(header)
             return self.data[header_index]
@@ -33,8 +33,8 @@ class MemoryResource(Resource):
 
 @dataclass
 class References(ReferenceService):
-    models: Dict[str, EnergyModel] = None
-    fuel_types: Dict[str, FuelType] = None
+    models: dict[str, EnergyModel] = None
+    fuel_types: dict[str, FuelType] = None
 
     def get_fuel_reference(self, reference: str) -> FuelType:
         try:

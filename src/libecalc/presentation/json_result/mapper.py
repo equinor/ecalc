@@ -2,7 +2,7 @@ import math
 import operator
 from collections import defaultdict
 from functools import reduce
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from pydantic import TypeAdapter
 
@@ -55,7 +55,7 @@ def get_operational_setting_used_id(period: Period, operational_settings_used: T
 
 @Feature.experimental(feature_description="Reporting requested pressures is an experimental feature.")
 def get_requested_compressor_pressures(
-    energy_usage_model: Dict[Period, Any],
+    energy_usage_model: dict[Period, Any],
     pressure_type: CompressorPressureType,
     name: str,
     model_periods: Periods,
@@ -131,8 +131,8 @@ def get_requested_compressor_pressures(
 
 
 def _to_full_result(
-    emissions: Dict[str, PartialEmissionResult],
-) -> Dict[str, libecalc.presentation.json_result.result.EmissionResult]:
+    emissions: dict[str, PartialEmissionResult],
+) -> dict[str, libecalc.presentation.json_result.result.EmissionResult]:
     """
     From the partial result, generate cumulatives for the full emissions result per installation
     Args:
@@ -154,9 +154,9 @@ def _to_full_result(
 
 def _convert_to_timeseries(
     graph_result: GraphResult,
-    emission_core_results: Dict[str, Dict[str, EmissionResult]],
-    regularities: Union[TimeSeriesFloat, Dict[str, TimeSeriesFloat]],
-) -> Dict[str, Dict[str, PartialEmissionResult]]:
+    emission_core_results: dict[str, dict[str, EmissionResult]],
+    regularities: Union[TimeSeriesFloat, dict[str, TimeSeriesFloat]],
+) -> dict[str, dict[str, PartialEmissionResult]]:
     """
     Emissions by consumer id and emission name
     Args:
@@ -167,13 +167,13 @@ def _convert_to_timeseries(
     Returns:
 
     """
-    dto_result: Dict[str, Dict[str, PartialEmissionResult]] = {}
+    dto_result: dict[str, dict[str, PartialEmissionResult]] = {}
 
     for consumer_id, emissions in emission_core_results.items():
         installation_id = graph_result.graph.get_parent_installation_id(consumer_id)
         dto_result[consumer_id] = defaultdict()
 
-        if isinstance(regularities, Dict):
+        if isinstance(regularities, dict):
             regularity = regularities[installation_id]
         else:
             regularity = regularities
@@ -187,8 +187,8 @@ def _convert_to_timeseries(
 
 
 def _parse_emissions(
-    emissions: Dict[str, EmissionResult], regularity: TimeSeriesFloat
-) -> Dict[str, libecalc.presentation.json_result.result.EmissionResult]:
+    emissions: dict[str, EmissionResult], regularity: TimeSeriesFloat
+) -> dict[str, libecalc.presentation.json_result.result.EmissionResult]:
     """
     Convert emissions from core result format to dto result format.
 
@@ -239,7 +239,7 @@ def _compute_aggregated_power(
 
 def _evaluate_installations(
     graph_result: GraphResult, expression_evaluator: ExpressionEvaluator
-) -> List[libecalc.presentation.json_result.result.InstallationResult]:
+) -> list[libecalc.presentation.json_result.result.InstallationResult]:
     """
     All subcomponents have already been evaluated, here we basically collect and aggregate the results
     """
@@ -373,7 +373,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         expression_evaluator=graph_result.variables_map,
     )
 
-    regularities: Dict[str, TimeSeriesFloat] = {
+    regularities: dict[str, TimeSeriesFloat] = {
         installation.id: installation.regularity for installation in installation_results
     }
 

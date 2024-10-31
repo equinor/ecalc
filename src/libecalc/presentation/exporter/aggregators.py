@@ -1,5 +1,4 @@
 import abc
-from typing import List
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Frequency
@@ -13,7 +12,7 @@ class Aggregator(abc.ABC):
     def aggregate(
         self,
         energy_calculator_result: ExportableSet,
-    ) -> List[GroupedQueryResult]:
+    ) -> list[GroupedQueryResult]:
         """Each entry in this list will be handled separately
         Should ideally only work on one level in the hierarchy, more than one level
         at a time makes it inconsistent, so we should ideally provide which subtree
@@ -43,14 +42,14 @@ class InstallationAggregator(Aggregator):
     Now, quick way of just adding a lot of filters etc
     """
 
-    def __init__(self, frequency: Frequency, appliers: List[Applier]):
+    def __init__(self, frequency: Frequency, appliers: list[Applier]):
         self.frequency = frequency
         self.appliers = appliers
 
     def aggregate(
         self,
         energy_calculator_result: ExportableSet,
-    ) -> List[GroupedQueryResult]:
+    ) -> list[GroupedQueryResult]:
         """Aggregates data at installation level.
 
         TODO: Appliers should be serializable...or possible to convert to dict or dataframe
@@ -69,10 +68,10 @@ class InstallationAggregator(Aggregator):
         NOTE: str may be total, or name of installation
         :return:
         """
-        aggregated_installation_results: List[GroupedQueryResult] = []
+        aggregated_installation_results: list[GroupedQueryResult] = []
         for installation in energy_calculator_result.get_from_type(ExportableType.INSTALLATION):
             installation_name = installation.get_name()
-            single_results: List[QueryResult] = []
+            single_results: list[QueryResult] = []
             for applier in self.appliers:
                 applier_result = applier.apply(installation, self.frequency)
 

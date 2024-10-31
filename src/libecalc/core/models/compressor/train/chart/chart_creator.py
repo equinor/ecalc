@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
@@ -22,8 +20,8 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import (
 class CompressorChartCreator:
     @staticmethod
     def from_rate_and_head_values(
-        actual_volume_rates_m3_per_hour: List[float],
-        heads_joule_per_kg: List[float],
+        actual_volume_rates_m3_per_hour: list[float],
+        heads_joule_per_kg: list[float],
         polytropic_efficiency: float = 1,
     ) -> VariableSpeedCompressorChart:
         """Calculate a design point such that all input data are within capacity in the corresponding generic compressor

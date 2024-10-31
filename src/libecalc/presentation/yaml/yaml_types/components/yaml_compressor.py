@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import ConfigDict, Field
 
@@ -37,11 +37,11 @@ class YamlCompressor(YamlConsumerBase):
     def to_dto(
         self,
         consumes: ConsumptionType,
-        regularity: Dict[datetime, Expression],
+        regularity: dict[datetime, Expression],
         target_period: Period,
         references: ReferenceService,
         category: str,
-        fuel: Optional[Dict[datetime, FuelType]],
+        fuel: Optional[dict[datetime, FuelType]],
     ):
         return CompressorComponent(
             consumes=consumes,

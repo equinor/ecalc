@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 import pandas as pd
 
@@ -100,7 +99,7 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
     )
 
 
-def get_emission_with_only_rate(rates: List[float], name: str):
+def get_emission_with_only_rate(rates: list[float], name: str):
     timesteps = pd.date_range(datetime(2020, 1, 1), datetime(2023, 1, 1), freq="YS").to_pydatetime().tolist()
     periods = Periods.create_periods(
         times=timesteps,

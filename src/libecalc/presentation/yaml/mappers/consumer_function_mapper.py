@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Protocol, Set, Union
+from typing import Optional, Protocol, Union
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -39,14 +39,14 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
-def _handle_condition_list(conditions: List[str]):
+def _handle_condition_list(conditions: list[str]):
     conditions_with_parentheses = [f"({condition})" for condition in conditions]
     return " {*} ".join(conditions_with_parentheses)
 
 
 class ConditionedModel(Protocol):
     condition: YamlExpressionType
-    conditions: List[YamlExpressionType]
+    conditions: list[YamlExpressionType]
 
 
 def _map_condition(energy_usage_model: ConditionedModel) -> Optional[Union[str, int, float]]:
@@ -59,7 +59,7 @@ def _map_condition(energy_usage_model: ConditionedModel) -> Optional[Union[str, 
         return None
 
 
-def _all_equal(items: Set) -> bool:
+def _all_equal(items: set) -> bool:
     return len(items) <= 1
 
 
@@ -322,7 +322,7 @@ class ConsumerFunctionMapper:
             YamlTemporalModel[YamlFuelEnergyUsageModel],
             YamlTemporalModel[YamlElectricityEnergyUsageModel],
         ],
-    ) -> Optional[Dict[Period, ConsumerFunction]]:
+    ) -> Optional[dict[Period, ConsumerFunction]]:
         if data is None:
             return None
 

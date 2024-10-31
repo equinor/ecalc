@@ -5,7 +5,7 @@ import re
 import warnings
 from enum import Enum
 from numbers import Number
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union, tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -43,7 +43,7 @@ Example: SIM2;OIL_PROD:SC-102 {*} 2.0 {-} SIM1;OIL_PROD {+} SIM3:OIL_PROD_TOTAL:
 """
 
 
-def eval_tokens(tokens: List[Token], array_length: int) -> NDArray[np.float64]:
+def eval_tokens(tokens: list[Token], array_length: int) -> NDArray[np.float64]:
     token_values = [token.value for token in tokens]
     check_tokens(token_values)
 
@@ -53,13 +53,13 @@ def eval_tokens(tokens: List[Token], array_length: int) -> NDArray[np.float64]:
         )  # type: ignore[arg-type]
     )
 
-    if isinstance(evaluated_values, (Number, int, float)):
+    if isinstance(evaluated_values, Number | int | float):
         evaluated_values = np.full(fill_value=evaluated_values, shape=array_length)
     return evaluated_values
 
 
 def eval_parentheses(
-    tokens: List[Union[float, int, bool, NDArray[np.float64], str]],
+    tokens: list[Union[float, int, bool, NDArray[np.float64], str]],
     original_expression: Optional[str] = None,
 ) -> Union[NDArray[np.float64], Number]:
     """Evaluate expressions within parentheses"""
@@ -107,7 +107,7 @@ def eval_parentheses(
     return eval_logicals(tokens)
 
 
-def count_parentheses(tokens: List[Union[float, int, bool, NDArray[np.float64], str]]) -> Tuple[int, int]:
+def count_parentheses(tokens: list[Union[float, int, bool, NDArray[np.float64], str]]) -> tuple[int, int]:
     """Count the number of left "(" and right ")" parentheses in a list of tokens"""
     strings_in_tokens = [element for element in tokens if isinstance(element, str)]
     return strings_in_tokens.count(Operators.left_parenthesis.value), strings_in_tokens.count(
@@ -242,7 +242,7 @@ def eval_value(tokens):
         raise Exception(outtext)
     elif len(tokens) == 2:
         raise ValueError("Should not enter here - no time series in expression evaluator")
-    elif isinstance(tokens[0], (int, float)):
+    elif isinstance(tokens[0], int | float):
         return float(tokens[0])
     else:
         pos = 0
@@ -266,7 +266,7 @@ def eval_value(tokens):
     return var
 
 
-def lex(expression: str, token_exprs: List[Tuple[str, Optional[TokenTag]]]) -> List[Token]:
+def lex(expression: str, token_exprs: list[tuple[str, Optional[TokenTag]]]) -> list[Token]:
     pos = 0
     tokens = []
 
@@ -297,8 +297,8 @@ def lex(expression: str, token_exprs: List[Tuple[str, Optional[TokenTag]]]) -> L
     return tokens
 
 
-def lexer(expression: Union[str, int, float]) -> List[Token]:
-    if isinstance(expression, (int, float)):
+def lexer(expression: Union[str, int, float]) -> list[Token]:
+    if isinstance(expression, int | float):
         return [Token(tag=TokenTag.numeric, value=expression)]
 
     number_of_left_parentheses = expression.count(Operators.left_parenthesis.value)

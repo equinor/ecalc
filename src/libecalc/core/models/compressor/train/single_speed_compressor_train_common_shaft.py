@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -106,7 +106,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-    ) -> List[CompressorTrainResultSingleTimeStep]:
+    ) -> list[CompressorTrainResultSingleTimeStep]:
         """Evaluate a single speed compressor train total power given rate, suction pressure and discharge pressure.
         The evaluation will be different depending on the pressure control chosen.
 
@@ -677,7 +677,7 @@ class SingleSpeedCompressorTrainCommonShaft(CompressorTrainModel):
     def calculate_single_speed_train(
         self,
         train_inlet_stream: FluidStream,
-        mass_rate_kg_per_hour_per_stage: List[float],
+        mass_rate_kg_per_hour_per_stage: list[float],
         asv_rate_fraction: float = 0.0,
         asv_additional_mass_rate: float = 0.0,
         target_discharge_pressure: Optional[float] = None,

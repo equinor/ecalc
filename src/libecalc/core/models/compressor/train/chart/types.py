@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import BaseModel, ConfigDict
 
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
@@ -22,13 +20,13 @@ class CompressorChartResult(BaseModel):
     exceeds_capacity:
     """
 
-    asv_corrected_rates: List[float]
-    choke_corrected_heads: List[float]
-    rate_has_recirc: List[bool]
-    pressure_is_choked: List[bool]
-    rate_exceeds_maximum: List[bool]
-    head_exceeds_maximum: List[bool]
-    exceeds_capacity: List[bool]
+    asv_corrected_rates: list[float]
+    choke_corrected_heads: list[float]
+    rate_has_recirc: list[bool]
+    pressure_is_choked: list[bool]
+    rate_exceeds_maximum: list[bool]
+    head_exceeds_maximum: list[bool]
+    exceeds_capacity: list[bool]
     model_config = ConfigDict(extra="forbid")
 
     @property

@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Dict
 
 import pytest
 from pydantic import ValidationError
@@ -15,7 +14,7 @@ from libecalc.expression import Expression
 regularity = {Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)}
 
 
-def get_fuel(fuel_name: str, emission_name: str) -> Dict[Period, libecalc.dto.fuel_type.FuelType]:
+def get_fuel(fuel_name: str, emission_name: str) -> dict[Period, libecalc.dto.fuel_type.FuelType]:
     """
     Generates a fuel type dto for use in testing
 
@@ -24,7 +23,7 @@ def get_fuel(fuel_name: str, emission_name: str) -> Dict[Period, libecalc.dto.fu
         emission_name: name of emission, e.g. co2
 
     Returns:
-        Dict[Period, dto.types.FuelType]
+       dict[Period, dto.types.FuelType]
     """
     return {
         Period(datetime(2000, 1, 1)): libecalc.dto.fuel_type.FuelType(
@@ -62,8 +61,8 @@ def get_installation(installation_name: str, fuel_consumer: dto.FuelConsumer) ->
 
 def get_fuel_consumer(
     consumer_name: str,
-    fuel_type: Dict[Period, libecalc.dto.fuel_type.FuelType],
-    category: Dict[Period, libecalc.dto.types.ConsumerUserDefinedCategoryType],
+    fuel_type: dict[Period, libecalc.dto.fuel_type.FuelType],
+    category: dict[Period, libecalc.dto.types.ConsumerUserDefinedCategoryType],
 ) -> dto.FuelConsumer:
     """
     Generates a fuel consumer dto for use in testing

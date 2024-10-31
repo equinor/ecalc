@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from _operator import attrgetter
-from typing import Annotated, Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Literal, Optional, Union
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -57,7 +57,7 @@ class CommonResultBase(TabularTimeSeries):
 
 class ComponentResultBase(CommonResultBase, NodeInfo):
     id: str
-    emissions: Dict[str, EmissionResult]
+    emissions: dict[str, EmissionResult]
 
 
 class EquipmentResultBase(ComponentResultBase): ...
@@ -116,7 +116,7 @@ class ConsumerSystemResult(EquipmentResultBase):
         description="The operational settings used for this system. "
         "0 indicates that no valid operational setting was found.",
     )
-    operational_settings_results: Optional[Dict[int, List[Any]]] = None
+    operational_settings_results: Optional[dict[int, list[Any]]] = None
 
 
 class GenericConsumerResult(EquipmentResultBase):
@@ -130,7 +130,7 @@ class PumpResult(EquipmentResultBase):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    streams: Optional[List[TimeSeriesStreamConditions]]  # Optional because only in v2
+    streams: Optional[list[TimeSeriesStreamConditions]]  # Optional because only in v2
 
 
 class CompressorResult(EquipmentResultBase):
@@ -138,7 +138,7 @@ class CompressorResult(EquipmentResultBase):
     recirculation_loss: TimeSeriesRate
     rate_exceeds_maximum: TimeSeriesBoolean
 
-    streams: Optional[List[TimeSeriesStreamConditions]]  # Optional because only in v2
+    streams: Optional[list[TimeSeriesStreamConditions]]  # Optional because only in v2
 
 
 class VentingEmitterResult(EquipmentResultBase):
@@ -188,10 +188,10 @@ class CompressorStreamConditionResult(TabularTimeSeries):
 
 class CompressorModelStageResult(TabularTimeSeries):
     chart: Optional[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]]
-    chart_area_flags: List[str]
+    chart_area_flags: list[str]
     energy_usage_unit: Unit
     power_unit: Unit
-    fluid_composition: Dict[str, Optional[float]]
+    fluid_composition: dict[str, Optional[float]]
 
     head_exceeds_maximum: TimeSeriesBoolean
     is_valid: TimeSeriesBoolean
@@ -214,12 +214,12 @@ class CompressorModelStageResult(TabularTimeSeries):
 
 class CompressorModelResult(ConsumerModelResultBase):
     componentType: Literal[ComponentType.COMPRESSOR]
-    failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
+    failure_status: list[Optional[CompressorTrainCommonShaftFailureStatus]]
     requested_inlet_pressure: TimeSeriesFloat
     requested_outlet_pressure: TimeSeriesFloat
     rate: TimeSeriesRate
     maximum_rate: TimeSeriesRate
-    stage_results: List[CompressorModelStageResult]
+    stage_results: list[CompressorModelStageResult]
     turbine_result: Optional[TurbineModelResult] = None
     inlet_stream_condition: CompressorStreamConditionResult
     outlet_stream_condition: CompressorStreamConditionResult
@@ -259,8 +259,8 @@ class EcalcModelResult(EcalcResultBaseModel):
     """
 
     component_result: ComponentResult
-    sub_components: List[ComponentResult]
-    models: List[ConsumerModelResult]
+    sub_components: list[ComponentResult]
+    models: list[ConsumerModelResult]
 
     @field_validator("sub_components")
     @classmethod
@@ -277,10 +277,10 @@ class EcalcModelResult(EcalcResultBaseModel):
         return self.component_result.periods
 
     @property
-    def components(self) -> List[ComponentResult]:
+    def components(self) -> list[ComponentResult]:
         return [self.component_result, *self.sub_components]
 
-    def get_components(self, component_ids: List[str]) -> List[ComponentResult]:
+    def get_components(self, component_ids: list[str]) -> list[ComponentResult]:
         return [component for component in self.components if component.id in component_ids]
 
     def get_component_by_name(self, component_name: str) -> Optional[ComponentResult]:

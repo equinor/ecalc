@@ -1,6 +1,6 @@
 from datetime import datetime
 from operator import itemgetter
-from typing import List, Self, Tuple
+from typing import Self, tuple
 
 from scipy.interpolate import interp1d
 
@@ -12,8 +12,8 @@ class TimeSeries:
     def __init__(
         self,
         reference_id: str,
-        time_vector: List[datetime],
-        series: List[float],
+        time_vector: list[datetime],
+        series: list[float],
         extrapolate: bool,
         interpolation_type: InterpolationType,
     ):
@@ -34,14 +34,14 @@ class TimeSeries:
         else:
             raise ValueError(f"Invalid interpolation type, got {rate_interpolation_type}.")
 
-    def _interpolate(self, time_vector: List[datetime], rate_interpolation_type: InterpolationType) -> List[float]:
+    def _interpolate(self, time_vector: list[datetime], rate_interpolation_type: InterpolationType) -> list[float]:
         interpolation_kind = self._get_interpolation_kind(
             rate_interpolation_type=rate_interpolation_type,
         )
 
         start_time = self.time_vector[0]
 
-        setup_times: List[float]
+        setup_times: list[float]
         if len(self.time_vector) == 1:
             # add dummy time 1 second later
             setup_times = [0, 1]
@@ -57,7 +57,7 @@ class TimeSeries:
 
     def fit_to_time_vector(
         self,
-        time_vector: List[datetime],
+        time_vector: list[datetime],
     ) -> Self:
         start, end = self.time_vector[0], self.time_vector[-1]
         number_of_entries_before, entries_between, number_of_entries_after = split_time_vector(
@@ -94,10 +94,10 @@ class TimeSeries:
 
 
 def split_time_vector(
-    time_vector: List[datetime],
+    time_vector: list[datetime],
     start: datetime,
     end: datetime,
-) -> Tuple[int, List[datetime], int]:
+) -> tuple[int, list[datetime], int]:
     """Find the entries between start and end, also counting the number of entries before start and after end."""
     number_of_entries_before = len([date for date in time_vector if date < start])
     number_of_entries_after = len([date for date in time_vector if date > end])

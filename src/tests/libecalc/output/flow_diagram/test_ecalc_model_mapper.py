@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from typing import List
 from unittest.mock import Mock
 
 import pytest
@@ -45,7 +44,7 @@ class TestEcalcModelMapper:
 
         The change in nodes happens 2019-01-01 when we use a mock instead of an empty list.
         """
-        duplicate_flow_diagrams: List[FlowDiagram] = [
+        duplicate_flow_diagrams: list[FlowDiagram] = [
             FlowDiagram(
                 id="1",
                 title="dummy",

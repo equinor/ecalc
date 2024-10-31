@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
@@ -30,7 +30,7 @@ class EnergyModelBaseResult(BaseModel):
                 logger.warning(
                     f"Concatenating two temporal compressor results where result attribute '{attribute}' is undefined."
                 )
-            elif isinstance(values, (Enum, str, dict, SingleSpeedChartDTO, VariableSpeedChartDTO)):
+            elif isinstance(values, Enum | str | dict | SingleSpeedChartDTO | VariableSpeedChartDTO):
                 if values != other_values:
                     logger.warning(
                         f"Concatenating two temporal compressor model results where attribute {attribute} changes"
@@ -59,13 +59,13 @@ class EnergyFunctionResult(EnergyModelBaseResult):
     power: Power in MW if applicable.
     """
 
-    energy_usage: List[Optional[float]]
+    energy_usage: list[Optional[float]]
     energy_usage_unit: Unit
-    power: Optional[List[Optional[float]]] = None
+    power: Optional[list[Optional[float]]] = None
     power_unit: Optional[Unit] = Unit.MEGA_WATT
 
     @property
-    def is_valid(self) -> List[bool]:
+    def is_valid(self) -> list[bool]:
         """We assume that all non-NaN results are valid calculation points except for a few exceptions where we override
         this method.
         """

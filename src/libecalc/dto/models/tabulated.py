@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 
 from pydantic import field_validator
 
@@ -16,7 +16,7 @@ class TabulatedData(EnergyModelSampled):
 
     @field_validator("headers")
     @classmethod
-    def validate_headers(cls, headers: List[str]) -> List[str]:
+    def validate_headers(cls, headers: list[str]) -> list[str]:
         is_valid_headers = len(headers) > 0 and "FUEL" in headers or "POWER" in headers
         if not is_valid_headers:
             raise ValueError("TABULAR facility input type data must have a 'FUEL' or 'POWER' header")
@@ -34,6 +34,6 @@ class TabulatedConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.TABULATED] = ConsumerType.TABULATED
     power_loss_factor: Optional[Expression] = None
     model: TabulatedData
-    variables: List[Variables]
+    variables: list[Variables]
 
     _convert_to_expression = field_validator("power_loss_factor", mode="before")(convert_expression)

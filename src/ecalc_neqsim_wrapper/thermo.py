@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Union
 
 from py4j.protocol import Py4JJavaError
 from pydantic import BaseModel
@@ -60,8 +60,8 @@ class NeqsimFluidState(BaseModel):
     A representation of a NeqSim Fluid State for a given composition and properties
     """
 
-    fluid_composition: List[NeqsimFluidComponent]
-    fluid_properties: List[NeqsimFluidProperty]
+    fluid_composition: list[NeqsimFluidComponent]
+    fluid_properties: list[NeqsimFluidProperty]
 
 
 class NeqsimFluid:
@@ -84,8 +84,8 @@ class NeqsimFluid:
 
         :return: the JSON representation of the Neqsim state, as an unformatted string
         """
-        fluid_composition: List[NeqsimFluidComponent] = []
-        fluid_properties: List[NeqsimFluidProperty] = []
+        fluid_composition: list[NeqsimFluidComponent] = []
+        fluid_properties: list[NeqsimFluidProperty] = []
 
         try:
             for string_vector in self._thermodynamic_system.createTable("ECALC_DUMP"):
@@ -167,8 +167,8 @@ class NeqsimFluid:
     @staticmethod
     @lru_cache(maxsize=512)
     def _init_thermo_system(
-        components: List[str],
-        molar_fraction: List[float],
+        components: list[str],
+        molar_fraction: list[float],
         eos_model: NeqsimEoSModelType,
         temperature_kelvin: float,
         pressure_bara: float,
@@ -385,10 +385,10 @@ def mix_neqsim_streams(
     pressure: float,
     temperature: float,
     eos_model: EoSModel = EoSModel.SRK,
-) -> Tuple[FluidComposition, NeqsimFluid]:
+) -> tuple[FluidComposition, NeqsimFluid]:
     """Mixing two streams (NeqsimFluids) with same pressure and temperature."""
 
-    composition_dict: Dict[str, float] = {}
+    composition_dict: dict[str, float] = {}
 
     stream_1 = NeqsimFluid.create_thermo_system(
         composition=stream_composition_1,

@@ -1,5 +1,4 @@
 import abc
-from typing import List
 
 from libecalc.presentation.exporter.formatters.formatter import IndexFormatter
 from libecalc.presentation.exporter.formatters.index_formatter import PeriodIndexFormatter, TimeIndexFormatter
@@ -8,12 +7,12 @@ from libecalc.presentation.exporter.formatters.index_formatter import PeriodInde
 class FormatterConfig(abc.ABC):
     @staticmethod
     @abc.abstractmethod
-    def get_row_index_formatters() -> List[IndexFormatter]: ...
+    def get_row_index_formatters() -> list[IndexFormatter]: ...
 
 
 class TimeFormatterConfig(FormatterConfig):
     @staticmethod
-    def get_row_index_formatters() -> List[IndexFormatter]:
+    def get_row_index_formatters() -> list[IndexFormatter]:
         return [
             TimeIndexFormatter(
                 name="forecastYear",
@@ -30,7 +29,7 @@ class TimeFormatterConfig(FormatterConfig):
 
 class PeriodFormatterConfig(FormatterConfig):
     @staticmethod
-    def get_row_index_formatters() -> List[IndexFormatter]:
+    def get_row_index_formatters() -> list[IndexFormatter]:
         return [
             PeriodIndexFormatter(
                 name="forecastYear",

@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from textwrap import indent
-from typing import Any, Dict, List, Optional, Self, Tuple, Union
+from typing import Any, Optional, Self, Union, tuple
 
 import yaml
 from pydantic import ValidationError as PydanticValidationError
@@ -17,7 +17,7 @@ from libecalc.presentation.yaml.yaml_entities import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 PydanticKey = Union[int, str]
-PydanticLoc = Tuple[PydanticKey, ...]
+PydanticLoc = tuple[PydanticKey, ...]
 
 CUSTOM_MESSAGES = {
     "missing": "This keyword is missing, it is required",
@@ -63,7 +63,7 @@ date_repr_regex = re.compile(date_repr_pattern)
 
 @dataclass
 class Location:
-    keys: List[Union[str, int, date]]
+    keys: list[Union[str, int, date]]
 
     def is_empty(self) -> bool:
         return len(self.keys) == 0
@@ -109,11 +109,11 @@ class Location:
         return cls([cls._parse_key(key) for key in loc])
 
 
-def _remove_root_key(error_loc: Location) -> List[Union[int, str, date]]:
+def _remove_root_key(error_loc: Location) -> list[Union[int, str, date]]:
     return [key for key in error_loc.keys if key != "__root__"]
 
 
-def _mark_error_lines(yaml_text: str, locs: List[Location]) -> str:
+def _mark_error_lines(yaml_text: str, locs: list[Location]) -> str:
     lines = yaml_text.split("\n")
     marked_lines = []
     for line in lines:
@@ -133,9 +133,9 @@ class DataValidationError(ValidationError):
 
     def __init__(
         self,
-        data: Optional[Union[Dict[str, Any], YamlDict]],
+        data: Optional[Union[dict[str, Any], YamlDict]],
         message: str,
-        error_locs: Optional[List[Location]] = None,
+        error_locs: Optional[list[Location]] = None,
         error_key: Optional[str] = None,
         dump_flow_style: Optional[DumpFlowStyle] = None,
     ):
@@ -181,7 +181,7 @@ class DataValidationError(ValidationError):
 
 @dataclass
 class ModelValidationError:
-    data: Optional[Dict]
+    data: Optional[dict]
     location: Location
     message: str
     file_context: Optional[FileContext]
@@ -229,7 +229,7 @@ class DtoValidationError(DataValidationError):
                 return None
         return current_data
 
-    def _get_closest_data_with_key(self, loc: PydanticLoc, key: str) -> Optional[Dict]:
+    def _get_closest_data_with_key(self, loc: PydanticLoc, key: str) -> Optional[dict]:
         for i in range(len(loc)):
             if i == 0:
                 end_index = None
@@ -241,7 +241,7 @@ class DtoValidationError(DataValidationError):
 
         return None
 
-    def _get_context_data(self, loc: PydanticLoc) -> Optional[Dict]:
+    def _get_context_data(self, loc: PydanticLoc) -> Optional[dict]:
         # Try to get data with 'NAME' attribute
         component_data = self._get_closest_data_with_key(loc, key=EcalcYamlKeywords.name)
         if component_data is not None:
@@ -251,7 +251,7 @@ class DtoValidationError(DataValidationError):
             # Get one level, works well for VARIABLES
             return self._get_nested_data(self.data, (loc[0],))
 
-    def errors(self) -> List[ModelValidationError]:
+    def errors(self) -> list[ModelValidationError]:
         errors = []
         for error in custom_errors(e=self.validation_error, custom_messages=CUSTOM_MESSAGES):
             data = self._get_context_data(loc=error["loc"])
@@ -267,7 +267,7 @@ class DtoValidationError(DataValidationError):
 
     def __init__(
         self,
-        data: Optional[Union[Dict[str, Any], YamlDict]],
+        data: Optional[Union[dict[str, Any], YamlDict]],
         validation_error: PydanticValidationError,
         **kwargs,
     ):
@@ -305,7 +305,7 @@ class ValidationValueError(ValueError):
         super().__init__(message)
 
 
-def custom_errors(e: PydanticValidationError, custom_messages: Dict[str, str]) -> List[ErrorDetails]:
+def custom_errors(e: PydanticValidationError, custom_messages: dict[str, str]) -> list[ErrorDetails]:
     """
     Customized pydantic validation errors, to give user more precise feedback.
 
@@ -313,7 +313,7 @@ def custom_errors(e: PydanticValidationError, custom_messages: Dict[str, str]) -
     :param custom_messages: custom error messages to overwrite pydantic standard messages
     :return: list of error details
     """
-    new_errors: List[ErrorDetails] = []
+    new_errors: list[ErrorDetails] = []
     for error in e.errors():
         custom_message = custom_messages.get(error["type"])
         if custom_message:

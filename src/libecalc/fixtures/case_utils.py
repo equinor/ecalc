@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Dict, List
 
 from libecalc.fixtures import YamlCase
 from libecalc.infrastructure.file_io import EcalcFile, _dataframe_to_resource, read_csv
@@ -16,7 +15,7 @@ def read_resource_from_filepath(resource_path: Path) -> MemoryResource:
         raise ValueError(f"Invalid file extension: {resource_path}")
 
 
-def _read_resources(directory: Path, resource_names: List[str]) -> Dict[str, MemoryResource]:
+def _read_resources(directory: Path, resource_names: list[str]) -> dict[str, MemoryResource]:
     resources = {}
     for resource_name in resource_names:
         resources[resource_name] = read_resource_from_filepath(directory / resource_name)
@@ -25,7 +24,7 @@ def _read_resources(directory: Path, resource_names: List[str]) -> Dict[str, Mem
 
 class YamlCaseLoader:
     @staticmethod
-    def load(case_path: Path, main_file: str, resource_names: List[str]):
+    def load(case_path: Path, main_file: str, resource_names: list[str]):
         case_data_path = case_path
         main_file_path = case_data_path / main_file
         return YamlCase(

@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import numpy as np
 import pytest
 from numpy.typing import NDArray
@@ -445,7 +443,7 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calulate(
 
 
 # Unit tests individual methods
-def _span_variables(input_variables: List[NDArray[np.float64]]) -> Tuple:
+def _span_variables(input_variables: list[NDArray[np.float64]]) -> tuple:
     number_of_variables = len(input_variables)
     combo = np.asarray(np.meshgrid(*input_variables)).T.reshape(-1, number_of_variables)
 

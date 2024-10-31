@@ -1,7 +1,6 @@
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import libecalc.common.time_utils
 from ecalc_cli.errors import EcalcCLIError
@@ -152,7 +151,7 @@ def export_tsv(
     prognosis_filter = config.filter(frequency=frequency)
     result = prognosis_filter.filter(ExportableGraphResult(results), resampled_periods)
 
-    row_based_data: Dict[str, List[str]] = CSVFormatter(
+    row_based_data: dict[str, list[str]] = CSVFormatter(
         separation_character="\t", index_formatters=PeriodFormatterConfig.get_row_index_formatters()
     ).format_groups(result)
 

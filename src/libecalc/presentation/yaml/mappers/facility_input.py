@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from pydantic import TypeAdapter, ValidationError
 
@@ -60,7 +60,7 @@ def _get_adjustment_factor(data: YamlFacilityModelBase) -> float:
     return data.adjustment.factor
 
 
-def _get_column_or_none(resource: Resource, header: str) -> Optional[List[Union[float, int, str]]]:
+def _get_column_or_none(resource: Resource, header: str) -> Optional[list[Union[float, int, str]]]:
     try:
         return resource.get_column(header)
     except InvalidResourceException:
@@ -143,7 +143,7 @@ def _create_pump_chart_variable_speed_dto_model_data(
     resource_name = facility_data.file
     curves_data = chart_curves_as_resource_to_dto_format(resource=resource, resource_name=resource_name)
 
-    curves: List[ChartCurveDTO] = [
+    curves: list[ChartCurveDTO] = [
         ChartCurveDTO(
             speed_rpm=curve["speed"],
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(

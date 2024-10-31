@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Union, cast
 
 from pydantic import ValidationError
 
@@ -69,7 +69,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 
 
 def _compressor_chart_mapper(
-    model_config: YamlCompressorChart, input_models: Dict[str, Any], resources: Resources
+    model_config: YamlCompressorChart, input_models: dict[str, Any], resources: Resources
 ) -> CompressorChart:
     chart_type = model_config.chart_type
     mapper = _compressor_chart_map.get(chart_type)
@@ -149,7 +149,7 @@ def _variable_speed_compressor_chart_mapper(
         resource = resources.get(resource_name)
         curves_data = chart_curves_as_resource_to_dto_format(resource=resource, resource_name=resource_name)
     else:
-        curve_config = cast(List[YamlCurve], curve_config)
+        curve_config = cast(list[YamlCurve], curve_config)
         curves_data = [
             {
                 "speed": curve.speed,
@@ -162,7 +162,7 @@ def _variable_speed_compressor_chart_mapper(
 
     units = model_config.units
 
-    curves: List[ChartCurveDTO] = [
+    curves: list[ChartCurveDTO] = [
         ChartCurveDTO(
             speed_rpm=curve["speed"],
             rate_actual_m3_hour=convert_rate_to_am3_per_hour(
@@ -231,7 +231,7 @@ _compressor_chart_map = {
 }
 
 
-def _resolve_and_validate_chart(compressor_chart_reference, input_models: Dict[str, Any]) -> CompressorChart:
+def _resolve_and_validate_chart(compressor_chart_reference, input_models: dict[str, Any]) -> CompressorChart:
     compressor_chart = resolve_reference(
         value=compressor_chart_reference,
         references=input_models,
@@ -241,7 +241,7 @@ def _resolve_and_validate_chart(compressor_chart_reference, input_models: Dict[s
     return compressor_chart
 
 
-def _replace_compressor_chart_with_reference(stage_spec, input_models) -> Dict:
+def _replace_compressor_chart_with_reference(stage_spec, input_models) -> dict:
     reference = stage_spec.get(EcalcYamlKeywords.models_type_compressor_train_compressor_chart)
     stage_with_resolved_reference = dict(stage_spec)
     stage_with_resolved_reference[EcalcYamlKeywords.models_type_compressor_train_compressor_chart] = input_models.get(
@@ -252,7 +252,7 @@ def _replace_compressor_chart_with_reference(stage_spec, input_models) -> Dict:
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_stream_mapper(
     stream_config: YamlMultipleStreamsStream,
-    input_models: Dict[str, Any],
+    input_models: dict[str, Any],
 ) -> MultipleStreamsAndPressureStream:
     reference_name = stream_config.name
     stream_type = stream_config.type
@@ -273,8 +273,8 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stream_mappe
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper(
     stage_config: YamlCompressorStageMultipleStreams,
-    stream_references: List[str],
-    input_models: Dict[str, Any],
+    stream_references: list[str],
+    input_models: dict[str, Any],
 ) -> MultipleStreamsCompressorStage:
     compressor_chart_reference = stage_config.compressor_chart
     compressor_chart = resolve_reference(value=compressor_chart_reference, references=input_models)
@@ -319,7 +319,7 @@ def _variable_speed_compressor_train_multiple_streams_and_pressures_stage_mapper
 
 def _variable_speed_compressor_train_multiple_streams_and_pressures_mapper(
     model_config: YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
-    input_models: Dict[str, Any],
+    input_models: dict[str, Any],
     resources: Resources,
 ) -> VariableSpeedCompressorTrainMultipleStreamsAndPressures:
     streams_config = model_config.streams
@@ -361,7 +361,7 @@ SUPPORTED_PRESSURE_CONTROLS_SINGLE_SPEED_COMPRESSOR_TRAIN = [
 
 def _single_speed_compressor_train_mapper(
     model_config: YamlSingleSpeedCompressorTrain,
-    input_models: Dict[str, Any],
+    input_models: dict[str, Any],
     resources: Resources,
 ) -> SingleSpeedCompressorTrain:
     fluid_model_reference = model_config.fluid_model
@@ -373,7 +373,7 @@ def _single_speed_compressor_train_mapper(
 
     train_spec = model_config.compressor_train
 
-    stages: List[CompressorStage] = [
+    stages: list[CompressorStage] = [
         CompressorStage(
             compressor_chart=input_models.get(stage.compressor_chart),
             inlet_temperature_kelvin=convert_temperature_to_kelvin(
@@ -412,7 +412,7 @@ def _single_speed_compressor_train_mapper(
 
 def _variable_speed_compressor_train_mapper(
     model_config: YamlVariableSpeedCompressorTrain,
-    input_models: Dict[str, Any],
+    input_models: dict[str, Any],
     resources: Resources,
 ) -> VariableSpeedCompressorTrain:
     fluid_model_reference: str = model_config.fluid_model
@@ -427,7 +427,7 @@ def _variable_speed_compressor_train_mapper(
     # The stages are pre defined, known
     stages_data = train_spec.stages
 
-    stages: List[CompressorStage] = []
+    stages: list[CompressorStage] = []
     for stage in stages_data:
         control_margin = convert_control_margin_to_fraction(
             stage.control_margin,
@@ -463,7 +463,7 @@ def _variable_speed_compressor_train_mapper(
 
 def _simplified_variable_speed_compressor_train_mapper(
     model_config: YamlSimplifiedVariableSpeedCompressorTrain,
-    input_models: Dict[str, Any],
+    input_models: dict[str, Any],
     resources: Resources,
 ) -> Union[
     CompressorTrainSimplifiedWithKnownStages,
@@ -521,7 +521,7 @@ def _simplified_variable_speed_compressor_train_mapper(
         )
 
 
-def _turbine_mapper(model_config: YamlTurbine, input_models: Dict[str, Any], resources: Resources) -> Turbine:
+def _turbine_mapper(model_config: YamlTurbine, input_models: dict[str, Any], resources: Resources) -> Turbine:
     return Turbine(
         lower_heating_value=model_config.lower_heating_value,
         turbine_loads=model_config.turbine_loads,
@@ -532,7 +532,7 @@ def _turbine_mapper(model_config: YamlTurbine, input_models: Dict[str, Any], res
 
 
 def _compressor_with_turbine_mapper(
-    model_config: YamlCompressorWithTurbine, input_models: Dict[str, Any], resources: Resources
+    model_config: YamlCompressorWithTurbine, input_models: dict[str, Any], resources: Resources
 ) -> CompressorWithTurbine:
     compressor_train_model = resolve_reference(
         value=model_config.compressor_model,
@@ -568,13 +568,13 @@ class ModelMapper:
         self.__resources = resources
 
     @staticmethod
-    def create_model(model: YamlConsumerModel, input_models: Dict[str, Any], resources: Resources):
+    def create_model(model: YamlConsumerModel, input_models: dict[str, Any], resources: Resources):
         model_creator = _model_mapper.get(model.type)
         if model_creator is None:
             raise ValueError(f"Unknown model type: {model.name}")
         return model_creator(model_config=model, input_models=input_models, resources=resources)
 
-    def from_yaml_to_dto(self, model_config: YamlConsumerModel, input_models: Dict[str, Any]) -> EnergyModel:
+    def from_yaml_to_dto(self, model_config: YamlConsumerModel, input_models: dict[str, Any]) -> EnergyModel:
         try:
             model_data = ModelMapper.create_model(
                 model=model_config, input_models=input_models, resources=self.__resources

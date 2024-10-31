@@ -3,7 +3,6 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Dict, List
 
 from libecalc.presentation.exporter.handlers.handler import (
     FileHandler,
@@ -15,7 +14,7 @@ from libecalc.presentation.exporter.handlers.handler import (
 
 class TestHandlers(unittest.TestCase):
     def setUp(self):
-        self.my_grouped_row_based_data: Dict[str, List[str]] = {
+        self.my_grouped_row_based_data: dict[str, list[str]] = {
             "installation a": ["dates\tcol1\tcol2", "2020.01.01\t1.0\t3.2", "2021.01.01\t2.0\t4.2"],
             "installation b": ["dates\tcol1\tcol2", "2020.01.01\t2.0\t2"],
         }
@@ -61,7 +60,7 @@ dates\tcol1\tcol2
         )
 
     def test_multi_stream_handler(self):
-        my_streams: Dict[str, io.StringIO] = {}
+        my_streams: dict[str, io.StringIO] = {}
         my_stream_handler: MultiStreamHandler = MultiStreamHandler(my_streams)
         my_stream_handler.handle(self.my_grouped_row_based_data)
 

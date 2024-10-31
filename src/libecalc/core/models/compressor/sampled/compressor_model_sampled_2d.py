@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -40,7 +40,7 @@ class CompressorModelSampled2DRatePd:
     pd_axis: int = 1
 
     # Need to provide the order of the parameters we use in dataframe
-    variable_order_2d: List[str] = [RATE_NAME, PD_NAME]
+    variable_order_2d: list[str] = [RATE_NAME, PD_NAME]
 
     support_max_rate = True
 
@@ -181,7 +181,7 @@ class CompressorModelSampled2DRatePd:
         return self._maximum_rate_function(discharge_pressure)
 
     def get_max_discharge_pressure(self, rate: Union[NDArray[np.float64], float]) -> Union[NDArray[np.float64], float]:
-        if isinstance(rate, (int, float)):
+        if isinstance(rate, int | float):
             return float(self._maximum_pd_function(np.asarray([rate]))[0])
         return np.array(self._maximum_pd_function(rate))
 

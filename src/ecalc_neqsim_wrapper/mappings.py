@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict
 
 from ecalc_neqsim_wrapper import neqsim
 from libecalc.common.errors.exceptions import EcalcError
@@ -51,7 +50,7 @@ _map_fluid_component_from_neqsim = {
 }
 
 
-def map_fluid_composition_to_neqsim(fluid_composition: FluidComposition) -> Dict[str, float]:
+def map_fluid_composition_to_neqsim(fluid_composition: FluidComposition) -> dict[str, float]:
     component_dict = {}
     for component_name, value in fluid_composition.model_dump().items():
         if value is not None and value > 0:

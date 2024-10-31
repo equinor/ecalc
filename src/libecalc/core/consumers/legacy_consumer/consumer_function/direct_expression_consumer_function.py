@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -67,7 +67,7 @@ class DirectExpressionConsumerFunction(ConsumerFunction):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
+        regularity: list[float],
     ) -> ConsumerFunctionResult:
         energy_usage_expression_evaluated = expression_evaluator.evaluate(expression=self._expression)
 

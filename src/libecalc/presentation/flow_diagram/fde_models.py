@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 
@@ -42,9 +42,9 @@ class FlowDiagram(BaseModel):
 
     id: str
     title: str
-    nodes: List[Node]
-    edges: List[Edge]
-    flows: List[Flow]
+    nodes: list[Node]
+    edges: list[Edge]
+    flows: list[Flow]
     start_date: datetime
     end_date: datetime
     model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True)
@@ -72,7 +72,7 @@ class Node(BaseModel):
     id: str
     title: Optional[str] = None
     type: Optional[str] = None
-    subdiagram: Optional[Union[FlowDiagram, List[FlowDiagram]]] = None
+    subdiagram: Optional[Union[FlowDiagram, list[FlowDiagram]]] = None
     model_config = ConfigDict(frozen=True)
 
 

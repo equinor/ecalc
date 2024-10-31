@@ -1,6 +1,5 @@
 import itertools
 from datetime import datetime
-from typing import Dict, List
 
 import numpy as np
 import pytest
@@ -57,7 +56,7 @@ def test_time_slots_with_changing_model(time_slot_electricity_consumer_with_chan
             }
         ),
     )
-    input_variables_dict: Dict[str, List[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
+    input_variables_dict: dict[str, list[float]] = {"RATE": np.linspace(start=2000000, stop=6000000, num=10).tolist()}
     expression_evaluator = VariablesMap(
         time_vector=[datetime(year, 1, 1) for year in range(2015, 2026)], variables=input_variables_dict
     )
@@ -130,7 +129,7 @@ def test_time_slots_with_non_changing_model(time_slot_electricity_consumer_with_
             }
         ),
     )
-    input_variables_dict: Dict[str, List[float]] = {}
+    input_variables_dict: dict[str, list[float]] = {}
     expression_evaluator = VariablesMap(
         time_vector=[datetime(year, 1, 1) for year in range(2017, 2026)], variables=input_variables_dict
     )
@@ -205,7 +204,7 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
             }
         ),
     )
-    input_variables_dict: Dict[str, List[float]] = {
+    input_variables_dict: dict[str, list[float]] = {
         "RATE": [1800000 - (x * 100000) for x in range(10)]  # 1 000 000 -> 100 000
     }
     expression_evaluator = VariablesMap(

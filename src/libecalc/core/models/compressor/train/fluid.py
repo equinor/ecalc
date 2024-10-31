@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -106,10 +106,10 @@ class FluidStream:
         Use standard conditions are 15C at 1atm = 1.01325 bara for fluid density.
 
         Args:
-            standard_rates: List or single rate(s) to convert [Sm3/day]
+            standard_rates:list or single rate(s) to convert [Sm3/day]
 
         Returns:
-            List or single standard rate(s) [kg/h]
+           list or single standard rate(s) [kg/h]
         """
         mass_rate_kg_per_hour = standard_rates * self.standard_conditions_density / UnitConstants.HOURS_PER_DAY
         if isinstance(mass_rate_kg_per_hour, np.ndarray):
@@ -154,7 +154,7 @@ class FluidStream:
 
     def get_fluid_streams(
         self, pressure_bara: NDArray[np.float64], temperature_kelvin: NDArray[np.float64]
-    ) -> List[FluidStream]:
+    ) -> list[FluidStream]:
         """Get multiple fluid streams from multiple temperatures and pressures
 
         Args:
@@ -162,7 +162,7 @@ class FluidStream:
             temperature_kelvin: array of temperatures [K]
 
         Returns:
-            List of fluid streams at set temperatures and pressures
+           list of fluid streams at set temperatures and pressures
 
         """
         streams = [

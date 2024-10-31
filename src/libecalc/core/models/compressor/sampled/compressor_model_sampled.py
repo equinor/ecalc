@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -86,7 +86,7 @@ class CompressorModelSampled(CompressorModel):
                 factor=data_transfer_object.energy_usage_adjustment_factor,
             )
 
-        variables: Dict[str, List[float]] = {}
+        variables: dict[str, list[float]] = {}
         if data_transfer_object.rate_values is not None:
             variables[RATE_NAME] = data_transfer_object.rate_values
         if data_transfer_object.suction_pressure_values is not None:
@@ -101,9 +101,9 @@ class CompressorModelSampled(CompressorModel):
         sampled_data.columns = list(variables.keys()) + [function_value_header]
 
         apparent_dimension: int = len(self.required_variables)
-        non_degenerated_variables: List[str] = self._non_degenerated_variables(sampled_data[self.required_variables])
+        non_degenerated_variables: list[str] = self._non_degenerated_variables(sampled_data[self.required_variables])
         geometric_dimension: int = len(non_degenerated_variables)
-        degenerated_variables: List[str] = (
+        degenerated_variables: list[str] = (
             [var for var in self.required_variables if var not in non_degenerated_variables]
             if geometric_dimension != apparent_dimension
             else []
@@ -273,7 +273,7 @@ class CompressorModelSampled(CompressorModel):
 
     def evaluate_streams(
         self,
-        inlet_streams: List[StreamConditions],
+        inlet_streams: list[StreamConditions],
         outlet_stream: StreamConditions,
     ) -> CompressorTrainResult:
         mixed_input_streams = StreamConditions.mix_all(streams=inlet_streams)
@@ -284,19 +284,19 @@ class CompressorModelSampled(CompressorModel):
         )
 
     @staticmethod
-    def _get_indices_from_condition(condition: List[bool]) -> List[int]:
+    def _get_indices_from_condition(condition: list[bool]) -> list[int]:
         """Return the indices in a list with booleans where the value is True."""
         return np.argwhere(condition)[:, 0]
 
     @staticmethod
     def _get_compressor_model(
-        geometric_dimension: int, non_degenerated_variables: List[str]
+        geometric_dimension: int, non_degenerated_variables: list[str]
     ) -> Union[
-        Type[CompressorModelSampled1D],
-        Type[CompressorModelSampled2DRatePd],
-        Type[CompressorModelSampled2DRatePs],
-        Type[CompressorModelSampled2DPsPd],
-        Type[CompressorModelSampled3D],
+        type[CompressorModelSampled1D],
+        type[CompressorModelSampled2DRatePd],
+        type[CompressorModelSampled2DRatePs],
+        type[CompressorModelSampled2DPsPd],
+        type[CompressorModelSampled3D],
     ]:
         if geometric_dimension == 3:
             return CompressorModelSampled3D
@@ -315,14 +315,14 @@ class CompressorModelSampled(CompressorModel):
             raise NotImplementedError
 
     @staticmethod
-    def _non_degenerated_variables(sampled_data: pd.DataFrame) -> List[str]:
+    def _non_degenerated_variables(sampled_data: pd.DataFrame) -> list[str]:
         """
 
         Args:
             sampled_data:
 
         Returns:
-            List of non degenerated values
+           list of non degenerated values
 
         """
         uniques = sampled_data.apply(lambda x: x.nunique())

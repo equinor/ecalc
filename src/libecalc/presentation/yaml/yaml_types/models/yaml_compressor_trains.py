@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import Field
 
@@ -161,13 +161,13 @@ class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures(YamlCompressor
         description="Defines the type of model. See documentation for more information.",
         title="TYPE",
     )
-    streams: List[YamlMultipleStreamsStream] = Field(
+    streams: list[YamlMultipleStreamsStream] = Field(
         ...,
         description="A list of all in- and out-going streams for the compressor train. "
         "The same equation of state (EOS) must be used for each INGOING stream fluid models",
         title="STREAMS",
     )
-    stages: List[YamlCompressorStageMultipleStreams] = Field(
+    stages: list[YamlCompressorStageMultipleStreams] = Field(
         ...,
         description="A list of all stages in compressor model.",
         title="STAGES",

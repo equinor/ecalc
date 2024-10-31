@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Union
+from typing import Union
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
@@ -19,7 +19,7 @@ from libecalc.core.models.results.base import EnergyFunctionResult
 def get_single_consumer_models(
     result: ConsumerFunctionResult,
     name: str,
-) -> List[core_results.ConsumerModelResult]:
+) -> list[core_results.ConsumerModelResult]:
     """Mapping the energy consumer_function_results."""
     model_results = []
 
@@ -56,7 +56,7 @@ def get_single_consumer_models(
 def get_consumer_system_models(
     result: Union[ConsumerSystemConsumerFunctionResult, ConsumerFunctionResult],
     name: str,
-) -> List[core_results.ConsumerModelResult]:
+) -> list[core_results.ConsumerModelResult]:
     """Warning! Consumer systems does not have the normal:
         EnergyFunctionResult.consumer_model_result.time_slot_results.energy_function_result
     This is set to None, and results are stored under consumer_results. Fix this if possible.
@@ -86,7 +86,7 @@ def get_consumer_system_models(
 
 def get_operational_settings_results_from_consumer_result(
     result: Union[ConsumerSystemConsumerFunctionResult, ConsumerFunctionResult], parent_id: str
-) -> Dict[int, List[core_results.ConsumerModelResult]]:
+) -> dict[int, list[core_results.ConsumerModelResult]]:
     operational_settings_results = defaultdict(list)
     if isinstance(result, ConsumerSystemConsumerFunctionResult):
         # Consumer systems functions have multiple consumer results
@@ -120,7 +120,7 @@ def map_energy_function_results(
     result: EnergyFunctionResult,
     periods: Periods,
     name: str,
-) -> List[core_results.ConsumerModelResult]:
+) -> list[core_results.ConsumerModelResult]:
     """Returns a list of results that are specific to each consumer. This can be details for compressor trains with
     chart results, pump results, or other results. We will need to add other details below here.
     """

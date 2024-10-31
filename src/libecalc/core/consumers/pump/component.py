@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -26,7 +26,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
         self._pump_model = pump_model
         self._operational_settings: Optional[PumpOperationalSettings] = None
 
-    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: Pressure) -> List[float]:
+    def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: Pressure) -> list[float]:
         """
         For each timestep, get the maximum rate that this pump can handle, given
         the operational settings given, such as in -and outlet pressures and fluid density (current conditions)
@@ -43,7 +43,7 @@ class Pump(BaseConsumerWithoutOperationalSettings):
 
     def evaluate(
         self,
-        streams: List[StreamConditions],
+        streams: list[StreamConditions],
     ) -> EcalcModelResult:
         inlet_streams = streams[:-1]
         outlet_stream = streams[-1]

@@ -1,6 +1,6 @@
 import io
 from pathlib import Path
-from typing import Any, Dict, Optional, TextIO
+from typing import Any, Optional, TextIO
 
 from ruamel.yaml import YAML, YAMLError
 
@@ -23,12 +23,12 @@ class RuamelYamlModel(YamlConfiguration):
         cls,
         main_yaml: ResourceStream,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
         enable_include: bool = False,
     ) -> YamlValidator:
         raise NotImplementedError("get_validator is not implemented for ruamel")
 
-    def __init__(self, internal_datamodel: Dict[str, Any], name: str, instantiated_through_read: bool = False):
+    def __init__(self, internal_datamodel: dict[str, Any], name: str, instantiated_through_read: bool = False):
         """To avoid mistakes, make sure that this is only instantiated through read method/named constructor
         :param instantiated_through_read: set to True to allow to use constructor.
         """
@@ -58,7 +58,7 @@ class RuamelYamlModel(YamlConfiguration):
     def __get_loader(
         enable_include: bool = False,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
     ) -> YAML:
         yaml_loader = YAML(typ="rt")  # rt is default, subclass of safe, so it is ok to use
         yaml_loader.preserve_quotes = True  # just keep the original quoting, preserved e.g. " or ' as it was
@@ -105,7 +105,7 @@ class RuamelYamlModel(YamlConfiguration):
         cls,
         main_yaml: ResourceStream,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
         enable_include: bool = False,
     ) -> "RuamelYamlModel":
         """Class constructor.
@@ -124,7 +124,7 @@ class RuamelYamlModel(YamlConfiguration):
     def _load(
         yaml_file: ResourceStream,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
         enable_include: bool = False,
     ) -> Any:
         """Internal loading of yaml files, main and includes

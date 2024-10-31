@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -16,7 +14,7 @@ def calculate_asv_corrected_rate(
     minimum_actual_rate_m3_per_hour: float,
     actual_rate_m3_per_hour: float,
     density_kg_per_m3,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Correct the rate with anti-surge valve (ASV)
 
     Ensure the flow rate through the compressor is fulfilling the minimum requirements.
@@ -67,7 +65,7 @@ def calculate_outlet_pressure_and_stream(
     polytropic_efficiency: float,
     polytropic_head_joule_per_kg: float,
     inlet_stream: FluidStream,
-) -> Tuple[float, FluidStream]:
+) -> tuple[float, FluidStream]:
     """Calculate outlet pressure and outlet stream(-properties) from compressor stage
 
     Args:

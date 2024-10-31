@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
-from typing import Annotated, Any, Dict, List, Literal, Optional, TypeVar, Union
+from typing import Annotated, Any, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -50,7 +50,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 
 
-def check_model_energy_usage_type(model_data: Dict[Period, ConsumerFunction], energy_type: EnergyUsageType):
+def check_model_energy_usage_type(model_data: dict[Period, ConsumerFunction], energy_type: EnergyUsageType):
     for model in model_data.values():
         if model.energy_usage_type != energy_type:
             raise ValueError(f"Model does not consume {energy_type.value}")
@@ -68,7 +68,7 @@ class Component(EcalcBaseModel, ABC):
 class BaseComponent(Component, ABC):
     name: ComponentNameStr
 
-    regularity: Dict[Period, Expression]
+    regularity: dict[Period, Expression]
 
     _validate_base_temporal_model = field_validator("regularity")(validate_temporal_model)
 
@@ -81,7 +81,7 @@ class BaseComponent(Component, ABC):
 
 
 class BaseEquipment(BaseComponent, ABC):
-    user_defined_category: Dict[Period, ConsumerUserDefinedCategoryType] = Field(..., validate_default=True)
+    user_defined_category: dict[Period, ConsumerUserDefinedCategoryType] = Field(..., validate_default=True)
 
     @property
     def id(self) -> str:
@@ -109,7 +109,7 @@ class BaseConsumer(BaseEquipment, ABC):
     """Base class for all consumers."""
 
     consumes: ConsumptionType
-    fuel: Optional[Dict[Period, FuelType]] = None
+    fuel: Optional[dict[Period, FuelType]] = None
 
     @field_validator("fuel", mode="before")
     @classmethod
@@ -134,7 +134,7 @@ class ElectricityConsumer(BaseConsumer):
         ComponentType.COMPRESSOR_SYSTEM,
     ]
     consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY
-    energy_usage_model: Dict[
+    energy_usage_model: dict[
         Period,
         ElectricEnergyUsageModel,
     ]
@@ -163,8 +163,8 @@ class FuelConsumer(BaseConsumer):
         ComponentType.COMPRESSOR_SYSTEM,
     ]
     consumes: Literal[ConsumptionType.FUEL] = ConsumptionType.FUEL
-    fuel: Dict[Period, FuelType]
-    energy_usage_model: Dict[Period, FuelEnergyUsageModel]
+    fuel: dict[Period, FuelType]
+    energy_usage_model: dict[Period, FuelEnergyUsageModel]
 
     _validate_fuel_consumer_temporal_models = field_validator("energy_usage_model", "fuel")(validate_temporal_model)
 
@@ -211,12 +211,12 @@ class PumpOperationalSettings(EcalcBaseModel):
 
 class CompressorComponent(BaseConsumer):
     component_type: Literal[ComponentType.COMPRESSOR] = ComponentType.COMPRESSOR
-    energy_usage_model: Dict[Period, CompressorModel]
+    energy_usage_model: dict[Period, CompressorModel]
 
 
 class PumpComponent(BaseConsumer):
     component_type: Literal[ComponentType.PUMP] = ComponentType.PUMP
-    energy_usage_model: Dict[Period, PumpModel]
+    energy_usage_model: dict[Period, PumpModel]
 
 
 class Stream(EcalcBaseModel):
@@ -237,8 +237,8 @@ class TrainComponent(BaseConsumer):
         description="The type of the component",
         alias="TYPE",
     )
-    stages: List[ConsumerComponent]
-    streams: List[Stream]
+    stages: list[ConsumerComponent]
+    streams: list[Stream]
 
 
 class ExpressionTimeSeries(EcalcBaseModel):
@@ -258,7 +258,7 @@ ConsumerID = str
 PriorityID = str
 StreamID = str
 
-SystemStreamConditions = Dict[ConsumerID, Dict[StreamID, ExpressionStreamConditions]]
+SystemStreamConditions = dict[ConsumerID, dict[StreamID, ExpressionStreamConditions]]
 
 
 class Crossover(EcalcBaseModel):
@@ -270,7 +270,7 @@ class Crossover(EcalcBaseModel):
 
 
 class SystemComponentConditions(EcalcBaseModel):
-    crossover: List[Crossover]
+    crossover: list[Crossover]
 
 
 class ConsumerSystem(BaseConsumer):
@@ -281,7 +281,7 @@ class ConsumerSystem(BaseConsumer):
     )
     component_conditions: SystemComponentConditions
     stream_conditions_priorities: Priorities[SystemStreamConditions]
-    consumers: Union[List[CompressorComponent], List[PumpComponent]]
+    consumers: Union[list[CompressorComponent], list[PumpComponent]]
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
@@ -293,8 +293,8 @@ class ConsumerSystem(BaseConsumer):
 
     def evaluate_stream_conditions(
         self, expression_evaluator: ExpressionEvaluator
-    ) -> Priorities[Dict[ConsumerID, List[TimeSeriesStreamConditions]]]:
-        parsed_priorities: Priorities[Dict[ConsumerID, List[TimeSeriesStreamConditions]]] = defaultdict(dict)
+    ) -> Priorities[dict[ConsumerID, list[TimeSeriesStreamConditions]]]:
+        parsed_priorities: Priorities[dict[ConsumerID, list[TimeSeriesStreamConditions]]] = defaultdict(dict)
         for priority_name, priority in self.stream_conditions_priorities.items():
             for consumer_name, streams_conditions in priority.items():
                 parsed_priorities[priority_name][generate_id(consumer_name)] = [
@@ -342,9 +342,9 @@ class ConsumerSystem(BaseConsumer):
 
 class GeneratorSet(BaseEquipment):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
-    fuel: Dict[Period, FuelType]
-    generator_set_model: Dict[Period, GeneratorSetSampled]
-    consumers: List[
+    fuel: dict[Period, FuelType]
+    generator_set_model: dict[Period, GeneratorSetSampled]
+    consumers: list[
         Annotated[
             Union[ElectricityConsumer, ConsumerSystem],
             Field(discriminator="component_type"),
@@ -416,14 +416,14 @@ class GeneratorSet(BaseEquipment):
 class Installation(BaseComponent):
     component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = Field(default=None, validate_default=True)
-    hydrocarbon_export: Dict[Period, Expression]
-    fuel_consumers: List[
+    hydrocarbon_export: dict[Period, Expression]
+    fuel_consumers: list[
         Annotated[
             Union[GeneratorSet, FuelConsumer, ConsumerSystem],
             Field(discriminator="component_type"),
         ]
     ] = Field(default_factory=list)
-    venting_emitters: List[YamlVentingEmitter] = Field(default_factory=list)
+    venting_emitters: list[YamlVentingEmitter] = Field(default_factory=list)
 
     @property
     def id(self) -> str:
@@ -483,7 +483,7 @@ class Asset(Component):
     component_type: Literal[ComponentType.ASSET] = ComponentType.ASSET
 
     name: ComponentNameStr
-    installations: List[Installation] = Field(default_factory=list)
+    installations: list[Installation] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_unique_names(self):
@@ -553,7 +553,7 @@ ComponentDTO = Union[
 ]
 
 
-def _convert_keys_in_dictionary_from_str_to_periods(data: Dict[Union[str, Period], Any]) -> Dict[Period, Any]:
+def _convert_keys_in_dictionary_from_str_to_periods(data: dict[Union[str, Period], Any]) -> dict[Period, Any]:
     if all(isinstance(key, str) for key in data.keys()):
         return {
             Period(

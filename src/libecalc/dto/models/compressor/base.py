@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import Field, field_validator
 
@@ -46,7 +46,7 @@ class CompressorConsumerFunction(ConsumerFunction):
     typ: Literal[ConsumerType.COMPRESSOR] = ConsumerType.COMPRESSOR
     power_loss_factor: Optional[Expression] = None
     model: CompressorModel = Field(..., discriminator="typ")
-    rate_standard_m3_day: Union[Expression, List[Expression]]
+    rate_standard_m3_day: Union[Expression, list[Expression]]
     suction_pressure: Optional[Expression] = None
     discharge_pressure: Optional[Expression] = None
     interstage_control_pressure: Optional[Expression] = None

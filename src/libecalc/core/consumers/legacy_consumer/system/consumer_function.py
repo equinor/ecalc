@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -42,8 +42,8 @@ from libecalc.expression import Expression
 class ConsumerSystemConsumerFunction(ConsumerFunction):
     def __init__(
         self,
-        consumer_components: List[ConsumerSystemComponent],
-        operational_settings_expressions: List[ConsumerSystemOperationalSettingExpressions],
+        consumer_components: list[ConsumerSystemComponent],
+        operational_settings_expressions: list[ConsumerSystemOperationalSettingExpressions],
         condition_expression: Optional[Expression],
         power_loss_factor_expression: Optional[Expression],
     ):
@@ -73,7 +73,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def evaluate_consumers(
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> List[ConsumerSystemComponentResult]: ...
+    ) -> list[ConsumerSystemComponentResult]: ...
 
     @abstractmethod
     def evaluate_operational_setting_expressions(
@@ -85,7 +85,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
+        regularity: list[float],
     ) -> ConsumerSystemConsumerFunctionResult:
         """Steps in evaluating a consumer system:
 
@@ -179,8 +179,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
     def get_operational_settings_from_expressions(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
-    ) -> List[ConsumerSystemOperationalSetting]:
+        regularity: list[float],
+    ) -> list[ConsumerSystemOperationalSetting]:
         """Evaluate operational settings expressions and return actual operational settings.
 
         If regularity is specified, interpret the rate in the operational setting
@@ -210,12 +210,12 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
 
     def evaluate_system_operational_settings(
         self,
-        operational_settings: List[ConsumerSystemOperationalSetting],
-    ) -> List[ConsumerSystemOperationalSettingResult]:
+        operational_settings: list[ConsumerSystemOperationalSetting],
+    ) -> list[ConsumerSystemOperationalSettingResult]:
         """Evaluate several operational settings. For details about evaluation of each operational setting,
         see description for method evaluate_operational_setting
-        :type operational_settings: List[ConsumerSystemOperationalSetting]
-        :rtype: List[ConsumerSystemOperationalSettingResult].
+        :type operational_settings:list[ConsumerSystemOperationalSetting]
+        :rtype:list[ConsumerSystemOperationalSettingResult].
         """
         operational_settings_results = []
         for i, operational_setting in enumerate(operational_settings):
@@ -228,8 +228,8 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
         return operational_settings_results
 
     def get_operational_settings_adjusted_for_cross_over(
-        self, operational_settings: List[ConsumerSystemOperationalSetting]
-    ) -> List[ConsumerSystemOperationalSetting]:
+        self, operational_settings: list[ConsumerSystemOperationalSetting]
+    ) -> list[ConsumerSystemOperationalSetting]:
         operational_settings_after_cross_over = []
         for operational_setting in operational_settings:
             if operational_setting.cross_overs:
@@ -347,7 +347,7 @@ class CompressorSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_consumers(
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> List[CompressorResult]:
+    ) -> list[CompressorResult]:
         """Evaluate a set of compressors in a consumer system for an operational setting
         which specifies variables for each compressor (rates, pressures).
 
@@ -404,7 +404,7 @@ class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
     def evaluate_consumers(
         self,
         operational_setting: ConsumerSystemOperationalSetting,
-    ) -> List[PumpResult]:
+    ) -> list[PumpResult]:
         """Evaluate a set of pumps in a consumer system for an operational setting
         which specifies variables for each pump (rates, pressures, fluid densities).
 

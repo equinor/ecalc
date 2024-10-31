@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 import pytest
 from pydantic import BaseModel
@@ -18,12 +17,12 @@ class MergeableObject(BaseModel):
     string_test: str
     int_test: int
     float_test: float
-    list_of_float_test: List[float]
+    list_of_float_test: list[float]
     time_series_float: TimeSeriesFloat
     time_series_rate: TimeSeriesStreamDayRate
-    time_series_float_list_test: List[TimeSeriesFloat]
-    time_series_rate_list_test: List[TimeSeriesStreamDayRate]
-    stream_list: List[TimeSeriesStreamConditions]
+    time_series_float_list_test: list[TimeSeriesFloat]
+    time_series_rate_list_test: list[TimeSeriesStreamDayRate]
+    stream_list: list[TimeSeriesStreamConditions]
 
 
 class TestMerge:
@@ -291,7 +290,7 @@ class TestMerge:
         )
 
         class Other(BaseModel):
-            something: List[int]
+            something: list[int]
 
         other = Other(something=[1, 2])
 

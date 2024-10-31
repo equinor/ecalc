@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List
 
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
@@ -18,7 +17,7 @@ class ConsumerFunction(ABC):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
+        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Referred to as ENERGY_USAGE_MODEL in yaml.
 

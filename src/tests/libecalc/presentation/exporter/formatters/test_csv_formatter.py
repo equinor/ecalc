@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import Union
 
 from libecalc.common.units import Unit
 from libecalc.domain.tabular.tabular import ColumnIndex
@@ -21,8 +21,8 @@ class Column:
 
 @dataclass
 class Data(Formattable):
-    rows: List[str]
-    columns: List[str]
+    rows: list[str]
+    columns: list[str]
     value: int
 
     def get_column(self, column_id: ColumnIndex) -> Column:
@@ -32,11 +32,11 @@ class Data(Formattable):
         )
 
     @property
-    def row_ids(self) -> List[str]:
+    def row_ids(self) -> list[str]:
         return self.rows
 
     @property
-    def column_ids(self) -> List[str]:
+    def column_ids(self) -> list[str]:
         return self.columns
 
     def get_value(self, row_id: str, column_id: str) -> Union[int, float]:

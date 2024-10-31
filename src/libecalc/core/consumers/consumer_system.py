@@ -1,7 +1,7 @@
 import itertools
 import operator
 from functools import reduce
-from typing import Dict, Generic, List, Optional, Protocol, Tuple, TypeVar
+from typing import Generic, Optional, Protocol, TypeVar, tuple
 
 import networkx as nx
 
@@ -24,7 +24,7 @@ class Crossover(Protocol):
 
 
 class SystemComponentConditions(Protocol):
-    crossover: List[Crossover]
+    crossover: list[Crossover]
 
 
 class ConsumerSystem(Generic[Consumer]):
@@ -37,15 +37,15 @@ class ConsumerSystem(Generic[Consumer]):
     for a period of time -> Turn of compressor #2, and vice versa.
     """
 
-    def __init__(self, id: str, consumers: List[Consumer], component_conditions: SystemComponentConditions):
+    def __init__(self, id: str, consumers: list[Consumer], component_conditions: SystemComponentConditions):
         self.id = id
         self._consumers = consumers
         self._component_conditions = component_conditions
 
     def _get_stream_conditions_adjusted_for_crossover(
         self,
-        stream_conditions: Dict[str, List[StreamConditions]],
-    ) -> Dict[str, List[StreamConditions]]:
+        stream_conditions: dict[str, list[StreamConditions]],
+    ) -> dict[str, list[StreamConditions]]:
         """
         Calculate stream conditions for the current consumer, accounting for potential crossover from previous
         consumers.
@@ -54,10 +54,10 @@ class ConsumerSystem(Generic[Consumer]):
             crossover=self._component_conditions.crossover,
             consumers=self._consumers,
         )
-        adjusted_stream_conditions: Dict[str, List[StreamConditions]] = {}
+        adjusted_stream_conditions: dict[str, list[StreamConditions]] = {}
 
-        crossover_streams_map: Dict[str, List[StreamConditions]] = {consumer.id: [] for consumer in self._consumers}
-        crossover_definitions_map: Dict[str, Crossover] = {
+        crossover_streams_map: dict[str, list[StreamConditions]] = {consumer.id: [] for consumer in self._consumers}
+        crossover_definitions_map: dict[str, Crossover] = {
             crossover_stream.from_component_id: crossover_stream
             for crossover_stream in self._component_conditions.crossover
         }
@@ -94,7 +94,7 @@ class ConsumerSystem(Generic[Consumer]):
 
         return adjusted_stream_conditions
 
-    def evaluate_consumers(self, system_stream_conditions: Dict[str, List[StreamConditions]]) -> List[EvaluatorResult]:
+    def evaluate_consumers(self, system_stream_conditions: dict[str, list[StreamConditions]]) -> list[EvaluatorResult]:
         """
         Function to evaluate the consumers in the system given stream conditions for a single point in time
 
@@ -122,7 +122,7 @@ class ConsumerSystem(Generic[Consumer]):
     @staticmethod
     def get_system_result(
         id: str,
-        consumer_results: List[ComponentResult],
+        consumer_results: list[ComponentResult],
         operational_settings_used: TimeSeriesInt,
     ) -> EcalcModelResult:
         """
@@ -162,18 +162,18 @@ class ConsumerSystem(Generic[Consumer]):
 
     @staticmethod
     def _topologically_sort_consumers_by_crossover(
-        crossover: List[Crossover], consumers: List[Consumer]
-    ) -> List[Consumer]:
+        crossover: list[Crossover], consumers: list[Consumer]
+    ) -> list[Consumer]:
         """Topological sort of the graph created by crossover. This makes it possible for us to evaluate each
-        consumer with the correct rate directly.
+         consumer with the correct rate directly.
 
-        Parameters
-        ----------
-        crossover: list of crossover stream definitions
-        consumers
+         Parameters
+         ----------
+         crossover: list of crossover stream definitions
+         consumers
 
-        -------
-        List of topological sorted consumers
+         -------
+        list of topological sorted consumers
         """
         graph = nx.DiGraph()
         for consumer in consumers:
@@ -188,8 +188,8 @@ class ConsumerSystem(Generic[Consumer]):
 
     @staticmethod
     def _get_crossover_stream(
-        max_rate: float, inlet_streams: List[StreamConditions], crossover_stream_name: str
-    ) -> Tuple[StreamConditions, List[StreamConditions]]:
+        max_rate: float, inlet_streams: list[StreamConditions], crossover_stream_name: str
+    ) -> tuple[StreamConditions, list[StreamConditions]]:
         """
         This function is run over a single consumer only, and is normally run in a for loop
         across all "dependent" consumers in the consumer system, such as here, in a consumer system.

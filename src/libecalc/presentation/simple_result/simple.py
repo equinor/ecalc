@@ -1,4 +1,4 @@
-from typing import Dict, List, NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, tuple
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -24,7 +24,7 @@ class SimpleBase(BaseModel):
 
 class SimpleEmissionResult(SimpleBase):
     name: str
-    rate: List[opt_float]
+    rate: list[opt_float]
 
     @model_validator(mode="before")
     def convert_time_series(cls, values):
@@ -58,7 +58,7 @@ class ComponentID(NamedTuple):
         return f"(type: '{self.componentType}', name: '{self.name}')"
 
 
-def _subtract_list(first: List[Optional[float]], second: List[Optional[float]]):
+def _subtract_list(first: list[Optional[float]], second: list[Optional[float]]):
     subtracted = []
     for f, s in zip(first, second):
         if f is None:
@@ -76,12 +76,12 @@ class SimpleComponentResult(SimpleBase):
     parent: Optional[str] = None
     name: str
     periods: Periods
-    is_valid: List[int]
-    emissions: Dict[str, SimpleEmissionResult]
+    is_valid: list[int]
+    emissions: dict[str, SimpleEmissionResult]
 
-    energy_usage: List[opt_float]
+    energy_usage: list[opt_float]
     energy_usage_unit: Unit
-    power: Optional[List[opt_float]] = None
+    power: Optional[list[opt_float]] = None
 
     @classmethod
     def from_dto(cls, component_result: ComponentResult) -> "SimpleComponentResult":
@@ -141,7 +141,7 @@ class SimpleComponentResult(SimpleBase):
         power = []
         energy_usage = []
         is_valid = []
-        emissions: Dict[str, SimpleEmissionResult] = {
+        emissions: dict[str, SimpleEmissionResult] = {
             emission.name: SimpleEmissionResult(name=emission.name, rate=[])
             for emission in component.emissions.values()
         }
@@ -242,7 +242,7 @@ def _create_empty_component(component: SimpleComponentResult) -> SimpleComponent
 
 class SimpleResultData(SimpleBase):
     periods: Periods
-    components: List[SimpleComponentResult]
+    components: list[SimpleComponentResult]
 
     @classmethod
     def from_dto(cls, result: EcalcModelResult) -> "SimpleResultData":
@@ -279,7 +279,7 @@ class SimpleResultData(SimpleBase):
         cls,
         changed_model: "SimpleResultData",
         reference_model: "SimpleResultData",
-    ) -> Tuple["SimpleResultData", List[Exception]]:
+    ) -> tuple["SimpleResultData", list[Exception]]:
         """Subtract reference model from changed model.
 
         Timesteps and components should be equal between the models.
@@ -322,7 +322,7 @@ class SimpleResultData(SimpleBase):
         cls,
         reference_model: "SimpleResultData",
         changed_model: "SimpleResultData",
-        exclude: Optional[List[ComponentType]] = None,
+        exclude: Optional[list[ComponentType]] = None,
     ):
         if exclude is None:
             exclude = []
@@ -365,7 +365,7 @@ class SimpleResultData(SimpleBase):
         cls,
         reference_model: "SimpleResultData",
         changed_model: "SimpleResultData",
-    ) -> Tuple["SimpleResultData", "SimpleResultData", "SimpleResultData", List[str]]:
+    ) -> tuple["SimpleResultData", "SimpleResultData", "SimpleResultData", list[str]]:
         """
 
         Args:

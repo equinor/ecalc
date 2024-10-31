@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -35,7 +35,7 @@ class InvalidExpressionError(EcalcError):
 class Expression:
     def __init__(
         self,
-        tokens: List[Token],
+        tokens: list[Token],
     ):
         self.tokens = tokens
 
@@ -54,7 +54,7 @@ class Expression:
         return expression_string
 
     @property
-    def variables(self) -> List[str]:
+    def variables(self) -> list[str]:
         return [token.value for token in self.tokens if token.tag == TokenTag.reference]
 
     @classmethod
@@ -76,10 +76,10 @@ class Expression:
         return cls(tokens=tokens_multiplied)
 
     @classmethod
-    def validate(cls, expression: Any) -> List[Token]:
+    def validate(cls, expression: Any) -> list[Token]:
         expression = _expression_as_number_if_number(expression_input=expression)
 
-        if not isinstance(expression, (str, float, int)):
+        if not isinstance(expression, str | float | int):
             raise InvalidExpressionError("Expression should be of type str, int or float")
 
         try:
@@ -137,7 +137,7 @@ class Expression:
         instance = cls(tokens=tokens)
         return instance
 
-    def evaluate(self, variables: Dict[str, List[float]], fill_length: int) -> NDArray[np.float64]:
+    def evaluate(self, variables: dict[str, list[float]], fill_length: int) -> NDArray[np.float64]:
         missing_references = [reference_id for reference_id in self.variables if reference_id not in variables]
         if len(missing_references) != 0:
             msg = f"Unable to evaluate expression. Missing reference(s) {', '.join(missing_references)}"

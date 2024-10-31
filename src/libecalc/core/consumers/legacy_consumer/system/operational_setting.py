@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -28,11 +28,11 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
     Note that circular references is not possible.
     """
 
-    rates: List[Expression]
-    suction_pressures: List[Expression]
-    discharge_pressures: List[Expression]
-    cross_overs: Optional[List[int]] = None
-    fluid_densities: Optional[List[Expression]] = None
+    rates: list[Expression]
+    suction_pressures: list[Expression]
+    discharge_pressures: list[Expression]
+    cross_overs: Optional[list[int]] = None
+    fluid_densities: Optional[list[Expression]] = None
 
     @property
     def number_of_consumers(self):
@@ -40,7 +40,7 @@ class ConsumerSystemOperationalSettingExpressions(BaseModel):
 
     @model_validator(mode="after")
     def check_list_length(self):
-        def _log_error(field: str, field_values: List[Any], n_rates) -> None:
+        def _log_error(field: str, field_values: list[Any], n_rates) -> None:
             msg = (
                 f"All attributes in a consumer system operational setting must have the same number of elements"
                 f"(corresponding to the number of consumers). The number of elements in {field} "
@@ -68,22 +68,22 @@ class CompressorSystemOperationalSettingExpressions(ConsumerSystemOperationalSet
 
 
 class PumpSystemOperationalSettingExpressions(ConsumerSystemOperationalSettingExpressions):
-    fluid_densities: List[Expression]
+    fluid_densities: list[Expression]
 
 
 class ConsumerSystemOperationalSetting(BaseModel):
     """Warning! The methods below are fragile to changes in attribute names and types."""
 
-    rates: List[PydanticNDArray]
-    suction_pressures: List[PydanticNDArray]
-    discharge_pressures: List[PydanticNDArray]
-    cross_overs: Optional[List[int]] = None
-    fluid_densities: Optional[List[PydanticNDArray]] = None
+    rates: list[PydanticNDArray]
+    suction_pressures: list[PydanticNDArray]
+    discharge_pressures: list[PydanticNDArray]
+    cross_overs: Optional[list[int]] = None
+    fluid_densities: Optional[list[PydanticNDArray]] = None
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
     @model_validator(mode="after")
     def check_list_length(self):
-        def _log_error(field: str, field_values: List[Any], n_rates: int) -> None:
+        def _log_error(field: str, field_values: list[Any], n_rates: int) -> None:
             error_message = (
                 f"All attributes in a consumer system operational setting must have the same number of elements"
                 f"(corresponding to the number of consumers). The number of elements in {field} "
@@ -107,7 +107,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
 
         return self
 
-    def convert_rates_to_stream_day(self, regularity: List[float]) -> ConsumerSystemOperationalSetting:
+    def convert_rates_to_stream_day(self, regularity: list[float]) -> ConsumerSystemOperationalSetting:
         """If regularity is specified, interpret the rate in the operational setting
         as calendar day rate and compute the stream day rate. Return operational
         setting object where the rate is stream day.
@@ -133,7 +133,7 @@ class ConsumerSystemOperationalSetting(BaseModel):
 
     def set_rates_after_cross_over(
         self,
-        rates_after_cross_over: List[NDArray[np.float64]],
+        rates_after_cross_over: list[NDArray[np.float64]],
     ) -> ConsumerSystemOperationalSetting:
         """Note: Hack because of Config allow_mutation = False - to avoid Pydantic faux immutability
         Refactor so that we do not need to do this at all.
@@ -147,4 +147,4 @@ class CompressorSystemOperationalSetting(ConsumerSystemOperationalSetting): ...
 
 
 class PumpSystemOperationalSetting(ConsumerSystemOperationalSetting):
-    fluid_densities: List[PydanticNDArray]
+    fluid_densities: list[PydanticNDArray]

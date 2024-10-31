@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Self, Tuple, Union
+from typing import Any, Optional, Self, Union, tuple
 
 import numpy as np
 import pandas as pd
@@ -76,7 +76,7 @@ class Period:
 
         return Period(max(first.start, second.start), min(first.end, second.end))
 
-    def get_period_indices(self, periods: Periods) -> Tuple[int, int]:
+    def get_period_indices(self, periods: Periods) -> tuple[int, int]:
         """Given a list of periods, find the indices of the start and end of this objects period in the list.
 
            The start and end dates of this object's period must be within the start and end dates within
@@ -98,7 +98,7 @@ class Period:
                 f"Period: {self.start}:{self.end} - periods: {periods}"
             ) from e
 
-    def get_timesteps(self, timesteps: List[datetime]) -> List[datetime]:
+    def get_timesteps(self, timesteps: list[datetime]) -> list[datetime]:
         """
         Get all given timesteps that are within this period.
         Returns empty list if all timesteps are outside period.
@@ -128,10 +128,10 @@ class Period:
 
 @dataclass(eq=True, frozen=True, order=True)
 class Periods:
-    periods: List[Period]
+    periods: list[Period]
 
     @staticmethod
-    def create_periods(times: List[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
+    def create_periods(times: list[datetime], include_before: bool = True, include_after: bool = True) -> Periods:
         """
         Create periods from the provided datetimes
         :param times: the sorted times to create periods from
@@ -196,7 +196,7 @@ class Periods:
     def __len__(self):
         return len(self.periods)
 
-    def __getitem__(self, indices: Union[slice, int, List[int]]) -> Self:
+    def __getitem__(self, indices: Union[slice, int, list[int]]) -> Self:
         if isinstance(indices, slice):
             return Periods(self.periods[indices])
         elif isinstance(indices, int):
@@ -212,7 +212,7 @@ class Periods:
         return Period(self.periods[0].start, self.periods[-1].end)
 
 
-def define_time_model_for_period(time_model_data: Optional[Any], target_period: Period) -> Optional[Dict[Period, Any]]:
+def define_time_model_for_period(time_model_data: Optional[Any], target_period: Period) -> Optional[dict[Period, Any]]:
     """Process time model based on the target period.
 
     Steps:
@@ -278,7 +278,7 @@ def resample_periods(
         include_start_date: Whether to include the start date if it is not part of the requested reporting frequency
         include_end_date: Whether to include the end date if it is not part of the requested reporting frequency
 
-    Returns: List of periods dates according to given input
+    Returns:list of periods dates according to given input
 
     """
     if frequency is not Frequency.NONE:
@@ -300,7 +300,7 @@ def resample_periods(
 
 def create_start_and_end_dates_for_periods(
     frequency: Frequency, start: datetime, end: datetime, include_start_date: bool, include_end_date: bool
-) -> List[datetime]:
+) -> list[datetime]:
     """
 
     Args:
@@ -333,7 +333,7 @@ def clear_time(d: datetime) -> datetime:
     return datetime.combine(d.date(), datetime.min.time())
 
 
-def is_temporal_model(data: Dict) -> bool:
+def is_temporal_model(data: dict) -> bool:
     """Check if the data is a time dependent dict. A time dependent dict is a dict where the keys are dates or periods."""
     if isinstance(data, dict):
         is_period = []
@@ -387,7 +387,7 @@ def convert_date_to_datetime(d: Union[date, datetime]) -> datetime:
     return datetime(d.year, d.month, d.day, 0, 0, 0)
 
 
-def default_temporal_model(data: Any, default_period: Period) -> Optional[Dict[Period, Any]]:
+def default_temporal_model(data: Any, default_period: Period) -> Optional[dict[Period, Any]]:
     """Ensure the data is a time dependent dict. Also convert all dates to datetime with default time 00:00:00
     :param default_period: the period to use as default
     :param data:

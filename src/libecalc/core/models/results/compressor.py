@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from math import isnan
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 
@@ -48,15 +48,15 @@ class TargetPressureStatus(str, Enum):
 
 
 class CompressorStreamCondition(EnergyModelBaseResult):
-    pressure: Optional[List[Optional[float]]] = None
-    actual_rate_m3_per_hr: Optional[List[Optional[float]]] = None
-    actual_rate_before_asv_m3_per_hr: Optional[List[Optional[float]]] = None
-    standard_rate_sm3_per_day: Optional[List[Optional[float]]] = None
-    standard_rate_before_asv_sm3_per_day: Optional[List[Optional[float]]] = None
-    density_kg_per_m3: Optional[List[Optional[float]]] = None
-    kappa: Optional[List[Optional[float]]] = None
-    z: Optional[List[Optional[float]]] = None
-    temperature_kelvin: Optional[List[Optional[float]]] = None
+    pressure: Optional[list[Optional[float]]] = None
+    actual_rate_m3_per_hr: Optional[list[Optional[float]]] = None
+    actual_rate_before_asv_m3_per_hr: Optional[list[Optional[float]]] = None
+    standard_rate_sm3_per_day: Optional[list[Optional[float]]] = None
+    standard_rate_before_asv_sm3_per_day: Optional[list[Optional[float]]] = None
+    density_kg_per_m3: Optional[list[Optional[float]]] = None
+    kappa: Optional[list[Optional[float]]] = None
+    z: Optional[list[Optional[float]]] = None
+    temperature_kelvin: Optional[list[Optional[float]]] = None
 
     @classmethod
     def create_empty(cls, number_of_periods) -> CompressorStreamCondition:
@@ -75,37 +75,37 @@ class CompressorStreamCondition(EnergyModelBaseResult):
 
 
 class CompressorStageResult(EnergyModelBaseResult):
-    energy_usage: List[Optional[float]]
+    energy_usage: list[Optional[float]]
     energy_usage_unit: Unit
-    power: Optional[List[Optional[float]]] = None
+    power: Optional[list[Optional[float]]] = None
     power_unit: Optional[Unit] = None
 
-    mass_rate_kg_per_hr: Optional[List[Optional[float]]] = (
+    mass_rate_kg_per_hr: Optional[list[Optional[float]]] = (
         None  # The gross mass rate passing through a compressor stage
     )
-    mass_rate_before_asv_kg_per_hr: Optional[List[Optional[float]]] = (
+    mass_rate_before_asv_kg_per_hr: Optional[list[Optional[float]]] = (
         None  # The net mass rate through a compressor stage
     )
 
     inlet_stream_condition: CompressorStreamCondition
     outlet_stream_condition: CompressorStreamCondition
 
-    polytropic_enthalpy_change_kJ_per_kg: Optional[List[Optional[float]]] = None
-    polytropic_head_kJ_per_kg: Optional[List[Optional[float]]] = None
-    polytropic_efficiency: Optional[List[Optional[float]]] = None
-    polytropic_enthalpy_change_before_choke_kJ_per_kg: Optional[List[Optional[float]]] = None
+    polytropic_enthalpy_change_kJ_per_kg: Optional[list[Optional[float]]] = None
+    polytropic_head_kJ_per_kg: Optional[list[Optional[float]]] = None
+    polytropic_efficiency: Optional[list[Optional[float]]] = None
+    polytropic_enthalpy_change_before_choke_kJ_per_kg: Optional[list[Optional[float]]] = None
 
-    speed: Optional[List[Optional[float]]] = None
-    asv_recirculation_loss_mw: List[Optional[float]]
-    fluid_composition: Dict[str, Optional[float]]
+    speed: Optional[list[Optional[float]]] = None
+    asv_recirculation_loss_mw: list[Optional[float]]
+    fluid_composition: dict[str, Optional[float]]
 
     # Validity flags
-    is_valid: List[bool]
-    chart_area_flags: List[str]
-    rate_has_recirculation: List[bool]
-    rate_exceeds_maximum: List[bool]
-    pressure_is_choked: List[bool]
-    head_exceeds_maximum: List[bool]
+    is_valid: list[bool]
+    chart_area_flags: list[str]
+    rate_has_recirculation: list[bool]
+    rate_exceeds_maximum: list[bool]
+    pressure_is_choked: list[bool]
+    head_exceeds_maximum: list[bool]
 
     chart: Optional[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]] = None
 
@@ -143,14 +143,14 @@ class CompressorStageResult(EnergyModelBaseResult):
 class CompressorTrainResult(EnergyFunctionResult):
     """The compressor train result component."""
 
-    rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]]]
-    max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]] = None
+    rate_sm3_day: Union[list[Optional[float]], list[list[Optional[float]]]]
+    max_standard_rate: Optional[Union[list[Optional[float]], list[list[Optional[float]]]]] = None
 
     inlet_stream_condition: CompressorStreamCondition
     outlet_stream_condition: CompressorStreamCondition
 
-    stage_results: List[CompressorStageResult]
-    failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
+    stage_results: list[CompressorStageResult]
+    failure_status: list[Optional[CompressorTrainCommonShaftFailureStatus]]
     turbine_result: Optional[TurbineResult] = None
 
     def extend(self, other: CompressorTrainResult) -> CompressorTrainResult:
@@ -171,7 +171,7 @@ class CompressorTrainResult(EnergyFunctionResult):
 
             if values is None or other_values is None:
                 continue
-            elif isinstance(values, (Enum, str)):
+            elif isinstance(values, Enum | str):
                 if values != other_values:
                     log_lost_result_data(attribute)
             elif attribute == "stage_results":
@@ -208,11 +208,11 @@ class CompressorTrainResult(EnergyFunctionResult):
         return self
 
     @property
-    def rate(self) -> List[Optional[float]]:
+    def rate(self) -> list[Optional[float]]:
         return self.rate_sm3_day
 
     @property
-    def is_valid(self) -> List[bool]:
+    def is_valid(self) -> list[bool]:
         """The sampled compressor model behaves "normally" and returns NaN-values when invalid.
         The turbine model can still be invalid if the sampled compressor model is valid (too high load),
         so need to check that as well.
@@ -242,18 +242,18 @@ class CompressorTrainResult(EnergyFunctionResult):
         return self.outlet_stream_condition
 
     @property
-    def mass_rate_kg_per_hr(self) -> List[float]:
+    def mass_rate_kg_per_hr(self) -> list[float]:
         """Returns: The net mass rate that enters the compressor train at the first stage."""
         return self.stage_results[0].mass_rate_before_asv_kg_per_hr
 
     @property
-    def pressure_is_choked(self) -> List[bool]:
+    def pressure_is_choked(self) -> list[bool]:
         return list(np.any([stage.pressure_is_choked for stage in self.stage_results], axis=0))
 
     @property
-    def recirculation_loss(self) -> List[float]:
+    def recirculation_loss(self) -> list[float]:
         return list(elementwise_sum(*[stage.asv_recirculation_loss_mw for stage in self.stage_results]))
 
     @property
-    def rate_exceeds_maximum(self) -> List[bool]:
+    def rate_exceeds_maximum(self) -> list[bool]:
         return list(np.any([stage.rate_exceeds_maximum for stage in self.stage_results], axis=0))

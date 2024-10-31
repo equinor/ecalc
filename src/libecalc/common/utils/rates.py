@@ -8,12 +8,9 @@ from datetime import datetime
 from enum import Enum
 from typing import (
     Any,
-    DefaultDict,
     Generic,
-    List,
     Optional,
     Self,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -48,7 +45,7 @@ class RateType(str, Enum):
 
 class Rates:
     @staticmethod
-    def to_stream_day(calendar_day_rates: NDArray[np.float64], regularity: List[float]) -> NDArray[np.float64]:
+    def to_stream_day(calendar_day_rates: NDArray[np.float64], regularity: list[float]) -> NDArray[np.float64]:
         """
         Convert (production) rate from calendar day to stream day
 
@@ -63,7 +60,7 @@ class Rates:
         return np.divide(calendar_day_rates, regularity, out=np.zeros_like(calendar_day_rates), where=regularity != 0.0)  # type: ignore[comparison-overlap]
 
     @staticmethod
-    def to_calendar_day(stream_day_rates: NDArray[np.float64], regularity: List[float]) -> NDArray[np.float64]:
+    def to_calendar_day(stream_day_rates: NDArray[np.float64], regularity: list[float]) -> NDArray[np.float64]:
         """Convert (production) rate from stream day to calendar day.
 
         Args:
@@ -90,7 +87,7 @@ class Rates:
 
     @staticmethod
     def to_volumes(
-        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]],
+        rates: Union[list[float], list[TimeSeriesValue], NDArray[np.float64]],
         periods: Periods,
     ) -> NDArray[np.float64]:
         """
@@ -113,7 +110,7 @@ class Rates:
 
     @staticmethod
     def compute_cumulative(
-        volumes: Union[List[float], NDArray[np.float64][float, numpy.dtype[numpy.float64]]],
+        volumes: Union[list[float], NDArray[np.float64][float, numpy.dtype[numpy.float64]]],
     ) -> NDArray[np.float64][float, numpy.dtype[numpy.float64]]:
         """
         Compute cumulative volumes from a list of periodic volumes
@@ -128,7 +125,7 @@ class Rates:
 
     @staticmethod
     def compute_cumulative_volumes_from_daily_rates(
-        rates: Union[List[float], List[TimeSeriesValue], NDArray[np.float64]], periods: Periods
+        rates: Union[list[float], list[TimeSeriesValue], NDArray[np.float64]], periods: Periods
     ) -> NDArray[np.float64]:
         """
         Compute cumulative production volumes based on production rates and the corresponding time periods.
@@ -149,13 +146,13 @@ class Rates:
 
 class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     periods: Periods
-    values: List[TimeSeriesValue]
+    values: list[TimeSeriesValue]
     unit: Unit
     model_config = ConfigDict(alias_generator=to_camel_case, populate_by_name=True, extra="forbid")
 
     @field_validator("values")
     @classmethod
-    def period_values_one_to_one(cls, v: List[TimeSeriesValue], info: ValidationInfo):
+    def period_values_one_to_one(cls, v: list[TimeSeriesValue], info: ValidationInfo):
         periods = info.data["periods"]
         nr_periods = len(periods)
         nr_values = len(v)
@@ -187,7 +184,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     def last_date(self):
         return self.period().end
 
-    def all_dates(self) -> List[datetime]:
+    def all_dates(self) -> list[datetime]:
         return self.start_dates() + [self.last_date()]
 
     def start_dates(self):
@@ -252,7 +249,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             unit=self.unit,
         )
 
-    def datapoints(self) -> Iterator[Tuple[Period, TimeSeriesValue]]:
+    def datapoints(self) -> Iterator[tuple[Period, TimeSeriesValue]]:
         yield from zip(self.periods, self.values)
 
     def for_period(self, period: Period) -> Self:
@@ -311,7 +308,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
     def fill_nan(self, fill_value: float) -> Self:
         return self.model_copy(update={"values": pd.Series(self.values).fillna(fill_value).tolist()})
 
-    def __getitem__(self, indices: Union[slice, int, List[int]]) -> Self:
+    def __getitem__(self, indices: Union[slice, int, list[int]]) -> Self:
         if isinstance(indices, slice):
             return self.__class__(
                 periods=Periods(self.periods.periods[indices]), values=self.values[indices], unit=self.unit
@@ -331,7 +328,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
         )
 
     def __setitem__(
-        self, indices: Union[slice, int, List[int]], values: Union[TimeSeriesValue, List[TimeSeriesValue]]
+        self, indices: Union[slice, int, list[int]], values: Union[TimeSeriesValue, list[TimeSeriesValue]]
     ) -> None:
         if isinstance(values, list):
             if isinstance(indices, slice):
@@ -363,7 +360,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
         """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
         the consumer time vector, we calculate the actual consumer (consumption) rate.
         """
-        new_values: DefaultDict[Period, Union[float, str]] = defaultdict(float)
+        new_values: defaultdict[Period, Union[float, str]] = defaultdict(float)
         new_values.update({t: fillna for t in new_periods})
         for t, v in zip(self.periods, self.values):
             if t in new_values:
@@ -496,7 +493,7 @@ class TimeSeriesBoolean(TimeSeries[bool]):
 class TimeSeriesFloat(TimeSeries[float]):
     @field_validator("values", mode="before")
     @classmethod
-    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
             return [i if i is not None else math.nan for i in v]
@@ -543,7 +540,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 
     @field_validator("values", mode="before")
     @classmethod
-    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
             return [i if i is not None else math.nan for i in v]
@@ -637,7 +634,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
 class TimeSeriesVolumes(TimeSeries[float]):
     @field_validator("values", mode="before")
     @classmethod
-    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
             return [i if i is not None else math.nan for i in v]
@@ -675,7 +672,7 @@ class TimeSeriesVolumes(TimeSeries[float]):
             unit=self.unit,
         )
 
-    def to_rate(self, regularity: Optional[List[float]] = None) -> TimeSeriesRate:
+    def to_rate(self, regularity: Optional[list[float]] = None) -> TimeSeriesRate:
         """
         Conversion from periodic volumes to average rate for each period.
 
@@ -760,18 +757,18 @@ class TimeSeriesRate(TimeSeries[float]):
     """
 
     rate_type: RateType
-    regularity: List[float]
+    regularity: list[float]
 
     @field_validator("values", "regularity", mode="before")
     @classmethod
-    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> List[TimeSeriesValue]:
+    def convert_none_to_nan(cls, v: Any, info: ValidationInfo) -> list[TimeSeriesValue]:
         if isinstance(v, list):
             # convert None to nan
             return [i if i is not None else math.nan for i in v]
         return v
 
     @field_validator("regularity")
-    def check_regularity_length(cls, regularity: List[float], info: ValidationInfo) -> List[float]:
+    def check_regularity_length(cls, regularity: list[float], info: ValidationInfo) -> list[float]:
         regularity_length = len(regularity)
         periods_length = len(info.data["periods"].periods)
         if regularity_length != periods_length:
@@ -1019,7 +1016,7 @@ class TimeSeriesRate(TimeSeries[float]):
         else:
             return new_time_series.to_stream_day()
 
-    def __getitem__(self, indices: Union[slice, int, List[int], NDArray[np.float64]]) -> TimeSeriesRate:
+    def __getitem__(self, indices: Union[slice, int, list[int], NDArray[np.float64]]) -> TimeSeriesRate:
         if isinstance(indices, slice):
             return self.__class__(
                 periods=self.periods[indices],
@@ -1036,7 +1033,7 @@ class TimeSeriesRate(TimeSeries[float]):
                 unit=self.unit,
                 rate_type=self.rate_type,
             )
-        elif isinstance(indices, (list, np.ndarray)):
+        elif isinstance(indices, list | np.ndarray):
             indices = list(indices)
             return self.__class__(
                 periods=[self.periods[i] for i in indices],

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from libecalc.dto import FluidComposition, FluidModel
 from libecalc.dto.types import EoSModel
@@ -91,7 +91,7 @@ _eos_model_mapper = {
 }
 
 
-def fluid_model_mapper(model_config: YamlFluidModel, input_models: Dict[str, Any], resources: Resources):
+def fluid_model_mapper(model_config: YamlFluidModel, input_models: dict[str, Any], resources: Resources):
     fluid_model_type = model_config.fluid_model_type
     mapper = _fluid_model_map.get(fluid_model_type)
     if mapper is None:

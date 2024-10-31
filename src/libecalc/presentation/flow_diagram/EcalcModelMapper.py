@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Dict, List, Set, Tuple, Union
+from typing import Union
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumer_type import ConsumerType
@@ -56,14 +56,14 @@ def _create_generator_set_node(generator_set: GeneratorSet, installation: Instal
 
 
 def _create_legacy_pump_system_diagram(
-    energy_usage_model: Dict[Period, PumpSystemConsumerFunction],
+    energy_usage_model: dict[Period, PumpSystemConsumerFunction],
     consumer_id: str,
     consumer_title: str,
     global_end_date: datetime,
-) -> List[FlowDiagram]:
+) -> list[FlowDiagram]:
     """Create subchart for energy usage model
     :param energy_usage_model:
-    :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
+    :return: list of flow diagrams.list of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
     periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
@@ -91,14 +91,14 @@ def _create_legacy_pump_system_diagram(
 
 
 def _create_legacy_compressor_system_diagram(
-    energy_usage_model: Dict[Period, CompressorSystemConsumerFunction],
+    energy_usage_model: dict[Period, CompressorSystemConsumerFunction],
     consumer_id: str,
     consumer_title: str,
     global_end_date: datetime,
-) -> List[FlowDiagram]:
+) -> list[FlowDiagram]:
     """Create subchart for energy usage model
     :param energy_usage_model:
-    :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
+    :return: list of flow diagrams.list of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
     periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
@@ -147,7 +147,7 @@ def _create_legacy_compressor_system_diagram(
 def _create_system_diagram(
     system: ConsumerSystem,
     global_end_date: datetime,
-) -> List[FlowDiagram]:
+) -> list[FlowDiagram]:
     timesteps = _get_timesteps(system.consumers)
     return [
         FlowDiagram(
@@ -180,14 +180,14 @@ _dto_model_type_to_fde_render_type_map = {
 
 
 def _create_compressor_train_diagram(
-    energy_usage_model: Dict[Period, CompressorConsumerFunction],
+    energy_usage_model: dict[Period, CompressorConsumerFunction],
     node_id: str,
     title: str,
     global_end_date: datetime,
 ):
     """Create subchart for energy usage model
     :param energy_usage_model:
-    :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
+    :return: list of flow diagrams.list of flow diagrams as we always add a default date in dtos.
     """
     periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
     compressor_train_step = list(energy_usage_model.values())[0].model
@@ -214,14 +214,14 @@ def _create_compressor_train_diagram(
 
 
 def _create_compressor_with_turbine_stages_diagram(
-    energy_usage_model: Dict[Period, CompressorConsumerFunction],
+    energy_usage_model: dict[Period, CompressorConsumerFunction],
     node_id: str,
     title: str,
     global_end_date: datetime,
 ):
     """Create subchart for energy usage model
     :param energy_usage_model:
-    :return: list of flow diagrams. List of flow diagrams as we always add a default date in dtos.
+    :return: list of flow diagrams.list of flow diagrams as we always add a default date in dtos.
     """
     flow_diagrams = []
     periods = _get_periods({key.start for key in energy_usage_model.keys()}, global_end_date)
@@ -251,7 +251,7 @@ def _create_compressor_with_turbine_stages_diagram(
 
 
 def _is_compressor_with_turbine(
-    temporal_energy_usage_model: Dict[Period, ConsumerFunction],
+    temporal_energy_usage_model: dict[Period, ConsumerFunction],
 ) -> bool:
     """Checking if compressor type is compressor with turbine.
 
@@ -271,7 +271,7 @@ def _create_consumer_node(
 ) -> Node:
     node_id = f"{installation_name}-consumer-{consumer.name}"
     title = consumer.name
-    if isinstance(consumer, (FuelConsumer, ElectricityConsumer)):
+    if isinstance(consumer, FuelConsumer | ElectricityConsumer):
         component_type = list(consumer.energy_usage_model.values())[0].typ
         fde_type = _dto_model_type_to_fde_render_type_map.get(component_type, "default")
         if component_type == ConsumerType.PUMP_SYSTEM:
@@ -314,7 +314,7 @@ def _create_consumer_node(
 
 
 def _is_compressor_train(
-    energy_usage_models: Dict[
+    energy_usage_models: dict[
         Period,
         Union[ElectricEnergyUsageModel, FuelEnergyUsageModel],
     ],
@@ -323,19 +323,17 @@ def _is_compressor_train(
     for energy_usage_model in energy_usage_models.values():
         if isinstance(energy_usage_model, CompressorConsumerFunction) and isinstance(
             energy_usage_model.model,
-            (
-                CompressorTrainSimplifiedWithKnownStages,
-                VariableSpeedCompressorTrain,
-                SingleSpeedCompressorTrain,
-                VariableSpeedCompressorTrainMultipleStreamsAndPressures,
-            ),
+            CompressorTrainSimplifiedWithKnownStages
+            | VariableSpeedCompressorTrain
+            | SingleSpeedCompressorTrain
+            | VariableSpeedCompressorTrainMultipleStreamsAndPressures,
         ):
             return True
     return False
 
 
 def _get_timesteps(
-    components: List[
+    components: list[
         Union[
             Asset,
             Installation,
@@ -347,7 +345,7 @@ def _get_timesteps(
         ]
     ],
     shallow: bool = False,
-) -> Set[datetime]:
+) -> set[datetime]:
     """
     Return a set of all timesteps for a component
     :param components:
@@ -355,7 +353,7 @@ def _get_timesteps(
     Generator set is the only component that has dates in its own model and consumers with start dates.
     :return:
     """
-    timesteps: Set[datetime] = set()
+    timesteps: set[datetime] = set()
     for component in components:
         if isinstance(component, Asset):
             timesteps = timesteps.union(_get_timesteps(component.installations, shallow=shallow))
@@ -367,12 +365,7 @@ def _get_timesteps(
                 timesteps = timesteps.union(_get_timesteps(component.consumers, shallow=shallow))
         elif isinstance(
             component,
-            (
-                ElectricityConsumer,
-                FuelConsumer,
-                PumpComponent,
-                CompressorComponent,
-            ),
+            ElectricityConsumer | FuelConsumer | PumpComponent | CompressorComponent,
         ):
             timesteps = timesteps.union({key.start for key in component.energy_usage_model.keys()})
         elif isinstance(component, ConsumerSystem):
@@ -488,7 +481,7 @@ def _get_periods(
     return Periods.create_periods([*start_dates, global_end_date], include_before=False, include_after=False)
 
 
-def _create_installation_fde(installation: Installation, global_end_date: datetime) -> List[FlowDiagram]:
+def _create_installation_fde(installation: Installation, global_end_date: datetime) -> list[FlowDiagram]:
     """Create flow diagrams for each timestep including only the consumers relevant in that timestep
     :param installation:
     :return:
@@ -506,7 +499,7 @@ def _create_installation_fde(installation: Installation, global_end_date: dateti
     return _filter_duplicate_flow_diagrams(installation_flow_diagrams)
 
 
-def _filter_duplicate_flow_diagrams(installation_flow_diagrams: List[FlowDiagram]) -> List[FlowDiagram]:
+def _filter_duplicate_flow_diagrams(installation_flow_diagrams: list[FlowDiagram]) -> list[FlowDiagram]:
     """We might create flow diagrams that are equal. When having several consumers with different dates,
     the user can change a property that isn't visible in the flow diagram.
     """
@@ -541,7 +534,7 @@ def _get_sorted_start_dates(ecalc_model: Asset):
     return sorted(_get_timesteps([ecalc_model]))
 
 
-def _get_global_dates(ecalc_model: Asset, result_options: ResultOptions) -> Tuple[datetime, datetime]:
+def _get_global_dates(ecalc_model: Asset, result_options: ResultOptions) -> tuple[datetime, datetime]:
     user_defined_start_date = result_options.start
     user_defined_end_date = result_options.end
 

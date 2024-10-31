@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional, Self, Tuple
+from typing import Optional, Self, tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -31,15 +31,15 @@ class ChartCurve:
         self.speed_rpm = data_transfer_object.speed_rpm
 
     @property
-    def rate(self) -> List[float]:
+    def rate(self) -> list[float]:
         return self.rate_actual_m3_hour
 
     @property
-    def head(self) -> List[float]:
+    def head(self) -> list[float]:
         return self.polytropic_head_joule_per_kg
 
     @property
-    def efficiency(self) -> List[float]:
+    def efficiency(self) -> list[float]:
         return self.efficiency_fraction
 
     @property
@@ -116,16 +116,16 @@ class ChartCurve:
         )
 
     @property
-    def rate_head_and_efficiency_at_minimum_rate(self) -> Tuple[float, float, float]:
+    def rate_head_and_efficiency_at_minimum_rate(self) -> tuple[float, float, float]:
         """Return data point (rate, head, efficiency) for the minimum rate value."""
         return self.rate[0], self.head[0], self.efficiency[0]
 
     @property
-    def rate_head_and_efficiency_at_maximum_rate(self) -> Tuple[float, float, float]:
+    def rate_head_and_efficiency_at_maximum_rate(self) -> tuple[float, float, float]:
         """Return data point (rate, head, efficiency) for the maximum rate value (Top of stone wall)."""
         return self.rate[-1], self.head[-1], self.efficiency[-1]
 
-    def get_distance_and_efficiency_from_closest_point_on_curve(self, rate: float, head: float) -> Tuple[float, float]:
+    def get_distance_and_efficiency_from_closest_point_on_curve(self, rate: float, head: float) -> tuple[float, float]:
         """Compute the closest distance from a point (rate,head) to the (interpolated) curve and corresponding
         efficiency for that closest point.
         """
@@ -152,7 +152,7 @@ class ChartCurve:
         if control_margin is None:
             return deepcopy(self)
 
-        def _get_new_point(x: List[float], y: List[float], new_x_value) -> float:
+        def _get_new_point(x: list[float], y: list[float], new_x_value) -> float:
             """Set up simple interpolation and get a point estimate on y based on the new x point."""
             return interp1d(x=x, y=y, fill_value=(np.min(y), np.max(y)), bounds_error=False, assume_sorted=False)(
                 new_x_value

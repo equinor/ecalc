@@ -1,10 +1,10 @@
 from collections.abc import Hashable, Iterable
-from typing import Set, TypeVar
+from typing import TypeVar
 
 TItem = TypeVar("TItem", bound=Hashable)
 
 
-def get_duplicates(names: Iterable[TItem]) -> Set[TItem]:
+def get_duplicates(names: Iterable[TItem]) -> set[TItem]:
     seen = set()
     duplicates = set()
     for name in names:

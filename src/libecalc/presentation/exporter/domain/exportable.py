@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -27,7 +27,7 @@ class AttributeMeta:
 
 class Attribute(ABC):
     @abstractmethod
-    def datapoints(self) -> Iterable[Tuple[Period, float]]: ...
+    def datapoints(self) -> Iterable[tuple[Period, float]]: ...
 
     @abstractmethod
     def get_meta(self) -> AttributeMeta: ...
@@ -35,7 +35,7 @@ class Attribute(ABC):
 
 @dataclass
 class AttributeSet(ABC):
-    attributes: List[Attribute]
+    attributes: list[Attribute]
 
     def __iter__(self) -> Iterator[Attribute]:
         return self.attributes.__iter__()
@@ -72,4 +72,4 @@ class Exportable(ABC):
 
 class ExportableSet(ABC):
     @abstractmethod
-    def get_from_type(self, exportable_type: ExportableType) -> List[Exportable]: ...
+    def get_from_type(self, exportable_type: ExportableType) -> list[Exportable]: ...

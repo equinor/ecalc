@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Dict, Generic, List, Literal, Optional, TypeVar, Union
+from typing import Annotated, Generic, Literal, Optional, TypeVar, Union
 
 from pydantic import ConfigDict, Field, TypeAdapter
 
@@ -28,15 +28,15 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlStreamConditions,
 )
 
-opt_expr_list = Optional[List[YamlExpressionType]]
+opt_expr_list = Optional[list[YamlExpressionType]]
 
 PriorityID = str
 StreamID = str
 ConsumerID = str
 
-YamlConsumerStreamConditions = Dict[StreamID, YamlStreamConditions]
-YamlConsumerStreamConditionsMap = Dict[ConsumerID, YamlConsumerStreamConditions]
-YamlPriorities = Dict[PriorityID, YamlConsumerStreamConditionsMap]
+YamlConsumerStreamConditions = dict[StreamID, YamlStreamConditions]
+YamlConsumerStreamConditionsMap = dict[ConsumerID, YamlConsumerStreamConditions]
+YamlPriorities = dict[PriorityID, YamlConsumerStreamConditionsMap]
 
 TYamlConsumer = TypeVar(
     "TYamlConsumer", bound=Annotated[Union[YamlCompressor, YamlPump, YamlTrain], Field(discriminator="component_type")]
@@ -65,15 +65,15 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
         description="A list of prioritised stream conditions per consumer.",
     )
 
-    consumers: List[TYamlConsumer]
+    consumers: list[TYamlConsumer]
 
     def to_dto(
         self,
-        regularity: Dict[datetime, Expression],
+        regularity: dict[datetime, Expression],
         consumes: ConsumptionType,
         references: ReferenceService,
         target_period: Period,
-        fuel: Optional[Dict[datetime, FuelType]] = None,
+        fuel: Optional[dict[datetime, FuelType]] = None,
     ) -> ConsumerSystem:
         consumers = [
             consumer.to_dto(

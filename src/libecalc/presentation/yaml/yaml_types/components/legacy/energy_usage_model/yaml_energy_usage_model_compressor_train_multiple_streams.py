@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal
 
 from pydantic import Field
 
@@ -29,7 +29,7 @@ class YamlEnergyUsageModelCompressorTrainMultipleStreams(EnergyUsageModelCommon)
         title="COMPRESSOR_TRAIN_MODEL",
         description="The compressor train model, reference to a compressor type model defined in MODELS",
     )
-    rate_per_stream: List[YamlExpressionType] = Field(
+    rate_per_stream: list[YamlExpressionType] = Field(
         ...,
         title="RATE_PER_STREAM",
         description="Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day \n\n$ECALC_DOCS_KEYWORDS_URL/RATE",

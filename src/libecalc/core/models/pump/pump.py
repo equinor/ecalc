@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -56,7 +56,7 @@ class PumpModel(BaseModel):
     @abstractmethod
     def evaluate_streams(
         self,
-        inlet_streams: List[StreamConditions],
+        inlet_streams: list[StreamConditions],
         outlet_stream: StreamConditions,
     ) -> PumpModelResult:
         pass
@@ -224,7 +224,7 @@ class PumpVariableSpeed(PumpModel):
 
 def evaluate_streams(
     self,
-    inlet_streams: List[StreamConditions],
+    inlet_streams: list[StreamConditions],
     outlet_stream: StreamConditions,
 ) -> PumpModelResult:
     total_requested_stream = StreamConditions.mix_all(inlet_streams)
@@ -344,7 +344,7 @@ class PumpSingleSpeed(PumpModel):
         return pump_result
 
     def evaluate_streams(
-        self, inlet_streams: List[StreamConditions], outlet_stream: StreamConditions
+        self, inlet_streams: list[StreamConditions], outlet_stream: StreamConditions
     ) -> PumpModelResult:
         total_requested_stream = StreamConditions.mix_all(inlet_streams)
         return self.evaluate_rate_ps_pd_density(

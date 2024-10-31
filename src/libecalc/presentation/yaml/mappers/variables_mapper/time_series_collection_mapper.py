@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import List, Union
+from typing import Union
 
 import pandas
 
@@ -28,7 +28,7 @@ def _parse_date(date_input: Union[int, str]) -> datetime:
         return pandas.to_datetime(date_input, dayfirst=True).to_pydatetime()
 
 
-def parse_time_vector(time_vector: List[Union[int, str]]) -> List[datetime]:
+def parse_time_vector(time_vector: list[Union[int, str]]) -> list[datetime]:
     return [_parse_date(date_input) for date_input in time_vector]
 
 

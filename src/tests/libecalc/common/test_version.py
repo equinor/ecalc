@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import pytest
 
 from libecalc.common.version import Version
@@ -46,7 +44,7 @@ def combine(test_cases, expected):
     return [test_case + (expected,) for test_case, expected in zip(test_cases, expected)]
 
 
-def to_version_obj(versions: List[Tuple[str, str]]) -> List[Tuple[Version, Version]]:
+def to_version_obj(versions: list[tuple[str, str]]) -> list[tuple[Version, Version]]:
     return [(Version.from_string(first), Version.from_string(second)) for first, second in versions]
 
 

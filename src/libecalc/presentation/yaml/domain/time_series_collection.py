@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Self, assert_never
+from typing import Self, assert_never
 
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.dto.types import InterpolationType
@@ -41,10 +41,10 @@ class TimeSeriesCollection(TimeSeriesProvider):
     def should_influence_time_vector(self) -> bool:
         return self._influence_time_vector
 
-    def get_time_vector(self) -> List[datetime]:
+    def get_time_vector(self) -> list[datetime]:
         return self._resource.get_time_vector()
 
-    def get_time_series_references(self) -> List[str]:
+    def get_time_series_references(self) -> list[str]:
         return self._resource.get_headers()
 
     def get_time_series(self, time_series_id: str) -> TimeSeries:

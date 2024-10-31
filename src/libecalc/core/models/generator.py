@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
@@ -10,8 +8,8 @@ from libecalc.common.list.adjustment import transform_linear
 class GeneratorModelSampled:
     def __init__(
         self,
-        fuel_values: List[float],
-        power_values: List[float],
+        fuel_values: list[float],
+        power_values: list[float],
         energy_usage_adjustment_constant: float,
         energy_usage_adjustment_factor: float,
     ):

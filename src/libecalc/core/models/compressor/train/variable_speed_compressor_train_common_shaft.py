@@ -1,5 +1,5 @@
 from functools import partial
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -75,11 +75,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-    ) -> List[CompressorTrainResultSingleTimeStep]:
+    ) -> list[CompressorTrainResultSingleTimeStep]:
         mass_rate_kg_per_hour = self.fluid.standard_rate_to_mass_rate(standard_rates=rate)
 
         # Iterate over input points, calculate one by one
-        train_results: List[CompressorTrainResultSingleTimeStep] = []
+        train_results: list[CompressorTrainResultSingleTimeStep] = []
         for (
             mass_rate_kg_per_hour_this_time_step,
             suction_pressure_this_time_step,
@@ -210,7 +210,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
             temperature_kelvin=np.asarray([self.stages[0].inlet_temperature_kelvin]),
         )[0]
 
-        stage_results: List[CompressorTrainStageResultSingleTimeStep] = []
+        stage_results: list[CompressorTrainStageResultSingleTimeStep] = []
         outlet_stream = train_inlet_stream
         for stage in self.stages:
             inlet_stream = outlet_stream
@@ -255,11 +255,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
         """Calculate the max standard rate [Sm3/day] that the compressor train can operate at.
 
         Args:
-            suction_pressures: List of suction pressures [bara]
-            discharge_pressures: List of discharge pressures [bara]
+            suction_pressures:list of suction pressures [bara]
+            discharge_pressures:list of discharge pressures [bara]
 
         Returns:
-            List of maximum standard rates corresponding to given inlet and outlet pressures [Sm3/day]
+           list of maximum standard rates corresponding to given inlet and outlet pressures [Sm3/day]
 
         """
         inlet_streams = self.fluid.get_fluid_streams(

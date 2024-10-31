@@ -1,5 +1,4 @@
 from math import nan
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -15,7 +14,7 @@ from libecalc.core.models.compressor.sampled.constants import (
 
 
 def _create_sampled_data(
-    sampled_data: List[List[int]],
+    sampled_data: list[list[int]],
     x_column_name: str,
     function_value_header: str = "FUEL",
 ) -> pd.DataFrame:

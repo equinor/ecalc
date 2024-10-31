@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Tuple
+from typing import Optional, tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -22,12 +22,12 @@ def validate_model_input(
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
     intermediate_pressure: Optional[NDArray[np.float64]] = None,
-) -> Tuple[
+) -> tuple[
     NDArray[np.float64],
     NDArray[np.float64],
     NDArray[np.float64],
     NDArray[np.float64],
-    List[ModelInputFailureStatus],
+    list[ModelInputFailureStatus],
 ]:
     indices_to_validate = _find_indices_to_validate(rate=rate)
     validated_failure_status = [ModelInputFailureStatus.NO_FAILURE] * len(suction_pressure)
@@ -77,7 +77,7 @@ def validate_model_input(
     )
 
 
-def _find_indices_to_validate(rate: NDArray[np.float64]) -> List[int]:
+def _find_indices_to_validate(rate: NDArray[np.float64]) -> list[int]:
     """Find indices of array where rate(s) are positive.
     For a 1D array, this means returning the indices where rate is positive.
     For a 2D array, this means returning the indices where at least one rate is positive (along 0-axis).
@@ -90,12 +90,12 @@ def _validate_model_input(
     suction_pressure: NDArray[np.float64],
     discharge_pressure: NDArray[np.float64],
     intermediate_pressure: Optional[NDArray[np.float64]] = None,
-) -> Tuple[
+) -> tuple[
     NDArray[np.float64],
     NDArray[np.float64],
     NDArray[np.float64],
     NDArray[np.float64],
-    List[ModelInputFailureStatus],
+    list[ModelInputFailureStatus],
 ]:
     """
     Checks for negative or zero values in the input values to the compressor train.
@@ -119,7 +119,7 @@ def _validate_model_input(
         intermediate_pressure: Intermediate pressures for the compressor train (if any)
 
     Returns:
-        Tuple with the (potentially) updated input arrays and a failure_status describing if any input is invalid
+       tuple with the (potentially) updated input arrays and a failure_status describing if any input is invalid
 
     """
     validation_failures = [

@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, Dict, Union
+from typing import Any, Union
 
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.logger import logger
@@ -27,7 +27,7 @@ TConsumerFunction = Union[
     PumpConsumerFunction,
 ]
 
-consumer_function_map: Dict[ConsumerType, Callable[[TConsumerFunction], ConsumerFunction]] = {
+consumer_function_map: dict[ConsumerType, Callable[[TConsumerFunction], ConsumerFunction]] = {
     ConsumerType.DIRECT: create_direct_consumer_function,
     ConsumerType.PUMP_SYSTEM: create_pump_system,
     ConsumerType.COMPRESSOR_SYSTEM: create_compressor_system,

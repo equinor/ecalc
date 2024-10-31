@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Union
+from typing import Union
 
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlEnergyUsageModelCompressor,
@@ -17,7 +17,7 @@ def validate_energy_usage_models(
         YamlEnergyUsageModelCompressorSystem,
         YamlEnergyUsageModelTabulated,
         YamlEnergyUsageModelCompressorTrainMultipleStreams,
-        Dict[
+        dict[
             datetime,
             Union[
                 YamlEnergyUsageModelDirect,

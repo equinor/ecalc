@@ -1,5 +1,3 @@
-from typing import Dict
-
 from pydantic import BaseModel
 
 from libecalc.common.variables import VariablesMap
@@ -9,8 +7,8 @@ from libecalc.dto.component_graph import ComponentGraph
 
 
 class EnergyCalculatorResult(BaseModel):
-    consumer_results: Dict[str, EcalcModelResult]
-    emission_results: Dict[str, Dict[str, EmissionResult]]
+    consumer_results: dict[str, EcalcModelResult]
+    emission_results: dict[str, dict[str, EmissionResult]]
     variables_map: VariablesMap
 
 
@@ -18,8 +16,8 @@ class GraphResult:
     def __init__(
         self,
         graph: ComponentGraph,
-        consumer_results: Dict[str, EcalcModelResult],
-        emission_results: Dict[str, Dict[str, EmissionResult]],
+        consumer_results: dict[str, EcalcModelResult],
+        emission_results: dict[str, dict[str, EmissionResult]],
         variables_map: VariablesMap,
     ):
         self.graph = graph
@@ -52,7 +50,7 @@ class GraphResult:
     def periods(self):
         return self.variables_map.periods
 
-    def get_emissions(self, component_id: str) -> Dict[str, EmissionResult]:
+    def get_emissions(self, component_id: str) -> dict[str, EmissionResult]:
         return self.emission_results[component_id]
 
     def get_results(self) -> EnergyCalculatorResult:

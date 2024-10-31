@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import Field
 
@@ -22,4 +22,4 @@ class YamlConsumerBase(YamlBase):
     )
 
 
-opt_expr_list = Optional[List[YamlExpressionType]]
+opt_expr_list = Optional[list[YamlExpressionType]]

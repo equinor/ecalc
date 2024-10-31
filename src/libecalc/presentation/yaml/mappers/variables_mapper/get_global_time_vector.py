@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import List, Optional, Set
+from typing import Optional
 
 import pandas as pd
 
@@ -8,7 +8,7 @@ import libecalc.common.time_utils
 from libecalc.presentation.yaml.validation_errors import ValidationError
 
 
-def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.time_utils.Frequency) -> Set[datetime]:
+def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.time_utils.Frequency) -> set[datetime]:
     if frequency == libecalc.common.time_utils.Frequency.NONE:
         return set()
 
@@ -16,13 +16,13 @@ def _get_date_range(start: datetime, end: datetime, frequency: libecalc.common.t
     return set(date_range.to_pydatetime())
 
 
-def _get_end_boundary(frequency: libecalc.common.time_utils.Frequency, time_vector_set: Set[datetime]) -> datetime:
+def _get_end_boundary(frequency: libecalc.common.time_utils.Frequency, time_vector_set: set[datetime]) -> datetime:
     """If end boundary has not been specified explicitly, we attempt to make an educated guess for the
     user, based on output frequency provided and assuming data is forward filled.
 
     It is however recommended that the user specified END explicitly
     """
-    time_vector: List[datetime] = sorted(time_vector_set)
+    time_vector: list[datetime] = sorted(time_vector_set)
 
     if frequency == libecalc.common.time_utils.Frequency.YEAR:
         return datetime(year=time_vector[-1].year + 1, month=1, day=1)
@@ -40,9 +40,9 @@ def get_global_time_vector(
     time_series_time_vector: Iterable[datetime],
     start: Optional[datetime] = None,
     end: Optional[datetime] = None,
-    additional_dates: Optional[Set[datetime]] = None,
+    additional_dates: Optional[set[datetime]] = None,
     frequency: libecalc.common.time_utils.Frequency = libecalc.common.time_utils.Frequency.NONE,
-) -> List[datetime]:
+) -> list[datetime]:
     """
 
     Args:
@@ -54,7 +54,7 @@ def get_global_time_vector(
 
     Returns: the actual set of dates that should be computed
     """
-    time_vector: Set[datetime] = set(time_series_time_vector)
+    time_vector: set[datetime] = set(time_series_time_vector)
 
     has_time_vector = len(time_vector) > 0
     has_start = start is not None

@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import cached_property
-from typing import Dict, List, Optional, Self
+from typing import Optional, Self
 
 from typing_extensions import deprecated
 
@@ -117,7 +117,7 @@ class YamlModel:
     def get_graph(self) -> ComponentGraph:
         return self.dto.get_graph()
 
-    def _get_token_references(self, yaml_model: YamlValidator) -> List[str]:
+    def _get_token_references(self, yaml_model: YamlValidator) -> list[str]:
         token_references = self._get_time_series_collections().get_time_series_references()
 
         for reference in yaml_model.variables:
@@ -126,9 +126,9 @@ class YamlModel:
         return token_references
 
     @staticmethod
-    def _get_model_types(yaml_model: YamlValidator) -> Dict["ModelName", "ModelContext"]:
+    def _get_model_types(yaml_model: YamlValidator) -> dict["ModelName", "ModelContext"]:
         models = [*yaml_model.models, *yaml_model.facility_inputs]
-        model_types: Dict[ModelName, ModelContext] = {}
+        model_types: dict[ModelName, ModelContext] = {}
         for model in models:
             if hasattr(model, "name"):
                 model_types[model.name] = model

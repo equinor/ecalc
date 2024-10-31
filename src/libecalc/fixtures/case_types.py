@@ -1,7 +1,7 @@
 import io
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, NamedTuple, TextIO
+from typing import NamedTuple, TextIO
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
@@ -14,7 +14,7 @@ from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 @dataclass
 class YamlCase:
-    resources: Dict[str, MemoryResource]
+    resources: dict[str, MemoryResource]
     main_file_path: Path
 
     @property

@@ -3,7 +3,7 @@ import typing
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import reduce
-from typing import Dict, Generic, List, TypeVar
+from typing import Generic, TypeVar
 
 from libecalc.common.priorities import PriorityID
 
@@ -15,7 +15,7 @@ ComponentID = str
 @dataclass
 class PriorityOptimizerResult(Generic[TResult]):
     priority_used: PriorityID
-    priority_results: List[typing.Any]  # TODO: typing. This is the consumer results merged based on priorities used
+    priority_results: list[typing.Any]  # TODO: typing. This is the consumer results merged based on priorities used
 
 
 @dataclass
@@ -28,8 +28,8 @@ class EvaluatorResult(Generic[TResult]):
 class PriorityOptimizer(Generic[TResult]):
     def optimize(
         self,
-        priorities: List[PriorityID],
-        evaluator: typing.Callable[[PriorityID], List[EvaluatorResult[TResult]]],
+        priorities: list[PriorityID],
+        evaluator: typing.Callable[[PriorityID], list[EvaluatorResult[TResult]]],
     ) -> PriorityOptimizerResult:
         """
         Given a list of priorities, evaluate each priority using the evaluator. If the result of an evaluation is valid
@@ -38,7 +38,7 @@ class PriorityOptimizer(Generic[TResult]):
         It will default to the last priority if all settings fails
 
         Args:
-            priorities: List of priorities
+            priorities:list of priorities
             evaluator: The evaluator function gives a list of results back, each result with its own unique id.
 
         Returns:
@@ -47,7 +47,7 @@ class PriorityOptimizer(Generic[TResult]):
 
         """
         priority_used = priorities[-1]
-        priority_results: Dict[PriorityID, Dict[str, TResult]] = defaultdict(dict)
+        priority_results: dict[PriorityID, dict[str, TResult]] = defaultdict(dict)
 
         for priority in priorities:
             evaluator_results = evaluator(priority)
