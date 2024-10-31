@@ -1,11 +1,11 @@
 
 # libecalc test directory
 
-This directory contains a convenience lightweight Dockerfile to run tests for libecalc. The original reason
-behind this need is to run snapshot tests in an x86_64 environment, since developer may run on ARM64 architecture.
-Some of the snapshot tests are architecture dependent, and running them on an ARM64 machine will result in
-different values than for x86_64. This is due to Delanay triangulation algorithm used in some of the
-compressor calculations.
+This directory contains a convenience simple `docker-compose.yml` to run tests in a docker
+container for libecalc. The original reason behind this need is to run snapshot tests in an x86_64 environment,
+since developer may run on ARM64 architecture. Some of the snapshot tests are architecture dependent, and 
+running them on an ARM64 machine will result in different values than for x86_64. This is due to Delanay 
+triangulation algorithm used in some of the compressor calculations.
 
 ## Running tests
 
