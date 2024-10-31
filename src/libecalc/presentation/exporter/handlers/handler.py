@@ -3,12 +3,11 @@ import io
 import sys
 import typing
 from pathlib import Path
-from typing import Dict, List
 
 
 class Handler(abc.ABC):
     @abc.abstractmethod
-    def handle(self, grouped_row_based_data: Dict[str, List[str]]):
+    def handle(self, grouped_row_based_data: dict[str, list[str]]):
         """Agnostic data handler, should handle row based data with an ID
         :param name: the group representing the row based data, an ID, if relevant
         :param grouped_row_based_data:
@@ -24,7 +23,7 @@ class StreamHandler(Handler):
         self.stream = stream
         self.emit_name = emit_name
 
-    def handle(self, grouped_row_based_data: Dict[str, List[str]]):
+    def handle(self, grouped_row_based_data: dict[str, list[str]]):
         for group_name, rows in grouped_row_based_data.items():
             if self.emit_name:
                 self.stream.write("\n")
@@ -39,10 +38,10 @@ class StreamHandler(Handler):
 class MultiStreamHandler(Handler):
     """Handle groups of data to separate streams."""
 
-    def __init__(self, streams: Dict[str, typing.TextIO]):
+    def __init__(self, streams: dict[str, typing.TextIO]):
         self.streams = streams
 
-    def handle(self, grouped_row_based_data: Dict[str, List[str]]):
+    def handle(self, grouped_row_based_data: dict[str, list[str]]):
         for group_name, rows in grouped_row_based_data.items():
             self.streams[group_name] = io.StringIO()
             for row in rows:
@@ -59,7 +58,7 @@ class FileHandler(Handler):
         self.suffix = suffix
         self.extension = extension
 
-    def handle(self, grouped_row_based_data: Dict[str, List[str]]):
+    def handle(self, grouped_row_based_data: dict[str, list[str]]):
         with open(self.path / f"{self.prefix}{self.suffix}{self.extension}", "w") as file:
             for rows in grouped_row_based_data.values():
                 for row in rows:
@@ -75,7 +74,7 @@ class MultiFileHandler(Handler):
         self.suffix = suffix
         self.extension = extension
 
-    def handle(self, grouped_row_based_data: Dict[str, List[str]]):
+    def handle(self, grouped_row_based_data: dict[str, list[str]]):
         for group_name, rows in grouped_row_based_data.items():
             with open(self.path / f"{self.prefix}.{group_name}{self.suffix}{self.extension}", "w") as file:
                 for row in rows:

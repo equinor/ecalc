@@ -1,5 +1,3 @@
-from typing import Dict
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -18,13 +16,13 @@ class FuelModel:
     attributes which may be evaluated for some variables and a fuel_rate.
     """
 
-    def __init__(self, fuel_time_function_dict: Dict[Period, FuelType]):
+    def __init__(self, fuel_time_function_dict: dict[Period, FuelType]):
         logger.debug("Creating fuel model")
         self.temporal_fuel_model = fuel_time_function_dict
 
     def evaluate_emissions(
         self, expression_evaluator: ExpressionEvaluator, fuel_rate: NDArray[np.float64]
-    ) -> Dict[str, EmissionResult]:
+    ) -> dict[str, EmissionResult]:
         """Evaluate fuel related expressions and results for a TimeSeriesCollection and a
         fuel_rate array.
 

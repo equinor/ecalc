@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List
-
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.graph import Graph, NodeID
@@ -59,5 +57,5 @@ class ComponentGraph(Graph):
 
         raise ValueError(f"Component with name '{name}' not found in '{self.nodes[self.root].name}'")
 
-    def get_nodes_of_type(self, component_type: ComponentType) -> List[NodeID]:
+    def get_nodes_of_type(self, component_type: ComponentType) -> list[NodeID]:
         return [node.id for node in self.nodes.values() if node.component_type == component_type]

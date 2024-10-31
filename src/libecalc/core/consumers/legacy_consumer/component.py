@@ -3,7 +3,7 @@ import math
 from collections import defaultdict
 from collections.abc import Iterable
 from datetime import datetime
-from typing import DefaultDict, List, Union, assert_never
+from typing import Union, assert_never
 
 import numpy as np
 from numpy.typing import NDArray
@@ -83,7 +83,7 @@ class Consumer(BaseConsumer):
     def id(self):
         return self._id
 
-    def map_model_result(self, model_result: Union[ConsumerOrSystemFunctionResult]) -> List[ConsumerModelResult]:
+    def map_model_result(self, model_result: Union[ConsumerOrSystemFunctionResult]) -> list[ConsumerModelResult]:
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             return get_consumer_system_models(
                 model_result,
@@ -316,8 +316,8 @@ class Consumer(BaseConsumer):
     def evaluate_consumer_temporal_model(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
-    ) -> List[ConsumerOrSystemFunctionResult]:
+        regularity: list[float],
+    ) -> list[ConsumerOrSystemFunctionResult]:
         """Evaluate each of the models in the temporal model for this consumer."""
         results = []
         for period, consumer_model in self._consumer_time_function.items():
@@ -343,7 +343,7 @@ class Consumer(BaseConsumer):
 
     @staticmethod
     def aggregate_consumer_function_results(
-        consumer_function_results: List[ConsumerOrSystemFunctionResult],
+        consumer_function_results: list[ConsumerOrSystemFunctionResult],
     ) -> ConsumerOrSystemFunctionResult:
         merged_result = None
         for consumer_function_result in consumer_function_results:
@@ -368,7 +368,7 @@ class Consumer(BaseConsumer):
         """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
         the consumer time vector, we calculate the actual consumer (consumption) rate.
         """
-        new_values: DefaultDict[Period, Union[float, str]] = defaultdict(float)
+        new_values: defaultdict[Period, Union[float, str]] = defaultdict(float)
         new_values.update({t: fillna for t in new_periods})
         for t, v in zip(periods, values):
             if t in new_values:
@@ -391,7 +391,7 @@ class Consumer(BaseConsumer):
         """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
         the consumer time vector, we calculate the actual consumer (consumption) rate.
         """
-        new_values: DefaultDict[datetime, Union[float, str]] = defaultdict(float)
+        new_values: defaultdict[datetime, Union[float, str]] = defaultdict(float)
         new_values.update({t: fillna for t in new_time_vector})
         for t, v in zip(time_vector, values):
             if t in new_values:

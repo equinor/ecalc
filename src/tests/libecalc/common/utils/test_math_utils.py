@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Optional, Tuple, Type, TypeVar
+from typing import Optional, TypeVar
 
 import pytest
 
@@ -79,10 +79,10 @@ T = TypeVar("T")
 )
 def test_elementwise_subtraction_by_key(
     what: str,
-    this: Dict[T, float],
-    that: Dict[T, float],
-    expected_result: Optional[Dict[T, float]],
-    expected_exception: Optional[Tuple[Type[EcalcError], str]],
+    this: dict[T, float],
+    that: dict[T, float],
+    expected_result: Optional[dict[T, float]],
+    expected_exception: Optional[tuple[type[EcalcError], str]],
 ):
     if expected_result is not None:
         result = MathUtil.elementwise_subtraction_by_key(this, that)

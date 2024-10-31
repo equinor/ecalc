@@ -3,7 +3,7 @@ import datetime
 import enum
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TextIO, Type
+from typing import Any, Optional, TextIO
 
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import (
@@ -35,22 +35,22 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def facility_resource_names(self) -> List[str]:
+    def facility_resource_names(self) -> list[str]:
         pass
 
     @property
     @abc.abstractmethod
-    def timeseries_resources(self) -> List[YamlTimeseriesResource]:
+    def timeseries_resources(self) -> list[YamlTimeseriesResource]:
         pass
 
     @property
     @abc.abstractmethod
-    def all_resource_names(self) -> List[str]:
+    def all_resource_names(self) -> list[str]:
         pass
 
     @property
     @abc.abstractmethod
-    def variables(self) -> Dict[str, YamlVariable]:
+    def variables(self) -> dict[str, YamlVariable]:
         pass
 
     @property
@@ -60,7 +60,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def time_series(self) -> List[YamlTimeSeriesCollection]:
+    def time_series(self) -> list[YamlTimeSeriesCollection]:
         pass
 
     @property
@@ -104,7 +104,7 @@ class YamlReader(abc.ABC):
         cls,
         main_yaml: ResourceStream,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
         enable_include: bool = False,
     ) -> "YamlConfiguration":
         """Named constructor for the yaml model, the way to instantiate the yaml model. We currently
@@ -116,7 +116,7 @@ class YamlReader(abc.ABC):
         Further handling of the loaded yaml model must be on the returned instance, which assumes that read() has been run and yaml model has been loaded.
 
         :param base_dir:    Base directory of the yaml includes and csv resources. All paths must be relative to this dir. Should be/normally parent dir of main yaml.
-        :param resources:   List of alternative method to provide yaml includes and csv resources to yaml, directly, through file like objects.
+        :param resources:  list of alternative method to provide yaml includes and csv resources to yaml, directly, through file like objects.
         :param enable_include:  Whether we allow !include syntax in yaml or not.
         :param main_yaml:   The main yaml file, as stream. The only file allowed to have !include and file paths
         :return:    returns an instance of the yamlmodel
@@ -129,7 +129,7 @@ class YamlReader(abc.ABC):
         cls,
         main_yaml: ResourceStream,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
         enable_include: bool = False,
     ) -> "YamlValidator": ...
 
@@ -164,17 +164,17 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
     MUST HAVE reader/loader and dumper/representer behaviour.
 
     Subclasses of this model MUST have an internal representation of the yaml
-    on top level as Dict[str, Any]. This is currently in order to have common
+    on top level asdict[str, Any]. This is currently in order to have common
     manipulation methods for models that fulfil this criterion. The reason for this
     is that we want all implementations to share a common internal yaml model, that
     is compatible across, but this must be handled and verified properly.
     """
 
-    _internal_datamodel: Dict[str, Any] = (
+    _internal_datamodel: dict[str, Any] = (
         None  # to temporary store a loaded yaml model. Format is defined by implementation
     )
 
-    def __init__(self, internal_datamodel: Dict[str, Any], name: str):
+    def __init__(self, internal_datamodel: dict[str, Any], name: str):
         self._internal_datamodel = internal_datamodel
         self._name = name
 
@@ -182,7 +182,7 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
         """Inner class to build yaml models."""
 
         @staticmethod
-        def get_yaml_reader(reader_type: ReaderType) -> Type["YamlReader"]:
+        def get_yaml_reader(reader_type: ReaderType) -> type["YamlReader"]:
             """Note! Returns the type of the YamlModel, and hence NOT an instantiation. That must be
             done later through that type/class's way to do that. (in general through read()).
 
@@ -216,12 +216,12 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
         ONE_UPDATE = "One Update"
         MANY_UPDATES = "Many Updates"
 
-    def update_resource_names(self, mappings: Dict[str, str]) -> Dict[str, UpdateStatus]:
+    def update_resource_names(self, mappings: dict[str, str]) -> dict[str, UpdateStatus]:
         """In-place update resource names, mappings on the format:
             old_name: new_name
         :return:
         """
-        update_statuses: Dict[str, YamlConfiguration.UpdateStatus] = {}
+        update_statuses: dict[str, YamlConfiguration.UpdateStatus] = {}
 
         for old_name, new_name in mappings.items():
             update_statuses[old_name] = self.update_resource_name(old_name, new_name)

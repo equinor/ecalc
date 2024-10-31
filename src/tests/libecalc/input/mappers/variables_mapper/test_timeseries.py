@@ -1,6 +1,6 @@
 import math
 from datetime import datetime
-from typing import Dict, Literal, Optional
+from typing import Literal, Optional
 
 import pydantic
 import pytest
@@ -22,7 +22,7 @@ def _create_timeseries_data(
     influence_time_vector: Optional[bool] = None,
     extrapolate_outside: Optional[bool] = None,
     interpolation_type: Optional[InterpolationType] = None,
-) -> Dict:
+) -> dict:
     timeseries_dict = {
         EcalcYamlKeywords.type: typ,
         EcalcYamlKeywords.name: name,

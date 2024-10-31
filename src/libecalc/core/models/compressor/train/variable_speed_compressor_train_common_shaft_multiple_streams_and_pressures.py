@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Dict, List, Optional, Tuple, cast
+from typing import Optional, cast, tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -83,7 +83,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
     def __init__(
         self,
         data_transfer_object: VariableSpeedCompressorTrainMultipleStreamsAndPressures,
-        streams: List[FluidStreamObjectForMultipleStreams],
+        streams: list[FluidStreamObjectForMultipleStreams],
     ):
         logger.debug(
             f"Creating {type(self).__name__} with\n"
@@ -93,8 +93,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self.streams = streams
         self.number_of_compressor_streams = len(self.streams)
 
-        self.inlet_stream_connected_to_stage: Dict[int, List[int]] = {key: [] for key in range(len(self.stages))}
-        self.outlet_stream_connected_to_stage: Dict[int, List[int]] = {key: [] for key in range(len(self.stages))}
+        self.inlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
+        self.outlet_stream_connected_to_stage: dict[int, list[int]] = {key: [] for key in range(len(self.stages))}
         for i, stream in enumerate(self.streams):
             if stream.is_inlet_stream:
                 self.inlet_stream_connected_to_stage[stream.connected_to_stage_no].append(i)
@@ -107,7 +107,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def evaluate_streams(
         self,
-        inlet_streams: List[StreamConditions],
+        inlet_streams: list[StreamConditions],
         outlet_stream: StreamConditions,
     ) -> CompressorTrainResult:
         """
@@ -132,7 +132,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         # Order streams either based on name or use index
         stream_index_counter = 0
-        ordered_streams: List[StreamConditions] = []
+        ordered_streams: list[StreamConditions] = []
         for stream_definition in self.streams:
             try:
                 inlet_stream = next(
@@ -180,7 +180,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
     def _evaluate_rate_ps_pd(
         self, rate: NDArray[np.float64], suction_pressure: NDArray[np.float64], discharge_pressure: NDArray[np.float64]
-    ) -> List[CompressorTrainResultSingleTimeStep]:
+    ) -> list[CompressorTrainResultSingleTimeStep]:
         # Iterate over input points, calculate one by one
         train_results = []
         for time_step, (
@@ -246,7 +246,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         return std_rates_std_m3_per_day_per_stream
 
-    def convert_to_rates_for_each_compressor_train_stages(self, rates_per_stream: NDArray[np.float64]) -> List[float]:
+    def convert_to_rates_for_each_compressor_train_stages(self, rates_per_stream: NDArray[np.float64]) -> list[float]:
         """The function takes rates for each stream in the compressor train, and converts it to a rate
         for each stage in the compressor train.
 
@@ -447,7 +447,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
 
         def _calculate_train_result_given_speed_at_stone_wall(
             speed: float,
-        ) -> Tuple[float, CompressorTrainResultSingleTimeStep]:
+        ) -> tuple[float, CompressorTrainResultSingleTimeStep]:
             """Partial function of self.calculate_compressor_train_given_rate_ps_speed.
             Same as above, but mass rate is pinned to the "stone wall" as a function of speed.
             """
@@ -1269,7 +1269,7 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         self,
         std_rates_std_m3_per_day_per_stream: NDArray[np.float64],
         inlet_pressure: float,
-    ) -> Tuple[FluidStream, NDArray[np.float64]]:
+    ) -> tuple[FluidStream, NDArray[np.float64]]:
         """ """
         # first make inlet stream from stream[0]
         inlet_stream = self.streams[0].fluid.get_fluid_stream(
@@ -1524,7 +1524,7 @@ def split_rates_on_stage_number(
     compressor_train: VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
     rates_per_stream: NDArray[np.float64],
     stage_number: int,
-) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """ """
     rates_first_part = [
         rates_per_stream[i]
@@ -1548,7 +1548,7 @@ def split_train_on_stage_number(
     stage_number: int,
     pressure_control_first_part: Optional[FixedSpeedPressureControl] = None,
     pressure_control_last_part: Optional[FixedSpeedPressureControl] = None,
-) -> Tuple[
+) -> tuple[
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 ]:

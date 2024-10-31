@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, List, Optional, TypeVar, Union, cast
+from typing import Generic, Optional, TypeVar, Union, cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -194,7 +194,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
 
     def evaluate_streams(
         self,
-        inlet_streams: List[StreamConditions],
+        inlet_streams: list[StreamConditions],
         outlet_stream: StreamConditions,
     ) -> CompressorTrainResult:
         """
@@ -219,7 +219,7 @@ class CompressorTrainModel(CompressorModel, ABC, Generic[TModel]):
         rate: NDArray[np.float64],
         suction_pressure: NDArray[np.float64],
         discharge_pressure: NDArray[np.float64],
-    ) -> List[CompressorTrainResultSingleTimeStep]:
+    ) -> list[CompressorTrainResultSingleTimeStep]:
         """:param rate: Rate in [Sm3/day]
         :param suction_pressure: Suction pressure in [bara]
         :param discharge_pressure: Discharge pressure in [bara]

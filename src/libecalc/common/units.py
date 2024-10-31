@@ -4,7 +4,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from enum import Enum
 from functools import singledispatch
-from typing import Dict, TypeVar, Union
+from typing import TypeVar, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -41,11 +41,11 @@ def _type_handler(unit_func: Callable[[TInput], TInput]) -> Callable[[TInput], T
     @func.register  # type: ignore
     def _(i: list) -> TInput:
         """
-        List specific override. The type of the first parameter is used to decide which function to use.
-        Args:
-            i: list of items that should be converted
+        list specific override. The type of the first parameter is used to decide which function to use.
+         Args:
+             i: list of items that should be converted
 
-        Returns:
+         Returns:
 
         """
         return unit_func(np.asarray(i, dtype=(type(i)))).tolist()  # type: ignore
@@ -116,8 +116,8 @@ class Unit(str, Enum):
         return self.value
 
     @staticmethod
-    def _unit_registry() -> Dict[Unit, Dict[Unit, Callable]]:
-        unit_registry: Dict[Unit, Dict[Unit, Callable]] = defaultdict(dict)
+    def _unit_registry() -> dict[Unit, dict[Unit, Callable]]:
+        unit_registry: dict[Unit, dict[Unit, Callable]] = defaultdict(dict)
 
         unit_registry[Unit.TONS_PER_DAY][Unit.KILO_PER_DAY] = lambda a: a * 1000
         unit_registry[Unit.KILO_PER_DAY][Unit.TONS_PER_DAY] = lambda a: a / 1000

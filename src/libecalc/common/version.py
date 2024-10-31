@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Tuple
+from typing import Optional, tuple
 
 from libecalc.dto.base import EcalcBaseModel
 
@@ -53,7 +53,7 @@ class Version(EcalcBaseModel):
         return f"Major: {self.major}\nMinor: {self.minor}\nPatch: {self.patch}"
 
     @property
-    def _version_tuple(self) -> Tuple[int, int, int]:
+    def _version_tuple(self) -> tuple[int, int, int]:
         return self.major, self.minor, self.patch
 
     def __gt__(self, other):

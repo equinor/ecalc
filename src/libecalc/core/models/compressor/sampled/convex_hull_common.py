@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -25,7 +25,7 @@ def sort_ndarray_by_column(arr: NDArray[np.float64], column_index: NDArray[np.fl
 
 @dataclass
 class Node:
-    coordinates: List[float]
+    coordinates: list[float]
 
     def scale(self, scale_factors):
         coords_scaled = [self.coordinates[idx] / scale_factors[idx] for idx in range(len(self.coordinates))]
@@ -254,7 +254,7 @@ def get_lower_upper_qhull(qh: ConvexHull, axis: int = 0, case_2d: str = "rate_ps
 class Simplex:
     def __init__(
         self,
-        nodes: List[Node],
+        nodes: list[Node],
         equation_coefficients: NDArray[np.float64],
         rescale: bool = True,
     ):
@@ -272,7 +272,7 @@ class Simplex:
             self._equation = equation_coefficients
 
     @staticmethod
-    def _calculate_plane_equation(nodes: List[Node]) -> NDArray[np.float64]:
+    def _calculate_plane_equation(nodes: list[Node]) -> NDArray[np.float64]:
         """Calculate equation of plane going through three points in 3D
         https://mathworld.wolfram.com/Plane.html
         Returns array with 4 coefficients, [a, b, c, d]
@@ -388,7 +388,7 @@ class LinearInterpolatorSimplicesDefined:
         equations_table: NDArray[np.float64],
         points_table: NDArray[np.float64],
         rescale: bool = True,
-    ) -> List[Simplex]:
+    ) -> list[Simplex]:
         simplices = []
         for row in range(simplex_table.shape[0]):
             point_list = simplex_table[row, :]

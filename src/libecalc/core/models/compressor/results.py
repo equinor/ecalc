@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union, tuple
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
@@ -133,15 +133,15 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     inlet_stream: Optional[FluidStreamDTO] = None
     outlet_stream: Optional[FluidStreamDTO] = None
     speed: float
-    stage_results: List[CompressorTrainStageResultSingleTimeStep]
+    stage_results: list[CompressorTrainStageResultSingleTimeStep]
     above_maximum_power: bool = False
     target_pressure_status: TargetPressureStatus
 
     @staticmethod
     def from_result_list_to_dto(
-        result_list: List[CompressorTrainResultSingleTimeStep],
-        compressor_charts: Optional[List[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]]],
-    ) -> Tuple[CompressorStreamCondition, CompressorStreamCondition, List[CompressorStageResult]]:
+        result_list: list[CompressorTrainResultSingleTimeStep],
+        compressor_charts: Optional[list[Union[SingleSpeedChartDTO, VariableSpeedChartDTO]]],
+    ) -> tuple[CompressorStreamCondition, CompressorStreamCondition, list[CompressorStageResult]]:
         number_of_stages = max([len(t.stage_results) for t in result_list])
 
         # Create empty compressor stage results and inlet/outlet stream conditions. This is to ensure correct
@@ -606,7 +606,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             return FluidComposition()
 
     @property
-    def polytropic_head_kilo_joule_per_kg(self) -> List[float]:
+    def polytropic_head_kilo_joule_per_kg(self) -> list[float]:
         return [stage.polytropic_head_kJ_per_kg for stage in self.stage_results]
 
     @property
@@ -621,7 +621,7 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
             return np.nan
 
     @property
-    def polytropic_efficiency(self) -> List[float]:
+    def polytropic_efficiency(self) -> list[float]:
         return [stage.polytropic_efficiency for stage in self.stage_results]
 
     @property

@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 
 from libecalc.common.units import Unit
@@ -23,7 +21,7 @@ from libecalc.core.models.results import (
 
 
 def test_calculate_system_energy_usage_from_operational_setting_one_option_success():
-    operational_settings_results: List[ConsumerSystemOperationalSettingResult] = [
+    operational_settings_results: list[ConsumerSystemOperationalSettingResult] = [
         ConsumerSystemOperationalSettingResult(
             consumer_results=[
                 ConsumerSystemComponentResult(
@@ -70,7 +68,7 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_succe
 
 
 def test_calculate_system_energy_usage_from_operational_setting_one_option_failure():
-    operational_settings_results: List[ConsumerSystemOperationalSettingResult] = [
+    operational_settings_results: list[ConsumerSystemOperationalSettingResult] = [
         ConsumerSystemOperationalSettingResult(
             consumer_results=[
                 ConsumerSystemComponentResult(
@@ -122,7 +120,7 @@ def test_calculate_system_energy_usage_from_operational_setting_one_option_failu
 
 
 def test_calculate_system_energy_usage_from_operational_setting_two_options_first_outside_capacity_second_within_capacity_and_chosen():
-    operational_settings_results: List[ConsumerSystemOperationalSettingResult] = [
+    operational_settings_results: list[ConsumerSystemOperationalSettingResult] = [
         ConsumerSystemOperationalSettingResult(
             consumer_results=[
                 ConsumerSystemComponentResult(
@@ -208,7 +206,7 @@ def test_calculate_system_energy_usage_from_operational_setting_two_options_firs
 
 
 def test_calculate_system_energy_usage_from_operational_setting_two_options_both_outside_capacity_but_second_chosen_as_no_other_options():
-    operational_settings_results: List[ConsumerSystemOperationalSettingResult] = [
+    operational_settings_results: list[ConsumerSystemOperationalSettingResult] = [
         ConsumerSystemOperationalSettingResult(
             consumer_results=[
                 ConsumerSystemComponentResult(

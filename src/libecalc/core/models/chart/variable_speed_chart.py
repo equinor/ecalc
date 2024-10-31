@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -70,7 +70,7 @@ class VariableSpeedChart:
         self.curves = [ChartCurve(curve) for curve in data_transfer_object.curves]
 
     @property
-    def speed_values(self) -> List[float]:
+    def speed_values(self) -> list[float]:
         return [x.speed for x in self.curves]
 
     @property

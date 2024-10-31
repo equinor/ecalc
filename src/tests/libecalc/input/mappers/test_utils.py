@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from libecalc.common.units import Unit
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import _map_condition
@@ -15,7 +14,7 @@ from libecalc.presentation.yaml.mappers.utils import (
 @dataclass
 class ConditionedModel:
     condition: str = None
-    conditions: List[str] = None
+    conditions: list[str] = None
 
 
 class TestMapCondition:

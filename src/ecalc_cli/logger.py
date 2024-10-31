@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from logging.config import dictConfig
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class LogLevel(str, enum.Enum):
@@ -57,7 +57,7 @@ class CLILogConfigurator:
         self.__configure_logger()
 
     def __configure_logger(self):
-        log_config: Dict[str, Any] = {
+        log_config: dict[str, Any] = {
             "version": 1,
             "disable_existing_loggers": True,  # ie keep root logger ++
             "formatters": {

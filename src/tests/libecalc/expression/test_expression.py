@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Union
+from typing import Union
 
 import pytest
 from pydantic import BaseModel, TypeAdapter
@@ -158,8 +158,8 @@ class TestExpression:
     def test_serialization(self):
         class Foo(BaseModel):
             single: Expression
-            list: List[Expression]
-            union_list: Union[Expression, List[Expression]]
+            list: list[Expression]
+            union_list: Union[Expression, list[Expression]]
 
         foo = Foo(
             single=Expression.setup_from_expression("1"),

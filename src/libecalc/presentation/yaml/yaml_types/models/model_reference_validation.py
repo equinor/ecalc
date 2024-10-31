@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Dict, List
+from typing import Annotated, Any
 
 from pydantic import AfterValidator
 from pydantic_core import PydanticCustomError
@@ -32,8 +32,8 @@ class InvalidModelReferenceType(InvalidModelReferenceError):
 
 def check_model_reference(
     model_reference: Any,
-    available_models: Dict["ModelName", ModelContext],
-    allowed_types: List[str],
+    available_models: dict["ModelName", ModelContext],
+    allowed_types: list[str],
 ) -> str:
     if model_reference not in available_models:
         raise ModelReferenceNotFound(model_reference=model_reference)
@@ -46,7 +46,7 @@ def check_model_reference(
     return model_reference
 
 
-def check_field_model_reference(allowed_types: List[str]):
+def check_field_model_reference(allowed_types: list[str]):
     allowed_model_types = [
         allowed_type for allowed_type in allowed_types if allowed_type != YamlModelType.COMPRESSOR_WITH_TURBINE
     ]

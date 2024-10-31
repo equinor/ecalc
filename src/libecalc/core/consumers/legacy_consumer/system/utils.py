@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -14,7 +12,7 @@ from libecalc.core.consumers.legacy_consumer.system.results import (
 
 
 def get_operational_settings_number_used_from_model_results(
-    consumer_system_operational_settings_results: List[ConsumerSystemOperationalSettingResult],
+    consumer_system_operational_settings_results: list[ConsumerSystemOperationalSettingResult],
 ) -> NDArray[np.int_]:
     """Calculate which operational setting is used and the resulting energy usage
     The operational settings are interpreted as in prioritized order, and the operational setting to use,
@@ -86,7 +84,7 @@ def get_operational_settings_number_used_from_model_results(
 
 
 def assemble_operational_setting_from_model_result_list(
-    operational_settings: List[ConsumerSystemOperationalSetting], setting_number_used_per_timestep: List[int]
+    operational_settings: list[ConsumerSystemOperationalSetting], setting_number_used_per_timestep: list[int]
 ) -> ConsumerSystemOperationalSetting:
     """Composing the operational settings as numpy arrays in order to slice them in an intuitive way.
     The arrays are dimensioned like this: (operational setting number, consumer number, timestep).

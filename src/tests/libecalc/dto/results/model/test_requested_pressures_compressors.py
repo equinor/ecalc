@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 import pytest
 
@@ -39,11 +38,11 @@ def result(compressor_systems_and_compressor_train_temporal_dto) -> EcalcModelRe
     return result
 
 
-def get_inlet_pressure(list_index: int, period: Period, models: List[CompressorModelResult]) -> List[float]:
+def get_inlet_pressure(list_index: int, period: Period, models: list[CompressorModelResult]) -> list[float]:
     return models[list_index].requested_inlet_pressure.for_period(period).values
 
 
-def get_outlet_pressure(list_index: int, period: Period, models: List[CompressorModelResult]) -> List[float]:
+def get_outlet_pressure(list_index: int, period: Period, models: list[CompressorModelResult]) -> list[float]:
     return models[list_index].requested_outlet_pressure.for_period(period).values
 
 

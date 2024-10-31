@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import TemporaryFile
-from typing import IO, Dict, List, Protocol, TextIO, Tuple, Union
+from typing import IO, Protocol, TextIO, Union
 
 import numpy as np
 import pandas as pd
@@ -150,7 +150,7 @@ class EcalcFiles:
         return "." in filename and Path(filename).suffix.split(".")[1] in EcalcFiles.ALLOWED_EXTENSIONS
 
     @staticmethod
-    def get_main_file(files: List[ValidEcalcFile]) -> ValidEcalcFile:
+    def get_main_file(files: list[ValidEcalcFile]) -> ValidEcalcFile:
         """Get the main yaml file. Detected by checking for a specific format. Only the main
         yaml file can have !include and a certain set of sections.
 
@@ -178,7 +178,7 @@ class EcalcFiles:
         return main_files[0]
 
     @staticmethod
-    def validate_filetypes(files: List[FileWithName]) -> Tuple[List[ValidEcalcFile], List[InvalidEcalcFile]]:
+    def validate_filetypes(files: list[FileWithName]) -> tuple[list[ValidEcalcFile], list[InvalidEcalcFile]]:
         """Given a list of files (e.g uploaded by a user), given a name, do an initial attempt to
         filter out bad files for further processing of good files only.
 
@@ -187,8 +187,8 @@ class EcalcFiles:
         :param files:
         :return:
         """
-        valid_files: List[ValidEcalcFile] = []
-        invalid_files: List[InvalidEcalcFile] = []
+        valid_files: list[ValidEcalcFile] = []
+        invalid_files: list[InvalidEcalcFile] = []
         for file in files:
             if EcalcFiles.allowed_file(file.filename):
                 if EcalcFile.is_zip(Path(file.filename)):
@@ -273,7 +273,7 @@ def make_relative_path(linked_file: str, main_file: str) -> str:
     return linked_file
 
 
-def find_duplicates(files: List[ValidEcalcFile]) -> List[str]:
+def find_duplicates(files: list[ValidEcalcFile]) -> list[str]:
     """Find files with duplicate names (names = without path).
 
     :param files:
@@ -285,7 +285,7 @@ def find_duplicates(files: List[ValidEcalcFile]) -> List[str]:
     return duplicates
 
 
-def rename_duplicates(valid_files: List[ValidEcalcFile], duplicates: List[str]) -> Dict[Path, str]:
+def rename_duplicates(valid_files: list[ValidEcalcFile], duplicates: list[str]) -> dict[Path, str]:
     """Rename duplicate files. All with same name will be renamed. Those that are not duplicates,
     will also be returned, with the original filename in the mapping.
 
@@ -296,7 +296,7 @@ def rename_duplicates(valid_files: List[ValidEcalcFile], duplicates: List[str]) 
     :param duplicates:
     :return:
     """
-    renamed_files: Dict[Path, str] = {}
+    renamed_files: dict[Path, str] = {}
     for file in valid_files:
         if file.filename in duplicates:
             renamed_filename = str(file.original_filename).replace("/", "_")
@@ -309,7 +309,7 @@ def rename_duplicates(valid_files: List[ValidEcalcFile], duplicates: List[str]) 
     return renamed_files
 
 
-def make_relative_paths(files: List[ValidEcalcFile], main_yaml: ValidEcalcFile) -> Dict[Path, str]:
+def make_relative_paths(files: list[ValidEcalcFile], main_yaml: ValidEcalcFile) -> dict[Path, str]:
     """For all files in the list, generate the relative paths for all files, relative
     to the provided main file. All files provided, must have the original_filename set, which must
     be the relative path to the root of the model; e.g. the (zip) archive path, or
@@ -319,7 +319,7 @@ def make_relative_paths(files: List[ValidEcalcFile], main_yaml: ValidEcalcFile) 
     :param main_yaml:
     :return:
     """
-    relative_paths: Dict[Path, str] = {}
+    relative_paths: dict[Path, str] = {}
     for file in files:
         if file == main_yaml:
             # since all files are relative to this given file, this must be the filename itself, only
@@ -335,15 +335,15 @@ def make_relative_paths(files: List[ValidEcalcFile], main_yaml: ValidEcalcFile) 
     return relative_paths
 
 
-def unpack_zip(file: IO) -> Tuple[List[ValidEcalcFile], List[InvalidEcalcFile]]:
+def unpack_zip(file: IO) -> tuple[list[ValidEcalcFile], list[InvalidEcalcFile]]:
     """Unpack the zip similarility to how single files are handled, by returning a tuple
     of valid and invalid files.
 
     :param file:
     :return:
     """
-    valid_files: List[ValidEcalcFile] = []
-    invalid_files: List[InvalidEcalcFile] = []
+    valid_files: list[ValidEcalcFile] = []
+    invalid_files: list[InvalidEcalcFile] = []
     try:
         with zipfile.ZipFile(BytesIO(file.read())) as archive:
             for zip_info in archive.infolist():
@@ -390,7 +390,7 @@ def unpack_zip(file: IO) -> Tuple[List[ValidEcalcFile], List[InvalidEcalcFile]]:
         raise EcalcError(title="Bad zip file", message="An error occurred while unpacking the zip file") from e
 
 
-def _validate_headers(headers: List[str]):
+def _validate_headers(headers: list[str]):
     for header in headers:
         if not re.match(r"^[A-Za-z][A-Za-z0-9_.,\-\s#+:\/]*$", header):
             raise ValueError(
@@ -402,7 +402,7 @@ def _validate_headers(headers: List[str]):
             raise InvalidHeaderException(message="One or more headers are missing in resource")
 
 
-def _validate_not_nan(columns: List[List]):
+def _validate_not_nan(columns: list[list]):
     for column in columns:
         for index, item in enumerate(column):
             if isinstance(item, float) and math.isnan(item):
@@ -474,7 +474,7 @@ def read_timeseries_resource(
 
     - Timeseries is allowed to have nans
     """
-    if not isinstance(resource_input, (BytesIO, str, Path)):
+    if not isinstance(resource_input, BytesIO | str | Path):
         raise ValueError(f"Invalid resource_input type '{type(resource_input)}'")
 
     if timeseries_type in (YamlTimeseriesType.DEFAULT, YamlTimeseriesType.MISCELLANEOUS):
@@ -501,7 +501,7 @@ def read_facility_resource(resource_input: Union[Path, BytesIO, str], validate_h
     if isinstance(resource_input, Path):
         with open(resource_input) as resource_file:
             resource_df = read_csv(resource_file)
-    elif isinstance(resource_input, (BytesIO, str)):
+    elif isinstance(resource_input, BytesIO | str):
         resource_df = read_csv(resource_input)
     else:
         raise ValueError("")

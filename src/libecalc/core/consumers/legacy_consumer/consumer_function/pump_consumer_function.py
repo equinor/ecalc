@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 
@@ -56,7 +56,7 @@ class PumpConsumerFunction(ConsumerFunction):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
+        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the pump consumer function
 

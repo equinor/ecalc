@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, Tuple
+from typing import Optional, tuple
 
 from libecalc.core.models.chart import SingleSpeedChart
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
@@ -29,7 +29,7 @@ class SingleSpeedCompressorChart(SingleSpeedChart):
         rate: float,
         recirculated_rate: float,
         increase_rate_left_of_minimum_flow_assuming_asv: bool,
-    ) -> Tuple[bool, ChartAreaFlag, float]:
+    ) -> tuple[bool, ChartAreaFlag, float]:
         """:param rate: [Am3/h] initial rate to set correct chart area flag
         :param recirculated_rate: [Am3/h] rate added by asv (individual or common)
         :param increase_rate_left_of_minimum_flow_assuming_asv: True or False.

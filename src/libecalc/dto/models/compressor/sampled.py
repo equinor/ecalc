@@ -1,4 +1,4 @@
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import Field, model_validator
 
@@ -10,11 +10,11 @@ from libecalc.dto.models.base import EnergyModel
 class CompressorSampled(EnergyModel):
     typ: Literal[EnergyModelType.COMPRESSOR_SAMPLED] = EnergyModelType.COMPRESSOR_SAMPLED
     energy_usage_type: EnergyUsageType
-    energy_usage_values: List[Annotated[float, Field(ge=0)]]
-    rate_values: Optional[List[Annotated[float, Field(ge=0)]]] = None
-    suction_pressure_values: Optional[List[Annotated[float, Field(ge=0)]]] = None
-    discharge_pressure_values: Optional[List[Annotated[float, Field(ge=0)]]] = None
-    power_interpolation_values: Optional[List[Annotated[float, Field(ge=0)]]] = None
+    energy_usage_values: list[Annotated[float, Field(ge=0)]]
+    rate_values: Optional[list[Annotated[float, Field(ge=0)]]] = None
+    suction_pressure_values: Optional[list[Annotated[float, Field(ge=0)]]] = None
+    discharge_pressure_values: Optional[list[Annotated[float, Field(ge=0)]]] = None
+    power_interpolation_values: Optional[list[Annotated[float, Field(ge=0)]]] = None
 
     # skip_on_failure required if not pre=True, we don't need validation of lengths if other validations fails
     @model_validator(mode="after")

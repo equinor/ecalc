@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import Mock
 
 import numpy as np
@@ -33,7 +32,7 @@ from libecalc.expression import Expression
 
 def get_pump_system_mock_operational_expressions(
     number_of_periods: int, number_of_consumers: int
-) -> List[PumpSystemOperationalSettingExpressions]:
+) -> list[PumpSystemOperationalSettingExpressions]:
     expression = PumpSystemOperationalSettingExpressions(
         rates=[Expression.setup_from_expression(1)] * number_of_consumers,
         suction_pressures=[Expression.setup_from_expression(1)] * number_of_consumers,
@@ -45,7 +44,7 @@ def get_pump_system_mock_operational_expressions(
 
 def get_compressor_system_mock_operational_expressions(
     number_of_periods: int, number_of_consumers: int
-) -> List[CompressorSystemOperationalSettingExpressions]:
+) -> list[CompressorSystemOperationalSettingExpressions]:
     expression = CompressorSystemOperationalSettingExpressions(
         rates=[Expression.setup_from_expression(1)] * number_of_consumers,
         suction_pressures=[Expression.setup_from_expression(1)] * number_of_consumers,

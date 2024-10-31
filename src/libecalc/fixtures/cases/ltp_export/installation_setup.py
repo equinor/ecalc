@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Dict, List
 
 import numpy as np
 
@@ -136,7 +135,7 @@ def generator_set_diesel() -> GeneratorSetSampled:
     )
 
 
-def fuel_dict() -> Dict[Period, FuelType]:
+def fuel_dict() -> dict[Period, FuelType]:
     return {
         period1: diesel_turbine(),
         period2: fuel_turbine(),
@@ -146,7 +145,7 @@ def fuel_dict() -> Dict[Period, FuelType]:
     }
 
 
-def fuel_dict_multi() -> Dict[Period, FuelType]:
+def fuel_dict_multi() -> dict[Period, FuelType]:
     return {
         period1: diesel_turbine_multi(),
         period2: fuel_turbine(),
@@ -156,7 +155,7 @@ def fuel_dict_multi() -> Dict[Period, FuelType]:
     }
 
 
-def generator_set_dict() -> Dict[Period, GeneratorSetSampled]:
+def generator_set_dict() -> dict[Period, GeneratorSetSampled]:
     return {
         period1: generator_set_diesel(),
         period2: generator_set_fuel(),
@@ -166,7 +165,7 @@ def generator_set_dict() -> Dict[Period, GeneratorSetSampled]:
     }
 
 
-def category_dict() -> Dict[Period, ConsumerUserDefinedCategoryType]:
+def category_dict() -> dict[Period, ConsumerUserDefinedCategoryType]:
     return {
         period1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
         period2: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
@@ -176,7 +175,7 @@ def category_dict() -> Dict[Period, ConsumerUserDefinedCategoryType]:
     }
 
 
-def category_dict_coarse() -> Dict[Period, ConsumerUserDefinedCategoryType]:
+def category_dict_coarse() -> dict[Period, ConsumerUserDefinedCategoryType]:
     return {
         period1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
         period2: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
@@ -332,7 +331,7 @@ def generator_set_offshore_wind_temporal_model() -> GeneratorSet:
     )
 
 
-def generator_set_compressor_temporal_model(consumers: List[ElectricityConsumer], name: str = "genset") -> GeneratorSet:
+def generator_set_compressor_temporal_model(consumers: list[ElectricityConsumer], name: str = "genset") -> GeneratorSet:
     return GeneratorSet(
         name=name,
         user_defined_category={period_from_date1: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR},
@@ -495,7 +494,7 @@ def installation_offshore_wind_dto() -> Installation:
 
 
 def installation_compressor_dto(
-    el_consumers: List[ElectricityConsumer],
+    el_consumers: list[ElectricityConsumer],
     installation_name: str = "INSTALLATION_A",
     genset_name: str = "genset",
     compressor_name: str = "compressor",

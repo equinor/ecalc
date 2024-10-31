@@ -8,7 +8,6 @@ import dataclasses
 import operator
 from dataclasses import dataclass
 from functools import reduce
-from typing import Dict, List
 
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
@@ -98,14 +97,14 @@ class StreamConditions:
             temperature=self.temperature,
         )
 
-    def copy(self, update: Dict = None):
+    def copy(self, update: dict = None):
         if update is None:
             update = {}
 
         return dataclasses.replace(self, **update)
 
     @classmethod
-    def mix_all(cls, streams: List[StreamConditions]) -> StreamConditions:
+    def mix_all(cls, streams: list[StreamConditions]) -> StreamConditions:
         if len(streams) == 0:
             raise ValueError("No streams to mix")
         if len(streams) == 1:

@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Self, TextIO, Type, Union
+from typing import Any, Optional, Self, TextIO, Union
 
 import yaml
 from pydantic import TypeAdapter
@@ -67,7 +67,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     def get_validator(cls, *args, **kwargs) -> "YamlValidator":
         return cls.read(*args, **kwargs)
 
-    def __init__(self, internal_datamodel: Dict[str, Any], name: str, instantiated_through_read: bool = False):
+    def __init__(self, internal_datamodel: dict[str, Any], name: str, instantiated_through_read: bool = False):
         """To avoid mistakes, make sure that this is only instantiated through read method/named constructor
         :param instantiated_through_read: set to True to allow to use constructor.
         """
@@ -87,7 +87,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         cls,
         main_yaml: ResourceStream,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
         enable_include: bool = True,
     ) -> "PyYamlYamlModel":
         internal_datamodel = PyYamlYamlModel.read_yaml(
@@ -117,7 +117,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             SOME_KEY: !include some.yaml
         """
 
-        def __init__(self, base_dir: Optional[Path] = None, resources: Optional[Dict[str, TextIO]] = None):
+        def __init__(self, base_dir: Optional[Path] = None, resources: Optional[dict[str, TextIO]] = None):
             self._base_dir = base_dir
             self._resources = resources if resources else {}
 
@@ -150,10 +150,10 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     class YamlReader:
         def __init__(
             self,
-            loader: Type[yaml.SafeLoader],
+            loader: type[yaml.SafeLoader],
             enable_include: bool = True,
             base_dir: Optional[Path] = None,
-            resources: Optional[Dict[str, TextIO]] = None,
+            resources: Optional[dict[str, TextIO]] = None,
         ):
             self.__loader = loader
             if enable_include and (base_dir or resources):
@@ -198,10 +198,10 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     @staticmethod
     def _read_yaml_helper(
         yaml_file: ResourceStream,
-        loader: Type[yaml.SafeLoader],
+        loader: type[yaml.SafeLoader],
         enable_include: bool = True,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
     ):
         """Read yaml helper for include functionality."""
         yaml_reader = PyYamlYamlModel.YamlReader(
@@ -214,7 +214,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         main_yaml: ResourceStream,
         enable_include: bool = True,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
     ) -> str:
         yaml_reader = PyYamlYamlModel.YamlReader(
             loader=SafeLoader, enable_include=enable_include, base_dir=base_dir, resources=resources
@@ -230,7 +230,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         main_yaml: ResourceStream,
         enable_include: bool = True,
         base_dir: Optional[Path] = None,
-        resources: Optional[Dict[str, TextIO]] = None,
+        resources: Optional[dict[str, TextIO]] = None,
     ) -> YamlDict:
         try:
             return PyYamlYamlModel._read_yaml_helper(
@@ -270,7 +270,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return self._name
 
     @property
-    def facility_resource_names(self) -> List[str]:
+    def facility_resource_names(self) -> list[str]:
         facility_input_data = self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, [])
         model_curves_data = [
             model.get(model_curves)
@@ -285,7 +285,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return resource_names
 
     @property
-    def timeseries_resources(self) -> List[YamlTimeseriesResource]:
+    def timeseries_resources(self) -> list[YamlTimeseriesResource]:
         timeseries_resources = []
         for resource in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
             try:
@@ -306,7 +306,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return timeseries_resources
 
     @property
-    def all_resource_names(self) -> List[str]:
+    def all_resource_names(self) -> list[str]:
         facility_resource_names = self.facility_resource_names
         timeseries_resource_names = [resource.name for resource in self.timeseries_resources]
         return [*facility_resource_names, *timeseries_resource_names]
@@ -348,7 +348,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return valid_variables
 
     @property
-    def yaml_variables(self) -> Dict[YamlVariableReferenceId, dict]:
+    def yaml_variables(self) -> dict[YamlVariableReferenceId, dict]:
         if not isinstance(self._internal_datamodel, dict):
             return {}
 
@@ -360,7 +360,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, [])
 
     @property
-    def facility_inputs(self) -> List[YamlFacilityModel]:
+    def facility_inputs(self) -> list[YamlFacilityModel]:
         facility_inputs = []
         for facility_input in self._internal_datamodel.get(EcalcYamlKeywords.facility_inputs, []):
             try:
@@ -371,7 +371,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return facility_inputs
 
     @property
-    def models(self) -> List[YamlConsumerModel]:
+    def models(self) -> list[YamlConsumerModel]:
         models = []
         for model in self._internal_datamodel.get(EcalcYamlKeywords.models, []):
             try:
@@ -383,7 +383,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     @deprecated("Deprecated, time_series in combination with validate should be used instead")
-    def time_series_raise_if_invalid(self) -> List[YamlTimeSeriesCollection]:
+    def time_series_raise_if_invalid(self) -> list[YamlTimeSeriesCollection]:
         time_series = []
         for time_series_data in self._internal_datamodel.get(EcalcYamlKeywords.time_series, []):
             try:
@@ -394,7 +394,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return time_series
 
     @property
-    def time_series(self) -> List[YamlTimeSeriesCollection]:
+    def time_series(self) -> list[YamlTimeSeriesCollection]:
         """
         Get only valid time series, i.e. don't fail if one is invalid.
         # TODO: Replace time_series_raise_if_invalid with this method when we are using Yaml-class validation everywhere. Then property
@@ -457,21 +457,21 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             raise DtoValidationError(data=self._internal_datamodel, validation_error=e) from e
 
 
-def find_date_keys_in_yaml(yaml_object: Union[List, Dict]) -> List[datetime.datetime]:
+def find_date_keys_in_yaml(yaml_object: Union[list, dict]) -> list[datetime.datetime]:
     """The function will add any dates found in the yaml_object to the list named output.
 
     :param yaml_object: The content (or subset) of a yaml file
-    :type yaml_object: Union[List, Dict, CommentedMap]
+    :type yaml_object: Union[List,dict, CommentedMap]
     :return: The list with dates given as input to the function with any dates found in the yaml_object added to it
-    :rtype: List[datetime.datetime]
+    :rtype:list[datetime.datetime]
     """
 
-    def common_iterable(obj: Union[List, Dict]) -> Union[Dict, Iterator[int]]:
+    def common_iterable(obj: Union[list, dict]) -> Union[dict, Iterator[int]]:
         """Helper function when iteration over something we beforehand don't know
-        whether is a Dict, List or CommentedMap.
+        whether is adict,list or CommentedMap.
 
         :param obj: A subset of a nested YAML file to iterate over
-        :type obj: Union[List, Dict]
+        :type obj: Union[List,dict]
         :return: The object if the object is a dict, or the indices of the list if the object is a list
         :rtype: Union[Dict, Iterator[int]]
         """
@@ -482,11 +482,11 @@ def find_date_keys_in_yaml(yaml_object: Union[List, Dict]) -> List[datetime.date
 
     output = []
     for index in common_iterable(yaml_object):
-        if isinstance(index, (datetime.date, datetime.datetime)):
+        if isinstance(index, datetime.date | datetime.datetime):
             index_to_datetime = convert_date_to_datetime(index)
             if index_to_datetime not in output:
                 output.append(index_to_datetime)
-        if isinstance(yaml_object[index], (dict, list)):  # type: ignore
+        if isinstance(yaml_object[index], dict | list):  # type: ignore
             output.extend(find_date_keys_in_yaml(yaml_object[index]))  # type: ignore
 
     return output

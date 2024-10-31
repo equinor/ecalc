@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from pathlib import Path
-from typing import Dict
 
 from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
 from libecalc.common.logger import logger
@@ -24,8 +23,8 @@ class FileResourceService(ResourceService):
             raise EcalcError("Failed to read resource", f"Failed to read {resource_name.name}: {str(exc)}") from exc
 
     @classmethod
-    def _read_resources(cls, configuration: YamlValidator, working_directory: Path) -> Dict[str, MemoryResource]:
-        resources: Dict[str, MemoryResource] = {}
+    def _read_resources(cls, configuration: YamlValidator, working_directory: Path) -> dict[str, MemoryResource]:
+        resources: dict[str, MemoryResource] = {}
         for timeseries_resource in configuration.timeseries_resources:
             resources[timeseries_resource.name] = cls._read_resource(
                 working_directory / timeseries_resource.name,
@@ -40,5 +39,5 @@ class FileResourceService(ResourceService):
             )
         return resources
 
-    def get_resources(self, configuration: YamlValidator) -> Dict[str, Resource]:
+    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
         return self._read_resources(configuration=configuration, working_directory=self._working_directory)

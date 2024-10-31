@@ -1,6 +1,6 @@
 from datetime import datetime
 from io import StringIO
-from typing import Dict, Optional, cast
+from typing import Optional, cast
 
 import pytest
 from pydantic import TypeAdapter
@@ -18,10 +18,10 @@ from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart
 
 
 class DirectResourceService(ResourceService):
-    def __init__(self, resources: Dict[str, MemoryResource]):
+    def __init__(self, resources: dict[str, MemoryResource]):
         self._resources = resources
 
-    def get_resources(self, configuration: YamlValidator) -> Dict[str, MemoryResource]:
+    def get_resources(self, configuration: YamlValidator) -> dict[str, MemoryResource]:
         return self._resources
 
 
@@ -190,7 +190,7 @@ class TestModelMapper:
 
         model_mapper = ModelMapper(resources=resources)
 
-        def create_compressor_chart(data: Dict) -> YamlCompressorChart:
+        def create_compressor_chart(data: dict) -> YamlCompressorChart:
             return TypeAdapter(YamlCompressorChart).validate_python(data)
 
         variable_speed_compressor_chart_curves_spec_in_csv = model_mapper.from_yaml_to_dto(
@@ -305,7 +305,7 @@ def dated_model_data(dated_model_source: str) -> ResourceStream:
 
 
 class OverridableStreamConfigurationService(ConfigurationService):
-    def __init__(self, stream: ResourceStream, overrides: Optional[Dict] = None):
+    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
         self._overrides = overrides
         self._stream = stream
 

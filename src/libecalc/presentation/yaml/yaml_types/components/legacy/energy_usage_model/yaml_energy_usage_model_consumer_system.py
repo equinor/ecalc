@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal
 
 from pydantic import Field
 
@@ -29,27 +29,27 @@ class YamlCompressorSystemCompressor(YamlBase):
 
 
 class YamlCompressorSystemOperationalSetting(YamlBase):
-    crossover: List[int] = Field(
+    crossover: list[int] = Field(
         None,
         title="CROSSOVER",
         description="Set cross over rules in system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#crossover",
     )
-    rates: List[YamlExpressionType] = Field(
+    rates: list[YamlExpressionType] = Field(
         None,
         title="RATES",
         description="Set rate per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rates",
     )
-    rate_fractions: List[YamlExpressionType] = Field(
+    rate_fractions: list[YamlExpressionType] = Field(
         None,
         title="RATE_FRACTIONS",
         description="List of expressions defining fractional rate (of total system rate) per consumer.  \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#rate-fractions",
     )
-    suction_pressures: List[YamlExpressionType] = Field(
+    suction_pressures: list[YamlExpressionType] = Field(
         None,
         title="SUCTION_PRESSURES",
         description="Set suction pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#suction-pressures",
     )
-    discharge_pressures: List[YamlExpressionType] = Field(
+    discharge_pressures: list[YamlExpressionType] = Field(
         None,
         title="DISCHARGE_PRESSURES",
         description="Set discharge pressure per consumer in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#discharge-pressures",
@@ -67,7 +67,7 @@ class YamlCompressorSystemOperationalSetting(YamlBase):
 
 
 class YamlPumpSystemOperationalSettings(YamlCompressorSystemOperationalSetting):
-    fluid_densities: List[YamlExpressionType] = Field(
+    fluid_densities: list[YamlExpressionType] = Field(
         None,
         title="FLUID_DENSITIES",
         description="Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS#fluid-densities",
@@ -80,7 +80,7 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         title="TYPE",
         description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
     )
-    compressors: List[YamlCompressorSystemCompressor] = Field(
+    compressors: list[YamlCompressorSystemCompressor] = Field(
         ...,
         title="COMPRESSORS",
         description="The compressors in a compressor system. \n\n$ECALC_DOCS_KEYWORDS_URL/COMPRESSORS#compressors",
@@ -90,7 +90,7 @@ class YamlEnergyUsageModelCompressorSystem(EnergyUsageModelCommon):
         title="TOTAL_SYSTEM_RATE",
         description="Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
     )
-    operational_settings: List[YamlCompressorSystemOperationalSetting] = Field(
+    operational_settings: list[YamlCompressorSystemOperationalSetting] = Field(
         ...,
         title="OPERATIONAL_SETTINGS",
         description="Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",
@@ -116,7 +116,7 @@ class YamlEnergyUsageModelPumpSystem(EnergyUsageModelCommon):
         title="TYPE",
         description="Defines the energy usage model type.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
     )
-    pumps: List[YamlPumpSystemPump] = Field(
+    pumps: list[YamlPumpSystemPump] = Field(
         ...,
         title="PUMPS",
         description="The pumps in a pump system. \n\n$ECALC_DOCS_KEYWORDS_URL/PUMPS#pumps",
@@ -131,7 +131,7 @@ class YamlEnergyUsageModelPumpSystem(EnergyUsageModelCommon):
         title="TOTAL_SYSTEM_RATE",
         description="Total fluid rate through the system \n\n$ECALC_DOCS_KEYWORDS_URL/TOTAL_SYSTEM_RATE",
     )
-    operational_settings: List[YamlPumpSystemOperationalSettings] = Field(
+    operational_settings: list[YamlPumpSystemOperationalSettings] = Field(
         ...,
         title="OPERATIONAL_SETTINGS",
         description="Operational settings of the system. \n\n$ECALC_DOCS_KEYWORDS_URL/OPERATIONAL_SETTINGS",

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
@@ -31,7 +31,7 @@ class ConsumerFunctionResultBase(BaseModel):
     energy_usage_before_power_loss_factor: Optional[PydanticNDArray] = None
     condition: Optional[PydanticNDArray] = None
     power_loss_factor: Optional[PydanticNDArray] = None
-    energy_function_result: Optional[Union[EnergyFunctionResult, List[EnergyFunctionResult]]] = None
+    energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None
 
     # New! to support fuel to power rate...for e.g. compressors emulating turbine
     power: Optional[PydanticNDArray] = None

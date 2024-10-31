@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal
 
 from pydantic import Field
 
@@ -39,7 +39,7 @@ class YamlEnergyUsageModelTabulated(EnergyUsageModelCommon):
         description="The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS",
         alias="ENERGYFUNCTION",
     )
-    variables: List[YamlTabulatedVariable] = Field(
+    variables: list[YamlTabulatedVariable] = Field(
         ...,
         title="VARIABLES",
         description="Variables for the tabulated energy function \n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES#variables",

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from datetime import datetime
-from typing import Annotated, Dict, List, Protocol, Union, assert_never
+from typing import Annotated, Protocol, Union, assert_never
 
 import numpy as np
 from numpy.typing import NDArray
@@ -35,8 +35,8 @@ class VariablesMap(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    time_vector: List[datetime] = Field(default_factory=list)
-    variables: Dict[str, List[Annotated[float, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)
+    time_vector: list[datetime] = Field(default_factory=list)
+    variables: dict[str, list[Annotated[float, Field(allow_inf_nan=False)]]] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def check_length_of_time_vector_vs_variables(self):
@@ -100,7 +100,7 @@ class VariablesMap(BaseModel):
         timestep_index = self.time_vector.index(current_timestep)
         return self.get_subset(timestep_index, timestep_index + 1)
 
-    def zeros(self) -> List[float]:
+    def zeros(self) -> list[float]:
         return [0.0] * len(self.periods)
 
     def get_time_vector(self):
@@ -130,7 +130,7 @@ class VariablesMap(BaseModel):
         """Get the number of periods covered by the time vector"""
         return len(self.time_vector) - 1
 
-    def evaluate(self, expression: Union[Expression, Dict[Period, Expression], TemporalModel]) -> NDArray[np.float64]:
+    def evaluate(self, expression: Union[Expression, dict[Period, Expression], TemporalModel]) -> NDArray[np.float64]:
         # Should we only allow Expression and Temporal model?
         if isinstance(expression, Expression):
             return expression.evaluate(variables=self.variables, fill_length=len(self.get_periods()))
@@ -158,7 +158,7 @@ class VariablesMap(BaseModel):
 
 class ExpressionEvaluator(Protocol):
     @abc.abstractmethod
-    def get_time_vector(self) -> [List[datetime]]: ...
+    def get_time_vector(self) -> [list[datetime]]: ...
 
     @abc.abstractmethod
     def get_period(self) -> Period: ...
@@ -174,5 +174,5 @@ class ExpressionEvaluator(Protocol):
 
     @abc.abstractmethod
     def evaluate(
-        self, expression: Union[Expression, TemporalModel, Dict[Period, Expression]]
+        self, expression: Union[Expression, TemporalModel, dict[Period, Expression]]
     ) -> NDArray[np.float64]: ...

@@ -1,6 +1,6 @@
 from io import StringIO
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Optional, cast
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
@@ -21,7 +21,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 
 
 class OverridableStreamConfigurationService(ConfigurationService):
-    def __init__(self, stream: ResourceStream, overrides: Optional[Dict] = None):
+    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
         self._overrides = overrides
         self._stream = stream
 
@@ -37,20 +37,20 @@ class OverridableStreamConfigurationService(ConfigurationService):
 
 
 def venting_emitter_yaml_factory(
-    rate_types: List[RateType],
-    units: List[YamlEmissionRateUnits],
-    emission_names: List[str],
+    rate_types: list[RateType],
+    units: list[YamlEmissionRateUnits],
+    emission_names: list[str],
     regularity: float,
-    names: List[str],
+    names: list[str],
     path: Path,
-    emission_rates: List[float] = None,
-    emitter_types: List[str] = None,
-    categories: List[str] = None,
+    emission_rates: list[float] = None,
+    emitter_types: list[str] = None,
+    categories: list[str] = None,
     emission_keyword_name: str = "EMISSIONS",
     installation_name: str = "minimal_installation",
-    emission_factors: List[float] = None,
-    oil_rates: List[float] = None,
-    units_oil_rates: List[YamlOilRateUnits] = None,
+    emission_factors: list[float] = None,
+    oil_rates: list[float] = None,
+    units_oil_rates: list[YamlOilRateUnits] = None,
     include_emitters: bool = True,
     include_fuel_consumers: bool = True,
 ) -> DTOCase:
@@ -129,18 +129,18 @@ def create_fuel_consumers(include_fuel_consumers: bool) -> str:
 
 
 def create_venting_emitters_yaml(
-    categories: List[str],
-    rate_types: List[RateType],
-    emitter_names: List[str],
-    emission_names: List[str],
-    emission_rates: List[float],
-    units: List[YamlEmissionRateUnits],
-    units_oil_rates: List[YamlOilRateUnits],
+    categories: list[str],
+    rate_types: list[RateType],
+    emitter_names: list[str],
+    emission_names: list[str],
+    emission_rates: list[float],
+    units: list[YamlEmissionRateUnits],
+    units_oil_rates: list[YamlOilRateUnits],
     emission_keyword_name: str,
-    emission_factors: List[float],
-    oil_rates: List[float],
+    emission_factors: list[float],
+    oil_rates: list[float],
     include_emitters: bool,
-    emitter_types: List[str],
+    emitter_types: list[str],
 ) -> str:
     if not include_emitters:
         return ""

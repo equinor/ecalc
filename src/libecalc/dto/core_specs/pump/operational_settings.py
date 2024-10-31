@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Self
+from typing import Self
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Period, Periods
@@ -8,7 +8,7 @@ from libecalc.dto.core_specs.base.operational_settings import OperationalSetting
 
 
 class PumpOperationalSettings(OperationalSettings):
-    inlet_streams: List[TimeSeriesStreamConditions]
+    inlet_streams: list[TimeSeriesStreamConditions]
     outlet_stream: TimeSeriesStreamConditions
 
     periods: Periods

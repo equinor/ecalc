@@ -9,7 +9,7 @@ kappa are updated until polytropic head converges
 
 from collections.abc import Callable
 from copy import deepcopy
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -25,9 +25,9 @@ def calculate_enthalpy_change_head_iteration(
     inlet_temperature_kelvin: NDArray[np.float64],
     polytropic_efficiency_vs_rate_and_head_function: Callable,
     molar_mass: float,
-    inlet_streams: List[FluidStream],
+    inlet_streams: list[FluidStream],
     inlet_actual_rate_m3_per_hour: NDArray[np.float64],
-) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """Simplified method of finding enthalpy change in compressors
 
     Only used in Simplified Compressor train
@@ -38,12 +38,12 @@ def calculate_enthalpy_change_head_iteration(
         inlet_temperature_kelvin: Inlet temperature array [K]
         polytropic_efficiency_vs_rate_and_head_function:
         molar_mass: Molar mass [kg/mol]
-        inlet_streams: List of FluidStream-objects
+        inlet_streams:list of FluidStream-objects
         inlet_actual_rate_m3_per_hour: Mass rate through compressor [m3/h]
 
     Returns:
-        List of enthalphy changes [J/kg]
-        List of polytropic efficiencies [-]
+       list of enthalphy changes [J/kg]
+       list of polytropic efficiencies [-]
 
     """
 

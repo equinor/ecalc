@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+from typing import Union
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -12,7 +12,7 @@ from libecalc.presentation.exporter.formatters.formattable import ColumnIndex, F
 class DataSeries:
     name: str
     title: str
-    values: List[Union[str, float]]
+    values: list[Union[str, float]]
 
     def get_title(self) -> str:
         return self.title
@@ -33,7 +33,7 @@ class QueryResult:
     name: str
     title: str
     unit: Unit  # Needed! in order to know how to handler further....parse
-    values: Dict[Period, float]
+    values: dict[Period, float]
 
     def get_title(self) -> str:
         return f"{self.title}[{self.unit}]"
@@ -48,20 +48,20 @@ class QueryResult:
 @dataclass
 class GroupedQueryResult:
     group_name: str
-    query_results: List[QueryResult]
+    query_results: list[QueryResult]
 
 
 @dataclass
 class FormattableGroupedQuery(Formattable):
-    query_results: List[QueryResult]
+    query_results: list[QueryResult]
     periods: Periods
 
     @property
-    def row_ids(self) -> List[RowIndex]:
+    def row_ids(self) -> list[RowIndex]:
         return self.periods.periods
 
     @property
-    def column_ids(self) -> List[ColumnIndex]:
+    def column_ids(self) -> list[ColumnIndex]:
         column_ids = []
         for query_result in self.query_results:
             column_ids.append(query_result.id)
@@ -80,11 +80,11 @@ class FormattableGroupedQuery(Formattable):
 
 @dataclass
 class FilteredResult(FormattableGroup):
-    query_results: List[GroupedQueryResult]
+    query_results: list[GroupedQueryResult]
     periods: Periods
 
     @property
-    def groups(self) -> Iterator[Tuple[str, Formattable]]:
+    def groups(self) -> Iterator[tuple[str, Formattable]]:
         return (
             (
                 group.group_name,

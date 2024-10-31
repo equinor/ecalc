@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import ConfigDict, Field
 
 from libecalc.dto.types import FuelTypeUserDefinedCategoryType
@@ -21,7 +19,7 @@ class YamlFuelType(YamlBase):
     category: FuelTypeUserDefinedCategoryType = CategoryField(
         None,
     )
-    emissions: List[YamlEmission] = Field(
+    emissions: list[YamlEmission] = Field(
         ...,
         title="EMISSIONS",
         description="Emission types and their attributes for this fuel.\n\n$ECALC_DOCS_KEYWORDS_URL/EMISSIONS",

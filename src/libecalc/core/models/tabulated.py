@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List
-
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel as PydanticBaseModel
@@ -24,7 +22,7 @@ class ConsumerTabularEnergyFunction(BaseModel):
     def __init__(
         self,
         function_values: NDArray[np.float64],
-        variables: List[Variable],
+        variables: list[Variable],
         energy_usage_adjustment_constant: float = 0.0,
         energy_usage_adjustment_factor: float = 1.0,
         energy_usage_type: EnergyUsageType = EnergyUsageType.POWER,
@@ -60,7 +58,7 @@ class ConsumerTabularEnergyFunction(BaseModel):
             )
         self.energy_usage_type = energy_usage_type
 
-    def evaluate_variables(self, variables: List[Variable]) -> EnergyFunctionResult:
+    def evaluate_variables(self, variables: list[Variable]) -> EnergyFunctionResult:
         variables_map_by_name = {variable.name: variable.values for variable in variables}
         _check_variables_match_required(
             variables_to_evaluate=list(variables_map_by_name.keys()), required_variables=self.required_variables
@@ -82,7 +80,7 @@ class ConsumerTabularEnergyFunction(BaseModel):
         )
 
 
-def _check_variables_match_required(variables_to_evaluate: List[str], required_variables: List[str]):
+def _check_variables_match_required(variables_to_evaluate: list[str], required_variables: list[str]):
     if set(variables_to_evaluate) != set(required_variables):
         msg = (
             "Variables to evaluate must correspond to required variables. You should not end up"

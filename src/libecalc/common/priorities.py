@@ -1,7 +1,7 @@
-from typing import Dict, TypeVar
+from typing import TypeVar
 
 TPriorityValue = TypeVar("TPriorityValue")
 
 PriorityID = str
 
-Priorities = Dict[PriorityID, TPriorityValue]
+Priorities = dict[PriorityID, TPriorityValue]

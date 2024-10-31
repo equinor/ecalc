@@ -1,4 +1,4 @@
-from typing import Annotated, Dict, Optional, Union
+from typing import Annotated, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -207,7 +207,7 @@ class UndefinedCompressorStage(CompressorTrainStage):
     compressor_chart: VariableSpeedCompressorChart = None  # Not relevant when undefined.
 
     @model_validator(mode="before")
-    def validate_predefined_chart(cls, v: Dict):
+    def validate_predefined_chart(cls, v: dict):
         if v.get("compressor_chart") is None and v.get("polytropic_efficiency") is None:
             raise ValueError("Stage with non-predefined compressor chart needs to have polytropic_efficiency")
         return v

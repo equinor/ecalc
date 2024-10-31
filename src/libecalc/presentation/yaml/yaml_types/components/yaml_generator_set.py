@@ -1,4 +1,4 @@
-from typing import Annotated, List, Optional, Union
+from typing import Annotated, Optional, Union
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -53,7 +53,7 @@ class YamlGeneratorSet(YamlBase):
         title="MAX_USAGE_FROM_SHORE",
         description="The peak load/effect that is expected for one hour, per year (MW)",
     )
-    consumers: List[
+    consumers: list[
         Annotated[
             Union[
                 YamlElectricityConsumer,

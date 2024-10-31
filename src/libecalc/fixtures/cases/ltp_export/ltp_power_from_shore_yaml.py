@@ -1,6 +1,6 @@
 from io import StringIO
 from pathlib import Path
-from typing import Dict, Optional, cast
+from typing import Optional, cast
 
 import pytest
 
@@ -15,7 +15,7 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlCo
 
 
 class OverridableStreamConfigurationService(ConfigurationService):
-    def __init__(self, stream: ResourceStream, overrides: Optional[Dict] = None):
+    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
         self._overrides = overrides
         self._stream = stream
 

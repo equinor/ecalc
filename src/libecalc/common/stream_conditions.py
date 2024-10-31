@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -123,7 +123,7 @@ class TimeSeriesStreamConditions(BaseModel):
         )
 
     @classmethod
-    def mix_all(cls, streams: List["TimeSeriesStreamConditions"]) -> "TimeSeriesStreamConditions":
+    def mix_all(cls, streams: list["TimeSeriesStreamConditions"]) -> "TimeSeriesStreamConditions":
         if len(streams) == 0:
             raise ValueError("No streams to mix")
         if len(streams) == 1:

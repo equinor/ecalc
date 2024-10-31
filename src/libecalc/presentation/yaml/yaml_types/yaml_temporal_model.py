@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Dict, Literal, TypeVar, Union
+from typing import Annotated, Any, Literal, TypeVar, Union
 
 from pydantic import Discriminator, Tag
 
@@ -37,7 +37,7 @@ YamlTemporalModel = Annotated[
     Union[
         Annotated[TModel, Tag("single")],
         Annotated[
-            Dict[YamlDefaultDatetime, TModel],
+            dict[YamlDefaultDatetime, TModel],
             Tag("temporal"),
         ],
     ],

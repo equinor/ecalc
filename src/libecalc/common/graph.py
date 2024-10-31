@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Generic, List, Protocol, Self, TypeVar
+from typing import Generic, Protocol, Self, TypeVar
 
 import networkx as nx
 
@@ -18,7 +18,7 @@ TNode = TypeVar("TNode", bound=NodeWithID)
 class Graph(Generic[TNode]):
     def __init__(self):
         self.graph = nx.DiGraph()
-        self.nodes: Dict[NodeID, TNode] = {}
+        self.nodes: dict[NodeID, TNode] = {}
 
     def add_node(self, node: TNode) -> Self:
         self.graph.add_node(node.id)
@@ -37,7 +37,7 @@ class Graph(Generic[TNode]):
         self.graph = nx.compose(self.graph, subgraph.graph)
         return self
 
-    def get_successors(self, node_id: NodeID, recursively=False) -> List[NodeID]:
+    def get_successors(self, node_id: NodeID, recursively=False) -> list[NodeID]:
         if recursively:
             return [
                 successor_id
@@ -64,10 +64,10 @@ class Graph(Generic[TNode]):
         return self.nodes[node_id]
 
     @property
-    def sorted_node_ids(self) -> List[NodeID]:
+    def sorted_node_ids(self) -> list[NodeID]:
         return list(nx.topological_sort(self.graph))
 
-    def breadth_first_search_tree(self, source_id: NodeID) -> List[NodeID]:
+    def breadth_first_search_tree(self, source_id: NodeID) -> list[NodeID]:
         """
         Create a tree with source as root by searching edges close to the source first. Breadth first orders the nodes
         that are closer to the source before nodes that are further out.

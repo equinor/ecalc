@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Dict, List, Set
 
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_collection import TimeSeriesCollection
@@ -18,9 +17,9 @@ class TimeSeriesCollections(TimeSeriesProvider):
     steps in all collections.
     """
 
-    def __init__(self, time_series: List[YamlTimeSeriesCollection], resources: Dict[str, Resource]):
-        time_series_collections: Dict[str, TimeSeriesCollection] = {}
-        errors: List[ModelValidationError] = []
+    def __init__(self, time_series: list[YamlTimeSeriesCollection], resources: dict[str, Resource]):
+        time_series_collections: dict[str, TimeSeriesCollection] = {}
+        errors: list[ModelValidationError] = []
         for time_series_collection in time_series:
             resource = resources[time_series_collection.file]
             try:
@@ -48,7 +47,7 @@ class TimeSeriesCollections(TimeSeriesProvider):
 
         self._time_series_collections = time_series_collections
 
-    def get_time_series_references(self) -> List[str]:
+    def get_time_series_references(self) -> list[str]:
         time_series_references = []
         for collection in self._time_series_collections.values():
             for time_series_reference in collection.get_time_series_references():
@@ -66,8 +65,8 @@ class TimeSeriesCollections(TimeSeriesProvider):
 
         return self._time_series_collections[collection_id].get_time_series(time_series_id)
 
-    def get_time_vector(self) -> Set[datetime]:
-        time_vector: Set[datetime] = set()
+    def get_time_vector(self) -> set[datetime]:
+        time_vector: set[datetime] = set()
         for time_series_collection in self._time_series_collections.values():
             if time_series_collection.should_influence_time_vector():
                 time_vector = time_vector.union(time_series_collection.get_time_vector())

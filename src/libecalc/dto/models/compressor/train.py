@@ -1,4 +1,4 @@
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import Field, field_validator
 
@@ -18,7 +18,7 @@ from libecalc.dto.models.compressor.stage import (
 
 class CompressorTrain(EnergyModel):
     typ: EnergyModelType
-    stages: List[CompressorStage]
+    stages: list[CompressorStage]
     fluid_model: FluidModel
     calculate_max_rate: bool = False
     maximum_power: Optional[float] = None
@@ -57,7 +57,7 @@ class CompressorTrainSimplifiedWithUnknownStages(CompressorTrain):
     maximum_pressure_ratio_per_stage: Annotated[float, Field(ge=0)]
 
     # Not in use:
-    stages: List[CompressorStage] = []  # Not relevant since the stage is Unknown
+    stages: list[CompressorStage] = []  # Not relevant since the stage is Unknown
     pressure_control: Optional[FixedSpeedPressureControl] = None  # Not relevant for simplified trains.
 
     @field_validator("stage")
@@ -132,8 +132,8 @@ class VariableSpeedCompressorTrainMultipleStreamsAndPressures(CompressorTrain):
     typ: Literal[EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES] = (
         EnergyModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
     )
-    streams: List[MultipleStreamsAndPressureStream]
-    stages: List[MultipleStreamsCompressorStage]
+    streams: list[MultipleStreamsAndPressureStream]
+    stages: list[MultipleStreamsCompressorStage]
 
     # Not in use:
     fluid_model: Optional[FluidModel] = None  # Not relevant. set by the individual stream.

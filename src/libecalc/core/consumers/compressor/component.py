@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -42,7 +42,7 @@ class Compressor(BaseConsumerWithoutOperationalSettings):
 
     def evaluate(
         self,
-        streams: List[StreamConditions],
+        streams: list[StreamConditions],
     ) -> EcalcModelResult:
         inlet_streams = streams[:-1]
         outlet_stream = streams[-1]

@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 
@@ -29,7 +29,7 @@ class CompressorConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         compressor_function: CompressorModel,
-        rate_expression: Union[Expression, List[Expression]],
+        rate_expression: Union[Expression, list[Expression]],
         suction_pressure_expression: Expression,
         discharge_pressure_expression: Expression,
         condition_expression: Optional[Expression],
@@ -63,7 +63,7 @@ class CompressorConsumerFunction(ConsumerFunction):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
+        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the Compressor energy usage.
         :param expression_evaluator: Variables map is the VariablesMap-object holding all the data to be evaluated.

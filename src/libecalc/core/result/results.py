@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Annotated, Any, Dict, List, Literal, Optional, Self, Union
+from typing import Annotated, Any, Literal, Optional, Self, Union
 
 from pydantic import Field
 
@@ -64,16 +64,16 @@ class GeneratorSetResult(GenericComponentResult):
 class ConsumerSystemResult(GenericComponentResult):
     typ: Literal["system"] = "system"
     operational_settings_used: TimeSeriesInt
-    operational_settings_results: Optional[Dict[int, List[Any]]]
+    operational_settings_results: Optional[dict[int, list[Any]]]
 
 
 class CompressorResult(GenericComponentResult):
     typ: Literal["comp"] = "comp"
     recirculation_loss: TimeSeriesStreamDayRate
     rate_exceeds_maximum: TimeSeriesBoolean
-    streams: Optional[List[TimeSeriesStreamConditions]] = None  # Optional because only in v2
+    streams: Optional[list[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
-    def get_subset(self, indices: List[int]) -> Self:
+    def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
             id=self.id,
             periods=Periods([self.periods.periods[index] for index in indices]),
@@ -92,9 +92,9 @@ class PumpResult(GenericComponentResult):
     outlet_pressure_bar: TimeSeriesFloat
     operational_head: TimeSeriesFloat
 
-    streams: Optional[List[TimeSeriesStreamConditions]] = None  # Optional because only in v2
+    streams: Optional[list[TimeSeriesStreamConditions]] = None  # Optional because only in v2
 
-    def get_subset(self, indices: List[int]) -> Self:
+    def get_subset(self, indices: list[int]) -> Self:
         return self.__class__(
             id=self.id,
             periods=Periods([self.periods.periods[index] for index in indices]),
@@ -121,10 +121,10 @@ class ConsumerModelResultBase(ABC, CommonResultBase):
 class PumpModelResult(ConsumerModelResultBase):
     """The Pump result component."""
 
-    inlet_liquid_rate_m3_per_day: List[Optional[float]]
-    inlet_pressure_bar: List[Optional[float]]
-    outlet_pressure_bar: List[Optional[float]]
-    operational_head: List[Optional[float]]
+    inlet_liquid_rate_m3_per_day: list[Optional[float]]
+    inlet_pressure_bar: list[Optional[float]]
+    outlet_pressure_bar: list[Optional[float]]
+    operational_head: list[Optional[float]]
 
     @property
     def component_type(self):
@@ -132,11 +132,11 @@ class PumpModelResult(ConsumerModelResultBase):
 
 
 class CompressorModelResult(ConsumerModelResultBase):
-    rate_sm3_day: Union[List[Optional[float]], List[List[Optional[float]]]]
-    max_standard_rate: Optional[Union[List[Optional[float]], List[List[Optional[float]]]]] = None
+    rate_sm3_day: Union[list[Optional[float]], list[list[Optional[float]]]]
+    max_standard_rate: Optional[Union[list[Optional[float]], list[list[Optional[float]]]]] = None
 
-    stage_results: List[CompressorStageResult]
-    failure_status: List[Optional[CompressorTrainCommonShaftFailureStatus]]
+    stage_results: list[CompressorStageResult]
+    failure_status: list[Optional[CompressorTrainCommonShaftFailureStatus]]
     turbine_result: Optional[TurbineResult] = None
 
     inlet_stream_condition: CompressorStreamCondition
@@ -174,5 +174,5 @@ class EcalcModelResult(EcalcResultBaseModel):
     """Result object holding one component for each part of the eCalc model run."""
 
     component_result: ComponentResult
-    sub_components: List[ComponentResult]
-    models: List[ConsumerModelResult]
+    sub_components: list[ComponentResult]
+    models: list[ConsumerModelResult]

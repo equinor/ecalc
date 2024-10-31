@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
@@ -25,7 +24,7 @@ class VariableProcessor:
         else:
             return {variable for expression in self.variable.values() for variable in expression.value.variables}
 
-    def process(self, variables: Dict[str, List[float]], periods: Periods) -> List[float]:
+    def process(self, variables: dict[str, list[float]], periods: Periods) -> list[float]:
         if isinstance(self.variable, YamlSingleVariable):
             return list(self.variable.value.evaluate(variables, fill_length=len(periods)))
         else:
@@ -55,7 +54,7 @@ class VariableProcessor:
             return variable_result
 
 
-def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: VariablesMap) -> VariablesMap:
+def _evaluate_variables(variables: dict[str, YamlVariable], variables_map: VariablesMap) -> VariablesMap:
     variables_to_process = [
         VariableProcessor(reference_id=f"$var.{reference_id}", variable=variable)
         for reference_id, variable in variables.items()
@@ -97,7 +96,7 @@ def _evaluate_variables(variables: Dict[str, YamlVariable], variables_map: Varia
 
 
 def map_yaml_to_variables(
-    configuration: YamlValidator, time_series_provider: TimeSeriesProvider, global_time_vector: List[datetime]
+    configuration: YamlValidator, time_series_provider: TimeSeriesProvider, global_time_vector: list[datetime]
 ) -> VariablesMap:
     variables = {}
     time_series_list = [

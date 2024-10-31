@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Generic, List, Literal, Optional, TypeVar
+from typing import Generic, Literal, Optional, TypeVar
 
 from pydantic import Field
 
@@ -26,17 +26,17 @@ class YamlTrain(YamlConsumerBase, Generic[TYamlConsumer]):
         description="The type of the component",
         alias="TYPE",
     )
-    stages: List[TYamlConsumer]
-    streams: List[YamlStream] = Field(default_factory=list, title="Streams", description="List of streams")
+    stages: list[TYamlConsumer]
+    streams: list[YamlStream] = Field(default_factory=list, title="Streams", description="List of streams")
 
     def to_dto(
         self,
         consumes: ConsumptionType,
-        regularity: Dict[datetime, Expression],
+        regularity: dict[datetime, Expression],
         target_period: Period,
         references: ReferenceService,
         category: str,
-        fuel: Optional[Dict[datetime, libecalc.dto.fuel_type.FuelType]],
+        fuel: Optional[dict[datetime, libecalc.dto.fuel_type.FuelType]],
     ):
         stages = [
             consumer.to_dto(

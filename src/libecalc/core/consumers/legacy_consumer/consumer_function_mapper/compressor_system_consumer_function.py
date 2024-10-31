@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
@@ -61,7 +61,7 @@ def create_compressor_system(model_dto: CompressorSystemConsumerFunctionDTO) -> 
 def map_discharge_pressures(
     operational_setting: SystemOperationalSetting,
     number_of_consumers: int,
-) -> List[Expression]:
+) -> list[Expression]:
     if operational_setting.discharge_pressure is not None:
         return [operational_setting.discharge_pressure] * number_of_consumers
     elif operational_setting.discharge_pressures is not None:
@@ -71,7 +71,7 @@ def map_discharge_pressures(
         return [Expression.setup_from_expression(0)] * number_of_consumers
 
 
-def map_suction_pressures(operational_setting: SystemOperationalSetting, number_of_consumers: int) -> List[Expression]:
+def map_suction_pressures(operational_setting: SystemOperationalSetting, number_of_consumers: int) -> list[Expression]:
     if operational_setting.suction_pressure is not None:
         return [operational_setting.suction_pressure] * number_of_consumers
     elif operational_setting.suction_pressures is not None:
@@ -85,7 +85,7 @@ def map_rates(
     operational_setting: SystemOperationalSetting,
     system_rate: Optional[Expression],
     number_of_consumers: int,
-) -> List[Expression]:
+) -> list[Expression]:
     if operational_setting.rates is not None:
         return operational_setting.rates
     elif operational_setting.rate_fractions:

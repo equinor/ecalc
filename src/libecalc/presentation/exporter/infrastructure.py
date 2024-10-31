@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime
-from typing import List, Optional, Tuple, assert_never
+from typing import Optional, assert_never
 
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_type import ComponentType
@@ -33,7 +33,7 @@ class TimeSeriesAttribute(Attribute):
         self._attribute_meta = attribute_meta
         self._time_series = time_series
 
-    def datapoints(self) -> Iterable[Tuple[datetime, float]]:
+    def datapoints(self) -> Iterable[tuple[datetime, float]]:
         return self._time_series.datapoints()
 
     def get_meta(self) -> AttributeMeta:
@@ -177,7 +177,7 @@ class InstallationExportable(Exportable):
         fuel_category: TemporalModel[str] = None,
         consumer_category: TemporalModel[str] = None,
         producer_category: TemporalModel[str] = None,
-    ) -> List[Tuple[Period, AttributeMeta]]:
+    ) -> list[tuple[Period, AttributeMeta]]:
         defined_temporal_categories = [
             temporal_category
             for temporal_category in [fuel_category, consumer_category, producer_category]
@@ -229,7 +229,7 @@ class InstallationExportable(Exportable):
     def get_fuel_consumption(self) -> AttributeSet:
         attributes = []
         for fuel_consumer in self._installation_dto.fuel_consumers:
-            assert isinstance(fuel_consumer, (GeneratorSet, FuelConsumer))
+            assert isinstance(fuel_consumer, GeneratorSet | FuelConsumer)
 
             fuel_consumer_result = self._installation_graph.get_energy_result(fuel_consumer.id)
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
@@ -335,7 +335,7 @@ class InstallationExportable(Exportable):
         attributes = []
 
         for fuel_consumer in self._installation_dto.fuel_consumers:
-            assert isinstance(fuel_consumer, (GeneratorSet, FuelConsumer))
+            assert isinstance(fuel_consumer, GeneratorSet | FuelConsumer)
 
             emissions = self._installation_graph.get_emissions(fuel_consumer.id)
             consumer_category = TemporalModel(fuel_consumer.user_defined_category)
@@ -363,7 +363,7 @@ class InstallationExportable(Exportable):
                     )
 
         for venting_emitter in self._installation_dto.venting_emitters:
-            assert isinstance(venting_emitter, (YamlOilTypeEmitter, YamlDirectTypeEmitter))
+            assert isinstance(venting_emitter, YamlOilTypeEmitter | YamlDirectTypeEmitter)
 
             emissions = self._installation_graph.get_emissions(venting_emitter.id)
             for emission in emissions.values():
@@ -392,7 +392,7 @@ class ExportableGraphResult(ExportableSet):
     def __init__(self, graph_result: GraphResult):
         self._graph_result = graph_result
 
-    def get_from_type(self, exportable_type: ExportableType) -> List[Exportable]:
+    def get_from_type(self, exportable_type: ExportableType) -> list[Exportable]:
         if exportable_type == ExportableType.INSTALLATION:
             component_type = ComponentType.INSTALLATION
         else:

@@ -1,4 +1,4 @@
-from typing import Annotated, Dict, Union
+from typing import Annotated, Union
 
 from pydantic import StringConstraints
 
@@ -20,10 +20,10 @@ class YamlSingleVariable(YamlBase):
         raise NotImplementedError
 
 
-YamlTimeVariable = Dict[YamlDefaultDatetime, YamlSingleVariable]
+YamlTimeVariable = dict[YamlDefaultDatetime, YamlSingleVariable]
 
 YamlVariable = Union[YamlSingleVariable, YamlTimeVariable]
 
 YamlVariableReferenceId = Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9_]*$")]
 
-YamlVariables = Dict[YamlVariableReferenceId, YamlVariable]
+YamlVariables = dict[YamlVariableReferenceId, YamlVariable]

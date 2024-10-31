@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 from libecalc.presentation.exporter.handlers.handler import Handler
 
 
@@ -9,9 +7,9 @@ class Exporter:
 
         TODO: Add support for pandas dataframe...
         """
-        self.handlers: List[Handler] = []
+        self.handlers: list[Handler] = []
 
-    def export(self, grouped_row_based_data: Dict[str, List[str]]):
+    def export(self, grouped_row_based_data: dict[str, list[str]]):
         """:param grouped_row_based_data: grouped row based data. Each group will be dealt with separately with the handler
         :return:
         """

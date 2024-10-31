@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Frequency, Period
@@ -19,7 +19,7 @@ class Modifier(abc.ABC):
         """
         self.__before_modifier = before_modifier
 
-    def modify(self, data: Dict[Period, float]) -> Dict[Period, Any]:
+    def modify(self, data: dict[Period, float]) -> dict[Period, Any]:
         """Public modify() method that is used in order to be able
         chain modifiers, if needed.
         :param data:
@@ -31,7 +31,7 @@ class Modifier(abc.ABC):
         return self._modify(data)
 
     @abc.abstractmethod
-    def _modify(self, data: Dict[Period, float]) -> Dict[Period, Any]:
+    def _modify(self, data: dict[Period, float]) -> dict[Period, Any]:
         """Needs to be implemented by extending classes. Do NOT call
         super()'s methods, or the chained modifiers
         :param data:
@@ -43,14 +43,14 @@ class Modifier(abc.ABC):
 class NullModifier(Modifier):
     """Default modifier, makes no changes, just pipes the data through."""
 
-    def _modify(self, data: Dict[Period, float]) -> Dict[Period, float]:
+    def _modify(self, data: dict[Period, float]) -> dict[Period, float]:
         return data
 
 
 class InvertValuesModifier(Modifier):
     """Turns negative values positives, or positive values negative."""
 
-    def _modify(self, data: Dict[Period, float]) -> Dict[Period, float]:
+    def _modify(self, data: dict[Period, float]) -> dict[Period, float]:
         return {key: -1.0 * value if value != 0 else 0.0 for key, value in data.items()}
 
 
@@ -59,7 +59,7 @@ class FormatValuesToPrecisionModifier(Modifier):
     The current spec says 6 decimals.
     """
 
-    def _modify(self, data: Dict[Period, float]) -> Dict[Period, str]:
+    def _modify(self, data: dict[Period, float]) -> dict[Period, str]:
         return {key: Numbers.format_to_precision(value, precision=configs.LTP_PRECISION) for key, value in data.items()}
 
 

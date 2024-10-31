@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Dict, Protocol
+from typing import Protocol
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
@@ -69,7 +69,7 @@ def create_references(configuration: YamlValidator, resources: Resources) -> Ref
 
 def create_model_references(
     models_yaml_config: Iterable[YamlConsumerModel],
-    facility_inputs: Dict[str, EnergyModel],
+    facility_inputs: dict[str, EnergyModel],
     resources: Resources,
 ):
     sorted_models = _sort_models(models_yaml_config)

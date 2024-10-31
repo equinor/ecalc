@@ -1,5 +1,5 @@
 import enum
-from typing import Generic, List, Optional, TypeVar, Union
+from typing import Generic, Optional, TypeVar, Union
 
 from pydantic import Field
 
@@ -62,7 +62,7 @@ class YamlCompressorStageWithMarginAndPressureDrop(YamlCompressorStage):
 
 
 class YamlCompressorStageMultipleStreams(YamlCompressorStageWithMarginAndPressureDrop):
-    stream: Union[str, List[str]] = Field(
+    stream: Union[str, list[str]] = Field(
         None,
         description="Reference to stream from STREAMS.",
         title="STREAM",
@@ -97,7 +97,7 @@ TStage = TypeVar("TStage", bound=Union[YamlCompressorStage, YamlCompressorStageW
 
 
 class YamlCompressorStages(YamlBase, Generic[TStage]):
-    stages: List[TStage] = Field(
+    stages: list[TStage] = Field(
         ...,
         description="List of compressor stages",
         title="STAGES",

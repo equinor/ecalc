@@ -1,4 +1,4 @@
-from typing import Annotated, List, Optional
+from typing import Annotated, Optional
 
 from pydantic import Field
 
@@ -25,7 +25,7 @@ class MultipleStreamsCompressorStage(CompressorStage):
     """Special case for multiple streams model."""
 
     compressor_chart: VariableSpeedChartDTO
-    stream_reference: Optional[List[str]] = None
+    stream_reference: Optional[list[str]] = None
     interstage_pressure_control: Optional[InterstagePressureControl] = None
 
     @property

@@ -1,4 +1,4 @@
-from typing import Annotated, List, Literal, Optional, Self
+from typing import Annotated, Literal, Optional, Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -18,9 +18,9 @@ class EcalcBaseModel(BaseModel):
 
 class ChartCurveDTO(EcalcBaseModel):
     speed_rpm: float = Field(..., ge=0)
-    rate_actual_m3_hour: List[Annotated[float, Field(ge=0)]]
-    polytropic_head_joule_per_kg: List[Annotated[float, Field(ge=0)]]
-    efficiency_fraction: List[Annotated[float, Field(gt=0, le=1)]]
+    rate_actual_m3_hour: list[Annotated[float, Field(ge=0)]]
+    polytropic_head_joule_per_kg: list[Annotated[float, Field(ge=0)]]
+    efficiency_fraction: list[Annotated[float, Field(gt=0, le=1)]]
 
     @model_validator(mode="after")
     def validate_equal_lengths_and_sort(self) -> Self:
@@ -59,15 +59,15 @@ class ChartCurveDTO(EcalcBaseModel):
         return self
 
     @property
-    def rate(self) -> List[float]:
+    def rate(self) -> list[float]:
         return self.rate_actual_m3_hour
 
     @property
-    def head(self) -> List[float]:
+    def head(self) -> list[float]:
         return self.polytropic_head_joule_per_kg
 
     @property
-    def efficiency(self) -> List[float]:
+    def efficiency(self) -> list[float]:
         return self.efficiency_fraction
 
     @property
@@ -81,13 +81,13 @@ class SingleSpeedChartDTO(ChartCurveDTO):
 
 class VariableSpeedChartDTO(EcalcBaseModel):
     typ: Literal[ChartType.VARIABLE_SPEED] = ChartType.VARIABLE_SPEED
-    curves: List[ChartCurveDTO]
+    curves: list[ChartCurveDTO]
     control_margin: Optional[float] = None  # Todo: Raise warning if this is used in an un-supported model.
     design_rate: Optional[float] = Field(None, ge=0)
     design_head: Optional[float] = Field(None, ge=0)
 
     @field_validator("curves")
-    def sort_chart_curves_by_speed(cls, curves: List[ChartCurveDTO]) -> List[ChartCurveDTO]:
+    def sort_chart_curves_by_speed(cls, curves: list[ChartCurveDTO]) -> list[ChartCurveDTO]:
         """Note: It is essential that the sort the curves by speed in order to set up the interpolations correctly."""
         return sorted(curves, key=lambda x: x.speed)
 

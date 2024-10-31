@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import Field, field_validator
 
@@ -8,7 +8,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream import YamlCrossover
 
 
 class YamlSystemComponentConditions(YamlBase):
-    crossover: Optional[List[YamlCrossover]] = Field(
+    crossover: Optional[list[YamlCrossover]] = Field(
         None,
         title="Crossover",
         description=(
@@ -41,7 +41,7 @@ class YamlSystemComponentConditions(YamlBase):
 
     @field_validator("crossover")
     @classmethod
-    def ensure_one_crossover_out(cls, crossover: Optional[List[YamlCrossover]]):
+    def ensure_one_crossover_out(cls, crossover: Optional[list[YamlCrossover]]):
         if crossover is None:
             return None
         crossover_out = [c.from_ for c in crossover]

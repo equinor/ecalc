@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Optional, Tuple, Union
+from typing import Optional, Union, tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -234,7 +234,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
         rate: float,
         recirculated_rate: float,
         increase_rate_left_of_minimum_flow_assuming_asv: bool,
-    ) -> Tuple[bool, ChartAreaFlag, float, float]:
+    ) -> tuple[bool, ChartAreaFlag, float, float]:
         """Evaluate position of point relative to chart
         Set a chart area flag based on position. Differ between internal points, speed values below and above minimum
         and maximum, rate values below and above minimum and maximum, and the cases when speed has been increased and
@@ -314,7 +314,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
         speed: float,
         rate: float,
         chart_area_flag: ChartAreaFlag,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Calculate polytropic head and efficiency
         If the point is not valid, nan will be returned for both
         If the point is valid and the speed is equal to one of the input curves, this curve will be used
@@ -352,7 +352,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
 
     def calculate_head_and_efficiency_for_internal_point_between_given_speeds(
         self, speed: float, rate: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """When the requested speed is not contained in the input data, interpolation is done both wrt speed and rate.
         1. A weight factor is calculated for the above and below result based on the distance to each of these from the
            requested speed
@@ -430,7 +430,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
 
     def _calculate_extrapolated_values_for_external_points(
         self, speed: float, chart_area_flag: ChartAreaFlag
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Return extrapolated values for points within speed range
         These are not valid for use, but needed for e.g. iterations in a compressor train
         Upon usage, one must ensure that the point is valid.
@@ -465,7 +465,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
     @staticmethod
     def _calculate_scaling_factors_for_speed_below_and_above(
         speed: float, speed_above: float, speed_below: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Calculate weight factor between speed curve above and below.
 
         :param speed: [rpm]
@@ -488,7 +488,7 @@ class VariableSpeedCompressorChart(VariableSpeedChart):
         scaling_factor_below: float,
         scaling_factor_above: float,
         rate: float,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Speed [rpm]
         rate [Am3/h].
 

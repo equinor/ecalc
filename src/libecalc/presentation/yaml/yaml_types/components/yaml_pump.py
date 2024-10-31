@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Literal, Optional
+from typing import Literal, Optional
 
 from pydantic import ConfigDict, Field
 
@@ -34,11 +34,11 @@ class YamlPump(YamlConsumerBase):
     def to_dto(
         self,
         consumes: ConsumptionType,
-        regularity: Dict[datetime, Expression],
+        regularity: dict[datetime, Expression],
         target_period: Period,
         references: ReferenceService,
         category: str,
-        fuel: Optional[Dict[datetime, FuelType]],
+        fuel: Optional[dict[datetime, FuelType]],
     ):
         return PumpComponent(
             consumes=consumes,

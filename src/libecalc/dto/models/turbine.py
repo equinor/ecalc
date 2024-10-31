@@ -1,4 +1,4 @@
-from typing import Annotated, List, Literal, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
@@ -9,8 +9,8 @@ from libecalc.dto.models.base import EnergyModel
 class Turbine(EnergyModel):
     typ: Literal[EnergyModelType.TURBINE] = EnergyModelType.TURBINE
     lower_heating_value: Annotated[float, Field(ge=0)]
-    turbine_loads: List[Annotated[float, Field(ge=0)]]
-    turbine_efficiency_fractions: List[float]
+    turbine_loads: list[Annotated[float, Field(ge=0)]]
+    turbine_efficiency_fractions: list[float]
 
     @model_validator(mode="after")
     def validate_loads_and_efficiency_factors(self) -> Self:

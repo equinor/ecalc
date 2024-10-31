@@ -1,4 +1,4 @@
-from typing import Dict, TypeVar
+from typing import TypeVar
 
 from libecalc.common.errors.exceptions import (
     DifferentLengthsError,
@@ -11,7 +11,7 @@ T = TypeVar("T")
 
 class MathUtil:
     @staticmethod
-    def elementwise_subtraction_by_key(this: Dict[T, float], that: Dict[T, float]) -> Dict[T, float]:
+    def elementwise_subtraction_by_key(this: dict[T, float], that: dict[T, float]) -> dict[T, float]:
         """For compatible dicts, with the same keys, subtract corresponding numbers in lists for each key
         :param this:
         :param that:
@@ -20,14 +20,14 @@ class MathUtil:
         :throws: IncompatibleDataError if dicts cannot be subtracted
         """
         if this is None or that is None:
-            raise IncompatibleDataError(f"A or B is None. Dict A has value {this}, and B has {that}")
+            raise IncompatibleDataError(f"A or B is None.dict A has value {this}, and B has {that}")
 
         if len(this.items()) != len(that.items()):
             raise DifferentLengthsError(
-                f"Subtracting values A-B failed due to different vector lengths. Dict A has value {len(this.items())}, but B has {len(that.items())}"
+                f"Subtracting values A-B failed due to different vector lengths.dict A has value {len(this.items())}, but B has {len(that.items())}"
             )
 
-        delta_dict: Dict[T, float] = {}
+        delta_dict: dict[T, float] = {}
 
         for item_key, this_value in this.items():
             that_value = that.get(item_key)

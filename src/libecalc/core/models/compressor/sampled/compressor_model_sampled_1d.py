@@ -1,5 +1,5 @@
 from math import nan
-from typing import List, Optional, Tuple
+from typing import Optional, tuple
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ def _get_extrapolation_values(
     sorted_sampled_data: pd.DataFrame,
     x_column_name: str,
     function_value_header: str,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Get extrapolation values for the interpolation function f(x). Based on the sampled data the function will only be
     defined within x_min and x_max. This returns the correct extrapolation values so that the function is defined for
     all x values. The extrapolation values might be NaN making the function undefined for that boundary.
@@ -38,7 +38,7 @@ def _get_extrapolation_values(
         return y_at_minimum_x, nan
 
 
-def _get_variable_column_name(sampled_data: pd.DataFrame, allowed_x_names: List[str]) -> str:
+def _get_variable_column_name(sampled_data: pd.DataFrame, allowed_x_names: list[str]) -> str:
     """Find the column name of the variable in sampled data
     :param sampled_data:
     :param allowed_x_names: the possible values for the column representing x in the interpolation function (y = f(x))

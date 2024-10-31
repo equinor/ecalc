@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -27,25 +25,25 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
-    time_series: List[YamlTimeSeriesCollection] = Field(
+    time_series: list[YamlTimeSeriesCollection] = Field(
         None,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
     )
-    facility_inputs: List[YamlFacilityModel] = Field(
+    facility_inputs: list[YamlFacilityModel] = Field(
         None,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
     )
-    models: List[YamlConsumerModel] = Field(
+    models: list[YamlConsumerModel] = Field(
         None,
         title="MODELS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
     )
-    fuel_types: List[YamlFuelType] = Field(
+    fuel_types: list[YamlFuelType] = Field(
         ...,
         title="FUEL_TYPES",
         description="Specifies the various fuel types and associated emissions used in the model."
@@ -57,7 +55,7 @@ class YamlAsset(YamlBase):
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
     )
-    installations: List[YamlInstallation] = Field(
+    installations: list[YamlInstallation] = Field(
         ...,
         title="INSTALLATIONS",
         description="Description of the system of energy consumers." "\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",

@@ -1,6 +1,6 @@
 from collections import namedtuple
 from collections.abc import Sequence
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 import pandas as pd
 
@@ -21,7 +21,7 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
-YAML_UNIT_MAPPING: Dict[str, Unit] = {
+YAML_UNIT_MAPPING: dict[str, Unit] = {
     EcalcYamlKeywords.consumer_chart_efficiency_unit_factor: Unit.FRACTION,
     EcalcYamlKeywords.consumer_chart_efficiency_unit_percentage: Unit.PERCENTAGE,
     EcalcYamlKeywords.consumer_chart_head_unit_kj_per_kg: Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG,
@@ -40,7 +40,7 @@ def is_reference(value: Any) -> bool:
 ReferenceValue = TypeVar("ReferenceValue")
 
 
-def resolve_reference(value: Any, references: Dict[str, ReferenceValue]) -> ReferenceValue:
+def resolve_reference(value: Any, references: dict[str, ReferenceValue]) -> ReferenceValue:
     """Check if value is a reference and return it.
     If not a reference return the original value
     If reference is invalid, raise InvalidReferenceException
@@ -63,7 +63,7 @@ def resolve_reference(value: Any, references: Dict[str, ReferenceValue]) -> Refe
     return references[value]
 
 
-def convert_rate_to_am3_per_hour(rate_values: List[float], input_unit: Unit) -> List[float]:
+def convert_rate_to_am3_per_hour(rate_values: list[float], input_unit: Unit) -> list[float]:
     """Convert rate from ay supported rate to Am3/h."""
     if input_unit == Unit.ACTUAL_VOLUMETRIC_M3_PER_HOUR:
         return rate_values
@@ -76,7 +76,7 @@ def convert_rate_to_am3_per_hour(rate_values: List[float], input_unit: Unit) -> 
         raise ValueError(msg)
 
 
-def convert_head_to_joule_per_kg(head_values: List[float], input_unit: Unit) -> List[float]:
+def convert_head_to_joule_per_kg(head_values: list[float], input_unit: Unit) -> list[float]:
     """Convert head from [KJ/kg] or [m] to [J/kg]."""
     if input_unit == Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG:
         return [Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG.to(Unit.POLYTROPIC_HEAD_JOULE_PER_KG)(h) for h in head_values]
@@ -95,7 +95,7 @@ def convert_head_to_joule_per_kg(head_values: List[float], input_unit: Unit) -> 
         raise ValueError(msg)
 
 
-def convert_head_to_meter_liquid_column(head_values: List[float], input_unit: Unit) -> List[float]:
+def convert_head_to_meter_liquid_column(head_values: list[float], input_unit: Unit) -> list[float]:
     """Convert head from [KJ/kg], [J/kg] to meter liquid column [m]. This is used for pump charts."""
     if input_unit == Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG:
         return [
@@ -114,7 +114,7 @@ def convert_head_to_meter_liquid_column(head_values: List[float], input_unit: Un
         raise ValueError(msg)
 
 
-def convert_temperature_to_kelvin(temperature_values: List[float], input_unit: Unit) -> List[float]:
+def convert_temperature_to_kelvin(temperature_values: list[float], input_unit: Unit) -> list[float]:
     if input_unit == Unit.KELVIN:
         return temperature_values
     elif input_unit == Unit.CELSIUS:
@@ -123,7 +123,7 @@ def convert_temperature_to_kelvin(temperature_values: List[float], input_unit: U
         raise ValueError(f"Invalid input unit. Expected {Unit.KELVIN} or {Unit.CELSIUS}, got '{input_unit}'")
 
 
-def convert_efficiency_to_fraction(efficiency_values: List[float], input_unit: Unit) -> List[float]:
+def convert_efficiency_to_fraction(efficiency_values: list[float], input_unit: Unit) -> list[float]:
     """Convert efficiency from % or fraction to fraction."""
     if input_unit == Unit.FRACTION:
         return efficiency_values
@@ -153,7 +153,7 @@ def convert_control_margin_to_fraction(control_margin: Optional[float], input_un
         raise ValueError(msg)
 
 
-def chart_curves_as_resource_to_dto_format(resource: Resource, resource_name: str) -> List[Dict[str, List[float]]]:
+def chart_curves_as_resource_to_dto_format(resource: Resource, resource_name: str) -> list[dict[str, list[float]]]:
     try:
         resource_headers = resource.get_headers()
         resource_data = [resource.get_column(header) for header in resource_headers]
@@ -182,7 +182,7 @@ SUPPORTED_CHART_HEAD_UNITS = [head_unit.value for head_unit in ChartPolytropicHe
 
 
 def get_units_from_chart_config(
-    chart_config: Dict,
+    chart_config: dict,
     units_to_include: Sequence[
         Union[
             EcalcYamlKeywords.consumer_chart_rate,
@@ -194,7 +194,7 @@ def get_units_from_chart_config(
         EcalcYamlKeywords.consumer_chart_head,
         EcalcYamlKeywords.consumer_chart_efficiency,
     ),
-) -> Dict[str, Unit]:
+) -> dict[str, Unit]:
     """:param chart_config:
     :param units_to_include: Allow only some units to support charts that only takes efficiency as input.
     """
@@ -293,7 +293,7 @@ def get_single_speed_chart_data(resource: Resource, resource_name: str) -> Chart
     return ChartData(speed, rate_values, head_values, efficiency_values)
 
 
-def _get_float_column(resource: Resource, header: str, resource_name: str) -> List[float]:
+def _get_float_column(resource: Resource, header: str, resource_name: str) -> list[float]:
     try:
         column = resource.get_column(header)
         column = [float(value) for value in column]
@@ -304,5 +304,5 @@ def _get_float_column(resource: Resource, header: str, resource_name: str) -> Li
     return column
 
 
-def _all_numbers_equal(values: List[Union[int, float]]) -> bool:
+def _all_numbers_equal(values: list[Union[int, float]]) -> bool:
     return len(set(values)) == 1

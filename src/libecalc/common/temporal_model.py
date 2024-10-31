@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Generic, Tuple, TypeVar, Union
+from typing import Generic, TypeVar, Union
 
 from libecalc.common.time_utils import Period
 
@@ -17,7 +17,7 @@ class Model(Generic[ModelType]):
 class TemporalModel(Generic[ModelType]):
     """If data has datetime keys, convert to Period keys"""
 
-    def __init__(self, data: Union[Dict[datetime, ModelType], Dict[Period, ModelType]]):
+    def __init__(self, data: Union[dict[datetime, ModelType], dict[Period, ModelType]]):
         if all(isinstance(key, datetime) for key in data.keys()):
             # convert date keys to Period keys
             model_dates = list(data.keys()) + [datetime.max.replace(microsecond=0)]
@@ -37,7 +37,7 @@ class TemporalModel(Generic[ModelType]):
     def get_periods(self) -> Iterable[Period]:
         return [model.period for model in self.models]
 
-    def items(self) -> Iterator[Tuple[Period, ModelType]]:
+    def items(self) -> Iterator[tuple[Period, ModelType]]:
         return ((model.period, model.model) for model in self.models)
 
     def get_model(self, period: Period) -> ModelType:

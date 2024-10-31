@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from typing import Dict, List, Protocol
+from typing import Protocol
 
 from libecalc.common.list.list_utils import transpose
 from libecalc.common.utils.rates import (
@@ -13,18 +13,18 @@ class HasIsValid(Protocol):
     is_valid: TimeSeriesBoolean
 
 
-def aggregate_is_valid(components: List[HasIsValid]) -> List[bool]:
+def aggregate_is_valid(components: list[HasIsValid]) -> list[bool]:
     is_valid_arrays = [component.is_valid.values for component in components]
     return [all(is_valid_step) for is_valid_step in transpose(is_valid_arrays)]
 
 
 class HasEmissions(Protocol):
-    emissions: List[PartialEmissionResult]
+    emissions: list[PartialEmissionResult]
 
 
 def aggregate_emissions(
-    emissions_lists: List[Dict[str, PartialEmissionResult]],
-) -> Dict[str, PartialEmissionResult]:
+    emissions_lists: list[dict[str, PartialEmissionResult]],
+) -> dict[str, PartialEmissionResult]:
     """Aggregates emissions e.g. for a total asset across installations
     Args:
         emissions_lists (List[Dict[str, PartialEmissionResult]] or dict.values): Includes emissions to aggregate

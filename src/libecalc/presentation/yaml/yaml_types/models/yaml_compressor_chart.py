@@ -1,5 +1,5 @@
 import enum
-from typing import Annotated, List, Literal, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import Field
 
@@ -14,9 +14,9 @@ from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 class YamlCurve(YamlBase):
     speed: float = 1
-    rate: List[float]
-    head: List[float]
-    efficiency: List[float]
+    rate: list[float]
+    head: list[float]
+    efficiency: list[float]
 
 
 class YamlRateUnits(str, enum.Enum):
@@ -84,7 +84,7 @@ class YamlVariableSpeedChart(YamlBase):
         title="TYPE",
     )
     chart_type: Literal[YamlChartType.VARIABLE_SPEED] = YamlChartType.VARIABLE_SPEED
-    curves: DataOrFile[List[YamlCurve]] = Field(
+    curves: DataOrFile[list[YamlCurve]] = Field(
         ..., description="Compressor chart curves, one per speed.", title="CURVES"
     )
     units: YamlUnits = UnitsField()

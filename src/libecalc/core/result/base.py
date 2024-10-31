@@ -31,7 +31,7 @@ class EcalcResultBaseModel(BaseModel):
                 logger.warning(
                     f"Concatenating two temporal compressor results where result attribute '{attribute}' is undefined."
                 )
-            elif isinstance(values, (Enum, str, dict, SingleSpeedChartDTO, VariableSpeedChartDTO)):
+            elif isinstance(values, Enum | str | dict | SingleSpeedChartDTO | VariableSpeedChartDTO):
                 if values != other_values:
                     logger.warning(
                         f"Concatenating two temporal compressor model results where attribute {attribute} changes"

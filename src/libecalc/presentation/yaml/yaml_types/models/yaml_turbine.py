@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal
 
 from pydantic import ConfigDict, Field
 
@@ -39,12 +39,12 @@ class YamlTurbine(YamlBase):
         description="Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value",
         title="LOWER_HEATING_VALUE",
     )
-    turbine_loads: List[float] = Field(
+    turbine_loads: list[float] = Field(
         ...,
         description="Load values [MW] in load vs efficiency table for turbine. Number of elements must correspond to number of elements in TURBINE_EFFICIENCIES. See documentation for more information.",
         title="TURBINE_LOADS",
     )
-    turbine_efficiencies: List[float] = Field(
+    turbine_efficiencies: list[float] = Field(
         ...,
         description="Efficiency values in load vs efficiency table for turbine. Efficiency is given as fraction between 0 and 1 corresponding to 0-100%. Number of elements must correspond to number of elements in TURBINE_LOADS. See documentation for more information.",
         title="TURBINE_EFFICIENCIES",

@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 
 from libecalc.common.list.list_utils import array_to_list
@@ -27,7 +25,7 @@ class TabulatedConsumerFunction(ConsumerFunction):
     def __init__(
         self,
         tabulated_energy_function: ConsumerTabularEnergyFunction,
-        variables_expressions: List[VariableExpression],
+        variables_expressions: list[VariableExpression],
         condition_expression: Expression = None,
         power_loss_factor_expression: Expression = None,
     ):
@@ -44,7 +42,7 @@ class TabulatedConsumerFunction(ConsumerFunction):
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        regularity: List[float],
+        regularity: list[float],
     ) -> ConsumerFunctionResult:
         """Evaluate the ConsumerFunction to get energy usage [MW] or [Sm3/day] (electricity or fuel)."""
         variables_for_calculation = {

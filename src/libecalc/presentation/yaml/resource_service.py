@@ -1,5 +1,5 @@
 import abc
-from typing import Dict, Protocol
+from typing import Protocol
 
 from libecalc.presentation.yaml.resource import Resource
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
@@ -11,4 +11,4 @@ class ResourceService(Protocol):
     """
 
     @abc.abstractmethod
-    def get_resources(self, configuration: YamlValidator) -> Dict[str, Resource]: ...
+    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]: ...

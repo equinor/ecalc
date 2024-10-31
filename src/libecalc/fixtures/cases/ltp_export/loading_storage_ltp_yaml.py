@@ -1,5 +1,3 @@
-from typing import List
-
 import yaml
 
 from libecalc.common.utils.rates import RateType
@@ -10,12 +8,12 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 
 def ltp_oil_loaded_yaml_factory(
     emission_factor: float,
-    rate_types: List[RateType],
-    fuel_rates: List[float],
+    rate_types: list[RateType],
+    fuel_rates: list[float],
     emission_name: str,
     regularity: float,
-    categories: List[str],
-    consumer_names: List[str],
+    categories: list[str],
+    consumer_names: list[str],
 ) -> Asset:
     input_text = f"""
     FUEL_TYPES:
@@ -48,7 +46,7 @@ def ltp_oil_loaded_yaml_factory(
 
 
 def create_direct_consumers_yaml(
-    categories: List[str], fuel_rates: List[float], rate_types: List[RateType], consumer_names: List[str]
+    categories: list[str], fuel_rates: list[float], rate_types: list[RateType], consumer_names: list[str]
 ) -> str:
     consumers = ""
     for category, fuel_rate, rate_type, consumer_name in zip(categories, fuel_rates, rate_types, consumer_names):
