@@ -2,9 +2,10 @@
 Custom pydantic type to allow for serialization and validation of ndarray
 """
 
+from typing import Annotated
+
 import numpy as np
 from pydantic import BeforeValidator, PlainSerializer
-from typing_extensions import Annotated
 
 
 def nd_array_custom_before_validator(x):

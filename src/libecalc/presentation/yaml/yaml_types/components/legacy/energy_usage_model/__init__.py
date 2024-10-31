@@ -1,7 +1,6 @@
-from typing import Union
+from typing import Annotated, Union
 
 from pydantic import Field
-from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_compressor import (
     YamlEnergyUsageModelCompressor,

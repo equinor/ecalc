@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Dict
+from typing import Dict
 
 from libecalc.common.errors.exceptions import EcalcError, InvalidHeaderException
 from libecalc.common.logger import logger

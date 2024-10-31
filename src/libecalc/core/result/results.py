@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Self, Union
 
 from pydantic import Field
-from typing_extensions import Annotated, Literal, Self
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-
-from typing_extensions import Self
+from typing import Self
 
 from libecalc.dto.base import EcalcBaseModel
 

@@ -1,7 +1,6 @@
-from typing import List, Literal, Optional
+from typing import Annotated, List, Literal, Optional
 
 from pydantic import Field, field_validator
-from typing_extensions import Annotated
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl

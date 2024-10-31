@@ -1,7 +1,6 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, Self
 
 from pydantic import field_validator, model_validator
-from typing_extensions import Self
 
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.utils.rates import RateType

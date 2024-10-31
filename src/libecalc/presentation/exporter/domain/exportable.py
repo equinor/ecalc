@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable, Iterator, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit

@@ -1,7 +1,8 @@
+from typing import Annotated
+
 from pydantic import AfterValidator
 from pydantic_core import PydanticCustomError
 from pydantic_core.core_schema import ValidationInfo
-from typing_extensions import Annotated
 
 from libecalc.expression.expression import (
     Expression,

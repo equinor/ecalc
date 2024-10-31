@@ -1,12 +1,12 @@
 import itertools
 import math
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import datetime
-from typing import DefaultDict, Iterable, List, Union
+from typing import DefaultDict, List, Union, assert_never
 
 import numpy as np
 from numpy.typing import NDArray
-from typing_extensions import assert_never
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType

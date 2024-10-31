@@ -1,11 +1,10 @@
 from copy import deepcopy
-from typing import List, Optional, Tuple
+from typing import List, Optional, Self, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
-from typing_extensions import Self
 
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartCurveDTO

@@ -1,9 +1,8 @@
 from datetime import datetime
 from operator import itemgetter
-from typing import List, Tuple
+from typing import List, Self, Tuple
 
 from scipy.interpolate import interp1d
-from typing_extensions import Self
 
 from libecalc.common.list.list_utils import transpose
 from libecalc.dto.types import InterpolationType

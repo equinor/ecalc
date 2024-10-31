@@ -1,4 +1,5 @@
-from typing import Dict, Iterable, Protocol
+from collections.abc import Iterable
+from typing import Dict, Protocol
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger

@@ -1,7 +1,5 @@
 from datetime import datetime
-from typing import List
-
-from typing_extensions import Self, assert_never
+from typing import List, Self, assert_never
 
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.dto.types import InterpolationType

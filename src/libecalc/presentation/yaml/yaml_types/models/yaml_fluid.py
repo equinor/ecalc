@@ -1,8 +1,7 @@
 import enum
-from typing import Literal, Optional, Union
+from typing import Annotated, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
-from typing_extensions import Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelName

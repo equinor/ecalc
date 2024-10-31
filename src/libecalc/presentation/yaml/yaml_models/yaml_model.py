@@ -1,8 +1,9 @@
 import abc
 import datetime
 import enum
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, TextIO, Type
+from typing import Any, Dict, List, Optional, TextIO, Type
 
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.yaml_entities import (

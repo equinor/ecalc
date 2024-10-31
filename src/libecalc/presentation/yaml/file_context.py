@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
-
-from typing_extensions import Self
+from typing import Optional, Self
 
 from libecalc.presentation.yaml.yaml_entities import YamlDict
 

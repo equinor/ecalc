@@ -1,7 +1,6 @@
-from typing import List, Literal
+from typing import Annotated, List, Literal, Self
 
 from pydantic import Field, model_validator
-from typing_extensions import Annotated, Self
 
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.dto.models.base import EnergyModel

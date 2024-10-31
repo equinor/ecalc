@@ -108,7 +108,7 @@ omit=["^./__init__.py", "^api/.*"]
 
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 
-target-version = "py38"
+target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]

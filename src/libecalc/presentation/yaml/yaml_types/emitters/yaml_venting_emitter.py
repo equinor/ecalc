@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Dict, List, Literal, Union
+from typing import Annotated, Dict, List, Literal, Union
 
 import numpy as np
 from pydantic import (
@@ -9,7 +9,6 @@ from pydantic import (
     field_validator,
 )
 from pydantic_core.core_schema import ValidationInfo
-from typing_extensions import Annotated
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id

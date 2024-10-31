@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import List
-
-from typing_extensions import Self
+from typing import List, Self
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.time_utils import Period, Periods

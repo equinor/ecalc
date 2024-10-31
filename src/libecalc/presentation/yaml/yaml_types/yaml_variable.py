@@ -1,7 +1,6 @@
-from typing import Dict, Union
+from typing import Annotated, Dict, Union
 
 from pydantic import StringConstraints
-from typing_extensions import Annotated
 
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types import YamlBase

@@ -1,4 +1,5 @@
-from typing import Iterable, Protocol
+from collections.abc import Iterable
+from typing import Protocol
 
 from libecalc.dto import CompressorModel, FuelType, GeneratorSetSampled, PumpModel, TabulatedData
 

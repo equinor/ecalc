@@ -1,5 +1,6 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Dict, Iterator, List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit

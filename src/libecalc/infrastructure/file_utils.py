@@ -1,6 +1,7 @@
 import enum
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd

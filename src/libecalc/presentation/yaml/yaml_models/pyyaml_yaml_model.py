@@ -1,13 +1,14 @@
 import datetime
 import re
+from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Optional, TextIO, Type, Union
+from typing import Any, Dict, List, Optional, Self, TextIO, Type, Union
 
 import yaml
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
-from typing_extensions import Self, deprecated
+from typing_extensions import deprecated
 from yaml import SafeLoader
 
 from libecalc.common.errors.exceptions import ProgrammingError

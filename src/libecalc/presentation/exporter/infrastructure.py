@@ -1,7 +1,6 @@
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Iterable, List, Optional, Tuple
-
-from typing_extensions import assert_never
+from typing import List, Optional, Tuple, assert_never
 
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.component_type import ComponentType

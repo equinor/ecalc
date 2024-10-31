@@ -3,12 +3,11 @@ from __future__ import annotations
 import enum
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Self, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
-from typing_extensions import Self
 
 from libecalc.common.errors.exceptions import (
     InvalidDateException,

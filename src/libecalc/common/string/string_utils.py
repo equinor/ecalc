@@ -1,4 +1,5 @@
-from typing import Hashable, Iterable, Set, TypeVar
+from collections.abc import Hashable, Iterable
+from typing import Set, TypeVar
 
 TItem = TypeVar("TItem", bound=Hashable)
 

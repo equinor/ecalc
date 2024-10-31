@@ -3,16 +3,16 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from enum import Enum
 from typing import (
     Any,
     DefaultDict,
     Generic,
-    Iterable,
-    Iterator,
     List,
     Optional,
+    Self,
     Tuple,
     TypeVar,
     Union,
@@ -24,7 +24,6 @@ import pandas as pd
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, field_validator
 from pydantic_core.core_schema import ValidationInfo
-from typing_extensions import Self
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.list.list_utils import elementwise_sum

@@ -1,8 +1,8 @@
 from datetime import datetime
 from functools import cached_property
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Self
 
-from typing_extensions import Self, deprecated
+from typing_extensions import deprecated
 
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import VariablesMap
