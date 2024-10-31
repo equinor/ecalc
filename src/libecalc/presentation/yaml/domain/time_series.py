@@ -1,6 +1,6 @@
 from datetime import datetime
 from operator import itemgetter
-from typing import Self, tuple
+from typing import Self
 
 from scipy.interpolate import interp1d
 

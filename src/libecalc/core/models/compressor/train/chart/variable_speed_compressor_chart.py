@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Optional, Union, tuple
+from typing import Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray

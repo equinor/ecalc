@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from textwrap import indent
-from typing import Any, Optional, Self, Union, tuple
+from typing import Any, Optional, Self, Union
 
 import yaml
 from pydantic import ValidationError as PydanticValidationError

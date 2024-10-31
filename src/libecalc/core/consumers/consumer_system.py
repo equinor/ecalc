@@ -1,7 +1,7 @@
 import itertools
 import operator
 from functools import reduce
-from typing import Generic, Optional, Protocol, TypeVar, tuple
+from typing import Generic, Optional, Protocol, TypeVar
 
 import networkx as nx
 
