@@ -80,6 +80,7 @@ markers = [
     "slow: slow tests, often snapshot, but not necessarily. > 1 second.",
     "snapshot: snapshot tests, notoriously slow, but not necessarily.",
     "inlinesnapshot: inline snapshot tests, often used to test error messages",
+    "dockersnapshot: tests that need x86 architecture for snapshot creation, so we make them in a container",
 ]
 
 [tool.mypy]
@@ -107,7 +108,7 @@ omit=["^./__init__.py", "^api/.*"]
 
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 
-target-version = "py38"
+target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]
