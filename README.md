@@ -128,6 +128,7 @@ Run jupyter:
 ```bash
 jupyter notebook examples
 ```
+
 ### Using poetry
 
 ```shell
