@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, Self, tuple
+from typing import Optional, Self
 
 import numpy as np
 from numpy.typing import NDArray

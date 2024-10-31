@@ -5,7 +5,7 @@ import re
 import warnings
 from enum import Enum
 from numbers import Number
-from typing import Optional, Union, tuple
+from typing import Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, tuple
+from typing import Optional
 
 from libecalc.core.models.chart import SingleSpeedChart
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag

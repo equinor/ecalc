@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, tuple
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray

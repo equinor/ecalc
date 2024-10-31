@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Any, Optional, Self, Union, tuple
+from typing import Any, Optional, Self, Union
 
 import numpy as np
 import pandas as pd

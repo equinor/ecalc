@@ -1,5 +1,5 @@
 import re
-from typing import Optional, tuple
+from typing import Optional
 
 from libecalc.dto.base import EcalcBaseModel
 

@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional, tuple
+from typing import NamedTuple, Optional
 
 from pydantic import BaseModel, ConfigDict, model_validator
 

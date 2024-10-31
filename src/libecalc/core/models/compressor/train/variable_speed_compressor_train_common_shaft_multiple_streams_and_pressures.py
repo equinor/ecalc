@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional, cast, tuple
+from typing import Optional, cast
 
 import numpy as np
 from numpy.typing import NDArray
