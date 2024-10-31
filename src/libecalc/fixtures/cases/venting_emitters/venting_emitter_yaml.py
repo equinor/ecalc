@@ -1,14 +1,16 @@
 from io import StringIO
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Dict, cast
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.fixtures.case_types import DTOCase
+from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator, YamlConfiguration, ReaderType
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
 )
@@ -16,7 +18,21 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
     YamlOilRateUnits,
 )
-from tests.libecalc.input.mappers.test_model_mapper import OverridableStreamConfigurationService
+
+class OverridableStreamConfigurationService(ConfigurationService):
+    def __init__(self, stream: ResourceStream, overrides: Optional[Dict] = None):
+        self._overrides = overrides
+        self._stream = stream
+
+    def get_configuration(self) -> YamlValidator:
+        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
+            main_yaml=self._stream,
+            enable_include=True,
+        )
+
+        if self._overrides is not None:
+            main_yaml_model._internal_datamodel.update(self._overrides)
+        return cast(YamlValidator, main_yaml_model)
 
 
 def venting_emitter_yaml_factory(
