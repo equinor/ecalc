@@ -1,6 +1,6 @@
 from io import StringIO
 from pathlib import Path
-from typing import List, Optional, Dict, cast
+from typing import Dict, List, Optional, cast
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
@@ -10,7 +10,7 @@ from libecalc.fixtures.case_types import DTOCase
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator, YamlConfiguration, ReaderType
+from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
 )
@@ -18,6 +18,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
     YamlOilRateUnits,
 )
+
 
 class OverridableStreamConfigurationService(ConfigurationService):
     def __init__(self, stream: ResourceStream, overrides: Optional[Dict] = None):
