@@ -1,33 +1,41 @@
-from datetime import datetime
-
 import pytest
 
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.variables import VariablesMap
+from libecalc.common.time_utils import Frequency
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.resource import Resource
+from libecalc.presentation.yaml.resource_service import ResourceService
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+
+
+class EmptyResourceService(ResourceService):
+    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
+        return {}
 
 
 @pytest.fixture
-def minimal_asset_result(minimal_model_dto_factory):
-    minimal_dto = minimal_model_dto_factory()
-    graph = minimal_dto.get_graph()
-    variables = VariablesMap(
-        time_vector=[datetime(2020, 1, 1), datetime(2022, 1, 1)],
-        variables={},
+def minimal_asset_result(minimal_model_yaml_factory):
+    minimal_configuration_service = minimal_model_yaml_factory()
+    model = YamlModel(
+        configuration_service=minimal_configuration_service,
+        resource_service=EmptyResourceService(),
+        output_frequency=Frequency.NONE,
     )
+    graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
+    consumer_results = energy_calculator.evaluate_energy_usage(model.variables)
     emission_results = energy_calculator.evaluate_emissions(
-        variables_map=variables,
+        variables_map=model.variables,
         consumer_results=consumer_results,
     )
     return get_asset_result(
         GraphResult(
             graph=graph,
             consumer_results=consumer_results,
-            variables_map=variables,
+            variables_map=model.variables,
             emission_results=emission_results,
         )
     )

@@ -48,6 +48,7 @@ from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_variable import (
     YamlVariable,
     YamlVariableReferenceId,
@@ -437,12 +438,12 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     @property
     def start(self) -> Optional[datetime.datetime]:
         start_value = self._internal_datamodel.get(EcalcYamlKeywords.start)
-        return convert_date_to_datetime(start_value) if start_value is not None else None
+        return TypeAdapter(YamlDefaultDatetime).validate_python(start_value) if start_value is not None else None
 
     @property
     def end(self) -> Optional[datetime.datetime]:
         end_value = self._internal_datamodel.get(EcalcYamlKeywords.end)
-        return convert_date_to_datetime(end_value) if end_value is not None else None
+        return TypeAdapter(YamlDefaultDatetime).validate_python(end_value) if end_value is not None else None
 
     @property
     def dates(self):
