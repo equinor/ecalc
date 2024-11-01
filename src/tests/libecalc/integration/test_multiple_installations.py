@@ -2,31 +2,51 @@ from datetime import datetime
 
 import pytest
 
-from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
+from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import VariablesMap
 from libecalc.presentation.json_result.mapper import get_asset_result
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.resource import Resource
+from libecalc.presentation.yaml.resource_service import ResourceService
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
+
+
+class EmptyResourceService(ResourceService):
+    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
+        return {}
 
 
 @pytest.fixture
-def asset_with_two_installations(minimal_installation_dto_factory) -> dto.Asset:
-    installation_1 = minimal_installation_dto_factory(installation_name="installaion1", fuel_rate=50)
-    installation_2 = minimal_installation_dto_factory(installation_name="installaion2", fuel_rate=100)
-    asset = dto.Asset(
-        name="multiple_installations_asset",
-        installations=[
-            installation_1,
-            installation_2,
-        ],
+def model_with_two_installations(
+    minimal_installation_yaml_factory, yaml_asset_configuration_service_factory, yaml_asset_builder_factory
+) -> YamlModel:
+    installation_1 = minimal_installation_yaml_factory(
+        name="installation1", fuel_rate=50, fuel_name="fuel", consumer_name="flare1"
     )
-    return asset
+    installation_2 = minimal_installation_yaml_factory(
+        name="installation2", fuel_rate=100, fuel_name="fuel", consumer_name="flare2"
+    )
+
+    asset = (
+        yaml_asset_builder_factory()
+        .with_test_data(fuel_name="fuel")
+        .with_installations([installation_1, installation_2])
+        .build()
+    )
+
+    return YamlModel(
+        configuration_service=yaml_asset_configuration_service_factory(asset, "multiple_installations_asset"),
+        resource_service=EmptyResourceService(),
+        output_frequency=Frequency.YEAR,
+    )
 
 
-def test_asset_with_multiple_installations(asset_with_two_installations):
-    graph = asset_with_two_installations.get_graph()
+def test_asset_with_multiple_installations(model_with_two_installations):
+    graph = model_with_two_installations.get_graph()
     energy_calculator = EnergyCalculator(graph)
     timesteps = [
         datetime(2020, 1, 1),
