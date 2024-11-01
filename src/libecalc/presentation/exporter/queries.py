@@ -274,7 +274,7 @@ class MaxUsageFromShoreQuery(Query):
             return {
                 period: TimeSeriesFloat(periods=Periods(period_keys), values=list(sorted_result.values()), unit=unit)
                 .for_period(period)
-                .max()
+                .max
                 for period in resample_periods(periods=installation_graph.get_periods(), frequency=frequency)
             }
         return None

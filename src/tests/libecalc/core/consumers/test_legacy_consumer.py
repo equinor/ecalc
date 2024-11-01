@@ -21,19 +21,6 @@ from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import Ene
 from libecalc.core.result import EcalcModelResult
 
 
-def test_compute_consumer_rate():
-    """Matching the energy usage rate of the EnergyFunctionResult with the result of the parent Consumer:"""
-    time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2023, 1, 1), freq="YS").to_pydatetime().tolist()
-
-    consumer_rate = Consumer.reindex_time_vector(
-        values=np.array([1, 2]),
-        time_vector=time_vector[1:-1],
-        new_time_vector=time_vector,
-    )
-
-    assert consumer_rate.tolist() == [0, 1, 2, 0]  # Note that the consumer starts and ends 1 year before/after
-
-
 def test_evaluate_consumer_time_function(direct_el_consumer):
     """Testing using a direct el consumer for simplicity."""
     consumer = Consumer(

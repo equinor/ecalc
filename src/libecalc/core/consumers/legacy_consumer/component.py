@@ -1,16 +1,11 @@
 import itertools
 import math
-from collections import defaultdict
-from collections.abc import Iterable
-from datetime import datetime
 from typing import Union, assert_never
 
 import numpy as np
-from numpy.typing import NDArray
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
@@ -105,12 +100,15 @@ class Consumer(BaseConsumer):
     ) -> ConsumerResult:
         if self.component_type in [ComponentType.PUMP_SYSTEM, ComponentType.COMPRESSOR_SYSTEM]:
             operational_settings_used = get_operational_settings_used_from_consumer_result(result=aggregated_result)
-            operational_settings_used.values = self.reindex_periods(
-                values=operational_settings_used.values,
-                periods=aggregated_result.periods,
-                new_periods=periods,
-                fillna=-1,
-            ).tolist()
+            operational_settings_used.values = (
+                TimeSeriesInt(
+                    values=operational_settings_used.values,
+                    periods=aggregated_result.periods,
+                    unit=Unit.NONE,
+                )
+                .fill_values_for_new_periods(new_periods=periods, fillna=-1)
+                .values
+            )
             operational_settings_used.periods = periods
 
             operational_settings_result = get_operational_settings_results_from_consumer_result(
@@ -138,25 +136,25 @@ class Consumer(BaseConsumer):
                 periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.rate,
                 unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            ).reindex(new_periods=periods)
+            ).fill_values_for_new_periods(new_periods=periods, fillna=0.0)
 
             inlet_pressure_time_series = TimeSeriesFloat(
                 periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.suction_pressure,
                 unit=Unit.BARA,
-            ).reindex(new_periods=periods)
+            ).fill_values_for_new_periods(new_periods=periods, fillna=0.0)
 
             outlet_pressure_time_series = TimeSeriesFloat(
                 periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.discharge_pressure,
                 unit=Unit.BARA,
-            ).reindex(new_periods=periods)
+            ).fill_values_for_new_periods(new_periods=periods, fillna=0.0)
 
             operational_head_time_series = TimeSeriesFloat(
                 periods=aggregated_result.periods,
                 values=aggregated_result.energy_function_result.operational_head,
                 unit=Unit.POLYTROPIC_HEAD_JOULE_PER_KG,
-            ).reindex(new_periods=periods)
+            ).fill_values_for_new_periods(new_periods=periods, fillna=0.0)
 
             consumer_result = PumpResult(
                 id=self.id,
@@ -173,25 +171,27 @@ class Consumer(BaseConsumer):
             # All energy_function_results should be CompressorTrainResult,
             # if not the consumer should not have COMPRESSOR type.
             if isinstance(aggregated_result.energy_function_result, CompressorTrainResult):
-                recirculation_loss = aggregated_result.energy_function_result.recirculation_loss
-                recirculation_loss = array_to_list(
-                    self.reindex_periods(
-                        values=recirculation_loss,
-                        periods=aggregated_result.periods,
-                        new_periods=periods,
-                    )
-                )
-                rate_exceeds_maximum = aggregated_result.energy_function_result.rate_exceeds_maximum
-                rate_exceeds_maximum = array_to_list(
-                    self.reindex_periods(
-                        values=rate_exceeds_maximum,
-                        periods=aggregated_result.periods,
-                        new_periods=periods,
-                    )
-                )
+                recirculation_loss = TimeSeriesStreamDayRate(
+                    periods=aggregated_result.periods,
+                    values=aggregated_result.energy_function_result.recirculation_loss,
+                    unit=Unit.MEGA_WATT,
+                ).fill_values_for_new_periods(new_periods=periods, fillna=0.0)
+                rate_exceeds_maximum = TimeSeriesBoolean(
+                    periods=aggregated_result.periods,
+                    values=aggregated_result.energy_function_result.rate_exceeds_maximum,
+                    unit=Unit.NONE,
+                ).fill_values_for_new_periods(new_periods=periods, fillna=False)
             else:
-                recirculation_loss = [math.nan] * len(periods)
-                rate_exceeds_maximum = [False] * len(periods)
+                recirculation_loss = TimeSeriesStreamDayRate(
+                    periods=periods,
+                    values=[math.nan] * len(periods),
+                    unit=Unit.MEGA_WATT,
+                )
+                rate_exceeds_maximum = TimeSeriesBoolean(
+                    periods=aggregated_result.periods,
+                    values=[False] * len(periods),
+                    unit=Unit.NONE,
+                )
 
             consumer_result = CompressorResult(
                 id=self.id,
@@ -199,12 +199,8 @@ class Consumer(BaseConsumer):
                 is_valid=is_valid,
                 energy_usage=energy_usage,
                 power=power_usage,
-                recirculation_loss=TimeSeriesStreamDayRate(
-                    periods=periods,
-                    values=recirculation_loss,
-                    unit=Unit.MEGA_WATT,
-                ),
-                rate_exceeds_maximum=TimeSeriesBoolean(periods=periods, values=rate_exceeds_maximum, unit=Unit.NONE),
+                recirculation_loss=recirculation_loss,
+                rate_exceeds_maximum=rate_exceeds_maximum,
             )
 
         else:
@@ -236,67 +232,47 @@ class Consumer(BaseConsumer):
         aggregated_consumer_function_result = self.aggregate_consumer_function_results(
             consumer_function_results=consumer_function_results,
         )
-
-        energy_usage = self.reindex_periods(
+        energy_usage = TimeSeriesStreamDayRate(
+            periods=aggregated_consumer_function_result.periods,
             values=aggregated_consumer_function_result.energy_usage,
-            periods=aggregated_consumer_function_result.periods,
-            new_periods=expression_evaluator.get_periods(),
-        )
+            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
+        ).fill_values_for_new_periods(new_periods=expression_evaluator.get_periods(), fillna=0.0)
 
-        valid_periods = self.reindex_periods(
+        is_valid = TimeSeriesBoolean(
+            periods=aggregated_consumer_function_result.periods,
             values=aggregated_consumer_function_result.is_valid,
-            periods=aggregated_consumer_function_result.periods,
-            new_periods=expression_evaluator.get_periods(),
-            fillna=True,  # Time-step is valid if not calculated.
-        ).astype(bool)
+            unit=Unit.NONE,
+        ).fill_values_for_new_periods(new_periods=expression_evaluator.get_periods(), fillna=True)
 
-        extrapolations = ~valid_periods
-        energy_usage[extrapolations] = np.nan
-        energy_usage = Rates.forward_fill_nan_values(rates=energy_usage)
+        extrapolations = [i for i, _is_valid in enumerate(is_valid.values) if not _is_valid]
+        for i in extrapolations:
+            energy_usage.values[i] = np.nan
+
+        energy_usage.values = Rates.forward_fill_nan_values(rates=np.asarray(energy_usage.values)).tolist()
 
         # By convention, we change remaining NaN-values to 0 regardless of extrapolation
-        energy_usage = np.nan_to_num(energy_usage)
+        energy_usage.values = np.nan_to_num(np.asarray(energy_usage.values)).tolist()
 
         if self.consumes == ConsumptionType.FUEL:
-            power_time_series = None
+            power = None
             if aggregated_consumer_function_result.power is not None:
-                power = self.reindex_periods(
+                power = TimeSeriesStreamDayRate(
                     values=aggregated_consumer_function_result.power,
                     periods=aggregated_consumer_function_result.periods,
-                    new_periods=expression_evaluator.get_periods(),
-                )
-                power_time_series = TimeSeriesStreamDayRate(
-                    periods=expression_evaluator.get_periods(),
-                    values=array_to_list(power),
                     unit=Unit.MEGA_WATT,
-                )
-            energy_usage_time_series = TimeSeriesStreamDayRate(
-                periods=expression_evaluator.get_periods(),
-                values=array_to_list(energy_usage),
-                unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            )
+                ).fill_values_for_new_periods(new_periods=expression_evaluator.get_periods(), fillna=0.0)
 
         elif self.consumes == ConsumptionType.ELECTRICITY:
-            energy_usage_time_series = TimeSeriesStreamDayRate(
-                periods=expression_evaluator.get_periods(),
-                values=array_to_list(energy_usage),
-                unit=Unit.MEGA_WATT,
-            )
+            energy_usage.unit = Unit.MEGA_WATT
 
-            power_time_series = energy_usage_time_series.model_copy()
+            power = energy_usage.model_copy()
         else:
             assert_never(self.consumes)
 
-        is_valid = TimeSeriesBoolean(
-            periods=expression_evaluator.get_periods(),
-            values=array_to_list(valid_periods),
-            unit=Unit.NONE,
-        )
-
         consumer_result = self.get_consumer_result(
             periods=expression_evaluator.get_periods(),
-            energy_usage=energy_usage_time_series,
-            power_usage=power_time_series,
+            energy_usage=energy_usage,
+            power_usage=power,
             is_valid=is_valid,
             aggregated_result=aggregated_consumer_function_result,
         )
@@ -357,49 +333,3 @@ class Consumer(BaseConsumer):
             empty_result = ConsumerFunctionResult.create_empty()
             return empty_result
         return merged_result
-
-    @staticmethod
-    def reindex_periods(
-        values: Iterable[Union[str, float]],
-        periods: Iterable[Period],
-        new_periods: Iterable[Period],
-        fillna: Union[float, str] = 0.0,
-    ) -> NDArray[np.float64]:
-        """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
-        the consumer time vector, we calculate the actual consumer (consumption) rate.
-        """
-        new_values: defaultdict[Period, Union[float, str]] = defaultdict(float)
-        new_values.update({t: fillna for t in new_periods})
-        for t, v in zip(periods, values):
-            if t in new_values:
-                new_values[t] = v
-            else:
-                logger.warning(
-                    "Reindexing consumer time vector and losing data. This should not happen."
-                    " Please contact eCalc support."
-                )
-
-        return np.array([rate_sum for time, rate_sum in sorted(new_values.items())])
-
-    @staticmethod
-    def reindex_time_vector(
-        values: Iterable[Union[str, float]],
-        time_vector: Iterable[datetime],
-        new_time_vector: Iterable[datetime],
-        fillna: Union[float, str] = 0.0,
-    ) -> NDArray[np.float64]:
-        """Based on a consumer time function result (EnergyFunctionResult), the corresponding time vector and
-        the consumer time vector, we calculate the actual consumer (consumption) rate.
-        """
-        new_values: defaultdict[datetime, Union[float, str]] = defaultdict(float)
-        new_values.update({t: fillna for t in new_time_vector})
-        for t, v in zip(time_vector, values):
-            if t in new_values:
-                new_values[t] = v
-            else:
-                logger.warning(
-                    "Reindexing consumer time vector and losing data. This should not happen."
-                    " Please contact eCalc support."
-                )
-
-        return np.array([rate_sum for time, rate_sum in sorted(new_values.items())])
