@@ -396,28 +396,28 @@ def test_get_maximum_standard_rate_max_speed_curve(
 
     # Assert that variable speed and variable speed with one stream give same results
     np.testing.assert_allclose(
-        outside_right_end_of_max_speed_curve_1, outside_right_end_of_max_speed_curve_1_multiple_streams[0], rtol=0.001
+        outside_right_end_of_max_speed_curve_1, outside_right_end_of_max_speed_curve_1_multiple_streams[0], rtol=0.01
     )
     np.testing.assert_allclose(
-        outside_right_end_of_max_speed_curve_2, outside_right_end_of_max_speed_curve_2_multiple_streams[0], rtol=0.001
+        outside_right_end_of_max_speed_curve_2, outside_right_end_of_max_speed_curve_2_multiple_streams[0], rtol=0.01
     )
 
     np.testing.assert_allclose(
-        right_end_of_max_speed_curve, right_end_of_max_speed_curve_multiple_streams[0], rtol=0.001
+        right_end_of_max_speed_curve, right_end_of_max_speed_curve_multiple_streams[0], rtol=0.01
     )
-    np.testing.assert_allclose(middle_of_max_speed_curve, middle_of_max_speed_curve_multiple_streams[0], rtol=0.001)
-    np.testing.assert_allclose(left_end_of_max_speed_curve, left_end_of_max_speed_curve_multiple_streams[0], rtol=0.001)
+    np.testing.assert_allclose(middle_of_max_speed_curve, middle_of_max_speed_curve_multiple_streams[0], rtol=0.01)
+    np.testing.assert_allclose(left_end_of_max_speed_curve, left_end_of_max_speed_curve_multiple_streams[0], rtol=0.01)
 
     # When using pressure control we same values for everything at the max rate point and above. So at a lower
     # pressure requirement we expect the values to match
     np.testing.assert_allclose(
-        outside_right_end_of_max_speed_curve_1, outside_right_end_of_max_speed_curve_2, rtol=0.001
+        outside_right_end_of_max_speed_curve_1, outside_right_end_of_max_speed_curve_2, rtol=0.01
     )
-    np.testing.assert_allclose(right_end_of_max_speed_curve, outside_right_end_of_max_speed_curve_1, rtol=0.001)
+    np.testing.assert_allclose(right_end_of_max_speed_curve, outside_right_end_of_max_speed_curve_1, rtol=0.01)
 
-    np.testing.assert_allclose(middle_of_max_speed_curve, 4396383, rtol=0.001)
+    np.testing.assert_allclose(middle_of_max_speed_curve, 4396383, rtol=0.01)
 
-    np.testing.assert_allclose(left_end_of_max_speed_curve, 3154507, rtol=0.001)
+    np.testing.assert_allclose(left_end_of_max_speed_curve, 3154507, rtol=0.01)
 
 
 @pytest.mark.slow

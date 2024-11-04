@@ -1,4 +1,3 @@
-from functools import partial
 from typing import Optional, cast
 
 import numpy as np
@@ -19,10 +18,6 @@ from libecalc.core.models.compressor.train.single_speed_compressor_train_common_
 from libecalc.core.models.compressor.train.stage import CompressorTrainStage
 from libecalc.core.models.compressor.train.types import (
     FluidStreamObjectForMultipleStreams,
-)
-from libecalc.core.models.compressor.train.utils.common import (
-    POWER_CALCULATION_TOLERANCE,
-    RATE_CALCULATION_TOLERANCE,
 )
 from libecalc.core.models.compressor.train.utils.numeric_methods import (
     find_root,
@@ -388,6 +383,8 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
                 time_step,
                 (suction_pressure, discharge_pressure),
             ) in enumerate(zip(suction_pressures, discharge_pressures)):
+                self.target_suction_pressure = suction_pressure
+                self.target_discharge_pressure = discharge_pressure
                 try:
                     max_std_rate = self._get_max_rate_for_single_stream_single_timestep(
                         suction_pressure=suction_pressure,
@@ -411,7 +408,6 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         target_discharge_pressure: float,
         rate_per_stream: NDArray[np.float64],
         stream_to_maximize: int,
-        allow_asv: bool = False,
     ) -> float:
         """NB: Constraining to calculating maximum_rate for ingoing streams for now - the need is to figure out how much rate
         can be added.
@@ -422,399 +418,53 @@ class VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures(
         # if it is not an ingoing stream --> currently no calculations done
         # Fixme: what should be returned? 0.0, NaN or something else?
         if not self.streams[stream_to_maximize].is_inlet_stream:
-            return np.nan
+            return 0.0
 
         std_rates_std_m3_per_day_per_stream = rate_per_stream.copy()
 
-        def _calculate_train_result(std_rate_for_stream: float, speed: float) -> CompressorTrainResultSingleTimeStep:
+        def _calculate_train_result(std_rate_for_stream: float) -> CompressorTrainResultSingleTimeStep:
             """Partial function of self.calculate_compressor_train_given_rate_ps_speed
             where we only pass std_rate_per_stream and speed.
             """
             std_rates_std_m3_per_day_per_stream[stream_to_maximize] = std_rate_for_stream
-            return self.calculate_compressor_train_given_rate_ps_speed(
-                inlet_pressure_bara=suction_pressure,
+            return self.calculate_shaft_speed_given_rate_ps_pd(
                 std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                speed=speed,
+                suction_pressure=suction_pressure,
+                target_discharge_pressure=target_discharge_pressure,
             )
 
-        def _calculate_train_first_part_result(speed: float) -> CompressorTrainResultSingleTimeStep:
-            """ """
-            return train_first_part.calculate_compressor_train_given_rate_ps_speed(
-                inlet_pressure_bara=suction_pressure,
-                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream_first_part,
-                speed=speed,
-            )
-
-        def _calculate_train_result_given_speed_at_stone_wall(
-            speed: float,
-        ) -> tuple[float, CompressorTrainResultSingleTimeStep]:
-            """Partial function of self.calculate_compressor_train_given_rate_ps_speed.
-            Same as above, but mass rate is pinned to the "stone wall" as a function of speed.
-            """
-            if stream_to_maximize_connected_to_stage_no > 0:
-                train_first_part_result = _calculate_train_first_part_result(speed)
-                stream_density = (
-                    self.streams[stream_to_maximize]
-                    .fluid.get_fluid_stream(
-                        pressure_bara=train_first_part_result.discharge_pressure
-                        - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
-                        temperature_kelvin=self.stages[
-                            stream_to_maximize_connected_to_stage_no
-                        ].inlet_temperature_kelvin,
-                    )
-                    .density
-                )
-                train_first_part_actual_rate_m3_per_hr = train_first_part_result.stage_results[
-                    -1
-                ].outlet_actual_rate_m3_per_hour
-            else:
-                stream_density = (
-                    self.streams[0]
-                    .fluid.get_fluid_stream(
-                        pressure_bara=suction_pressure,
-                        temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                    )
-                    .density
-                )
-                train_first_part_actual_rate_m3_per_hr = 0
-
-            x_min_mass_rate_kg_per_hr = (
-                max(
-                    0,
-                    self.stages[
-                        stream_to_maximize_connected_to_stage_no
-                    ].compressor_chart.minimum_rate_as_function_of_speed(speed)
-                    - train_first_part_actual_rate_m3_per_hr,
-                )
-                * stream_density
-            )
-            x_max_mass_rate_kg_per_hr = (
-                max(
-                    0,
-                    self.stages[
-                        stream_to_maximize_connected_to_stage_no
-                    ].compressor_chart.maximum_rate_as_function_of_speed(speed)
-                    - train_first_part_actual_rate_m3_per_hr,
-                )
-                * stream_density
-            )
-            _max_valid_std_rate_for_stream_at_given_speed = maximize_x_given_boolean_condition_function(
-                x_min=self.streams[stream_to_maximize].fluid.mass_rate_to_standard_rate(
-                    mass_rate_kg_per_hour=x_min_mass_rate_kg_per_hr
-                ),
-                x_max=self.streams[stream_to_maximize].fluid.mass_rate_to_standard_rate(
-                    mass_rate_kg_per_hour=x_max_mass_rate_kg_per_hr
-                ),
-                bool_func=lambda x: _calculate_train_result(std_rate_for_stream=x, speed=speed).is_valid,
-            )
-
-            std_rates_std_m3_per_day_per_stream[stream_to_maximize] = _max_valid_std_rate_for_stream_at_given_speed
-
-            return (
-                _max_valid_std_rate_for_stream_at_given_speed,
-                self.calculate_compressor_train_given_rate_ps_speed(
-                    inlet_pressure_bara=suction_pressure,
-                    std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
-                    speed=speed,
-                ),
-            )
-
-        # Same as the partial functions above, but simpler syntax using partial()
-        _calculate_train_result_at_max_speed_given_std_rate_for_stream = partial(
-            _calculate_train_result, speed=self.maximum_speed
+        train_result = self.calculate_shaft_speed_given_rate_ps_pd(
+            std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
+            suction_pressure=suction_pressure,
+            target_discharge_pressure=target_discharge_pressure,
         )
-        _calculate_train_result_at_min_speed_given_std_rate_for_stream = partial(
-            _calculate_train_result, speed=self.minimum_speed
-        )
-
-        # Use compressor that the ingoing stream is connected to as bounds - need to take into account all other
-        # streams up to that point (in- and outgoing)
-        # Make, and calculate subtrain
-
-        if stream_to_maximize_connected_to_stage_no > 0:
-            train_first_part, _ = split_train_on_stage_number(
-                compressor_train=self,
-                stage_number=stream_to_maximize_connected_to_stage_no,
-            )
-            std_rates_std_m3_per_day_per_stream_first_part, _ = split_rates_on_stage_number(
-                compressor_train=self,
-                rates_per_stream=std_rates_std_m3_per_day_per_stream,
-                stage_number=stream_to_maximize_connected_to_stage_no,
-            )
-            train_first_part_result_at_min_speed = _calculate_train_first_part_result(
-                speed=self.minimum_speed,
-            )
-            train_first_part_outlet_actual_rate_m3_per_hour_at_min_speed = (
-                train_first_part_result_at_min_speed.stage_results[-1].outlet_actual_rate_m3_per_hour
-            )
-            # Fixme: with or without pressure drop ahead of stage?
-            stream_density_at_min_speed = (
-                self.streams[stream_to_maximize]
-                .fluid.get_fluid_stream(
-                    pressure_bara=train_first_part_result_at_min_speed.discharge_pressure
-                    - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
-                    temperature_kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
-                )
-                .density
-            )
-            train_first_part_result_at_max_speed = _calculate_train_first_part_result(
-                speed=self.maximum_speed,
-            )
-            train_first_part_outlet_actual_rate_m3_per_hour_at_max_speed = (
-                train_first_part_result_at_max_speed.stage_results[-1].outlet_actual_rate_m3_per_hour
-            )
-            # Fixme: with or without pressure drop ahead of stage?
-            stream_density_at_max_speed = (
-                self.streams[stream_to_maximize]
-                .fluid.get_fluid_stream(
-                    pressure_bara=train_first_part_result_at_max_speed.discharge_pressure
-                    - self.stages[stream_to_maximize_connected_to_stage_no].pressure_drop_ahead_of_stage,
-                    temperature_kelvin=self.stages[stream_to_maximize_connected_to_stage_no].inlet_temperature_kelvin,
-                )
-                .density
-            )
-        else:
-            # There is no "train-first-part"
-            train_first_part_outlet_actual_rate_m3_per_hour_at_min_speed = 0
-            train_first_part_outlet_actual_rate_m3_per_hour_at_max_speed = 0
-            # can we have multiple streams in at a single inlet?
-            stream_density_at_min_speed = stream_density_at_max_speed = (
-                self.streams[0]
-                .fluid.get_fluid_stream(
-                    pressure_bara=suction_pressure,
-                    temperature_kelvin=self.stages[0].inlet_temperature_kelvin,
-                )
-                .density
-            )
-
-        # subtract the actual rate coming from previous compressor from the minimum rate for compressor at current stage
-        min_actual_rate_m3_per_hr_at_max_speed = max(
-            self.stages[stream_to_maximize_connected_to_stage_no].compressor_chart.maximum_speed_curve.minimum_rate
-            - train_first_part_outlet_actual_rate_m3_per_hour_at_max_speed,
-            0,
-        )
-        max_actual_rate_m3_per_hr_at_max_speed = max(
-            self.stages[stream_to_maximize_connected_to_stage_no].compressor_chart.maximum_speed_curve.maximum_rate
-            - train_first_part_outlet_actual_rate_m3_per_hour_at_max_speed,
-            0,
-        )
-        max_actual_rate_m3_per_hr_at_min_speed = max(
-            self.stages[stream_to_maximize_connected_to_stage_no].compressor_chart.maximum_rate_as_function_of_speed(
-                self.stages[stream_to_maximize_connected_to_stage_no].compressor_chart.minimum_speed
-            )
-            - train_first_part_outlet_actual_rate_m3_per_hour_at_min_speed,
-            0,
-        )
-
-        # going from actual rate to std rate via mass rate m3/hr -> kg/hr -> m3/day (can we go directly?)
-        min_mass_rate_kg_per_hr_at_max_speed = min_actual_rate_m3_per_hr_at_max_speed * stream_density_at_max_speed
-        max_mass_rate_kg_per_hr_at_max_speed = max_actual_rate_m3_per_hr_at_max_speed * stream_density_at_max_speed
-        max_mass_rate_kg_per_hr_at_min_speed = max_actual_rate_m3_per_hr_at_min_speed * stream_density_at_min_speed
-
-        min_std_rate_for_stream_m3_per_day_at_max_speed = self.streams[
-            stream_to_maximize
-        ].fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=min_mass_rate_kg_per_hr_at_max_speed) * (
-            1 + RATE_CALCULATION_TOLERANCE
-        )
-        max_std_rate_for_stream_m3_per_day_at_max_speed = self.streams[
-            stream_to_maximize
-        ].fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate_kg_per_hr_at_max_speed) * (
-            1 - RATE_CALCULATION_TOLERANCE
-        )
-        max_std_rate_for_stream_m3_per_day_at_min_speed = self.streams[
-            stream_to_maximize
-        ].fluid.mass_rate_to_standard_rate(mass_rate_kg_per_hour=max_mass_rate_kg_per_hr_at_min_speed) * (
-            1 - RATE_CALCULATION_TOLERANCE
-        )
-
-        result_min_std_rate_for_stream_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-            std_rate_for_stream=min_std_rate_for_stream_m3_per_day_at_max_speed
-        )
-        result_max_std_rate_for_stream_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-            std_rate_for_stream=max_std_rate_for_stream_m3_per_day_at_max_speed
-        )
-        result_max_std_rate_for_stream_at_min_speed = _calculate_train_result_at_min_speed_given_std_rate_for_stream(
-            std_rate_for_stream=max_std_rate_for_stream_m3_per_day_at_min_speed
-        )
-
-        # Ensure that the minimum std rate for stream at max speed is valid for the whole train.
-        # Fixme: Logger debug messages
-        if not result_min_std_rate_for_stream_at_max_speed.is_valid:
-            if allow_asv:
-                min_std_rate_m3_per_day_at_max_speed = EPSILON
-                result_min_std_rate_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                    std_rate_for_stream=min_std_rate_m3_per_day_at_max_speed
-                )
-                if not result_min_std_rate_at_max_speed.is_valid:
-                    logger.debug(
-                        "There are no valid std rate for stream {stream_to_maximize} for "
-                        "VariableSpeedCompressorTrainMultipleStreamsAndPressures. "
-                        "Infeasible solution. Returning max rate 0.0 (None)."
-                    )
-                    return 0.0
-                max_std_rate_m3_per_day_at_max_speed = maximize_x_given_boolean_condition_function(
-                    x_min=EPSILON,
-                    x_max=min_std_rate_for_stream_m3_per_day_at_max_speed,
-                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                        std_rate_for_stream=x
-                    ).is_valid,
-                    convergence_tolerance=1e-3,
-                    maximum_number_of_iterations=20,
-                )
-                result_max_std_rate_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                    std_rate_for_stream=max_std_rate_m3_per_day_at_max_speed
-                )
-            else:
-                logger.debug(
-                    "There are no valid common std rate for VariableSpeedCompressorTrain, and ASV is not allowed."
-                    "Infeasible solution. Returning max rate 0.0 (None)."
-                )
-                return 0.0
-        else:
-            min_std_rate_m3_per_day_at_max_speed = min_std_rate_for_stream_m3_per_day_at_max_speed
-            result_min_std_rate_at_max_speed = result_min_std_rate_for_stream_at_max_speed
-
-            # Ensuring that the maximum std rate at max speed is valid for the whole train.
-            if not result_max_std_rate_for_stream_at_max_speed.is_valid:
-                max_std_rate_m3_per_day_at_max_speed = maximize_x_given_boolean_condition_function(
-                    x_min=min_std_rate_m3_per_day_at_max_speed,
-                    x_max=max_std_rate_for_stream_m3_per_day_at_max_speed,
-                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                        std_rate_for_stream=x
-                    ).is_valid,
-                )
-                result_max_std_rate_at_max_speed = _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                    std_rate_for_stream=max_std_rate_m3_per_day_at_max_speed
-                )
-            else:
-                max_std_rate_m3_per_day_at_max_speed = max_std_rate_for_stream_m3_per_day_at_max_speed
-                result_max_std_rate_at_max_speed = result_max_std_rate_for_stream_at_max_speed
-
-        # Solution scenario 1. Infeasible. Target pressure is too high.
-        if result_min_std_rate_at_max_speed.discharge_pressure < target_discharge_pressure:
-            return 0.0
-
-        # Solution scenario 2. Solution is at maximum speed curve.
-        elif target_discharge_pressure >= result_max_std_rate_for_stream_at_max_speed.discharge_pressure:
-            result_std_rate = find_root(
-                lower_bound=min_std_rate_m3_per_day_at_max_speed,
-                upper_bound=max_std_rate_m3_per_day_at_max_speed,
-                func=lambda x: _calculate_train_result_at_max_speed_given_std_rate_for_stream(
-                    std_rate_for_stream=x
-                ).discharge_pressure
-                - target_discharge_pressure,
-            )
-            rate_to_return = result_std_rate * (1 - RATE_CALCULATION_TOLERANCE)
-
-        # Solution 3: If solution not found along max speed curve,
-        # run at max_mass_rate, but using the defined pressure control.
-        elif (
-            self.data_transfer_object.pressure_control is not None
-            and self.calculate_compressor_train_given_rate_ps_pd_speed(
-                speed=self.maximum_speed,
-                inlet_pressure=suction_pressure,
-                outlet_pressure=target_discharge_pressure,
-                std_rates_std_m3_per_day_per_stream=np.asarray(
-                    [
-                        std_rates_std_m3_per_day_per_stream[i]
-                        if i != stream_to_maximize
-                        else max_std_rate_m3_per_day_at_max_speed
-                        for i, _ in enumerate(self.streams)
-                    ]
-                ),
-            ).is_valid
-        ):
-            rate_to_return = max_std_rate_m3_per_day_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
-
-        # Solution scenario 4. Solution at the "Stone wall".
-        else:
-            # Ensuring that the maximum mass rate at min speed is valid for the whole train.
-            if not result_max_std_rate_for_stream_at_min_speed.is_valid:
-                max_std_rate_m3_per_day_at_min_speed = maximize_x_given_boolean_condition_function(
-                    x_min=EPSILON,
-                    x_max=max_std_rate_for_stream_m3_per_day_at_min_speed,
-                    bool_func=lambda x: _calculate_train_result_at_min_speed_given_std_rate_for_stream(
-                        std_rate_for_stream=x
-                    ).is_valid,
-                )
-                result_max_std_rate_at_min_speed = _calculate_train_result_at_min_speed_given_std_rate_for_stream(
-                    std_rate_for_stream=max_std_rate_m3_per_day_at_min_speed
-                )
-            else:
-                # max_std_rate_m3_per_day_at_min_speed = max_std_rate_for_stream_m3_per_day_at_min_speed
-                result_max_std_rate_at_min_speed = result_max_std_rate_for_stream_at_min_speed
-
-            if (
-                result_max_std_rate_at_max_speed.discharge_pressure
-                >= target_discharge_pressure
-                >= result_max_std_rate_at_min_speed.discharge_pressure
-            ):
-                result_speed = find_root(
-                    lower_bound=self.minimum_speed,
-                    upper_bound=self.maximum_speed,
-                    func=lambda x: _calculate_train_result_given_speed_at_stone_wall(speed=x)[1].discharge_pressure
-                    - target_discharge_pressure,
-                )
-                (
-                    max_valid_std_rate_m3_per_day,
-                    compressor_train_result,
-                ) = _calculate_train_result_given_speed_at_stone_wall(speed=result_speed)
-
-                rate_to_return = max_valid_std_rate_m3_per_day * (1 - RATE_CALCULATION_TOLERANCE)
-
-            # Solution scenario 5. Too high pressure even at min speed and max flow rate.
-            elif result_max_std_rate_at_min_speed.discharge_pressure > target_discharge_pressure:
-                # Todo: We could add additional functionality where the user can use to control what happens below
-                #    minimum speed, such as ASV, choke, etc.
+        if not train_result.is_valid:
+            zero_stream_result = _calculate_train_result(std_rate_for_stream=EPSILON)
+            if not zero_stream_result.is_valid:
                 return 0.0
             else:
-                msg = "You should not end up here. Please contact eCalc support."
-                logger.exception(msg)
-                raise IllegalStateException(msg)
-
-        # Check that rate_to_return, suction_pressure and discharge_pressure does not require too much power.
-        # If so, reduce rate such that power comes below maximum power
-        std_rates_std_m3_per_day_per_stream[stream_to_maximize] = rate_to_return
-        if not self.data_transfer_object.maximum_power:
-            return rate_to_return
-        elif (
-            self.evaluate_rate_ps_pd(
-                rate=np.asarray([std_rates_std_m3_per_day_per_stream]),
-                suction_pressure=np.asarray([suction_pressure]),
-                discharge_pressure=np.asarray([target_discharge_pressure]),
-            ).power_megawatt[0]
-            > self.data_transfer_object.maximum_power
-        ):
-            # check if minimum_rate gives too high power consumption
-            std_rates_std_m3_per_day_per_stream[stream_to_maximize] = EPSILON
-            result_with_minimum_rate = self.evaluate_rate_ps_pd(
-                rate=np.asarray([std_rates_std_m3_per_day_per_stream]),
-                suction_pressure=np.asarray([suction_pressure]),
-                discharge_pressure=np.asarray([target_discharge_pressure]),
-            )
-            if result_with_minimum_rate.power_megawatt[0] > self.data_transfer_object.maximum_power:
-                return 0.0  # can't find solution
-            else:
-                std_rate_with_maximum_power = find_root(
-                    lower_bound=result_with_minimum_rate.rate_sm3_day[stream_to_maximize],
-                    upper_bound=rate_to_return,
-                    func=lambda x: self.evaluate_rate_ps_pd(
-                        rate=np.asarray(
-                            [
-                                std_rates_std_m3_per_day_per_stream[i] if i != stream_to_maximize else x
-                                for i, _ in enumerate(self.streams)
-                            ]
-                        ),
-                        suction_pressure=np.asarray([suction_pressure]),
-                        discharge_pressure=np.asarray([target_discharge_pressure]),
-                    ).power[0]
-                    - self.data_transfer_object.maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
-                    relative_convergence_tolerance=1e-3,
-                    maximum_number_of_iterations=20,
+                return maximize_x_given_boolean_condition_function(
+                    x_min=0.0,
+                    x_max=float(rate_per_stream[stream_to_maximize]),
+                    bool_func=lambda x: _calculate_train_result(std_rate_for_stream=x).is_valid,
                 )
-                return std_rate_with_maximum_power
         else:
-            return rate_to_return
+            max_rate_is_larger_than = std_rates_std_m3_per_day_per_stream[stream_to_maximize]
+        while train_result.is_valid:
+            max_rate_is_larger_than = train_result.stage_results[
+                stream_to_maximize_connected_to_stage_no
+            ].standard_rate_asv_corrected_sm3_per_day
+            std_rates_std_m3_per_day_per_stream[stream_to_maximize] = max_rate_is_larger_than * 2
+            train_result = self.calculate_shaft_speed_given_rate_ps_pd(
+                std_rates_std_m3_per_day_per_stream=std_rates_std_m3_per_day_per_stream,
+                suction_pressure=suction_pressure,
+                target_discharge_pressure=target_discharge_pressure,
+            )
+        return maximize_x_given_boolean_condition_function(
+            x_min=float(max_rate_is_larger_than),
+            x_max=float(max_rate_is_larger_than * 2),
+            bool_func=lambda x: _calculate_train_result(std_rate_for_stream=x).is_valid,
+        )
 
     def evaluate_rate_ps_pint_pd(
         self,
