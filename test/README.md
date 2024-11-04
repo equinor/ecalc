@@ -16,10 +16,14 @@ configured in *docker-compose.yml* file. To run tests, simply run (from test/ di
 docker compose run test
 ```
 
-or (since we currently only have one service, and default is to run the docker-snapshot test)
+## Updating and running 'dockersnapshot' marked tests in Docker (STP/LTP snapshot tests)
+
+Some snapshot tests marked with `dockersnapshot` need to run in a x86_64 environment to produce consistent snapshots. 
+This is relevant for those with macbooks.
+To run the relevant tests and update their snapshot run (from test/ dir):
 
 ```bash
-docker compose up
+docker compose run dockersnapshots
 ```
 
 This will build the container and run the tests marked 'dockersnapshot'. If the snapshot has changed, it will fail with exit code 1, and
