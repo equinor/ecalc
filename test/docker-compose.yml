@@ -1,5 +1,5 @@
 services:
-  test:
+  dockersnapshots:
     build:
       context: ../
       dockerfile: ./Dockerfile
@@ -8,3 +8,13 @@ services:
     volumes:
       - ../:/project/libecalc
     command: ["poetry", "run", "pytest", "-m", "dockersnapshot", "--snapshot-update"]
+
+  test:
+    build:
+      context: ../
+      dockerfile: ./Dockerfile
+      target: build
+    working_dir: /project/libecalc
+    volumes:
+      - ../:/project/libecalc
+    command: ["poetry", "run", "pytest"]
