@@ -31,7 +31,7 @@ MODELS:
       - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
         COMPRESSOR_CHART: <reference to a compressor chart model defined in MODELS>
         STREAM: <reference stream from STREAMS. Needs to be an INGOING type stream.>
-        CONTROL_MARGIN: <Default value 0.0>
+        CONTROL_MARGIN: <Surge control margin for the compressor stage. Set to 0.0 if no margin>
         PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
         CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
       - ...
@@ -40,7 +40,7 @@ MODELS:
         STREAM: <Optional>
         - <reference stream from STREAMS for one in- or outgoing stream. Optional>
         - <reference stream from STREAMS for another in- or outgoing stream. Optional>
-        CONTROL_MARGIN: <Default value 0.0>
+        CONTROL_MARGIN: <Surge control margin for the compressor stage. Set to 0.0 if no margin>
         CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
         PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
         INTERSTAGE_CONTROL_PRESSURE:
@@ -49,7 +49,7 @@ MODELS:
       - ...
       - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
         COMPRESSOR_CHART: <reference to a compressor chart model defined in MODELS>
-        CONTROL_MARGIN: <Default value 0.0>
+        CONTROL_MARGIN: <Surge control margin for the compressor stage. Set to 0.0 if no margin>
         CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
         PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
       - ...
@@ -76,9 +76,9 @@ be subtracted the rate of the outgoing stream.
 - `PRESSURE_DROP_AHEAD_OF_STAGE` is optional, but if defined it will reduce the inlet pressure of that particular stage by a fixed value.
 As of now, only a single value is supported - i.e. a time series cannot be used here.
 
-- `CONTROL_MARGIN` is a surge control margin, see [Surge control margin for variable speed compressor chart](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
+- `CONTROL_MARGIN` is a surge control margin, see [Surge control margin for variable speed compressor chart](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md). This keyword is required for each stage.
 
-- `CONTROL_MARGIN_UNIT` is the unit of the surge control margin.
+- `CONTROL_MARGIN_UNIT` is the unit of the surge control margin. This keyword is required for each stage.
 
 ### INTERSTAGE_PRESSURE_CONTROL
 
@@ -136,12 +136,18 @@ MODELS:
     STAGES:
       - COMPRESSOR_CHART: 1_stage_chart
         INLET_TEMPERATURE: 20
+        CONTROL_MARGIN: 0.0
+        CONTROL_MARGIN_UNIT: PERCENTAGE
         STREAM: 
           - 1_stage_inlet
       - COMPRESSOR_CHART: 2_stage_chart 
         INLET_TEMPERATURE: 30
+        CONTROL_MARGIN: 0.0
+        CONTROL_MARGIN_UNIT: PERCENTAGE
       - COMPRESSOR_CHART: 3_stage_chart 
         INLET_TEMPERATURE: 35
+        CONTROL_MARGIN: 0.0
+        CONTROL_MARGIN_UNIT: PERCENTAGE
         STREAM: 
           - 2_stage_outlet
           - 3_stage_inlet
@@ -150,4 +156,6 @@ MODELS:
           DOWNSTREAM_PRESSURE_CONTROL: INDIVIDUAL_ASV_RATE #3rd and 4th stage
       - COMPRESSOR_CHART: 4_stage_chart 
         INLET_TEMPERATURE: 15
+        CONTROL_MARGIN: 0.0
+        CONTROL_MARGIN_UNIT: PERCENTAGE
 ~~~~~~~~
