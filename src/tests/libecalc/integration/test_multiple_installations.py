@@ -22,20 +22,25 @@ class EmptyResourceService(ResourceService):
 
 @pytest.fixture
 def model_with_two_installations(
-    minimal_installation_yaml_factory, yaml_asset_configuration_service_factory, yaml_asset_builder_factory
+    minimal_installation_yaml_factory,
+    yaml_asset_configuration_service_factory,
+    yaml_asset_builder_factory,
+    yaml_fuel_type_builder_factory,
 ) -> YamlModel:
+    fuel_name = "fuel"
     installation_1 = minimal_installation_yaml_factory(
-        name="installation1", fuel_rate=50, fuel_name="fuel", consumer_name="flare1"
+        name="installation1", fuel_rate=50, fuel_name=fuel_name, consumer_name="flare1"
     )
     installation_2 = minimal_installation_yaml_factory(
-        name="installation2", fuel_rate=100, fuel_name="fuel", consumer_name="flare2"
+        name="installation2", fuel_rate=100, fuel_name=fuel_name, consumer_name="flare2"
     )
 
     asset = (
         yaml_asset_builder_factory()
-        .with_test_data(fuel_name="fuel")
+        .with_test_data()
+        .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name(fuel_name).validate()])
         .with_installations([installation_1, installation_2])
-        .build()
+        .validate()
     )
 
     return YamlModel(

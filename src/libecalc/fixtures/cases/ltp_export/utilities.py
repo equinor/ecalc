@@ -8,10 +8,12 @@ from libecalc.dto import Asset, Installation
 from libecalc.presentation.exporter.configs.configs import LTPConfig
 from libecalc.presentation.exporter.dto.dtos import FilteredResult
 from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
+from libecalc.presentation.yaml.model import YamlModel
 
 
-def get_consumption(model: Union[Installation, Asset], variables: VariablesMap, periods: Periods) -> FilteredResult:
-    model = model
+def get_consumption(
+    model: Union[Installation, Asset, YamlModel], variables: VariablesMap, periods: Periods
+) -> FilteredResult:
     graph = model.get_graph()
     energy_calculator = EnergyCalculator(graph=graph)
 

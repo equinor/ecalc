@@ -22,6 +22,7 @@ from tests.libecalc.yaml_builder import (
     YamlAssetBuilder,
     YamlEnergyUsageModelDirectBuilder,
     YamlFuelConsumerBuilder,
+    YamlFuelTypeBuilder,
     YamlInstallationBuilder,
 )
 
@@ -172,6 +173,11 @@ def yaml_installation_builder_factory():
 
 
 @pytest.fixture
+def yaml_fuel_type_builder_factory():
+    return lambda: YamlFuelTypeBuilder()
+
+
+@pytest.fixture
 def minimal_installation_yaml_factory(yaml_installation_builder_factory):
     def minimal_installation_yaml(
         name: str = "DefaultInstallation",
@@ -190,29 +196,32 @@ def minimal_installation_yaml_factory(yaml_installation_builder_factory):
                     .with_name(consumer_name)
                     .with_fuel(fuel_name)
                     .with_energy_usage_model(
-                        YamlEnergyUsageModelDirectBuilder().with_test_data().with_fuel_rate(fuel_rate).build()
+                        YamlEnergyUsageModelDirectBuilder().with_test_data().with_fuel_rate(fuel_rate).validate()
                     )
-                    .build()
+                    .validate()
                 ]
             )
-            .build()
+            .validate()
         )
 
     return minimal_installation_yaml
 
 
 @pytest.fixture
-def minimal_model_yaml_factory(minimal_installation_yaml_factory):
+def minimal_model_yaml_factory(
+    yaml_asset_builder_factory, minimal_installation_yaml_factory, yaml_fuel_type_builder_factory
+):
     def minimal_model_yaml(fuel_rate: int | str = 50):
         fuel_name = "fuel"
         installation = minimal_installation_yaml_factory(fuel_name="fuel", fuel_rate=fuel_rate)
         model = (
-            YamlAssetBuilder()
-            .with_test_data(fuel_name=fuel_name)
+            yaml_asset_builder_factory()
+            .with_test_data()
+            .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name(fuel_name).validate()])
             .with_installations([installation])
             .with_start("2020-01-01")
             .with_end("2023-01-01")
         )
-        return YamlAssetConfigurationService(model.build(), name="minimal_model")
+        return YamlAssetConfigurationService(model.validate(), name="minimal_model")
 
     return minimal_model_yaml
