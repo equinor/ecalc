@@ -1,7 +1,7 @@
 import json
 from io import StringIO
 from pathlib import Path
-from typing import cast
+from typing import Optional, cast
 
 import pytest
 import yaml
@@ -15,7 +15,8 @@ from libecalc.fixtures.cases import (
     ltp_export,
 )
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
-from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.resource_service import ResourceService
+from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from tests.libecalc.yaml_builder import (
@@ -125,6 +126,35 @@ def valid_example_case_yaml_case(request) -> YamlCase:
     return yaml_case
 
 
+class OverridableStreamConfigurationService(ConfigurationService):
+    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
+        self._overrides = overrides
+        self._stream = stream
+
+    def get_configuration(self) -> YamlValidator:
+        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
+            main_yaml=self._stream,
+            enable_include=True,
+        )
+
+        if self._overrides is not None:
+            main_yaml_model._internal_datamodel.update(self._overrides)
+        return cast(YamlValidator, main_yaml_model)
+
+
+@pytest.fixture
+def configuration_service_factory():
+    def create_configuration_service(
+        resource_stream: ResourceStream, overrides: Optional[dict] = None
+    ) -> ConfigurationService:
+        return OverridableStreamConfigurationService(
+            stream=resource_stream,
+            overrides=overrides,
+        )
+
+    return create_configuration_service
+
+
 class YamlAssetConfigurationService(ConfigurationService):
     def __init__(self, model: YamlAsset, name: str):
         self._name = name
@@ -165,6 +195,22 @@ def yaml_asset_configuration_service_factory():
 @pytest.fixture
 def yaml_asset_builder_factory():
     return lambda: YamlAssetBuilder()
+
+
+class DirectResourceService(ResourceService):
+    def __init__(self, resources: dict[str, MemoryResource]):
+        self._resources = resources
+
+    def get_resources(self, configuration: YamlValidator) -> dict[str, MemoryResource]:
+        return self._resources
+
+
+@pytest.fixture
+def resource_service_factory():
+    def create_resource_service(resources: dict[str, MemoryResource]) -> ResourceService:
+        return DirectResourceService(resources=resources)
+
+    return create_resource_service
 
 
 @pytest.fixture

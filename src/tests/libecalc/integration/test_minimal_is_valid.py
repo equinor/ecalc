@@ -6,22 +6,14 @@ from libecalc.common.time_utils import Frequency
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.resource import Resource
-from libecalc.presentation.yaml.resource_service import ResourceService
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
-
-
-class EmptyResourceService(ResourceService):
-    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
-        return {}
 
 
 @pytest.fixture
-def minimal_asset_result(minimal_model_yaml_factory):
+def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     minimal_configuration_service = minimal_model_yaml_factory()
     model = YamlModel(
         configuration_service=minimal_configuration_service,
-        resource_service=EmptyResourceService(),
+        resource_service=resource_service_factory({}),
         output_frequency=Frequency.NONE,
     )
     graph = model.get_graph()
