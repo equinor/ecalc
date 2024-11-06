@@ -1,65 +1,72 @@
-from pathlib import Path
+from io import StringIO
 
 import pytest
+from pydantic import ValidationError
 
+from libecalc.common.time_utils import Frequency
 from libecalc.common.utils.rates import RateType
-from libecalc.fixtures.cases import venting_emitters
-from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
-    venting_emitter_yaml_factory,
-)
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
+from libecalc.presentation.yaml.validation_errors import Location
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlDirectTypeEmitter,
+    YamlVentingEmission,
+    YamlVentingType,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRate,
     YamlEmissionRateUnits,
     YamlOilRateUnits,
 )
 
 
-def test_wrong_keyword_name_emitters():
-    """Test custom pydantic error messages for yaml validation of missing mandatory keywords."""
-
-    regularity = 0.2
-    emission_rate = 10
-
+def test_wrong_keyword_name(resource_service_factory, configuration_service_factory):
+    """Test custom pydantic error message for invalid keyword names."""
+    model = YamlModel(
+        configuration_service=configuration_service_factory(
+            ResourceStream(stream=StringIO("INVALID_KEYWORD_IN_YAML: 5"), name="INVALID_MODEL")
+        ),
+        resource_service=resource_service_factory({}),
+        output_frequency=Frequency.NONE,
+    )
     with pytest.raises(ModelValidationException) as exc:
-        venting_emitter_yaml_factory(
-            emission_rates=[emission_rate],
-            regularity=regularity,
-            units=[YamlEmissionRateUnits.KILO_PER_DAY],
-            emission_names=["ch4"],
-            rate_types=[RateType.STREAM_DAY],
-            emission_keyword_name="EMISSION2",
-            names=["Venting emitter 1"],
-            path=Path(venting_emitters.__path__[0]),
-        )
+        model.validate_for_run()
 
-    error_message = str(exc.value)
+    errors = exc.value.errors()
+    assert "INVALID_KEYWORD_IN_YAML" in str(exc.value)
+    invalid_keyword_error = next(
+        error for error in errors if error.location == Location(keys=["INVALID_KEYWORD_IN_YAML"])
+    )
 
-    assert "EMISSION2" in error_message
-    assert "This is not a valid keyword" in error_message
+    assert invalid_keyword_error.message == "This is not a valid keyword"
 
 
 def test_wrong_unit_emitters():
-    """Test error messages for yaml validation with wrong units."""
+    """Ensure units are constrained for venting emitter"""
 
-    regularity = 0.2
-    emission_rate = 10
-
-    with pytest.raises(ModelValidationException) as exc:
-        venting_emitter_yaml_factory(
-            emission_rates=[emission_rate],
-            regularity=regularity,
-            units=[YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY],
-            emission_names=["ch4"],
-            rate_types=[RateType.STREAM_DAY],
-            emission_keyword_name="EMISSIONS",
-            names=["Venting emitter 1"],
-            path=Path(venting_emitters.__path__[0]),
+    with pytest.raises(ValidationError) as exc:
+        YamlDirectTypeEmitter(
+            name="Venting emitter 1",
+            category=ConsumerUserDefinedCategoryType.STORAGE,
+            type=YamlVentingType.DIRECT_EMISSION,
+            emissions=[
+                YamlVentingEmission(
+                    name="ch4",
+                    rate=YamlEmissionRate(
+                        value=10,
+                        unit=YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY,
+                        type=RateType.STREAM_DAY,
+                    ),
+                )
+            ],
         )
 
     error_message = str(exc.value)
 
-    assert "Venting emitter 1" in error_message
-    assert "DIRECT_EMISSION.EMISSIONS[0].RATE.UNIT" in error_message
+    assert len(exc.value.errors()) == 1
+
     assert (
         f"Input should be '{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
         in error_message
@@ -67,27 +74,28 @@ def test_wrong_unit_emitters():
 
 
 def test_wrong_unit_format_emitters():
-    """Test error messages for yaml validation with wrong unit format."""
+    """Ensure we don't accept the 'old' unit format for venting emitters"""
 
-    regularity = 0.2
-    emission_rate = 10
-
-    with pytest.raises(ModelValidationException) as exc:
-        venting_emitter_yaml_factory(
-            emission_rates=[emission_rate],
-            regularity=regularity,
-            units=["kg/d"],
-            emission_names=["ch4"],
-            rate_types=[RateType.STREAM_DAY],
-            emission_keyword_name="EMISSIONS",
-            names=["Venting emitter 1"],
-            path=Path(venting_emitters.__path__[0]),
+    with pytest.raises(ValidationError) as exc:
+        YamlDirectTypeEmitter(
+            name="Venting emitter 1",
+            category=ConsumerUserDefinedCategoryType.STORAGE,
+            type=YamlVentingType.DIRECT_EMISSION,
+            emissions=[
+                YamlVentingEmission(
+                    name="ch4",
+                    rate=YamlEmissionRate(
+                        value=10,
+                        unit="kg/d",
+                        type=RateType.STREAM_DAY,
+                    ),
+                )
+            ],
         )
 
     error_message = str(exc.value)
+    assert len(exc.value.errors()) == 1
 
-    assert "Venting emitter 1" in error_message
-    assert "DIRECT_EMISSION.EMISSIONS[0].RATE.UNIT" in error_message
     assert (
         f"Input should be '{YamlEmissionRateUnits.KILO_PER_DAY.value}' or '{YamlEmissionRateUnits.TONS_PER_DAY.value}'"
         in error_message
