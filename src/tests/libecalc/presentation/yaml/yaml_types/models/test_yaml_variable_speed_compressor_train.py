@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from conftest import (
-    OverridableStreamConfigurationService,
     yaml_variable_speed_train_without_control_margin,
 )
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
@@ -15,9 +14,9 @@ from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
-def test_control_margin_required():
-    configuration_service = OverridableStreamConfigurationService(
-        stream=ResourceStream(name="", stream=StringIO(yaml_variable_speed_train_without_control_margin))
+def test_control_margin_required(configuration_service_factory):
+    configuration_service = configuration_service_factory(
+        ResourceStream(name="", stream=StringIO(yaml_variable_speed_train_without_control_margin))
     )
     resource_service = FileResourceService(working_directory=Path(""))
 

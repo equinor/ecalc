@@ -1,28 +1,16 @@
 from datetime import datetime
 from io import StringIO
-from typing import Optional, cast
 
 import pytest
 from pydantic import TypeAdapter
 
 from libecalc import dto
 from libecalc.common.time_utils import Frequency, Period
-from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart
-
-
-class DirectResourceService(ResourceService):
-    def __init__(self, resources: dict[str, MemoryResource]):
-        self._resources = resources
-
-    def get_resources(self, configuration: YamlValidator) -> dict[str, MemoryResource]:
-        return self._resources
 
 
 class TestModelMapper:
@@ -264,7 +252,7 @@ class TestModelMapper:
 
 
 @pytest.fixture
-def dated_model_source() -> str:
+def temporal_model_source() -> str:
     return """
 TIME_SERIES: []
 
@@ -300,50 +288,39 @@ INSTALLATIONS:
 
 
 @pytest.fixture
-def dated_model_data(dated_model_source: str) -> ResourceStream:
-    return ResourceStream(stream=StringIO(dated_model_source), name="dated_model")
+def temporal_model_stream(temporal_model_source: str) -> ResourceStream:
+    return ResourceStream(stream=StringIO(temporal_model_source), name="dated_model")
 
 
-class OverridableStreamConfigurationService(ConfigurationService):
-    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
-        self._overrides = overrides
-        self._stream = stream
-
-    def get_configuration(self) -> YamlValidator:
-        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
-            main_yaml=self._stream,
-            enable_include=True,
+@pytest.fixture
+def temporal_yaml_model_factory(temporal_model_stream, resource_service_factory, configuration_service_factory):
+    def create_temporal_yaml_model(start: datetime, end: datetime) -> dto.Asset:
+        period = Period(
+            start=start,
+            end=end,
         )
 
-        if self._overrides is not None:
-            main_yaml_model._internal_datamodel.update(self._overrides)
-        return cast(YamlValidator, main_yaml_model)
+        configuration_service = configuration_service_factory(
+            temporal_model_stream,
+            overrides={
+                EcalcYamlKeywords.start: period.start,
+                EcalcYamlKeywords.end: period.end,
+            },
+        )
+        resource_service = resource_service_factory(resources={})
+        model = YamlModel(
+            configuration_service=configuration_service,
+            resource_service=resource_service,
+            output_frequency=Frequency.NONE,
+        )
+        return model.dto
 
-
-def parse_model(model_data: ResourceStream, start: datetime, end: datetime) -> dto.Asset:
-    period = Period(
-        start=start,
-        end=end,
-    )
-
-    configuration_service = OverridableStreamConfigurationService(
-        model_data,
-        overrides={
-            EcalcYamlKeywords.start: period.start,
-            EcalcYamlKeywords.end: period.end,
-        },
-    )
-    resource_service = DirectResourceService(resources={})
-    model = YamlModel(
-        configuration_service=configuration_service, resource_service=resource_service, output_frequency=Frequency.NONE
-    )
-    return model.dto
+    return create_temporal_yaml_model
 
 
 class TestDatedModelFilter:
-    def test_include_all(self, dated_model_data):
-        model = parse_model(
-            model_data=dated_model_data,
+    def test_include_all(self, temporal_yaml_model_factory):
+        model = temporal_yaml_model_factory(
             start=datetime(2020, 1, 1),
             end=datetime(2040, 1, 1),
         )
@@ -361,9 +338,8 @@ class TestDatedModelFilter:
             Period(datetime(2025, 1, 1), datetime(2040, 1, 1)),
         ]
 
-    def test_include_start(self, dated_model_data):
-        model = parse_model(
-            model_data=dated_model_data,
+    def test_include_start(self, temporal_yaml_model_factory):
+        model = temporal_yaml_model_factory(
             start=datetime(2020, 1, 1),
             end=datetime(2025, 1, 1),
         )
@@ -379,9 +355,8 @@ class TestDatedModelFilter:
             Period(datetime(2020, 1, 1), datetime(2025, 1, 1)),
         ]
 
-    def test_include_end(self, dated_model_data):
-        model = parse_model(
-            model_data=dated_model_data,
+    def test_include_end(self, temporal_yaml_model_factory):
+        model = temporal_yaml_model_factory(
             start=datetime(2026, 1, 1),
             end=datetime(2040, 1, 1),
         )
@@ -397,9 +372,8 @@ class TestDatedModelFilter:
             Period(datetime(2026, 1, 1), datetime(2040, 1, 1)),
         ]
 
-    def test_include_middle(self, dated_model_data):
-        model = parse_model(
-            model_data=dated_model_data,
+    def test_include_middle(self, temporal_yaml_model_factory):
+        model = temporal_yaml_model_factory(
             start=datetime(2023, 1, 1),
             end=datetime(2029, 1, 1),
         )

@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from conftest import (
-    OverridableStreamConfigurationService,
     yaml_simplified_train_with_control_margin_and_pressure_drop,
     yaml_simplified_train_wrong_chart,
 )
@@ -16,9 +15,9 @@ from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
-def test_control_margin_and_pressure_drop_not_allowed():
-    configuration_service = OverridableStreamConfigurationService(
-        stream=ResourceStream(name="", stream=StringIO(yaml_simplified_train_with_control_margin_and_pressure_drop))
+def test_control_margin_and_pressure_drop_not_allowed(configuration_service_factory):
+    configuration_service = configuration_service_factory(
+        ResourceStream(name="", stream=StringIO(yaml_simplified_train_with_control_margin_and_pressure_drop))
     )
     resource_service = FileResourceService(working_directory=Path(""))
 
@@ -56,9 +55,9 @@ def test_control_margin_and_pressure_drop_not_allowed():
     )
 
 
-def test_single_speed_chart_not_allowed():
-    configuration_service = OverridableStreamConfigurationService(
-        stream=ResourceStream(name="", stream=StringIO(yaml_simplified_train_wrong_chart))
+def test_single_speed_chart_not_allowed(configuration_service_factory):
+    configuration_service = configuration_service_factory(
+        ResourceStream(name="", stream=StringIO(yaml_simplified_train_wrong_chart))
     )
     resource_service = FileResourceService(working_directory=Path(""))
 

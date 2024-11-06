@@ -52,10 +52,7 @@ from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.resource import Resource
-from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
 )
@@ -403,13 +400,11 @@ def test_only_venting_emitters_no_fuelconsumers():
     assert emissions_ch4 == emissions_ch4_asset
 
 
-class EmptyResourceService(ResourceService):
-    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
-        return {}
-
-
 def test_no_emitters_or_fuelconsumers(
-    yaml_asset_builder_factory, yaml_installation_builder_factory, yaml_asset_configuration_service_factory
+    yaml_asset_builder_factory,
+    yaml_installation_builder_factory,
+    yaml_asset_configuration_service_factory,
+    resource_service_factory,
 ):
     """
     Test that eCalc returns error when neither fuelconsumers or venting emitters are specified.
@@ -433,7 +428,7 @@ def test_no_emitters_or_fuelconsumers(
     configuration_service = yaml_asset_configuration_service_factory(asset, "no consumers or emitters")
     model = YamlModel(
         configuration_service=configuration_service,
-        resource_service=EmptyResourceService(),
+        resource_service=resource_service_factory(),
         output_frequency=Frequency.NONE,
     )
 

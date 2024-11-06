@@ -1,26 +1,3 @@
-from typing import Optional, cast
-
-from libecalc.presentation.yaml.configuration_service import ConfigurationService
-from libecalc.presentation.yaml.yaml_entities import ResourceStream
-from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
-
-
-class OverridableStreamConfigurationService(ConfigurationService):
-    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
-        self._overrides = overrides
-        self._stream = stream
-
-    def get_configuration(self) -> YamlValidator:
-        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
-            main_yaml=self._stream,
-            enable_include=True,
-        )
-
-        if self._overrides is not None:
-            main_yaml_model._internal_datamodel.update(self._overrides)
-        return cast(YamlValidator, main_yaml_model)
-
-
 yaml_fluid_model = """
   - NAME: fluid_model
     TYPE: FLUID
@@ -67,7 +44,6 @@ yaml_chart_variable_speed = """
         EFFICIENCY: [0.72, 0.73, 0.74, 0.74, 0.72, 0.70]
 """
 
-
 yaml_chart_generic_from_input = """
   - NAME: generic_from_input_compressor_chart
     TYPE: COMPRESSOR_CHART
@@ -76,7 +52,6 @@ yaml_chart_generic_from_input = """
     UNITS:
       EFFICIENCY: FRACTION
 """
-
 
 yaml_simplified_train_wrong_chart = f"""
 MODELS:

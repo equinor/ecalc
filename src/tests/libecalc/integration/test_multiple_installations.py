@@ -10,14 +10,6 @@ from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import VariablesMap
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.resource import Resource
-from libecalc.presentation.yaml.resource_service import ResourceService
-from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
-
-
-class EmptyResourceService(ResourceService):
-    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
-        return {}
 
 
 @pytest.fixture
@@ -26,6 +18,7 @@ def model_with_two_installations(
     yaml_asset_configuration_service_factory,
     yaml_asset_builder_factory,
     yaml_fuel_type_builder_factory,
+    resource_service_factory,
 ) -> YamlModel:
     fuel_name = "fuel"
     installation_1 = minimal_installation_yaml_factory(
@@ -45,7 +38,7 @@ def model_with_two_installations(
 
     return YamlModel(
         configuration_service=yaml_asset_configuration_service_factory(asset, "multiple_installations_asset"),
-        resource_service=EmptyResourceService(),
+        resource_service=resource_service_factory({}),
         output_frequency=Frequency.YEAR,
     )
 

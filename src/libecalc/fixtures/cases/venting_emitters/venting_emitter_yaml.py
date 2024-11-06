@@ -2,14 +2,17 @@ import textwrap
 from collections.abc import Callable
 from io import StringIO
 from pathlib import Path
+from typing import Optional, cast
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.fixtures import DTOCase
+from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingType,
 )
@@ -17,7 +20,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
     YamlOilRateUnits,
 )
-from tests.libecalc.input.mappers.test_model_mapper import OverridableStreamConfigurationService
 
 
 def venting_emitter_installation_factory(
@@ -60,9 +62,25 @@ def venting_emitter_installation_factory(
         categories=categories, rate_types=rate_types, emitter_names=names, emission_names=emission_names,
         emission_rates=emission_rates, units=units, emission_keyword_name=emission_keyword_name, include_emitters=include_emitters,
         emitter_types=emitter_types, oil_rates=oil_rates, emission_factors=emission_factors, units_oil_rates=units_oil_rates,
-), prefix='  ')}
+    ), prefix='  ')}
 """
     return textwrap.dedent(installation_yaml)
+
+
+class OverridableStreamConfigurationService(ConfigurationService):
+    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
+        self._overrides = overrides
+        self._stream = stream
+
+    def get_configuration(self) -> YamlValidator:
+        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
+            main_yaml=self._stream,
+            enable_include=True,
+        )
+
+        if self._overrides is not None:
+            main_yaml_model._internal_datamodel.update(self._overrides)
+        return cast(YamlValidator, main_yaml_model)
 
 
 def get_configuration_service(installation_factories: list[Callable[[], str]]):
