@@ -7,6 +7,7 @@ import pytest
 import yaml
 
 from libecalc.common.math.numbers import Numbers
+from libecalc.common.time_utils import Frequency
 from libecalc.examples import advanced, simple
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import (
@@ -15,6 +16,7 @@ from libecalc.fixtures.cases import (
     ltp_export,
 )
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
+from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
@@ -155,39 +157,12 @@ def configuration_service_factory():
     return create_configuration_service
 
 
-class YamlAssetConfigurationService(ConfigurationService):
-    def __init__(self, model: YamlAsset, name: str):
-        self._name = name
-        self._model = model
-        self._source = None
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def source(self):
-        return self.get_yaml()
-
-    def get_yaml(self) -> str:
-        if self._source is not None:
-            return self._source
-        data = self._model.model_dump(by_alias=True, exclude_unset=True, mode="json")
-        return yaml.dump(data)
-
-    def get_configuration(self) -> YamlValidator:
-        stream = ResourceStream(name=self._name, stream=StringIO(self.get_yaml()))
-        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
-            main_yaml=stream,
-            enable_include=True,
-        )
-        return cast(YamlValidator, main_yaml_model)
-
-
 @pytest.fixture
-def yaml_asset_configuration_service_factory():
+def yaml_asset_configuration_service_factory(configuration_service_factory):
     def yaml_asset_configuration_service(model: YamlAsset, name: str):
-        return YamlAssetConfigurationService(model=model, name=name)
+        data = model.model_dump(by_alias=True, exclude_unset=True, mode="json")
+        source = yaml.dump(data)
+        return configuration_service_factory(ResourceStream(stream=StringIO(source), name=name))
 
     return yaml_asset_configuration_service
 
@@ -255,9 +230,12 @@ def minimal_installation_yaml_factory(yaml_installation_builder_factory):
 
 @pytest.fixture
 def minimal_model_yaml_factory(
-    yaml_asset_builder_factory, minimal_installation_yaml_factory, yaml_fuel_type_builder_factory
+    yaml_asset_builder_factory,
+    minimal_installation_yaml_factory,
+    yaml_fuel_type_builder_factory,
+    yaml_asset_configuration_service_factory,
 ):
-    def minimal_model_yaml(fuel_rate: int | str = 50):
+    def minimal_model_yaml(fuel_rate: int | str = 50) -> ConfigurationService:
         fuel_name = "fuel"
         installation = minimal_installation_yaml_factory(fuel_name="fuel", fuel_rate=fuel_rate)
         model = (
@@ -268,6 +246,20 @@ def minimal_model_yaml_factory(
             .with_start("2020-01-01")
             .with_end("2023-01-01")
         )
-        return YamlAssetConfigurationService(model.validate(), name="minimal_model")
+        return yaml_asset_configuration_service_factory(model.validate(), name="minimal_model")
 
     return minimal_model_yaml
+
+
+@pytest.fixture
+def yaml_model_factory(configuration_service_factory, resource_service_factory):
+    def create_yaml_model(
+        resource_stream: ResourceStream, resources: dict[str, MemoryResource], frequency: Frequency = Frequency.NONE
+    ) -> YamlModel:
+        return YamlModel(
+            configuration_service=configuration_service_factory(resource_stream),
+            resource_service=resource_service_factory(resources),
+            output_frequency=frequency,
+        )
+
+    return create_yaml_model
