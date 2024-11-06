@@ -428,7 +428,7 @@ def test_no_emitters_or_fuelconsumers(
     configuration_service = yaml_asset_configuration_service_factory(asset, "no consumers or emitters")
     model = YamlModel(
         configuration_service=configuration_service,
-        resource_service=resource_service_factory(),
+        resource_service=resource_service_factory({}),
         output_frequency=Frequency.NONE,
     )
 
