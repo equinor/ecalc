@@ -8,7 +8,7 @@ import pytest
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Period, calculate_delta_days
+from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -50,8 +50,12 @@ from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
 )
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
+from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
+from libecalc.presentation.yaml.resource import Resource
+from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
 )
@@ -399,29 +403,45 @@ def test_only_venting_emitters_no_fuelconsumers():
     assert emissions_ch4 == emissions_ch4_asset
 
 
-def test_no_emitters_or_fuelconsumers():
+class EmptyResourceService(ResourceService):
+    def get_resources(self, configuration: YamlValidator) -> dict[str, Resource]:
+        return {}
+
+
+def test_no_emitters_or_fuelconsumers(
+    yaml_asset_builder_factory, yaml_installation_builder_factory, yaml_asset_configuration_service_factory
+):
     """
     Test that eCalc returns error when neither fuelconsumers or venting emitters are specified.
     """
-
-    regularity = 0.2
-    emission_rate = 10
+    asset = (
+        yaml_asset_builder_factory()
+        .with_test_data()
+        .with_installations(
+            [
+                yaml_installation_builder_factory()
+                .with_test_data()
+                .with_name("this_is_the_name_we_want_in_the_error")
+                .with_fuel_consumers([])
+                .with_venting_emitters([])
+                .with_generator_sets([])
+                .construct()
+            ]
+        )
+        .construct()
+    )
+    configuration_service = yaml_asset_configuration_service_factory(asset, "no consumers or emitters")
+    model = YamlModel(
+        configuration_service=configuration_service,
+        resource_service=EmptyResourceService(),
+        output_frequency=Frequency.NONE,
+    )
 
     with pytest.raises(ModelValidationException) as ee:
-        venting_emitter_yaml_factory(
-            emission_rates=[emission_rate],
-            regularity=regularity,
-            units=[YamlEmissionRateUnits.KILO_PER_DAY],
-            emission_names=["ch4"],
-            rate_types=[RateType.STREAM_DAY],
-            include_emitters=False,
-            include_fuel_consumers=False,
-            names=["Venting emitter 1"],
-            path=Path(venting_emitters.__path__[0]),
-        )
+        model.validate_for_run()
 
     error_message = str(ee.value)
-    assert "minimal_installation" in error_message
+    assert "this_is_the_name_we_want_in_the_error" in error_message
     assert f"It is required to specify at least one of the keywords {EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model."
 
 

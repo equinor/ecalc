@@ -1,8 +1,10 @@
 import abc
 from enum import Enum
-from typing import List, Self, TypeVar, Generic, Any
+from inspect import isclass
+from typing import List, Self, TypeVar, Generic, Any, get_origin, get_args, Type, cast
 
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, BaseModel
+from typing_extensions import get_original_bases
 
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -14,7 +16,9 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import YamlVentingEmitter
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
 )
@@ -31,31 +35,58 @@ T = TypeVar("T")
 
 
 class Builder(abc.ABC, Generic[T]):
+    __model__: type[YamlBase]
+
+    def __init_subclass__(cls, **kwargs):
+        # When this class is subclassed we parse the type to be able to use the pydantic model for build and validate
+
+        # Get the Builder[T] base from the subclass
+        original_bases = [base for base in get_original_bases(cls)]
+        assert len(original_bases) == 1
+        original_base = original_bases[0]
+
+        # Get the type of T in Builder[T], assuming a single class, i.e. no unions
+        model_type = [arg for arg in get_args(original_base)][0]
+
+        # Type should be a YamlBase
+        assert isinstance(model_type, type(YamlBase))
+        cls.__model__ = cast(type(YamlBase), model_type)
+
+    @classmethod
+    def get_model_fields(cls) -> list[str]:
+        if "_fields_metadata" not in cls.__dict__:
+            cls._fields_metadata = {
+                field_name: field_info for field_name, field_info in cls.__model__.model_fields.items()
+            }
+
+        return list(cls._fields_metadata.keys())
+
     @abc.abstractmethod
     def with_test_data(self) -> Self: ...
 
-    @abc.abstractmethod
-    def build(self) -> T: ...
+    def _get_model_data(self) -> dict:
+        data = {}
+        for attr in self.get_model_fields():
+            if not hasattr(self, attr):
+                continue
+
+            value = getattr(self, attr)
+            if isinstance(value, Enum):
+                value = value.value
+
+            if value is None:
+                continue
+            data[attr] = value
+        return data
+
+    def construct(self) -> T:
+        return self.__model__.model_construct(_fields_set=None, **self._get_model_data())
+
+    def validate(self) -> T:
+        return self.__model__.model_validate(self._get_model_data())
 
 
-TClass = TypeVar("TClass", bound=YamlBase)
-
-
-def _build(obj: Any, attrs: list[str], c: type[TClass], exclude_none=True):
-    data = {}
-    for attr in attrs:
-        value = getattr(obj, attr)
-        if isinstance(value, Enum):
-            value = value.value
-
-        if value is None:
-            continue
-        data[attr] = value
-
-    return TypeAdapter(c).validate_python(data)
-
-
-class YamlEnergyUsageModelDirectBuilder:
+class YamlEnergyUsageModelDirectBuilder(Builder[YamlEnergyUsageModelDirect]):
     def __init__(self):
         self.type = "DIRECT"
         self.load = None  # To be set with test data or custom value
@@ -79,9 +110,6 @@ class YamlEnergyUsageModelDirectBuilder:
     def with_consumption_rate_type(self, consumption_rate_type: ConsumptionRateType):
         self.consumption_rate_type = consumption_rate_type.value
         return self
-
-    def build(self) -> YamlEnergyUsageModelDirect:
-        return _build(self, ["type", "load", "fuel_rate", "consumption_rate_type"], YamlEnergyUsageModelDirect)
 
 
 TYamlClass = TypeVar("TYamlClass", bound=YamlBase)
@@ -113,7 +141,7 @@ class YamlModelContainer(Generic[TYamlClass]):
         return self
 
 
-class YamlFuelConsumerBuilder:
+class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
     def __init__(self):
         self.name = None
         self.fuel = None
@@ -123,7 +151,7 @@ class YamlFuelConsumerBuilder:
     def with_test_data(self) -> Self:
         self.name = "flare"
         self.category = ConsumerUserDefinedCategoryType.FLARE.value
-        self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().build()
+        self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
         self.fuel = None
         return self
 
@@ -139,33 +167,25 @@ class YamlFuelConsumerBuilder:
         self.energy_usage_model = energy_usage_model
         return self
 
-    def build(self) -> YamlFuelConsumer:
-        return _build(self, ["name", "category", "fuel", "energy_usage_model"], YamlFuelConsumer)
 
-
-class YamlInstallationBuilder:
+class YamlInstallationBuilder(Builder[YamlInstallation]):
     def __init__(self):
         self.name = None
-        self.category = None  # Placeholder for InstallationUserDefinedCategoryType
-        self.hydrocarbon_export = None  # Placeholder for YamlTemporalModel[YamlExpressionType]
-        self.fuel = None  # Placeholder for YamlTemporalModel[str]
-        self.regularity = None  # Placeholder for YamlTemporalModel[YamlExpressionType]
-        self.generator_sets = []  # Placeholder for List[YamlGeneratorSet]
-        self.fuel_consumers = []  # Placeholder for List[Union[YamlFuelConsumer, YamlConsumerSystem]]
-        self.venting_emitters = []  # Placeholder for List[YamlVentingEmitter]
+        self.category = None
+        self.hydrocarbon_export = None
+        self.fuel = None
+        self.regularity = None
+        self.generator_sets = []
+        self.fuel_consumers = []
+        self.venting_emitters = []
 
         self._yaml_model_containers = []
 
     def with_test_data(self):
-        # Populate with test data if needed
-        # For example, create a list of YamlGeneratorSet, YamlFuelConsumer, YamlConsumerSystem, and YamlVentingEmitter instances
-        # self.generator_sets.append(YamlGeneratorSetBuilder().with_test_data().build())
-        # self.fuel_consumers.append(YamlFuelConsumerBuilder().with_test_data().build())
-        # self.venting_emitters.append(YamlVentingEmitterBuilder().with_test_data().build())
         self.name = "DefaultInstallation"
         self.hydrocarbon_export = 0
         self.regularity = 1
-        self.fuel_consumers.append(YamlFuelConsumerBuilder().with_test_data().build())
+        self.fuel_consumers.append(YamlFuelConsumerBuilder().with_test_data().validate())
         return self
 
     def with_name(self, name: str) -> Self:
@@ -185,62 +205,62 @@ class YamlInstallationBuilder:
         self.fuel_consumers = new_fuel_consumers
         return self
 
-    def build(self) -> YamlInstallation:
-        return _build(
-            self,
-            [
-                "name",
-                "category",
-                "fuel",
-                "hydrocarbon_export",
-                "regularity",
-                "generator_sets",
-                "fuel_consumers",
-                "venting_emitters",
-            ],
-            YamlInstallation,
-        )
+    def with_venting_emitters(
+        self, venting_emitters: list[YamlVentingEmitter | YamlModelContainer[YamlVentingEmitter]]
+    ) -> Self:
+        new_venting_emitters = []
+        for venting_emitter in venting_emitters:
+            if isinstance(venting_emitter, YamlModelContainer):
+                self._yaml_model_containers.append(venting_emitter)
+                new_venting_emitters.append(venting_emitter.component)
+            else:
+                new_venting_emitters.append(venting_emitter)
+        self.venting_emitters = new_venting_emitters
+        return self
+
+    def with_generator_sets(
+        self, generator_sets: list[YamlGeneratorSet | YamlModelContainer[YamlGeneratorSet]]
+    ) -> Self:
+        new_generator_sets = []
+        for generator_set in generator_sets:
+            if isinstance(generator_set, YamlModelContainer):
+                self._yaml_model_containers.append(generator_set)
+                new_generator_sets.append(generator_set.component)
+            else:
+                new_generator_sets.append(generator_set)
+        self.generator_sets = new_generator_sets
+        return self
 
 
-class YamlEmissionBuilder:
+class YamlEmissionBuilder(Builder[YamlEmission]):
     def __init__(self):
         self.name = None
         self.factor = None
 
     def with_test_data(self) -> Self:
-        # Populate with test data if needed
         self.name = "CO2"
         self.factor = 2
         return self
 
-    def build(self) -> YamlEmission:
-        return _build(self, ["name", "factor"], YamlEmission)
 
-
-# Builder for YamlFuelType
-class YamlFuelTypeBuilder:
+class YamlFuelTypeBuilder(Builder[YamlFuelType]):
     def __init__(self):
         self.name = None
-        self.category = None  # Placeholder for FuelTypeUserDefinedCategoryType
-        self.emissions = []  # Placeholder for a list of YamlEmission
+        self.category = None
+        self.emissions = []
 
     def with_test_data(self) -> Self:
-        # Populate with test data if needed
-        # For example, create a list of YamlEmission instances using YamlEmissionBuilder
         self.name = "fuel"
         emission_builder = YamlEmissionBuilder().with_test_data()
-        self.emissions.append(emission_builder.build())
+        self.emissions.append(emission_builder.validate())
         return self
 
     def with_name(self, name: str) -> Self:
         self.name = name
         return self
 
-    def build(self) -> YamlFuelType:
-        return _build(self, ["name", "category", "emissions"], YamlFuelType)
 
-
-class YamlAssetBuilder:
+class YamlAssetBuilder(Builder[YamlAsset]):
     def __init__(self):
         self.time_series = []
         self.facility_inputs = []
@@ -251,7 +271,7 @@ class YamlAssetBuilder:
         self.start = None
         self.end = None
 
-    def with_test_data(self, fuel_name: str = "fuel"):
+    def with_test_data(self):
         self.time_series = []
 
         self.facility_inputs = []
@@ -259,14 +279,14 @@ class YamlAssetBuilder:
         self.models = []
 
         # Create and populate a list of YamlFuelType test instances
-        fuel_types_builder = YamlFuelTypeBuilder().with_test_data().with_name(fuel_name)
-        self.fuel_types = [fuel_types_builder.build()]
+        fuel_types_builder = YamlFuelTypeBuilder().with_test_data()
+        self.fuel_types = [fuel_types_builder.validate()]
 
         self.variables = None
 
         # Create and populate a list of YamlInstallation test instances
         installations_builder = YamlInstallationBuilder().with_test_data()
-        self.installations = [installations_builder.build()]
+        self.installations = [installations_builder.validate()]
 
         self.start = "2019-01-01"
         self.end = "2024-01-01"
@@ -318,10 +338,3 @@ class YamlAssetBuilder:
     def with_end(self, end: str):
         self.end = end
         return self
-
-    def build(self) -> YamlAsset:
-        return _build(
-            self,
-            ["time_series", "facility_inputs", "models", "fuel_types", "variables", "installations", "start", "end"],
-            YamlAsset,
-        )
