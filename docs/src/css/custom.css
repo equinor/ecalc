@@ -58,3 +58,10 @@
   padding: 0 var(--ifm-pre-padding);
   border-left: 3px solid rgba(14, 201, 41, 0.88);
 }
+.changed-from-version {
+  background-color: rgba(100, 100, 100, 0);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+  border-left: 3px solid rgba(14, 201, 41, 0.88);
+}

@@ -11,6 +11,11 @@ the same shaft and thus have a common speed.
 This model supports only 
 `generic compressor charts`. See [compressor charts](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md) for more information. 
 
+<span className="changed-from-version">
+**Changed in version 9.0:** Only generic compressor charts are allowed. SINGLE_SPEED- and VARIABLE_SPEED charts are not allowed.
+</span>
+<br/>
+
 In addition, a [FLUID MODEL](/about/modelling/setup/models/fluid_model.md) must be specified.
 
 The model comes in two versions, one where the compressor stages are known (pre defined), and one where the compressor

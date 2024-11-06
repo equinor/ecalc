@@ -17,6 +17,11 @@ This means that a single speed compressor model needs the following to be define
 - [FLUID_MODEL](/about/references/FLUID_MODEL.md)
 - [PRESSURE_CONTROL](/about/references/PRESSURE_CONTROL.md)
 
+<span className="changed-from-version">
+**Changed in version 9.0:** CONTROL_MARGIN and CONTROL_MARGIN_UNIT are required
+</span>
+<br/>
+
 The following keywords are optional for a single speed compressor model:
 
 - [MAXIMUM_DISCHARGE_PRESSURE](/about/references/MAXIMUM_DISCHARGE_PRESSURE.md)

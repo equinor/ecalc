@@ -80,6 +80,11 @@ As of now, only a single value is supported - i.e. a time series cannot be used 
 
 - `CONTROL_MARGIN_UNIT` is the unit of the surge control margin. This keyword is required for each stage.
 
+<span className="changed-from-version">
+**Changed in version 9.0:** CONTROL_MARGIN and CONTROL_MARGIN_UNIT are required
+</span>
+<br/>
+
 ### INTERSTAGE_PRESSURE_CONTROL
 
 :::note

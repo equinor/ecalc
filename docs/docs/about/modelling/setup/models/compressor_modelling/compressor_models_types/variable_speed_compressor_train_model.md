@@ -15,6 +15,10 @@ In addition, the following keywords are required:
 - [FLUID MODEL](/about/modelling/setup/models/fluid_model.md)
 - [CONTROL_MARGIN](/about/references/CONTROL_MARGIN.md) and [CONTROL_MARGIN_UNIT](/about/references/CONTROL_MARGIN_UNIT.md) for each compressor stage in the train
 
+<span className="changed-from-version">
+**Changed in version 9.0:** CONTROL_MARGIN and CONTROL_MARGIN_UNIT are required
+</span>
+<br/>
 
 **Control mechanisms**
 
