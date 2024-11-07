@@ -8,8 +8,13 @@ are assumed based on an assumption of equal pressure fractions for each stage. B
 calculated independently for each compressor as if it was a standalone compressor, neglecting that they are in fact on
 the same shaft and thus have a common speed.
 
-This model supports both `user defined compressor charts` and
+This model supports only 
 `generic compressor charts`. See [compressor charts](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md) for more information. 
+
+<span className="changed-from-version">
+**Changed in version 9.0:** Only generic compressor charts are allowed. SINGLE_SPEED- and VARIABLE_SPEED charts are not allowed.
+</span>
+<br/>
 
 In addition, a [FLUID MODEL](/about/modelling/setup/models/fluid_model.md) must be specified.
 
@@ -72,25 +77,15 @@ MODELS:
 
 ## Examples
 
-### A (single) compressor with a user-defined variable speed compressor chart and fluid composition
+### A (single) compressor with a generic compressor chart, with design point calculated from input data, and fluid composition
 ~~~~~~~~yaml
 MODELS:
-  - NAME: predefined_variable_speed_compressor_chart
+  - NAME: generic_from_input_compressor_chart
     TYPE: COMPRESSOR_CHART
-    CHART_TYPE: VARIABLE_SPEED
+    CHART_TYPE: GENERIC_FROM_INPUT
+    POLYTROPIC_EFFICIENCY: 0.75
     UNITS:
-      RATE: AM3_PER_HOUR
-      HEAD: M
       EFFICIENCY: FRACTION
-    CURVES:
-      - SPEED: 7500
-        RATE: [2900, 3503, 4002, 4595.0]
-        HEAD: [8412.9, 7996, 7363, 6127]
-        EFFICIENCY: [0.72, 0.75, 0.74, 0.70]
-      - SPEED: 10767
-        RATE: [4052, 4500, 4999, 5492, 6000, 6439,]
-        HEAD: [16447, 16081, 15546, 14640, 13454, 11973,]
-        EFFICIENCY: [0.72, 0.73, 0.74, 0.74, 0.72, 0.70]
 
   - NAME: fluid_model_1
     TYPE: FLUID
@@ -114,7 +109,7 @@ MODELS:
     COMPRESSOR_TRAIN:
       STAGES:
         - INLET_TEMPERATURE: 30
-          COMPRESSOR_CHART: predefined_variable_speed_compressor_chart
+          COMPRESSOR_CHART: generic_from_input_compressor_chart
 ~~~~~~~~
 
 ### A (single) turbine driven compressor with a generic compressor chart with design point and predefined composition
@@ -158,7 +153,7 @@ MODELS:
     TURBINE_MODEL: compressor_train_turbine
 ~~~~~~~~
 
-### A compressor train with two stages where the first stage has unknown spec while the second has a predefined chart
+### A compressor train with two stages where the first stage has unknown spec while the second generic compressor chart from design point
 
 ~~~~~~~~yaml
             MODELS:
@@ -166,22 +161,16 @@ MODELS:
                 TYPE: COMPRESSOR_CHART
                 CHART_TYPE: GENERIC_FROM_INPUT
 
-              - NAME: predefined_variable_speed_compressor_chart
+              - NAME: generic_from_design_point_compressor_chart
                 TYPE: COMPRESSOR_CHART
-                CHART_TYPE: VARIABLE_SPEED
+                CHART_TYPE: GENERIC_FROM_DESIGN_POINT
+                POLYTROPIC_EFFICIENCY: 0.75
+                DESIGN_RATE: 7000
+                DESIGN_HEAD: 50
                 UNITS:
                   RATE: AM3_PER_HOUR
-                  HEAD: M
+                  HEAD: KJ_PER_KG
                   EFFICIENCY: FRACTION
-                CURVES:
-                  - SPEED: 7500
-                    RATE: [2900, 3503, 4002, 4595.0]
-                    HEAD: [8412.9, 7996, 7363, 6127]
-                    EFFICIENCY: [0.72, 0.75, 0.74, 0.70]
-                  - SPEED: 10767
-                    RATE: [4052, 4500, 4999, 5492, 6000, 6439,]
-                    HEAD: [16447, 16081, 15546, 14640, 13454, 11973,]
-                    EFFICIENCY: [0.72, 0.73, 0.74, 0.74, 0.72, 0.70]
 
               - NAME: dry_fluid
                 TYPE: FLUID
@@ -197,7 +186,7 @@ MODELS:
                     - INLET_TEMPERATURE: 30
                       COMPRESSOR_CHART: generic_from_input_compressor_chart
                     - INLET_TEMPERATURE: 30
-                      COMPRESSOR_CHART: predefined_variable_speed_compressor_chart
+                      COMPRESSOR_CHART: generic_from_design_point_compressor_chart
 ~~~~~~~~
 
 ### A compressor train where the number of stages are unknown

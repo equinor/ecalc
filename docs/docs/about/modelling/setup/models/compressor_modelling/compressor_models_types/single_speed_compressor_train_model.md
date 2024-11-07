@@ -13,8 +13,14 @@ This means that a single speed compressor model needs the following to be define
 
 - A polytropic compressor chart for every compressor stage in the compressor train. For single speed trains, eCalc
   only supports user defined single speed compressor charts.
-- A [FLUID_MODEL](/about/references/FLUID_MODEL.md).
-- A [PRESSURE_CONTROL](/about/references/PRESSURE_CONTROL.md).
+- [CONTROL_MARGIN](/about/references/CONTROL_MARGIN.md) and [CONTROL_MARGIN_UNIT](/about/references/CONTROL_MARGIN_UNIT.md) for each compressor stage in the train
+- [FLUID_MODEL](/about/references/FLUID_MODEL.md)
+- [PRESSURE_CONTROL](/about/references/PRESSURE_CONTROL.md)
+
+<span className="changed-from-version">
+**Changed in version 9.0:** CONTROL_MARGIN and CONTROL_MARGIN_UNIT are required
+</span>
+<br/>
 
 The following keywords are optional for a single speed compressor model:
 
@@ -38,9 +44,13 @@ MODELS:
       STAGES:
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
           COMPRESSOR_CHART: <reference to compressor chart model for first stage, must be defined in MODELS or FACILITY_INPUTS>
+          CONTROL_MARGIN: <Surge control margin for the compressor stage. Set to 0.0 if no margin>
+          CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
           COMPRESSOR_CHART: <reference to compressor chart model for second stage, must be defined in MODELS or FACILITY_INPUTS>
+          CONTROL_MARGIN: <Surge control margin for the compressor stage. Set to 0.0 if no margin>
+          CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
         - ... and so forth for each stage in the train
     POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>

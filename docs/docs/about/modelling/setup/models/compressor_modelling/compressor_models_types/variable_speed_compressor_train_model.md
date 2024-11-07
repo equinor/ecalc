@@ -11,7 +11,14 @@ requested discharge pressure by iterating on speed only, an attempt is made to f
 
 This model only supports `User defined variable speed compressor chart`.
 
-In addition, a [FLUID MODEL](/about/modelling/setup/models/fluid_model.md) must be specified.
+In addition, the following keywords are required:
+- [FLUID MODEL](/about/modelling/setup/models/fluid_model.md)
+- [CONTROL_MARGIN](/about/references/CONTROL_MARGIN.md) and [CONTROL_MARGIN_UNIT](/about/references/CONTROL_MARGIN_UNIT.md) for each compressor stage in the train
+
+<span className="changed-from-version">
+**Changed in version 9.0:** CONTROL_MARGIN and CONTROL_MARGIN_UNIT are required
+</span>
+<br/>
 
 **Control mechanisms**
 
@@ -42,12 +49,12 @@ MODELS:
       STAGES:
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
           COMPRESSOR_CHART: <reference to compressor chart model for first stage, must be defined in MODELS or FACILITY_INPUTS>
-          CONTROL_MARGIN: <Surge control margin for the compressor stage. Default value 0.0>
+          CONTROL_MARGIN: <Surge control margin for the compressor stage. Set to 0.0 if no margin>
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
           CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
         - INLET_TEMPERATURE: <inlet temperature in Celsius for stage>
           COMPRESSOR_CHART: <reference to compressor chart model for second stage, must be defined in MODELS or FACILITY_INPUTS>
-          CONTROL_MARGIN: <Surge control margin for the compressor stage. Default value 0.0>
+          CONTROL_MARGIN: <Surge control margin for the compressor stage. Set to 0.0 if no margin>
           PRESSURE_DROP_AHEAD_OF_STAGE: <Pressure drop before compression stage [in bar]>
           CONTROL_MARGIN_UNIT: <FRACTION or PERCENTAGE, default is PERCENTAGE>
         - ... and so forth for each stage in the train
