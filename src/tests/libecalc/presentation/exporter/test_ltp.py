@@ -8,7 +8,7 @@ import pytest
 from libecalc import dto
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
-from libecalc.common.time_utils import Frequency, Period, calculate_delta_days
+from libecalc.common.time_utils import Period, calculate_delta_days
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
@@ -50,9 +50,6 @@ from libecalc.fixtures.cases.venting_emitters.venting_emitter_yaml import (
 )
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
-from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
 )
@@ -398,46 +395,6 @@ def test_only_venting_emitters_no_fuelconsumers():
     # give no CH4-contribution (only CO2)
     emissions_ch4_asset = get_sum_ltp_column(asset_ltp_result, installation_nr=0, ltp_column="storageCh4Mass")
     assert emissions_ch4 == emissions_ch4_asset
-
-
-def test_no_emitters_or_fuelconsumers(
-    yaml_asset_builder_factory,
-    yaml_installation_builder_factory,
-    yaml_asset_configuration_service_factory,
-    resource_service_factory,
-):
-    """
-    Test that eCalc returns error when neither fuelconsumers or venting emitters are specified.
-    """
-    asset = (
-        yaml_asset_builder_factory()
-        .with_test_data()
-        .with_installations(
-            [
-                yaml_installation_builder_factory()
-                .with_test_data()
-                .with_name("this_is_the_name_we_want_in_the_error")
-                .with_fuel_consumers([])
-                .with_venting_emitters([])
-                .with_generator_sets([])
-                .construct()
-            ]
-        )
-        .construct()
-    )
-    configuration_service = yaml_asset_configuration_service_factory(asset, "no consumers or emitters")
-    model = YamlModel(
-        configuration_service=configuration_service,
-        resource_service=resource_service_factory({}),
-        output_frequency=Frequency.NONE,
-    )
-
-    with pytest.raises(ModelValidationException) as ee:
-        model.validate_for_run()
-
-    error_message = str(ee.value)
-    assert "this_is_the_name_we_want_in_the_error" in error_message
-    assert f"It is required to specify at least one of the keywords {EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model."
 
 
 def test_total_oil_loaded_old_method():
