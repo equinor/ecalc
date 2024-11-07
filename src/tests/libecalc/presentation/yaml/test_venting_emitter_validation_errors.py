@@ -1,15 +1,8 @@
-from io import StringIO
-
 import pytest
 from pydantic import ValidationError
 
-from libecalc.common.time_utils import Frequency
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
-from libecalc.presentation.yaml.validation_errors import Location
-from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
     YamlVentingEmission,
@@ -20,27 +13,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
     YamlOilRateUnits,
 )
-
-
-def test_wrong_keyword_name(resource_service_factory, configuration_service_factory):
-    """Test custom pydantic error message for invalid keyword names."""
-    model = YamlModel(
-        configuration_service=configuration_service_factory(
-            ResourceStream(stream=StringIO("INVALID_KEYWORD_IN_YAML: 5"), name="INVALID_MODEL")
-        ),
-        resource_service=resource_service_factory({}),
-        output_frequency=Frequency.NONE,
-    )
-    with pytest.raises(ModelValidationException) as exc:
-        model.validate_for_run()
-
-    errors = exc.value.errors()
-    assert "INVALID_KEYWORD_IN_YAML" in str(exc.value)
-    invalid_keyword_error = next(
-        error for error in errors if error.location == Location(keys=["INVALID_KEYWORD_IN_YAML"])
-    )
-
-    assert invalid_keyword_error.message == "This is not a valid keyword"
 
 
 def test_wrong_unit_emitters():

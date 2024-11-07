@@ -24,6 +24,7 @@ CUSTOM_MESSAGES = {
     "extra_forbidden": "This is not a valid keyword",
     "string_pattern_mismatch": "The string/name contains illegal characters. Allowed characters are: {pattern}. "
     "A good start can be to check the string/name for space, which is not allowed.",
+    "union_tag_not_found": "The keyword {discriminator} is missing, it is required.",
 }
 
 
