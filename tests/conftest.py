@@ -21,7 +21,7 @@ from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from tests.libecalc.yaml_builder import (
+from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlEnergyUsageModelDirectBuilder,
     YamlFuelConsumerBuilder,

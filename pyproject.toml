@@ -74,6 +74,10 @@ build-backend = "poetry.core.masonry.api"
 
 # plugins, plugin config etc
 [tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+addopts = "--import-mode=importlib"
 filterwarnings = [
     "error::DeprecationWarning", # Treat all DeprecationWarnings as errors and ignore explicitly below if needed
     "ignore:Avoid using the dto.*:DeprecationWarning", # Ignore internal deprecation warnings

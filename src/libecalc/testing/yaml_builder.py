@@ -1,9 +1,7 @@
 import abc
 from enum import Enum
-from inspect import isclass
-from typing import List, Self, TypeVar, Generic, Any, get_origin, get_args, Type, cast
+from typing import List, Self, TypeVar, Generic, get_args, cast
 
-from pydantic import TypeAdapter, BaseModel
 from typing_extensions import get_original_bases
 
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
@@ -35,7 +33,7 @@ T = TypeVar("T")
 
 
 class Builder(abc.ABC, Generic[T]):
-    __model__: type[YamlBase]
+    __model__: type[T]
 
     def __init_subclass__(cls, **kwargs):
         # When this class is subclassed we parse the type to be able to use the pydantic model for build and validate
@@ -46,11 +44,9 @@ class Builder(abc.ABC, Generic[T]):
         original_base = original_bases[0]
 
         # Get the type of T in Builder[T], assuming a single class, i.e. no unions
-        model_type = [arg for arg in get_args(original_base)][0]
+        model_type: type[T] = [arg for arg in get_args(original_base)][0]
 
-        # Type should be a YamlBase
-        assert isinstance(model_type, type(YamlBase))
-        cls.__model__ = cast(type(YamlBase), model_type)
+        cls.__model__ = model_type
 
     @classmethod
     def get_model_fields(cls) -> list[str]:
@@ -115,32 +111,6 @@ class YamlEnergyUsageModelDirectBuilder(Builder[YamlEnergyUsageModelDirect]):
 TYamlClass = TypeVar("TYamlClass", bound=YamlBase)
 
 
-class YamlModelContainer(Generic[TYamlClass]):
-    """
-    Consumer, Installation wrapper that can be used to bundle the component with its dependencies.
-
-    A fuel consumer that uses a model reference can then use this class to keep the referenced model in a single class.
-    """
-
-    def __init__(self, component: TYamlClass):
-        self.component = component
-        self.models = None
-        self.time_series = None
-        self.facility_inputs = None
-
-    def with_models(self, models) -> Self:
-        self.models = models
-        return self
-
-    def with_time_series(self, time_series):
-        self.time_series = time_series
-        return self
-
-    def with_facility_inputs(self, facility_inputs) -> Self:
-        self.facility_inputs = facility_inputs
-        return self
-
-
 class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
     def __init__(self):
         self.name = None
@@ -192,42 +162,24 @@ class YamlInstallationBuilder(Builder[YamlInstallation]):
         self.name = name
         return self
 
-    def with_fuel_consumers(
-        self, fuel_consumers: list[YamlFuelConsumer | YamlModelContainer[YamlFuelConsumer]]
-    ) -> Self:
+    def with_fuel_consumers(self, fuel_consumers: list[YamlFuelConsumer]) -> Self:
         new_fuel_consumers = []
         for fuel_consumer in fuel_consumers:
-            if isinstance(fuel_consumer, YamlModelContainer):
-                self._yaml_model_containers.append(fuel_consumer)
-                new_fuel_consumers.append(fuel_consumer.component)
-            else:
-                new_fuel_consumers.append(fuel_consumer)
+            new_fuel_consumers.append(fuel_consumer)
         self.fuel_consumers = new_fuel_consumers
         return self
 
-    def with_venting_emitters(
-        self, venting_emitters: list[YamlVentingEmitter | YamlModelContainer[YamlVentingEmitter]]
-    ) -> Self:
+    def with_venting_emitters(self, venting_emitters: list[YamlVentingEmitter]) -> Self:
         new_venting_emitters = []
         for venting_emitter in venting_emitters:
-            if isinstance(venting_emitter, YamlModelContainer):
-                self._yaml_model_containers.append(venting_emitter)
-                new_venting_emitters.append(venting_emitter.component)
-            else:
-                new_venting_emitters.append(venting_emitter)
+            new_venting_emitters.append(venting_emitter)
         self.venting_emitters = new_venting_emitters
         return self
 
-    def with_generator_sets(
-        self, generator_sets: list[YamlGeneratorSet | YamlModelContainer[YamlGeneratorSet]]
-    ) -> Self:
+    def with_generator_sets(self, generator_sets: list[YamlGeneratorSet]) -> Self:
         new_generator_sets = []
         for generator_set in generator_sets:
-            if isinstance(generator_set, YamlModelContainer):
-                self._yaml_model_containers.append(generator_set)
-                new_generator_sets.append(generator_set.component)
-            else:
-                new_generator_sets.append(generator_set)
+            new_generator_sets.append(generator_set)
         self.generator_sets = new_generator_sets
         return self
 
@@ -313,20 +265,14 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.variables = variables
         return self
 
-    def with_installations(self, installations: List[YamlInstallation | YamlModelContainer[YamlInstallation]]):
+    def with_installations(self, installations: List[YamlInstallation]):
         if len(installations) == 0:
             self.installations = []
             return self
 
         new_installations = []
         for installation in installations:
-            if isinstance(installation, YamlModelContainer):
-                self.models.extend(installation.models)
-                self.facility_inputs.extend(installation.facility_inputs)
-                self.time_series.extend(installation.time_series)
-                new_installations.append(installation.component)
-            else:
-                new_installations.append(installation)
+            new_installations.append(installation)
 
         self.installations = new_installations
         return self
