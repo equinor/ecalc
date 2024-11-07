@@ -1,4 +1,9 @@
-yaml_fluid_model = """
+import pytest
+
+
+@pytest.fixture
+def yaml_fluid_model():
+    return """
   - NAME: fluid_model
     TYPE: FLUID
     FLUID_MODEL_TYPE: PREDEFINED
@@ -6,7 +11,10 @@ yaml_fluid_model = """
     GAS_TYPE: MEDIUM
 """
 
-yaml_chart_single_speed = """
+
+@pytest.fixture
+def yaml_chart_single_speed():
+    return """
   - NAME: single_speed_compressor_chart
     TYPE: COMPRESSOR_CHART
     CHART_TYPE: SINGLE_SPEED
@@ -21,7 +29,10 @@ yaml_chart_single_speed = """
         EFFICIENCY: [0.72, 0.75, 0.74, 0.70]
 """
 
-yaml_chart_variable_speed = """
+
+@pytest.fixture
+def yaml_chart_variable_speed():
+    return """
   - NAME: variable_speed_compressor_chart
     TYPE: COMPRESSOR_CHART
     CHART_TYPE: VARIABLE_SPEED
@@ -44,7 +55,10 @@ yaml_chart_variable_speed = """
         EFFICIENCY: [0.72, 0.73, 0.74, 0.74, 0.72, 0.70]
 """
 
-yaml_chart_generic_from_input = """
+
+@pytest.fixture
+def yaml_chart_generic_from_input():
+    return """
   - NAME: generic_from_input_compressor_chart
     TYPE: COMPRESSOR_CHART
     CHART_TYPE: GENERIC_FROM_INPUT
@@ -53,7 +67,10 @@ yaml_chart_generic_from_input = """
       EFFICIENCY: FRACTION
 """
 
-yaml_simplified_train_wrong_chart = f"""
+
+@pytest.fixture
+def yaml_simplified_train_wrong_chart(yaml_fluid_model, yaml_chart_single_speed):
+    return f"""
 MODELS:
   {yaml_fluid_model}
   {yaml_chart_single_speed}
@@ -66,7 +83,10 @@ MODELS:
           COMPRESSOR_CHART: single_speed_compressor_chart
 """
 
-yaml_simplified_train_with_control_margin_and_pressure_drop = f"""
+
+@pytest.fixture
+def yaml_simplified_train_with_control_margin_and_pressure_drop(yaml_fluid_model, yaml_chart_generic_from_input):
+    return f"""
 MODELS:
   {yaml_fluid_model}
   {yaml_chart_generic_from_input}
@@ -82,7 +102,10 @@ MODELS:
           COMPRESSOR_CHART: generic_from_input_compressor_chart
     """
 
-yaml_single_speed_train_without_control_margin = f"""
+
+@pytest.fixture
+def yaml_single_speed_train_without_control_margin(yaml_fluid_model, yaml_chart_single_speed):
+    return f"""
 MODELS:
   {yaml_fluid_model}
   {yaml_chart_single_speed}
@@ -96,7 +119,10 @@ MODELS:
           PRESSURE_DROP_AHEAD_OF_STAGE: 2
 """
 
-yaml_variable_speed_train_without_control_margin = f"""
+
+@pytest.fixture
+def yaml_variable_speed_train_without_control_margin(yaml_fluid_model, yaml_chart_variable_speed):
+    return f"""
 MODELS:
   {yaml_fluid_model}
   {yaml_chart_variable_speed}

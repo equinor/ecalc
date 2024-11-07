@@ -3,10 +3,6 @@ from pathlib import Path
 
 import pytest
 
-from conftest import (
-    yaml_simplified_train_with_control_margin_and_pressure_drop,
-    yaml_simplified_train_wrong_chart,
-)
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.model import YamlModel
@@ -15,7 +11,9 @@ from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 
 
-def test_control_margin_and_pressure_drop_not_allowed(configuration_service_factory):
+def test_control_margin_and_pressure_drop_not_allowed(
+    configuration_service_factory, yaml_simplified_train_with_control_margin_and_pressure_drop
+):
     configuration_service = configuration_service_factory(
         ResourceStream(name="", stream=StringIO(yaml_simplified_train_with_control_margin_and_pressure_drop))
     )
@@ -55,7 +53,7 @@ def test_control_margin_and_pressure_drop_not_allowed(configuration_service_fact
     )
 
 
-def test_single_speed_chart_not_allowed(configuration_service_factory):
+def test_single_speed_chart_not_allowed(configuration_service_factory, yaml_simplified_train_wrong_chart):
     configuration_service = configuration_service_factory(
         ResourceStream(name="", stream=StringIO(yaml_simplified_train_wrong_chart))
     )
