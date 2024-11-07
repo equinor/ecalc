@@ -112,6 +112,18 @@ See [Contribution Document](CONTRIBUTING.md) on how to contribute.
 
 See the [Developer Guide](/docs/docs/contribute/get_started.md) for details.
 
+### Running tests
+
+We use pytest for our tests, to run all tests
+```shell
+poetry run pytest
+```
+
+To update inline snapshots
+```shell
+poetry run pytest -m "inlinesnapshot" --inline-snapshot=fix
+```
+
 ## Examples
 Jupyter Notebook examples can be found in /examples. In order to run these examples, you need to install the optional
 dependencies.
