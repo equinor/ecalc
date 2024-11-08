@@ -242,6 +242,14 @@ class YamlEmissionBuilder(Builder[YamlEmission]):
         self.factor = 2
         return self
 
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_factor(self, factor: float) -> Self:
+        self.factor = factor
+        return self
+
 
 class YamlFuelTypeBuilder(Builder[YamlFuelType]):
     def __init__(self):
