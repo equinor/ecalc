@@ -234,7 +234,6 @@ class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         self.name = "generator set 1"
         self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
         self.fuel = YamlFuelTypeBuilder().with_test_data().validate()
-        self.electricity2fuel = None
 
         return self
 
