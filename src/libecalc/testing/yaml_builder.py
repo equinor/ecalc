@@ -23,6 +23,8 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import YamlVentingEmitter
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
+    YamlFacilityModelType,
+    YamlFacilityAdjustment,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -255,10 +257,41 @@ class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         self.max_usage_from_shore = None
         self.consumers = []
 
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_category(self, category: ConsumerUserDefinedCategoryType) -> Self:
+        self.category = category
+        return self
+
+    def with_fuel(self, fuel: YamlFuelType) -> Self:
+        self.fuel = fuel
+        return self
+
+    def with_electricity2fuel(self, electricity2fuel: YamlFacilityModel) -> Self:
+        self.electricity2fuel = electricity2fuel
+        return self
+
+    def with_consumers(self, consumers: list[YamlElectricityConsumer]) -> Self:
+        self.consumers = consumers
+        return self
+
+    def with_cable_loss(self, cable_loss: float) -> Self:
+        self.cable_loss = cable_loss
+        return self
+
+    def with_max_usage_from_shore(self, max_usage_from_shore: float) -> Self:
+        self.max_usage_from_shore = max_usage_from_shore
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "generator set 1"
         self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
         self.fuel = YamlFuelTypeBuilder().with_test_data().validate()
+        self.electricity2fuel = (
+            YamlFacilityInputBuilder(YamlFacilityModelType.ELECTRICITY2FUEL).with_test_data().validate()
+        )
         self.consumers.append(YamlElectricityConsumerBuilder().with_test_data().validate())
 
         return self
@@ -335,4 +368,44 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_end(self, end: str):
         self.end = end
+        return self
+
+
+class YamlFacilityInputBuilder(Builder[YamlFacilityModel]):
+    def __init__(self, model_type: YamlFacilityModelType):
+        self.name = None
+        self.file = None
+        self.adjustment = None
+        self.type = model_type
+
+    def with_name(self, name: str):
+        self.name = name
+        return self
+
+    def with_file(self, file: str):
+        self.file = file
+        return self
+
+    def with_adjustment(self, constant: float, factor: float):
+        self.adjustment = YamlFacilityAdjustment(constant=constant, factor=factor)
+        return self
+
+    def with_test_data(self):
+        self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
+
+        if self.type is YamlFacilityModelType.ELECTRICITY2FUEL:
+            self.name = "generator_set1"
+            self.file = "electricity2fuel.csv"
+        if self.type == YamlFacilityModelType.COMPRESSOR_TABULAR:
+            self.name = "compressor_sampled1"
+            self.file = "compressor_sampled.csv"
+        if self.type == YamlFacilityModelType.TABULAR:
+            self.name = "pump_sampled1"
+            self.file = "pump_sampled.csv"
+        if self.type == YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED:
+            self.name = "pump_single_speed1"
+            self.file = "pump_chart_single_speed.csv"
+        if self.type == YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED:
+            self.name = "pump_variable_speed1"
+            self.file = "pump_chart_variable_speed.csv"
         return self
