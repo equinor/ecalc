@@ -149,8 +149,8 @@ class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
         self.category = None
 
     def with_test_data(self) -> Self:
-        self.name = "flare"
-        self.category = ConsumerUserDefinedCategoryType.FLARE.value
+        self.name = "base load"
+        self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD.value
         self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
         return self
 
