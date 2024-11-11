@@ -6,12 +6,16 @@ from typing_extensions import get_original_bases
 
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import YamlFuelEnergyUsageModel
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
+    YamlFuelEnergyUsageModel,
+    YamlElectricityEnergyUsageModel,
+)
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
     YamlEnergyUsageModelDirect,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
@@ -138,6 +142,27 @@ class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
         return self
 
 
+class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
+    def __init__(self):
+        self.name = None
+        self.energy_usage_model = None
+        self.category = None
+
+    def with_test_data(self) -> Self:
+        self.name = "flare"
+        self.category = ConsumerUserDefinedCategoryType.FLARE.value
+        self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_energy_usage_model(self, energy_usage_model: YamlTemporalModel[YamlElectricityEnergyUsageModel]) -> Self:
+        self.energy_usage_model = energy_usage_model
+        return self
+
+
 class YamlInstallationBuilder(Builder[YamlInstallation]):
     def __init__(self):
         self.name = None
@@ -234,6 +259,7 @@ class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         self.name = "generator set 1"
         self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
         self.fuel = YamlFuelTypeBuilder().with_test_data().validate()
+        self.consumers.append(YamlElectricityConsumerBuilder().with_test_data().validate())
 
         return self
 
