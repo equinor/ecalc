@@ -220,6 +220,25 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
         return self
 
 
+class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
+    def __init__(self):
+        self.name = None
+        self.category = None
+        self.fuel = None
+        self.electricity2fuel = None
+        self.cable_loss = None
+        self.max_usage_from_shore = None
+        self.consumers = []
+
+    def with_test_data(self) -> Self:
+        self.name = "generator set 1"
+        self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+        self.fuel = YamlFuelTypeBuilder().with_test_data().validate()
+        self.electricity2fuel = None
+
+        return self
+
+
 class YamlAssetBuilder(Builder[YamlAsset]):
     def __init__(self):
         self.time_series = []
