@@ -1,15 +1,25 @@
 import abc
 from enum import Enum
-from typing import List, Self, TypeVar, Generic, get_args, cast
+from typing import List, Self, TypeVar, Generic, get_args, cast, Union
 
 from typing_extensions import get_original_bases
 
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.expression.expression import ExpressionType
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
+    YamlExpressionType,
+)
+
+from libecalc.dto.types import ConsumerUserDefinedCategoryType, FuelTypeUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlFuelEnergyUsageModel,
     YamlElectricityEnergyUsageModel,
 )
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    GeneratorSetModelReference,
+)
+
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
     YamlEnergyUsageModelDirect,
@@ -25,6 +35,12 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlFacilityModel,
     YamlFacilityModelType,
     YamlFacilityAdjustment,
+    YamlGeneratorSetModel,
+    YamlTabularModel,
+    YamlCompressorTabularModel,
+    YamlPumpChartSingleSpeed,
+    YamlPumpChartVariableSpeed,
+    YamlPumpChartUnits,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -139,6 +155,10 @@ class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
         self.fuel = fuel
         return self
 
+    def with_category(self, category: ConsumerUserDefinedCategoryType):
+        self.category = category
+        return self
+
     def with_energy_usage_model(self, energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]) -> Self:
         self.energy_usage_model = energy_usage_model
         return self
@@ -152,12 +172,16 @@ class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
 
     def with_test_data(self) -> Self:
         self.name = "base load"
-        self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD.value
+        self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD
         self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
         return self
 
     def with_name(self, name: str) -> Self:
         self.name = name
+        return self
+
+    def with_category(self, category: ConsumerUserDefinedCategoryType) -> Self:
+        self.category = category
         return self
 
     def with_energy_usage_model(self, energy_usage_model: YamlTemporalModel[YamlElectricityEnergyUsageModel]) -> Self:
@@ -225,7 +249,7 @@ class YamlEmissionBuilder(Builder[YamlEmission]):
         self.name = name
         return self
 
-    def with_factor(self, factor: float) -> Self:
+    def with_factor(self, factor: YamlExpressionType) -> Self:
         self.factor = factor
         return self
 
@@ -246,6 +270,14 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
         self.name = name
         return self
 
+    def with_emissions(self, emissions: list[YamlEmission]) -> Self:
+        self.emissions = emissions
+        return self
+
+    def with_category(self, category: FuelTypeUserDefinedCategoryType) -> Self:
+        self.category = category
+        return self
+
 
 class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
     def __init__(self):
@@ -261,37 +293,35 @@ class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         self.name = name
         return self
 
-    def with_category(self, category: ConsumerUserDefinedCategoryType) -> Self:
+    def with_category(self, category: YamlTemporalModel[ConsumerUserDefinedCategoryType]) -> Self:
         self.category = category
         return self
 
-    def with_fuel(self, fuel: YamlFuelType) -> Self:
+    def with_fuel(self, fuel: YamlTemporalModel[str]) -> Self:
         self.fuel = fuel
         return self
 
-    def with_electricity2fuel(self, electricity2fuel: YamlFacilityModel) -> Self:
+    def with_electricity2fuel(self, electricity2fuel: YamlTemporalModel[GeneratorSetModelReference]) -> Self:
         self.electricity2fuel = electricity2fuel
         return self
 
-    def with_consumers(self, consumers: list[YamlElectricityConsumer]) -> Self:
+    def with_consumers(self, consumers: list[Union[YamlElectricityConsumer, YamlConsumerSystem]]) -> Self:
         self.consumers = consumers
         return self
 
-    def with_cable_loss(self, cable_loss: float) -> Self:
+    def with_cable_loss(self, cable_loss: ExpressionType) -> Self:
         self.cable_loss = cable_loss
         return self
 
-    def with_max_usage_from_shore(self, max_usage_from_shore: float) -> Self:
+    def with_max_usage_from_shore(self, max_usage_from_shore: ExpressionType) -> Self:
         self.max_usage_from_shore = max_usage_from_shore
         return self
 
     def with_test_data(self) -> Self:
         self.name = "generator set 1"
         self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
-        self.fuel = YamlFuelTypeBuilder().with_test_data().validate()
-        self.electricity2fuel = (
-            YamlFacilityInputBuilder(YamlFacilityModelType.ELECTRICITY2FUEL).with_test_data().validate()
-        )
+        self.fuel = YamlFuelTypeBuilder().with_test_data().validate().name
+        self.electricity2fuel = YamlElectricity2fuelBuilder().with_test_data().validate().name
         self.consumers.append(YamlElectricityConsumerBuilder().with_test_data().validate())
 
         return self
@@ -371,12 +401,12 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         return self
 
 
-class YamlFacilityInputBuilder(Builder[YamlFacilityModel]):
-    def __init__(self, model_type: YamlFacilityModelType):
+class YamlElectricity2fuelBuilder(Builder[YamlGeneratorSetModel]):
+    def __init__(self):
         self.name = None
         self.file = None
         self.adjustment = None
-        self.type = model_type
+        self.type = YamlFacilityModelType.ELECTRICITY2FUEL
 
     def with_name(self, name: str):
         self.name = name
@@ -392,20 +422,7 @@ class YamlFacilityInputBuilder(Builder[YamlFacilityModel]):
 
     def with_test_data(self):
         self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
+        self.name = "generator_set1"
+        self.file = "electricity2fuel.csv"
 
-        if self.type is YamlFacilityModelType.ELECTRICITY2FUEL:
-            self.name = "generator_set1"
-            self.file = "electricity2fuel.csv"
-        if self.type == YamlFacilityModelType.COMPRESSOR_TABULAR:
-            self.name = "compressor_sampled1"
-            self.file = "compressor_sampled.csv"
-        if self.type == YamlFacilityModelType.TABULAR:
-            self.name = "pump_sampled1"
-            self.file = "pump_sampled.csv"
-        if self.type == YamlFacilityModelType.PUMP_CHART_SINGLE_SPEED:
-            self.name = "pump_single_speed1"
-            self.file = "pump_chart_single_speed.csv"
-        if self.type == YamlFacilityModelType.PUMP_CHART_VARIABLE_SPEED:
-            self.name = "pump_variable_speed1"
-            self.file = "pump_chart_variable_speed.csv"
         return self
