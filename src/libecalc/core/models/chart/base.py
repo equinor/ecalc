@@ -6,7 +6,6 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
-from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import ChartCurveDTO
 
 
@@ -158,10 +157,6 @@ class ChartCurve:
                 new_x_value
             )
 
-        logger.warning(
-            "The CONTROL_MARGIN functionality is experimental. Usage in an operational setting is not recommended. "
-            "Any usage of this functionality is at your own risk."
-        )
         adjust_minimum_rate_by = (np.max(self.rate) - np.min(self.rate)) * control_margin
         new_minimum_rate = np.min(self.rate) + adjust_minimum_rate_by
         rate_head_efficiency_array = np.vstack((self.rate, self.head, self.efficiency))
