@@ -385,3 +385,40 @@ def test_adjustment_constant_and_factor_one_compressor(variable_speed_compressor
         discharge_pressure=np.asarray([100.0]),
     )
     assert result_adjusted.power[0] == result.power[0] * 1.5 + adjustment_constant
+
+
+def test_get_max_standard_rate_with_and_without_maximum_power(
+    variable_speed_compressor_train_one_compressor,
+    variable_speed_compressor_train_one_compressor_maximum_power,
+):
+    max_standard_rate_without_maximum_power = variable_speed_compressor_train_one_compressor.get_max_standard_rate(
+        suction_pressures=np.asarray([30], dtype=float),
+        discharge_pressures=np.asarray([100], dtype=float),
+    )
+    max_standard_rate_with_maximum_power = (
+        variable_speed_compressor_train_one_compressor_maximum_power.get_max_standard_rate(
+            suction_pressures=np.asarray([30], dtype=float),
+            discharge_pressures=np.asarray([100], dtype=float),
+        )
+    )
+    power_at_max_standard_rate_without_maximum_power = (
+        variable_speed_compressor_train_one_compressor.evaluate_rate_ps_pd(
+            rate=np.asarray(max_standard_rate_without_maximum_power, dtype=float),
+            suction_pressure=np.asarray([30], dtype=float),
+            discharge_pressure=np.asarray([100], dtype=float),
+        ).power
+    )
+    power_at_max_standard_rate_with_maximum_power = (
+        variable_speed_compressor_train_one_compressor_maximum_power.evaluate_rate_ps_pd(
+            rate=np.asarray(max_standard_rate_with_maximum_power, dtype=float),
+            suction_pressure=np.asarray([30], dtype=float),
+            discharge_pressure=np.asarray([100], dtype=float),
+        ).power
+    )
+
+    assert max_standard_rate_without_maximum_power > max_standard_rate_with_maximum_power
+    assert power_at_max_standard_rate_without_maximum_power > power_at_max_standard_rate_with_maximum_power
+    assert (
+        power_at_max_standard_rate_with_maximum_power[0]
+        < variable_speed_compressor_train_one_compressor_maximum_power.maximum_power
+    )
