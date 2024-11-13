@@ -29,7 +29,7 @@ STANDARD_PRESSURE_BARA = 1.01325
 NEQSIM_MIXING_RULE = 2
 
 ThermodynamicSystem = neqsim.thermo.system.SystemEos
-ThermodynamicOperations = neqsim.thermodynamicOperations.ThermodynamicOperations
+ThermodynamicOperations = neqsim.thermodynamicoperations.ThermodynamicOperations
 
 
 class NeqsimFluidComponent(BaseModel):

@@ -7,7 +7,7 @@ def test_py4j_service():
     thermo_system.addComponent("methane", 10.0)
     thermo_system.addComponent("water", 4.0)
 
-    thermo_dynamic_operations = neqsim.thermodynamicOperations.ThermodynamicOperations(thermo_system)
+    thermo_dynamic_operations = neqsim.thermodynamicoperations.ThermodynamicOperations(thermo_system)
     thermo_dynamic_operations.TPflash()
 
     gas_enthalpy = thermo_system.getPhase(0).getEnthalpy()
