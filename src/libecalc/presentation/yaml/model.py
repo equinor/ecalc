@@ -4,10 +4,13 @@ from typing import Optional, Self
 
 from typing_extensions import deprecated
 
+from libecalc.application.energy.energy_component import EnergyComponent
+from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.time_utils import Frequency, Period
-from libecalc.common.variables import VariablesMap
+from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.expression import Expression
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
@@ -29,7 +32,7 @@ from libecalc.presentation.yaml.yaml_validation_context import (
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
 
-class YamlModel:
+class YamlModel(EnergyModel):
     """
     Class representing both the yaml and the resources.
 
@@ -55,6 +58,22 @@ class YamlModel:
         self.resources = resource_service.get_resources(self._configuration)
 
         self._is_validated = False
+        self._graph = None
+
+    def get_regularity(self, component_id: str) -> dict[datetime, Expression]:
+        graph = self.get_graph()
+        installation_id = graph.get_parent_installation_id(component_id)
+        installation = graph.get_node(installation_id)
+        return installation.regularity
+
+    def get_consumers(self, provider_id: str) -> list[EnergyComponent]:
+        return self.get_graph().get_consumers(provider_id)
+
+    def get_energy_components(self) -> list[EnergyComponent]:
+        return self.get_graph().get_energy_components()
+
+    def get_expression_evaluator(self) -> ExpressionEvaluator:
+        return self.variables
 
     def _get_reference_service(self) -> ReferenceService:
         return create_references(self._configuration, self.resources)
@@ -115,7 +134,12 @@ class YamlModel:
         )
 
     def get_graph(self) -> ComponentGraph:
-        return self.dto.get_graph()
+        if self._is_validated and self._graph is not None:
+            return self._graph
+
+        # Allow creating the graph without validating since the model might be validated separately
+        self._graph = self.dto.get_graph()
+        return self._graph
 
     def _get_token_references(self, yaml_model: YamlValidator) -> list[str]:
         token_references = self._get_time_series_collections().get_time_series_references()
@@ -149,7 +173,12 @@ class YamlModel:
             # Validate model
             validation_context = self._get_validation_context(yaml_model=self._configuration)
             self._configuration.validate(validation_context)
+
+            # Is validated, first step, must be set before calling get_graph
             self._is_validated = True
+
+            # Validate and create the graph used for evaluating the energy model
+            self.get_graph()
             return self
         except DtoValidationError as e:
             raise ModelValidationException(errors=e.errors()) from e

@@ -9,14 +9,10 @@ from libecalc.fixtures import YamlCase
 def result(all_energy_usage_models_yaml: YamlCase) -> EnergyCalculatorResult:
     model = all_energy_usage_models_yaml.get_yaml_model()
     model.validate_for_run()
-    graph = model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
+    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
     variables = model.variables
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
-    emission_results = energy_calculator.evaluate_emissions(
-        variables_map=variables,
-        consumer_results=consumer_results,
-    )
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
 
     return EnergyCalculatorResult(
         consumer_results=consumer_results,

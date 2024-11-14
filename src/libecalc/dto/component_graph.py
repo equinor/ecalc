@@ -1,12 +1,24 @@
 from __future__ import annotations
 
+from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.graph import Graph, NodeID
 from libecalc.dto.node_info import NodeInfo
 
 
+# TODO: Rename to energy graph, use composition instead of inheritance. Alternatively make YamlModel the EnergyGraph/EnergyModel and use Graph directly in YamlModel
+#   Currently it is practical to have the EnergyModel graph related functions here to deal with dto tests.
 class ComponentGraph(Graph):
+    def get_consumers(self, provider_id: str) -> list[EnergyComponent]:
+        consumer_ids = self.get_successors(provider_id)
+        return [self.get_node(consumer_id) for consumer_id in consumer_ids]
+
+    def get_energy_components(self) -> list[EnergyComponent]:
+        component_ids = list(reversed(self.sorted_node_ids))
+        component_dtos = [self.get_node(component_id) for component_id in component_ids]
+        return component_dtos
+
     def get_parent_installation_id(self, node_id: NodeID) -> NodeID:
         """
         Simple helper function to get the installation of any component with id

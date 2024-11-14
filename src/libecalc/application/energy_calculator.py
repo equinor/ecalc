@@ -1,18 +1,22 @@
+import operator
 from collections import defaultdict
+from functools import reduce
+from typing import Optional
 
 import numpy as np
 
 import libecalc.dto.components
+from libecalc.application.energy.component_energy_context import ComponentEnergyContext
+from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
-from libecalc.common.utils.rates import TimeSeriesInt, TimeSeriesString
-from libecalc.common.variables import VariablesMap
+from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesInt, TimeSeriesStreamDayRate, TimeSeriesString
+from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
@@ -22,7 +26,6 @@ from libecalc.core.models.fuel import FuelModel
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.components import (
     ConsumerSystem as ConsumerSystemDTO,
 )
@@ -41,39 +44,82 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 
 
+class Context(ComponentEnergyContext):
+    def __init__(
+        self,
+        energy_model: EnergyModel,
+        consumer_results: dict[str, EcalcModelResult],
+        component_id: str,
+    ):
+        self._energy_model = energy_model
+        self._consumer_results = consumer_results
+        self._component_id = component_id
+
+    def get_power_requirement(self) -> Optional[TimeSeriesFloat]:
+        consumer_power_usage = [
+            self._consumer_results[consumer.id].component_result.power
+            for consumer in self._energy_model.get_consumers(self._component_id)
+            if self._consumer_results[consumer.id].component_result.power is not None
+        ]
+
+        if len(consumer_power_usage) < 1:
+            return None
+
+        if len(consumer_power_usage) == 1:
+            return consumer_power_usage[0]
+
+        return reduce(operator.add, consumer_power_usage)
+
+    def get_fuel_usage(self) -> Optional[TimeSeriesStreamDayRate]:
+        energy_usage = self._consumer_results[self._component_id].component_result.energy_usage
+        if energy_usage.unit == Unit.MEGA_WATT:
+            # energy usage is power usage, not fuel usage.
+            return None
+        return energy_usage
+
+
 class EnergyCalculator:
     def __init__(
         self,
-        graph: ComponentGraph,
+        energy_model: EnergyModel,
+        expression_evaluator: ExpressionEvaluator,
     ):
-        self._graph = graph
+        self._energy_model = energy_model
+        self._expression_evaluator = expression_evaluator
+        self._consumer_results: dict[str, EcalcModelResult] = {}
 
-    def evaluate_energy_usage(self, variables_map: VariablesMap) -> dict[str, EcalcModelResult]:
-        component_ids = list(reversed(self._graph.sorted_node_ids))
-        component_dtos = [self._graph.get_node(component_id) for component_id in component_ids]
+    def _get_context(self, component_id: str) -> ComponentEnergyContext:
+        return Context(
+            energy_model=self._energy_model,
+            consumer_results=self._consumer_results,
+            component_id=component_id,
+        )
 
-        consumer_results: dict[str, EcalcModelResult] = {}
+    def evaluate_energy_usage(self) -> dict[str, EcalcModelResult]:
+        energy_components = self._energy_model.get_energy_components()
 
-        for component_dto in component_dtos:
-            if isinstance(component_dto, ElectricityConsumerDTO | FuelConsumerDTO):
+        for energy_component in energy_components:
+            if isinstance(energy_component, ElectricityConsumerDTO | FuelConsumerDTO):
                 consumer = Consumer(
-                    id=component_dto.id,
-                    name=component_dto.name,
-                    component_type=component_dto.component_type,
-                    regularity=TemporalModel(component_dto.regularity),
-                    consumes=component_dto.consumes,
+                    id=energy_component.id,
+                    name=energy_component.name,
+                    component_type=energy_component.component_type,
+                    regularity=TemporalModel(energy_component.regularity),
+                    consumes=energy_component.consumes,
                     energy_usage_model=TemporalModel(
                         {
                             period: EnergyModelMapper.from_dto_to_domain(model)
-                            for period, model in component_dto.energy_usage_model.items()
+                            for period, model in energy_component.energy_usage_model.items()
                         }
                     ),
                 )
-                consumer_results[component_dto.id] = consumer.evaluate(expression_evaluator=variables_map)
-            elif isinstance(component_dto, GeneratorSetDTO):
+                self._consumer_results[energy_component.id] = consumer.evaluate(
+                    expression_evaluator=self._expression_evaluator
+                )
+            elif isinstance(energy_component, GeneratorSetDTO):
                 fuel_consumer = Genset(
-                    id=component_dto.id,
-                    name=component_dto.name,
+                    id=energy_component.id,
+                    name=energy_component.name,
                     temporal_generator_set_model=TemporalModel(
                         {
                             period: GeneratorModelSampled(
@@ -82,48 +128,42 @@ class EnergyCalculator:
                                 energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
                                 energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
                             )
-                            for period, model in component_dto.generator_set_model.items()
+                            for period, model in energy_component.generator_set_model.items()
                         }
                     ),
                 )
 
-                power_requirement = elementwise_sum(
-                    *[
-                        consumer_results[consumer_id].component_result.power.values
-                        for consumer_id in self._graph.get_successors(component_dto.id)
-                    ],
-                    periods=variables_map.periods,
-                )
+                context = self._get_context(energy_component.id)
 
-                consumer_results[component_dto.id] = EcalcModelResult(
+                self._consumer_results[energy_component.id] = EcalcModelResult(
                     component_result=fuel_consumer.evaluate(
-                        expression_evaluator=variables_map,
-                        power_requirement=power_requirement,
+                        expression_evaluator=self._expression_evaluator,
+                        power_requirement=context.get_power_requirement(),
                     ),
                     models=[],
                     sub_components=[],
                 )
-            elif isinstance(component_dto, libecalc.dto.components.ConsumerSystem):
-                evaluated_stream_conditions = component_dto.evaluate_stream_conditions(
-                    expression_evaluator=variables_map,
+            elif isinstance(energy_component, libecalc.dto.components.ConsumerSystem):
+                evaluated_stream_conditions = energy_component.evaluate_stream_conditions(
+                    expression_evaluator=self._expression_evaluator,
                 )
                 optimizer = PriorityOptimizer()
 
                 results_per_period: dict[str, dict[Period, ComponentResult]] = defaultdict(dict)
                 priorities_used = []
-                for period in variables_map.periods:
+                for period in self._expression_evaluator.get_periods():
                     consumers_for_period = [
                         create_consumer(
                             consumer=consumer,
                             period=period,
                         )
-                        for consumer in component_dto.consumers
+                        for consumer in energy_component.consumers
                     ]
 
                     consumer_system = ConsumerSystem(
-                        id=component_dto.id,
+                        id=energy_component.id,
                         consumers=consumers_for_period,
-                        component_conditions=component_dto.component_conditions,
+                        component_conditions=energy_component.component_conditions,
                     )
 
                     def evaluator(priority: PriorityID):
@@ -145,12 +185,12 @@ class EnergyCalculator:
                         results_per_period[consumer_result.id][period] = consumer_result
 
                 priorities_used = TimeSeriesString(
-                    periods=variables_map.periods,
+                    periods=self._expression_evaluator.get_periods(),
                     values=priorities_used,
                     unit=Unit.NONE,
                 )
                 # merge consumer results
-                consumer_ids = [consumer.id for consumer in component_dto.consumers]
+                consumer_ids = [consumer.id for consumer in energy_component.consumers]
                 merged_consumer_results = []
                 for consumer_id in consumer_ids:
                     first_result, *rest_results = list(results_per_period[consumer_id].values())
@@ -167,63 +207,57 @@ class EnergyCalculator:
                 )
 
                 system_result = ConsumerSystem.get_system_result(
-                    id=component_dto.id,
+                    id=energy_component.id,
                     consumer_results=merged_consumer_results,
                     operational_settings_used=operational_settings_used,
                 )
-                consumer_results[component_dto.id] = system_result
+                self._consumer_results[energy_component.id] = system_result
                 for consumer_result in merged_consumer_results:
-                    consumer_results[consumer_result.id] = EcalcModelResult(
+                    self._consumer_results[consumer_result.id] = EcalcModelResult(
                         component_result=consumer_result,
                         sub_components=[],
                         models=[],
                     )
 
-        return Numbers.format_results_to_precision(consumer_results, precision=6)
+        self._consumer_results = Numbers.format_results_to_precision(self._consumer_results, precision=6)
+        return self._consumer_results
 
-    def evaluate_emissions(
-        self, variables_map: VariablesMap, consumer_results: dict[str, EcalcModelResult]
-    ) -> dict[str, dict[str, EmissionResult]]:
+    def evaluate_emissions(self) -> dict[str, dict[str, EmissionResult]]:
         """
         Calculate emissions for fuel consumers and emitters
-
-        Args:
-            variables_map:
-            consumer_results:
 
         Returns: a mapping from consumer_id to emissions
         """
         emission_results: dict[str, dict[str, EmissionResult]] = {}
-        for consumer_dto in self._graph.nodes.values():
-            if isinstance(consumer_dto, FuelConsumerDTO | GeneratorSetDTO):
-                fuel_model = FuelModel(consumer_dto.fuel)
-                energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
-                emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
-                    expression_evaluator=variables_map,
-                    fuel_rate=np.asarray(energy_usage.values),
+        for energy_component in self._energy_model.get_energy_components():
+            if isinstance(energy_component, FuelConsumerDTO | GeneratorSetDTO):
+                fuel_model = FuelModel(energy_component.fuel)
+                fuel_usage = self._get_context(energy_component.id).get_fuel_usage()
+                emission_results[energy_component.id] = fuel_model.evaluate_emissions(
+                    expression_evaluator=self._expression_evaluator,
+                    fuel_rate=np.asarray(fuel_usage.values),
                 )
-            elif isinstance(consumer_dto, ConsumerSystemDTO):
-                if consumer_dto.consumes == ConsumptionType.FUEL:
-                    fuel_model = FuelModel(consumer_dto.fuel)
-                    energy_usage = consumer_results[consumer_dto.id].component_result.energy_usage
-                    emission_results[consumer_dto.id] = fuel_model.evaluate_emissions(
-                        expression_evaluator=variables_map, fuel_rate=np.asarray(energy_usage.values)
+            elif isinstance(energy_component, ConsumerSystemDTO):
+                if energy_component.consumes == ConsumptionType.FUEL:
+                    fuel_model = FuelModel(energy_component.fuel)
+                    fuel_usage = self._get_context(energy_component.id).get_fuel_usage()
+                    emission_results[energy_component.id] = fuel_model.evaluate_emissions(
+                        expression_evaluator=self._expression_evaluator,
+                        fuel_rate=np.asarray(fuel_usage.values),
                     )
-            elif isinstance(consumer_dto, YamlDirectTypeEmitter | YamlOilTypeEmitter):
-                installation_id = self._graph.get_parent_installation_id(consumer_dto.id)
-                installation = self._graph.get_node(installation_id)
-
+            elif isinstance(energy_component, YamlDirectTypeEmitter | YamlOilTypeEmitter):
                 venting_emitter_results = {}
-                emission_rates = consumer_dto.get_emissions(
-                    expression_evaluator=variables_map, regularity=installation.regularity
+                emission_rates = energy_component.get_emissions(
+                    expression_evaluator=self._expression_evaluator,
+                    regularity=self._energy_model.get_regularity(energy_component.id),
                 )
 
                 for emission_name, emission_rate in emission_rates.items():
                     emission_result = EmissionResult(
                         name=emission_name,
-                        periods=variables_map.get_periods(),
+                        periods=self._expression_evaluator.get_periods(),
                         rate=emission_rate,
                     )
                     venting_emitter_results[emission_name] = emission_result
-                emission_results[consumer_dto.id] = venting_emitter_results
+                emission_results[energy_component.id] = venting_emitter_results
         return Numbers.format_results_to_precision(emission_results, precision=6)

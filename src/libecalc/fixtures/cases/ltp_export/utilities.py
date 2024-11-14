@@ -9,16 +9,20 @@ from libecalc.presentation.exporter.configs.configs import LTPConfig
 from libecalc.presentation.exporter.dto.dtos import FilteredResult
 from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
 from libecalc.presentation.yaml.model import YamlModel
+from libecalc.testing.dto_energy_model import DTOEnergyModel
 
 
 def get_consumption(
     model: Union[Installation, Asset, YamlModel], variables: VariablesMap, periods: Periods
 ) -> FilteredResult:
     graph = model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
+    if isinstance(model, Asset | Installation):
+        model = DTOEnergyModel(model)
 
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
-    emission_results = energy_calculator.evaluate_emissions(variables, consumer_results)
+    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
+
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
 
     graph_result = GraphResult(
         graph=graph,

@@ -17,20 +17,15 @@ from libecalc.presentation.json_result.result.results import CompressorModelResu
 def result(compressor_systems_and_compressor_train_temporal) -> EcalcModelResult:
     model = compressor_systems_and_compressor_train_temporal.get_yaml_model()
     model.validate_for_run()
-    graph = model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
-    variables = model.variables
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
-    emission_results = energy_calculator.evaluate_emissions(
-        variables_map=variables,
-        consumer_results=consumer_results,
-    )
+    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
 
     return get_asset_result(
         GraphResult(
-            graph=graph,
+            graph=model.get_graph(),
             consumer_results=consumer_results,
-            variables_map=variables,
+            variables_map=model.variables,
             emission_results=emission_results,
         )
     )

@@ -16,16 +16,13 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
         resource_service=resource_service_factory({}),
         output_frequency=Frequency.NONE,
     )
-    graph = model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
-    consumer_results = energy_calculator.evaluate_energy_usage(model.variables)
-    emission_results = energy_calculator.evaluate_emissions(
-        variables_map=model.variables,
-        consumer_results=consumer_results,
-    )
+    variables = model.variables
+    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
     return get_asset_result(
         GraphResult(
-            graph=graph,
+            graph=model.get_graph(),
             consumer_results=consumer_results,
             variables_map=model.variables,
             emission_results=emission_results,

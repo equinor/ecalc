@@ -44,8 +44,6 @@ def model_with_two_installations(
 
 
 def test_asset_with_multiple_installations(model_with_two_installations):
-    graph = model_with_two_installations.get_graph()
-    energy_calculator = EnergyCalculator(graph)
     timesteps = [
         datetime(2020, 1, 1),
         datetime(2021, 1, 1),
@@ -53,10 +51,11 @@ def test_asset_with_multiple_installations(model_with_two_installations):
         datetime(2023, 1, 1),
     ]
     variables_map = VariablesMap(time_vector=timesteps)
-    consumer_results = energy_calculator.evaluate_energy_usage(variables_map)
-    emission_results = energy_calculator.evaluate_emissions(variables_map, consumer_results)
+    energy_calculator = EnergyCalculator(energy_model=model_with_two_installations, expression_evaluator=variables_map)
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
     graph_result = GraphResult(
-        graph=graph,
+        graph=model_with_two_installations.get_graph(),
         variables_map=variables_map,
         consumer_results=consumer_results,
         emission_results=emission_results,

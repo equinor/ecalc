@@ -1,6 +1,9 @@
+from typing import Optional
+
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
@@ -9,6 +12,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     Rates,
     TimeSeriesBoolean,
+    TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
@@ -31,12 +35,17 @@ class Genset:
     def evaluate(
         self,
         expression_evaluator: ExpressionEvaluator,
-        power_requirement: NDArray[np.float64],
+        power_requirement: Optional[TimeSeriesFloat],
     ) -> GeneratorSetResult:
         """Warning! We are converting energy usage to NaN when the energy usage models has invalid periods. this will
         probably be changed soon.
         """
         logger.debug(f"Evaluating Genset: {self.name}")
+
+        if power_requirement is None:
+            raise EcalcError(title="Invalid generator set", message="No consumption for generator set")
+
+        assert power_requirement.unit == Unit.MEGA_WATT
 
         if not len(power_requirement) == len(expression_evaluator.get_periods()):
             raise ValueError("length of power_requirement does not match the time vector.")
@@ -52,10 +61,6 @@ class Genset:
             periods=expression_evaluator.get_periods(),
             actual_period=expression_evaluator.get_period(),
         )
-
-        # Convert fuel_rate to calendar day rate
-        # fuel_rate = Rates.to_calendar_day(stream_day_rates=fuel_rate, regularity=regularity)
-        # TODO: Ok to not convert to calendar day here? Seems that all legacy stuff needs to be dealt with anyways...
 
         # Check for extrapolations (in el-to-fuel, powers are checked in consumers)
         valid_periods = np.logical_and(~np.isnan(fuel_rate), power_capacity_margin >= 0)
@@ -81,7 +86,7 @@ class Genset:
             ),
             power=TimeSeriesStreamDayRate(
                 periods=expression_evaluator.get_periods(),
-                values=array_to_list(power_requirement),
+                values=power_requirement.values,
                 unit=Unit.MEGA_WATT,
             ),
             energy_usage=TimeSeriesStreamDayRate(
@@ -93,28 +98,30 @@ class Genset:
 
     def evaluate_fuel_rate(
         self,
-        power_requirement: NDArray[np.float64],
+        power_requirement: TimeSeriesFloat,
         periods: Periods,
         actual_period: Period,
     ) -> NDArray[np.float64]:
-        result = np.full_like(power_requirement, fill_value=np.nan).astype(float)
+        result = np.full_like(power_requirement.values, fill_value=np.nan).astype(float)
         for period, model in self.temporal_generator_set_model.items():
             if Period.intersects(period, actual_period):
                 start_index, end_index = period.get_period_indices(periods)
-                result[start_index:end_index] = model.evaluate(power_requirement[start_index:end_index])
+                result[start_index:end_index] = model.evaluate(
+                    np.asarray(power_requirement.values[start_index:end_index])
+                )
         return result
 
     def evaluate_power_capacity_margin(
         self,
-        power_requirement: NDArray[np.float64],
+        power_requirement: TimeSeriesFloat,
         periods: Periods,
         actual_period: Period,
     ) -> NDArray[np.float64]:
-        result = np.zeros_like(power_requirement).astype(float)
+        result = np.zeros_like(power_requirement.values).astype(float)
         for period, model in self.temporal_generator_set_model.items():
             if Period.intersects(period, actual_period):
                 start_index, end_index = period.get_period_indices(periods)
                 result[start_index:end_index] = model.evaluate_power_capacity_margin(
-                    power_requirement[start_index:end_index]
+                    np.asarray(power_requirement.values[start_index:end_index])
                 )
         return result

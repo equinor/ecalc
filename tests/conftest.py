@@ -21,6 +21,7 @@ from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.testing.dto_energy_model import DTOEnergyModel
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlEnergyUsageModelDirectBuilder,
@@ -263,3 +264,15 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
         )
 
     return create_yaml_model
+
+
+@pytest.fixture
+def energy_model_from_dto_factory():
+    """
+    Temporary fixture to make it possible to run dtos while making the transition to (energy?) domain models.
+    """
+
+    def create_energy_model(component) -> DTOEnergyModel:
+        return DTOEnergyModel(component)
+
+    return create_energy_model
