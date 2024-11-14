@@ -1,5 +1,46 @@
 # Changelog
 
+## [9.1.0](https://github.com/equinor/ecalc/compare/v9.0.0...v9.1.0) (2024-11-14)
+
+
+### Bug Fixes
+
+* bug in get maximum standard rate for variable speed train with maximum power ([#694](https://github.com/equinor/ecalc/issues/694)) ([42ce562](https://github.com/equinor/ecalc/commit/42ce56288328daa4b761d5a54c53b638edb8ae54))
+* max standard rate when pressure control is UPSTREAM_CHOKE ([#661](https://github.com/equinor/ecalc/issues/661)) ([962ce42](https://github.com/equinor/ecalc/commit/962ce4202551af6d26923df2e4011ea3f0e8fb9e))
+* missing discriminator keyword error message ([a0ee229](https://github.com/equinor/ecalc/commit/a0ee229a88709aa1b96a8fb9b6f644e7d256105c))
+
+
+### Documentation
+
+* adding figure to show surge line, control margin and stonewall on compressor chart ([#695](https://github.com/equinor/ecalc/issues/695)) ([cdf301b](https://github.com/equinor/ecalc/commit/cdf301b950d82985ceb5c825c8382a1e5126e2b1))
+* change readme for test folder to include changes to docker-compose file ([00cb459](https://github.com/equinor/ecalc/commit/00cb4598b6a8efe6c3f37be1d5639bff5bb145fe))
+* try to make release-please create pr for 9.1.0 ([#679](https://github.com/equinor/ecalc/issues/679)) ([adb5bf5](https://github.com/equinor/ecalc/commit/adb5bf5b35f3d6f776b83c42af1f63383be212ca))
+* update docs and migration guide with new requirements for control margin and generic charts ([#686](https://github.com/equinor/ecalc/issues/686)) ([f2c939f](https://github.com/equinor/ecalc/commit/f2c939fd20b02022e4085d54daff5ec8666df574))
+
+
+### Miscellaneous Chores
+
+* bump NeqSim version to 3.0.5 ([#693](https://github.com/equinor/ecalc/issues/693)) ([e2bef51](https://github.com/equinor/ecalc/commit/e2bef51dc8a9ed1ef4e7abe26a7060802d04e3d0))
+* changing algorithm for get max rate for streams ([#684](https://github.com/equinor/ecalc/issues/684)) ([c13ae30](https://github.com/equinor/ecalc/commit/c13ae303e8388b89abb42048b9a88640bb40cc26))
+* clean up TimeSeriesRate and remove reindex from consumer ([#668](https://github.com/equinor/ecalc/issues/668)) ([c435999](https://github.com/equinor/ecalc/commit/c435999d24ee2615b440154e76e0fdb1f807e9b1))
+* move tests outside src directory ([1fca841](https://github.com/equinor/ecalc/commit/1fca8414056723623c037169483efb790f748b4a))
+* remove extensions from devcontainer not needed ([#674](https://github.com/equinor/ecalc/issues/674)) ([5399a92](https://github.com/equinor/ecalc/commit/5399a9242cc09b23a9b074b43abb6ded24fd96c2))
+* remove warning stating that control margin is experimental ([#692](https://github.com/equinor/ecalc/issues/692)) ([45ad389](https://github.com/equinor/ecalc/commit/45ad389b7f3538d1ae8e15a2d2158ec482f028d9))
+* update dependencies week 46 ([#696](https://github.com/equinor/ecalc/issues/696)) ([6bd1a7a](https://github.com/equinor/ecalc/commit/6bd1a7a2619845e5724cc7f978031f40bc8aa3d4))
+* update docs for running tests ([97245f2](https://github.com/equinor/ecalc/commit/97245f29a8084feb633b8b5620e9e98fa4514953))
+* upgrade dependencies for week 45 ([#689](https://github.com/equinor/ecalc/issues/689)) ([1980b11](https://github.com/equinor/ecalc/commit/1980b110390022ae805bccab0b07ef0b05d4c64b))
+
+
+### Tests
+
+* add new service to test/docker-compose.yml to run all tests ([d3b132e](https://github.com/equinor/ecalc/commit/d3b132ea7ab0ecda4aca707694daef4b8fd92287))
+* add pytest filterwarnings with error::DeprecationWarning as baseline ([87e2d8a](https://github.com/equinor/ecalc/commit/87e2d8ab7b30cf11f1f83d48d0cd9768cd14c80f))
+* allow both validation and not in yaml builders ([ec32fc8](https://github.com/equinor/ecalc/commit/ec32fc8faee6f8236b57b4b6f8a94142470bd556))
+* introduce yaml builders ([75a73a8](https://github.com/equinor/ecalc/commit/75a73a879ee54426e3ac8620398b3dd3769d2652))
+* remove unnecessary asset configuration service ([9543bfb](https://github.com/equinor/ecalc/commit/9543bfbe9ea5c11745fc53f246d8ed46de15d1b8))
+* resource- and configuration service fixtures ([7775eb8](https://github.com/equinor/ecalc/commit/7775eb80c25e4746fd6c204c1660d800b19c5293))
+* simplify venting emitter error tests ([2191c52](https://github.com/equinor/ecalc/commit/2191c5271898aa2ef1b9d657a28d050e61d9e714))
+
 ## [9.0.0](https://github.com/equinor/ecalc/compare/v8.26.0...v9.0.0) (2024-10-31)
 
 
