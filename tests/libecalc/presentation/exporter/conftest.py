@@ -213,14 +213,17 @@ def expected_co2_from_heater() -> float:
 
 
 @pytest.fixture
-def installation_boiler_heater():
-    fuel = (
+def fuel_turbine():
+    return (
         YamlFuelTypeBuilder()
         .with_name("fuel_gas")
         .with_emission_names_and_factors(names=["co2"], factors=[co2_factor])
         .with_category(FuelTypeUserDefinedCategoryType.FUEL_GAS)
     ).validate()
 
+
+@pytest.fixture
+def installation_boiler_heater(fuel_turbine):
     energy_usage_model = (
         YamlEnergyUsageModelDirectBuilder()
         .with_fuel_rate(fuel_rate)
@@ -230,7 +233,7 @@ def installation_boiler_heater():
     fuel_consumer = (
         YamlFuelConsumerBuilder()
         .with_name("boiler")
-        .with_fuel(fuel.name)
+        .with_fuel(fuel_turbine.name)
         .with_energy_usage_model({full_period.start: energy_usage_model})
         .with_category(
             {
@@ -244,7 +247,7 @@ def installation_boiler_heater():
         YamlInstallationBuilder()
         .with_name("INSTALLATION A")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel(fuel.name)
+        .with_fuel(fuel_turbine.name)
         .with_fuel_consumers([fuel_consumer])
         .with_regularity(regularity_installation)
     ).validate()
