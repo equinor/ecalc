@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.20.8](https://github.com/equinor/ecalc/compare/v8.20.7...v8.20.8) (2024-11-14)
+
+
+### Miscellaneous Chores
+
+* update deps week 46 ([#698](https://github.com/equinor/ecalc/issues/698)) ([ff50fcb](https://github.com/equinor/ecalc/commit/ff50fcb1c71f1d6f62ff0623d50b5d3947eaff73))
+
 ## [8.20.7](https://github.com/equinor/ecalc/compare/v8.20.6...v8.20.7) (2024-10-18)
 
 
