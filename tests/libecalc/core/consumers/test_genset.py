@@ -8,6 +8,7 @@ from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
+    TimeSeriesFloat,
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import VariablesMap
@@ -16,18 +17,20 @@ from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result.results import GenericComponentResult
 
 
-def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
+def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_factory):
     """Testing a genset at capacity, at zero and above capacity.
 
     Note that extrapcorrection does not have any effect on the Genset itself - but may have an effect on the elconsumer.
     """
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
 
-    graph = genset_2mw_dto.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
     variables = VariablesMap(time_vector=time_vector)
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
+    energy_calculator = EnergyCalculator(
+        energy_model=energy_model_from_dto_factory(genset_2mw_dto), expression_evaluator=variables
+    )
+    consumer_results = energy_calculator.evaluate_energy_usage()
 
+    graph = genset_2mw_dto.get_graph()
     generator_set_result = consumer_results[genset_2mw_dto.id].component_result
     components = [consumer_results[successor].component_result for successor in graph.get_successors(genset_2mw_dto.id)]
 
@@ -45,7 +48,7 @@ def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto):
     )
     assert isinstance(components[0], GenericComponentResult)
 
-    emission_results = energy_calculator.evaluate_emissions(variables_map=variables, consumer_results=consumer_results)
+    emission_results = energy_calculator.evaluate_emissions()
 
     genset_emissions = emission_results[genset_2mw_dto.id]
     assert genset_emissions["co2"].rate.values == [0.001, 0.002, 0.002, 0, 0, 0]
@@ -73,7 +76,11 @@ def test_genset_with_elconsumer_nan_results(genset_2mw_dto, fuel_dto):
     variables = VariablesMap(time_vector=time_vector)
     results = genset.evaluate(
         expression_evaluator=variables,
-        power_requirement=np.asarray([np.nan, np.nan, 0.5, 0.5, np.nan, np.nan]),
+        power_requirement=TimeSeriesFloat(
+            values=[np.nan, np.nan, 0.5, 0.5, np.nan, np.nan],
+            periods=variables.get_periods(),
+            unit=Unit.MEGA_WATT,
+        ),
     )
 
     # The Genset is not supposed to handle NaN-values from the el-consumers.
@@ -115,7 +122,11 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     variables = VariablesMap(time_vector=time_vector)
     results = genset.evaluate(
         expression_evaluator=variables,
-        power_requirement=np.asarray([1, 2, 3, 4, 5, 6]),
+        power_requirement=TimeSeriesFloat(
+            values=[1, 2, 3, 4, 5, 6],
+            periods=variables.get_periods(),
+            unit=Unit.MEGA_WATT,
+        ),
     )
 
     # The genset will still report power rate
@@ -138,13 +149,15 @@ def test_genset_outside_capacity(genset_2mw_dto, fuel_dto):
     )
 
 
-def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto):
+def test_genset_late_startup(genset_1000mw_late_startup_dto, fuel_dto, energy_model_from_dto_factory):
     time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
     variables = VariablesMap(time_vector=time_vector)
-    graph = genset_1000mw_late_startup_dto.get_graph()
-    energy_calculator = EnergyCalculator(graph)
-    consumer_results = energy_calculator.evaluate_energy_usage(variables_map=variables)
+    energy_calculator = EnergyCalculator(
+        energy_model=energy_model_from_dto_factory(genset_1000mw_late_startup_dto), expression_evaluator=variables
+    )
+    consumer_results = energy_calculator.evaluate_energy_usage()
 
+    graph = genset_1000mw_late_startup_dto.get_graph()
     generator_set_result = consumer_results[genset_1000mw_late_startup_dto.id].component_result
     components = [
         consumer_results[successor].component_result

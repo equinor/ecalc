@@ -53,6 +53,7 @@ from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
 )
+from libecalc.testing.dto_energy_model import DTOEnergyModel
 
 time_vector_installation = [
     datetime(2027, 1, 1),
@@ -69,13 +70,12 @@ def calculate_asset_result(
     model: Union[dto.Installation, dto.Asset],
     variables: VariablesMap,
 ):
-    model = model
+    energy_calculator = EnergyCalculator(energy_model=DTOEnergyModel(model), expression_evaluator=variables)
+
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
+
     graph = model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
-
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
-    emission_results = energy_calculator.evaluate_emissions(variables, consumer_results)
-
     results_core = GraphResult(
         graph=graph,
         variables_map=variables,

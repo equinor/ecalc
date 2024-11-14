@@ -158,7 +158,7 @@ class TestAggregateEmissions:
         assert aggregated_emission_names[0] == "CO2"
         assert aggregated_emission_names[1] == "CH4"
 
-    def test_aggregate_emissions_installations(self):
+    def test_aggregate_emissions_installations(self, energy_model_from_dto_factory):
         """Test that emissions are aggregated correctly with multiple installations. Check that all installations
         are not summed for each installation
         """
@@ -180,14 +180,15 @@ class TestAggregateEmissions:
         )
 
         # generate eCalc results
-        graph = asset.get_graph()
-        energy_calculator = EnergyCalculator(graph=graph)
+        energy_calculator = EnergyCalculator(
+            energy_model=energy_model_from_dto_factory(asset), expression_evaluator=variables
+        )
 
-        consumer_results = energy_calculator.evaluate_energy_usage(variables)
-        emission_results = energy_calculator.evaluate_emissions(variables, consumer_results)
+        consumer_results = energy_calculator.evaluate_energy_usage()
+        emission_results = energy_calculator.evaluate_emissions()
 
         graph_result = GraphResult(
-            graph=graph,
+            graph=asset.get_graph(),
             variables_map=variables,
             consumer_results=consumer_results,
             emission_results=emission_results,

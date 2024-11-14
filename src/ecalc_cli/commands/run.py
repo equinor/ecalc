@@ -131,13 +131,10 @@ def run(
             name_prefix=name_prefix,
         )
 
-    energy_calculator = EnergyCalculator(graph=model.get_graph())
+    energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=model.variables)
     precision = 6
-    consumer_results = energy_calculator.evaluate_energy_usage(model.variables)
-    emission_results = energy_calculator.evaluate_emissions(
-        variables_map=model.variables,
-        consumer_results=consumer_results,
-    )
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
     results_core = GraphResult(
         graph=model.get_graph(),
         consumer_results=consumer_results,

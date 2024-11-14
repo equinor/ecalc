@@ -223,17 +223,18 @@ def test_time_slots_consumer_system_with_non_changing_model(time_slots_simplifie
 
 
 @pytest.mark.snapshot
-def test_all_consumer_with_time_slots_models_results(consumer_with_time_slots_models_dto, rounded_snapshot):
+def test_all_consumer_with_time_slots_models_results(
+    consumer_with_time_slots_models_dto, rounded_snapshot, energy_model_from_dto_factory
+):
     ecalc_model = consumer_with_time_slots_models_dto.ecalc_model
     variables = consumer_with_time_slots_models_dto.variables
 
     graph = ecalc_model.get_graph()
-    energy_calculator = EnergyCalculator(graph=graph)
-    consumer_results = energy_calculator.evaluate_energy_usage(variables)
-    emission_results = energy_calculator.evaluate_emissions(
-        variables_map=variables,
-        consumer_results=consumer_results,
+    energy_calculator = EnergyCalculator(
+        energy_model=energy_model_from_dto_factory(ecalc_model), expression_evaluator=variables
     )
+    consumer_results = energy_calculator.evaluate_energy_usage()
+    emission_results = energy_calculator.evaluate_emissions()
     result = GraphResult(
         graph=graph,
         consumer_results=consumer_results,
