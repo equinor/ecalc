@@ -4,12 +4,14 @@ from typing import List, Self, TypeVar, Generic, get_args, cast, Union
 
 from typing_extensions import get_original_bases
 
+from libecalc.common.utils.rates import RateType
 from libecalc.expression.expression import ExpressionType
-from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import (
-    YamlExpressionType,
-)
 
-from libecalc.dto.types import ConsumerUserDefinedCategoryType, FuelTypeUserDefinedCategoryType
+from libecalc.dto.types import (
+    ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
+    InstallationUserDefinedCategoryType,
+)
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlFuelEnergyUsageModel,
@@ -30,7 +32,21 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsse
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import YamlVentingEmitter
+from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
+    YamlVentingEmitter,
+    YamlOilTypeEmitter,
+    YamlDirectTypeEmitter,
+    YamlVentingEmission,
+    YamlVentingVolume,
+    YamlVentingType,
+    YamlVentingVolumeEmission,
+)
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlOilVolumeRate,
+    YamlEmissionRate,
+    YamlEmissionRateUnits,
+    YamlOilRateUnits,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
     YamlFacilityModelType,
@@ -151,11 +167,11 @@ class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
         self.name = name
         return self
 
-    def with_fuel(self, fuel: str) -> Self:
+    def with_fuel(self, fuel: YamlTemporalModel[str]) -> Self:
         self.fuel = fuel
         return self
 
-    def with_category(self, category: ConsumerUserDefinedCategoryType):
+    def with_category(self, category: YamlTemporalModel[ConsumerUserDefinedCategoryType]):
         self.category = category
         return self
 
@@ -172,7 +188,7 @@ class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
 
     def with_test_data(self) -> Self:
         self.name = "base load"
-        self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD
+        self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD.value
         self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
         return self
 
@@ -180,7 +196,7 @@ class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
         self.name = name
         return self
 
-    def with_category(self, category: ConsumerUserDefinedCategoryType) -> Self:
+    def with_category(self, category: YamlTemporalModel[ConsumerUserDefinedCategoryType]) -> Self:
         self.category = category
         return self
 
@@ -207,10 +223,23 @@ class YamlInstallationBuilder(Builder[YamlInstallation]):
         self.hydrocarbon_export = 0
         self.regularity = 1
         self.fuel_consumers.append(YamlFuelConsumerBuilder().with_test_data().validate())
+        self.generator_sets.append(YamlGeneratorSetBuilder().with_test_data().validate())
         return self
 
     def with_name(self, name: str) -> Self:
         self.name = name
+        return self
+
+    def with_category(self, category: InstallationUserDefinedCategoryType) -> Self:
+        self.category = category
+        return self
+
+    def with_regularity(self, regularity: YamlTemporalModel[YamlExpressionType]) -> Self:
+        self.regularity = regularity
+        return self
+
+    def with_fuel(self, fuel=YamlTemporalModel[str]):
+        self.fuel = fuel
         return self
 
     def with_fuel_consumers(self, fuel_consumers: list[YamlFuelConsumer]) -> Self:
@@ -278,6 +307,11 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
         self.category = category
         return self
 
+    def with_emission_names_and_factors(self, names: list[str], factors: list[YamlExpressionType]) -> Self:
+        for name, factor in zip(names, factors):
+            self.emissions.append(YamlEmissionBuilder().with_name(name).with_factor(factor).validate())
+        return self
+
 
 class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
     def __init__(self):
@@ -318,12 +352,124 @@ class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "generator set 1"
+        self.name = "DefaultGeneratorSet"
         self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
         self.fuel = YamlFuelTypeBuilder().with_test_data().validate().name
         self.electricity2fuel = YamlElectricity2fuelBuilder().with_test_data().validate().name
         self.consumers.append(YamlElectricityConsumerBuilder().with_test_data().validate())
 
+        return self
+
+
+class YamlVentingEmissionBuilder(Builder[YamlVentingEmission]):
+    def __init__(self):
+        self.name = None
+        self.rate = None
+
+    def with_test_data(self) -> Self:
+        self.name = "VentingEmissionDefault"
+        self.rate = YamlEmissionRate(value=10)
+        return self
+
+
+class YamlVentingEmitterDirectTypeBuilder(Builder[YamlDirectTypeEmitter]):
+    def __init__(self):
+        self.name = None
+        self.category = None
+        self.type = YamlVentingType.DIRECT_EMISSION
+        self.emissions = []
+
+    def with_test_data(self) -> Self:
+        self.name = "VentingEmitterDirectTypeDefault"
+        self.category = ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
+        self.emissions.append(
+            YamlVentingEmission(
+                name="co2",
+                rate=YamlEmissionRate(value=3, unit=YamlEmissionRateUnits.KILO_PER_DAY, type=RateType.STREAM_DAY),
+            )
+        )
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_category(self, category: ConsumerUserDefinedCategoryType) -> Self:
+        self.category = category
+        return self
+
+    def with_emissions(self, emissions: list[YamlVentingEmission]) -> Self:
+        self.emissions = emissions
+        return self
+
+    def with_emission_names_and_rates(self, names: list[str], rates: list[YamlExpressionType]) -> Self:
+        for name, rate in zip(names, rates):
+            self.emissions.append(
+                YamlVentingEmission(
+                    name=name,
+                    rate=YamlEmissionRate(
+                        value=rate, unit=YamlEmissionRateUnits.KILO_PER_DAY, type=RateType.STREAM_DAY
+                    ),
+                )
+            )
+        return self
+
+    def with_emission_names_rates_units_and_types(
+        self,
+        names: list[str],
+        rates: list[YamlExpressionType],
+        units: list[YamlEmissionRateUnits],
+        rate_types: list[RateType],
+    ) -> Self:
+        for name, rate, unit, rate_type in zip(names, rates, units, rate_types):
+            self.emissions.append(
+                YamlVentingEmission(name=name, rate=YamlEmissionRate(value=rate, unit=unit, type=rate_type))
+            )
+        return self
+
+
+class YamlVentingEmitterOilTypeBuilder(Builder[YamlOilTypeEmitter]):
+    def __init__(self):
+        self.name = None
+        self.category = None
+        self.type = YamlVentingType.OIL_VOLUME
+        self.volume = None
+
+    def with_test_data(self) -> Self:
+        self.name = "VentingEmitterOilTypeDefault"
+        self.category = ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE
+        self.volume = YamlVentingVolume(
+            rate=YamlOilVolumeRate(
+                value=10, unit=YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY, type=RateType.STREAM_DAY
+            ),
+            emissions=[YamlVentingVolumeEmission(name="co2", emission_factor=2)],
+        )
+
+        return self
+
+    def with_rate_and_emission_names_and_factors(
+        self, rate: YamlExpressionType, names: list[str], factors: list[YamlExpressionType]
+    ) -> Self:
+        self.volume = YamlVentingVolume(
+            rate=YamlOilVolumeRate(
+                value=rate, unit=YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY, type=RateType.STREAM_DAY
+            ),
+            emissions=[
+                YamlVentingVolumeEmission(name=name, emission_factor=factor) for name, factor in zip(names, factors)
+            ],
+        )
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_category(self, category: ConsumerUserDefinedCategoryType) -> Self:
+        self.category = category
+        return self
+
+    def with_volume(self, volume: YamlVentingVolume) -> Self:
+        self.volume = volume
         return self
 
 
@@ -422,7 +568,7 @@ class YamlElectricity2fuelBuilder(Builder[YamlGeneratorSetModel]):
 
     def with_test_data(self):
         self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
-        self.name = "generator_set1"
+        self.name = "DefaultElectricity2fuel"
         self.file = "electricity2fuel.csv"
 
         return self

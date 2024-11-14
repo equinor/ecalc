@@ -1,14 +1,89 @@
 import pytest
-from libecalc.testing.yaml_builder import (
-    YamlEmissionBuilder,
-    YamlFuelTypeBuilder,
-    YamlElectricity2fuelBuilder,
-    YamlGeneratorSetBuilder,
-)
+from datetime import datetime
+from io import StringIO
+from typing import cast, Optional, Union
+from pathlib import Path
+import numpy as np
 
-from libecalc.dto.types import FuelTypeUserDefinedCategoryType, ConsumerUserDefinedCategoryType
-from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
-from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModelType
+from libecalc.common.units import Unit
+from libecalc.common.utils.rates import RateType
+from libecalc.common.variables import VariablesMap
+from libecalc.application.energy_calculator import EnergyCalculator
+from libecalc.presentation.exporter.dto.dtos import FilteredResult
+from libecalc.application.graph_result import GraphResult
+from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
+from libecalc.presentation.exporter.configs.configs import LTPConfig
+from libecalc.common.time_utils import Period
+from libecalc.testing.yaml_builder import (
+    YamlFuelTypeBuilder,
+    YamlFuelConsumerBuilder,
+    YamlInstallationBuilder,
+    YamlEnergyUsageModelDirectBuilder,
+    YamlAssetBuilder,
+    YamlVentingEmitterDirectTypeBuilder,
+)
+from ecalc_cli.infrastructure.file_resource_service import FileResourceService
+from libecalc.dto.types import (
+    FuelTypeUserDefinedCategoryType,
+    ConsumerUserDefinedCategoryType,
+    InstallationUserDefinedCategoryType,
+)
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
+    ConsumptionRateType,
+)
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.configuration_service import ConfigurationService
+from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
+from libecalc.common.time_utils import Frequency, Periods
+from libecalc.presentation.yaml.model import YamlModel
+from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
+    YamlEmissionRateUnits,
+)
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
+
+
+date1 = datetime(2027, 1, 1)
+date2 = datetime(2027, 4, 10)
+date3 = datetime(2028, 1, 1)
+date4 = datetime(2028, 4, 10)
+date5 = datetime(2029, 1, 1)
+
+time_vector_installation = [
+    date1,
+    date2,
+    date3,
+    date4,
+    date5,
+]
+
+period1 = Period(date1, date2)
+period2 = Period(date2, date3)
+period3 = Period(date3, date4)
+period4 = Period(date4, date5)
+period5 = Period(date5)
+
+full_period = Period(datetime(1900, 1, 1))
+period_from_date1 = Period(date1)
+period_from_date3 = Period(date3)
+
+days_year1_first_half = period1.duration.days
+days_year2_first_half = period3.duration.days
+
+days_year1_second_half = period2.duration.days
+days_year2_second_half = period4.duration.days
+
+regularity_installation = 1.0
+regularity_consumer = 1.0
+
+regularity_temporal_installation = {full_period: Expression.setup_from_expression(regularity_installation)}
+regularity_temporal_consumer = {full_period: Expression.setup_from_expression(regularity_consumer)}
+
+fuel_rate = 67000
+diesel_rate = 120000
 
 co2_factor = 1
 ch4_factor = 0.1
@@ -16,39 +91,313 @@ nox_factor = 0.5
 nmvoc_factor = 0
 
 
-@pytest.fixture
-def emissions_factory():
-    def emissions(names: list[str], factors: list[float]):
-        emissions_list = []
-        for name, factor in zip(names, factors):
-            emissions_list.append(YamlEmissionBuilder().with_name(name=name).with_factor(factor=factor).validate())
-        return emissions_list
+class OverridableStreamConfigurationService(ConfigurationService):
+    def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
+        self._overrides = overrides
+        self._stream = stream
 
-    return emissions
+    def get_configuration(self) -> YamlValidator:
+        main_yaml_model = YamlConfiguration.Builder.get_yaml_reader(ReaderType.PYYAML).read(
+            main_yaml=self._stream,
+            enable_include=True,
+        )
+
+        if self._overrides is not None:
+            main_yaml_model._internal_datamodel.update(self._overrides)
+        return cast(YamlValidator, main_yaml_model)
 
 
-def test_fuel_emissions(emissions_factory):
-    emissions_multi = emissions_factory(
-        names=["CO2", "CH4", "NOX", "NMVOC"], factors=[co2_factor, ch4_factor, nox_factor, nmvoc_factor]
+def get_consumption(
+    model: Union[YamlInstallation, YamlAsset, YamlModel], variables_map: VariablesMap, periods: Periods
+) -> FilteredResult:
+    energy_calculator = EnergyCalculator(graph=model.get_graph())
+    precision = 6
+
+    consumer_results = energy_calculator.evaluate_energy_usage(variables_map)
+    emission_results = energy_calculator.evaluate_emissions(
+        variables_map=variables_map,
+        consumer_results=consumer_results,
     )
 
+    graph_result = GraphResult(
+        graph=model.get_graph(),
+        variables_map=variables_map,
+        consumer_results=consumer_results,
+        emission_results=emission_results,
+    )
+
+    ltp_filter = LTPConfig.filter(frequency=Frequency.YEAR)
+    ltp_result = ltp_filter.filter(ExportableGraphResult(graph_result), periods)
+
+    return ltp_result
+
+
+def get_sum_ltp_column(ltp_result: FilteredResult, installation_nr, ltp_column: str) -> float:
+    installation_query_results = ltp_result.query_results[installation_nr].query_results
+    column = [column for column in installation_query_results if column.id == ltp_column][0]
+
+    ltp_sum = sum(float(v) for (k, v) in column.values.items())
+    return ltp_sum
+
+
+def get_yaml_model(yaml_string: str, frequency: Frequency):
+    configuration_service = OverridableStreamConfigurationService(
+        stream=ResourceStream(name="", stream=StringIO(yaml_string)),
+    )
+    resource_service = FileResourceService(working_directory=Path(""))
+
+    return YamlModel(
+        configuration_service=configuration_service,
+        resource_service=resource_service,
+        output_frequency=frequency,
+    ).validate_for_run()
+
+
+def get_asset_yaml_model(
+    installation: YamlInstallation,
+    time_vector: list[datetime],
+    frequency: Frequency,
+    fuel: Optional[YamlFuelType] = None,
+):
+    asset = (
+        YamlAssetBuilder()
+        .with_installations(installations=[installation])
+        .with_start(time_vector[0])
+        .with_end(time_vector[1])
+    )
+
+    if fuel is not None:
+        asset.fuel_types = [fuel]
+
+    asset = asset.validate()
+
+    asset_dict = asset.model_dump(
+        serialize_as_any=True,
+        mode="json",
+        exclude_unset=True,
+        by_alias=True,
+    )
+
+    asset_yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
+    asset_yaml_model = get_yaml_model(yaml_string=asset_yaml_string, frequency=frequency)
+
+    return asset_yaml_model
+
+
+def expected_boiler_fuel_consumption() -> float:
+    n_days = np.sum([days_year1_first_half, days_year1_second_half, days_year2_first_half])
+    consumption = float(fuel_rate * n_days * regularity_consumer)
+    return consumption
+
+
+def expected_heater_fuel_consumption() -> float:
+    n_days = np.sum(days_year2_second_half)
+    consumption = float(fuel_rate * n_days * regularity_consumer)
+    return consumption
+
+
+def expected_co2_from_boiler() -> float:
+    emission_kg_per_day = float(fuel_rate * co2_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    n_days = np.sum([days_year1_first_half, days_year1_second_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
+    return emission_tons
+
+
+def expected_co2_from_heater() -> float:
+    emission_kg_per_day = float(fuel_rate * co2_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    n_days = np.sum(days_year2_second_half)
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
+    return emission_tons
+
+
+@pytest.fixture
+def installation_boiler_heater():
     fuel = (
         YamlFuelTypeBuilder()
-        .with_name("fuel_turbine")
-        .with_emissions(emissions_multi)
+        .with_name("fuel_gas")
+        .with_emission_names_and_factors(names=["co2"], factors=[co2_factor])
         .with_category(FuelTypeUserDefinedCategoryType.FUEL_GAS)
-        .validate()
+    ).validate()
+
+    energy_usage_model = (
+        YamlEnergyUsageModelDirectBuilder()
+        .with_fuel_rate(fuel_rate)
+        .with_consumption_rate_type(ConsumptionRateType.STREAM_DAY)
+    ).validate()
+
+    fuel_consumer = (
+        YamlFuelConsumerBuilder()
+        .with_name("boiler")
+        .with_fuel(fuel.name)
+        .with_energy_usage_model({full_period.start: energy_usage_model})
+        .with_category(
+            {
+                Period(date1, date4).start: ConsumerUserDefinedCategoryType.BOILER,
+                Period(date4).start: ConsumerUserDefinedCategoryType.HEATER,
+            }
+        )
+    ).validate()
+
+    installation = (
+        YamlInstallationBuilder()
+        .with_name("INSTALLATION A")
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+        .with_fuel(fuel.name)
+        .with_fuel_consumers([fuel_consumer])
+        .with_regularity(regularity_installation)
+    ).validate()
+    return installation
+
+
+def test_fuel_emissions(fuel_turbine, installation_boiler_heater):
+    variables_map = VariablesMap(time_vector=time_vector_installation, variables={})
+
+    asset = (
+        YamlAssetBuilder()
+        .with_installations(installations=[installation_boiler_heater])
+        .with_fuel_types(fuel_types=[fuel_turbine])
+        .with_start(date1)
+        .with_end(date5)
+    ).validate()
+
+    asset_dict = asset.model_dump(
+        serialize_as_any=True,
+        mode="json",
+        exclude_unset=True,
+        by_alias=True,
     )
 
-    electricity2fuel = YamlElectricity2fuelBuilder().with_test_data().validate()
-    generator_set = (
-        YamlGeneratorSetBuilder()
-        .with_name("genset")
-        .with_electricity2fuel(electricity2fuel.name)
-        .with_fuel(fuel.name)
-        .with_category(ConsumerUserDefinedCategoryType.TURBINE_GENERATOR)
+    asset_yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
+    asset_yaml_model = get_yaml_model(yaml_string=asset_yaml_string, frequency=Frequency.YEAR)
+
+    ltp_result = get_consumption(
+        model=asset_yaml_model, variables_map=variables_map, periods=asset_yaml_model.variables.get_periods()
+    )
+    boiler_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="boilerFuelGasConsumption")
+    heater_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="heaterFuelGasConsumption")
+    co2_from_boiler = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="boilerFuelGasCo2Mass")
+    co2_from_heater = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="heaterFuelGasCo2Mass")
+
+    assert boiler_fuel_consumption == expected_boiler_fuel_consumption()
+    assert heater_fuel_consumption == expected_heater_fuel_consumption()
+    assert co2_from_boiler == expected_co2_from_boiler()
+    assert co2_from_heater == expected_co2_from_heater()
+
+
+def test_venting_emitter():
+    time_vector = [
+        datetime(2027, 1, 1),
+        datetime(2028, 1, 1),
+    ]
+    regularity = 0.2
+    emission_rate = 10
+
+    variables_map = VariablesMap(time_vector=time_vector, variables={})
+
+    venting_emitter_sd_kg_per_day = (
+        YamlVentingEmitterDirectTypeBuilder()
+        .with_name("Venting emitter 1")
+        .with_category(ConsumerUserDefinedCategoryType.STORAGE)
+        .with_emission_names_rates_units_and_types(
+            names=["ch4"],
+            rates=[emission_rate],
+            units=[YamlEmissionRateUnits.KILO_PER_DAY],
+            rate_types=[RateType.STREAM_DAY],
+        )
     ).validate()
-    genset2 = YamlGeneratorSetBuilder().with_test_data().validate()
-    assert fuel
-    # installation = YamlInstallationBuilder.with_generator_sets()
-    # test = 1
+
+    venting_emitter_sd_tons_per_day = (
+        YamlVentingEmitterDirectTypeBuilder()
+        .with_name("Venting emitter 1")
+        .with_category(ConsumerUserDefinedCategoryType.STORAGE)
+        .with_emission_names_rates_units_and_types(
+            names=["ch4"],
+            rates=[emission_rate],
+            units=[YamlEmissionRateUnits.TONS_PER_DAY],
+            rate_types=[RateType.STREAM_DAY],
+        )
+    ).validate()
+
+    venting_emitter_cd_kg_per_day = (
+        YamlVentingEmitterDirectTypeBuilder()
+        .with_name("Venting emitter 1")
+        .with_category(ConsumerUserDefinedCategoryType.STORAGE)
+        .with_emission_names_rates_units_and_types(
+            names=["ch4"],
+            rates=[emission_rate],
+            units=[YamlEmissionRateUnits.KILO_PER_DAY],
+            rate_types=[RateType.CALENDAR_DAY],
+        )
+    ).validate()
+
+    installation_sd_kg_per_day = (
+        YamlInstallationBuilder()
+        .with_name("minimal_installation")
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+        .with_venting_emitters([venting_emitter_sd_kg_per_day])
+        .with_regularity(regularity)
+    ).validate()
+
+    installation_sd_tons_per_day = (
+        YamlInstallationBuilder()
+        .with_name("minimal_installation")
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+        .with_venting_emitters([venting_emitter_sd_tons_per_day])
+        .with_regularity(regularity)
+    ).validate()
+
+    installation_cd_kg_per_day = (
+        YamlInstallationBuilder()
+        .with_name("minimal_installation")
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+        .with_venting_emitters([venting_emitter_cd_kg_per_day])
+        .with_regularity(regularity)
+    ).validate()
+
+    asset_sd_kg_per_day = get_asset_yaml_model(
+        installation=installation_sd_kg_per_day, time_vector=time_vector, frequency=Frequency.YEAR
+    )
+
+    asset_sd_tons_per_day = get_asset_yaml_model(
+        installation=installation_sd_tons_per_day, time_vector=time_vector, frequency=Frequency.YEAR
+    )
+
+    asset_cd_kg_per_day = get_asset_yaml_model(
+        installation=installation_cd_kg_per_day, time_vector=time_vector, frequency=Frequency.YEAR
+    )
+
+    ltp_result_input_sd_kg_per_day = get_consumption(
+        model=asset_sd_kg_per_day, variables_map=variables_map, periods=variables_map.get_periods()
+    )
+
+    ltp_result_input_sd_tons_per_day = get_consumption(
+        model=asset_sd_tons_per_day, variables_map=variables_map, periods=variables_map.get_periods()
+    )
+
+    ltp_result_input_cd_kg_per_day = get_consumption(
+        model=asset_cd_kg_per_day, variables_map=variables_map, periods=variables_map.get_periods()
+    )
+
+    emission_input_sd_kg_per_day = get_sum_ltp_column(
+        ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
+    )
+    emission_input_sd_tons_per_day = get_sum_ltp_column(
+        ltp_result_input_sd_tons_per_day, installation_nr=0, ltp_column="storageCh4Mass"
+    )
+    emission_input_cd_kg_per_day = get_sum_ltp_column(
+        ltp_result_input_cd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
+    )
+
+    # Verify correct emissions when input is kg per day. Output should be in tons per day - hence dividing by 1000
+    assert emission_input_sd_kg_per_day == (emission_rate / 1000) * 365 * regularity
+
+    # Verify correct emissions when input is tons per day.
+    assert emission_input_sd_tons_per_day == emission_rate * 365 * regularity
+
+    # Verify that input calendar day vs input stream day is linked correctly through regularity
+    assert emission_input_cd_kg_per_day == emission_input_sd_kg_per_day / regularity
+
+    # Verify that results is independent of regularity, when input rate is in calendar days
+    assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365
