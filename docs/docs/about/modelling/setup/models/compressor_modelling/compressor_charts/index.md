@@ -76,6 +76,10 @@ Whilst the lowest rate points on each of the upper and lower speed curves will d
 Additionally, there is functionality to define a control line which behaves as an alternate to the minimum flow line. This means that your input will be 'cropped' to only include points to the right of the control line - modelling recirculation (`ASV`) from the correct control line. 
 See `Surge control margin for variable speed compressor chart` for more details.
 
+The figure shows an example of a user defined variable speed compressor chart, showing the individual curves for each speed,
+the surge line, the control margin line, and the stonewall.
+![](variable_speed_compressor_chart.png)
+
 :::note
 Using a variable speed compressor chart as input essentially does the same as if a process simulation tool was used to
 create an energy function. It has been verified to be close to identical to Unisim within 2% accuracy (smaller
