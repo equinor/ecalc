@@ -1,12 +1,20 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import Optional
 
-from pydantic import Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from libecalc.common.fluid_stream_type import FluidStreamType
-from libecalc.dto.base import EcalcBaseModel
-from libecalc.dto.types import EoSModel
+from libecalc.common.string.string_utils import to_camel_case
+
+
+class EcalcBaseModel(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+    )
 
 
 class FluidComposition(EcalcBaseModel):
@@ -65,3 +73,10 @@ class MultipleStreamsAndPressureStream(EcalcBaseModel):
         if stream_type == FluidStreamType.OUTGOING and isinstance(stream_fluid_model, FluidModel):
             raise ValueError(f"Stream {stream_name} is of type {stream_type} and should not have a fluid model defined")
         return self
+
+
+class EoSModel(str, Enum):
+    SRK = "SRK"
+    PR = "PR"
+    GERG_SRK = "GERG_SRK"
+    GERG_PR = "GERG_PR"
