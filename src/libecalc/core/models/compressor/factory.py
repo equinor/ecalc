@@ -77,7 +77,8 @@ def _create_compressor_with_turbine(
     compressor_model_dto: CompressorWithTurbine,
 ) -> CompressorWithTurbineModel:
     return CompressorWithTurbineModel(
-        data_transfer_object=compressor_model_dto,
+        energy_usage_adjustment_constant=compressor_model_dto.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=compressor_model_dto.energy_usage_adjustment_factor,
         compressor_energy_function=create_compressor_model(compressor_model_dto.compressor_train),
         turbine_model=_create_turbine(compressor_model_dto.turbine),
     )
