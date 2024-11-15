@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
+import libecalc.dto.models.compressor.fluid
 from libecalc import dto
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 
@@ -129,7 +130,9 @@ class TestGenericFromInputCompressorChart:
 class TestCompressorSystemEnergyUsageModel:
     def test_create_system_with_unknown_stages_generic_chart(self):
         compressor_model_generic_chart_unknown_stages = dto.CompressorTrainSimplifiedWithUnknownStages(
-            fluid_model=dto.FluidModel(eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)),
+            fluid_model=dto.FluidModel(
+                eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+            ),
             stage=dto.CompressorStage(
                 compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.8),
                 inlet_temperature_kelvin=300,
@@ -157,7 +160,9 @@ class TestCompressorTrainSimplified:
     def test_valid_train_unknown_stages(self):
         """Testing that the "unknown stages" takes a "stage" argument, and not "stages"."""
         dto.CompressorTrainSimplifiedWithUnknownStages(
-            fluid_model=dto.FluidModel(eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)),
+            fluid_model=dto.FluidModel(
+                eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+            ),
             stage=dto.CompressorStage(
                 compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=0.8),
                 inlet_temperature_kelvin=300,
@@ -173,7 +178,9 @@ class TestCompressorTrainSimplified:
     def test_valid_train_known_stages(self):
         """Testing different chart types that are valid."""
         dto.CompressorTrainSimplifiedWithKnownStages(
-            fluid_model=dto.FluidModel(eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)),
+            fluid_model=dto.FluidModel(
+                eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+            ),
             stages=[
                 dto.CompressorStage(
                     compressor_chart=dto.GenericChartFromInput(polytropic_efficiency_fraction=1),
@@ -210,7 +217,8 @@ class TestCompressorTrainSimplified:
         with pytest.raises(ValidationError):
             dto.CompressorTrainSimplifiedWithKnownStages(
                 fluid_model=dto.FluidModel(
-                    eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+                    eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR,
+                    composition=dto.FluidComposition(methane=1),
                 ),
                 stages=[
                     dto.CompressorStage(
@@ -235,7 +243,9 @@ class TestSingleSpeedCompressorTrain:
     def test_valid_train_known_stages(self):
         """Testing different chart types that are valid."""
         dto.SingleSpeedCompressorTrain(
-            fluid_model=dto.FluidModel(eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)),
+            fluid_model=dto.FluidModel(
+                eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+            ),
             stages=[
                 dto.CompressorStage(
                     compressor_chart=SingleSpeedChartDTO(
@@ -260,7 +270,8 @@ class TestSingleSpeedCompressorTrain:
         with pytest.raises(ValidationError):
             dto.SingleSpeedCompressorTrain(
                 fluid_model=dto.FluidModel(
-                    eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+                    eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR,
+                    composition=dto.FluidComposition(methane=1),
                 ),
                 stages=[
                     dto.CompressorStage(
@@ -280,7 +291,9 @@ class TestSingleSpeedCompressorTrain:
 class TestVariableSpeedCompressorTrain:
     def test_compatible_stages(self):
         dto.VariableSpeedCompressorTrain(
-            fluid_model=dto.FluidModel(eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)),
+            fluid_model=dto.FluidModel(
+                eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+            ),
             stages=[
                 dto.CompressorStage(
                     compressor_chart=VariableSpeedChartDTO(
@@ -333,7 +346,8 @@ class TestVariableSpeedCompressorTrain:
         ):
             dto.VariableSpeedCompressorTrain(
                 fluid_model=dto.FluidModel(
-                    eos_model=dto.types.EoSModel.PR, composition=dto.FluidComposition(methane=1)
+                    eos_model=libecalc.dto.models.compressor.fluid.EoSModel.PR,
+                    composition=dto.FluidComposition(methane=1),
                 ),
                 stages=[
                     dto.CompressorStage(

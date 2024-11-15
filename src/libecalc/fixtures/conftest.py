@@ -5,7 +5,8 @@ import pytest
 from libecalc.common.serializable_chart import ChartCurveDTO, VariableSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.dto import Emission, FluidComposition, FluidModel, FuelType
-from libecalc.dto.types import EoSModel, FuelTypeUserDefinedCategoryType
+from libecalc.dto.models.compressor.fluid import EoSModel
+from libecalc.dto.types import FuelTypeUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import MEDIUM_MW_19P4, RICH_MW_21P4
 

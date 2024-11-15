@@ -11,7 +11,7 @@ from libecalc.core.models.compressor.train.simplified_train import (
 from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.dto.types import EoSModel
+from libecalc.dto.models.compressor.fluid import EoSModel
 
 
 @pytest.fixture

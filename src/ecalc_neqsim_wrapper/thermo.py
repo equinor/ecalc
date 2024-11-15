@@ -21,7 +21,7 @@ from ecalc_neqsim_wrapper.mappings import (
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.logger import logger
 from libecalc.dto import FluidComposition
-from libecalc.dto.types import EoSModel
+from libecalc.dto.models.compressor.fluid import EoSModel
 
 STANDARD_TEMPERATURE_KELVIN = 288.15
 STANDARD_PRESSURE_BARA = 1.01325

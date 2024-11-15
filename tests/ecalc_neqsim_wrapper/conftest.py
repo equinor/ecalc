@@ -2,7 +2,7 @@ import pytest
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc import dto
-from libecalc.dto.types import EoSModel
+from libecalc.dto.models.compressor.fluid import EoSModel
 
 HEAVY_FLUID_COMPOSITION = dto.FluidComposition(
     nitrogen=0.682785869,

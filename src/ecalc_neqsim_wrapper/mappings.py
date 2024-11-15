@@ -6,7 +6,7 @@ from ecalc_neqsim_wrapper import neqsim
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.dto import FluidComposition
-from libecalc.dto.types import EoSModel
+from libecalc.dto.models.compressor.fluid import EoSModel
 
 
 class NeqsimEoSModelType(Enum):

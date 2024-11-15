@@ -7,6 +7,7 @@ import pytest
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid_stream_type
 import libecalc.common.serializable_chart
+import libecalc.dto.models.compressor.fluid
 from libecalc import dto
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.units import Unit
@@ -29,21 +30,24 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_
 @pytest.fixture
 def medium_fluid() -> dto.FluidModel:
     return dto.FluidModel(
-        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(MEDIUM_MW_19P4)
+        eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK,
+        composition=dto.FluidComposition.model_validate(MEDIUM_MW_19P4),
     )
 
 
 @pytest.fixture
 def rich_fluid() -> dto.FluidModel:
     return dto.FluidModel(
-        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(RICH_MW_21P4)
+        eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK,
+        composition=dto.FluidComposition.model_validate(RICH_MW_21P4),
     )
 
 
 @pytest.fixture
 def dry_fluid() -> dto.FluidModel:
     return dto.FluidModel(
-        eos_model=dto.types.EoSModel.SRK, composition=dto.FluidComposition.model_validate(DRY_MW_18P3)
+        eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK,
+        composition=dto.FluidComposition.model_validate(DRY_MW_18P3),
     )
 
 
@@ -242,7 +246,9 @@ def single_speed_compressor_train_unisim_methane(
         speed_rpm=curve.speed_rpm,
     )
     compressor_train_dto = dto.SingleSpeedCompressorTrain(
-        fluid_model=dto.FluidModel(composition=dto.FluidComposition(methane=1.0), eos_model=dto.types.EoSModel.SRK),
+        fluid_model=dto.FluidModel(
+            composition=dto.FluidComposition(methane=1.0), eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK
+        ),
         stages=[
             dto.CompressorStage(
                 compressor_chart=chart,
@@ -266,7 +272,9 @@ def variable_speed_compressor_train_unisim_methane(
     variable_speed_compressor_chart_unisim_methane: libecalc.common.serializable_chart.VariableSpeedChartDTO,
 ) -> VariableSpeedCompressorTrainCommonShaft:
     compressor_train_dto = dto.VariableSpeedCompressorTrain(
-        fluid_model=dto.FluidModel(composition=dto.FluidComposition(methane=1), eos_model=dto.types.EoSModel.SRK),
+        fluid_model=dto.FluidModel(
+            composition=dto.FluidComposition(methane=1), eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK
+        ),
         stages=[
             dto.CompressorStage(
                 compressor_chart=variable_speed_compressor_chart_unisim_methane,
