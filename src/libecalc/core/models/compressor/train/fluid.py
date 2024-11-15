@@ -7,8 +7,8 @@ from numpy.typing import NDArray
 
 from ecalc_neqsim_wrapper import NeqsimFluid
 from ecalc_neqsim_wrapper.thermo import mix_neqsim_streams
+from libecalc.common.fluid import FluidModel
 from libecalc.common.units import UnitConstants
-from libecalc.dto import FluidModel
 
 
 class FluidStream:

@@ -4,10 +4,11 @@ import pytest
 
 import libecalc.common.energy_usage_type
 import libecalc.common.fixed_speed_pressure_control
+import libecalc.common.fluid
 import libecalc.common.serializable_chart
 import libecalc.dto.fuel_type
-import libecalc.dto.models.compressor.fluid
 from libecalc import dto
+from libecalc.common.fluid import FluidComposition, FluidModel
 from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.compressor.sampled import CompressorModelSampled
 from libecalc.core.models.pump import PumpSingleSpeed, PumpVariableSpeed
@@ -17,26 +18,26 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_
 
 
 @pytest.fixture
-def medium_fluid() -> dto.FluidModel:
-    return dto.FluidModel(
-        eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK,
-        composition=dto.FluidComposition.model_validate(MEDIUM_MW_19P4),
+def medium_fluid() -> FluidModel:
+    return FluidModel(
+        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
     )
 
 
 @pytest.fixture
-def rich_fluid() -> dto.FluidModel:
-    return dto.FluidModel(
-        eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK,
-        composition=dto.FluidComposition.model_validate(RICH_MW_21P4),
+def rich_fluid() -> FluidModel:
+    return FluidModel(
+        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        composition=FluidComposition.model_validate(RICH_MW_21P4),
     )
 
 
 @pytest.fixture
-def dry_fluid() -> dto.FluidModel:
-    return dto.FluidModel(
-        eos_model=libecalc.dto.models.compressor.fluid.EoSModel.SRK,
-        composition=dto.FluidComposition.model_validate(DRY_MW_18P3),
+def dry_fluid() -> FluidModel:
+    return FluidModel(
+        eos_model=libecalc.common.fluid.EoSModel.SRK,
+        composition=FluidComposition.model_validate(DRY_MW_18P3),
     )
 
 

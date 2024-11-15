@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.units import UnitConstants
@@ -33,7 +34,6 @@ from libecalc.core.models.compressor.train.utils.variable_speed_compressor_train
 )
 from libecalc.core.models.results.compressor import TargetPressureStatus
 from libecalc.dto import CompressorStage, SingleSpeedCompressorTrain, VariableSpeedCompressorTrain
-from libecalc.dto import FluidStream as FluidStreamDTO
 
 EPSILON = 1e-5
 

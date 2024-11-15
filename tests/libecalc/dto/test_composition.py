@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from libecalc import dto
+from libecalc.common.fluid import FluidComposition
 
 
 def test_composition(caplog):
@@ -17,7 +17,7 @@ def test_composition(caplog):
         "n_pentane": 0.197937,
         "n_hexane": 0.368786,
     }
-    composition = dto.FluidComposition.model_validate(composition_spec)
+    composition = FluidComposition.model_validate(composition_spec)
 
     assert all(x in composition.model_dump() for x in composition_spec)
     assert all(x in composition.model_dump().values() for x in composition_spec.values())
@@ -25,4 +25,4 @@ def test_composition(caplog):
     # Composition with invalid component name
     with pytest.raises(ValidationError):
         caplog.set_level("CRITICAL")
-        dto.FluidComposition.model_validate({"invalid": 0.74373, "CO2": 2.415619, "methane": 85.60145})
+        FluidComposition.model_validate({"invalid": 0.74373, "CO2": 2.415619, "methane": 85.60145})

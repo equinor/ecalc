@@ -3,9 +3,9 @@ import math
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc import dto
+from libecalc.common.fluid import FluidComposition
 
-INLET_FLUID_COMPOSITION = dto.FluidComposition(
+INLET_FLUID_COMPOSITION = FluidComposition(
     nitrogen=6.78e-03,
     CO2=5.74e-03,
     methane=0.795667071,
@@ -19,7 +19,7 @@ INLET_FLUID_COMPOSITION = dto.FluidComposition(
     water=3.69e-03,
 )
 
-OUTLET_FLUID_COMPOSITION = dto.FluidComposition(
+OUTLET_FLUID_COMPOSITION = FluidComposition(
     nitrogen=6.79e-03,
     CO2=5.75e-03,
     methane=0.797181663,

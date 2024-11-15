@@ -3,6 +3,7 @@ from typing import Any, Union, cast
 from pydantic import ValidationError
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.serializable_chart import ChartCurveDTO, SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.dto import (
@@ -15,7 +16,6 @@ from libecalc.dto import (
     GenericChartFromDesignPoint,
     GenericChartFromInput,
     InterstagePressureControl,
-    MultipleStreamsAndPressureStream,
     MultipleStreamsCompressorStage,
     SingleSpeedCompressorTrain,
     Turbine,

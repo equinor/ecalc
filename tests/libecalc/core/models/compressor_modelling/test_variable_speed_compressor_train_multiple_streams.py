@@ -4,6 +4,7 @@ import pytest
 import libecalc.common.fixed_speed_pressure_control
 from libecalc import dto
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.train.fluid import FluidStream
@@ -85,7 +86,7 @@ def mock_variable_speed_compressor_train_multiple_streams_and_pressures(
     variable_speed_compressor_chart_dto,
     medium_fluid,
 ) -> dto.VariableSpeedCompressorTrainMultipleStreamsAndPressures:
-    stream = dto.MultipleStreamsAndPressureStream(
+    stream = MultipleStreamsAndPressureStream(
         name="inlet",
         typ=FluidStreamType.INGOING,
         fluid_model=medium_fluid,

@@ -6,6 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.errors.exceptions import IllegalStateException
+from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
@@ -24,7 +25,6 @@ from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
 )
 from libecalc.core.models.compressor.utils import map_compressor_train_stage_to_domain
 from libecalc.dto import CompressorTrainSimplifiedWithKnownStages, CompressorTrainSimplifiedWithUnknownStages
-from libecalc.dto import FluidStream as FluidStreamDTO
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

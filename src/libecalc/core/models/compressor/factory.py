@@ -1,6 +1,7 @@
 from typing import Any
 
 from libecalc.common.energy_model_type import EnergyModelType
+from libecalc.common.fluid import MultipleStreamsAndPressureStream
 from libecalc.common.fluid_stream_type import FluidStreamType
 from libecalc.common.logger import logger
 from libecalc.core.models.compressor.base import (
@@ -32,7 +33,6 @@ from libecalc.dto import (
     CompressorTrainSimplifiedWithKnownStages,
     CompressorTrainSimplifiedWithUnknownStages,
     CompressorWithTurbine,
-    MultipleStreamsAndPressureStream,
     SingleSpeedCompressorTrain,
     Turbine,
     VariableSpeedCompressorTrain,

@@ -24,9 +24,6 @@ from libecalc.dto.models import (
     ElectricEnergyUsageModel,
     EnergyModel,
     EnergyModelSampled,
-    FluidComposition,
-    FluidModel,
-    FluidStream,
     FuelEnergyUsageModel,
     GeneratorSetSampled,
     GenericChartFromDesignPoint,
@@ -45,7 +42,6 @@ from libecalc.dto.models import (
 from libecalc.dto.models.compressor import (
     CompressorStage,
     InterstagePressureControl,
-    MultipleStreamsAndPressureStream,
     MultipleStreamsCompressorStage,
     SingleSpeedCompressorTrain,
     VariableSpeedCompressorTrain,

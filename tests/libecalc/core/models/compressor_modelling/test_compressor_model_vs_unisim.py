@@ -3,6 +3,7 @@ import pytest
 from pytest import approx
 
 from libecalc import dto
+from libecalc.common.fluid import EoSModel, FluidComposition, FluidModel
 from libecalc.common.units import Unit
 from libecalc.core.models.compressor.train.fluid import FluidStream
 from libecalc.core.models.compressor.train.simplified_train import (
@@ -11,7 +12,6 @@ from libecalc.core.models.compressor.train.simplified_train import (
 from libecalc.core.models.compressor.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.dto.models.compressor.fluid import EoSModel
 
 
 @pytest.fixture
@@ -23,8 +23,8 @@ def unisim_test_data():
 
     eos_model = EoSModel.SRK  # Without Lee-Kesler, EOS used for density, default binary coefficients
     fluid = FluidStream(
-        fluid_model=dto.FluidModel(
-            composition=dto.FluidComposition(
+        fluid_model=FluidModel(
+            composition=FluidComposition(
                 nitrogen=20.1144855057,
                 CO2=124.0132106862,
                 methane=2674.1347020545,
