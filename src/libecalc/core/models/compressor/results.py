@@ -5,6 +5,7 @@ from typing import Optional, Union
 import numpy as np
 from pydantic import BaseModel, ConfigDict
 
+from libecalc.common.fluid import FluidComposition, FluidStream
 from libecalc.common.serializable_chart import SingleSpeedChartDTO, VariableSpeedChartDTO
 from libecalc.common.units import Unit
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
@@ -14,8 +15,6 @@ from libecalc.core.models.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
-from libecalc.dto import FluidComposition
-from libecalc.dto import FluidStream as FluidStreamDTO
 
 
 class CompressorTrainStageResultSingleTimeStep(BaseModel):
@@ -29,8 +28,8 @@ class CompressorTrainStageResultSingleTimeStep(BaseModel):
     power [MW]
     """
 
-    inlet_stream: Optional[FluidStreamDTO] = None
-    outlet_stream: Optional[FluidStreamDTO] = None
+    inlet_stream: Optional[FluidStream] = None
+    outlet_stream: Optional[FluidStream] = None
 
     # actual rate [Am3/hour] = mass rate [kg/hour] / density [kg/m3]
     inlet_actual_rate_m3_per_hour: float
@@ -130,8 +129,8 @@ class CompressorTrainResultSingleTimeStep(BaseModel):
     mass rate [kg/hour]
     """
 
-    inlet_stream: Optional[FluidStreamDTO] = None
-    outlet_stream: Optional[FluidStreamDTO] = None
+    inlet_stream: Optional[FluidStream] = None
+    outlet_stream: Optional[FluidStream] = None
     speed: float
     stage_results: list[CompressorTrainStageResultSingleTimeStep]
     above_maximum_power: bool = False

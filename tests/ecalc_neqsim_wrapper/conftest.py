@@ -1,10 +1,9 @@
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc import dto
-from libecalc.dto.models.compressor.fluid import EoSModel
+from libecalc.common.fluid import EoSModel, FluidComposition
 
-HEAVY_FLUID_COMPOSITION = dto.FluidComposition(
+HEAVY_FLUID_COMPOSITION = FluidComposition(
     nitrogen=0.682785869,
     CO2=2.466921329,
     methane=79.57192993,
@@ -17,7 +16,7 @@ HEAVY_FLUID_COMPOSITION = dto.FluidComposition(
     n_hexane=0.16881974,
 )
 
-MEDIUM_MW_19P4_COMPOSITION = dto.FluidComposition(
+MEDIUM_MW_19P4_COMPOSITION = FluidComposition(
     nitrogen=0.74373,
     CO2=2.415619,
     methane=85.60145,
@@ -30,7 +29,7 @@ MEDIUM_MW_19P4_COMPOSITION = dto.FluidComposition(
     n_hexane=0.368786,
 )
 
-LIGHT_FLUID_COMPOSITION = dto.FluidComposition(
+LIGHT_FLUID_COMPOSITION = FluidComposition(
     methane=10.0, ethane=1.0, propane=0.1, n_hexane=10.1
 )  # Heptane not used in eCalc, only care about C1-C6
 

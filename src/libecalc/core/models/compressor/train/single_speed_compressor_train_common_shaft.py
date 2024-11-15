@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 
 from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.fluid import FluidStream as FluidStreamDTO
 from libecalc.common.logger import logger
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.compressor.results import (
@@ -22,7 +23,6 @@ from libecalc.core.models.compressor.train.utils.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.core.models.results.compressor import TargetPressureStatus
-from libecalc.dto import FluidStream as FluidStreamDTO
 from libecalc.dto import SingleSpeedCompressorTrain
 
 EPSILON = 1e-5
