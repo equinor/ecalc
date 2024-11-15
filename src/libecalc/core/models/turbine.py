@@ -10,7 +10,6 @@ from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.units import Unit
 from libecalc.core.models.base import BaseModel
 from libecalc.core.models.results import TurbineResult
-from libecalc.dto import Turbine
 
 SECONDS_PER_DAY = 86400
 
@@ -18,34 +17,35 @@ SECONDS_PER_DAY = 86400
 class TurbineModel(BaseModel):
     def __init__(
         self,
-        data_transfer_object: Turbine,
+        loads: list[float],
+        lower_heating_value: float,
+        efficiency_fractions: list[float],
+        energy_usage_adjustment_factor: float,
+        energy_usage_adjustment_constant: float,
     ):
-        self.data_transfer_object = data_transfer_object
-        self.fuel_lower_heating_value = np.array(data_transfer_object.lower_heating_value)
-        load_values = np.array(data_transfer_object.turbine_loads)
+        self.fuel_lower_heating_value = np.array(lower_heating_value)
+        load_values = np.array(loads)
         self._maximum_load = load_values.max()
-        efficiency_values = np.array(data_transfer_object.turbine_efficiency_fractions)
+        efficiency_values = np.array(efficiency_fractions)
         self._efficiency_function = interp1d(
             x=load_values,
             y=efficiency_values,
             bounds_error=False,
             fill_value=(0, efficiency_values[-1]),
         )
+        self._energy_usage_adjustment_factor = energy_usage_adjustment_factor
+        self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
 
     @property
     def max_power(self) -> Optional[float]:
-        return (
-            self._maximum_load * self.data_transfer_object.energy_usage_adjustment_factor
-            - self.data_transfer_object.energy_usage_adjustment_constant
-        )
+        return self._maximum_load * self._energy_usage_adjustment_factor - self._energy_usage_adjustment_constant
 
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
         # Calibration of turbine load:
         # Linear adjustment: (1/a)*x + b/a.
         load_adjusted = np.where(
             load > 0,
-            (load + self.data_transfer_object.energy_usage_adjustment_constant)
-            / self.data_transfer_object.energy_usage_adjustment_factor,
+            (load + self._energy_usage_adjustment_constant) / self._energy_usage_adjustment_factor,
             load,
         )
         lower_heating_value_to_use = (

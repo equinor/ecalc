@@ -20,12 +20,12 @@ def compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine_
 
 @pytest.fixture()
 def compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine(
-    turbine,
+    turbine_factory,
     variable_speed_compressor_train_two_compressors_one_stream,
     compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine_dto,
 ) -> CompressorWithTurbineModel:
     return CompressorWithTurbineModel(
-        turbine_model=turbine,
+        turbine_model=turbine_factory(),
         compressor_energy_function=variable_speed_compressor_train_two_compressors_one_stream,
         data_transfer_object=compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine_dto,
     )

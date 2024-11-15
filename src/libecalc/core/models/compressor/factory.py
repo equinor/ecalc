@@ -63,18 +63,24 @@ def _create_compressor_train_simplified_with_known_stages(
     )
 
 
+def _create_turbine(turbine_dto: Turbine) -> TurbineModel:
+    return TurbineModel(
+        loads=turbine_dto.turbine_loads,
+        lower_heating_value=turbine_dto.lower_heating_value,
+        efficiency_fractions=turbine_dto.turbine_efficiency_fractions,
+        energy_usage_adjustment_constant=turbine_dto.energy_usage_adjustment_constant,
+        energy_usage_adjustment_factor=turbine_dto.energy_usage_adjustment_factor,
+    )
+
+
 def _create_compressor_with_turbine(
     compressor_model_dto: CompressorWithTurbine,
 ) -> CompressorWithTurbineModel:
     return CompressorWithTurbineModel(
         data_transfer_object=compressor_model_dto,
         compressor_energy_function=create_compressor_model(compressor_model_dto.compressor_train),
-        turbine_model=TurbineModel(data_transfer_object=compressor_model_dto.turbine),
+        turbine_model=_create_turbine(compressor_model_dto.turbine),
     )
-
-
-def _create_turbine(turbine_dto: Turbine) -> TurbineModel:
-    return TurbineModel(data_transfer_object=turbine_dto)
 
 
 def _create_single_speed_compressor_train(

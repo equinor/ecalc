@@ -285,5 +285,28 @@ def turbine_dto() -> dto.Turbine:
 
 
 @pytest.fixture
-def turbine(turbine_dto) -> TurbineModel:
-    return TurbineModel(data_transfer_object=turbine_dto)
+def turbine_factory(turbine_dto):
+    def create_turbine(
+        loads: list[float] = None,
+        lower_heating_value: float = None,
+        efficiency_fractions: list[float] = None,
+        energy_usage_adjustment_factor: float = None,
+        energy_usage_adjustment_constant: float = None,
+    ) -> TurbineModel:
+        return TurbineModel(
+            loads=loads if loads is not None else turbine_dto.turbine_loads,
+            lower_heating_value=lower_heating_value
+            if lower_heating_value is not None
+            else turbine_dto.lower_heating_value,
+            efficiency_fractions=efficiency_fractions
+            if efficiency_fractions is not None
+            else turbine_dto.turbine_efficiency_fractions,
+            energy_usage_adjustment_constant=energy_usage_adjustment_constant
+            if energy_usage_adjustment_constant is not None
+            else turbine_dto.energy_usage_adjustment_constant,
+            energy_usage_adjustment_factor=energy_usage_adjustment_factor
+            if energy_usage_adjustment_factor is not None
+            else turbine_dto.energy_usage_adjustment_factor,
+        )
+
+    return create_turbine
