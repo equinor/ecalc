@@ -1,6 +1,6 @@
 import abc
 from enum import Enum
-from typing import List, Self, TypeVar, Generic, get_args, cast, Union
+from typing import List, Self, TypeVar, Generic, get_args, cast, Union, Literal
 
 from typing_extensions import get_original_bases
 
@@ -63,6 +63,7 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
+    YamlDefaultTimeSeriesCollection,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
@@ -570,5 +571,31 @@ class YamlElectricity2fuelBuilder(Builder[YamlGeneratorSetModel]):
         self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
         self.name = "DefaultElectricity2fuel"
         self.file = "electricity2fuel.csv"
+
+        return self
+
+
+class YamlTimeSeriesBuilder(Builder[YamlDefaultTimeSeriesCollection]):
+    def __init__(self):
+        self.name = None
+        self.type: Literal["DEFAULT", "MISCELLANEOUS"] = "DEFAULT"
+        self.file = None
+        self.influence_time_vector = True
+
+    def with_name(self, name: str):
+        self.name = name
+        return self
+
+    def with_type(self, type: str):
+        self.type = type
+        return self
+
+    def with_file(self, file: str):
+        self.file = file
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "TimeSeriesDefault"
+        self.file = "DefaultTimeSeries.csv"
 
         return self

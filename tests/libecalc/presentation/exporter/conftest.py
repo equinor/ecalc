@@ -4,7 +4,13 @@ from io import StringIO
 from typing import cast, Optional, Union
 from pathlib import Path
 import numpy as np
+import pandas as pd
+from copy import deepcopy
 
+from libecalc.presentation.exporter.dto.dtos import QueryResult
+
+from libecalc.presentation.yaml.domain.reference_service import ReferenceService
+from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.common.units import Unit
@@ -15,7 +21,9 @@ from libecalc.presentation.exporter.dto.dtos import FilteredResult
 from libecalc.application.graph_result import GraphResult
 from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
 from libecalc.presentation.exporter.configs.configs import LTPConfig
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, calculate_delta_days
+from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.testing.yaml_builder import (
     YamlFuelTypeBuilder,
     YamlFuelConsumerBuilder,
@@ -23,6 +31,10 @@ from libecalc.testing.yaml_builder import (
     YamlEnergyUsageModelDirectBuilder,
     YamlAssetBuilder,
     YamlVentingEmitterDirectTypeBuilder,
+    YamlGeneratorSetBuilder,
+    YamlElectricity2fuelBuilder,
+    YamlElectricityConsumerBuilder,
+    YamlTimeSeriesBuilder,
 )
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.dto.types import (
@@ -31,12 +43,13 @@ from libecalc.dto.types import (
     InstallationUserDefinedCategoryType,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
 )
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_entities import ResourceStream, MemoryResource
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.common.time_utils import Frequency, Periods
@@ -46,7 +59,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRateUnits,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
-
+from tests.conftest import resource_service_factory
 
 date1 = datetime(2027, 1, 1)
 date2 = datetime(2027, 4, 10)
@@ -137,12 +150,97 @@ def get_consumption(
     return ltp_result
 
 
+@pytest.fixture
+def generator_electricity2fuel_17MW_resource():
+    return MemoryResource(
+        data=[
+            [0, 0.1, 10, 11, 12, 14, 15, 16, 17, 17.1, 18.5, 20, 20.5, 20.6, 24, 28, 30, 32, 34, 36, 38, 40, 41, 410],
+            [
+                0,
+                75803.4,
+                75803.4,
+                80759.1,
+                85714.8,
+                95744,
+                100728.8,
+                105676.9,
+                110598.4,
+                136263.4,
+                143260,
+                151004.1,
+                153736.5,
+                154084.7,
+                171429.6,
+                191488,
+                201457.5,
+                211353.8,
+                221196.9,
+                231054,
+                241049.3,
+                251374.6,
+                256839.4,
+                2568394,
+            ],
+        ],  # float and int with equal value should count as equal.
+        headers=[
+            "POWER",
+            "FUEL",
+        ],
+    )
+
+
+@pytest.fixture
+def onshore_power_electricity2fuel_resource():
+    return MemoryResource(
+        data=[
+            [0, 10, 20],
+            [0, 0, 0],
+        ],  # float and int with equal value should count as equal.
+        headers=[
+            "POWER",
+            "FUEL",
+        ],
+    )
+
+
+@pytest.fixture
+def cable_loss_time_series_resource():
+    return MemoryResource(
+        data=[
+            [
+                "01.01.2021",
+                "01.01.2022",
+                "01.01.2023",
+                "01.01.2024",
+                "01.01.2025",
+                "01.01.2026",
+                "01.01.2027",
+                "01.01.2028",
+                "01.01.2029",
+                "01.01.2030",
+            ],
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+        ],  # float and int with equal value should count as equal.
+        headers=[
+            "DATE",
+            "CABLE_LOSS_FACTOR",
+        ],
+    )
+
+
 def get_sum_ltp_column(ltp_result: FilteredResult, installation_nr, ltp_column: str) -> float:
     installation_query_results = ltp_result.query_results[installation_nr].query_results
     column = [column for column in installation_query_results if column.id == ltp_column][0]
 
     ltp_sum = sum(float(v) for (k, v) in column.values.items())
     return ltp_sum
+
+
+def get_ltp_column(ltp_result: FilteredResult, installation_nr, ltp_column: str) -> QueryResult:
+    installation_query_results = ltp_result.query_results[installation_nr].query_results
+    column = [column for column in installation_query_results if column.id == ltp_column][0]
+
+    return column
 
 
 def calculate_asset_result(
@@ -168,11 +266,14 @@ def calculate_asset_result(
     return results_dto
 
 
-def get_yaml_model(yaml_string: str, frequency: Frequency):
+def get_yaml_model(yaml_string: str, frequency: Frequency, resource_service: Optional[dict[str:MemoryResource]] = None):
     configuration_service = OverridableStreamConfigurationService(
         stream=ResourceStream(name="", stream=StringIO(yaml_string)),
     )
-    resource_service = FileResourceService(working_directory=Path(""))
+    if resource_service is not None:
+        resource_service = resource_service
+    else:
+        resource_service = FileResourceService(working_directory=Path(""))
 
     return YamlModel(
         configuration_service=configuration_service,
@@ -186,16 +287,25 @@ def get_asset_yaml_model(
     time_vector: list[datetime],
     frequency: Frequency,
     fuel_types: Optional[list[YamlFuelType]] = None,
+    facility_inputs: Optional[list[YamlFacilityModel]] = None,
+    resource_service: Optional[ResourceService] = None,
+    time_series: Optional[list[YamlTimeSeriesCollection]] = None,
 ):
     asset = (
         YamlAssetBuilder()
         .with_installations(installations=installations)
         .with_start(time_vector[0])
-        .with_end(time_vector[1])
+        .with_end(time_vector[-1])
     )
 
     if fuel_types is not None:
         asset.fuel_types = fuel_types
+
+    if facility_inputs is not None:
+        asset.facility_inputs = facility_inputs
+
+    if time_series is not None:
+        asset.time_series = time_series
 
     asset = asset.validate()
 
@@ -207,7 +317,9 @@ def get_asset_yaml_model(
     )
 
     asset_yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
-    asset_yaml_model = get_yaml_model(yaml_string=asset_yaml_string, frequency=frequency)
+    asset_yaml_model = get_yaml_model(
+        yaml_string=asset_yaml_string, frequency=frequency, resource_service=resource_service
+    )
 
     return asset_yaml_model
 
@@ -251,26 +363,78 @@ def fuel_turbine():
 
 
 @pytest.fixture
-def energy_usage_model_direct():
+def fuel_multi():
     return (
-        YamlEnergyUsageModelDirectBuilder()
-        .with_fuel_rate(fuel_rate)
-        .with_consumption_rate_type(ConsumptionRateType.STREAM_DAY)
+        YamlFuelTypeBuilder()
+        .with_name("fuel_gas_multi")
+        .with_emission_names_and_factors(names=["co2", "ch4", "nmvoc", "nox"], factors=[2, 0.005, 0.002, 0.001])
+        .with_category(FuelTypeUserDefinedCategoryType.FUEL_GAS)
     ).validate()
 
 
 @pytest.fixture
-def fuel_consumer_direct(fuel_turbine, energy_usage_model_direct):
-    def fuel_consumer(fuel_reference_name: str):
+def energy_usage_model_direct():
+    def energy_usage_model(rate: float):
+        return (
+            YamlEnergyUsageModelDirectBuilder()
+            .with_fuel_rate(rate)
+            .with_consumption_rate_type(ConsumptionRateType.STREAM_DAY)
+        ).validate()
+
+    return energy_usage_model
+
+
+@pytest.fixture
+def energy_usage_model_direct_load():
+    def energy_usage_model(load: float):
+        return (
+            YamlEnergyUsageModelDirectBuilder()
+            .with_load(load)
+            .with_consumption_rate_type(ConsumptionRateType.STREAM_DAY)
+        ).validate()
+
+    return energy_usage_model
+
+
+@pytest.fixture
+def fuel_consumer_direct(energy_usage_model_direct):
+    def fuel_consumer(fuel_reference_name: str, rate: float):
         return (
             YamlFuelConsumerBuilder()
             .with_name("fuel_consumer")
             .with_fuel(fuel_reference_name)
             .with_category(ConsumerUserDefinedCategoryType.FLARE)
-            .with_energy_usage_model(energy_usage_model_direct)
+            .with_energy_usage_model(energy_usage_model_direct(rate))
         ).validate()
 
     return fuel_consumer
+
+
+@pytest.fixture
+def fuel_consumer_direct_load(energy_usage_model_direct_load):
+    def fuel_consumer(fuel_reference_name: str, load: float):
+        return (
+            YamlFuelConsumerBuilder()
+            .with_name("fuel_consumer")
+            .with_fuel(fuel_reference_name)
+            .with_category(ConsumerUserDefinedCategoryType.BASE_LOAD)
+            .with_energy_usage_model(energy_usage_model_direct_load(load))
+        ).validate()
+
+    return fuel_consumer
+
+
+@pytest.fixture
+def el_consumer_direct_base_load(energy_usage_model_direct_load):
+    def el_consumer(el_reference_name: str, load: float):
+        return (
+            YamlElectricityConsumerBuilder()
+            .with_name(el_reference_name)
+            .with_category(ConsumerUserDefinedCategoryType.BASE_LOAD)
+            .with_energy_usage_model(energy_usage_model_direct_load(load))
+        ).validate()
+
+    return el_consumer
 
 
 @pytest.fixture
@@ -305,7 +469,7 @@ def installation_boiler_heater(fuel_turbine):
     return installation
 
 
-def test_fuel_emissions(fuel_turbine, installation_boiler_heater):
+def test_boiler_heater_categories(fuel_turbine, installation_boiler_heater):
     variables_map = VariablesMap(time_vector=time_vector_installation, variables={})
 
     asset = (
@@ -398,7 +562,7 @@ def test_venting_emitter(fuel_consumer_direct, fuel_turbine):
         YamlInstallationBuilder()
         .with_name("minimal_installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name)])
+        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name, fuel_rate)])
         .with_venting_emitters([venting_emitter_sd_kg_per_day])
         .with_regularity(regularity)
     ).validate()
@@ -407,7 +571,7 @@ def test_venting_emitter(fuel_consumer_direct, fuel_turbine):
         YamlInstallationBuilder()
         .with_name("minimal_installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name)])
+        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name, fuel_rate)])
         .with_venting_emitters([venting_emitter_sd_tons_per_day])
         .with_regularity(regularity)
     ).validate()
@@ -416,7 +580,7 @@ def test_venting_emitter(fuel_consumer_direct, fuel_turbine):
         YamlInstallationBuilder()
         .with_name("minimal_installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name)])
+        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name, fuel_rate)])
         .with_venting_emitters([venting_emitter_cd_kg_per_day])
         .with_regularity(regularity)
     ).validate()
@@ -563,3 +727,153 @@ def test_only_venting_emitters_no_fuelconsumers(fuel_consumer_direct, fuel_turbi
     # give no CH4-contribution (only CO2)
     emissions_ch4_asset = get_sum_ltp_column(asset_ltp_result, installation_nr=0, ltp_column="storageCh4Mass")
     assert emissions_ch4 == emissions_ch4_asset
+
+
+def test_power_from_shore(
+    el_consumer_direct_base_load,
+    fuel_multi,
+    resource_service_factory,
+    generator_electricity2fuel_17MW_resource,
+    onshore_power_electricity2fuel_resource,
+    cable_loss_time_series_resource,
+):
+    """Test power from shore output for LTP export."""
+
+    time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2031, 1, 1), freq="YS").to_pydatetime().tolist()
+
+    variables_map = VariablesMap(time_vector=time_vector_yearly, variables={})
+    regularity = 0.2
+    load = 10
+    cable_loss = 0.1
+    max_from_shore = 12
+
+    generator_energy_function = (
+        YamlElectricity2fuelBuilder().with_name("generator_energy_function").with_file("generator_energy_function")
+    ).validate()
+
+    power_from_shore_energy_function = (
+        YamlElectricity2fuelBuilder().with_name("pfs_energy_function").with_file("pfs_energy_function")
+    ).validate()
+
+    cable_loss_time_series = (
+        YamlTimeSeriesBuilder().with_name("CABLE_LOSS").with_type("DEFAULT").with_file("CABLE_LOSS")
+    ).validate()
+
+    generator_set = (
+        YamlGeneratorSetBuilder()
+        .with_name("generator1")
+        .with_category(
+            {
+                datetime(2025, 1, 1): ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+                datetime(2027, 1, 1): ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+            }
+        )
+        .with_electricity2fuel(
+            {
+                datetime(2025, 1, 1): generator_energy_function.name,
+                datetime(2027, 1, 1): power_from_shore_energy_function.name,
+            }
+        )
+        .with_consumers([el_consumer_direct_base_load(el_reference_name="base_load", load=load)])
+        .with_cable_loss(cable_loss)
+        .with_max_usage_from_shore(max_from_shore)
+    ).validate()
+
+    installation_pfs = (
+        YamlInstallationBuilder()
+        .with_name("minimal_installation")
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+        .with_fuel(fuel_multi.name)
+        .with_generator_sets([generator_set])
+        .with_regularity(regularity)
+    ).validate()
+
+    resources = {
+        generator_energy_function.name: generator_electricity2fuel_17MW_resource,
+        power_from_shore_energy_function.name: onshore_power_electricity2fuel_resource,
+        cable_loss_time_series.name: cable_loss_time_series_resource,
+    }
+    resource_service = resource_service_factory(resources=resources)
+
+    asset_pfs = get_asset_yaml_model(
+        installations=[installation_pfs],
+        fuel_types=[fuel_multi],
+        time_vector=time_vector_yearly,
+        time_series=[cable_loss_time_series],
+        facility_inputs=[generator_energy_function, power_from_shore_energy_function],
+        frequency=Frequency.YEAR,
+        resource_service=resource_service,
+    )
+
+    generator_set_csv = deepcopy(generator_set)
+    generator_set_csv.cable_loss = "CABLE_LOSS;CABLE_LOSS_FACTOR"
+
+    installation_pfs_csv = (
+        YamlInstallationBuilder()
+        .with_name("minimal_installation_csv")
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+        .with_fuel(fuel_multi.name)
+        .with_generator_sets([generator_set_csv])
+        .with_regularity(regularity)
+    ).validate()
+
+    asset_pfs_csv = get_asset_yaml_model(
+        installations=[installation_pfs_csv],
+        fuel_types=[fuel_multi],
+        time_vector=time_vector_yearly,
+        time_series=[cable_loss_time_series],
+        facility_inputs=[generator_energy_function, power_from_shore_energy_function],
+        frequency=Frequency.YEAR,
+        resource_service=resource_service,
+    )
+
+    ltp_result = get_consumption(
+        model=asset_pfs,
+        variables_map=asset_pfs.variables,
+        periods=asset_pfs.variables.get_periods(),
+        frequency=Frequency.YEAR,
+    )
+
+    ltp_result_csv = get_consumption(
+        model=asset_pfs_csv,
+        variables_map=asset_pfs_csv.variables,
+        periods=asset_pfs_csv.variables.get_periods(),
+        frequency=Frequency.YEAR,
+    )
+
+    power_from_shore_consumption = get_sum_ltp_column(
+        ltp_result=ltp_result, installation_nr=0, ltp_column="fromShoreConsumption"
+    )
+    power_supply_onshore = get_sum_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column="powerSupplyOnshore")
+    max_usage_from_shore = get_sum_ltp_column(
+        ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum"
+    )
+
+    power_supply_onshore_csv = get_sum_ltp_column(
+        ltp_result=ltp_result_csv, installation_nr=0, ltp_column="powerSupplyOnshore"
+    )
+
+    # In the temporal model, the category is POWER_FROM_SHORE the last three years, within the period 2025 - 2030:
+    delta_days = calculate_delta_days(time_vector_yearly)[2:6]
+
+    # Check that power from shore consumption is correct
+    assert power_from_shore_consumption == sum([load * days * regularity * 24 / 1000 for days in delta_days])
+
+    # Check that power supply onshore is power from shore consumption * (1 + cable loss)
+    assert power_supply_onshore == pytest.approx(
+        sum([load * (1 + cable_loss) * days * regularity * 24 / 1000 for days in delta_days])
+    )
+
+    # Check that max usage from shore is just a report of the input
+    # Max usage from shore is 0 until 2027.6.1 and the 12 until 2031.1.1, so
+    # 2027, 2028, 2029 and 2030 (4 years) should all have 12 as max usage from shore.
+    assert max_usage_from_shore == max_from_shore * 4
+
+    # Check that reading cable loss from csv-file gives same result as using constant
+    assert power_supply_onshore == power_supply_onshore_csv
+
+    # Verify correct unit for max usage from shore
+    assert (
+        get_ltp_column(ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum").unit
+        == Unit.MEGA_WATT
+    )
