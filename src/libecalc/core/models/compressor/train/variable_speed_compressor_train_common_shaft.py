@@ -483,15 +483,7 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
 
         # Solution 3: If solution not found along max speed curve, and pressure control is downstream choke, we should
         # run at max_mass_rate, but using the defined pressure control.
-        elif (
-            self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE
-            and self.calculate_compressor_train_given_rate_ps_pd_speed(
-                speed=self.maximum_speed,
-                inlet_pressure=suction_pressure,
-                outlet_pressure=target_discharge_pressure,
-                mass_rate_kg_per_hour=max_mass_rate_at_max_speed,
-            ).is_valid
-        ):
+        elif self.data_transfer_object.pressure_control == FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             rate_to_return = max_mass_rate_at_max_speed * (1 - RATE_CALCULATION_TOLERANCE)
 
         # if pressure control is upstream choke, we find the new maximum rate with the reduced inlet pressure
@@ -572,11 +564,11 @@ class VariableSpeedCompressorTrainCommonShaft(CompressorTrainModel):
                 return find_root(
                     lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
                     upper_bound=rate_to_return,
-                    func=lambda x: self.evaluate_rate_ps_pd(
-                        rate=np.asarray([self.fluid.mass_rate_to_standard_rate(x)]),
-                        suction_pressure=np.asarray([suction_pressure]),
-                        discharge_pressure=np.asarray([target_discharge_pressure]),
-                    ).power[0]
+                    func=lambda x: self.calculate_shaft_speed_given_rate_ps_pd(
+                        mass_rate_kg_per_hour=x,
+                        suction_pressure=suction_pressure,
+                        target_discharge_pressure=target_discharge_pressure,
+                    ).power_megawatt
                     - self.data_transfer_object.maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
                     relative_convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
