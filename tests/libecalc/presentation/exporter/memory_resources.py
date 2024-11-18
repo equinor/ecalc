@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pytest
 
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
@@ -79,3 +81,52 @@ def cable_loss_time_series_resource():
             "CABLE_LOSS_FACTOR",
         ],
     )
+
+
+@pytest.fixture
+def compressor_sampled_fuel_driven_resource():
+    def compressor(power_compressor_mw: Optional[float] = 3, compressor_rate: Optional[float] = 3000000):
+        return MemoryResource(
+            data=[
+                [0.0, 1.0, 2.0, power_compressor_mw, 4.0],
+                [0, 10000, 11000, 12000, 13000],
+                [0, 1000000, 2000000, compressor_rate, 4000000],
+            ],  # float and int with equal value should count as equal.
+            headers=["POWER", "FUEL", "RATE"],
+        )
+
+    return compressor
+
+
+@pytest.fixture
+def generator_diesel_power_to_fuel_resource():
+    def generator(power_usage_mw: Optional[float] = 10, diesel_rate: Optional[float] = 120000):
+        return MemoryResource(
+            data=[
+                [0, power_usage_mw, 15, 20],
+                [0, diesel_rate, 145000, 160000],
+            ],  # float and int with equal value should count as equal.
+            headers=[
+                "POWER",
+                "FUEL",
+            ],
+        )
+
+    return generator
+
+
+@pytest.fixture
+def generator_fuel_power_to_fuel_resource():
+    def generator(power_usage_mw: Optional[float] = 10, fuel_rate: Optional[float] = 67000):
+        return MemoryResource(
+            data=[
+                [0, 2.5, 5, power_usage_mw, 15, 20],
+                [0, 30000, 45000, fuel_rate, 87000, 110000],
+            ],  # float and int with equal value should count as equal.
+            headers=[
+                "POWER",
+                "FUEL",
+            ],
+        )
+
+    return generator

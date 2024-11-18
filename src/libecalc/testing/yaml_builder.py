@@ -16,10 +16,12 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlFuelEnergyUsageModel,
     YamlElectricityEnergyUsageModel,
+    YamlEnergyUsageModelCompressor,
 )
 from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     GeneratorSetModelReference,
+    CompressorEnergyUsageModelModelReference,
 )
 
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
@@ -145,6 +147,38 @@ class YamlEnergyUsageModelDirectBuilder(Builder[YamlEnergyUsageModelDirect]):
     def with_consumption_rate_type(self, consumption_rate_type: ConsumptionRateType):
         self.consumption_rate_type = consumption_rate_type.value
         return self
+
+
+class YamlEnergyUsageModelCompressorBuilder(Builder[YamlEnergyUsageModelCompressor]):
+    def __init__(self):
+        self.type = "COMPRESSOR"
+        self.energy_function = None
+        self.rate = None
+        self.suction_pressure = None
+        self.discharge_pressure = None
+
+    def with_energy_function(self, energy_function: CompressorEnergyUsageModelModelReference):
+        self.energy_function = energy_function
+        return self
+
+    def with_rate(self, rate: YamlExpressionType):
+        self.rate = rate
+        return self
+
+    def with_suction_pressure(self, suction_pressure: YamlExpressionType):
+        self.suction_pressure = suction_pressure
+        return self
+
+    def with_discharge_pressure(self, discharge_pressure: YamlExpressionType):
+        self.discharge_pressure = discharge_pressure
+        return self
+
+    def with_test_data(self):
+        self.name = "CompressorDefault"
+        self.rate = 10
+        self.energy_function = "compressor_energy_function"
+        self.suction_pressure = 20
+        self.discharge_pressure = 80
 
 
 TYamlClass = TypeVar("TYamlClass", bound=YamlBase)
@@ -554,6 +588,33 @@ class YamlElectricity2fuelBuilder(Builder[YamlGeneratorSetModel]):
         self.file = None
         self.adjustment = None
         self.type = YamlFacilityModelType.ELECTRICITY2FUEL
+
+    def with_name(self, name: str):
+        self.name = name
+        return self
+
+    def with_file(self, file: str):
+        self.file = file
+        return self
+
+    def with_adjustment(self, constant: float, factor: float):
+        self.adjustment = YamlFacilityAdjustment(constant=constant, factor=factor)
+        return self
+
+    def with_test_data(self):
+        self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
+        self.name = "DefaultElectricity2fuel"
+        self.file = "electricity2fuel.csv"
+
+        return self
+
+
+class YamlCompressorTabularBuilder(Builder[YamlCompressorTabularModel]):
+    def __init__(self):
+        self.name = None
+        self.file = None
+        self.adjustment = None
+        self.type = YamlFacilityModelType.COMPRESSOR_TABULAR
 
     def with_name(self, name: str):
         self.name = name

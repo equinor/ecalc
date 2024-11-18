@@ -133,22 +133,22 @@ class OverridableStreamConfigurationService(ConfigurationService):
 # LTP specific methods:
 def get_consumption(
     model: Union[YamlInstallation, YamlAsset, YamlModel],
-    variables_map: VariablesMap,
+    variables: VariablesMap,
     frequency: Frequency,
     periods: Periods,
 ) -> FilteredResult:
     energy_calculator = EnergyCalculator(graph=model.get_graph())
     precision = 6
 
-    consumer_results = energy_calculator.evaluate_energy_usage(variables_map)
+    consumer_results = energy_calculator.evaluate_energy_usage(variables)
     emission_results = energy_calculator.evaluate_emissions(
-        variables_map=variables_map,
+        variables_map=variables,
         consumer_results=consumer_results,
     )
 
     graph_result = GraphResult(
         graph=model.get_graph(),
-        variables_map=variables_map,
+        variables_map=variables,
         consumer_results=consumer_results,
         emission_results=emission_results,
     )
@@ -272,6 +272,13 @@ def expected_offshore_wind_el_consumption() -> float:
     n_days = np.sum([days_year1_second_half, days_year2_second_half])
     consumption_mw_per_day = power_offshore_wind_mw * n_days * regularity_consumer
     consumption = -float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
+    return consumption
+
+
+def expected_gas_turbine_compressor_el_consumption(power_mw: float) -> float:
+    n_days = np.sum([days_year1_second_half, days_year2_second_half])
+    consumption_mw_per_day = power_mw * n_days
+    consumption = float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
     return consumption
 
 
@@ -490,11 +497,11 @@ def offshore_wind_consumer(energy_usage_model_direct_load):
         .with_name("offshore_wind_consumer")
         .with_category(
             {
-                period1.start: ConsumerUserDefinedCategoryType.BASE_LOAD,
+                period1.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
                 period2.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-                period3.start: ConsumerUserDefinedCategoryType.BASE_LOAD,
+                period3.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
                 period4.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-                period5.start: ConsumerUserDefinedCategoryType.BASE_LOAD,
+                period5.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
             }
         )
         .with_energy_usage_model(
@@ -507,6 +514,33 @@ def offshore_wind_consumer(energy_usage_model_direct_load):
             }
         )
     ).validate()
+
+
+@pytest.fixture
+def compressor_fuel_driven_temporal(fuel_turbine):
+    return (
+        YamlFuelConsumerBuilder()
+        .with_name("compressor_fuel_driven_temporal")
+        .with_fuel({period_from_date1: fuel_turbine.name})
+        .with_category(
+            {
+                period1.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                period2.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                period3.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                period4.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                period5.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+            }
+        )
+        .with_energy_usage_model(
+            {
+                period1.start: energy_usage_model_direct_load(load=0),
+                period2.start: energy_usage_model_direct_load(load=power_offshore_wind_mw),
+                period3.start: energy_usage_model_direct_load(load=0),
+                period4.start: energy_usage_model_direct_load(load=power_offshore_wind_mw),
+                period5.start: energy_usage_model_direct_load(load=0),
+            }
+        )
+    )
 
 
 @pytest.fixture
@@ -542,45 +576,17 @@ def installation_boiler_heater(fuel_turbine):
 
 
 @pytest.fixture
-def generator_diesel_power_to_fuel_data():
-    return MemoryResource(
-        data=[
-            [0, power_usage_mw, 15, 20],
-            [0, diesel_rate, 145000, 160000],
-        ],  # float and int with equal value should count as equal.
-        headers=[
-            "POWER",
-            "FUEL",
-        ],
-    )
-
-
-@pytest.fixture
-def generator_fuel_power_to_fuel_data():
-    return MemoryResource(
-        data=[
-            [0, 2.5, 5, power_usage_mw, 15, 20],
-            [0, 30000, 45000, fuel_rate, 87000, 110000],
-        ],  # float and int with equal value should count as equal.
-        headers=[
-            "POWER",
-            "FUEL",
-        ],
-    )
-
-
-@pytest.fixture
-def generator_set_temporal_dict():
-    def generator_set(generator_reference1: str, generator_reference2: str):
+def temporal_dict():
+    def temporal(reference1: str, reference2: str):
         return {
-            period1.start: generator_reference1,
-            period2.start: generator_reference2,
-            period3.start: generator_reference1,
-            period4.start: generator_reference2,
-            period5.start: generator_reference1,
+            period1.start: reference1,
+            period2.start: reference2,
+            period3.start: reference1,
+            period4.start: reference2,
+            period5.start: reference1,
         }
 
-    return generator_set
+    return temporal
 
 
 @pytest.fixture
