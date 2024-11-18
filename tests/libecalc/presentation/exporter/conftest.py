@@ -25,6 +25,8 @@ from libecalc.testing.yaml_builder import (
     YamlEnergyUsageModelDirectBuilder,
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
+    YamlGeneratorSetBuilder,
+    YamlElectricity2fuelBuilder,
 )
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.dto.types import (
@@ -79,8 +81,10 @@ days_year2_second_half = period4.duration.days
 
 regularity_installation = 1.0
 regularity_consumer = 1.0
+power_usage_mw = 10
+power_offshore_wind_mw = 1
 
-regularity_temporal_installation = {full_period: Expression.setup_from_expression(regularity_installation)}
+regularity_temporal_installation = {full_period.start: Expression.setup_from_expression(regularity_installation)}
 regularity_temporal_consumer = {full_period: Expression.setup_from_expression(regularity_consumer)}
 
 fuel_rate = 67000
@@ -90,6 +94,24 @@ co2_factor = 1
 ch4_factor = 0.1
 nox_factor = 0.5
 nmvoc_factor = 0
+
+
+def category_dict() -> dict[datetime, ConsumerUserDefinedCategoryType]:
+    return {
+        period1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period2.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+        period3.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period4.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+        period5.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+    }
+
+
+def category_dict_coarse() -> dict[datetime, ConsumerUserDefinedCategoryType]:
+    return {
+        period1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+        period2.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+        period_from_date3.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+    }
 
 
 class OverridableStreamConfigurationService(ConfigurationService):
@@ -152,6 +174,32 @@ def get_ltp_column(ltp_result: FilteredResult, installation_nr, ltp_column: str)
     return column
 
 
+def expected_fuel_consumption() -> float:
+    n_days = np.sum(days_year2_second_half)
+    consumption = float(fuel_rate * n_days * regularity_consumer)
+    return consumption
+
+
+def expected_diesel_consumption() -> float:
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    consumption = float(diesel_rate * n_days * regularity_consumer)
+    return consumption
+
+
+def expected_pfs_el_consumption() -> float:
+    n_days = np.sum(days_year1_second_half)
+    consumption_mw_per_day = power_usage_mw * n_days * regularity_consumer
+    consumption = float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
+    return consumption
+
+
+def expected_gas_turbine_el_generated() -> float:
+    n_days = np.sum([(days_year1_first_half + days_year2_first_half + days_year2_second_half)])
+    consumption_mw_per_day = power_usage_mw * n_days * regularity_consumer
+    consumption = float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
+    return consumption
+
+
 def expected_boiler_fuel_consumption() -> float:
     n_days = np.sum([days_year1_first_half, days_year1_second_half, days_year2_first_half])
     consumption = float(fuel_rate * n_days * regularity_consumer)
@@ -178,6 +226,53 @@ def expected_co2_from_heater() -> float:
     n_days = np.sum(days_year2_second_half)
     emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
     return emission_tons
+
+
+def expected_co2_from_fuel() -> float:
+    emission_kg_per_day = float(fuel_rate * co2_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    n_days = np.sum(days_year2_second_half)
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
+    return emission_tons
+
+
+def expected_co2_from_diesel() -> float:
+    emission_kg_per_day = float(diesel_rate * co2_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
+    return emission_tons
+
+
+def expected_ch4_from_diesel() -> float:
+    emission_kg_per_day = float(diesel_rate * ch4_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
+    return emission_tons
+
+
+def expected_nox_from_diesel() -> float:
+    emission_kg_per_day = float(diesel_rate * nox_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
+    return emission_tons
+
+
+def expected_nmvoc_from_diesel() -> float:
+    emission_kg_per_day = float(diesel_rate * nmvoc_factor)
+    emission_tons_per_day = Unit.KILO_PER_DAY.to(Unit.TONS_PER_DAY)(emission_kg_per_day)
+    n_days = np.sum([days_year1_first_half, days_year2_first_half])
+    emission_tons = float(emission_tons_per_day * n_days * regularity_consumer)
+    return emission_tons
+
+
+def expected_offshore_wind_el_consumption() -> float:
+    n_days = np.sum([days_year1_second_half, days_year2_second_half])
+    consumption_mw_per_day = power_offshore_wind_mw * n_days * regularity_consumer
+    consumption = -float(Unit.MEGA_WATT_DAYS.to(Unit.GIGA_WATT_HOURS)(consumption_mw_per_day))
+    return consumption
 
 
 # General methods:
@@ -274,6 +369,16 @@ def fuel_turbine():
 
 
 @pytest.fixture
+def diesel_turbine():
+    return (
+        YamlFuelTypeBuilder()
+        .with_name("diesel")
+        .with_emission_names_and_factors(names=["co2"], factors=[co2_factor])
+        .with_category(FuelTypeUserDefinedCategoryType.DIESEL)
+    ).validate()
+
+
+@pytest.fixture
 def fuel_multi():
     return (
         YamlFuelTypeBuilder()
@@ -284,6 +389,33 @@ def fuel_multi():
         )
         .with_category(FuelTypeUserDefinedCategoryType.FUEL_GAS)
     ).validate()
+
+
+@pytest.fixture
+def fuel_diesel_multi():
+    return (
+        YamlFuelTypeBuilder()
+        .with_name("fuel_diesel_multi")
+        # .with_emission_names_and_factors(names=["co2", "ch4", "nmvoc", "nox"], factors=[2, 0.005, 0.002, 0.001])
+        .with_emission_names_and_factors(
+            names=["co2", "ch4", "nmvoc", "nox"], factors=[co2_factor, ch4_factor, nmvoc_factor, nox_factor]
+        )
+        .with_category(FuelTypeUserDefinedCategoryType.DIESEL)
+    ).validate()
+
+
+@pytest.fixture
+def fuel_multi_temporal():
+    def fuel(fuel1: YamlFuelType, fuel2: YamlFuelType):
+        return {
+            period1.start: fuel1.name,
+            period2.start: fuel2.name,
+            period3.start: fuel1.name,
+            period4.start: fuel2.name,
+            period5.start: fuel1.name,
+        }
+
+    return fuel
 
 
 @pytest.fixture
@@ -352,6 +484,32 @@ def el_consumer_direct_base_load(energy_usage_model_direct_load):
 
 
 @pytest.fixture
+def offshore_wind_consumer(energy_usage_model_direct_load):
+    return (
+        YamlElectricityConsumerBuilder()
+        .with_name("offshore_wind_consumer")
+        .with_category(
+            {
+                period1.start: ConsumerUserDefinedCategoryType.BASE_LOAD,
+                period2.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                period3.start: ConsumerUserDefinedCategoryType.BASE_LOAD,
+                period4.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                period5.start: ConsumerUserDefinedCategoryType.BASE_LOAD,
+            }
+        )
+        .with_energy_usage_model(
+            {
+                period1.start: energy_usage_model_direct_load(load=0),
+                period2.start: energy_usage_model_direct_load(load=power_offshore_wind_mw),
+                period3.start: energy_usage_model_direct_load(load=0),
+                period4.start: energy_usage_model_direct_load(load=power_offshore_wind_mw),
+                period5.start: energy_usage_model_direct_load(load=0),
+            }
+        )
+    ).validate()
+
+
+@pytest.fixture
 def installation_boiler_heater(fuel_turbine):
     energy_usage_model = (
         YamlEnergyUsageModelDirectBuilder()
@@ -380,4 +538,77 @@ def installation_boiler_heater(fuel_turbine):
         .with_fuel_consumers([fuel_consumer])
         .with_regularity(regularity_installation)
     ).validate()
+    return installation
+
+
+@pytest.fixture
+def generator_diesel_power_to_fuel_data():
+    return MemoryResource(
+        data=[
+            [0, power_usage_mw, 15, 20],
+            [0, diesel_rate, 145000, 160000],
+        ],  # float and int with equal value should count as equal.
+        headers=[
+            "POWER",
+            "FUEL",
+        ],
+    )
+
+
+@pytest.fixture
+def generator_fuel_power_to_fuel_data():
+    return MemoryResource(
+        data=[
+            [0, 2.5, 5, power_usage_mw, 15, 20],
+            [0, 30000, 45000, fuel_rate, 87000, 110000],
+        ],  # float and int with equal value should count as equal.
+        headers=[
+            "POWER",
+            "FUEL",
+        ],
+    )
+
+
+@pytest.fixture
+def generator_set_temporal_dict():
+    def generator_set(generator_reference1: str, generator_reference2: str):
+        return {
+            period1.start: generator_reference1,
+            period2.start: generator_reference2,
+            period3.start: generator_reference1,
+            period4.start: generator_reference2,
+            period5.start: generator_reference1,
+        }
+
+    return generator_set
+
+
+@pytest.fixture
+def installation_flex(el_consumer_direct_base_load):
+    def installation(
+        installation_name: str,
+        installation_category: InstallationUserDefinedCategoryType,
+        generator_name: str,
+        generator_data1: MemoryResource,
+        categories_temporal: dict[datetime, ConsumerUserDefinedCategoryType],
+        electricity_to_fuel: dict[datetime, str],
+    ):
+        generator_data1 = generator_data1
+
+        generator_set = (
+            YamlGeneratorSetBuilder()
+            .with_name(generator_name)
+            .with_category(categories_temporal)
+            .with_electricity2fuel(electricity_to_fuel)
+            .with_consumers([el_consumer_direct_base_load(el_reference_name="base_load", load=10)])
+        ).validate()
+
+        return (
+            YamlInstallationBuilder()
+            .with_name(installation_name)
+            .with_regularity(regularity_installation)
+            .with_category(installation_category)
+            .with_generator_sets([generator_set])
+        ).validate()
+
     return installation

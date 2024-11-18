@@ -4,12 +4,13 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from libecalc.common.time_utils import Frequency, calculate_delta_days
+from libecalc.common.time_utils import Frequency, calculate_delta_days, Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.presentation.json_result.result import EcalcModelResult
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlEmissionRateUnits
 from libecalc.testing.yaml_builder import (
@@ -31,6 +32,20 @@ from tests.libecalc.presentation.exporter.conftest import (
     get_asset_yaml_model,
     calculate_asset_result,
     get_ltp_column,
+    generator_fuel_power_to_fuel_data,
+    expected_co2_from_diesel,
+    expected_nox_from_diesel,
+    expected_nmvoc_from_diesel,
+    expected_ch4_from_diesel,
+    expected_fuel_consumption,
+    expected_diesel_consumption,
+    expected_co2_from_fuel,
+    expected_pfs_el_consumption,
+    expected_gas_turbine_el_generated,
+    expected_offshore_wind_el_consumption,
+    category_dict_coarse,
+    regularity_temporal_installation,
+    category_dict,
 )
 
 from tests.libecalc.presentation.exporter.memory_resources import (
@@ -45,6 +60,12 @@ date3 = datetime(2028, 1, 1)
 date4 = datetime(2028, 4, 10)
 date5 = datetime(2029, 1, 1)
 
+period1 = Period(date1, date2)
+period2 = Period(date2, date3)
+period3 = Period(date3, date4)
+period4 = Period(date4, date5)
+period5 = Period(date5)
+
 time_vector_installation = [
     date1,
     date2,
@@ -53,7 +74,290 @@ time_vector_installation = [
     date5,
 ]
 
+period_from_date1 = Period(date1)
+period_from_date3 = Period(date3)
+
 fuel_rate = 67000
+power_usage_mw = 10
+diesel_rate = 120000
+regularity_installation = 1.0
+load_consumer = 10
+
+
+def test_emissions_diesel_fixed_and_mobile(
+    generator_diesel_power_to_fuel_data,
+    generator_fuel_power_to_fuel_data,
+    generator_set_temporal_dict,
+    el_consumer_direct_base_load,
+    resource_service_factory,
+    fuel_multi_temporal,
+    fuel_turbine,
+    fuel_diesel_multi,
+):
+    """Test reporting of CH4 from diesel in LTP."""
+
+    generator_diesel_energy_function = (
+        YamlElectricity2fuelBuilder()
+        .with_name("generator_diesel_energy_function")
+        .with_file("generator_diesel_energy_function")
+    ).validate()
+
+    generator_fuel_energy_function = (
+        YamlElectricity2fuelBuilder()
+        .with_name("generator_fuel_energy_function")
+        .with_file("generator_fuel_energy_function")
+    ).validate()
+
+    generator_fixed = (
+        YamlGeneratorSetBuilder()
+        .with_name("generator_fixed")
+        .with_category(category_dict())
+        .with_consumers([el_consumer_direct_base_load(el_reference_name="base_load", load=load_consumer)])
+        .with_electricity2fuel(
+            generator_set_temporal_dict(
+                generator_reference1=generator_diesel_energy_function.name,
+                generator_reference2=generator_fuel_energy_function.name,
+            )
+        )
+    ).validate()
+
+    generator_mobile = deepcopy(generator_fixed)
+    generator_mobile.name = "generator_mobile"
+
+    installation_fixed = (
+        YamlInstallationBuilder()
+        .with_name("INSTALLATION_FIXED")
+        .with_regularity(regularity_installation)
+        .with_fuel(fuel_multi_temporal(fuel_diesel_multi, fuel_turbine))
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+        .with_generator_sets([generator_fixed])
+    ).validate()
+
+    installation_mobile = (
+        YamlInstallationBuilder()
+        .with_name("INSTALLATION_MOBILE")
+        .with_regularity(regularity_installation)
+        .with_fuel(fuel_multi_temporal(fuel_diesel_multi, fuel_turbine))
+        .with_category(InstallationUserDefinedCategoryType.MOBILE)
+        .with_generator_sets([generator_mobile])
+    ).validate()
+
+    resources = {
+        generator_diesel_energy_function.name: generator_diesel_power_to_fuel_data,
+        generator_fuel_energy_function.name: generator_fuel_power_to_fuel_data,
+    }
+    resource_service = resource_service_factory(resources=resources)
+
+    asset = get_asset_yaml_model(
+        installations=[installation_fixed, installation_mobile],
+        fuel_types=[fuel_turbine, fuel_diesel_multi],
+        time_vector=time_vector_installation,
+        facility_inputs=[generator_diesel_energy_function, generator_fuel_energy_function],
+        frequency=Frequency.YEAR,
+        resource_service=resource_service,
+    )
+
+    variables_map = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
+
+    ltp_result = get_consumption(
+        model=asset, variables_map=variables_map, periods=variables_map.get_periods(), frequency=Frequency.YEAR
+    )
+
+    co2_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCo2Mass")
+    co2_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselCo2Mass")
+
+    nox_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselNoxMass")
+    nox_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselNoxMass")
+
+    nmvoc_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselNmvocMass")
+    nmvoc_from_diesel_mobile = get_sum_ltp_column(
+        ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselNmvocMass"
+    )
+
+    ch4_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCh4Mass")
+    ch4_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselCh4Mass")
+
+    assert co2_from_diesel_fixed == expected_co2_from_diesel()
+    assert co2_from_diesel_mobile == expected_co2_from_diesel()
+    assert nox_from_diesel_fixed == expected_nox_from_diesel()
+    assert nox_from_diesel_mobile == expected_nox_from_diesel()
+    assert nmvoc_from_diesel_fixed == expected_nmvoc_from_diesel()
+    assert nmvoc_from_diesel_mobile == expected_nmvoc_from_diesel()
+    assert ch4_from_diesel_fixed == expected_ch4_from_diesel()
+    assert ch4_from_diesel_mobile == expected_ch4_from_diesel()
+
+
+def test_temporal_models_detailed(
+    generator_set_temporal_dict,
+    fuel_multi_temporal,
+    diesel_turbine,
+    fuel_turbine,
+    generator_diesel_power_to_fuel_data,
+    generator_fuel_power_to_fuel_data,
+    resource_service_factory,
+    el_consumer_direct_base_load,
+):
+    """Test various queries for LTP reporting. Purpose: ensure that variations in temporal models are captured.
+
+    Detailed temporal models (variations within one year) for:
+    - Fuel type
+    - Generator set user defined category
+    - Generator set model
+    """
+    variables_map = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
+
+    generator_diesel_energy_function = (
+        YamlElectricity2fuelBuilder()
+        .with_name("generator_diesel_energy_function")
+        .with_file("generator_diesel_energy_function")
+    ).validate()
+
+    generator_fuel_energy_function = (
+        YamlElectricity2fuelBuilder()
+        .with_name("generator_fuel_energy_function")
+        .with_file("generator_fuel_energy_function")
+    ).validate()
+
+    generator_set = (
+        YamlGeneratorSetBuilder()
+        .with_name("generator_set")
+        .with_category(category_dict_coarse())
+        .with_consumers([el_consumer_direct_base_load(el_reference_name="base_load", load=load_consumer)])
+        .with_electricity2fuel(
+            generator_set_temporal_dict(
+                generator_reference1=generator_diesel_energy_function.name,
+                generator_reference2=generator_fuel_energy_function.name,
+            )
+        )
+    ).validate()
+
+    installation = (
+        YamlInstallationBuilder()
+        .with_name("INSTALLATION A")
+        .with_generator_sets([generator_set])
+        .with_fuel(fuel_multi_temporal(fuel1=diesel_turbine, fuel2=fuel_turbine))
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+    ).validate()
+
+    resources = {
+        generator_diesel_energy_function.name: generator_diesel_power_to_fuel_data,
+        generator_fuel_energy_function.name: generator_fuel_power_to_fuel_data,
+    }
+    resource_service = resource_service_factory(resources=resources)
+
+    asset = get_asset_yaml_model(
+        installations=[installation],
+        fuel_types=[fuel_turbine, diesel_turbine],
+        time_vector=time_vector_installation,
+        facility_inputs=[generator_diesel_energy_function, generator_fuel_energy_function],
+        frequency=Frequency.YEAR,
+        resource_service=resource_service,
+    )
+
+    ltp_result = get_consumption(
+        model=asset, variables_map=variables_map, periods=variables_map.get_periods(), frequency=Frequency.YEAR
+    )
+
+    turbine_fuel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="turbineFuelGasConsumption")
+    engine_diesel_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselConsumption")
+
+    gas_turbine_el_generated = get_sum_ltp_column(
+        ltp_result, installation_nr=0, ltp_column="gasTurbineGeneratorConsumption"
+    )
+    pfs_el_consumption = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="fromShoreConsumption")
+
+    co2_from_fuel = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="turbineFuelGasCo2Mass")
+    co2_from_diesel = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCo2Mass")
+
+    # FuelQuery: Check that turbine fuel consumption is included,
+    # even if the temporal model starts with diesel every year
+    assert turbine_fuel_consumption != 0
+
+    # FuelQuery: Check that turbine fuel consumption is correct
+    assert turbine_fuel_consumption == expected_fuel_consumption()
+
+    # FuelQuery: Check that turbine fuel gas is not categorized as diesel,
+    # even if the temporal model starts with diesel every year
+    assert engine_diesel_consumption != expected_diesel_consumption() + expected_fuel_consumption()
+
+    # FuelQuery: Check that diesel consumption is correct
+    assert engine_diesel_consumption == pytest.approx(expected_diesel_consumption(), 0.00001)
+
+    # ElectricityGeneratedQuery: Check that turbine power generation is correct.
+    assert gas_turbine_el_generated == pytest.approx(expected_gas_turbine_el_generated(), 0.00001)
+
+    # ElectricityGeneratedQuery: Check that power from shore el consumption is correct.
+    assert pfs_el_consumption == pytest.approx(expected_pfs_el_consumption(), 0.00001)
+
+    # EmissionQuery. Check that co2 from fuel is correct.
+    assert co2_from_fuel == expected_co2_from_fuel()
+
+    # EmissionQuery: Emissions. Check that co2 from diesel is correct.
+    assert co2_from_diesel == expected_co2_from_diesel()
+
+
+def test_temporal_models_offshore_wind(
+    el_consumer_direct_base_load,
+    offshore_wind_consumer,
+    fuel_turbine,
+    generator_fuel_power_to_fuel_data,
+    resource_service_factory,
+):
+    """Test ElConsumerPowerConsumptionQuery for calculating offshore wind el-consumption, LTP.
+
+    Detailed temporal models (variations within one year) for:
+    - El-consumer user defined category
+    - El-consumer energy usage model
+    """
+    variables_map = VariablesMap(time_vector=time_vector_installation, variables={"RATE": [1, 1, 1, 1]})
+
+    generator_fuel_energy_function = (
+        YamlElectricity2fuelBuilder()
+        .with_name("generator_fuel_energy_function")
+        .with_file("generator_fuel_energy_function")
+    ).validate()
+
+    generator_set = (
+        YamlGeneratorSetBuilder()
+        .with_name("generator_set")
+        .with_category({period_from_date1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR})
+        .with_consumers([offshore_wind_consumer])
+        .with_electricity2fuel({period_from_date1.start: generator_fuel_energy_function.name})
+    ).validate()
+
+    installation = (
+        YamlInstallationBuilder()
+        .with_name("INSTALLATION A")
+        .with_generator_sets([generator_set])
+        .with_fuel(fuel_turbine.name)
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+    ).validate()
+
+    resources = {
+        generator_fuel_energy_function.name: generator_fuel_power_to_fuel_data,
+    }
+
+    resource_service = resource_service_factory(resources=resources)
+
+    asset = get_asset_yaml_model(
+        installations=[installation],
+        fuel_types=[fuel_turbine],
+        time_vector=time_vector_installation,
+        facility_inputs=[generator_fuel_energy_function],
+        frequency=Frequency.YEAR,
+        resource_service=resource_service,
+    )
+
+    ltp_result = get_consumption(
+        model=asset, variables_map=variables_map, periods=variables_map.get_periods(), frequency=Frequency.YEAR
+    )
+
+    offshore_wind_el_consumption = get_sum_ltp_column(
+        ltp_result, installation_nr=0, ltp_column="offshoreWindConsumption"
+    )
+
+    # ElConsumerPowerConsumptionQuery: Check that offshore wind el-consumption is correct.
+    assert offshore_wind_el_consumption == expected_offshore_wind_el_consumption()
 
 
 def test_boiler_heater_categories(fuel_turbine, installation_boiler_heater):
