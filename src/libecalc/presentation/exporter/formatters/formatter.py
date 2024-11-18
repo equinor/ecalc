@@ -1,6 +1,6 @@
 import abc
 
-from libecalc.presentation.exporter.formatters.formattable import Formattable, FormattableGroup
+from libecalc.presentation.exporter.formatters.formattable import Formattable
 from libecalc.presentation.exporter.formatters.index_formatter import IndexFormatter
 
 
@@ -12,9 +12,6 @@ class Formatter(abc.ABC):
         :return:
         """
         ...
-
-    @abc.abstractmethod
-    def format_group(self, groups: FormattableGroup) -> dict[str, list[str]]: ...
 
 
 class CSVFormatter:
@@ -42,9 +39,3 @@ class CSVFormatter:
             row = [str(tabular.get_value(row_id, column_id)) for column_id in column_ids]
             rows.append(self.separation_character.join([*row_index, *row]))
         return rows
-
-    def format_groups(self, grouped_tabular: FormattableGroup) -> dict[str, list[str]]:
-        csv_formatted_lists_per_installation: dict[str, list[str]] = {}
-        for group_name, tabular in grouped_tabular.groups:
-            csv_formatted_lists_per_installation[group_name] = self.format(tabular)
-        return csv_formatted_lists_per_installation

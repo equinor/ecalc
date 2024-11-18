@@ -151,9 +151,12 @@ def export_tsv(
     prognosis_filter = config.filter(frequency=frequency)
     result = prognosis_filter.filter(ExportableGraphResult(results), resampled_periods)
 
-    row_based_data: dict[str, list[str]] = CSVFormatter(
-        separation_character="\t", index_formatters=PeriodFormatterConfig.get_row_index_formatters()
-    ).format_groups(result)
+    row_based_data: dict[str, list[str]] = {
+        key: CSVFormatter(
+            separation_character="\t", index_formatters=PeriodFormatterConfig.get_row_index_formatters()
+        ).format(val)
+        for key, val in result.items()
+    }
 
     exporter = Exporter()
     exporter.add_handler(
