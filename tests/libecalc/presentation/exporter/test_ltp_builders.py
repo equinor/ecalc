@@ -494,7 +494,7 @@ def test_boiler_heater_categories(fuel_turbine, installation_boiler_heater):
     assert co2_from_heater == expected_co2_from_heater()
 
 
-def test_venting_emitter(fuel_consumer_direct, fuel_turbine):
+def test_venting_emitters(fuel_consumer_direct, fuel_turbine):
     """Test venting emitters for LTP export.
 
     Verify correct behaviour if input rate is given in different units and rate types (sd and cd).
