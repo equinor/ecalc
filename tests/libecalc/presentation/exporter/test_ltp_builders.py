@@ -9,6 +9,7 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
+from libecalc.fixtures.cases.ltp_export.installation_setup import power_offshore_wind_mw
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -25,7 +26,6 @@ from libecalc.testing.yaml_builder import (
     YamlFuelConsumerBuilder,
 )
 from tests.libecalc.presentation.exporter.conftest import (
-    get_yaml_model,
     get_consumption,
     get_sum_ltp_column,
     expected_boiler_fuel_consumption,
@@ -46,7 +46,6 @@ from tests.libecalc.presentation.exporter.conftest import (
     expected_gas_turbine_el_generated,
     expected_offshore_wind_el_consumption,
     category_dict_coarse,
-    regularity_temporal_installation,
     category_dict,
     expected_gas_turbine_compressor_el_consumption,
 )
@@ -85,6 +84,34 @@ load_consumer = 10
 compressor_rate = 3000000
 power_compressor_mw = 3
 
+co2_factor = 1
+ch4_factor = 0.1
+nox_factor = 0.5
+nmvoc_factor = 0
+
+# Calculate expected values for consumption and emissions
+calculated_co2_from_diesel = expected_co2_from_diesel(diesel_rate, regularity_installation, co2_factor)
+calculated_co2_from_fuel = expected_co2_from_fuel(fuel_rate, regularity_installation, co2_factor)
+calculated_co2_from_boiler = expected_co2_from_boiler(fuel_rate, regularity_installation, co2_factor)
+calculated_co2_from_heater = expected_co2_from_heater(fuel_rate, regularity_installation, co2_factor)
+
+calculated_nox_from_diesel = expected_nox_from_diesel(diesel_rate, regularity_installation, nox_factor)
+calculated_nmvoc_from_diesel = expected_nmvoc_from_diesel(diesel_rate, regularity_installation, nmvoc_factor)
+calculated_ch4_from_diesel = expected_ch4_from_diesel(diesel_rate, regularity_installation, ch4_factor)
+
+calculated_fuel_consumption = expected_fuel_consumption(fuel_rate, regularity_installation)
+calculated_boiler_fuel_consumption = expected_boiler_fuel_consumption(fuel_rate, regularity_installation)
+calculated_heater_fuel_consumption = expected_heater_fuel_consumption(fuel_rate, regularity_installation)
+
+calculated_diesel_consumption = expected_diesel_consumption(diesel_rate, regularity_installation)
+
+calculated_gas_turbine_el_generated = expected_gas_turbine_el_generated(power_usage_mw, regularity_installation)
+calculated_pfs_el_consumption = expected_pfs_el_consumption(power_usage_mw, regularity_installation)
+calculated_gas_turbine_compressor_el_consumption = expected_gas_turbine_compressor_el_consumption(power_compressor_mw)
+calculated_offshore_wind_el_consumption = expected_offshore_wind_el_consumption(
+    power_offshore_wind_mw, regularity_installation
+)
+
 
 def create_variables_map(time_vector, rate_values=None):
     variables = {"RATE": rate_values} if rate_values else {}
@@ -102,10 +129,13 @@ def test_emissions_diesel_fixed_and_mobile(
     el_consumer_direct_base_load,
     resource_service_factory,
     fuel_multi_temporal,
-    fuel_turbine,
-    fuel_diesel_multi,
+    fuel_gas,
+    diesel,
 ):
     """Test reporting of CH4 from diesel in LTP."""
+
+    fuel = fuel_gas(["co2"], [co2_factor])
+    fuel_diesel = diesel(["co2", "ch4", "nox", "nmvoc"], [co2_factor, ch4_factor, nox_factor, nmvoc_factor])
 
     generator_diesel_energy_function = (
         YamlElectricity2fuelBuilder()
@@ -139,7 +169,7 @@ def test_emissions_diesel_fixed_and_mobile(
         YamlInstallationBuilder()
         .with_name("INSTALLATION_FIXED")
         .with_regularity(regularity_installation)
-        .with_fuel(fuel_multi_temporal(fuel_diesel_multi, fuel_turbine))
+        .with_fuel(fuel_multi_temporal(fuel_diesel, fuel))
         .with_category(InstallationUserDefinedCategoryType.FIXED)
         .with_generator_sets([generator_fixed])
     ).validate()
@@ -148,7 +178,7 @@ def test_emissions_diesel_fixed_and_mobile(
         YamlInstallationBuilder()
         .with_name("INSTALLATION_MOBILE")
         .with_regularity(regularity_installation)
-        .with_fuel(fuel_multi_temporal(fuel_diesel_multi, fuel_turbine))
+        .with_fuel(fuel_multi_temporal(fuel_diesel, fuel))
         .with_category(InstallationUserDefinedCategoryType.MOBILE)
         .with_generator_sets([generator_mobile])
     ).validate()
@@ -165,7 +195,7 @@ def test_emissions_diesel_fixed_and_mobile(
 
     asset = get_asset_yaml_model(
         installations=[installation_fixed, installation_mobile],
-        fuel_types=[fuel_turbine, fuel_diesel_multi],
+        fuel_types=[fuel, fuel_diesel],
         time_vector=time_vector_installation,
         facility_inputs=[generator_diesel_energy_function, generator_fuel_energy_function],
         frequency=Frequency.YEAR,
@@ -189,21 +219,21 @@ def test_emissions_diesel_fixed_and_mobile(
     ch4_from_diesel_fixed = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="engineDieselCh4Mass")
     ch4_from_diesel_mobile = get_sum_ltp_column(ltp_result, installation_nr=1, ltp_column="engineNoCo2TaxDieselCh4Mass")
 
-    assert co2_from_diesel_fixed == expected_co2_from_diesel()
-    assert co2_from_diesel_mobile == expected_co2_from_diesel()
-    assert nox_from_diesel_fixed == expected_nox_from_diesel()
-    assert nox_from_diesel_mobile == expected_nox_from_diesel()
-    assert nmvoc_from_diesel_fixed == expected_nmvoc_from_diesel()
-    assert nmvoc_from_diesel_mobile == expected_nmvoc_from_diesel()
-    assert ch4_from_diesel_fixed == expected_ch4_from_diesel()
-    assert ch4_from_diesel_mobile == expected_ch4_from_diesel()
+    assert co2_from_diesel_fixed == calculated_co2_from_diesel
+    assert co2_from_diesel_mobile == calculated_co2_from_diesel
+    assert nox_from_diesel_fixed == calculated_nox_from_diesel
+    assert nox_from_diesel_mobile == calculated_nox_from_diesel
+    assert nmvoc_from_diesel_fixed == calculated_nmvoc_from_diesel
+    assert nmvoc_from_diesel_mobile == calculated_nmvoc_from_diesel
+    assert ch4_from_diesel_fixed == calculated_ch4_from_diesel
+    assert ch4_from_diesel_mobile == calculated_ch4_from_diesel
 
 
 def test_temporal_models_detailed(
     temporal_dict,
     fuel_multi_temporal,
-    diesel_turbine,
-    fuel_turbine,
+    diesel,
+    fuel_gas,
     generator_diesel_power_to_fuel_resource,
     generator_fuel_power_to_fuel_resource,
     resource_service_factory,
@@ -217,6 +247,8 @@ def test_temporal_models_detailed(
     - Generator set model
     """
     variables = create_variables_map(time_vector_installation, rate_values=[1, 1, 1, 1])
+    fuel = fuel_gas(["co2"], [co2_factor])
+    diesel = diesel(["co2"], [co2_factor])
 
     generator_diesel_energy_function = (
         YamlElectricity2fuelBuilder()
@@ -247,7 +279,7 @@ def test_temporal_models_detailed(
         YamlInstallationBuilder()
         .with_name("INSTALLATION A")
         .with_generator_sets([generator_set])
-        .with_fuel(fuel_multi_temporal(fuel1=diesel_turbine, fuel2=fuel_turbine))
+        .with_fuel(fuel_multi_temporal(fuel1=diesel, fuel2=fuel))
         .with_category(InstallationUserDefinedCategoryType.FIXED)
     ).validate()
 
@@ -265,7 +297,7 @@ def test_temporal_models_detailed(
 
     asset = get_asset_yaml_model(
         installations=[installation],
-        fuel_types=[fuel_turbine, diesel_turbine],
+        fuel_types=[fuel, diesel],
         time_vector=time_vector_installation,
         facility_inputs=[generator_diesel_energy_function, generator_fuel_energy_function],
         frequency=Frequency.YEAR,
@@ -290,32 +322,32 @@ def test_temporal_models_detailed(
     assert turbine_fuel_consumption != 0
 
     # FuelQuery: Check that turbine fuel consumption is correct
-    assert turbine_fuel_consumption == expected_fuel_consumption()
+    assert turbine_fuel_consumption == calculated_fuel_consumption
 
     # FuelQuery: Check that turbine fuel gas is not categorized as diesel,
     # even if the temporal model starts with diesel every year
-    assert engine_diesel_consumption != expected_diesel_consumption() + expected_fuel_consumption()
+    assert engine_diesel_consumption != calculated_diesel_consumption + calculated_fuel_consumption
 
     # FuelQuery: Check that diesel consumption is correct
-    assert engine_diesel_consumption == pytest.approx(expected_diesel_consumption(), 0.00001)
+    assert engine_diesel_consumption == pytest.approx(calculated_diesel_consumption, 0.00001)
 
     # ElectricityGeneratedQuery: Check that turbine power generation is correct.
-    assert gas_turbine_el_generated == pytest.approx(expected_gas_turbine_el_generated(), 0.00001)
+    assert gas_turbine_el_generated == pytest.approx(calculated_gas_turbine_el_generated, 0.00001)
 
     # ElectricityGeneratedQuery: Check that power from shore el consumption is correct.
-    assert pfs_el_consumption == pytest.approx(expected_pfs_el_consumption(), 0.00001)
+    assert pfs_el_consumption == pytest.approx(calculated_pfs_el_consumption, 0.00001)
 
     # EmissionQuery. Check that co2 from fuel is correct.
-    assert co2_from_fuel == expected_co2_from_fuel()
+    assert co2_from_fuel == calculated_co2_from_fuel
 
     # EmissionQuery: Emissions. Check that co2 from diesel is correct.
-    assert co2_from_diesel == expected_co2_from_diesel()
+    assert co2_from_diesel == calculated_co2_from_diesel
 
 
 def test_temporal_models_offshore_wind(
     el_consumer_direct_base_load,
     offshore_wind_consumer,
-    fuel_turbine,
+    fuel_gas,
     generator_fuel_power_to_fuel_resource,
     resource_service_factory,
 ):
@@ -326,6 +358,7 @@ def test_temporal_models_offshore_wind(
     - El-consumer energy usage model
     """
     variables = create_variables_map(time_vector_installation, rate_values=[1, 1, 1, 1])
+    fuel = fuel_gas(["co2"], [co2_factor])
 
     generator_fuel_energy_function = (
         YamlElectricity2fuelBuilder()
@@ -345,7 +378,7 @@ def test_temporal_models_offshore_wind(
         YamlInstallationBuilder()
         .with_name("INSTALLATION A")
         .with_generator_sets([generator_set])
-        .with_fuel(fuel_turbine.name)
+        .with_fuel(fuel.name)
         .with_category(InstallationUserDefinedCategoryType.FIXED)
     ).validate()
 
@@ -360,7 +393,7 @@ def test_temporal_models_offshore_wind(
 
     asset = get_asset_yaml_model(
         installations=[installation],
-        fuel_types=[fuel_turbine],
+        fuel_types=[fuel],
         time_vector=time_vector_installation,
         facility_inputs=[generator_fuel_energy_function],
         frequency=Frequency.YEAR,
@@ -374,14 +407,14 @@ def test_temporal_models_offshore_wind(
     )
 
     # ElConsumerPowerConsumptionQuery: Check that offshore wind el-consumption is correct.
-    assert offshore_wind_el_consumption == expected_offshore_wind_el_consumption()
+    assert offshore_wind_el_consumption == calculated_offshore_wind_el_consumption
 
 
 def test_temporal_models_compressor(
     generator_fuel_power_to_fuel_resource,
     compressor_sampled_fuel_driven_resource,
     resource_service_factory,
-    fuel_turbine,
+    fuel_gas,
     temporal_dict,
 ):
     """Test FuelConsumerPowerConsumptionQuery for calculating gas turbine compressor el-consumption, LTP.
@@ -390,6 +423,7 @@ def test_temporal_models_compressor(
     - Fuel consumer user defined category
     """
     variables = create_variables_map(time_vector_installation, rate_values=[1, 1, 1, 1])
+    fuel = fuel_gas(["co2"], [co2_factor])
 
     generator_fuel_energy_function = (
         YamlElectricity2fuelBuilder()
@@ -412,7 +446,7 @@ def test_temporal_models_compressor(
     fuel_consumer = (
         YamlFuelConsumerBuilder()
         .with_name("fuel_consumer")
-        .with_fuel({period_from_date1.start: fuel_turbine.name})
+        .with_fuel({period_from_date1.start: fuel.name})
         .with_energy_usage_model(compressor_energy_usage_model)
         .with_category(
             temporal_dict(
@@ -433,7 +467,7 @@ def test_temporal_models_compressor(
         YamlInstallationBuilder()
         .with_name("INSTALLATION A")
         .with_generator_sets([generator_set])
-        .with_fuel(fuel_turbine.name)
+        .with_fuel(fuel.name)
         .with_fuel_consumers([fuel_consumer])
         .with_category(InstallationUserDefinedCategoryType.FIXED)
     ).validate()
@@ -452,7 +486,7 @@ def test_temporal_models_compressor(
 
     asset = get_asset_yaml_model(
         installations=[installation],
-        fuel_types=[fuel_turbine],
+        fuel_types=[fuel],
         time_vector=time_vector_installation,
         facility_inputs=[generator_fuel_energy_function, compressor_energy_function],
         frequency=Frequency.YEAR,
@@ -466,17 +500,16 @@ def test_temporal_models_compressor(
     )
 
     # FuelConsumerPowerConsumptionQuery. Check gas turbine compressor el consumption.
-    assert gas_turbine_compressor_el_consumption == expected_gas_turbine_compressor_el_consumption(
-        power_mw=power_compressor_mw
-    )
+    assert gas_turbine_compressor_el_consumption == calculated_gas_turbine_compressor_el_consumption
 
 
-def test_boiler_heater_categories(fuel_turbine, installation_boiler_heater):
+def test_boiler_heater_categories(fuel_gas, installation_boiler_heater):
     variables = create_variables_map(time_vector_installation)
+    fuel = fuel_gas(["co2"], [co2_factor])
 
     asset = get_asset_yaml_model(
         installations=[installation_boiler_heater],
-        fuel_types=[fuel_turbine],
+        fuel_types=[fuel],
         time_vector=[date1, date5],
         frequency=Frequency.YEAR,
     )
@@ -488,13 +521,89 @@ def test_boiler_heater_categories(fuel_turbine, installation_boiler_heater):
     co2_from_boiler = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="boilerFuelGasCo2Mass")
     co2_from_heater = get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="heaterFuelGasCo2Mass")
 
-    assert boiler_fuel_consumption == expected_boiler_fuel_consumption()
-    assert heater_fuel_consumption == expected_heater_fuel_consumption()
-    assert co2_from_boiler == expected_co2_from_boiler()
-    assert co2_from_heater == expected_co2_from_heater()
+    assert boiler_fuel_consumption == calculated_boiler_fuel_consumption
+    assert heater_fuel_consumption == calculated_heater_fuel_consumption
+    assert co2_from_boiler == calculated_co2_from_boiler
+    assert co2_from_heater == calculated_co2_from_heater
 
 
-def test_venting_emitters(fuel_consumer_direct, fuel_turbine):
+def test_total_oil_loaded_old_method(fuel_gas, fuel_consumer_direct):
+    """Test total oil loaded/stored for LTP export. Using original method where direct/venting emitters are
+    modelled as FUELSCONSUMERS using DIRECT.
+
+    Verify correct volume when model includes emissions related to both storage and loading of oil,
+    and when model includes only loading.
+    """
+    time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1)]
+    variables = create_variables_map(time_vector)
+
+    regularity = 0.6
+    emission_factor = 2
+    rate = 100
+
+    fuel = fuel_gas(["ch4"], [emission_factor])
+    loading = fuel_consumer_direct(
+        fuel_reference_name=fuel.name, rate=rate, name="loading", category=ConsumerUserDefinedCategoryType.LOADING
+    )
+
+    storage = fuel_consumer_direct(
+        fuel_reference_name=fuel.name, rate=rate, name="storage", category=ConsumerUserDefinedCategoryType.STORAGE
+    )
+
+    installation = (
+        YamlInstallationBuilder()
+        .with_name("minimal_installation")
+        .with_fuel(fuel.name)
+        .with_fuel_consumers([loading, storage])
+        .with_regularity(regularity)
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+    ).validate()
+
+    asset = get_asset_yaml_model(
+        installations=[installation],
+        fuel_types=[fuel],
+        time_vector=time_vector_installation,
+        frequency=Frequency.YEAR,
+    )
+
+    installation_loading_only = (
+        YamlInstallationBuilder()
+        .with_name("minimal_installation")
+        .with_fuel(fuel.name)
+        .with_fuel_consumers([loading])
+        .with_regularity(regularity)
+        .with_category(InstallationUserDefinedCategoryType.FIXED)
+    ).validate()
+
+    asset_loading_only = get_asset_yaml_model(
+        installations=[installation_loading_only],
+        fuel_types=[fuel],
+        time_vector=time_vector_installation,
+        frequency=Frequency.YEAR,
+    )
+
+    ltp_result_loading_storage = get_ltp_result(asset, variables)
+    ltp_result_loading_only = get_ltp_result(asset_loading_only, variables)
+
+    loaded_and_stored_oil_loading_and_storage = get_sum_ltp_column(
+        ltp_result_loading_storage, installation_nr=0, ltp_column="loadedAndStoredOil"
+    )
+    loaded_and_stored_oil_loading_only = get_sum_ltp_column(
+        ltp_result_loading_only, installation_nr=0, ltp_column="loadedAndStoredOil"
+    )
+
+    # Verify output for total oil loaded/stored, if only loading is specified.
+    assert loaded_and_stored_oil_loading_only is not None
+
+    # Verify correct volume for oil loaded/stored
+    assert loaded_and_stored_oil_loading_and_storage == rate * 365 * regularity
+
+    # Verify that total oil loaded/stored is the same if only loading is specified,
+    # compared to a model with both loading and storage.
+    assert loaded_and_stored_oil_loading_and_storage == loaded_and_stored_oil_loading_only
+
+
+def test_venting_emitters(fuel_consumer_direct, fuel_gas):
     """Test venting emitters for LTP export.
 
     Verify correct behaviour if input rate is given in different units and rate types (sd and cd).
@@ -505,6 +614,7 @@ def test_venting_emitters(fuel_consumer_direct, fuel_turbine):
     emission_rate = 10
 
     variables = create_variables_map(time_vector)
+    fuel = fuel_gas(["co2"], [co2_factor])
 
     venting_emitter_sd_kg_per_day = (
         YamlVentingEmitterDirectTypeBuilder()
@@ -546,7 +656,7 @@ def test_venting_emitters(fuel_consumer_direct, fuel_turbine):
         YamlInstallationBuilder()
         .with_name("minimal_installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name, fuel_rate)])
+        .with_fuel_consumers([fuel_consumer_direct(fuel.name, fuel_rate)])
         .with_venting_emitters([venting_emitter_sd_kg_per_day])
         .with_regularity(regularity)
     ).validate()
@@ -555,7 +665,7 @@ def test_venting_emitters(fuel_consumer_direct, fuel_turbine):
         YamlInstallationBuilder()
         .with_name("minimal_installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name, fuel_rate)])
+        .with_fuel_consumers([fuel_consumer_direct(fuel.name, fuel_rate)])
         .with_venting_emitters([venting_emitter_sd_tons_per_day])
         .with_regularity(regularity)
     ).validate()
@@ -564,28 +674,28 @@ def test_venting_emitters(fuel_consumer_direct, fuel_turbine):
         YamlInstallationBuilder()
         .with_name("minimal_installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel_consumers([fuel_consumer_direct(fuel_turbine.name, fuel_rate)])
+        .with_fuel_consumers([fuel_consumer_direct(fuel.name, fuel_rate)])
         .with_venting_emitters([venting_emitter_cd_kg_per_day])
         .with_regularity(regularity)
     ).validate()
 
     asset_sd_kg_per_day = get_asset_yaml_model(
         installations=[installation_sd_kg_per_day],
-        fuel_types=[fuel_turbine],
+        fuel_types=[fuel],
         time_vector=time_vector,
         frequency=Frequency.YEAR,
     )
 
     asset_sd_tons_per_day = get_asset_yaml_model(
         installations=[installation_sd_tons_per_day],
-        fuel_types=[fuel_turbine],
+        fuel_types=[fuel],
         time_vector=time_vector,
         frequency=Frequency.YEAR,
     )
 
     asset_cd_kg_per_day = get_asset_yaml_model(
         installations=[installation_cd_kg_per_day],
-        fuel_types=[fuel_turbine],
+        fuel_types=[fuel],
         time_vector=time_vector,
         frequency=Frequency.YEAR,
     )
@@ -617,7 +727,7 @@ def test_venting_emitters(fuel_consumer_direct, fuel_turbine):
     assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365
 
 
-def test_only_venting_emitters_no_fuelconsumers(fuel_consumer_direct, fuel_turbine):
+def test_only_venting_emitters_no_fuelconsumers(fuel_consumer_direct, fuel_gas):
     """
     Test that it is possible with only venting emitters, without fuelconsumers.
     """
@@ -626,6 +736,7 @@ def test_only_venting_emitters_no_fuelconsumers(fuel_consumer_direct, fuel_turbi
     emission_rate = 10
 
     variables = create_variables_map(time_vector)
+    fuel = fuel_gas(["co2"], [co2_factor])
 
     # Installation with only venting emitters:
     venting_emitter = (
@@ -667,13 +778,13 @@ def test_only_venting_emitters_no_fuelconsumers(fuel_consumer_direct, fuel_turbi
         YamlInstallationBuilder()
         .with_name("Fuel consumer installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel_consumers([fuel_consumer_direct(fuel_reference_name=fuel_turbine.name, rate=fuel_rate)])
+        .with_fuel_consumers([fuel_consumer_direct(fuel_reference_name=fuel.name, rate=fuel_rate)])
         .with_regularity(regularity)
     ).validate()
 
     asset_multi_installations = get_asset_yaml_model(
         installations=[installation_only_emitters, installation_only_fuel_consumers],
-        fuel_types=[fuel_turbine],
+        fuel_types=[fuel],
         time_vector=time_vector,
         frequency=Frequency.YEAR,
     )
@@ -695,7 +806,7 @@ def test_only_venting_emitters_no_fuelconsumers(fuel_consumer_direct, fuel_turbi
 
 def test_power_from_shore(
     el_consumer_direct_base_load,
-    fuel_multi,
+    fuel_gas,
     resource_service_factory,
     generator_electricity2fuel_17MW_resource,
     onshore_power_electricity2fuel_resource,
@@ -704,6 +815,7 @@ def test_power_from_shore(
     """Test power from shore output for LTP export."""
 
     time_vector_yearly = pd.date_range(datetime(2025, 1, 1), datetime(2031, 1, 1), freq="YS").to_pydatetime().tolist()
+    fuel = fuel_gas(["co2", "ch4", "nmvoc", "nox"], [co2_factor, ch4_factor, nmvoc_factor, nox_factor])
 
     regularity = 0.2
     load = 10
@@ -746,7 +858,7 @@ def test_power_from_shore(
         YamlInstallationBuilder()
         .with_name("minimal_installation")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel(fuel_multi.name)
+        .with_fuel(fuel.name)
         .with_generator_sets([generator_set])
         .with_regularity(regularity)
     ).validate()
@@ -760,7 +872,7 @@ def test_power_from_shore(
 
     asset_pfs = get_asset_yaml_model(
         installations=[installation_pfs],
-        fuel_types=[fuel_multi],
+        fuel_types=[fuel],
         time_vector=time_vector_yearly,
         time_series=[cable_loss_time_series],
         facility_inputs=[generator_energy_function, power_from_shore_energy_function],
@@ -775,14 +887,14 @@ def test_power_from_shore(
         YamlInstallationBuilder()
         .with_name("minimal_installation_csv")
         .with_category(InstallationUserDefinedCategoryType.FIXED)
-        .with_fuel(fuel_multi.name)
+        .with_fuel(fuel.name)
         .with_generator_sets([generator_set_csv])
         .with_regularity(regularity)
     ).validate()
 
     asset_pfs_csv = get_asset_yaml_model(
         installations=[installation_pfs_csv],
-        fuel_types=[fuel_multi],
+        fuel_types=[fuel],
         time_vector=time_vector_yearly,
         time_series=[cable_loss_time_series],
         facility_inputs=[generator_energy_function, power_from_shore_energy_function],
