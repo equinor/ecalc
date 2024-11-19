@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal, Optional, Union
 
 import numpy as np
 from pydantic import (
@@ -10,6 +10,9 @@ from pydantic import (
 )
 from pydantic_core.core_schema import ValidationInfo
 
+from libecalc.application.energy.component_energy_context import ComponentEnergyContext
+from libecalc.application.energy.emitter import Emitter
+from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
@@ -21,6 +24,7 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.core.result.emission import EmissionResult
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import ComponentNameStr, convert_expression
 from libecalc.expression import Expression
@@ -79,7 +83,7 @@ class YamlVentingEmission(YamlBase):
         return name.lower()
 
 
-class YamlDirectTypeEmitter(YamlBase):
+class YamlDirectTypeEmitter(YamlBase, Emitter):
     model_config = ConfigDict(title="VentingEmitter")
 
     @property
@@ -115,6 +119,27 @@ class YamlDirectTypeEmitter(YamlBase):
         title="EMISSIONS",
         description="The emissions for the emitter of type DIRECT_EMISSION",
     )
+
+    def evaluate_emissions(
+        self,
+        energy_context: ComponentEnergyContext,
+        energy_model: EnergyModel,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> Optional[dict[str, EmissionResult]]:
+        venting_emitter_results = {}
+        emission_rates = self.get_emissions(
+            expression_evaluator=expression_evaluator,
+            regularity=energy_model.get_regularity(self.id),
+        )
+
+        for emission_name, emission_rate in emission_rates.items():
+            emission_result = EmissionResult(
+                name=emission_name,
+                periods=expression_evaluator.get_periods(),
+                rate=emission_rate,
+            )
+            venting_emitter_results[emission_name] = emission_result
+        return venting_emitter_results
 
     def get_emissions(
         self, expression_evaluator: ExpressionEvaluator, regularity: dict[datetime, Expression]
@@ -161,7 +186,7 @@ class YamlDirectTypeEmitter(YamlBase):
         return category
 
 
-class YamlOilTypeEmitter(YamlBase):
+class YamlOilTypeEmitter(YamlBase, Emitter):
     model_config = ConfigDict(title="VentingEmitter")
 
     @property
@@ -197,6 +222,27 @@ class YamlOilTypeEmitter(YamlBase):
         title="VOLUME",
         description="The volume rate and emissions for the emitter of type OIL_VOLUME",
     )
+
+    def evaluate_emissions(
+        self,
+        energy_context: ComponentEnergyContext,
+        energy_model: EnergyModel,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> Optional[dict[str, EmissionResult]]:
+        venting_emitter_results = {}
+        emission_rates = self.get_emissions(
+            expression_evaluator=expression_evaluator,
+            regularity=energy_model.get_regularity(self.id),
+        )
+
+        for emission_name, emission_rate in emission_rates.items():
+            emission_result = EmissionResult(
+                name=emission_name,
+                periods=expression_evaluator.get_periods(),
+                rate=emission_rate,
+            )
+            venting_emitter_results[emission_name] = emission_result
+        return venting_emitter_results
 
     def get_emissions(
         self,

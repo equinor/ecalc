@@ -3,12 +3,10 @@ from collections import defaultdict
 from functools import reduce
 from typing import Optional
 
-import numpy as np
-
 import libecalc.dto.components
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
+from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_model import EnergyModel
-from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.priorities import PriorityID
 from libecalc.common.priority_optimizer import PriorityOptimizer
@@ -22,13 +20,9 @@ from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
-from libecalc.core.models.fuel import FuelModel
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.dto.components import (
-    ConsumerSystem as ConsumerSystemDTO,
-)
 from libecalc.dto.components import (
     ElectricityConsumer as ElectricityConsumerDTO,
 )
@@ -37,10 +31,6 @@ from libecalc.dto.components import (
 )
 from libecalc.dto.components import (
     GeneratorSet as GeneratorSetDTO,
-)
-from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlDirectTypeEmitter,
-    YamlOilTypeEmitter,
 )
 
 
@@ -230,34 +220,14 @@ class EnergyCalculator:
         """
         emission_results: dict[str, dict[str, EmissionResult]] = {}
         for energy_component in self._energy_model.get_energy_components():
-            if isinstance(energy_component, FuelConsumerDTO | GeneratorSetDTO):
-                fuel_model = FuelModel(energy_component.fuel)
-                fuel_usage = self._get_context(energy_component.id).get_fuel_usage()
-                emission_results[energy_component.id] = fuel_model.evaluate_emissions(
+            if isinstance(energy_component, Emitter):
+                emission_result = energy_component.evaluate_emissions(
+                    energy_context=self._get_context(energy_component.id),
+                    energy_model=self._energy_model,
                     expression_evaluator=self._expression_evaluator,
-                    fuel_rate=np.asarray(fuel_usage.values),
-                )
-            elif isinstance(energy_component, ConsumerSystemDTO):
-                if energy_component.consumes == ConsumptionType.FUEL:
-                    fuel_model = FuelModel(energy_component.fuel)
-                    fuel_usage = self._get_context(energy_component.id).get_fuel_usage()
-                    emission_results[energy_component.id] = fuel_model.evaluate_emissions(
-                        expression_evaluator=self._expression_evaluator,
-                        fuel_rate=np.asarray(fuel_usage.values),
-                    )
-            elif isinstance(energy_component, YamlDirectTypeEmitter | YamlOilTypeEmitter):
-                venting_emitter_results = {}
-                emission_rates = energy_component.get_emissions(
-                    expression_evaluator=self._expression_evaluator,
-                    regularity=self._energy_model.get_regularity(energy_component.id),
                 )
 
-                for emission_name, emission_rate in emission_rates.items():
-                    emission_result = EmissionResult(
-                        name=emission_name,
-                        periods=self._expression_evaluator.get_periods(),
-                        rate=emission_rate,
-                    )
-                    venting_emitter_results[emission_name] = emission_result
-                emission_results[energy_component.id] = venting_emitter_results
+                if emission_result is not None:
+                    emission_results[energy_component.id] = emission_result
+
         return Numbers.format_results_to_precision(emission_results, precision=6)
