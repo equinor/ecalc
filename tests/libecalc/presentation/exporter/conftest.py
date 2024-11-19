@@ -475,28 +475,31 @@ def el_consumer_direct_base_load(energy_usage_model_direct_load):
 
 @pytest.fixture
 def offshore_wind_consumer(energy_usage_model_direct_load):
-    return (
-        YamlElectricityConsumerBuilder()
-        .with_name("offshore_wind_consumer")
-        .with_category(
-            {
-                period1.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-                period2.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-                period3.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-                period4.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-                period5.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-            }
-        )
-        .with_energy_usage_model(
-            {
-                period1.start: energy_usage_model_direct_load(load=0),
-                period2.start: energy_usage_model_direct_load(load=power_offshore_wind_mw),
-                period3.start: energy_usage_model_direct_load(load=0),
-                period4.start: energy_usage_model_direct_load(load=power_offshore_wind_mw),
-                period5.start: energy_usage_model_direct_load(load=0),
-            }
-        )
-    ).validate()
+    def wind_consumer(power_mw: float = 1):
+        return (
+            YamlElectricityConsumerBuilder()
+            .with_name("offshore_wind_consumer")
+            .with_category(
+                {
+                    period1.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                    period2.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                    period3.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                    period4.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                    period5.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                }
+            )
+            .with_energy_usage_model(
+                {
+                    period1.start: energy_usage_model_direct_load(load=0),
+                    period2.start: energy_usage_model_direct_load(load=power_mw),
+                    period3.start: energy_usage_model_direct_load(load=0),
+                    period4.start: energy_usage_model_direct_load(load=power_mw),
+                    period5.start: energy_usage_model_direct_load(load=0),
+                }
+            )
+        ).validate()
+
+    return wind_consumer
 
 
 @pytest.fixture

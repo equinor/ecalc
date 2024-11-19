@@ -9,7 +9,6 @@ from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
-from libecalc.fixtures.cases.ltp_export.installation_setup import power_offshore_wind_mw
 from libecalc.presentation.json_result.result import EcalcModelResult
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -76,13 +75,16 @@ time_vector_installation = [date1, date2, date3, date4, date5]
 period_from_date1 = Period(date1)
 period_from_date3 = Period(date3)
 
-fuel_rate = 67000
 power_usage_mw = 10
+power_offshore_wind_mw = 1
+power_compressor_mw = 3
+
+fuel_rate = 67000
 diesel_rate = 120000
-regularity_installation = 1.0
+
 load_consumer = 10
 compressor_rate = 3000000
-power_compressor_mw = 3
+regularity_installation = 1.0
 
 co2_factor = 1
 ch4_factor = 0.1
@@ -370,7 +372,7 @@ def test_temporal_models_offshore_wind(
         YamlGeneratorSetBuilder()
         .with_name("generator_set")
         .with_category({period_from_date1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR})
-        .with_consumers([offshore_wind_consumer])
+        .with_consumers([offshore_wind_consumer(power_offshore_wind_mw)])
         .with_electricity2fuel({period_from_date1.start: generator_fuel_energy_function.name})
     ).validate()
 
