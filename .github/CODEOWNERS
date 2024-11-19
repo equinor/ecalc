@@ -5,6 +5,7 @@
 
 # eCalc Lib
 /src/ @equinor/ecalc-core-library-team
+/tests/ @equinor/ecalc-core-library-team
 
 # Examples
 /examples/ @equinor/ecalc-core-library-team
