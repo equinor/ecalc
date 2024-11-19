@@ -8,7 +8,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import VariablesMap
-from libecalc.core.models.fuel import FuelModel
+from libecalc.dto.components import FuelModel
 from libecalc.expression import Expression
 
 
@@ -30,7 +30,7 @@ def test_fuel_model():
     variables_map = VariablesMap(time_vector=timesteps)
     emissions = fuel_model.evaluate_emissions(
         expression_evaluator=variables_map,
-        fuel_rate=np.asarray([1, 2, 3]),
+        fuel_rate=[1, 2, 3],
     )
 
     emission_result = emissions["co2"]
@@ -79,7 +79,7 @@ def test_temporal_fuel_model():
                 datetime(2003, 1, 1),
             ]
         ),
-        fuel_rate=np.asarray([1, 2, 3]),
+        fuel_rate=[1, 2, 3],
     )
 
     # We should have both CO2 and CH4 as emissions
