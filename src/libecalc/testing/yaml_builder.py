@@ -1,17 +1,22 @@
 import abc
 from enum import Enum
-from typing import List, Self, TypeVar, Generic, get_args, cast
+from typing import List, Self, TypeVar, Generic, get_args, cast, Union
 
 from typing_extensions import get_original_bases
 
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import YamlFuelEnergyUsageModel
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
+    YamlFuelEnergyUsageModel,
+    YamlElectricityEnergyUsageModel,
+)
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
     YamlEnergyUsageModelDirect,
 )
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
+from libecalc.presentation.yaml.yaml_types.components.system.yaml_consumer_system import YamlConsumerSystem
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
@@ -19,10 +24,14 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import YamlVentingEmitter
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
+    YamlGeneratorSetModel,
+    YamlFacilityModelType,
+    YamlFacilityAdjustment,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import GeneratorSetModelReference
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -135,6 +144,106 @@ class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
 
     def with_energy_usage_model(self, energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]) -> Self:
         self.energy_usage_model = energy_usage_model
+        return self
+
+
+class YamlElectricity2fuelBuilder(Builder[YamlGeneratorSetModel]):
+    def __init__(self):
+        self.name = None
+        self.file = None
+        self.adjustment = None
+        self.type = YamlFacilityModelType.ELECTRICITY2FUEL
+
+    def with_name(self, name: str):
+        self.name = name
+        return self
+
+    def with_file(self, file: str):
+        self.file = file
+        return self
+
+    def with_adjustment(self, constant: float, factor: float):
+        self.adjustment = YamlFacilityAdjustment(constant=constant, factor=factor)
+        return self
+
+    def with_test_data(self):
+        self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
+        self.name = "DefaultElectricity2fuel"
+        self.file = "electricity2fuel.csv"
+
+        return self
+
+
+class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
+    def __init__(self):
+        self.name = None
+        self.energy_usage_model = None
+        self.category = None
+
+    def with_test_data(self) -> Self:
+        self.name = "base load"
+        self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD.value
+        self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_category(self, category: YamlTemporalModel[ConsumerUserDefinedCategoryType]) -> Self:
+        self.category = category
+        return self
+
+    def with_energy_usage_model(self, energy_usage_model: YamlTemporalModel[YamlElectricityEnergyUsageModel]) -> Self:
+        self.energy_usage_model = energy_usage_model
+        return self
+
+
+class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
+    def __init__(self):
+        self.name = None
+        self.category = None
+        self.fuel = None
+        self.electricity2fuel = None
+        self.cable_loss = None
+        self.max_usage_from_shore = None
+        self.consumers = []
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_category(self, category: YamlTemporalModel[ConsumerUserDefinedCategoryType]) -> Self:
+        self.category = category
+        return self
+
+    def with_fuel(self, fuel: YamlTemporalModel[str]) -> Self:
+        self.fuel = fuel
+        return self
+
+    def with_electricity2fuel(self, electricity2fuel: YamlTemporalModel[GeneratorSetModelReference]) -> Self:
+        self.electricity2fuel = electricity2fuel
+        return self
+
+    def with_consumers(self, consumers: list[Union[YamlElectricityConsumer, YamlConsumerSystem]]) -> Self:
+        self.consumers = consumers
+        return self
+
+    def with_cable_loss(self, cable_loss: YamlExpressionType) -> Self:
+        self.cable_loss = cable_loss
+        return self
+
+    def with_max_usage_from_shore(self, max_usage_from_shore: YamlExpressionType) -> Self:
+        self.max_usage_from_shore = max_usage_from_shore
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "DefaultGeneratorSet"
+        self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
+        self.fuel = YamlFuelTypeBuilder().with_test_data().validate().name
+        self.electricity2fuel = YamlElectricity2fuelBuilder().with_test_data().validate().name
+        self.consumers.append(YamlElectricityConsumerBuilder().with_test_data().validate())
+
         return self
 
 
