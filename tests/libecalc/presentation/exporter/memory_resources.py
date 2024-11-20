@@ -84,6 +84,31 @@ def cable_loss_time_series_resource():
 
 
 @pytest.fixture
+def max_usage_from_shore_time_series_resource():
+    return MemoryResource(
+        data=[
+            [
+                "01.01.2021",
+                "01.01.2022",
+                "01.01.2023",
+                "01.01.2024",
+                "01.01.2025",
+                "01.01.2026",
+                "01.01.2027",
+                "01.01.2028",
+                "01.01.2029",
+                "01.01.2030",
+            ],
+            [283, 283, 283, 283, 283, 250, 290, 283, 283, 283],
+        ],  # float and int with equal value should count as equal.
+        headers=[
+            "DATE",
+            "MAX_USAGE_FROM_SHORE",
+        ],
+    )
+
+
+@pytest.fixture
 def compressor_sampled_fuel_driven_resource():
     def compressor(power_compressor_mw: Optional[float] = 3, compressor_rate: Optional[float] = 3000000):
         return MemoryResource(
