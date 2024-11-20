@@ -32,7 +32,7 @@ class YamlElectricityConsumer(YamlBase):
         title="NAME",
         description="Name of the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/NAME",
     )
-    category: ConsumerUserDefinedCategoryType = CategoryField(...)
+    category: YamlTemporalModel[ConsumerUserDefinedCategoryType] = CategoryField(...)
     energy_usage_model: YamlTemporalModel[YamlElectricityEnergyUsageModel] = Field(
         ...,
         title="ENERGY_USAGE_MODEL",
