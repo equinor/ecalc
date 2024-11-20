@@ -61,28 +61,6 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
     ConsumptionRateType,
 )
 
-date1 = datetime(2027, 1, 1)
-date2 = datetime(2027, 4, 10)
-date3 = datetime(2028, 1, 1)
-date4 = datetime(2028, 4, 10)
-date5 = datetime(2029, 1, 1)
-
-period1 = Period(date1, date2)
-period2 = Period(date2, date3)
-period3 = Period(date3, date4)
-period4 = Period(date4, date5)
-period5 = Period(date5)
-
-period_from_date1 = Period(date1)
-period_from_date3 = Period(date3)
-full_period = Period(datetime(1900, 1, 1))
-
-days_year1_first_half = period1.duration.days
-days_year2_first_half = period3.duration.days
-
-days_year1_second_half = period2.duration.days
-days_year2_second_half = period4.duration.days
-
 
 class OverridableStreamConfigurationService(ConfigurationService):
     def __init__(self, stream: ResourceStream, overrides: Optional[dict] = None):
@@ -253,7 +231,29 @@ class TestLtp:
         cls.nox_factor = 0.5
         cls.nmvoc_factor = 0
 
-        cls.time_vector_installation = [date1, date2, date3, date4, date5]
+        cls.date1 = datetime(2027, 1, 1)
+        cls.date2 = datetime(2027, 4, 10)
+        cls.date3 = datetime(2028, 1, 1)
+        cls.date4 = datetime(2028, 4, 10)
+        cls.date5 = datetime(2029, 1, 1)
+
+        cls.period1 = Period(cls.date1, cls.date2)
+        cls.period2 = Period(cls.date2, cls.date3)
+        cls.period3 = Period(cls.date3, cls.date4)
+        cls.period4 = Period(cls.date4, cls.date5)
+        cls.period5 = Period(cls.date5)
+
+        cls.period_from_date1 = Period(cls.date1)
+        cls.period_from_date3 = Period(cls.date3)
+        cls.full_period = Period(datetime(1900, 1, 1))
+
+        cls.days_year1_first_half = cls.period1.duration.days
+        cls.days_year2_first_half = cls.period3.duration.days
+
+        cls.days_year1_second_half = cls.period2.duration.days
+        cls.days_year2_second_half = cls.period4.duration.days
+
+        cls.time_vector_installation = [cls.date1, cls.date2, cls.date3, cls.date4, cls.date5]
 
     def emission_calculate(self, rate: float, factor: float, days: list[int], regularity: float = None):
         if regularity is None:
@@ -282,7 +282,7 @@ class TestLtp:
         return (
             YamlFuelConsumerBuilder()
             .with_name(name)
-            .with_fuel({period_from_date1.start: fuel})
+            .with_fuel({self.period_from_date1.start: fuel})
             .with_energy_usage_model(self.compressor_energy_usage_model)
             .with_category(
                 self.temporal_dict(
@@ -294,11 +294,11 @@ class TestLtp:
 
     def fuel_multi_temporal(self, fuel1: YamlFuelType, fuel2: YamlFuelType):
         return {
-            period1.start: fuel1.name,
-            period2.start: fuel2.name,
-            period3.start: fuel1.name,
-            period4.start: fuel2.name,
-            period5.start: fuel1.name,
+            self.period1.start: fuel1.name,
+            self.period2.start: fuel2.name,
+            self.period3.start: fuel1.name,
+            self.period4.start: fuel2.name,
+            self.period5.start: fuel1.name,
         }
 
     def offshore_wind_consumer(self, request, power_mw: float = 1):
@@ -308,20 +308,20 @@ class TestLtp:
             .with_name("offshore_wind_consumer")
             .with_category(
                 {
-                    period1.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-                    period2.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-                    period3.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
-                    period4.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
-                    period5.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                    self.period1.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                    self.period2.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                    self.period3.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
+                    self.period4.start: ConsumerUserDefinedCategoryType.OFFSHORE_WIND,
+                    self.period5.start: ConsumerUserDefinedCategoryType.MISCELLANEOUS,
                 }
             )
             .with_energy_usage_model(
                 {
-                    period1.start: energy_usage_model_direct_load(load=0),
-                    period2.start: energy_usage_model_direct_load(load=power_mw),
-                    period3.start: energy_usage_model_direct_load(load=0),
-                    period4.start: energy_usage_model_direct_load(load=power_mw),
-                    period5.start: energy_usage_model_direct_load(load=0),
+                    self.period1.start: energy_usage_model_direct_load(load=0),
+                    self.period2.start: energy_usage_model_direct_load(load=power_mw),
+                    self.period3.start: energy_usage_model_direct_load(load=0),
+                    self.period4.start: energy_usage_model_direct_load(load=power_mw),
+                    self.period5.start: energy_usage_model_direct_load(load=0),
                 }
             )
         ).validate()
@@ -333,9 +333,12 @@ class TestLtp:
         el_consumer: YamlElectricityConsumer = None,
         el2fuel: Union[str, dict[datetime, str]] = None,
         category: dict[datetime, ConsumerUserDefinedCategoryType] = None,
-        date: datetime = period_from_date1.start,
+        date: datetime = None,
         name: str = "generator_set",
     ):
+        if date is None:
+            date = self.period_from_date1.start
+
         if el_consumer is None:
             direct_load = request.getfixturevalue("el_consumer_direct_base_load")
             el_consumer = direct_load(el_reference_name="base_load", load=self.load_consumer)
@@ -361,27 +364,27 @@ class TestLtp:
 
     def temporal_dict(self, reference1: str, reference2: str):
         return {
-            period1.start: reference1,
-            period2.start: reference2,
-            period3.start: reference1,
-            period4.start: reference2,
-            period5.start: reference1,
+            self.period1.start: reference1,
+            self.period2.start: reference2,
+            self.period3.start: reference1,
+            self.period4.start: reference2,
+            self.period5.start: reference1,
         }
 
     def category_dict(self) -> dict[datetime, ConsumerUserDefinedCategoryType]:
         return {
-            period1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
-            period2.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
-            period3.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
-            period4.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
-            period5.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+            self.period1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+            self.period2.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+            self.period3.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+            self.period4.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+            self.period5.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
         }
 
     def category_dict_coarse(self) -> dict[datetime, ConsumerUserDefinedCategoryType]:
         return {
-            period1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
-            period2.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
-            period_from_date3.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+            self.period1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
+            self.period2.start: ConsumerUserDefinedCategoryType.POWER_FROM_SHORE,
+            self.period_from_date3.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR,
         }
 
     @property
@@ -426,33 +429,37 @@ class TestLtp:
 
     @property
     def fuel_consumption(self):
-        return TestLtp.consumption_calculate(self, rate=self.fuel_rate, days=[days_year2_second_half])
+        return TestLtp.consumption_calculate(self, rate=self.fuel_rate, days=[self.days_year2_second_half])
 
     @property
     def diesel_consumption(self):
         return TestLtp.consumption_calculate(
-            self, rate=self.diesel_rate, days=[days_year1_first_half, days_year2_first_half]
+            self, rate=self.diesel_rate, days=[self.days_year1_first_half, self.days_year2_first_half]
         )
 
     @property
     def pfs_el_consumption(self):
-        return TestLtp.el_consumption_calculate(self, power=self.power_usage_mw, days=[days_year1_second_half])
+        return TestLtp.el_consumption_calculate(self, power=self.power_usage_mw, days=[self.days_year1_second_half])
 
     @property
     def gas_turbine_el_generated(self):
         return TestLtp.el_consumption_calculate(
-            self, power=self.power_usage_mw, days=[days_year1_first_half, days_year2_first_half, days_year2_second_half]
+            self,
+            power=self.power_usage_mw,
+            days=[self.days_year1_first_half, self.days_year2_first_half, self.days_year2_second_half],
         )
 
     @property
     def boiler_fuel_consumption(self):
         return TestLtp.consumption_calculate(
-            self, rate=self.fuel_rate, days=[days_year1_first_half, days_year1_second_half, days_year2_first_half]
+            self,
+            rate=self.fuel_rate,
+            days=[self.days_year1_first_half, self.days_year1_second_half, self.days_year2_first_half],
         )
 
     @property
     def heater_fuel_consumption(self):
-        return TestLtp.consumption_calculate(self, rate=self.fuel_rate, days=[days_year2_second_half])
+        return TestLtp.consumption_calculate(self, rate=self.fuel_rate, days=[self.days_year2_second_half])
 
     @property
     def co2_from_boiler(self):
@@ -460,55 +467,67 @@ class TestLtp:
             self,
             rate=self.fuel_rate,
             factor=self.co2_factor,
-            days=[days_year1_first_half, days_year1_second_half, days_year2_first_half],
+            days=[self.days_year1_first_half, self.days_year1_second_half, self.days_year2_first_half],
         )
 
     @property
     def co2_from_heater(self):
         return TestLtp.emission_calculate(
-            self, rate=self.fuel_rate, factor=self.co2_factor, days=[days_year2_second_half]
+            self, rate=self.fuel_rate, factor=self.co2_factor, days=[self.days_year2_second_half]
         )
 
     @property
     def co2_from_fuel(self):
         return TestLtp.emission_calculate(
-            self, rate=self.fuel_rate, factor=self.co2_factor, days=[days_year2_second_half]
+            self, rate=self.fuel_rate, factor=self.co2_factor, days=[self.days_year2_second_half]
         )
 
     @property
     def co2_from_diesel(self):
         return TestLtp.emission_calculate(
-            self, rate=self.diesel_rate, factor=self.co2_factor, days=[days_year1_first_half, days_year2_first_half]
+            self,
+            rate=self.diesel_rate,
+            factor=self.co2_factor,
+            days=[self.days_year1_first_half, self.days_year2_first_half],
         )
 
     @property
     def ch4_from_diesel(self):
         return TestLtp.emission_calculate(
-            self, rate=self.diesel_rate, factor=self.ch4_factor, days=[days_year1_first_half, days_year2_first_half]
+            self,
+            rate=self.diesel_rate,
+            factor=self.ch4_factor,
+            days=[self.days_year1_first_half, self.days_year2_first_half],
         )
 
     @property
     def nox_from_diesel(self):
         return TestLtp.emission_calculate(
-            self, rate=self.diesel_rate, factor=self.nox_factor, days=[days_year1_first_half, days_year2_first_half]
+            self,
+            rate=self.diesel_rate,
+            factor=self.nox_factor,
+            days=[self.days_year1_first_half, self.days_year2_first_half],
         )
 
     @property
     def nmvoc_from_diesel(self):
         return TestLtp.emission_calculate(
-            self, rate=self.diesel_rate, factor=self.nmvoc_factor, days=[days_year1_first_half, days_year2_first_half]
+            self,
+            rate=self.diesel_rate,
+            factor=self.nmvoc_factor,
+            days=[self.days_year1_first_half, self.days_year2_first_half],
         )
 
     @property
     def offshore_wind_el_consumption(self):
         return TestLtp.el_consumption_calculate(
-            self, power=self.power_offshore_wind_mw, days=[days_year1_second_half, days_year2_second_half]
+            self, power=self.power_offshore_wind_mw, days=[self.days_year1_second_half, self.days_year2_second_half]
         ) * (-1)
 
     @property
     def gas_turbine_compressor_el_consumption(self):
         return TestLtp.el_consumption_calculate(
-            self, power=self.power_compressor_mw, days=[days_year1_second_half, days_year2_second_half]
+            self, power=self.power_compressor_mw, days=[self.days_year1_second_half, self.days_year2_second_half]
         )
 
     def test_emissions_diesel_fixed_and_mobile(
@@ -738,9 +757,9 @@ class TestLtp:
         generator_set = (
             YamlGeneratorSetBuilder()
             .with_name("generator_set")
-            .with_category({period_from_date1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR})
+            .with_category({self.period_from_date1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR})
             .with_consumers([self.offshore_wind_consumer(request, self.power_offshore_wind_mw)])
-            .with_electricity2fuel({period_from_date1.start: self.generator_fuel_energy_function.name})
+            .with_electricity2fuel({self.period_from_date1.start: self.generator_fuel_energy_function.name})
         ).validate()
 
         installation = (
@@ -796,8 +815,8 @@ class TestLtp:
         generator_set = (
             YamlGeneratorSetBuilder()
             .with_name("generator_set")
-            .with_category({period_from_date1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR})
-            .with_electricity2fuel({period_from_date1.start: self.generator_fuel_energy_function.name})
+            .with_category({self.period_from_date1.start: ConsumerUserDefinedCategoryType.TURBINE_GENERATOR})
+            .with_electricity2fuel({self.period_from_date1.start: self.generator_fuel_energy_function.name})
         ).validate()
 
         installation = (
@@ -853,11 +872,11 @@ class TestLtp:
             YamlFuelConsumerBuilder()
             .with_name("boiler_heater")
             .with_fuel(fuel.name)
-            .with_energy_usage_model({full_period.start: energy_usage_model})
+            .with_energy_usage_model({self.full_period.start: energy_usage_model})
             .with_category(
                 {
-                    Period(date1, date4).start: ConsumerUserDefinedCategoryType.BOILER,
-                    Period(date4).start: ConsumerUserDefinedCategoryType.HEATER,
+                    Period(self.date1, self.date4).start: ConsumerUserDefinedCategoryType.BOILER,
+                    Period(self.date4).start: ConsumerUserDefinedCategoryType.HEATER,
                 }
             )
         ).validate()
@@ -874,7 +893,7 @@ class TestLtp:
         asset = get_asset_yaml_model(
             installations=[installation],
             fuel_types=[fuel],
-            time_vector=[date1, date5],
+            time_vector=[self.date1, self.date5],
             frequency=Frequency.YEAR,
         )
 
