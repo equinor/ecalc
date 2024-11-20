@@ -5,7 +5,11 @@ from typing import List, Self, TypeVar, Generic, get_args, cast, Union, Literal
 from typing_extensions import get_original_bases
 
 from libecalc.common.utils.rates import RateType
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
+from libecalc.dto.types import (
+    ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
+    InstallationUserDefinedCategoryType,
+)
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlFuelEnergyUsageModel,
@@ -284,8 +288,12 @@ class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
         self.name = name
         return self
 
-    def with_fuel(self, fuel: str) -> Self:
+    def with_fuel(self, fuel: YamlTemporalModel[str]):
         self.fuel = fuel
+        return self
+
+    def with_category(self, category: YamlTemporalModel[ConsumerUserDefinedCategoryType]):
+        self.category = category
         return self
 
     def with_energy_usage_model(self, energy_usage_model: YamlTemporalModel[YamlFuelEnergyUsageModel]) -> Self:
@@ -511,6 +519,18 @@ class YamlInstallationBuilder(Builder[YamlInstallation]):
 
         self._yaml_model_containers = []
 
+    def with_category(self, category: InstallationUserDefinedCategoryType) -> Self:
+        self.category = category
+        return self
+
+    def with_regularity(self, regularity: YamlTemporalModel[YamlExpressionType]) -> Self:
+        self.regularity = regularity
+        return self
+
+    def with_fuel(self, fuel=YamlTemporalModel[str]):
+        self.fuel = fuel
+        return self
+
     def with_test_data(self):
         self.name = "DefaultInstallation"
         self.hydrocarbon_export = 0
@@ -549,6 +569,14 @@ class YamlEmissionBuilder(Builder[YamlEmission]):
         self.name = None
         self.factor = None
 
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_factor(self, factor: YamlExpressionType) -> Self:
+        self.factor = factor
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "CO2"
         self.factor = 2
@@ -569,6 +597,19 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
 
     def with_name(self, name: str) -> Self:
         self.name = name
+        return self
+
+    def with_emissions(self, emissions: list[YamlEmission]) -> Self:
+        self.emissions = emissions
+        return self
+
+    def with_category(self, category: FuelTypeUserDefinedCategoryType) -> Self:
+        self.category = category
+        return self
+
+    def with_emission_names_and_factors(self, names: list[str], factors: list[YamlExpressionType]) -> Self:
+        for name, factor in zip(names, factors):
+            self.emissions.append(YamlEmissionBuilder().with_name(name).with_factor(factor).validate())
         return self
 
 
