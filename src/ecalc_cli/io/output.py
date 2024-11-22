@@ -7,7 +7,6 @@ from ecalc_cli.errors import EcalcCLIError
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.run_info import RunInfo
 from libecalc.common.time_utils import resample_periods
-from libecalc.dto import Asset, ResultOptions
 from libecalc.infrastructure.file_utils import OutputFormat, get_result_output
 from libecalc.presentation.exporter.configs.configs import LTPConfig, STPConfig
 from libecalc.presentation.exporter.configs.formatter_config import PeriodFormatterConfig
@@ -15,8 +14,9 @@ from libecalc.presentation.exporter.exporter import Exporter
 from libecalc.presentation.exporter.formatters.formatter import CSVFormatter
 from libecalc.presentation.exporter.handlers.handler import MultiFileHandler
 from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
-from libecalc.presentation.flow_diagram.EcalcModelMapper import EcalcModelMapper
+from libecalc.presentation.flow_diagram.energy_model_flow_diagram import EnergyModelFlowDiagram
 from libecalc.presentation.json_result.result import EcalcModelResult as EcalcModelResultDTO
+from libecalc.presentation.yaml.model import YamlModel
 
 
 def write_output(output: str, output_file: Path = None):
@@ -168,12 +168,11 @@ def export_tsv(
     exporter.export(row_based_data)
 
 
-def write_flow_diagram(model_dto: Asset, result_options: ResultOptions, output_folder: Path, name_prefix: str):
+def write_flow_diagram(energy_model: YamlModel, output_folder: Path, name_prefix: str):
     """Write FDE diagram to file.
 
     Args:
-        model_dto: eCalc model
-        result_options: Result options specifying start, end and frequency
+        energy_model: The yaml energy model
         output_folder: Desired output location of FDE diagram
         name_prefix: Name of FDE diagram file
 
@@ -183,10 +182,9 @@ def write_flow_diagram(model_dto: Asset, result_options: ResultOptions, output_f
         EcalcCLIError: If a OSError occurs during the writing of diagram to file.
 
     """
-    flow_diagram = EcalcModelMapper.from_dto_to_fde(
-        ecalc_model=model_dto,
-        result_options=result_options,
-    )
+    flow_diagram = EnergyModelFlowDiagram(
+        energy_model=energy_model, model_period=energy_model.variables.period
+    ).get_energy_flow_diagram()
     flow_diagram_filename = f"{name_prefix}.flow-diagram.json" if name_prefix != "" else "flow-diagram.json"
     flow_diagram_path = output_folder / flow_diagram_filename
     try:
