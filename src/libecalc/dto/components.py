@@ -9,7 +9,9 @@ from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
+from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.application.energy.energy_model import EnergyModel
+from libecalc.application.energy.model_change_event import ModelChangeEvent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
@@ -131,7 +133,7 @@ class BaseConsumer(BaseEquipment, ABC):
         return fuel
 
 
-class ElectricityConsumer(BaseConsumer):
+class ElectricityConsumer(BaseConsumer, EnergyComponent):
     component_type: Literal[
         ComponentType.COMPRESSOR,
         ComponentType.PUMP,
@@ -151,6 +153,21 @@ class ElectricityConsumer(BaseConsumer):
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.POWER)
     )
 
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return False
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return [ModelChangeEvent.from_period(period) for period in self.energy_usage_model.keys()]
+
     @field_validator("energy_usage_model", mode="before")
     @classmethod
     def check_energy_usage_model(cls, energy_usage_model):
@@ -162,7 +179,7 @@ class ElectricityConsumer(BaseConsumer):
         return energy_usage_model
 
 
-class FuelConsumer(BaseConsumer, Emitter):
+class FuelConsumer(BaseConsumer, Emitter, EnergyComponent):
     component_type: Literal[
         ComponentType.COMPRESSOR,
         ComponentType.GENERIC,
@@ -176,6 +193,21 @@ class FuelConsumer(BaseConsumer, Emitter):
     _check_model_energy_usage = field_validator("energy_usage_model")(
         lambda data: check_model_energy_usage_type(data, EnergyUsageType.FUEL)
     )
+
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return False
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return [ModelChangeEvent.from_period(period) for period in self.energy_usage_model.keys()]
 
     def evaluate_emissions(
         self,
@@ -230,14 +262,44 @@ class PumpOperationalSettings(EcalcBaseModel):
     fluid_density: Expression
 
 
-class CompressorComponent(BaseConsumer):
+class CompressorComponent(BaseConsumer, EnergyComponent):
     component_type: Literal[ComponentType.COMPRESSOR] = ComponentType.COMPRESSOR
     energy_usage_model: dict[Period, CompressorModel]
 
+    def is_provider(self) -> bool:
+        return False
 
-class PumpComponent(BaseConsumer):
+    def is_container(self) -> bool:
+        return False
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return [ModelChangeEvent.from_period(period) for period in self.energy_usage_model.keys()]
+
+
+class PumpComponent(BaseConsumer, EnergyComponent):
     component_type: Literal[ComponentType.PUMP] = ComponentType.PUMP
     energy_usage_model: dict[Period, PumpModel]
+
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return False
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return [ModelChangeEvent.from_period(period) for period in self.energy_usage_model.keys()]
 
 
 class Stream(EcalcBaseModel):
@@ -294,18 +356,34 @@ class SystemComponentConditions(EcalcBaseModel):
     crossover: list[Crossover]
 
 
-class ConsumerSystem(BaseConsumer, Emitter):
+class ConsumerSystem(BaseConsumer, Emitter, EnergyComponent):
     component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(
         ComponentType.CONSUMER_SYSTEM_V2,
         title="TYPE",
         description="The type of the component",
     )
+
     component_conditions: SystemComponentConditions
     stream_conditions_priorities: Priorities[SystemStreamConditions]
     consumers: Union[list[CompressorComponent], list[PumpComponent]]
 
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return True
+
     def is_fuel_consumer(self) -> bool:
         return self.consumes == ConsumptionType.FUEL
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return []
 
     def evaluate_emissions(
         self,
@@ -382,7 +460,7 @@ class ConsumerSystem(BaseConsumer, Emitter):
         return dict(parsed_priorities)
 
 
-class GeneratorSet(BaseEquipment, Emitter):
+class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
     component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
     fuel: dict[Period, FuelType]
     generator_set_model: dict[Period, GeneratorSetSampled]
@@ -400,6 +478,21 @@ class GeneratorSet(BaseEquipment, Emitter):
     max_usage_from_shore: Optional[ExpressionType] = Field(
         None, title="MAX_USAGE_FROM_SHORE", description="The peak load/effect that is expected for one hour, per year."
     )
+
+    def is_provider(self) -> bool:
+        return True
+
+    def is_container(self) -> bool:
+        return False
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return [ModelChangeEvent.from_period(period) for period in self.generator_set_model.keys()]
 
     def evaluate_emissions(
         self,
@@ -472,8 +565,9 @@ class GeneratorSet(BaseEquipment, Emitter):
         return graph
 
 
-class Installation(BaseComponent):
+class Installation(BaseComponent, EnergyComponent):
     component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
+
     user_defined_category: Optional[InstallationUserDefinedCategoryType] = Field(default=None, validate_default=True)
     hydrocarbon_export: dict[Period, Expression]
     fuel_consumers: list[
@@ -483,6 +577,21 @@ class Installation(BaseComponent):
         ]
     ] = Field(default_factory=list)
     venting_emitters: list[YamlVentingEmitter] = Field(default_factory=list)
+
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return True
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return []
 
     @property
     def id(self) -> str:
@@ -496,7 +605,7 @@ class Installation(BaseComponent):
 
     @field_validator("user_defined_category", mode="before")
     def check_user_defined_category(cls, user_defined_category, info: ValidationInfo):
-        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
+        # Provide which value and context to make it easier for user to correct wrt mandatory changes.
         if user_defined_category is not None:
             if user_defined_category not in list(InstallationUserDefinedCategoryType):
                 name_context_str = ""
@@ -512,7 +621,7 @@ class Installation(BaseComponent):
     @model_validator(mode="after")
     def check_fuel_consumers_or_venting_emitters_exist(self):
         try:
-            if self.fuel_consumers or self.venting_emitters or self.generator_sets:
+            if self.fuel_consumers or self.venting_emitters:
                 return self
         except AttributeError:
             raise ValueError(
@@ -534,15 +643,30 @@ class Installation(BaseComponent):
         return graph
 
 
-class Asset(Component):
+class Asset(Component, EnergyComponent):
     @property
     def id(self):
         return generate_id(self.name)
 
+    name: ComponentNameStr
+
+    installations: list[Installation] = Field(default_factory=list)
     component_type: Literal[ComponentType.ASSET] = ComponentType.ASSET
 
-    name: ComponentNameStr
-    installations: list[Installation] = Field(default_factory=list)
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return True
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_change_events(self) -> list[ModelChangeEvent]:
+        return []
 
     @model_validator(mode="after")
     def validate_unique_names(self):

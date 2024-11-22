@@ -10,7 +10,9 @@ from libecalc.dto.node_info import NodeInfo
 # TODO: Rename to energy graph, use composition instead of inheritance. Alternatively make YamlModel the EnergyGraph/EnergyModel and use Graph directly in YamlModel
 #   Currently it is practical to have the EnergyModel graph related functions here to deal with dto tests.
 class ComponentGraph(Graph):
-    def get_consumers(self, provider_id: str) -> list[EnergyComponent]:
+    def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
+        if provider_id is None:
+            provider_id = self.root
         consumer_ids = self.get_successors(provider_id)
         return [self.get_node(consumer_id) for consumer_id in consumer_ids]
 

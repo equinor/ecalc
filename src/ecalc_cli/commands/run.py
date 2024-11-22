@@ -125,8 +125,7 @@ def run(
 
     if flow_diagram:
         write_flow_diagram(
-            model_dto=model.dto,
-            result_options=model.result_options,
+            energy_model=model,
             output_folder=output_folder,
             name_prefix=name_prefix,
         )
