@@ -205,44 +205,6 @@ class TestLtp:
         actual_value = get_sum_ltp_column(ltp_result, installation_nr, ltp_column)
         assert actual_value == pytest.approx(expected_value, 0.00001)
 
-    def create_installation(
-        self, name, fuel, generator_sets, fuel_consumers=None, venting_emitters=None, regularity=None, category=None
-    ):
-        builder = YamlInstallationBuilder().with_name(name).with_fuel(fuel).with_generator_sets(generator_sets)
-        if fuel_consumers:
-            builder = builder.with_fuel_consumers(fuel_consumers)
-        if venting_emitters:
-            builder = builder.with_venting_emitters(venting_emitters)
-        if regularity:
-            builder = builder.with_regularity(regularity)
-        if category:
-            builder = builder.with_category(category)
-        return builder.validate()
-
-    def create_asset(
-        self,
-        installations,
-        fuel_types,
-        start,
-        end,
-        resources=None,
-        time_series=None,
-        facility_inputs=None,
-        frequency=Frequency.YEAR,
-    ):
-        builder = (
-            YamlAssetBuilder()
-            .with_start(start)
-            .with_end(end)
-            .with_installations(installations)
-            .with_fuel_types(fuel_types)
-        )
-        if resources:
-            builder = builder.with_facility_inputs(facility_inputs)
-        if time_series:
-            builder = builder.with_time_series(time_series)
-        return builder.get_yaml_model(resources=resources, frequency=frequency)
-
     def emission_calculate(self, rate: float, factor: float, days: list[int], regularity: float = None):
         if regularity is None:
             regularity = self.regularity_installation
