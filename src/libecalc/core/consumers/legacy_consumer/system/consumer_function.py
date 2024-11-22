@@ -287,7 +287,7 @@ class ConsumerSystemConsumerFunction(ConsumerFunction):
                     f" {type(energy_usage_model).__name__} has not been implemented."
                     f" This should not happen. Please contact eCalc support."
                 )
-            transfer_rate = requested_rates[consumer_index] - consumer_maximum_rate
+            transfer_rate = rates_after_cross_over[consumer_index] - consumer_maximum_rate
             # Only transfer when max rate is exceeded
             transfer_rate = np.where(transfer_rate > 0, transfer_rate, 0)
 
