@@ -8,7 +8,7 @@ from libecalc import dto
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
 from libecalc.expression import Expression
-from libecalc.presentation.flow_diagram.fde_models import Flow, FlowType, Node, NodeType
+from libecalc.presentation.flow_diagram.flow_diagram_dtos import Flow, FlowType, Node, NodeType
 
 FUEL_NODE = Node(id="fuel-input", title="Fuel", type=NodeType.INPUT_OUTPUT_NODE)
 INPUT_NODE = Node(id="input", title="Input", type=NodeType.INPUT_OUTPUT_NODE)

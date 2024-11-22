@@ -12,6 +12,7 @@ from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
+from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
@@ -83,7 +84,7 @@ class YamlVentingEmission(YamlBase):
         return name.lower()
 
 
-class YamlDirectTypeEmitter(YamlBase, Emitter):
+class YamlDirectTypeEmitter(YamlBase, Emitter, EnergyComponent):
     model_config = ConfigDict(title="VentingEmitter")
 
     @property
@@ -119,6 +120,24 @@ class YamlDirectTypeEmitter(YamlBase, Emitter):
         title="EMISSIONS",
         description="The emissions for the emitter of type DIRECT_EMISSION",
     )
+
+    def is_fuel_consumer(self) -> bool:
+        return False
+
+    def is_electricity_consumer(self) -> bool:
+        return False
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return False
 
     def evaluate_emissions(
         self,
@@ -186,7 +205,7 @@ class YamlDirectTypeEmitter(YamlBase, Emitter):
         return category
 
 
-class YamlOilTypeEmitter(YamlBase, Emitter):
+class YamlOilTypeEmitter(YamlBase, Emitter, EnergyComponent):
     model_config = ConfigDict(title="VentingEmitter")
 
     @property
@@ -222,6 +241,24 @@ class YamlOilTypeEmitter(YamlBase, Emitter):
         title="VOLUME",
         description="The volume rate and emissions for the emitter of type OIL_VOLUME",
     )
+
+    def is_fuel_consumer(self) -> bool:
+        return False
+
+    def is_electricity_consumer(self) -> bool:
+        return False
+
+    def get_component_process_type(self) -> ComponentType:
+        return self.component_type
+
+    def get_name(self) -> str:
+        return self.name
+
+    def is_provider(self) -> bool:
+        return False
+
+    def is_container(self) -> bool:
+        return False
 
     def evaluate_emissions(
         self,

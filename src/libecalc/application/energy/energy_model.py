@@ -18,9 +18,9 @@ class EnergyModel(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_consumers(self, provider_id: str) -> list[EnergyComponent]:
+    def get_consumers(self, provider_id: str = None) -> list[EnergyComponent]:
         """
-        Get consumers of the given provider
+        Get consumers of the given provider. If no provider is given, assume top-level.
         """
         ...
 
