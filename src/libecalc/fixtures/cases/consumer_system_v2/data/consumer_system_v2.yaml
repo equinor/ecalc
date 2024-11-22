@@ -50,23 +50,23 @@ INSTALLATIONS:
               TYPE: PUMP_SYSTEM
               CONDITION: true
               PUMPS:
-                - NAME: pump1
-                  CHART: pump_single_speed
                 - NAME: pump2
                   CHART: pump_single_speed
                 - NAME: pump3
                   CHART: pump_single_speed
+                - NAME: pump1
+                  CHART: pump_single_speed
               FLUID_DENSITY: 2
               POWERLOSSFACTOR: 0.0
               OPERATIONAL_SETTINGS:
-                - RATES: [ 4000000, 5000000, 6000000 ]
+                - RATES: [ 5000000, 6000000, 4000000 ]
                   SUCTION_PRESSURES: [ 50, 50, 50 ]
                   DISCHARGE_PRESSURES: [ 250, 250, 250 ]
-                  CROSSOVER: [ 0, 1, 1 ]
-                - RATES: [ 2000000, 2500000, 3000000 ]
+                  CROSSOVER: [ 3, 3, 0 ]
+                - RATES: [ 2500000, 3000000, 2000000 ]
                   SUCTION_PRESSURES: [ 50, 50, 50 ]
                   DISCHARGE_PRESSURES: [ 125, 125, 125 ]
-                  CROSSOVER: [ 0, 1, 1 ]
+                  CROSSOVER: [ 3, 3, 0 ]
           - NAME: pump_system_v2
             CATEGORY: PUMP
             TYPE: CONSUMER_SYSTEM@v2
@@ -161,25 +161,25 @@ INSTALLATIONS:
         ENERGY_USAGE_MODEL:
           TYPE: COMPRESSOR_SYSTEM
           COMPRESSORS:
-            - NAME: compressor1
-              COMPRESSOR_MODEL: compressor_sampled_1d
             - NAME: compressor2
               COMPRESSOR_MODEL: compressor_sampled_1d
             - NAME: compressor3
               COMPRESSOR_MODEL: compressor_sampled_1d
+            - NAME: compressor1
+              COMPRESSOR_MODEL: compressor_sampled_1d
           OPERATIONAL_SETTINGS:
-            - RATES: [ 1000000, 6000000, 6000000 ]
+            - RATES: [ 6000000, 6000000, 1000000 ]
               SUCTION_PRESSURES: [ 50, 50, 50 ]
               DISCHARGE_PRESSURES: [ 250, 250, 250 ]
-              CROSSOVER: [ 0, 1, 1 ]
-            - RATES: [ "$var.compressor1", 5000000, 5000000 ]
+              CROSSOVER: [ 3, 3, 0 ]
+            - RATES: [ 5000000, 5000000, "$var.compressor1" ]
               SUCTION_PRESSURES: [ 50, 50, 50 ]
               DISCHARGE_PRESSURES: [ 125, 125, 125 ]
-              CROSSOVER: [ 0, 1, 1 ]
-            - RATES: [ 1000000, 5000000, 5000000 ]
+              CROSSOVER: [ 3, 3, 0 ]
+            - RATES: [ 5000000, 5000000, 1000000 ]
               SUCTION_PRESSURES: [ 50, 50, 50 ]
               DISCHARGE_PRESSURES: [ 125, 125, 125 ]
-              CROSSOVER: [ 0, 1, 1 ]
+              CROSSOVER: [ 3, 3, 0 ]
       - NAME: compressor_system_v2
         CATEGORY: COMPRESSOR
         TYPE: CONSUMER_SYSTEM@v2
