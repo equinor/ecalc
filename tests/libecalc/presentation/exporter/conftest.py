@@ -183,7 +183,7 @@ def generator_fuel_power_to_fuel_resource():
 
 # Fixtures based on builders:
 @pytest.fixture
-def fuel_gas():
+def fuel_gas_factory():
     def fuel(names: Optional[list[str]] = None, factors: Optional[list[float]] = None):
         if factors is None:
             factors = [1]
@@ -200,7 +200,7 @@ def fuel_gas():
 
 
 @pytest.fixture
-def diesel():
+def diesel_factory():
     def diesel_fuel(names=None, factors=None):
         if factors is None:
             factors = [1]
@@ -217,7 +217,7 @@ def diesel():
 
 
 @pytest.fixture
-def energy_usage_model_direct():
+def energy_usage_model_direct_factory():
     def energy_usage_model(rate: float):
         return (
             YamlEnergyUsageModelDirectBuilder()
@@ -229,7 +229,7 @@ def energy_usage_model_direct():
 
 
 @pytest.fixture
-def energy_usage_model_direct_load():
+def energy_usage_model_direct_load_factory():
     def energy_usage_model(load: float):
         return (
             YamlEnergyUsageModelDirectBuilder()
@@ -241,7 +241,7 @@ def energy_usage_model_direct_load():
 
 
 @pytest.fixture
-def fuel_consumer_direct(energy_usage_model_direct):
+def fuel_consumer_direct_factory(energy_usage_model_direct_factory):
     def fuel_consumer(
         fuel_reference_name: str,
         rate: float,
@@ -253,34 +253,34 @@ def fuel_consumer_direct(energy_usage_model_direct):
             .with_name(name)
             .with_fuel(fuel_reference_name)
             .with_category(category)
-            .with_energy_usage_model(energy_usage_model_direct(rate))
+            .with_energy_usage_model(energy_usage_model_direct_factory(rate))
         ).validate()
 
     return fuel_consumer
 
 
 @pytest.fixture
-def fuel_consumer_direct_load(energy_usage_model_direct_load):
+def fuel_consumer_direct_load_factory(energy_usage_model_direct_load_factory):
     def fuel_consumer(fuel_reference_name: str, load: float):
         return (
             YamlFuelConsumerBuilder()
             .with_name("fuel_consumer")
             .with_fuel(fuel_reference_name)
             .with_category(ConsumerUserDefinedCategoryType.BASE_LOAD)
-            .with_energy_usage_model(energy_usage_model_direct_load(load))
+            .with_energy_usage_model(energy_usage_model_direct_load_factory(load))
         ).validate()
 
     return fuel_consumer
 
 
 @pytest.fixture
-def el_consumer_direct_base_load(energy_usage_model_direct_load):
+def el_consumer_direct_base_load_factory(energy_usage_model_direct_load_factory):
     def el_consumer(el_reference_name: str, load: float):
         return (
             YamlElectricityConsumerBuilder()
             .with_name(el_reference_name)
             .with_category(ConsumerUserDefinedCategoryType.BASE_LOAD)
-            .with_energy_usage_model(energy_usage_model_direct_load(load))
+            .with_energy_usage_model(energy_usage_model_direct_load_factory(load))
         ).validate()
 
     return el_consumer
