@@ -1,24 +1,16 @@
 import abc
 from enum import Enum
-from io import StringIO
-from pathlib import Path
 from typing import List, Self, TypeVar, Generic, get_args, cast, Union, Literal
 
 from typing_extensions import get_original_bases
 
-from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from libecalc.common.time_utils import Frequency
 from libecalc.common.utils.rates import RateType
 from libecalc.dto.types import (
     ConsumerUserDefinedCategoryType,
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.resource_service import DirectResourceService
 
-from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlFuelEnergyUsageModel,
@@ -71,7 +63,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
-from libecalc.testing import OverridableStreamConfigurationService
 
 T = TypeVar("T")
 
