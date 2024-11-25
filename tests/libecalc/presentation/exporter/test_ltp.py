@@ -90,20 +90,6 @@ class LtpTestHelper:
         self.days_year1_second_half = self.period2.duration.days
         self.days_year2_second_half = self.period4.duration.days
 
-    # def asset_yaml_model(
-    #         self,
-    #         asset = YamlAsset,
-    #         yaml_model_factory,
-    #         resource_stream: ResourceStream,
-    #         resources: dict[str, MemoryResource],
-    #         frequency: Frequency = Frequency.NONE
-    # ):
-    #
-    #     return yaml_model_factory(
-    #         resource_stream=resource_stream,
-    #         resources=resources,
-    #         frequency=frequency)
-
     def get_yaml_model(
         self,
         request,
