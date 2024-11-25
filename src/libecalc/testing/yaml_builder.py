@@ -656,35 +656,6 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
         return self
 
-    def get_yaml_model(
-        self,
-        frequency: Frequency,
-        resources: dict[str, MemoryResource] = None,
-    ) -> YamlModel:
-        if resources is not None:
-            resource_service = DirectResourceService(resources)
-        else:
-            resource_service = FileResourceService(working_directory=Path(""))
-
-        asset_dict = self.validate().model_dump(
-            serialize_as_any=True,
-            mode="json",
-            exclude_unset=True,
-            by_alias=True,
-        )
-
-        yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
-        configuration_service = OverridableStreamConfigurationService(
-            stream=ResourceStream(name="", stream=StringIO(yaml_string)),
-        )
-        asset_yaml_model = YamlModel(
-            configuration_service=configuration_service,
-            resource_service=resource_service,
-            output_frequency=frequency,
-        ).validate_for_run()
-
-        return asset_yaml_model
-
     def with_time_series(self, time_series: List[YamlTimeSeriesCollection]):
         self.time_series = time_series
         return self
