@@ -44,15 +44,7 @@ from libecalc.testing.yaml_builder import (
     YamlElectricityConsumerBuilder,
 )
 
-from tests.libecalc.presentation.exporter.memory_resources import (
-    generator_electricity2fuel_17MW_resource,
-    onshore_power_electricity2fuel_resource,
-    cable_loss_time_series_resource,
-    compressor_sampled_fuel_driven_resource,
-    generator_fuel_power_to_fuel_resource,
-    generator_diesel_power_to_fuel_resource,
-    max_usage_from_shore_time_series_resource,
-)
+
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
 )
@@ -147,55 +139,45 @@ def calculate_asset_result(
     return results_dto
 
 
-class TestLtp:
-    @classmethod
-    def setup_class(cls):
-        cls.setup_constants()
-        cls.setup_dates()
-        cls.setup_periods()
-        cls.setup_days()
+class LtpTestHelper:
+    def __init__(self):
+        # Constants
+        self.power_usage_mw = 10
+        self.power_offshore_wind_mw = 1
+        self.power_compressor_mw = 3
+        self.fuel_rate = 67000
+        self.diesel_rate = 120000
+        self.load_consumer = 10
+        self.compressor_rate = 3000000
+        self.regularity_installation = 1.0
+        self.co2_factor = 1
+        self.ch4_factor = 0.1
+        self.nox_factor = 0.5
+        self.nmvoc_factor = 0
 
-    @classmethod
-    def setup_constants(cls):
-        cls.power_usage_mw = 10
-        cls.power_offshore_wind_mw = 1
-        cls.power_compressor_mw = 3
-        cls.fuel_rate = 67000
-        cls.diesel_rate = 120000
-        cls.load_consumer = 10
-        cls.compressor_rate = 3000000
-        cls.regularity_installation = 1.0
-        cls.co2_factor = 1
-        cls.ch4_factor = 0.1
-        cls.nox_factor = 0.5
-        cls.nmvoc_factor = 0
+        # Dates
+        self.date1 = datetime(2027, 1, 1)
+        self.date2 = datetime(2027, 4, 10)
+        self.date3 = datetime(2028, 1, 1)
+        self.date4 = datetime(2028, 4, 10)
+        self.date5 = datetime(2029, 1, 1)
+        self.time_vector_installation = [self.date1, self.date2, self.date3, self.date4, self.date5]
 
-    @classmethod
-    def setup_dates(cls):
-        cls.date1 = datetime(2027, 1, 1)
-        cls.date2 = datetime(2027, 4, 10)
-        cls.date3 = datetime(2028, 1, 1)
-        cls.date4 = datetime(2028, 4, 10)
-        cls.date5 = datetime(2029, 1, 1)
-        cls.time_vector_installation = [cls.date1, cls.date2, cls.date3, cls.date4, cls.date5]
+        # Periods
+        self.period1 = Period(self.date1, self.date2)
+        self.period2 = Period(self.date2, self.date3)
+        self.period3 = Period(self.date3, self.date4)
+        self.period4 = Period(self.date4, self.date5)
+        self.period5 = Period(self.date5)
+        self.period_from_date1 = Period(self.date1)
+        self.period_from_date3 = Period(self.date3)
+        self.full_period = Period(datetime(1900, 1, 1))
 
-    @classmethod
-    def setup_periods(cls):
-        cls.period1 = Period(cls.date1, cls.date2)
-        cls.period2 = Period(cls.date2, cls.date3)
-        cls.period3 = Period(cls.date3, cls.date4)
-        cls.period4 = Period(cls.date4, cls.date5)
-        cls.period5 = Period(cls.date5)
-        cls.period_from_date1 = Period(cls.date1)
-        cls.period_from_date3 = Period(cls.date3)
-        cls.full_period = Period(datetime(1900, 1, 1))
-
-    @classmethod
-    def setup_days(cls):
-        cls.days_year1_first_half = cls.period1.duration.days
-        cls.days_year2_first_half = cls.period3.duration.days
-        cls.days_year1_second_half = cls.period2.duration.days
-        cls.days_year2_second_half = cls.period4.duration.days
+        # Days
+        self.days_year1_first_half = self.period1.duration.days
+        self.days_year2_first_half = self.period3.duration.days
+        self.days_year1_second_half = self.period2.duration.days
+        self.days_year2_second_half = self.period4.duration.days
 
     def assert_emissions(self, ltp_result, installation_nr, ltp_column, expected_value):
         actual_value = get_sum_ltp_column(ltp_result, installation_nr, ltp_column)
@@ -379,21 +361,23 @@ class TestLtp:
 
     @property
     def fuel_consumption(self):
-        return TestLtp.consumption_calculate(self, rate=self.fuel_rate, days=[self.days_year2_second_half])
+        return LtpTestHelper.consumption_calculate(self, rate=self.fuel_rate, days=[self.days_year2_second_half])
 
     @property
     def diesel_consumption(self):
-        return TestLtp.consumption_calculate(
+        return LtpTestHelper.consumption_calculate(
             self, rate=self.diesel_rate, days=[self.days_year1_first_half, self.days_year2_first_half]
         )
 
     @property
     def pfs_el_consumption(self):
-        return TestLtp.el_consumption_calculate(self, power=self.power_usage_mw, days=[self.days_year1_second_half])
+        return LtpTestHelper.el_consumption_calculate(
+            self, power=self.power_usage_mw, days=[self.days_year1_second_half]
+        )
 
     @property
     def gas_turbine_el_generated(self):
-        return TestLtp.el_consumption_calculate(
+        return LtpTestHelper.el_consumption_calculate(
             self,
             power=self.power_usage_mw,
             days=[self.days_year1_first_half, self.days_year2_first_half, self.days_year2_second_half],
@@ -401,7 +385,7 @@ class TestLtp:
 
     @property
     def boiler_fuel_consumption(self):
-        return TestLtp.consumption_calculate(
+        return LtpTestHelper.consumption_calculate(
             self,
             rate=self.fuel_rate,
             days=[self.days_year1_first_half, self.days_year1_second_half, self.days_year2_first_half],
@@ -409,11 +393,11 @@ class TestLtp:
 
     @property
     def heater_fuel_consumption(self):
-        return TestLtp.consumption_calculate(self, rate=self.fuel_rate, days=[self.days_year2_second_half])
+        return LtpTestHelper.consumption_calculate(self, rate=self.fuel_rate, days=[self.days_year2_second_half])
 
     @property
     def co2_from_boiler(self):
-        return TestLtp.emission_calculate(
+        return LtpTestHelper.emission_calculate(
             self,
             rate=self.fuel_rate,
             factor=self.co2_factor,
@@ -422,19 +406,19 @@ class TestLtp:
 
     @property
     def co2_from_heater(self):
-        return TestLtp.emission_calculate(
+        return LtpTestHelper.emission_calculate(
             self, rate=self.fuel_rate, factor=self.co2_factor, days=[self.days_year2_second_half]
         )
 
     @property
     def co2_from_fuel(self):
-        return TestLtp.emission_calculate(
+        return LtpTestHelper.emission_calculate(
             self, rate=self.fuel_rate, factor=self.co2_factor, days=[self.days_year2_second_half]
         )
 
     @property
     def co2_from_diesel(self):
-        return TestLtp.emission_calculate(
+        return LtpTestHelper.emission_calculate(
             self,
             rate=self.diesel_rate,
             factor=self.co2_factor,
@@ -443,7 +427,7 @@ class TestLtp:
 
     @property
     def ch4_from_diesel(self):
-        return TestLtp.emission_calculate(
+        return LtpTestHelper.emission_calculate(
             self,
             rate=self.diesel_rate,
             factor=self.ch4_factor,
@@ -452,7 +436,7 @@ class TestLtp:
 
     @property
     def nox_from_diesel(self):
-        return TestLtp.emission_calculate(
+        return LtpTestHelper.emission_calculate(
             self,
             rate=self.diesel_rate,
             factor=self.nox_factor,
@@ -461,7 +445,7 @@ class TestLtp:
 
     @property
     def nmvoc_from_diesel(self):
-        return TestLtp.emission_calculate(
+        return LtpTestHelper.emission_calculate(
             self,
             rate=self.diesel_rate,
             factor=self.nmvoc_factor,
@@ -470,13 +454,13 @@ class TestLtp:
 
     @property
     def offshore_wind_el_consumption(self):
-        return TestLtp.el_consumption_calculate(
+        return LtpTestHelper.el_consumption_calculate(
             self, power=self.power_offshore_wind_mw, days=[self.days_year1_second_half, self.days_year2_second_half]
         ) * (-1)
 
     @property
     def gas_turbine_compressor_el_consumption(self):
-        return TestLtp.el_consumption_calculate(
+        return LtpTestHelper.el_consumption_calculate(
             self, power=self.power_compressor_mw, days=[self.days_year1_second_half, self.days_year2_second_half]
         )
 
