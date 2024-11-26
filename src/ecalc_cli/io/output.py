@@ -20,10 +20,10 @@ from libecalc.presentation.json_result.result import EcalcModelResult as EcalcMo
 
 
 def write_output(output: str, output_file: Path = None):
-    """Write output of eCalc run to either file (if output file path is specified) or to stdout.
+    """Write output of eCalc run to either file, or to sys.stdout, if not specified.
 
     Args:
-        output: Output of eCalc run
+        output: Text output of eCalc
         output_file: Optional path to output file
 
     Returns:
