@@ -12,11 +12,12 @@ env:
 jobs:
 
   run-tests-with-coverage:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+        platform: [ubuntu-latest, windows-latest]  #, macos-latest] too? expensive and unnecessary I have heard
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,7 +45,7 @@ jobs:
 
       - name: Get Test Coverage score
         id: total
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.11' && matrix.platform == 'ubuntu-latest'
         run: |
           poetry run python -m coverage report --fail-under 50
           poetry run python -m coverage html -d build/
@@ -57,7 +58,7 @@ jobs:
         run: poetry build
 
       - name: Push coverage report to coverage-report branch
-        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.11'
+        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.11' && matrix.platform == 'ubuntu-latest'
         run: |
           cd build
           CREATED_FROM_REF=$(git rev-parse --short HEAD)
