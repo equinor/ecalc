@@ -20,7 +20,8 @@ from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_vari
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.resource_service import ResourceService
-from libecalc.presentation.yaml.validation_errors import DtoValidationError
+from libecalc.presentation.yaml.validation_errors import DtoValidationError, Location, ModelValidationError
+from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_validation_context import (
     ModelContext,
@@ -54,7 +55,22 @@ class YamlModel(EnergyModel):
         output_frequency: Frequency,
     ) -> None:
         self._output_frequency = output_frequency
-        self._configuration = configuration_service.get_configuration()
+        try:
+            self._configuration = configuration_service.get_configuration()
+        except YamlError as e:
+            location = Location(keys=[])
+            if isinstance(e, DuplicateKeyError):
+                location = Location(keys=[e.key])
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        location=location,
+                        message=e.problem,
+                        file_context=e.file_context,
+                        data=None,
+                    )
+                ]
+            ) from e
         self.resources = resource_service.get_resources(self._configuration)
 
         self._is_validated = False

@@ -9,7 +9,9 @@ import yaml
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
 from typing_extensions import deprecated
-from yaml import SafeLoader
+from yaml import (
+    SafeLoader,
+)
 
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.time_utils import convert_date_to_datetime
@@ -234,13 +236,18 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         resources: Optional[dict[str, TextIO]] = None,
     ) -> YamlDict:
         try:
-            return PyYamlYamlModel._read_yaml_helper(
+            read_yaml = PyYamlYamlModel._read_yaml_helper(
                 yaml_file=main_yaml,
                 loader=PyYamlYamlModel.SafeLineLoader,
                 enable_include=enable_include,
                 base_dir=base_dir,
                 resources=resources,
             )
+            if read_yaml is None:
+                raise yaml.YAMLError("YAML is empty")
+            if not isinstance(read_yaml, dict):
+                raise yaml.YAMLError("Not a valid YAML object")
+            return read_yaml
         except yaml.YAMLError as e:
             file_context = None
             if hasattr(e, "problem_mark"):
