@@ -1,13 +1,17 @@
 import json
 from io import StringIO
 from pathlib import Path
-from typing import Optional, cast
+from typing import Optional, cast, Union
+
 
 import pytest
 import yaml
 
+from libecalc.application.energy_calculator import EnergyCalculator
+from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
-from libecalc.common.time_utils import Frequency
+from libecalc.common.time_utils import Frequency, Periods
+from libecalc.common.variables import VariablesMap
 from libecalc.examples import advanced, simple
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import (
@@ -15,12 +19,18 @@ from libecalc.fixtures.cases import (
     consumer_system_v2,
     ltp_export,
 )
+from libecalc.presentation.exporter.configs.configs import LTPConfig
+from libecalc.presentation.exporter.dto.dtos import FilteredResult, QueryResult
+from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
+from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.testing.dto_energy_model import DTOEnergyModel
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
@@ -276,3 +286,103 @@ def energy_model_from_dto_factory():
         return DTOEnergyModel(component)
 
     return create_energy_model
+
+
+class LtpFunctions:
+    def get_yaml_model(
+        self,
+        request,
+        asset: YamlAsset,
+        resources: dict[str, MemoryResource],
+        frequency: Frequency = Frequency.NONE,
+    ) -> YamlModel:
+        yaml_model_factory = request.getfixturevalue("yaml_model_factory")
+        asset_dict = asset.model_dump(
+            serialize_as_any=True,
+            mode="json",
+            exclude_unset=True,
+            by_alias=True,
+        )
+
+        yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
+        stream = ResourceStream(name="", stream=StringIO(yaml_string))
+
+        return yaml_model_factory(resource_stream=stream, resources=resources, frequency=frequency)
+
+    def get_consumption(
+        self,
+        model: Union[YamlInstallation, YamlAsset, YamlModel],
+        variables: VariablesMap,
+        frequency: Frequency,
+        periods: Periods,
+    ) -> FilteredResult:
+        energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
+
+        consumer_results = energy_calculator.evaluate_energy_usage()
+        emission_results = energy_calculator.evaluate_emissions()
+
+        graph_result = GraphResult(
+            graph=model.get_graph(),
+            variables_map=variables,
+            consumer_results=consumer_results,
+            emission_results=emission_results,
+        )
+
+        ltp_filter = LTPConfig.filter(frequency=frequency)
+        ltp_result = ltp_filter.filter(ExportableGraphResult(graph_result), periods)
+
+        return ltp_result
+
+    def get_sum_ltp_column(self, ltp_result: FilteredResult, installation_nr, ltp_column: str) -> float:
+        installation_query_results = ltp_result.query_results[installation_nr].query_results
+        column = [column for column in installation_query_results if column.id == ltp_column][0]
+
+        ltp_sum = sum(float(v) for (k, v) in column.values.items())
+        return ltp_sum
+
+    def get_ltp_column(self, ltp_result: FilteredResult, installation_nr, ltp_column: str) -> QueryResult:
+        installation_query_results = ltp_result.query_results[installation_nr].query_results
+        column = [column for column in installation_query_results if column.id == ltp_column][0]
+
+        return column
+
+    def get_ltp_result(self, model, variables, frequency=Frequency.YEAR):
+        return self.get_consumption(
+            model=model, variables=variables, periods=variables.get_periods(), frequency=frequency
+        )
+
+    def create_variables_map(self, time_vector, rate_values=None):
+        variables = {"RATE": rate_values} if rate_values else {}
+        return VariablesMap(time_vector=time_vector, variables=variables)
+
+    def calculate_asset_result(self, model: YamlModel, variables: VariablesMap):
+        model = model
+        graph = model.get_graph()
+        energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
+
+        consumer_results = energy_calculator.evaluate_energy_usage()
+        emission_results = energy_calculator.evaluate_emissions()
+
+        results_core = GraphResult(
+            graph=graph,
+            variables_map=variables,
+            consumer_results=consumer_results,
+            emission_results=emission_results,
+        )
+
+        results_dto = get_asset_result(results_core)
+
+        return results_dto
+
+    def assert_emissions(self, ltp_result, installation_nr, ltp_column, expected_value):
+        actual_value = self.get_sum_ltp_column(ltp_result, installation_nr, ltp_column)
+        assert actual_value == pytest.approx(expected_value, 0.00001)
+
+    def assert_consumption(self, ltp_result, installation_nr, ltp_column, expected_value):
+        actual_value = self.get_sum_ltp_column(ltp_result, installation_nr, ltp_column)
+        assert actual_value == pytest.approx(expected_value, 0.00001)
+
+
+@pytest.fixture(scope="session")
+def ltp_functions():
+    return LtpFunctions()

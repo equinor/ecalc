@@ -90,100 +90,6 @@ class LtpTestHelper:
         self.days_year1_second_half = self.period2.duration.days
         self.days_year2_second_half = self.period4.duration.days
 
-    def get_yaml_model(
-        self,
-        request,
-        asset: YamlAsset,
-        resources: dict[str, MemoryResource],
-        frequency: Frequency = Frequency.NONE,
-    ) -> YamlModel:
-        yaml_model_factory = request.getfixturevalue("yaml_model_factory")
-        asset_dict = asset.model_dump(
-            serialize_as_any=True,
-            mode="json",
-            exclude_unset=True,
-            by_alias=True,
-        )
-
-        yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
-        stream = ResourceStream(name="", stream=StringIO(yaml_string))
-
-        return yaml_model_factory(resource_stream=stream, resources=resources, frequency=frequency)
-
-    def get_consumption(
-        self,
-        model: Union[YamlInstallation, YamlAsset, YamlModel],
-        variables: VariablesMap,
-        frequency: Frequency,
-        periods: Periods,
-    ) -> FilteredResult:
-        energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
-        precision = 6
-
-        consumer_results = energy_calculator.evaluate_energy_usage()
-        emission_results = energy_calculator.evaluate_emissions()
-
-        graph_result = GraphResult(
-            graph=model.get_graph(),
-            variables_map=variables,
-            consumer_results=consumer_results,
-            emission_results=emission_results,
-        )
-
-        ltp_filter = LTPConfig.filter(frequency=frequency)
-        ltp_result = ltp_filter.filter(ExportableGraphResult(graph_result), periods)
-
-        return ltp_result
-
-    def get_sum_ltp_column(self, ltp_result: FilteredResult, installation_nr, ltp_column: str) -> float:
-        installation_query_results = ltp_result.query_results[installation_nr].query_results
-        column = [column for column in installation_query_results if column.id == ltp_column][0]
-
-        ltp_sum = sum(float(v) for (k, v) in column.values.items())
-        return ltp_sum
-
-    def get_ltp_column(self, ltp_result: FilteredResult, installation_nr, ltp_column: str) -> QueryResult:
-        installation_query_results = ltp_result.query_results[installation_nr].query_results
-        column = [column for column in installation_query_results if column.id == ltp_column][0]
-
-        return column
-
-    def get_ltp_result(self, model, variables, frequency=Frequency.YEAR):
-        return self.get_consumption(
-            model=model, variables=variables, periods=variables.get_periods(), frequency=frequency
-        )
-
-    def create_variables_map(self, time_vector, rate_values=None):
-        variables = {"RATE": rate_values} if rate_values else {}
-        return VariablesMap(time_vector=time_vector, variables=variables)
-
-    def calculate_asset_result(self, model: YamlModel, variables: VariablesMap):
-        model = model
-        graph = model.get_graph()
-        energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
-
-        consumer_results = energy_calculator.evaluate_energy_usage()
-        emission_results = energy_calculator.evaluate_emissions()
-
-        results_core = GraphResult(
-            graph=graph,
-            variables_map=variables,
-            consumer_results=consumer_results,
-            emission_results=emission_results,
-        )
-
-        results_dto = get_asset_result(results_core)
-
-        return results_dto
-
-    def assert_emissions(self, ltp_result, installation_nr, ltp_column, expected_value):
-        actual_value = self.get_sum_ltp_column(ltp_result, installation_nr, ltp_column)
-        assert actual_value == pytest.approx(expected_value, 0.00001)
-
-    def assert_consumption(self, ltp_result, installation_nr, ltp_column, expected_value):
-        actual_value = self.get_sum_ltp_column(ltp_result, installation_nr, ltp_column)
-        assert actual_value == pytest.approx(expected_value, 0.00001)
-
     def emission_calculate(self, rate: float, factor: float, days: list[int], regularity: float = None):
         if regularity is None:
             regularity = self.regularity_installation
@@ -459,6 +365,7 @@ class TestLtp:
         self,
         request,
         ltp_test_helper,
+        ltp_functions,
         fuel_gas_factory,
         diesel_factory,
         el_consumer_direct_base_load_factory,
@@ -536,26 +443,27 @@ class TestLtp:
             .with_fuel_types([fuel, diesel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation, [1, 1, 1, 1])
-        ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
+        variables = ltp_functions.create_variables_map(ltp_test_helper.time_vector_installation, [1, 1, 1, 1])
+        ltp_result = ltp_functions.get_ltp_result(asset, variables)
 
-        ltp_test_helper.assert_emissions(ltp_result, 0, "engineDieselCo2Mass", ltp_test_helper.co2_from_diesel)
-        ltp_test_helper.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselCo2Mass", ltp_test_helper.co2_from_diesel)
-        ltp_test_helper.assert_emissions(ltp_result, 0, "engineDieselNoxMass", ltp_test_helper.nox_from_diesel)
-        ltp_test_helper.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselNoxMass", ltp_test_helper.nox_from_diesel)
-        ltp_test_helper.assert_emissions(ltp_result, 0, "engineDieselNmvocMass", ltp_test_helper.nmvoc_from_diesel)
-        ltp_test_helper.assert_emissions(
+        ltp_functions.assert_emissions(ltp_result, 0, "engineDieselCo2Mass", ltp_test_helper.co2_from_diesel)
+        ltp_functions.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselCo2Mass", ltp_test_helper.co2_from_diesel)
+        ltp_functions.assert_emissions(ltp_result, 0, "engineDieselNoxMass", ltp_test_helper.nox_from_diesel)
+        ltp_functions.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselNoxMass", ltp_test_helper.nox_from_diesel)
+        ltp_functions.assert_emissions(ltp_result, 0, "engineDieselNmvocMass", ltp_test_helper.nmvoc_from_diesel)
+        ltp_functions.assert_emissions(
             ltp_result, 1, "engineNoCo2TaxDieselNmvocMass", ltp_test_helper.nmvoc_from_diesel
         )
-        ltp_test_helper.assert_emissions(ltp_result, 0, "engineDieselCh4Mass", ltp_test_helper.ch4_from_diesel)
-        ltp_test_helper.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselCh4Mass", ltp_test_helper.ch4_from_diesel)
+        ltp_functions.assert_emissions(ltp_result, 0, "engineDieselCh4Mass", ltp_test_helper.ch4_from_diesel)
+        ltp_functions.assert_emissions(ltp_result, 1, "engineNoCo2TaxDieselCh4Mass", ltp_test_helper.ch4_from_diesel)
 
     def test_temporal_models_detailed(
         self,
         request,
         ltp_test_helper,
+        ltp_functions,
         diesel_factory,
         fuel_gas_factory,
         generator_diesel_power_to_fuel_resource,
@@ -569,7 +477,7 @@ class TestLtp:
         - Generator set user defined category
         - Generator set model
         """
-        variables = ltp_test_helper.create_variables_map(
+        variables = ltp_functions.create_variables_map(
             ltp_test_helper.time_vector_installation, rate_values=[1, 1, 1, 1]
         )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
@@ -624,11 +532,11 @@ class TestLtp:
             .with_fuel_types([fuel, diesel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
+        ltp_result = ltp_functions.get_ltp_result(asset, variables)
 
-        turbine_fuel_consumption = ltp_test_helper.get_sum_ltp_column(
+        turbine_fuel_consumption = ltp_functions.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="turbineFuelGasConsumption"
         )
 
@@ -636,12 +544,12 @@ class TestLtp:
         # even if the temporal model starts with diesel every year
         assert turbine_fuel_consumption != 0
 
-        ltp_test_helper.assert_consumption(ltp_result, 0, "turbineFuelGasConsumption", ltp_test_helper.fuel_consumption)
-        ltp_test_helper.assert_consumption(ltp_result, 0, "engineDieselConsumption", ltp_test_helper.diesel_consumption)
-        ltp_test_helper.assert_consumption(ltp_result, 0, "turbineFuelGasCo2Mass", ltp_test_helper.co2_from_fuel)
-        ltp_test_helper.assert_consumption(ltp_result, 0, "engineDieselCo2Mass", ltp_test_helper.co2_from_diesel)
-        ltp_test_helper.assert_consumption(ltp_result, 0, "fromShoreConsumption", ltp_test_helper.pfs_el_consumption)
-        ltp_test_helper.assert_consumption(
+        ltp_functions.assert_consumption(ltp_result, 0, "turbineFuelGasConsumption", ltp_test_helper.fuel_consumption)
+        ltp_functions.assert_consumption(ltp_result, 0, "engineDieselConsumption", ltp_test_helper.diesel_consumption)
+        ltp_functions.assert_consumption(ltp_result, 0, "turbineFuelGasCo2Mass", ltp_test_helper.co2_from_fuel)
+        ltp_functions.assert_consumption(ltp_result, 0, "engineDieselCo2Mass", ltp_test_helper.co2_from_diesel)
+        ltp_functions.assert_consumption(ltp_result, 0, "fromShoreConsumption", ltp_test_helper.pfs_el_consumption)
+        ltp_functions.assert_consumption(
             ltp_result, 0, "gasTurbineGeneratorConsumption", ltp_test_helper.gas_turbine_el_generated
         )
 
@@ -649,6 +557,7 @@ class TestLtp:
         self,
         request,
         ltp_test_helper,
+        ltp_functions,
         fuel_gas_factory,
         generator_fuel_power_to_fuel_resource,
     ):
@@ -658,7 +567,7 @@ class TestLtp:
         - El-consumer user defined category
         - El-consumer energy usage model
         """
-        variables = ltp_test_helper.create_variables_map(
+        variables = ltp_functions.create_variables_map(
             ltp_test_helper.time_vector_installation, rate_values=[1, 1, 1, 1]
         )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
@@ -697,11 +606,11 @@ class TestLtp:
             .with_fuel_types([fuel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
+        ltp_result = ltp_functions.get_ltp_result(asset, variables)
 
-        offshore_wind_el_consumption = ltp_test_helper.get_sum_ltp_column(
+        offshore_wind_el_consumption = ltp_functions.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="offshoreWindConsumption"
         )
 
@@ -712,6 +621,7 @@ class TestLtp:
         self,
         request,
         ltp_test_helper,
+        ltp_functions,
         generator_fuel_power_to_fuel_resource,
         compressor_sampled_fuel_driven_resource,
         fuel_gas_factory,
@@ -721,7 +631,7 @@ class TestLtp:
         Detailed temporal models (variations within one year) for:
         - Fuel consumer user defined category
         """
-        variables = ltp_test_helper.create_variables_map(
+        variables = ltp_functions.create_variables_map(
             ltp_test_helper.time_vector_installation, rate_values=[1, 1, 1, 1]
         )
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
@@ -749,19 +659,19 @@ class TestLtp:
             .with_fuel_types([fuel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
+        ltp_result = ltp_functions.get_ltp_result(asset, variables)
 
-        gas_turbine_compressor_el_consumption = ltp_test_helper.get_sum_ltp_column(
+        gas_turbine_compressor_el_consumption = ltp_functions.get_sum_ltp_column(
             ltp_result, installation_nr=0, ltp_column="gasTurbineCompressorConsumption"
         )
 
         # FuelConsumerPowerConsumptionQuery. Check gas turbine compressor el consumption.
         assert gas_turbine_compressor_el_consumption == ltp_test_helper.gas_turbine_compressor_el_consumption
 
-    def test_boiler_heater_categories(self, request, ltp_test_helper, fuel_gas_factory):
-        variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation)
+    def test_boiler_heater_categories(self, request, ltp_test_helper, ltp_functions, fuel_gas_factory):
+        variables = ltp_functions.create_variables_map(ltp_test_helper.time_vector_installation)
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         energy_usage_model = (
@@ -800,21 +710,21 @@ class TestLtp:
             .with_fuel_types([fuel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
 
-        ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
+        ltp_result = ltp_functions.get_ltp_result(asset, variables)
 
-        ltp_test_helper.assert_consumption(
+        ltp_functions.assert_consumption(
             ltp_result, 0, "boilerFuelGasConsumption", ltp_test_helper.boiler_fuel_consumption
         )
-        ltp_test_helper.assert_consumption(
+        ltp_functions.assert_consumption(
             ltp_result, 0, "heaterFuelGasConsumption", ltp_test_helper.heater_fuel_consumption
         )
-        ltp_test_helper.assert_consumption(ltp_result, 0, "boilerFuelGasCo2Mass", ltp_test_helper.co2_from_boiler)
-        ltp_test_helper.assert_consumption(ltp_result, 0, "heaterFuelGasCo2Mass", ltp_test_helper.co2_from_heater)
+        ltp_functions.assert_consumption(ltp_result, 0, "boilerFuelGasCo2Mass", ltp_test_helper.co2_from_boiler)
+        ltp_functions.assert_consumption(ltp_result, 0, "heaterFuelGasCo2Mass", ltp_test_helper.co2_from_heater)
 
     def test_total_oil_loaded_old_method(
-        self, request, ltp_test_helper, fuel_gas_factory, fuel_consumer_direct_factory
+        self, request, ltp_test_helper, ltp_functions, fuel_gas_factory, fuel_consumer_direct_factory
     ):
         """Test total oil loaded/stored for LTP export. Using original method where direct/venting emitters are
         modelled as FUELSCONSUMERS using DIRECT.
@@ -823,7 +733,7 @@ class TestLtp:
         and when model includes only loading.
         """
         time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1)]
-        variables = ltp_test_helper.create_variables_map(time_vector)
+        variables = ltp_functions.create_variables_map(time_vector)
 
         regularity = 0.6
         emission_factor = 2
@@ -855,7 +765,7 @@ class TestLtp:
             .with_fuel_types([fuel])
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
 
         installation_loading_only = (
             YamlInstallationBuilder()
@@ -874,17 +784,17 @@ class TestLtp:
             .with_fuel_types([fuel])
         ).validate()
 
-        asset_loading_only = ltp_test_helper.get_yaml_model(
+        asset_loading_only = ltp_functions.get_yaml_model(
             request, asset=asset_loading_only, resources={}, frequency=Frequency.YEAR
         )
 
-        ltp_result_loading_storage = ltp_test_helper.get_ltp_result(asset, variables)
-        ltp_result_loading_only = ltp_test_helper.get_ltp_result(asset_loading_only, variables)
+        ltp_result_loading_storage = ltp_functions.get_ltp_result(asset, variables)
+        ltp_result_loading_only = ltp_functions.get_ltp_result(asset_loading_only, variables)
 
-        loaded_and_stored_oil_loading_and_storage = ltp_test_helper.get_sum_ltp_column(
+        loaded_and_stored_oil_loading_and_storage = ltp_functions.get_sum_ltp_column(
             ltp_result_loading_storage, installation_nr=0, ltp_column="loadedAndStoredOil"
         )
-        loaded_and_stored_oil_loading_only = ltp_test_helper.get_sum_ltp_column(
+        loaded_and_stored_oil_loading_only = ltp_functions.get_sum_ltp_column(
             ltp_result_loading_only, installation_nr=0, ltp_column="loadedAndStoredOil"
         )
 
@@ -900,14 +810,15 @@ class TestLtp:
 
     def test_electrical_and_mechanical_power_installation(
         self,
-        ltp_test_helper,
         request,
+        ltp_test_helper,
+        ltp_functions,
         fuel_gas_factory,
         generator_fuel_power_to_fuel_resource,
         compressor_sampled_fuel_driven_resource,
     ):
         """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
-        variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation)
+        variables = ltp_functions.create_variables_map(ltp_test_helper.time_vector_installation)
 
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
@@ -944,9 +855,9 @@ class TestLtp:
             )
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        asset_result = ltp_test_helper.calculate_asset_result(model=asset, variables=variables)
+        asset_result = ltp_functions.calculate_asset_result(model=asset, variables=variables)
         power_fuel_driven_compressor = asset_result.get_component_by_name("compressor").power_cumulative.values[-1]
         power_generator_set = asset_result.get_component_by_name("generator_set").power_cumulative.values[-1]
 
@@ -970,15 +881,16 @@ class TestLtp:
 
     def test_electrical_and_mechanical_power_asset(
         self,
-        ltp_test_helper,
         request,
+        ltp_test_helper,
+        ltp_functions,
         fuel_gas_factory,
         el_consumer_direct_base_load_factory,
         generator_fuel_power_to_fuel_resource,
         compressor_sampled_fuel_driven_resource,
     ):
         """Check that new total power includes the sum of electrical- and mechanical power at installation level"""
-        variables = ltp_test_helper.create_variables_map(ltp_test_helper.time_vector_installation)
+        variables = ltp_functions.create_variables_map(ltp_test_helper.time_vector_installation)
         name1 = "INSTALLATION_1"
         name2 = "INSTALLATION_2"
 
@@ -1035,9 +947,9 @@ class TestLtp:
             )
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources=resources, frequency=Frequency.YEAR)
 
-        asset_result = ltp_test_helper.calculate_asset_result(model=asset, variables=variables)
+        asset_result = ltp_functions.calculate_asset_result(model=asset, variables=variables)
 
         power_el_1 = asset_result.get_component_by_name(name1).power_electrical_cumulative.values[-1]
         power_mech_1 = asset_result.get_component_by_name(name1).power_mechanical_cumulative.values[-1]
@@ -1055,7 +967,9 @@ class TestLtp:
         # Verify that mechanical power is correct at asset level:
         assert asset_power_mech == power_mech_1 + power_mech_2
 
-    def test_venting_emitters(self, request, ltp_test_helper, fuel_consumer_direct_factory, fuel_gas_factory):
+    def test_venting_emitters(
+        self, request, ltp_test_helper, ltp_functions, fuel_consumer_direct_factory, fuel_gas_factory
+    ):
         """Test venting emitters for LTP export.
 
         Verify correct behaviour if input rate is given in different units and rate types (sd and cd).
@@ -1065,7 +979,7 @@ class TestLtp:
         regularity = 0.2
         emission_rate = 10
 
-        variables = ltp_test_helper.create_variables_map(time_vector)
+        variables = ltp_functions.create_variables_map(time_vector)
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         venting_emitter_sd_kg_per_day = (
@@ -1155,27 +1069,27 @@ class TestLtp:
             .with_end(str(time_vector[-1]))
         ).validate()
 
-        asset_sd_kg_per_day = ltp_test_helper.get_yaml_model(
+        asset_sd_kg_per_day = ltp_functions.get_yaml_model(
             request, asset=asset_sd_kg_per_day, resources={}, frequency=Frequency.YEAR
         )
-        asset_sd_tons_per_day = ltp_test_helper.get_yaml_model(
+        asset_sd_tons_per_day = ltp_functions.get_yaml_model(
             request, asset=asset_sd_tons_per_day, resources={}, frequency=Frequency.YEAR
         )
-        asset_cd_kg_per_day = ltp_test_helper.get_yaml_model(
+        asset_cd_kg_per_day = ltp_functions.get_yaml_model(
             request, asset=asset_cd_kg_per_day, resources={}, frequency=Frequency.YEAR
         )
 
-        ltp_result_input_sd_kg_per_day = ltp_test_helper.get_ltp_result(asset_sd_kg_per_day, variables)
-        ltp_result_input_sd_tons_per_day = ltp_test_helper.get_ltp_result(asset_sd_tons_per_day, variables)
-        ltp_result_input_cd_kg_per_day = ltp_test_helper.get_ltp_result(asset_cd_kg_per_day, variables)
+        ltp_result_input_sd_kg_per_day = ltp_functions.get_ltp_result(asset_sd_kg_per_day, variables)
+        ltp_result_input_sd_tons_per_day = ltp_functions.get_ltp_result(asset_sd_tons_per_day, variables)
+        ltp_result_input_cd_kg_per_day = ltp_functions.get_ltp_result(asset_cd_kg_per_day, variables)
 
-        emission_input_sd_kg_per_day = ltp_test_helper.get_sum_ltp_column(
+        emission_input_sd_kg_per_day = ltp_functions.get_sum_ltp_column(
             ltp_result_input_sd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
         )
-        emission_input_sd_tons_per_day = ltp_test_helper.get_sum_ltp_column(
+        emission_input_sd_tons_per_day = ltp_functions.get_sum_ltp_column(
             ltp_result_input_sd_tons_per_day, installation_nr=0, ltp_column="storageCh4Mass"
         )
-        emission_input_cd_kg_per_day = ltp_test_helper.get_sum_ltp_column(
+        emission_input_cd_kg_per_day = ltp_functions.get_sum_ltp_column(
             ltp_result_input_cd_kg_per_day, installation_nr=0, ltp_column="storageCh4Mass"
         )
 
@@ -1192,7 +1106,7 @@ class TestLtp:
         assert emission_input_cd_kg_per_day == (emission_rate / 1000) * 365
 
     def test_only_venting_emitters_no_fuelconsumers(
-        self, request, ltp_test_helper, fuel_consumer_direct_factory, fuel_gas_factory
+        self, request, ltp_test_helper, ltp_functions, fuel_consumer_direct_factory, fuel_gas_factory
     ):
         """
         Test that it is possible with only venting emitters, without fuelconsumers.
@@ -1201,7 +1115,7 @@ class TestLtp:
         regularity = 0.2
         emission_rate = 10
 
-        variables = ltp_test_helper.create_variables_map(time_vector)
+        variables = ltp_functions.create_variables_map(time_vector)
         fuel = fuel_gas_factory(["co2"], [ltp_test_helper.co2_factor])
 
         # Installation with only venting emitters:
@@ -1232,16 +1146,16 @@ class TestLtp:
             .with_end(str(time_vector[-1]))
         ).validate()
 
-        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
+        asset = ltp_functions.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
 
-        venting_emitter_only_results = ltp_test_helper.get_ltp_result(asset, variables)
+        venting_emitter_only_results = ltp_functions.get_ltp_result(asset, variables)
 
         # Verify that eCalc is not failing in get_asset_result with only venting emitters -
         # when installation result is empty, i.e. with no genset and fuel consumers:
-        assert isinstance(ltp_test_helper.calculate_asset_result(model=asset, variables=variables), EcalcModelResult)
+        assert isinstance(ltp_functions.calculate_asset_result(model=asset, variables=variables), EcalcModelResult)
 
         # Verify correct emissions:
-        emissions_ch4 = ltp_test_helper.get_sum_ltp_column(
+        emissions_ch4 = ltp_functions.get_sum_ltp_column(
             venting_emitter_only_results, installation_nr=0, ltp_column="storageCh4Mass"
         )
         assert emissions_ch4 == (emission_rate / 1000) * 365 * regularity
@@ -1265,7 +1179,7 @@ class TestLtp:
             .with_end(str(time_vector[-1]))
         ).validate()
 
-        asset_multi_installations = ltp_test_helper.get_yaml_model(
+        asset_multi_installations = ltp_functions.get_yaml_model(
             request, asset=asset_multi_installations, resources={}, frequency=Frequency.YEAR
         )
 
@@ -1274,16 +1188,16 @@ class TestLtp:
         # Include asset with two installations, one with only emitters and one with only fuel consumers -
         # ensure that get_asset_result returns a result:
         assert isinstance(
-            ltp_test_helper.calculate_asset_result(model=asset_multi_installations, variables=variables),
+            ltp_functions.calculate_asset_result(model=asset_multi_installations, variables=variables),
             EcalcModelResult,
         )
 
-        asset_ltp_result = ltp_test_helper.get_ltp_result(asset_multi_installations, variables)
+        asset_ltp_result = ltp_functions.get_ltp_result(asset_multi_installations, variables)
 
         # Check that the results are the same: For the case with only one installation (only venting emitters),
         # compared to the multi-installation case with two installations. The fuel-consumer installation should
         # give no CH4-contribution (only CO2)
-        emissions_ch4_asset = ltp_test_helper.get_sum_ltp_column(
+        emissions_ch4_asset = ltp_functions.get_sum_ltp_column(
             asset_ltp_result, installation_nr=0, ltp_column="storageCh4Mass"
         )
         assert emissions_ch4 == emissions_ch4_asset
@@ -1292,6 +1206,7 @@ class TestLtp:
         self,
         request,
         ltp_test_helper,
+        ltp_functions,
         yaml_model_factory,
         el_consumer_direct_base_load_factory,
         fuel_gas_factory,
@@ -1370,7 +1285,7 @@ class TestLtp:
             )
         ).validate()
 
-        asset_pfs = ltp_test_helper.get_yaml_model(
+        asset_pfs = ltp_functions.get_yaml_model(
             request, asset=asset_pfs, resources=resources, frequency=Frequency.YEAR
         )
         generator_set_csv = deepcopy(generator_set)
@@ -1397,23 +1312,23 @@ class TestLtp:
             )
         ).validate()
 
-        asset_pfs_csv = ltp_test_helper.get_yaml_model(
+        asset_pfs_csv = ltp_functions.get_yaml_model(
             request, asset=asset_pfs_csv, resources=resources, frequency=Frequency.YEAR
         )
-        ltp_result = ltp_test_helper.get_ltp_result(asset_pfs, asset_pfs.variables)
-        ltp_result_csv = ltp_test_helper.get_ltp_result(asset_pfs_csv, asset_pfs_csv.variables)
+        ltp_result = ltp_functions.get_ltp_result(asset_pfs, asset_pfs.variables)
+        ltp_result_csv = ltp_functions.get_ltp_result(asset_pfs_csv, asset_pfs_csv.variables)
 
-        power_from_shore_consumption = ltp_test_helper.get_sum_ltp_column(
+        power_from_shore_consumption = ltp_functions.get_sum_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="fromShoreConsumption"
         )
-        power_supply_onshore = ltp_test_helper.get_sum_ltp_column(
+        power_supply_onshore = ltp_functions.get_sum_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="powerSupplyOnshore"
         )
-        max_usage_from_shore = ltp_test_helper.get_sum_ltp_column(
+        max_usage_from_shore = ltp_functions.get_sum_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum"
         )
 
-        power_supply_onshore_csv = ltp_test_helper.get_sum_ltp_column(
+        power_supply_onshore_csv = ltp_functions.get_sum_ltp_column(
             ltp_result=ltp_result_csv, installation_nr=0, ltp_column="powerSupplyOnshore"
         )
 
@@ -1438,7 +1353,7 @@ class TestLtp:
 
         # Verify correct unit for max usage from shore
         assert (
-            ltp_test_helper.get_ltp_column(
+            ltp_functions.get_ltp_column(
                 ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum"
             ).unit
             == Unit.MEGA_WATT
@@ -1448,6 +1363,7 @@ class TestLtp:
         self,
         request,
         ltp_test_helper,
+        ltp_functions,
         el_consumer_direct_base_load_factory,
         generator_electricity2fuel_17MW_resource,
         onshore_power_electricity2fuel_resource,
@@ -1528,11 +1444,11 @@ class TestLtp:
             )
         ).validate()
 
-        asset_pfs = ltp_test_helper.get_yaml_model(
+        asset_pfs = ltp_functions.get_yaml_model(
             request, asset=asset_pfs, resources=resources, frequency=Frequency.YEAR
         )
-        ltp_result = ltp_test_helper.get_ltp_result(asset_pfs, asset_pfs.variables)
-        max_usage_from_shore = ltp_test_helper.get_ltp_column(
+        ltp_result = ltp_functions.get_ltp_result(asset_pfs, asset_pfs.variables)
+        max_usage_from_shore = ltp_functions.get_ltp_column(
             ltp_result=ltp_result, installation_nr=0, ltp_column="fromShorePeakMaximum"
         )
         max_usage_from_shore_2027 = float(
