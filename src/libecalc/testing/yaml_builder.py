@@ -10,6 +10,7 @@ from libecalc.dto.types import (
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
+
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlFuelEnergyUsageModel,
@@ -140,7 +141,7 @@ class YamlTimeSeriesBuilder(Builder[YamlDefaultTimeSeriesCollection]):
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "TimeSeriesDefault"
+        self.name = "DefaultTimeSeries"
         self.file = "DefaultTimeSeries.csv"
         return self
 
@@ -281,7 +282,7 @@ class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):
         self.name = "flare"
         self.category = ConsumerUserDefinedCategoryType.FLARE.value
         self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
-        self.fuel = None
+        self.fuel = YamlFuelTypeBuilder().with_test_data().validate().name
         return self
 
     def with_name(self, name: str) -> Self:
