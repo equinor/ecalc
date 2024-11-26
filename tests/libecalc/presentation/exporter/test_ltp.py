@@ -1,32 +1,17 @@
 from copy import deepcopy
 from datetime import datetime
-from io import StringIO
-from pathlib import Path
 from typing import Union
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ecalc_cli.infrastructure.file_resource_service import FileResourceService
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency, calculate_delta_days, Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.common.variables import VariablesMap
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
-from libecalc.presentation.exporter.configs.configs import LTPConfig
-from libecalc.presentation.exporter.dto.dtos import FilteredResult, QueryResult
-from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
-from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.json_result.result import EcalcModelResult
-from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlEmissionRateUnits
 from libecalc.testing.yaml_builder import (
@@ -47,7 +32,6 @@ from libecalc.testing.yaml_builder import (
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
 )
-from tests.conftest import DirectResourceService, OverridableStreamConfigurationService, yaml_model_factory
 
 
 class LtpTestHelper:
