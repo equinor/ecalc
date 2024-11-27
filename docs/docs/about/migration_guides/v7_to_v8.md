@@ -335,7 +335,7 @@ When running eCalc™ you will now need to set the model file argument last.
 
 `ecalc [OPTIONS] COMMAND [ARGS] [MODEL YAML-file]`
 
-See the [CLI Docs](../references/cli_reference) or run `ecalc --help` for the full documentation.
+See the [CLI Docs](../getting_started/cli/cli_reference) or run `ecalc --help` for the full documentation.
 
 #### 4. Extrapolation correction is no longer optional
 
@@ -346,10 +346,10 @@ Let us know if you have a use-case where this was needed.
 #### 5. Argument for LTP export has changed from: `--centuries-ltp-export` to `--ltp-export`
 
 To prepare for Open Source and to make the LTP export more agnostic (even though the column names are heavily 
-affected by Centuries), we simplify the argument to get LTP results. See [CLI Docs](../references/cli_reference) for 
+affected by Centuries), we simplify the argument to get LTP results. See [CLI Docs](../getting_started/cli/cli_reference) for 
 full documentation.
 
 #### 6. Simple results are now default for json
 Detailed output (or any json) should mainly be used for QA and advanced users, and is no longer shown by default. To keep old behavior, the user now
-needs to use the --detailed-output option when running the CLI. See [CLI reference docs](../references/cli_reference#ecalc-run)
+needs to use the --detailed-output option when running the CLI. See [CLI reference docs](../getting_started/cli/cli_reference#ecalc-run)
 for more details.

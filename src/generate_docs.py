@@ -15,7 +15,7 @@ sidebar_label: "CLI"
 
 
 @app.command()
-def generate(
+def generate_cli_reference(
     ctx: typer.Context,
     name: str = typer.Option("", help="The name of the CLI program to use in docs."),
     output: Path = typer.Option(

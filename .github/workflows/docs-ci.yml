@@ -32,7 +32,12 @@ jobs:
     - name: Generate CLI reference
       run: |
         cd src
-        poetry run python generate_docs.py > ../docs/docs/about/references/cli_reference.md
+        poetry run python generate_docs.py > ../docs/docs/about/getting_started/cli/cli_reference.md
+
+    - name: Generate JSON Schema
+      run: |
+        cd src
+        poetry run python generate_json_schema.py > ../docs/docs/about/getting_started/yaml/ecalc_json_schema.json
 
     - name: Setup node
       uses: actions/setup-node@v4

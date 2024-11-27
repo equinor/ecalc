@@ -1,10 +1,13 @@
+import json
 from pathlib import Path
+from typing import Optional
 
 import typer
 
 from ecalc_cli.io.output import write_output
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 
 app = typer.Typer()
 
@@ -28,3 +31,14 @@ def show_yaml(
             ResourceStream(name=model_file.name, stream=model_file), base_dir=model_filepath.parent
         )
         write_output(read_model, output_file)
+
+
+@app.command("schema")
+def show_schema(
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--file",
+        help="Write the schema to a file with the specified name. If not specified, it will print to stdout.",
+    ),
+):
+    write_output(json.dumps(YamlAsset.model_json_schema(by_alias=True), indent=2), output_file)

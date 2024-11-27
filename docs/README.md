@@ -117,7 +117,14 @@ $ npm run serve
 In order to generate the CLI reference documentation, use the following (from `src`):
 ```
 $ cd src
-$ poetry run python generate_docs.py > ../docs/docs/about/references/cli_reference.md
+$ poetry run python generate_docs.py > ../docs/docs/about/getting_started/cli/cli_reference.md
+```
+
+### Generate JSON Schema
+In order to generate the JSON Schema documentation, use the following (from `src`):
+```
+$ cd src
+$ poetry run python generate_json_schema.py > ../docs/docs/about/getting_started/yaml/ecalc_json_schema.json
 ```
 
 Then build the documentation:
