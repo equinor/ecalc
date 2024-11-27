@@ -21,7 +21,17 @@ class TimeSeriesCollections(TimeSeriesProvider):
         time_series_collections: dict[str, TimeSeriesCollection] = {}
         errors: list[ModelValidationError] = []
         for time_series_collection in time_series:
-            resource = resources[time_series_collection.file]
+            resource = resources.get(time_series_collection.file)
+            if resource is None:
+                errors.append(
+                    ModelValidationError(
+                        data=None,
+                        location=Location(keys=[]),
+                        message=f"There is no resource file '{time_series_collection.file}'",
+                        file_context=None,
+                    )
+                )
+                continue
             try:
                 time_series_collections[time_series_collection.name] = TimeSeriesCollection.from_yaml(
                     resource=resource,
