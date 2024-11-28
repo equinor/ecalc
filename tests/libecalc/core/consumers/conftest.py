@@ -9,6 +9,10 @@ from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
+    ConsumptionRateType,
+)
+from libecalc.testing.yaml_builder import YamlEnergyUsageModelDirectBuilder
 
 
 @pytest.fixture
@@ -131,3 +135,11 @@ def genset_1000mw_late_startup_dto(
         consumers=[direct_el_consumer],
         regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
     )
+
+
+@pytest.fixture
+def energy_usage_model_direct_load_factory():
+    def energy_usage_model(load: float, rate_type: ConsumptionRateType = ConsumptionRateType.STREAM_DAY):
+        return (YamlEnergyUsageModelDirectBuilder().with_load(load).with_consumption_rate_type(rate_type)).validate()
+
+    return energy_usage_model

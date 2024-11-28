@@ -1,10 +1,13 @@
 from datetime import datetime
+from typing import Union
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.common.temporal_model import TemporalModel
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     TimeSeriesBoolean,
@@ -15,6 +18,106 @@ from libecalc.common.variables import VariablesMap
 from libecalc.core.consumers.generator_set import Genset
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result.results import GenericComponentResult
+from libecalc.dto.types import FuelTypeUserDefinedCategoryType, ConsumerUserDefinedCategoryType
+from libecalc.presentation.yaml.yaml_entities import MemoryResource
+from libecalc.testing.yaml_builder import (
+    YamlGeneratorSetBuilder,
+    YamlFuelTypeBuilder,
+    YamlEnergyUsageModelDirectBuilder,
+    YamlElectricityConsumerBuilder,
+    YamlElectricity2fuelBuilder,
+)
+
+
+class GensetTestHelper:
+    def __init__(self):
+        self.d1900 = datetime(1900, 1, 1)
+        self.d2020 = datetime(2020, 1, 1)
+        self.d2021 = datetime(2021, 1, 1)
+        self.d2022 = datetime(2022, 1, 1)
+        self.d2023 = datetime(2023, 1, 1)
+
+        self.p1900 = Period(self.d1900)
+        self.p2020 = Period(self.d2020, self.d2021)
+        self.p2021 = Period(self.d2021, self.d2022)
+        self.p2022 = Period(self.d2022, self.d2023)
+        self.p2023 = Period(self.d2023)
+
+    def memory_resource_factory(self, data: list[list[Union[float, int, str]]], headers: list[str]) -> MemoryResource:
+        return MemoryResource(
+            data=data,
+            headers=headers,
+        )
+
+    def generator_el2fuel_2mw_resource(self):
+        return self.memory_resource_factory(
+            data=[[0, 0.5, 1, 2], [0, 0.6, 1, 2]],
+            headers=[
+                "POWER",
+                "FUEL",
+            ],
+        )
+
+    def generator_fuel_energy_function(self):
+        return (
+            YamlElectricity2fuelBuilder()
+            .with_name("generator_fuel_energy_function")
+            .with_file("generator_fuel_energy_function")
+        ).validate()
+
+    def fuel(self):
+        return (
+            YamlFuelTypeBuilder()
+            .with_name("fuel_gas")
+            .with_category(FuelTypeUserDefinedCategoryType.FUEL_GAS)
+            .with_emission_names_and_factors(names=["co2"], factors=[1])
+        ).validate()
+
+    def direct_electricity_consumer(self, request):
+        energy_usage_model_direct_load_factory = request.getfixturevalue("energy_usage_model_direct_load_factory")
+        return (
+            YamlElectricityConsumerBuilder()
+            .with_name("direct_consumer")
+            .with_category({self.d1900: ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD})
+            .with_energy_usage_model(
+                {
+                    self.d2020: energy_usage_model_direct_load_factory(1),
+                    self.d2021: energy_usage_model_direct_load_factory(2),
+                    self.d2022: energy_usage_model_direct_load_factory(10),
+                    self.d2023: energy_usage_model_direct_load_factory(0),
+                }
+            )
+        ).validate()
+
+    def genset_2mw(self, request):
+        return (
+            YamlGeneratorSetBuilder()
+            .with_name("genset")
+            .with_category({self.d1900: "TURBINE-GENERATOR"})
+            .with_fuel({self.d1900: self.fuel().name})
+            .electricity2fuel(self.generator_fuel_energy_function().name)
+            .with_consumers([self.direct_electricity_consumer(request)])
+        ).validate()
+
+
+@pytest.fixture
+def genset_test_helper():
+    return GensetTestHelper()
+
+
+class TestGenset:
+    def test_genset_out_of_capacity2(self, genset_test_helper, request):
+        """Testing a genset at capacity, at zero and above capacity.
+
+        Note that extrapcorrection does not have any effect on the Genset itself - but may have an effect on the elconsumer.
+        """
+        energy_model_from_dto_factory = request.getfixturevalue("energy_model_from_dto_factory")
+        time_vector = pd.date_range(datetime(2020, 1, 1), datetime(2026, 1, 1), freq="YS").to_pydatetime().tolist()
+        variables = VariablesMap(time_vector=time_vector)
+        generator = genset_test_helper.genset_2mw(request)
+        energy_calculator = EnergyCalculator(
+            energy_model=energy_model_from_dto_factory(generator), expression_evaluator=variables
+        )
 
 
 def test_genset_out_of_capacity(genset_2mw_dto, fuel_dto, energy_model_from_dto_factory):
