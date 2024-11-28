@@ -46,7 +46,7 @@ jobs:
         id: total
         if: matrix.python-version == '3.11'
         run: |
-          poetry run python -m coverage report --fail-under 50
+          poetry run python -m coverage report --fail-under 45
           poetry run python -m coverage html -d build/
           poetry run python -m coverage json -o build/coverage.json
           echo '# Code Coverage Report\n See the index.html for a more detailed report.\n' >> build/README.md

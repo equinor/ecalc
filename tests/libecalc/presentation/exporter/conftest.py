@@ -1,8 +1,6 @@
 import pytest
-from datetime import datetime
 from typing import Optional, Union
 
-from libecalc.common.time_utils import Period
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.testing.yaml_builder import (
     YamlFuelTypeBuilder,

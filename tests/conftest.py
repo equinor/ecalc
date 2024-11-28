@@ -1,17 +1,14 @@
 import json
 from io import StringIO
 from pathlib import Path
-from typing import Optional, cast, Union
+from typing import Optional, cast
 
 
 import pytest
 import yaml
 
-from libecalc.application.energy_calculator import EnergyCalculator
-from libecalc.application.graph_result import GraphResult
 from libecalc.common.math.numbers import Numbers
-from libecalc.common.time_utils import Frequency, Periods
-from libecalc.common.variables import VariablesMap
+from libecalc.common.time_utils import Frequency
 from libecalc.examples import advanced, simple
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.cases import (
@@ -19,18 +16,12 @@ from libecalc.fixtures.cases import (
     consumer_system_v2,
     ltp_export,
 )
-from libecalc.presentation.exporter.configs.configs import LTPConfig
-from libecalc.presentation.exporter.dto.dtos import FilteredResult, QueryResult
-from libecalc.presentation.exporter.infrastructure import ExportableGraphResult
-from libecalc.presentation.json_result.mapper import get_asset_result
 from libecalc.presentation.yaml.configuration_service import ConfigurationService
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
-from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.testing.dto_energy_model import DTOEnergyModel
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
