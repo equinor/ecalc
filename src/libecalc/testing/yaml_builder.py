@@ -467,12 +467,15 @@ class YamlVentingEmitterOilTypeBuilder(Builder[YamlOilTypeEmitter]):
         return self
 
     def with_rate_and_emission_names_and_factors(
-        self, rate: YamlExpressionType, names: list[str], factors: list[YamlExpressionType]
+        self,
+        rate: YamlExpressionType,
+        names: list[str],
+        factors: list[YamlExpressionType],
+        unit: YamlOilRateUnits = YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY,
+        rate_type: RateType = RateType.STREAM_DAY,
     ) -> Self:
         self.volume = YamlVentingVolume(
-            rate=YamlOilVolumeRate(
-                value=rate, unit=YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY, type=RateType.STREAM_DAY
-            ),
+            rate=YamlOilVolumeRate(value=rate, unit=unit, type=rate_type),
             emissions=[
                 YamlVentingVolumeEmission(name=name, emission_factor=factor) for name, factor in zip(names, factors)
             ],

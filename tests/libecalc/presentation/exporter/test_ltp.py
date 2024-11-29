@@ -1,14 +1,12 @@
 from copy import deepcopy
 from datetime import datetime
 from io import StringIO
-from pathlib import Path
 from typing import Union
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Frequency, calculate_delta_days, Period, Periods
@@ -28,7 +26,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_co
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
-from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlEmissionRateUnits
+from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlEmissionRateUnits, YamlOilRateUnits
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlVentingEmitterDirectTypeBuilder,
@@ -41,13 +39,13 @@ from libecalc.testing.yaml_builder import (
     YamlFuelConsumerBuilder,
     YamlEnergyUsageModelDirectBuilder,
     YamlElectricityConsumerBuilder,
+    YamlVentingEmitterOilTypeBuilder,
 )
 
 
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
 )
-from tests.conftest import DirectResourceService, OverridableStreamConfigurationService, yaml_model_factory
 
 
 class LtpTestHelper:
@@ -118,7 +116,6 @@ class LtpTestHelper:
         periods: Periods,
     ) -> FilteredResult:
         energy_calculator = EnergyCalculator(energy_model=model, expression_evaluator=variables)
-        precision = 6
 
         consumer_results = energy_calculator.evaluate_energy_usage()
         emission_results = energy_calculator.evaluate_emissions()
@@ -900,8 +897,8 @@ class TestLtp:
 
     def test_electrical_and_mechanical_power_installation(
         self,
-        ltp_test_helper,
         request,
+        ltp_test_helper,
         fuel_gas_factory,
         generator_fuel_power_to_fuel_resource,
         compressor_sampled_fuel_driven_resource,
@@ -970,8 +967,8 @@ class TestLtp:
 
     def test_electrical_and_mechanical_power_asset(
         self,
-        ltp_test_helper,
         request,
+        ltp_test_helper,
         fuel_gas_factory,
         el_consumer_direct_base_load_factory,
         generator_fuel_power_to_fuel_resource,
@@ -1548,3 +1545,125 @@ class TestLtp:
             283,
             283,
         ]
+
+    def test_venting_emitters_direct_multiple_emissions_ltp(self, ltp_test_helper, request):
+        """
+        Check that multiple emissions are calculated correctly for venting emitter of type DIRECT_EMISSION.
+        """
+        time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
+        variables = ltp_test_helper.create_variables_map(time_vector=time_vector)
+        regularity = 0.2
+        emission_rates = [10, 5]
+
+        venting_emitter = (
+            YamlVentingEmitterDirectTypeBuilder()
+            .with_name("Venting emitter 1")
+            .with_category(ConsumerUserDefinedCategoryType.COLD_VENTING_FUGITIVE)
+            .with_emission_names_rates_units_and_types(
+                names=["co2", "ch4"],
+                rates=emission_rates,
+                units=[YamlEmissionRateUnits.KILO_PER_DAY, YamlEmissionRateUnits.KILO_PER_DAY],
+                rate_types=[RateType.STREAM_DAY, RateType.STREAM_DAY],
+            )
+        ).validate()
+
+        installation = (
+            YamlInstallationBuilder()
+            .with_name("Installation 1")
+            .with_category(InstallationUserDefinedCategoryType.FIXED)
+            .with_venting_emitters([venting_emitter])
+            .with_regularity(regularity)
+        ).validate()
+
+        asset = (
+            YamlAssetBuilder().with_installations([installation]).with_start(time_vector[0]).with_end(time_vector[-1])
+        ).validate()
+
+        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
+
+        delta_days = [
+            (time_j - time_i).days for time_i, time_j in zip(variables.time_vector[:-1], variables.time_vector[1:])
+        ]
+
+        ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
+
+        ch4_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="co2VentingMass")
+        co2_emissions = ltp_test_helper.get_sum_ltp_column(
+            ltp_result, installation_nr=0, ltp_column="coldVentAndFugitivesCh4Mass"
+        )
+
+        assert ch4_emissions == sum(emission_rates[0] * days * regularity / 1000 for days in delta_days)
+        assert co2_emissions == sum(emission_rates[1] * days * regularity / 1000 for days in delta_days)
+
+    def test_venting_emitters_volume_multiple_emissions_ltp(self, ltp_test_helper, request):
+        """
+        Check that multiple emissions are calculated correctly for venting emitter of type OIL_VOLUME.
+        """
+        time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
+        variables = ltp_test_helper.create_variables_map(time_vector=time_vector)
+
+        regularity = 0.2
+        emission_factors = [0.1, 0.1]
+        oil_rate = 100
+
+        venting_emitter = (
+            YamlVentingEmitterOilTypeBuilder()
+            .with_name("Venting emitter 1")
+            .with_category(ConsumerUserDefinedCategoryType.LOADING)
+            .with_rate_and_emission_names_and_factors(
+                rate=oil_rate,
+                names=["ch4", "nmvoc"],
+                factors=emission_factors,
+                unit=YamlOilRateUnits.STANDARD_CUBIC_METER_PER_DAY,
+                rate_type=RateType.CALENDAR_DAY,
+            )
+        ).validate()
+
+        installation = (
+            YamlInstallationBuilder()
+            .with_name("Installation calendar day")
+            .with_category(InstallationUserDefinedCategoryType.FIXED)
+            .with_venting_emitters([venting_emitter])
+            .with_regularity(regularity)
+        ).validate()
+
+        asset = (
+            YamlAssetBuilder().with_installations([installation]).with_start(time_vector[0]).with_end(time_vector[-1])
+        ).validate()
+
+        venting_emitter_sd = deepcopy(venting_emitter)
+        venting_emitter_sd.volume.rate.type = RateType.STREAM_DAY
+
+        installation_sd = deepcopy(installation)
+        installation_sd.venting_emitters = [venting_emitter_sd]
+
+        asset_sd = deepcopy(asset)
+        asset_sd.installations = [installation_sd]
+
+        asset = ltp_test_helper.get_yaml_model(request, asset=asset, resources={}, frequency=Frequency.YEAR)
+        asset_sd = ltp_test_helper.get_yaml_model(request, asset=asset_sd, resources={}, frequency=Frequency.YEAR)
+
+        delta_days = [
+            (time_j - time_i).days for time_i, time_j in zip(variables.time_vector[:-1], variables.time_vector[1:])
+        ]
+
+        ltp_result = ltp_test_helper.get_ltp_result(asset, variables)
+
+        ltp_result_stream_day = ltp_test_helper.get_ltp_result(asset_sd, variables)
+
+        ch4_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingNmvocMass")
+        nmvoc_emissions = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadingCh4Mass")
+        oil_volume = ltp_test_helper.get_sum_ltp_column(ltp_result, installation_nr=0, ltp_column="loadedAndStoredOil")
+
+        oil_volume_stream_day = ltp_test_helper.get_sum_ltp_column(
+            ltp_result_stream_day, installation_nr=0, ltp_column="loadedAndStoredOil"
+        )
+
+        assert ch4_emissions == sum(oil_rate * days * emission_factors[0] / 1000 for days in delta_days)
+        assert nmvoc_emissions == sum(oil_rate * days * emission_factors[1] / 1000 for days in delta_days)
+        assert oil_volume == pytest.approx(sum(oil_rate * days for days in delta_days), abs=1e-5)
+
+        # Check that oil volume is including regularity correctly:
+        # Oil volume (input rate in stream day) / oil volume (input rates calendar day) = regularity.
+        # Given that the actual rate input values are the same.
+        assert oil_volume_stream_day / oil_volume == regularity
