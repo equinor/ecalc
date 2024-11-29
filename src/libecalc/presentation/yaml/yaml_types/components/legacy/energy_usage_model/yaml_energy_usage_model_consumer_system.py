@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.common import (
@@ -64,6 +64,36 @@ class YamlCompressorSystemOperationalSetting(YamlBase):
         title="SUCTION_PRESSURE",
         description="Set suction pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
     )
+
+    @model_validator(mode="after")
+    def ensure_increasing_cross_over(self):
+        if self.crossover is None:
+            return self
+        for compressor_train_index, crossover_to in enumerate(self.crossover):
+            crossover_to_compressor_train_index = (
+                crossover_to - 1
+            )  # compressor_train_index is 0-indexed, crossover_to is 1-indexed
+            no_crossover = crossover_to == 0
+            if crossover_to_compressor_train_index > compressor_train_index or no_crossover:
+                pass  # passing excess rate to a comp. train not yet evaluated or no crossover defined for this comp. train
+            else:
+                raise ValueError(
+                    f"Crossover: {self.crossover}\n"
+                    "The compressor trains in the compressor system are not defined in the correct order, according to "
+                    "the way the crossovers are set up. eCalc can now try to pass excess rates to compressor trains in "
+                    "the system that has already been evaluated. \n\n"
+                    "To avoid loops and to avoid passing rates to compressor trains that have already been "
+                    "processed, the index of the crossovers should be either 0 (no crossover) or larger than the index "
+                    "of the current compressor train (passing excess rate to a compressor train not yet evaluated). \n\n"
+                    "CROSSOVER: [2, 3, 0] is valid, but CROSSOVER: [2, 1, 0] is not. \n"
+                )
+
+        return self
+
+    def train_not_evaluated(self, index: int):
+        if self.crossover is None:
+            return False
+        return self.crossover[index] == 0
 
 
 class YamlPumpSystemOperationalSettings(YamlCompressorSystemOperationalSetting):
