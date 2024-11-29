@@ -1,5 +1,45 @@
 # Changelog
 
+## [9.2.0](https://github.com/equinor/ecalc/compare/v9.1.0...v9.2.0) (2024-11-29)
+
+
+### Features
+
+* get json schema for ecalc yaml in cli ([#715](https://github.com/equinor/ecalc/issues/715)) ([43bf19a](https://github.com/equinor/ecalc/commit/43bf19ad72c0a1d66f45660940ed5d386a580f7f))
+
+
+### Bug Fixes
+
+* check that time series file exists ([#716](https://github.com/equinor/ecalc/issues/716)) ([b2daf23](https://github.com/equinor/ecalc/commit/b2daf232dfe94cb5ba970dada2cade04d19aa0e8))
+* flow diagram generation ([b7a6dc9](https://github.com/equinor/ecalc/commit/b7a6dc9db499da7ab5ffaadd4d919e9a82e1b6f1))
+* get max standard rate when compressor train has downstream choke ([#703](https://github.com/equinor/ecalc/issues/703)) ([c22aaaf](https://github.com/equinor/ecalc/commit/c22aaaf2bce217ec357db9e4f198bbe55908ebcf))
+* raise error if yaml file is empty or not a valid yaml object ([#712](https://github.com/equinor/ecalc/issues/712)) ([79f0072](https://github.com/equinor/ecalc/commit/79f00721e31b53685ee1e48ea9c7afe75a162ef6))
+
+
+### Documentation
+
+* docs were not correctly updated for v9.1 release ([#717](https://github.com/equinor/ecalc/issues/717)) ([fc849bd](https://github.com/equinor/ecalc/commit/fc849bd3a5dd0351ae51a73000cd09727be3b972))
+
+
+### Miscellaneous Chores
+
+* create new yaml builders for testing ([#708](https://github.com/equinor/ecalc/issues/708)) ([d942897](https://github.com/equinor/ecalc/commit/d94289725aa73d1bbfe465ee108d4b8fa03e89e4))
+* fix codeowners after tests moved ([b9e86d9](https://github.com/equinor/ecalc/commit/b9e86d9600756d6cbb86bff850663faf2ce03baf))
+* update dependencies week 48 ([#718](https://github.com/equinor/ecalc/issues/718)) ([ad17d3c](https://github.com/equinor/ecalc/commit/ad17d3c1256383874c685109ba9d79d9f8c779e7))
+* upgrade dependencies for week 47 ([09929cb](https://github.com/equinor/ecalc/commit/09929cbc71773009be011616ab19823bbbb8345e))
+* use builders for ltp tests ([#711](https://github.com/equinor/ecalc/issues/711)) ([062f3f4](https://github.com/equinor/ecalc/commit/062f3f4309d3e9f31daf49ff3928c2d90f7088b3))
+
+
+### Code Refactoring
+
+* create energy interfaces ([9527609](https://github.com/equinor/ecalc/commit/95276099dfdaa4e78da475aa3c96700ab16b7dcf))
+* implement emitter interface ([c463ba8](https://github.com/equinor/ecalc/commit/c463ba8b8bdb5e7333b9401a9a49ae4d21475bb6))
+* move EosModel into fluid ([82b68a5](https://github.com/equinor/ecalc/commit/82b68a573d6f35b657b9ec3eaf4494143615f5ae))
+* move fluid.py into common ([e3973aa](https://github.com/equinor/ecalc/commit/e3973aa27e6bcca588aca238ed803a08b2f66efd))
+* remove dto from CompressorWithTurbine ([dc7092b](https://github.com/equinor/ecalc/commit/dc7092bbe1e4f60eabcbbec7dd81449cfe908e45))
+* remove dto import in core turbine ([1259672](https://github.com/equinor/ecalc/commit/12596722268af6ce6ae11126784097c7279d2a49))
+* use builders in venting emitter tests ([#714](https://github.com/equinor/ecalc/issues/714)) ([da54989](https://github.com/equinor/ecalc/commit/da54989e8b6cf951f86b248ea4e230dce6865986))
+
 ## [9.1.0](https://github.com/equinor/ecalc/compare/v9.0.0...v9.1.0) (2024-11-14)
 
 
