@@ -50,17 +50,9 @@ class GensetTestHelper:
         self.d2021 = datetime(2021, 1, 1)
         self.d2022 = datetime(2022, 1, 1)
         self.d2023 = datetime(2023, 1, 1)
-        self.d2024 = datetime(2024, 1, 1)
-        self.d2025 = datetime(2025, 1, 1)
         self.d2026 = datetime(2026, 1, 1)
 
         self.p1900 = Period(self.d1900)
-        self.p2020 = Period(self.d2020, self.d2021)
-        self.p2021 = Period(self.d2021, self.d2022)
-        self.p2022 = Period(self.d2022, self.d2023)
-        self.p2023 = Period(self.d2023, self.d2024)
-        self.p2024 = Period(self.d2024, self.d2025)
-        self.p2025 = Period(self.d2025, self.d2026)
 
         self.time_vector = pd.date_range(self.d2020, self.d2026, freq="YS").to_pydatetime().tolist()
 
@@ -195,9 +187,7 @@ class GensetTestHelper:
         facility_inputs: list[YamlFacilityModelType] = None,
         fuel_types: list[YamlFuelType] = None,
     ):
-        asset = (
-            YamlAssetBuilder().with_installations([installation]).with_start(self.p2020.start).with_end(self.p2025.end)
-        )
+        asset = YamlAssetBuilder().with_installations([installation]).with_start(self.d2020).with_end(self.d2026)
 
         if facility_inputs:
             asset.facility_inputs = facility_inputs
