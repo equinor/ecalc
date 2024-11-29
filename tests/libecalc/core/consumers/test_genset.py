@@ -35,7 +35,6 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.testing.yaml_builder import (
     YamlGeneratorSetBuilder,
     YamlFuelTypeBuilder,
-    YamlEnergyUsageModelDirectBuilder,
     YamlElectricityConsumerBuilder,
     YamlElectricity2fuelBuilder,
     YamlInstallationBuilder,
