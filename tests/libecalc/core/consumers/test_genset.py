@@ -204,7 +204,7 @@ def genset_test_helper():
 
 
 class TestGenset:
-    def test_genset_out_of_capacity2(self, genset_test_helper, request):
+    def test_genset_out_of_capacity(self, genset_test_helper, request):
         """Testing a genset at capacity, at zero and above capacity.
 
         Note that extrapcorrection does not have any effect on the Genset itself - but may have an effect on the elconsumer.
