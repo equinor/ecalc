@@ -42,19 +42,6 @@ def dry_fluid() -> FluidModel:
 
 
 @pytest.fixture
-def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
-    return libecalc.dto.fuel_type.FuelType(
-        name="fuel_gas",
-        emissions=[
-            dto.Emission(
-                name="CO2",
-                factor=Expression.setup_from_expression(value=1),
-            )
-        ],
-    )
-
-
-@pytest.fixture
 def pump_single_speed() -> PumpSingleSpeed:
     chart_curve = SingleSpeedChart(
         libecalc.common.serializable_chart.SingleSpeedChartDTO(
