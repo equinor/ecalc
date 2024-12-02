@@ -10,16 +10,21 @@ from libecalc.dto.types import (
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
+from libecalc.expression import Expression
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlFuelEnergyUsageModel,
     YamlElectricityEnergyUsageModel,
     YamlEnergyUsageModelCompressor,
+    YamlEnergyUsageModelTabulated,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
     YamlEnergyUsageModelDirect,
+)
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_tabulated import (
+    YamlTabulatedVariable,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
@@ -43,6 +48,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlFacilityModelType,
     YamlFacilityAdjustment,
     YamlCompressorTabularModel,
+    YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -50,6 +56,7 @@ from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     GeneratorSetModelReference,
     CompressorEnergyUsageModelModelReference,
+    TabulatedEnergyUsageModelModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
@@ -206,6 +213,36 @@ class YamlCompressorTabularBuilder(Builder[YamlCompressorTabularModel]):
         return self
 
 
+class YamlTabularBuilder(Builder[YamlTabularModel]):
+    """
+    Builder for FACILITY_INPUTS of type TABULAR
+    """
+
+    def __init__(self):
+        self.name = None
+        self.file = None
+        self.adjustment = None
+        self.type = YamlFacilityModelType.TABULAR
+
+    def with_name(self, name: str):
+        self.name = name
+        return self
+
+    def with_file(self, file: str):
+        self.file = file
+        return self
+
+    def with_adjustment(self, constant: float, factor: float):
+        self.adjustment = YamlFacilityAdjustment(constant=constant, factor=factor)
+        return self
+
+    def with_test_data(self):
+        self.adjustment = YamlFacilityAdjustment(constant=0, factor=1)
+        self.name = "DefaultTabular"
+        self.file = "tabular.csv"
+        return self
+
+
 class YamlEnergyUsageModelDirectBuilder(Builder[YamlEnergyUsageModelDirect]):
     def __init__(self):
         self.type = "DIRECT"
@@ -266,6 +303,43 @@ class YamlEnergyUsageModelCompressorBuilder(Builder[YamlEnergyUsageModelCompress
         self.energy_function = YamlCompressorTabularBuilder().with_test_data().validate().name
         self.suction_pressure = 20
         self.discharge_pressure = 80
+
+
+class YamlTabulatedVariableBuilder(Builder[YamlTabulatedVariable]):
+    def __init__(self):
+        self.name = None
+        self.expression = None
+
+    def with_name(self, name: str):
+        self.name = name
+        return self
+
+    def with_expression(self, expression: Union[Expression, YamlExpressionType]):
+        self.expression = expression
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "RATE"
+        self.expression = "SIM1;GAS_PROD"
+        return self
+
+
+class YamlEnergyUsageModelTabulatedBuilder(Builder[YamlEnergyUsageModelTabulated]):
+    def __init__(self):
+        self.type = "TABULATED"
+        self.energy_function = None  # To be set with test data or custom value
+        self.variables = None  # To be set with test data or custom value
+
+    def with_test_data(self):
+        pass
+
+    def with_energy_function(self, energy_function: TabulatedEnergyUsageModelModelReference):
+        self.energy_function = energy_function
+        return self
+
+    def with_variables(self, variables: YamlTabulatedVariable):
+        self.variables = variables
+        return self
 
 
 TYamlClass = TypeVar("TYamlClass", bound=YamlBase)
