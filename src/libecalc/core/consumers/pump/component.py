@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
@@ -17,14 +15,12 @@ from libecalc.core.models.pump import PumpModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result import results as core_results
 from libecalc.domain.stream_conditions import Pressure, StreamConditions
-from libecalc.dto.core_specs.pump.operational_settings import PumpOperationalSettings
 
 
 class Pump(BaseConsumerWithoutOperationalSettings):
     def __init__(self, id: str, pump_model: PumpModel):
         self.id = id
         self._pump_model = pump_model
-        self._operational_settings: Optional[PumpOperationalSettings] = None
 
     def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: Pressure) -> list[float]:
         """
