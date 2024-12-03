@@ -16,6 +16,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model 
     YamlFuelEnergyUsageModel,
     YamlElectricityEnergyUsageModel,
     YamlEnergyUsageModelCompressor,
+    YamlEnergyUsageModelCompressorTrainMultipleStreams,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
@@ -46,15 +47,44 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
-from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.models import (
+    YamlConsumerModel,
+    YamlTurbine,
+    YamlCompressorWithTurbine,
+    YamlCompressorChart,
+)
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     GeneratorSetModelReference,
     CompressorEnergyUsageModelModelReference,
+    FluidModelReference,
+    CompressorStageModelReference,
+    MultipleStreamsEnergyUsageModelModelReference,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
+    YamlVariableSpeedChart,
+    YamlCurve,
+    YamlUnits,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import (
+    YamlCompressorStageMultipleStreams,
+    YamlInterstageControlPressure,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import (
+    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
+    YamlMultipleStreamsStream,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType, YamlPressureControl, YamlChartType
+from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
+    YamlFluidModelType,
+    YamlCompositionFluidModel,
+    YamlEosModel,
+    YamlComposition,
 )
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
     YamlDefaultTimeSeriesCollection,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlOilRateUnits,
     YamlOilVolumeRate,
@@ -266,6 +296,52 @@ class YamlEnergyUsageModelCompressorBuilder(Builder[YamlEnergyUsageModelCompress
         self.energy_function = YamlCompressorTabularBuilder().with_test_data().validate().name
         self.suction_pressure = 20
         self.discharge_pressure = 80
+
+
+class YamlEnergyUsageModelMultipleStreamsAndPressuresBuilder(
+    Builder[YamlEnergyUsageModelCompressorTrainMultipleStreams]
+):
+    """
+    Builder for compressor energy usage model with multiple streams and pressures
+    """
+
+    def __init__(self):
+        self.type = "VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES"
+        self.rate_unit = "SM3_PER_DAY"
+        self.compressor_train_model = None
+        self.rate_per_stream = []
+        self.suction_pressure = None
+        self.discharge_pressure = None
+        self.interstage_control_pressure = None
+
+    def with_compressor_train_model(self, compressor_train_model: MultipleStreamsEnergyUsageModelModelReference):
+        self.compressor_train_model = compressor_train_model
+        return self
+
+    def with_rate_per_stream(self, rate_per_stream: list[YamlExpressionType]):
+        self.rate_per_stream = rate_per_stream
+        return self
+
+    def with_suction_pressure(self, suction_pressure: YamlExpressionType):
+        self.suction_pressure = suction_pressure
+        return self
+
+    def with_discharge_pressure(self, discharge_pressure: YamlExpressionType):
+        self.discharge_pressure = discharge_pressure
+        return self
+
+    def with_interstage_control_pressure(self, interstage_control_pressure: YamlExpressionType):
+        self.interstage_control_pressure = interstage_control_pressure
+        return self
+
+    def with_test_data(self) -> Self:
+        self.compressor_train_model = (
+            YamlVariableSpeedCompressorTrainMultipleStreamsAndPressuresBuilder().with_test_data().validate().name
+        )
+        self.suction_pressure = 20
+        self.discharge_pressure = 80
+        self.interstage_control_pressure = 50
+        return self
 
 
 TYamlClass = TypeVar("TYamlClass", bound=YamlBase)
@@ -688,4 +764,265 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_end(self, end: str):
         self.end = end
+        return self
+
+
+class YamlTurbineBuilder(Builder[YamlTurbine]):
+    def __init__(self):
+        self.name = None
+        self.type = YamlModelType.TURBINE
+        self.lower_heating_value = None
+        self.turbine_loads = []
+        self.turbine_efficiencies = []
+        self.power_adjustment_constant = 0
+        self.power_adjustment_factor = 1.0
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_lower_heating_value(self, lower_heating_value: float) -> Self:
+        self.lower_heating_value = lower_heating_value
+        return self
+
+    def with_turbine_loads(self, turbine_loads: list[float]) -> Self:
+        self.turbine_loads = turbine_loads
+        return self
+
+    def with_turbine_efficiencies(self, turbine_efficiencies: list[float]) -> Self:
+        self.turbine_efficiencies = turbine_efficiencies
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "compressor_train_turbine"
+        self.lower_heating_value = 38
+        self.turbine_loads = [0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767]
+        self.turbine_efficiencies = [0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362]
+
+        return self
+
+
+class YamlCompressorWithTurbineBuilder(Builder[YamlCompressorWithTurbine]):
+    def __init__(self):
+        self.compressor_model = None
+        self.name = None
+        self.power_adjustment_constant = 0.0
+        self.power_adjustment_factor = 1.0
+        self.turbine_model = None
+        self.type = YamlModelType.COMPRESSOR_WITH_TURBINE.name
+
+    def with_compressor_model(self, compressor_model: str) -> Self:
+        self.compressor_model = compressor_model
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_turbine_model(self, turbine_model: str) -> Self:
+        self.turbine_model = turbine_model
+        return self
+
+    def with_test_data(self) -> Self:
+        self.compressor_model = "compressor_model_reference"
+        self.name = "compressor_with_turbine"
+        self.turbine_model = "turbine_model_reference"
+        return self
+
+
+class YamlVariableSpeedCompressorTrainMultipleStreamsAndPressuresBuilder(
+    Builder[YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures]
+):
+    def __init__(self):
+        self.name = None
+        self.type = YamlModelType.VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
+        self.streams = []
+        self.stages = []
+        self.pressure_control = None
+        self.maximum_power = None
+        self.power_adjustment_constant = 0.0
+        self.power_adjustment_factor = 1.0
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_streams(self, streams: list[YamlMultipleStreamsStream]) -> Self:
+        self.streams = streams
+        return self
+
+    def with_stages(self, stages: list[YamlCompressorStageMultipleStreams]) -> Self:
+        self.stages = stages
+        return self
+
+    def with_pressure_control(self, pressure_control: YamlPressureControl) -> Self:
+        self.pressure_control = pressure_control
+        return self
+
+    def with_maximum_power(self, maximum_power: float) -> Self:
+        self.maximum_power = maximum_power
+        return
+
+    def with_test_data(self) -> Self:
+        self.name = "variable_speed_compressor_train"
+        self.streams = []
+        self.stages = []
+        self.pressure_control = YamlPressureControl.DOWNSTREAM_CHOKE
+        return self
+
+    def with_streams_names_types_and_fluids(
+        self, names: list[str], types: Literal["INGOING", "OUTGOING"], fluid_models: list[FluidModelReference] = None
+    ) -> Self:
+        if fluid_models:
+            for name, type, fluid_model in zip(names, types, fluid_models):
+                self.streams.append(YamlMultipleStreamsStream(type=type, name=name, fluid_model=fluid_model))
+        else:
+            for name, type in zip(names, types):
+                self.streams.append(YamlMultipleStreamsStream(type=type, name=name))
+        return self
+
+
+class YamlCompressorStageMultipleStreamsBuilder(Builder[YamlCompressorStageMultipleStreams]):
+    def __init__(self):
+        self.inlet_temperature = None
+        self.compressor_chart = None
+        self.interstage_control_pressure = None
+        self.stream = None
+        self.pressure_drop_ahead_of_stage = 0
+        self.control_margin = 0
+        self.control_margin_unit = "PERCENTAGE"
+
+    def with_inlet_temperature(self, inlet_temperature: float) -> Self:
+        self.inlet_temperature = inlet_temperature
+        return self
+
+    def with_compressor_chart(self, compressor_chart: CompressorStageModelReference) -> Self:
+        self.compressor_chart = compressor_chart
+        return self
+
+    def with_interstage_control_pressure(self, interstage_control_pressure: YamlInterstageControlPressure) -> Self:
+        self.interstage_control_pressure = interstage_control_pressure
+        return self
+
+    def with_stream(self, stream: Union[str, list[str]]) -> Self:
+        self.stream = stream
+        return self
+
+    def with_test_data(self) -> Self:
+        self.inlet_temperature = 20
+        self.compressor_chart = "compressor_chart_reference"
+        self.interstage_control_pressure = YamlInterstageControlPressure(
+            upstream_pressure_control=YamlPressureControl.DOWNSTREAM_CHOKE,
+            downstream_pressure_control=YamlPressureControl.DOWNSTREAM_CHOKE,
+        )
+        self.stream = "stream_reference"
+        return self
+
+
+class YamlCompositionFluidModelBuilder(Builder[YamlCompositionFluidModel]):
+    def __init__(self):
+        self.name = None
+        self.composition = None
+        self.eos_model = YamlEosModel.SRK
+        self.fluid_model_type = YamlFluidModelType.COMPOSITION
+        self.type = YamlModelType.FLUID
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_composition(self, composition: YamlComposition) -> Self:
+        self.composition = composition
+        return self
+
+    def with_eos_model(self, eos_model: YamlEosModel) -> Self:
+        self.eos_model = eos_model
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "composition_fluid_model"
+        self.composition = YamlComposition(methane=0.1)
+        return self
+
+
+class YamlCurveBuilder(Builder[YamlCurve]):
+    def __init__(self):
+        self.speed = None
+        self.rate = []
+        self.head = []
+        self.efficiency = []
+
+    def with_speed(self, speed: float) -> Self:
+        self.speed = speed
+        return self
+
+    def with_rate(self, rate: list[float]) -> Self:
+        self.rate = rate
+        return self
+
+    def with_head(self, head: list[float]) -> Self:
+        self.head = head
+        return self
+
+    def with_efficiency(self, efficiency: list[float]) -> Self:
+        self.efficiency = efficiency
+        return self
+
+    def with_test_data(self) -> Self:
+        self.speed = 1000
+        self.rate = [1, 2, 3]
+        self.head = [10, 20, 30]
+        self.efficiency = [0.5, 0.6, 0.7]
+        return self
+
+
+class YamlVariableSpeedCompressorChartBuilder(Builder[YamlVariableSpeedChart]):
+    def __init__(self):
+        self.name = None
+        self.type = YamlModelType.COMPRESSOR_CHART
+        self.chart_type = YamlChartType.VARIABLE_SPEED
+        self.curves = []
+        self.units = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_curves(self, curves: DataOrFile[list[YamlCurve]]) -> Self:
+        self.curves = curves
+        return self
+
+    def with_units(self, units: YamlUnits) -> Self:
+        self.units = units
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "variable_speed_compressor_chart"
+        self.curves = [YamlCurveBuilder().with_test_data().validate()]
+        self.units = YamlUnits()
+        return self
+
+
+class YamlMultipleStreamsStreamBuilder(Builder[YamlMultipleStreamsStream]):
+    def __init__(self):
+        self.name = None
+        self.type = None
+        self.fluid_model = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_type(self, type: Literal["INGOING", "OUTGOING"]) -> Self:
+        self.type = type
+        return self
+
+    def with_fluid_model(self, fluid_model: FluidModelReference) -> Self:
+        self.fluid_model = fluid_model
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "stream"
+        self.type = "INGOING"
+        self.fluid_model = "fluid_model_reference"
         return self
