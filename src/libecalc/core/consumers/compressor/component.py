@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
@@ -16,16 +14,12 @@ from libecalc.core.models.compressor import CompressorModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result import results as core_results
 from libecalc.domain.stream_conditions import Pressure, StreamConditions
-from libecalc.dto.core_specs.compressor.operational_settings import (
-    CompressorOperationalSettings,
-)
 
 
 class Compressor(BaseConsumerWithoutOperationalSettings):
     def __init__(self, id: str, compressor_model: CompressorModel):
         self.id = id
         self._compressor_model = compressor_model
-        self._operational_settings: Optional[CompressorOperationalSettings] = None
 
     def get_max_rate(self, inlet_stream: StreamConditions, target_pressure: Pressure) -> float:
         """
