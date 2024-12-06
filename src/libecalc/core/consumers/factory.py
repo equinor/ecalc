@@ -6,7 +6,7 @@ from libecalc.core.consumers.compressor import Compressor
 from libecalc.core.consumers.pump import Pump
 from libecalc.core.models.compressor import create_compressor_model
 from libecalc.core.models.pump import create_pump_model
-from libecalc.dto.components import CompressorComponent, PumpComponent
+from libecalc.infrastructure.components import CompressorComponent, PumpComponent
 
 
 @overload

@@ -18,7 +18,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.consumers.base import BaseConsumer
 from libecalc.core.consumers.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -40,6 +39,7 @@ from libecalc.core.result.results import (
     PumpResult,
 )
 from libecalc.expression import Expression
+from libecalc.infrastructure.energy_components.base import BaseConsumer
 
 
 def get_operational_settings_used_from_consumer_result(
