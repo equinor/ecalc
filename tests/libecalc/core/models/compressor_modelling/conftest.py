@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from datetime import datetime
+
 import libecalc.common.fixed_speed_pressure_control
 import libecalc.common.fluid
 import libecalc.common.fluid_stream_type
@@ -25,7 +27,39 @@ from libecalc.core.models.compressor.train.variable_speed_compressor_train_commo
 from libecalc.core.models.compressor.train.variable_speed_compressor_train_common_shaft_multiple_streams_and_pressures import (
     VariableSpeedCompressorTrainCommonShaftMultipleStreamsAndPressures,
 )
+from libecalc.dto.types import (
+    InstallationUserDefinedCategoryType,
+    ConsumerUserDefinedCategoryType,
+    FuelTypeUserDefinedCategoryType,
+)
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
+from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
+from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlUnits
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlInterstageControlPressure
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
+from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
+    YamlComposition,
+    YamlCompositionFluidModel,
+    YamlEosModel,
+)
+from libecalc.testing.yaml_builder import (
+    YamlCompositionFluidModelBuilder,
+    YamlCompressorStageMultipleStreamsBuilder,
+    YamlVariableSpeedCompressorTrainMultipleStreamsAndPressuresBuilder,
+    YamlTurbineBuilder,
+    YamlCompressorWithTurbineBuilder,
+    YamlInstallationBuilder,
+    YamlAssetBuilder,
+    YamlCurveBuilder,
+    YamlVariableSpeedCompressorChartBuilder,
+    YamlEnergyUsageModelMultipleStreamsAndPressuresBuilder,
+    YamlFuelConsumerBuilder,
+    YamlMultipleStreamsStreamBuilder,
+    YamlFuelTypeBuilder,
+)
 
 
 @pytest.fixture
@@ -34,6 +68,16 @@ def medium_fluid() -> FluidModel:
         eos_model=libecalc.common.fluid.EoSModel.SRK,
         composition=FluidComposition.model_validate(MEDIUM_MW_19P4),
     )
+
+
+@pytest.fixture
+def yaml_medium_fluid() -> YamlCompositionFluidModel:
+    return (
+        YamlCompositionFluidModelBuilder()
+        .with_name("fluid1")
+        .with_eos_model(YamlEosModel.SRK)
+        .with_composition(YamlComposition(**FluidComposition.model_validate(MEDIUM_MW_19P4).__dict__))
+    ).validate()
 
 
 @pytest.fixture
@@ -345,3 +389,203 @@ def variable_speed_compressor_train_two_compressors_one_stream_dto(
         energy_usage_adjustment_factor=1.0,
         pressure_control=FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
     )
+
+
+@pytest.fixture
+def yaml_stream(yaml_medium_fluid):
+    return (
+        YamlMultipleStreamsStreamBuilder()
+        .with_name("in_stream_stage_1")
+        .with_type("INGOING")
+        .with_fluid_model(yaml_medium_fluid.name)
+    ).validate()
+
+
+@pytest.fixture
+def yaml_variable_speed_compressor_train_two_compressors_one_stream(yaml_compressor_chart_variable_speed, yaml_stream):
+    stage1 = (
+        YamlCompressorStageMultipleStreamsBuilder()
+        .with_compressor_chart(yaml_compressor_chart_variable_speed.name)
+        .with_stream([yaml_stream.name])
+        .with_inlet_temperature(303.15)
+    ).validate()
+
+    stage2 = (
+        YamlCompressorStageMultipleStreamsBuilder()
+        .with_compressor_chart(yaml_compressor_chart_variable_speed.name)
+        .with_inlet_temperature(303.15)
+        .with_interstage_control_pressure(
+            YamlInterstageControlPressure(
+                upstream_pressure_control=YamlPressureControl.UPSTREAM_CHOKE,
+                downstream_pressure_control=YamlPressureControl.DOWNSTREAM_CHOKE,
+            )
+        )
+    ).validate()
+
+    compressor_train = (
+        YamlVariableSpeedCompressorTrainMultipleStreamsAndPressuresBuilder()
+        .with_name("CompressorTrain")
+        .with_streams([yaml_stream])
+        .with_stages([stage1, stage2])
+        .with_pressure_control(YamlPressureControl.DOWNSTREAM_CHOKE)
+    ).validate()
+    return compressor_train
+
+
+@pytest.fixture
+def yaml_compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine(
+    yaml_variable_speed_compressor_train_two_compressors_one_stream,
+    yaml_turbine,
+):
+    compressor_with_turbine = (
+        YamlCompressorWithTurbineBuilder()
+        .with_name("CompressorWithTurbine")
+        .with_compressor_model(yaml_variable_speed_compressor_train_two_compressors_one_stream.name)
+        .with_turbine_model(yaml_turbine.name)
+    ).validate()
+
+    return compressor_with_turbine
+
+
+@pytest.fixture
+def yaml_asset():
+    def asset(
+        fuel_consumers: list[YamlFuelConsumer] = None,
+        generator_sets: list[YamlGeneratorSet] = None,
+        models: list[YamlConsumerModel] = None,
+        fuel_types: list[YamlFuelType] = None,
+    ):
+        installation = (
+            YamlInstallationBuilder().with_name("Installation").with_category(InstallationUserDefinedCategoryType.FIXED)
+        )
+
+        if fuel_consumers:
+            installation.with_fuel_consumers(fuel_consumers)
+        if generator_sets:
+            installation.with_generator_sets(generator_sets)
+
+        asset = YamlAssetBuilder().with_installations([installation.validate()])
+
+        if models:
+            asset.with_models(models)
+        if fuel_types:
+            asset.with_fuel_types(fuel_types)
+
+        return asset.validate()
+
+    return asset
+
+
+@pytest.fixture
+def yaml_curves_variable_speed():
+    curve1 = (
+        YamlCurveBuilder()
+        .with_speed(10767)
+        .with_rate([4053, 4501, 4999, 5493, 6001, 6439])
+        .with_head([161345, 157754, 152506, 143618, 131983, 117455])
+        .with_efficiency([0.72, 0.73, 0.74, 0.74, 0.72, 0.7])
+    ).validate()
+
+    curve2 = (
+        YamlCurveBuilder()
+        .with_speed(11533)
+        .with_rate([4328, 4999, 5506, 6028, 6507, 6908])
+        .with_head([185232, 178885, 171988, 161766, 147512, 133602])
+        .with_efficiency([0.72, 0.74, 0.74, 0.74, 0.72, 0.7])
+    ).validate()
+
+    curve3 = (
+        YamlCurveBuilder()
+        .with_speed(10984)
+        .with_rate([4139, 5002, 5494, 6009, 6560])
+        .with_head([167544, 159657, 151358, 139910, 121477])
+        .with_efficiency([0.72, 0.74, 0.74, 0.73, 0.7])
+    ).validate()
+
+    curve4 = (
+        YamlCurveBuilder()
+        .with_speed(10435)
+        .with_rate([3928, 4507, 5002, 5499, 6249])
+        .with_head([151417, 146983, 140773, 131071, 109705])
+        .with_efficiency([0.72, 0.74, 0.74, 0.74, 0.7])
+    ).validate()
+
+    curve5 = (
+        YamlCurveBuilder()
+        .with_speed(9886)
+        .with_rate([3709, 4502, 4994, 5508, 5924])
+        .with_head([135819, 129325, 121889, 110617, 98629.7])
+        .with_efficiency([0.72, 0.74, 0.74, 0.73, 0.7])
+    ).validate()
+
+    curve6 = (
+        YamlCurveBuilder()
+        .with_speed(8787)
+        .with_rate([3306, 4000, 4499, 4997, 5242])
+        .with_head([107429, 101955, 95225.6, 84307.1, 78234.7])
+        .with_efficiency([0.72, 0.74, 0.74, 0.72, 0.7])
+    ).validate()
+
+    curve7 = (
+        YamlCurveBuilder()
+        .with_speed(7689)
+        .with_rate([2900, 3504, 4003, 4595])
+        .with_head([82531.5, 78440.7, 72240.8, 60105.8])
+        .with_efficiency([0.72, 0.74, 0.74, 0.7])
+    ).validate()
+
+    return [curve1, curve2, curve3, curve4, curve5, curve6, curve7]
+
+
+@pytest.fixture
+def yaml_compressor_chart_variable_speed(yaml_curves_variable_speed):
+    return (
+        YamlVariableSpeedCompressorChartBuilder()
+        .with_name("variable_speed_chart")
+        .with_curves(yaml_curves_variable_speed)
+        .with_units(YamlUnits())
+    ).validate()
+
+
+@pytest.fixture
+def yaml_energy_usage_model_multiple_streams_and_pressures(
+    yaml_compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine,
+):
+    return (
+        YamlEnergyUsageModelMultipleStreamsAndPressuresBuilder()
+        .with_compressor_train_model(
+            yaml_compressor_train_variable_speed_multiple_streams_and_pressures_with_turbine.name
+        )
+        .with_suction_pressure(30)
+        .with_discharge_pressure(100)
+        .with_rate_per_stream([3000000])
+        .with_interstage_control_pressure(50)
+    ).validate()
+
+
+@pytest.fixture
+def fuel_consumer_compressor_with_turbine(yaml_energy_usage_model_multiple_streams_and_pressures, fuel_gas_factory):
+    return (
+        YamlFuelConsumerBuilder()
+        .with_name("fuel_consumer_compressor_with_turbine")
+        .with_fuel(fuel_gas_factory().name)
+        .with_category(ConsumerUserDefinedCategoryType.GAS_DRIVEN_COMPRESSOR)
+        .with_energy_usage_model(yaml_energy_usage_model_multiple_streams_and_pressures)
+    ).validate()
+
+
+@pytest.fixture
+def fuel_gas_factory():
+    def fuel(names: list[str] = None, factors: list[float] = None):
+        if factors is None:
+            factors = [1]
+        if names is None:
+            names = ["co2"]
+        return (
+            YamlFuelTypeBuilder()
+            .with_name("fuel")
+            .with_emission_names_and_factors(names=names, factors=factors)
+            .with_category(FuelTypeUserDefinedCategoryType.FUEL_GAS)
+        ).validate()
+
+    return fuel
