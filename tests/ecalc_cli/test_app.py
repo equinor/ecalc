@@ -459,31 +459,6 @@ class TestYamlFile:
             f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}" in str(ee.value)
         )
 
-    def test_yaml_duplicate_fuel(self, simple_duplicate_names_yaml_path, tmp_path):
-        """
-        TEST SCOPE: Check that duplicate fuel type names are not allowed in Yaml file.
-
-        Args:
-            simple model file with duplicate fuel names:
-
-        Returns:
-
-        """
-        with pytest.raises(EcalcError) as exc_info:
-            runner.invoke(
-                main.app,
-                _get_args(
-                    model_file=simple_duplicate_names_yaml_path,
-                    csv=True,
-                    output_folder=tmp_path,
-                    name_prefix="test",
-                    output_frequency="YEAR",
-                ),
-                catch_exceptions=False,
-            )
-
-        assert "Duplicated names are: fuel_gas" in str(exc_info.value)
-
     def test_yaml_duplicate_emissions_in_fuel(self, simple_duplicate_emissions_yaml_path, tmp_path):
         """
         TEST SCOPE: Check that duplicate emission names for one fuel type are not allowed in Yaml file.

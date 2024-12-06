@@ -17,7 +17,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.logger import logger
 from libecalc.common.priorities import Priorities
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
-from libecalc.common.string.string_utils import generate_id, get_duplicates
+from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
@@ -689,52 +689,6 @@ class Asset(Component, EnergyComponent):
 
     def get_name(self) -> str:
         return self.name
-
-    @model_validator(mode="after")
-    def validate_unique_names(self):
-        """Ensure unique component names within installation."""
-        names = [self.name]
-        fuel_types = [FuelType]
-        fuel_names = [str]
-        for installation in self.installations:
-            names.append(installation.name)
-            fuel_consumers = installation.fuel_consumers
-            venting_emitters = installation.venting_emitters
-
-            names.extend([venting_emitter.name for venting_emitter in venting_emitters])
-            for fuel_consumer in fuel_consumers:
-                names.append(fuel_consumer.name)
-                if isinstance(fuel_consumer, GeneratorSet):
-                    for electricity_consumer in fuel_consumer.consumers:
-                        if isinstance(electricity_consumer, ConsumerSystem):
-                            for consumer in electricity_consumer.consumers:
-                                names.append(consumer.name)
-                elif isinstance(fuel_consumer, ConsumerSystem):
-                    for consumer in fuel_consumer.consumers:
-                        names.append(consumer.name)
-                if fuel_consumer.fuel is not None:
-                    for fuel_type in fuel_consumer.fuel.values():
-                        # Need to verify that it is a different fuel
-                        if fuel_type is not None and fuel_type not in fuel_types:
-                            fuel_types.append(fuel_type)
-                            fuel_names.append(fuel_type.name)
-
-        duplicated_names = get_duplicates(names)
-        duplicated_fuel_names = get_duplicates(fuel_names)
-
-        if len(duplicated_names) > 0:
-            raise ValueError(
-                "Component names must be unique. Components include the main model, installations,"
-                " generator sets, electricity consumers, fuel consumers, systems and its consumers and direct emitters."
-                f" Duplicated names are: {', '.join(duplicated_names)}"
-            )
-
-        if len(duplicated_fuel_names) > 0:
-            raise ValueError(
-                "Fuel type names must be unique across installations."
-                f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
-            )
-        return self
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()

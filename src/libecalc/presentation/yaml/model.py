@@ -176,6 +176,7 @@ class YamlModel(EnergyModel):
 
     def _get_validation_context(self, yaml_model: YamlValidator) -> YamlModelValidationContext:
         return {
+            YamlModelValidationContextNames.model_name: yaml_model.name,
             YamlModelValidationContextNames.resource_file_names: [name for name, resource in self.resources.items()],
             YamlModelValidationContextNames.expression_tokens: self._get_token_references(yaml_model=yaml_model),
             YamlModelValidationContextNames.model_types: self._get_model_types(yaml_model=yaml_model),
