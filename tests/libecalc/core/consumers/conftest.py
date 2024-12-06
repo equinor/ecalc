@@ -9,6 +9,16 @@ from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
+    ConsumptionRateType,
+)
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_tabulated import (
+    YamlTabulatedVariable,
+)
+from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
+    TabulatedEnergyUsageModelModelReference,
+)
+from libecalc.testing.yaml_builder import YamlEnergyUsageModelDirectBuilder, YamlEnergyUsageModelTabulatedBuilder
 
 
 @pytest.fixture
@@ -26,28 +36,6 @@ def variables_map(methane_values):
             datetime(2002, 1, 1),
             datetime(2003, 1, 1, 0, 0),
         ],
-    )
-
-
-@pytest.fixture
-def tabulated_fuel_consumer(fuel_gas) -> dto.FuelConsumer:
-    tabulated = dto.TabulatedConsumerFunction(
-        model=dto.TabulatedData(
-            headers=["RATE", "FUEL"],
-            data=[[0, 1, 2], [0, 2, 4]],
-            energy_usage_adjustment_constant=0.0,
-            energy_usage_adjustment_factor=1.0,
-        ),
-        variables=[dto.Variables(name="RATE", expression=Expression.setup_from_expression(value="RATE"))],
-        energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
-    )
-    return dto.FuelConsumer(
-        name="fuel_consumer",
-        component_type=ComponentType.GENERIC,
-        fuel=fuel_gas,
-        energy_usage_model={Period(datetime(1900, 1, 1)): tabulated},
-        user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
-        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
     )
 
 
@@ -131,3 +119,21 @@ def genset_1000mw_late_startup_dto(
         consumers=[direct_el_consumer],
         regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
     )
+
+
+@pytest.fixture
+def energy_usage_model_direct_load_factory():
+    def energy_usage_model(load: float, rate_type: ConsumptionRateType = ConsumptionRateType.STREAM_DAY):
+        return (YamlEnergyUsageModelDirectBuilder().with_load(load).with_consumption_rate_type(rate_type)).validate()
+
+    return energy_usage_model
+
+
+@pytest.fixture
+def energy_usage_model_tabular_factory():
+    def energy_usage_model(energy_function: TabulatedEnergyUsageModelModelReference, variables: YamlTabulatedVariable):
+        return (
+            YamlEnergyUsageModelTabulatedBuilder().with_energy_function(energy_function).with_variables(variables)
+        ).validate()
+
+    return energy_usage_model
