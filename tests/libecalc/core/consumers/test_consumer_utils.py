@@ -7,7 +7,7 @@ from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     apply_condition,
 )
-from libecalc.dto.components import Crossover
+from libecalc.infrastructure.components import Crossover
 
 
 @dataclass

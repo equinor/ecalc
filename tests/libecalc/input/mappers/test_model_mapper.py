@@ -5,6 +5,7 @@ import pytest
 from pydantic import TypeAdapter
 
 from libecalc import dto
+from libecalc.infrastructure import components
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.model import YamlModel
@@ -294,7 +295,7 @@ def temporal_model_stream(temporal_model_source: str) -> ResourceStream:
 
 @pytest.fixture
 def temporal_yaml_model_factory(temporal_model_stream, resource_service_factory, configuration_service_factory):
-    def create_temporal_yaml_model(start: datetime, end: datetime) -> dto.Asset:
+    def create_temporal_yaml_model(start: datetime, end: datetime) -> components.Asset:
         period = Period(
             start=start,
             end=end,

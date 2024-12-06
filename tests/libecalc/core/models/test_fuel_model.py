@@ -8,7 +8,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
 from libecalc.common.variables import VariablesMap
-from libecalc.dto.components import FuelModel
+from libecalc.infrastructure.components import FuelModel
 from libecalc.expression import Expression
 
 

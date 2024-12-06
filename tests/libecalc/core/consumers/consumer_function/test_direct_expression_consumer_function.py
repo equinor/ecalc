@@ -10,7 +10,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
-from libecalc.core.consumers.legacy_consumer.component import Consumer
+from libecalc.infrastructure.energy_components.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )

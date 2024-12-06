@@ -3,7 +3,7 @@ from collections import defaultdict
 from functools import reduce
 from typing import Optional
 
-import libecalc.dto.components
+import libecalc.infrastructure.components
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_model import EnergyModel
@@ -17,21 +17,21 @@ from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesInt, TimeSeri
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.consumers.consumer_system import ConsumerSystem
 from libecalc.core.consumers.factory import create_consumer
-from libecalc.core.consumers.generator_set import Genset
-from libecalc.core.consumers.legacy_consumer.component import Consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.dto.components import (
+from libecalc.infrastructure.components import (
     ElectricityConsumer as ElectricityConsumerDTO,
 )
-from libecalc.dto.components import (
+from libecalc.infrastructure.components import (
     FuelConsumer as FuelConsumerDTO,
 )
-from libecalc.dto.components import (
+from libecalc.infrastructure.components import (
     GeneratorSet as GeneratorSetDTO,
 )
+from libecalc.infrastructure.energy_components.generator_set.generator_set import Genset
+from libecalc.infrastructure.energy_components.legacy_consumer.component import Consumer
 
 
 class Context(ComponentEnergyContext):
@@ -133,7 +133,7 @@ class EnergyCalculator:
                     models=[],
                     sub_components=[],
                 )
-            elif isinstance(energy_component, libecalc.dto.components.ConsumerSystem):
+            elif isinstance(energy_component, libecalc.infrastructure.components.ConsumerSystem):
                 evaluated_stream_conditions = energy_component.evaluate_stream_conditions(
                     expression_evaluator=self._expression_evaluator,
                 )

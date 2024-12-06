@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 import libecalc.dto.fuel_type
 from libecalc import dto
+from libecalc.infrastructure import components
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
@@ -39,11 +40,11 @@ class TestGeneratorSetSampled:
 
 class TestGeneratorSet:
     def test_valid(self):
-        generator_set_dto = dto.GeneratorSet(
+        generator_set_dto = components.GeneratorSet(
             name="Test",
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
             generator_set_model={
-                Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
+                Period(datetime(1900, 1, 1)): components.GeneratorSetSampled(
                     headers=["FUEL", "POWER"],
                     data=[[0, 0], [1, 2], [2, 4], [3, 6]],
                     energy_usage_adjustment_constant=0.0,
@@ -73,7 +74,7 @@ class TestGeneratorSet:
             name="fuel",
             emissions=[],
         )
-        fuel_consumer = dto.FuelConsumer(
+        fuel_consumer = components.FuelConsumer(
             name="test",
             fuel={Period(datetime(2000, 1, 1)): fuel},
             consumes=ConsumptionType.FUEL,
@@ -88,7 +89,7 @@ class TestGeneratorSet:
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
         )
         with pytest.raises(ValidationError):
-            dto.GeneratorSet(
+            components.GeneratorSet(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
                 generator_set_model={},
@@ -104,7 +105,7 @@ class TestGeneratorSet:
 
         # Check for CABLE_LOSS
         with pytest.raises(ValueError) as exc_info:
-            dto.GeneratorSet(
+            components.GeneratorSet(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
                 generator_set_model={},
@@ -118,7 +119,7 @@ class TestGeneratorSet:
 
         # Check for MAX_USAGE_FROM_SHORE
         with pytest.raises(ValueError) as exc_info:
-            dto.GeneratorSet(
+            components.GeneratorSet(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
                 generator_set_model={},
@@ -133,7 +134,7 @@ class TestGeneratorSet:
         )
 
         with pytest.raises(ValueError) as exc_info:
-            dto.GeneratorSet(
+            components.GeneratorSet(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
                 generator_set_model={},

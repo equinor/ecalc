@@ -6,6 +6,7 @@ from pydantic import ValidationError
 import libecalc.dto.fuel_type
 import libecalc.dto.types
 from libecalc import dto
+from libecalc.infrastructure import components
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
@@ -39,7 +40,7 @@ def get_fuel(fuel_name: str, emission_name: str) -> dict[Period, libecalc.dto.fu
     }
 
 
-def get_installation(installation_name: str, fuel_consumer: dto.FuelConsumer) -> dto.Installation:
+def get_installation(installation_name: str, fuel_consumer: components.FuelConsumer) -> components.Installation:
     """
     Generates an installation dto for use in testing
 
@@ -48,9 +49,9 @@ def get_installation(installation_name: str, fuel_consumer: dto.FuelConsumer) ->
         fuel_consumer: a fuel consumer object, e.g. a generator, compressor or boiler
 
     Returns:
-        dto.Installation
+        components.Installation
     """
-    return dto.Installation(
+    return components.Installation(
         name=installation_name,
         regularity=regularity,
         hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression("sim1;var1")},
@@ -63,7 +64,7 @@ def get_fuel_consumer(
     consumer_name: str,
     fuel_type: dict[Period, libecalc.dto.fuel_type.FuelType],
     category: dict[Period, libecalc.dto.types.ConsumerUserDefinedCategoryType],
-) -> dto.FuelConsumer:
+) -> components.FuelConsumer:
     """
     Generates a fuel consumer dto for use in testing
 
@@ -75,7 +76,7 @@ def get_fuel_consumer(
     Returns:
         dto.FuelConsumer
     """
-    return dto.FuelConsumer(
+    return components.FuelConsumer(
         name=consumer_name,
         fuel=fuel_type,
         component_type=ComponentType.GENERIC,
@@ -93,7 +94,7 @@ def get_fuel_consumer(
 class TestFuelConsumer:
     def test_missing_fuel(self):
         with pytest.raises(ValidationError) as exc_info:
-            dto.FuelConsumer(
+            components.FuelConsumer(
                 name="test",
                 fuel={},
                 component_type=ComponentType.GENERIC,
@@ -107,3 +108,79 @@ class TestFuelConsumer:
                 user_defined_category="category",
             )
         assert "Missing fuel for fuel consumer 'test'" in str(exc_info.value)
+
+    def test_duplicate_fuel_names(self):
+        """
+        TEST SCOPE: Check that duplicate fuel type names are not allowed.
+
+        Duplicate fuel type names should not be allowed across installations.
+        Duplicate names may lead to debug problems and overriding of previous
+        values without user noticing. This test checks that different fuels cannot
+        have same name.
+        """
+        fuel_consumer1 = get_fuel_consumer(
+            consumer_name="flare",
+            fuel_type=get_fuel("fuel1", emission_name="co2"),
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.FLARE},
+        )
+
+        fuel_consumer2 = get_fuel_consumer(
+            consumer_name="boiler",
+            fuel_type=get_fuel("fuel1", emission_name="ch4"),
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.BOILER},
+        )
+
+        installation1 = get_installation("INST1", fuel_consumer1)
+        installation2 = get_installation("INST2", fuel_consumer2)
+
+        with pytest.raises(ValidationError) as exc_info:
+            components.Asset(
+                name="multiple_installations_asset",
+                installations=[
+                    installation1,
+                    installation2,
+                ],
+            )
+
+        assert "Duplicated names are: fuel1" in str(exc_info.value)
+
+    def test_same_fuel(self):
+        """
+        TEST SCOPE: Check that validation of duplicate fuel type names do not reject
+        when same fuel is used across installations.
+
+        Even though duplicate fuel type names are not allowed across installations,
+        it should be possible to reuse the same fuel. This test verifies that this still
+        works.
+        """
+
+        fuel_consumer1 = get_fuel_consumer(
+            consumer_name="flare",
+            fuel_type=get_fuel("fuel1", emission_name="co2"),
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.FLARE},
+        )
+
+        fuel_consumer2 = get_fuel_consumer(
+            consumer_name="boiler",
+            fuel_type=get_fuel("fuel1", emission_name="co2"),
+            category={Period(datetime(2000, 1, 1)): libecalc.dto.types.ConsumerUserDefinedCategoryType.BOILER},
+        )
+
+        installation1 = get_installation("INST1", fuel_consumer1)
+        installation2 = get_installation("INST2", fuel_consumer2)
+
+        asset = components.Asset(
+            name="multiple_installations_asset",
+            installations=[
+                installation1,
+                installation2,
+            ],
+        )
+        fuel_types = []
+        for inst in asset.installations:
+            for fuel_consumer in inst.fuel_consumers:
+                for fuel_type in fuel_consumer.fuel.values():
+                    if fuel_type not in fuel_types:
+                        fuel_types.append(fuel_type)
+
+        assert len(fuel_types) == 1
