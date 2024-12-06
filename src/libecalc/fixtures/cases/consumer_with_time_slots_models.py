@@ -10,18 +10,13 @@ from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import VariablesMap
 from libecalc.dto import (
-    Asset,
     CompressorConsumerFunction,
     CompressorStage,
     CompressorSystemCompressor,
     CompressorSystemConsumerFunction,
     CompressorSystemOperationalSetting,
     DirectConsumerFunction,
-    ElectricityConsumer,
-    FuelConsumer,
-    GeneratorSet,
     GeneratorSetSampled,
-    Installation,
     SingleSpeedCompressorTrain,
     TabulatedConsumerFunction,
     TabulatedData,
@@ -30,6 +25,13 @@ from libecalc.dto import (
 from libecalc.dto.types import ConsumerUserDefinedCategoryType, InstallationUserDefinedCategoryType
 from libecalc.expression import Expression
 from libecalc.fixtures.case_types import DTOCase
+from libecalc.infrastructure import (
+    Asset,
+    ElectricityConsumer,
+    FuelConsumer,
+    GeneratorSet,
+    Installation,
+)
 
 
 def direct_consumer(power: float) -> DirectConsumerFunction:
