@@ -13,7 +13,6 @@ from libecalc.core.models.chart import SingleSpeedChart, VariableSpeedChart
 from libecalc.core.models.compressor.sampled import CompressorModelSampled
 from libecalc.core.models.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.core.models.turbine import TurbineModel
-from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 
 
@@ -38,19 +37,6 @@ def dry_fluid() -> FluidModel:
     return FluidModel(
         eos_model=libecalc.common.fluid.EoSModel.SRK,
         composition=FluidComposition.model_validate(DRY_MW_18P3),
-    )
-
-
-@pytest.fixture
-def fuel_dto() -> libecalc.dto.fuel_type.FuelType:
-    return libecalc.dto.fuel_type.FuelType(
-        name="fuel_gas",
-        emissions=[
-            dto.Emission(
-                name="CO2",
-                factor=Expression.setup_from_expression(value=1),
-            )
-        ],
     )
 
 

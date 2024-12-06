@@ -9,6 +9,10 @@ from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
+    ConsumptionRateType,
+)
+from libecalc.testing.yaml_builder import YamlEnergyUsageModelDirectBuilder
 
 
 @pytest.fixture
@@ -84,50 +88,8 @@ def direct_el_consumer() -> dto.ElectricityConsumer:
 
 
 @pytest.fixture
-def generator_set_sampled_model_2mw() -> dto.GeneratorSetSampled:
-    return dto.GeneratorSetSampled(
-        headers=["POWER", "FUEL"],
-        data=[[0, 0.5, 1, 2], [0, 0.6, 1, 2]],
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
-    )
+def energy_usage_model_direct_load_factory():
+    def energy_usage_model(load: float, rate_type: ConsumptionRateType = ConsumptionRateType.STREAM_DAY):
+        return (YamlEnergyUsageModelDirectBuilder().with_load(load).with_consumption_rate_type(rate_type)).validate()
 
-
-@pytest.fixture
-def generator_set_sampled_model_1000mw() -> dto.GeneratorSetSampled:
-    return dto.GeneratorSetSampled(
-        headers=["POWER", "FUEL"],
-        data=[[0, 0.1, 1, 1000], [0, 0.1, 1, 1000]],
-        energy_usage_adjustment_constant=0.0,
-        energy_usage_adjustment_factor=1.0,
-    )
-
-
-@pytest.fixture
-def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw) -> dto.GeneratorSet:
-    return dto.GeneratorSet(
-        name="genset",
-        user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
-        fuel={Period(datetime(1900, 1, 1)): fuel_dto},
-        generator_set_model={
-            Period(datetime(1900, 1, 1)): generator_set_sampled_model_2mw,
-        },
-        consumers=[direct_el_consumer],
-        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
-    )
-
-
-@pytest.fixture
-def genset_1000mw_late_startup_dto(
-    fuel_dto, direct_el_consumer, generator_set_sampled_model_1000mw
-) -> dto.GeneratorSet:
-    return dto.GeneratorSet(
-        name="genset_late_startup",
-        user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
-        fuel={Period(datetime(1900, 1, 1)): fuel_dto},
-        generator_set_model={
-            Period(datetime(2022, 1, 1)): generator_set_sampled_model_1000mw,
-        },
-        consumers=[direct_el_consumer],
-        regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
-    )
+    return energy_usage_model
