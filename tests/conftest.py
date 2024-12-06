@@ -3,7 +3,6 @@ from io import StringIO
 from pathlib import Path
 from typing import Optional, cast
 
-
 import pytest
 import yaml
 
@@ -28,6 +27,7 @@ from libecalc.testing.yaml_builder import (
     YamlEnergyUsageModelDirectBuilder,
     YamlFuelConsumerBuilder,
     YamlFuelTypeBuilder,
+    YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
 )
 
@@ -201,6 +201,11 @@ def yaml_fuel_type_builder_factory():
 
 
 @pytest.fixture
+def yaml_generator_set_builder_factory():
+    return lambda: YamlGeneratorSetBuilder()
+
+
+@pytest.fixture
 def minimal_installation_yaml_factory(yaml_installation_builder_factory):
     def minimal_installation_yaml(
         name: str = "DefaultInstallation",
@@ -247,8 +252,9 @@ def minimal_model_yaml_factory(
             .with_installations([installation])
             .with_start("2020-01-01")
             .with_end("2023-01-01")
+            .validate()
         )
-        return yaml_asset_configuration_service_factory(model.validate(), name="minimal_model")
+        return yaml_asset_configuration_service_factory(model, name="minimal_model")
 
     return minimal_model_yaml
 

@@ -1,6 +1,6 @@
 import abc
 from enum import Enum
-from typing import List, Self, TypeVar, Generic, get_args, cast, Union, Literal
+from typing import Generic, List, Literal, Self, TypeVar, Union, get_args
 
 from typing_extensions import get_original_bases
 
@@ -10,12 +10,11 @@ from libecalc.dto.types import (
     FuelTypeUserDefinedCategoryType,
     InstallationUserDefinedCategoryType,
 )
-
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
-    YamlFuelEnergyUsageModel,
     YamlElectricityEnergyUsageModel,
     YamlEnergyUsageModelCompressor,
+    YamlFuelEnergyUsageModel,
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.yaml_energy_usage_model_direct import (
     ConsumptionRateType,
@@ -29,37 +28,37 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
-    YamlVentingEmitter,
-    YamlVentingVolume,
-    YamlVentingVolumeEmission,
-    YamlVentingType,
+    YamlDirectTypeEmitter,
     YamlOilTypeEmitter,
     YamlVentingEmission,
-    YamlDirectTypeEmitter,
+    YamlVentingEmitter,
+    YamlVentingType,
+    YamlVentingVolume,
+    YamlVentingVolumeEmission,
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
-    YamlFacilityModel,
-    YamlGeneratorSetModel,
-    YamlFacilityModelType,
-    YamlFacilityAdjustment,
     YamlCompressorTabularModel,
+    YamlFacilityAdjustment,
+    YamlFacilityModel,
+    YamlFacilityModelType,
+    YamlGeneratorSetModel,
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
-    GeneratorSetModelReference,
     CompressorEnergyUsageModelModelReference,
+    GeneratorSetModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
-    YamlTimeSeriesCollection,
     YamlDefaultTimeSeriesCollection,
+    YamlTimeSeriesCollection,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
-    YamlOilRateUnits,
-    YamlOilVolumeRate,
     YamlEmissionRate,
     YamlEmissionRateUnits,
+    YamlOilRateUnits,
+    YamlOilVolumeRate,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
@@ -315,7 +314,9 @@ class YamlElectricityConsumerBuilder(Builder[YamlElectricityConsumer]):
     def with_test_data(self) -> Self:
         self.name = "base load"
         self.category = ConsumerUserDefinedCategoryType.FIXED_PRODUCTION_LOAD.value
-        self.energy_usage_model = YamlEnergyUsageModelDirectBuilder().with_test_data().validate()
+        self.energy_usage_model = (
+            YamlEnergyUsageModelDirectBuilder().with_test_data().with_load("0.5").with_fuel_rate(None).validate()
+        )
         return self
 
     def with_name(self, name: str) -> Self:
@@ -378,7 +379,7 @@ class YamlGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         self.category = ConsumerUserDefinedCategoryType.TURBINE_GENERATOR
         self.fuel = YamlFuelTypeBuilder().with_test_data().validate().name
         self.electricity2fuel = YamlElectricity2fuelBuilder().with_test_data().validate().name
-        self.consumers.append(YamlElectricityConsumerBuilder().with_test_data().validate())
+        self.consumers = [YamlElectricityConsumerBuilder().with_test_data().validate()]
 
         return self
 
@@ -539,7 +540,7 @@ class YamlInstallationBuilder(Builder[YamlInstallation]):
         self.name = "DefaultInstallation"
         self.hydrocarbon_export = 0
         self.regularity = 1
-        self.fuel_consumers.append(YamlFuelConsumerBuilder().with_test_data().validate())
+        self.fuel_consumers = [YamlFuelConsumerBuilder().with_test_data().validate()]
         return self
 
     def with_name(self, name: str) -> Self:
