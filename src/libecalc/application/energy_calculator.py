@@ -15,8 +15,6 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesInt, TimeSeriesStreamDayRate, TimeSeriesString
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.consumers.consumer_system import ConsumerSystem
-from libecalc.core.consumers.factory import create_consumer
 from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import ComponentResult, EcalcModelResult
@@ -30,6 +28,8 @@ from libecalc.infrastructure.components import (
 from libecalc.infrastructure.components import (
     GeneratorSet as GeneratorSetDTO,
 )
+from libecalc.infrastructure.energy_components.consumer_system import ConsumerSystem
+from libecalc.infrastructure.energy_components.factory import create_consumer
 from libecalc.infrastructure.energy_components.generator_set.generator_set import Genset
 from libecalc.infrastructure.energy_components.legacy_consumer.component import Consumer
 
