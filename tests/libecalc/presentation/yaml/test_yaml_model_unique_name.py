@@ -8,6 +8,7 @@ from libecalc.common.time_utils import Frequency
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.testing.facility_resource_factories import el2fuel_factory
+from libecalc.testing.time_series_factories import production_profile_factory
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricity2fuelBuilder,
@@ -16,6 +17,7 @@ from libecalc.testing.yaml_builder import (
     YamlFuelTypeBuilder,
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
+    YamlTimeSeriesBuilder,
     YamlVentingEmitterOilTypeBuilder,
 )
 
@@ -203,6 +205,8 @@ def test_duplicate_names_combinations(
     )
 
 
+@pytest.mark.inlinesnapshot
+@pytest.mark.snapshot
 def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resource_service_factory):
     """
     TEST SCOPE: Check that duplicate fuel type names are not allowed.
@@ -233,4 +237,34 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
 
     errors = exc_info.value.errors()
     assert len(errors) == 1
-    assert errors[0].message == snapshot("Value error, Fuel type names must be unique. Duplicated names are: same")
+    assert errors[0].message == snapshot("Value error, FUEL_TYPES names must be unique. Duplicated names are: same")
+
+
+@pytest.mark.inlinesnapshot
+@pytest.mark.snapshot
+def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resource_service_factory):
+    """
+    TEST SCOPE: Check that duplicate timeseries names are not allowed.
+    """
+    model = (
+        YamlAssetBuilder()
+        .with_test_data()
+        .with_time_series(
+            [
+                YamlTimeSeriesBuilder().with_test_data().with_name("SIM1").validate(),
+                YamlTimeSeriesBuilder().with_test_data().with_name("SIM1").validate(),
+            ]
+        )
+        .construct()
+    )
+    yaml_model = YamlModel(
+        configuration_service=yaml_asset_configuration_service_factory(model, "non_unique_timeseries_names"),
+        resource_service=resource_service_factory({"DefaultTimeSeries.csv": production_profile_factory()}),
+        output_frequency=Frequency.NONE,
+    )
+    with pytest.raises(ModelValidationException) as exc_info:
+        yaml_model.validate_for_run()
+
+    errors = exc_info.value.errors()
+    assert len(errors) == 1
+    assert errors[0].message == snapshot("Value error, TIME_SERIES names must be unique. Duplicated names are: SIM1")
