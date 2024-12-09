@@ -1,4 +1,4 @@
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
@@ -118,16 +118,38 @@ class YamlAsset(YamlBase):
 
         return self
 
-    @model_validator(mode="after")
-    def validate_unique_fuel_names(self):
-        fuel_names = []
+    @field_validator("fuel_types", "time_series", mode="after")
+    @classmethod
+    def validate_unique_fuel_names(cls, collection, info: ValidationInfo):
+        names = []
 
-        for fuel_type in self.fuel_types:
-            fuel_names.append(fuel_type.name)
+        for item in collection:
+            names.append(item.name)
 
-        duplicated_fuel_names = get_duplicates(fuel_names)
-        if len(duplicated_fuel_names) > 0:
+        duplicated_names = get_duplicates(names)
+        if len(duplicated_names) > 0:
             raise ValueError(
-                "Fuel type names must be unique." f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
+                f"{cls.model_fields[info.field_name].alias} names must be unique."
+                f" Duplicated names are: {', '.join(duplicated_names)}"
+            )
+        return collection
+
+    @model_validator(mode="after")
+    def validate_facility_models_unique_name(self):
+        models = []
+
+        if self.facility_inputs is not None:
+            models.extend(self.facility_inputs)
+
+        if self.models is not None:
+            models.extend(self.models)
+
+        names = [model.name for model in models]
+        duplicated_names = get_duplicates(names)
+
+        if len(duplicated_names) > 0:
+            raise ValueError(
+                f"Model names must be unique across {self.model_fields['facility_inputs'].alias} and {self.model_fields['models'].alias}."
+                f" Duplicated names are: {', '.join(duplicated_names)}"
             )
         return self
