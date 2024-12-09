@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from libecalc.common.string.string_utils import generate_id
-from libecalc.core.consumers.consumer_system import ConsumerSystem
+from libecalc.infrastructure.energy_components.consumer_system import ConsumerSystem
 from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
     apply_condition,
 )
