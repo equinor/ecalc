@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
@@ -120,16 +120,18 @@ class YamlAsset(YamlBase):
 
         return self
 
-    @model_validator(mode="after")
-    def validate_unique_fuel_names(self):
-        fuel_names = []
+    @field_validator("fuel_types", "time_series", mode="after")
+    @classmethod
+    def validate_unique_fuel_names(cls, collection, info: ValidationInfo):
+        names = []
 
-        for fuel_type in self.fuel_types:
-            fuel_names.append(fuel_type.name)
+        for item in collection:
+            names.append(item.name)
 
-        duplicated_fuel_names = get_duplicates(fuel_names)
-        if len(duplicated_fuel_names) > 0:
+        duplicated_names = get_duplicates(names)
+        if len(duplicated_names) > 0:
             raise ValueError(
-                "Fuel type names must be unique." f" Duplicated names are: {', '.join(duplicated_fuel_names)}"
+                f"{cls.model_fields[info.field_name].alias} names must be unique."
+                f" Duplicated names are: {', '.join(duplicated_names)}"
             )
-        return self
+        return collection
