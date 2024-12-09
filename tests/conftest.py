@@ -74,12 +74,8 @@ valid_example_yaml_case_fixture_names = {
 }
 
 invalid_example_cases = {
-    "simple_duplicate_names": (Path(simple.__file__).parent / "model_duplicate_names.yaml").absolute(),
     "simple_multiple_energy_models_one_consumer": (
         Path(simple.__file__).parent / "model_multiple_energy_models_one_consumer.yaml"
-    ).absolute(),
-    "simple_duplicate_emissions_in_fuel": (
-        Path(simple.__file__).parent / "model_duplicate_emissions_in_fuel.yaml"
     ).absolute(),
 }
 
@@ -95,18 +91,8 @@ def simple_temporal_yaml_path():
 
 
 @pytest.fixture(scope="session")
-def simple_duplicate_names_yaml_path():
-    return invalid_example_cases["simple_duplicate_names"]
-
-
-@pytest.fixture(scope="session")
 def simple_multiple_energy_models_yaml_path():
     return invalid_example_cases["simple_multiple_energy_models_one_consumer"]
-
-
-@pytest.fixture(scope="session")
-def simple_duplicate_emissions_yaml_path():
-    return invalid_example_cases["simple_duplicate_emissions_in_fuel"]
 
 
 @pytest.fixture(scope="session")
