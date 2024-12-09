@@ -18,6 +18,7 @@ from libecalc.testing.yaml_builder import (
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
     YamlTimeSeriesBuilder,
+    YamlTurbineBuilder,
     YamlVentingEmitterOilTypeBuilder,
 )
 
@@ -268,3 +269,73 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
     errors = exc_info.value.errors()
     assert len(errors) == 1
     assert errors[0].message == snapshot("Value error, TIME_SERIES names must be unique. Duplicated names are: SIM1")
+
+
+@pytest.mark.inlinesnapshot
+@pytest.mark.snapshot
+@pytest.mark.parametrize(
+    "facility_inputs, models, expected_error_message",
+    [
+        (
+            [
+                YamlElectricity2fuelBuilder()
+                .with_test_data()
+                .with_name("duplicated_name")
+                .with_file("el2fuelresource")
+                .validate(),
+                YamlElectricity2fuelBuilder()
+                .with_test_data()
+                .with_name("duplicated_name")
+                .with_file("el2fuelresource")
+                .validate(),
+            ],
+            [],
+            snapshot(
+                "Value error, Model names must be unique across FACILITY_INPUTS and MODELS. Duplicated names are: duplicated_name"
+            ),
+        ),
+        (
+            [
+                YamlElectricity2fuelBuilder()
+                .with_test_data()
+                .with_name("duplicated_name")
+                .with_file("el2fuelresource")
+                .validate(),
+            ],
+            [
+                YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
+            ],
+            snapshot(
+                "Value error, Model names must be unique across FACILITY_INPUTS and MODELS. Duplicated names are: duplicated_name"
+            ),
+        ),
+        (
+            [],
+            [
+                YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
+                YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
+            ],
+            snapshot(
+                "Value error, Model names must be unique across FACILITY_INPUTS and MODELS. Duplicated names are: duplicated_name"
+            ),
+        ),
+    ],
+)
+def test_models_unique_name(
+    facility_inputs, models, expected_error_message, yaml_asset_configuration_service_factory, resource_service_factory
+):
+    """
+    TEST SCOPE: Check that duplicate timeseries names are not allowed.
+    """
+    model = YamlAssetBuilder().with_test_data().with_facility_inputs(facility_inputs).with_models(models).construct()
+    yaml_model = YamlModel(
+        configuration_service=yaml_asset_configuration_service_factory(model, "non_unique_model_names"),
+        resource_service=resource_service_factory({"el2fuelresource": el2fuel_factory()}),
+        output_frequency=Frequency.NONE,
+    )
+    with pytest.raises(ModelValidationException) as exc_info:
+        yaml_model.validate_for_run()
+
+    errors = exc_info.value.errors()
+    assert len(errors) == 1
+    assert errors[0].message == expected_error_message
