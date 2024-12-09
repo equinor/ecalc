@@ -15,6 +15,8 @@ from libecalc.core.models.pump import PumpSingleSpeed, PumpVariableSpeed
 from libecalc.core.models.turbine import TurbineModel
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.presentation.yaml.yaml_types.models import YamlTurbine
+from libecalc.testing.yaml_builder import YamlTurbineBuilder
 
 
 @pytest.fixture
@@ -285,7 +287,20 @@ def turbine_dto() -> dto.Turbine:
 
 
 @pytest.fixture
-def turbine_factory(turbine_dto):
+def yaml_turbine() -> YamlTurbine:
+    return (
+        YamlTurbineBuilder()
+        .with_name("compressor_train_turbine")
+        .with_turbine_loads([0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767])
+        .with_turbine_efficiencies([0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362])
+        .with_lower_heating_value(38.0)
+        .with_power_adjustment_constant(0.0)
+        .with_power_adjustment_factor(1.0)
+    ).validate()
+
+
+@pytest.fixture
+def turbine_factory(yaml_turbine):
     def create_turbine(
         loads: list[float] = None,
         lower_heating_value: float = None,
@@ -294,19 +309,19 @@ def turbine_factory(turbine_dto):
         energy_usage_adjustment_constant: float = None,
     ) -> TurbineModel:
         return TurbineModel(
-            loads=loads if loads is not None else turbine_dto.turbine_loads,
+            loads=loads if loads is not None else yaml_turbine.turbine_loads,
             lower_heating_value=lower_heating_value
             if lower_heating_value is not None
-            else turbine_dto.lower_heating_value,
+            else yaml_turbine.lower_heating_value,
             efficiency_fractions=efficiency_fractions
             if efficiency_fractions is not None
-            else turbine_dto.turbine_efficiency_fractions,
+            else yaml_turbine.turbine_efficiencies,
             energy_usage_adjustment_constant=energy_usage_adjustment_constant
             if energy_usage_adjustment_constant is not None
-            else turbine_dto.energy_usage_adjustment_constant,
+            else yaml_turbine.power_adjustment_constant,
             energy_usage_adjustment_factor=energy_usage_adjustment_factor
             if energy_usage_adjustment_factor is not None
-            else turbine_dto.energy_usage_adjustment_factor,
+            else yaml_turbine.power_adjustment_factor,
         )
 
     return create_turbine
