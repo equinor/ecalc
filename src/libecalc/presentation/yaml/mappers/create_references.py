@@ -3,7 +3,6 @@ from typing import Protocol
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
-from libecalc.common.string.string_utils import get_duplicates
 from libecalc.dto import EnergyModel
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.mappers.facility_input import FacilityInputMapper
@@ -34,31 +33,6 @@ def create_references(configuration: YamlValidator, resources: Resources) -> Ref
         resources=resources,
     )
 
-    duplicated_fuel_names = get_duplicates([fuel_data.name for fuel_data in configuration.fuel_types])
-
-    if len(duplicated_fuel_names) > 0:
-        raise EcalcError(
-            title="Duplicate names",
-            message="Fuel type names must be unique across installations."
-            f" Duplicated names are: {', '.join(duplicated_fuel_names)}",
-        )
-
-    fuel_types_emissions = [fuel_data.emissions for fuel_data in configuration.fuel_types]
-
-    # Check each fuel for duplicated emissions
-    duplicated_emissions = []
-    for emissions in fuel_types_emissions:
-        duplicated_emissions.append(get_duplicates([emission.name for emission in emissions]))
-
-    duplicated_emissions_names = ",".join(name for string in duplicated_emissions for name in string if len(string) > 0)
-
-    if len(duplicated_emissions_names) > 0:
-        raise EcalcError(
-            title="Duplicate names",
-            message="Emission names must be unique for each fuel type. "
-            f"Duplicated names are: {duplicated_emissions_names}",
-        )
-
     fuel_types = {fuel_data.name: FuelMapper.from_yaml_to_dto(fuel_data) for fuel_data in configuration.fuel_types}
 
     return References(
@@ -79,11 +53,6 @@ def create_model_references(
 
     for model in sorted_models:
         model_reference = model.name
-        if model_reference in models_map:
-            raise EcalcError(
-                title="Duplicate reference",
-                message=f"The model '{model_reference}' is defined multiple times",
-            )
         models_map[model_reference] = model_mapper.from_yaml_to_dto(model, models_map)
 
     return models_map
