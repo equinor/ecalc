@@ -45,11 +45,12 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
-from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlTurbine
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     CompressorEnergyUsageModelModelReference,
     GeneratorSetModelReference,
 )
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlDefaultTimeSeriesCollection,
     YamlTimeSeriesCollection,
@@ -687,4 +688,47 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_end(self, end: str):
         self.end = end
+        return self
+
+
+class YamlTurbineBuilder(Builder[YamlTurbine]):
+    def __init__(self):
+        self.name = None
+        self.type = YamlModelType.TURBINE
+        self.lower_heating_value = None
+        self.turbine_loads = []
+        self.turbine_efficiencies = []
+        self.power_adjustment_constant = 0
+        self.power_adjustment_factor = 1.0
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_lower_heating_value(self, lower_heating_value: float) -> Self:
+        self.lower_heating_value = lower_heating_value
+        return self
+
+    def with_turbine_loads(self, turbine_loads: list[float]) -> Self:
+        self.turbine_loads = turbine_loads
+        return self
+
+    def with_turbine_efficiencies(self, turbine_efficiencies: list[float]) -> Self:
+        self.turbine_efficiencies = turbine_efficiencies
+        return self
+
+    def with_power_adjustment_constant(self, power_adjustment_constant: float) -> Self:
+        self.power_adjustment_constant = power_adjustment_constant
+        return self
+
+    def with_power_adjustment_factor(self, power_adjustment_factor: float) -> Self:
+        self.power_adjustment_factor = power_adjustment_factor
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "compressor_train_turbine"
+        self.lower_heating_value = 38
+        self.turbine_loads = [0, 2.352, 4.589, 6.853, 9.125, 11.399, 13.673, 15.947, 18.223, 20.496, 22.767]
+        self.turbine_efficiencies = [0, 0.138, 0.210, 0.255, 0.286, 0.310, 0.328, 0.342, 0.353, 0.360, 0.362]
+
         return self
