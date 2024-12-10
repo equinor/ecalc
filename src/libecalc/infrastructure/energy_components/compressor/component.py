@@ -13,9 +13,6 @@ from libecalc.core.models.compressor import CompressorModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result import results as core_results
 from libecalc.domain.stream_conditions import Pressure, StreamConditions
-from libecalc.dto.core_specs.compressor.operational_settings import (
-    CompressorOperationalSettings,
-)
 from libecalc.infrastructure.energy_components.base import BaseConsumerWithoutOperationalSettings
 
 
