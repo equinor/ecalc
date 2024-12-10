@@ -547,7 +547,7 @@ class TimeSeriesVolumesCumulative(TimeSeries[float]):
         ds_interpolated = ds.reindex(ds.index.union(new_dates)).interpolate("slinear")
 
         # New resampled pd.Series
-        resampled = ds_interpolated.reindex(new_dates).values.tolist()
+        resampled: list[float] = ds_interpolated.reindex(new_dates).values.tolist()
 
         if not include_start_date:
             dropped_cumulative_volume = resampled[0]

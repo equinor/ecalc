@@ -1,4 +1,4 @@
-from typing import Annotated, Union
+from typing import Annotated, Optional, Union
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -53,20 +53,22 @@ class YamlInstallation(YamlBase):
         title="REGULARITY",
         description="Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE.\n\n$ECALC_DOCS_KEYWORDS_URL/REGULARITY",
     )
-    generator_sets: list[YamlGeneratorSet] = Field(
+    generator_sets: Optional[list[YamlGeneratorSet]] = Field(
         None,
         title="GENERATORSETS",
         description="Defines one or more generator sets.\n\n$ECALC_DOCS_KEYWORDS_URL/GENERATORSETS",
         alias="GENERATORSETS",
     )
-    fuel_consumers: list[
-        Annotated[
-            Union[
-                YamlFuelConsumer,
-                YamlConsumerSystem,
-            ],
-            Field(discriminator="component_type"),
-            DiscriminatorWithFallback("TYPE", "FUEL_CONSUMER"),
+    fuel_consumers: Optional[
+        list[
+            Annotated[
+                Union[
+                    YamlFuelConsumer,
+                    YamlConsumerSystem,
+                ],
+                Field(discriminator="component_type"),
+                DiscriminatorWithFallback("TYPE", "FUEL_CONSUMER"),
+            ]
         ]
     ] = Field(
         None,
@@ -74,7 +76,7 @@ class YamlInstallation(YamlBase):
         description="Defines fuel consumers on the installation which are not generators.\n\n$ECALC_DOCS_KEYWORDS_URL/FUELCONSUMERS",
         alias="FUELCONSUMERS",
     )
-    venting_emitters: list[YamlVentingEmitter] = Field(
+    venting_emitters: Optional[list[YamlVentingEmitter]] = Field(
         None,
         title="VENTING_EMITTERS",
         description="Covers the direct emissions on the installation that are not consuming energy",

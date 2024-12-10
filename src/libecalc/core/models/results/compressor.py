@@ -231,7 +231,7 @@ class CompressorTrainResult(EnergyFunctionResult):
             if self.stage_results is not None
             else [not isnan(x) for x in self.energy_usage]
         )
-        return list(np.all([failure_status_are_valid, turbine_are_valid, stage_results_are_valid], axis=0))
+        return np.all([failure_status_are_valid, turbine_are_valid, stage_results_are_valid], axis=0).tolist()
 
     @property
     def inlet_stream(self) -> CompressorStreamCondition:
@@ -248,7 +248,7 @@ class CompressorTrainResult(EnergyFunctionResult):
 
     @property
     def pressure_is_choked(self) -> list[bool]:
-        return list(np.any([stage.pressure_is_choked for stage in self.stage_results], axis=0))
+        return np.any([stage.pressure_is_choked for stage in self.stage_results], axis=0).tolist()
 
     @property
     def recirculation_loss(self) -> list[float]:
@@ -256,4 +256,4 @@ class CompressorTrainResult(EnergyFunctionResult):
 
     @property
     def rate_exceeds_maximum(self) -> list[bool]:
-        return list(np.any([stage.rate_exceeds_maximum for stage in self.stage_results], axis=0))
+        return np.any([stage.rate_exceeds_maximum for stage in self.stage_results], axis=0).tolist()

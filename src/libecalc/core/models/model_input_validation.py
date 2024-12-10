@@ -177,6 +177,9 @@ def _validate_model_input(
     if np.ndim(rate) == 2:
         # check if any of the streams have changed value during validation, streams along axis 0, time along axis 1
         invalid_rate_input = np.any(rate != input_rate, axis=0)
+
+        # Ensure invalid_rate_input is an array and not a single bool, this should be the case since using axis=0.
+        assert isinstance(invalid_rate_input, np.ndarray)
     else:
         invalid_rate_input = np.where(rate != input_rate, True, False)
 

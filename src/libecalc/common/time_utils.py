@@ -171,23 +171,23 @@ class Periods:
         return None
 
     @property
-    def all_dates(self):
+    def all_dates(self) -> list[datetime]:
         return self.start_dates + [self.end_dates[-1]]
 
     @property
-    def start_dates(self):
+    def start_dates(self) -> list[datetime]:
         return [period.start for period in self.periods]
 
     @property
-    def end_dates(self):
+    def end_dates(self) -> list[datetime]:
         return [period.end for period in self.periods]
 
     @property
-    def last_date(self):
+    def last_date(self) -> datetime:
         return self.end_dates[-1]
 
     @property
-    def first_date(self):
+    def first_date(self) -> datetime:
         return self.start_dates[0]
 
     def __add__(self, other):
