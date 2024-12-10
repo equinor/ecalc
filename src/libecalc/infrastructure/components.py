@@ -185,7 +185,9 @@ class ElectricityConsumer(BaseConsumer, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(self, expression_evaluator: ExpressionEvaluator) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(
+        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
+    ) -> dict[str, EcalcModelResult]:
         consumer_results: dict[str, EcalcModelResult] = {}
         consumer = ConsumerEnergyComponent(
             id=self.id,
@@ -248,7 +250,9 @@ class FuelConsumer(BaseConsumer, Emitter, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(self, expression_evaluator: ExpressionEvaluator) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(
+        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
+    ) -> dict[str, EcalcModelResult]:
         consumer_results: dict[str, EcalcModelResult] = {}
         consumer = ConsumerEnergyComponent(
             id=self.id,
@@ -449,7 +453,9 @@ class ConsumerSystem(BaseConsumer, Emitter, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
-    def evaluate_energy_usage(self, expression_evaluator: ExpressionEvaluator) -> dict[str, EcalcModelResult]:
+    def evaluate_energy_usage(
+        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
+    ) -> dict[str, EcalcModelResult]:
         consumer_results = {}
         evaluated_stream_conditions = self.evaluate_stream_conditions(
             expression_evaluator=expression_evaluator,

@@ -11,16 +11,6 @@ from libecalc.common.utils.rates import TimeSeriesFloat, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.infrastructure.components import ConsumerSystem
-from libecalc.infrastructure.components import (
-    ElectricityConsumer as ElectricityConsumerDTO,
-)
-from libecalc.infrastructure.components import (
-    FuelConsumer as FuelConsumerDTO,
-)
-from libecalc.infrastructure.components import (
-    GeneratorSet as GeneratorSetDTO,
-)
 
 
 class Context(ComponentEnergyContext):
@@ -78,17 +68,13 @@ class EnergyCalculator:
         energy_components = self._energy_model.get_energy_components()
 
         for energy_component in energy_components:
-            if isinstance(energy_component, ElectricityConsumerDTO | FuelConsumerDTO):
-                self._consumer_results.update(energy_component.evaluate_energy_usage(self._expression_evaluator))
-            elif isinstance(energy_component, GeneratorSetDTO):
+            if hasattr(energy_component, "evaluate_energy_usage"):
                 context = self._get_context(energy_component.id)
                 self._consumer_results.update(
                     energy_component.evaluate_energy_usage(
                         context=context, expression_evaluator=self._expression_evaluator
                     )
                 )
-            elif isinstance(energy_component, ConsumerSystem):
-                self._consumer_results.update(energy_component.evaluate_energy_usage(self._expression_evaluator))
 
         self._consumer_results = Numbers.format_results_to_precision(self._consumer_results, precision=6)
         return self._consumer_results
