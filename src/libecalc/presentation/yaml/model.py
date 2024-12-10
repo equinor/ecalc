@@ -122,7 +122,13 @@ class YamlModel(EnergyModel):
         return self._configuration.end
 
     def _get_time_series_collections(self) -> TimeSeriesCollections:
-        return TimeSeriesCollections(time_series=self._configuration.time_series, resources=self.resources)
+        time_series_collections, err = TimeSeriesCollections.create(
+            time_series=self._configuration.time_series,
+            resources=self.resources,
+            raise_on_error=True,
+        )
+        assert len(err) == 0
+        return time_series_collections
 
     def _get_time_vector(self):
         return get_global_time_vector(
@@ -158,7 +164,11 @@ class YamlModel(EnergyModel):
         return self._graph
 
     def _get_token_references(self, yaml_model: YamlValidator) -> list[str]:
-        token_references = self._get_time_series_collections().get_time_series_references()
+        # Only get references for valid time series collections
+        time_series_collections, _ = TimeSeriesCollections.create(
+            time_series=self._configuration.time_series, resources=self.resources, raise_on_error=False
+        )
+        token_references = time_series_collections.get_time_series_references()
 
         for reference in yaml_model.variables:
             token_references.append(f"$var.{reference}")
