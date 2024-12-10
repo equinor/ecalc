@@ -14,10 +14,10 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import VariablesMap
 from libecalc.infrastructure.energy_components.legacy_consumer.component import Consumer
-from libecalc.core.consumers.legacy_consumer.consumer_function import (
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
-from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.result import EcalcModelResult
 
 

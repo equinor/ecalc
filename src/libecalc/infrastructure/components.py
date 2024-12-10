@@ -31,7 +31,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesString,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.consumers.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.core.models.compressor import create_compressor_model
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.models.pump import create_pump_model
@@ -62,6 +61,7 @@ from libecalc.infrastructure.energy_components.compressor import Compressor
 from libecalc.infrastructure.energy_components.consumer_system import ConsumerSystem as ConsumerSystemEnergyComponent
 from libecalc.infrastructure.energy_components.generator_set.generator_set import Genset
 from libecalc.infrastructure.energy_components.legacy_consumer.component import Consumer as ConsumerEnergyComponent
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.infrastructure.energy_components.pump import Pump
 from libecalc.presentation.yaml.ltp_validation import (
     validate_generator_set_power_from_shore,

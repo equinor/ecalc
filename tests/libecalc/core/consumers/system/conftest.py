@@ -5,18 +5,18 @@ import pytest
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
-from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
+from libecalc.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     PumpSystemConsumerFunction,
 )
-from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
+from libecalc.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSettingExpressions,
     PumpSystemOperationalSettingExpressions,
 )
-from libecalc.core.consumers.legacy_consumer.system.results import (
+from libecalc.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemConsumerFunctionResult,
 )
-from libecalc.core.consumers.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.core.models.chart.chart_area_flag import ChartAreaFlag
 from libecalc.core.models.results import (
     CompressorStageResult,

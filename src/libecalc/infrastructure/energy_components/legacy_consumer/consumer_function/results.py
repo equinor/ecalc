@@ -9,11 +9,11 @@ from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
-    ConsumerFunctionType,
-)
 from libecalc.core.models.results.base import EnergyFunctionResult
 from libecalc.core.utils.array_type import PydanticNDArray
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
+    ConsumerFunctionType,
+)
 
 
 class ConsumerFunctionResultBase(BaseModel):

@@ -9,34 +9,34 @@ from libecalc.common.errors.exceptions import IncompatibleDataError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
-from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
+from libecalc.core.models.compressor.base import CompressorModel
+from libecalc.core.models.pump import PumpModel
+from libecalc.expression import Expression
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
     apply_power_loss_factor,
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
+from libecalc.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSetting,
     ConsumerSystemOperationalSetting,
     ConsumerSystemOperationalSettingExpressions,
     PumpSystemOperationalSetting,
 )
-from libecalc.core.consumers.legacy_consumer.system.results import (
+from libecalc.infrastructure.energy_components.legacy_consumer.system.results import (
     CompressorResult,
     ConsumerSystemComponentResult,
     ConsumerSystemConsumerFunctionResult,
     ConsumerSystemOperationalSettingResult,
     PumpResult,
 )
-from libecalc.core.consumers.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.core.consumers.legacy_consumer.system.utils import (
+from libecalc.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.infrastructure.energy_components.legacy_consumer.system.utils import (
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )
-from libecalc.core.models.compressor.base import CompressorModel
-from libecalc.core.models.pump import PumpModel
-from libecalc.expression import Expression
 
 
 class ConsumerSystemConsumerFunction(ConsumerFunction):
