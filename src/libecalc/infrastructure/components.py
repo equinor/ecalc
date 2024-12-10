@@ -18,9 +18,8 @@ from libecalc.common.logger import logger
 from libecalc.common.priorities import Priorities
 from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
-from libecalc.common.string.string_utils import generate_id, get_duplicates
-from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.string.string_utils import generate_id
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
