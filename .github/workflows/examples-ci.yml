@@ -7,7 +7,7 @@ on:
 
 jobs:
   run-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         run: poetry install --no-interaction --all-extras
 
       - name: Convert example Jupyter notebooks to Python code
-        run : poetry run jupyter nbconvert --to python examples/*.ipynb
+        run: poetry run jupyter nbconvert --to python examples/*.ipynb
 
       # This will not log any tests per se, but it will fail if there are any errors raised in the generated Python files.
       - name: Run tests
