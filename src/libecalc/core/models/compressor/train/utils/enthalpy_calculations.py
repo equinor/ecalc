@@ -47,7 +47,7 @@ def calculate_enthalpy_change_head_iteration(
 
     """
 
-    pressure_ratios = outlet_pressure / inlet_pressure
+    pressure_ratios = np.divide(outlet_pressure, inlet_pressure)  # Using divide seems to keep the float64 type
     inlet_kappa = np.asarray([stream.kappa for stream in inlet_streams])
     inlet_z = np.asarray([stream.z for stream in inlet_streams])
 
