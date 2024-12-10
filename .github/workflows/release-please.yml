@@ -29,7 +29,7 @@ env:
 jobs:
   release-please:
     permissions: write-all
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: google-github-actions/release-please-action@v3
         id: release
@@ -47,8 +47,8 @@ jobs:
       - name: Create vX.Y release branch (for simpler patching) - if normal release (not patching)
         if: ${{ steps.release.outputs.release_created && env.VERSIONING_STRATEGY != 'always-bump-patch' }}
         run: |
-            git checkout -b release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }} ${{ steps.release.outputs.sha }}
-            git push -u origin release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}
+          git checkout -b release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }} ${{ steps.release.outputs.sha }}
+          git push -u origin release/v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -61,7 +61,7 @@ jobs:
     needs: release-please
     uses: equinor/ecalc/.github/workflows/publish.yml@main
     secrets:
-        pypi_token: ${{ secrets.PYPI_TOKEN }}
+      pypi_token: ${{ secrets.PYPI_TOKEN }}
     if: ${{ needs.release-please.outputs.release_created }}
 
   create-jira-release:

@@ -9,7 +9,7 @@ on:
 jobs:
   pre-commit: # Static analyzers, formatters and verifying pre-commit hooks has been run for both API and Web
     name: Build & Run Pre Commit hooks to verify code structure, quality etc. from pre-commit hooks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
