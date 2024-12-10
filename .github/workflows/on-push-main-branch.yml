@@ -7,7 +7,7 @@ on:
 jobs:
 
   deploy-dummy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: libecalc-test
     steps:
@@ -24,14 +24,14 @@ jobs:
     uses: ./.github/workflows/docs-publish.yml
     secrets: inherit
 
-# We want/need to reserve patch bump in case we need to
-# patch a release that is deployed and active. Therefore
-# we bump minor here. Major bumps to versioning is currently
-# reserved to manual invocation of release-please.
-    
+    # We want/need to reserve patch bump in case we need to
+    # patch a release that is deployed and active. Therefore
+    # we bump minor here. Major bumps to versioning is currently
+    # reserved to manual invocation of release-please.
+
   release-please:
     uses: ./.github/workflows/release-please.yml
     with:
       versioning_strategy: 'always-bump-minor'
     secrets: inherit
-    needs: [lib-ci]
+    needs: [ lib-ci ]
