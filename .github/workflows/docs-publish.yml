@@ -58,11 +58,6 @@ jobs:
         npm ci --ignore-scripts
         npm run build
 
-    - name: Generate API reference
-      run: |
-        cd docs
-        poetry run python make-api-reference.py
-
     - name: Push static files to Github Pages branch
       run: |
         cd docs/build
