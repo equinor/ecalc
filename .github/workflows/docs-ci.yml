@@ -51,8 +51,3 @@ jobs:
         cd docs
         npm ci --ignore-scripts
         npm run build
-
-    - name: Generate API reference
-      run: |
-        cd docs
-        poetry run python make-api-reference.py
