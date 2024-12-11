@@ -4,18 +4,18 @@ import numpy as np
 
 from libecalc.common.utils.rates import Rates
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.consumers.legacy_consumer.consumer_function import (
+from libecalc.core.models.pump import PumpModel
+from libecalc.expression import Expression
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
     apply_power_loss_factor,
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
-from libecalc.core.models.pump import PumpModel
-from libecalc.expression import Expression
 
 
 class PumpConsumerFunction(ConsumerFunction):

@@ -1,6 +1,6 @@
 import numpy as np
 
-from libecalc.core.consumers.legacy_consumer.system.results import (
+from libecalc.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemComponentResult,
     ConsumerSystemConsumerFunctionResult,
     ConsumerSystemOperationalSettingResult,

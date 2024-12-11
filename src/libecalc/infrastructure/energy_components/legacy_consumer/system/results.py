@@ -9,18 +9,18 @@ from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
-    ConsumerFunctionResultBase,
-)
-from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
-    ConsumerFunctionType,
-)
-from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
-    ConsumerSystemOperationalSetting,
-)
 from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
 from libecalc.core.result.results import ConsumerModelResult
 from libecalc.core.utils.array_type import PydanticNDArray
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
+    ConsumerFunctionResultBase,
+)
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
+    ConsumerFunctionType,
+)
+from libecalc.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
+    ConsumerSystemOperationalSetting,
+)
 
 
 class ConsumerSystemComponentResult(BaseModel):

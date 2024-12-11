@@ -4,10 +4,10 @@ import numpy as np
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
-from libecalc.core.consumers.legacy_consumer.consumer_function import (
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
-from libecalc.core.consumers.legacy_consumer.consumer_function.types import (
+from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
 from libecalc.core.models.results import EnergyFunctionGenericResult
