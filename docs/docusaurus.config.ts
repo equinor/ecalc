@@ -5,6 +5,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import math from 'remark-math';
 import katex from 'rehype-katex';
 import localSearch from '@easyops-cn/docusaurus-search-local';
+import { resolve } from 'path';
 
 const baseUrl = "/ecalc"
 
@@ -147,6 +148,16 @@ const config: Config = {
       }),
     ],
   ],
+  plugins: [
+    [
+        'docusaurus-plugin-module-alias',
+        {
+            alias: {
+                '@examples': resolve(__dirname, '../src/libecalc/examples/'),
+            },
+        },
+    ],
+],
 };
 
 export default config;

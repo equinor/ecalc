@@ -1,12 +1,12 @@
-import CodeLinesFromFile from "../../../../src/components/CodeLinesFromFile";
+import CodeLinesFromFile from "@site/src/components/CodeLinesFromFile";
 import CodeBlock from '@theme/CodeBlock';
-import compressorSampledCsv from '!!raw-loader!./simple/compressor_sampled.csv';
-import compressorSampledWithTurbineCsv from '!!raw-loader!./simple/compressor_sampled_with_turbine.csv';
-import genset from '!!raw-loader!./simple/genset.csv';
-import productionData from '!!raw-loader!./simple/production_data.csv';
-import pumpChart from '!!raw-loader!./simple/pump_chart.csv';
-import pumpSampled from '!!raw-loader!./simple/pump_sampled.csv';
-import yamlModel from '!!raw-loader!./simple/model.yaml';
+import compressorSampledCsv from '!!raw-loader!@examples/simple/compressor_sampled.csv';
+import compressorSampledWithTurbineCsv from '!!raw-loader!@examples/simple/compressor_sampled_with_turbine.csv';
+import genset from '!!raw-loader!@examples/simple/genset.csv';
+import productionData from '!!raw-loader!@examples/simple/production_data.csv';
+import pumpChart from '!!raw-loader!@examples/simple/pump_chart.csv';
+import pumpSampled from '!!raw-loader!@examples/simple/pump_sampled.csv';
+import yamlModel from '!!raw-loader!@examples/simple/model.yaml';
 
 # Simple model example
 The following is an example with one installation called `Installation A` that exports oil (`OIL_PROD`) and gas (`GAS_PROD`).
@@ -195,7 +195,7 @@ The pump only runs when the variables [produced_water_reinjection_condition](#va
 This is when the water production is above 1500 Sm3/day. Fluid density, suction pressure and discharge pressure
 is also defined:
 
-<CodeLinesFromFile title="model.yaml" start={73} end={82} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={71} end={80} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Sea water injection pump` has an energy function that is dependent on the seawater injection rate.
 This rate is not modeled explicitly in the reservoir input source, but it may be computed
@@ -214,7 +214,7 @@ This is specified as the variable [sea_water_injection_rate_m3_per_day](#variabl
 
 The model is specified:
 
-<CodeLinesFromFile title="model.yaml" start={83} end={90} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={81} end={88} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 The flare is changing on the 1st of January 2005. Therefore, we need to use a different constant
 fuel consumption value before and after this date. This is done using the variable [flare_fuel_rate_sm3_day](#variables)
@@ -222,14 +222,14 @@ above.
 
 The model is specified:
 
-<CodeLinesFromFile title="model.yaml" start={92} end={96} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={90} end={94} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 Gasexport is a variable fuel consumer whose energy function depends on the field gas sales rate (`GAS_PROD`) defined
 in the variable [gas_export_rate_sm3_per_day](#variables) as `SIM;GAS_PROD`. Even though it is not used in the eCalc model, suction and discharge pressure needs to be specified in order for the model to run. 
 
 The model is specified:
 
-<CodeLinesFromFile title="model.yaml" start={97} end={104} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={95} end={102} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## Full eCalc YAML model
 
