@@ -1,8 +1,11 @@
+# mafro : 160524
+# Advanced v2: Regularity 0.87 / 0.95 + GEFAC rate conversion in variables
+# https://equinor.github.io/ecalc/docs/about/modelling/examples/advanced
+# Exercise for Equinor University course May 2024.
 TIME_SERIES:
   - NAME: SIM
-    TYPE: MISCELLANEOUS
+    TYPE: DEFAULT
     FILE: base_profile.csv
-    INTERPOLATION_TYPE: LEFT
 
 FACILITY_INPUTS:
   - NAME: genset
@@ -68,7 +71,6 @@ MODELS:
   - NAME: simplified_compressor_train_model
     TYPE: SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN
     FLUID_MODEL: medium_fluid
-    CALCULATE_MAX_RATE: True
     COMPRESSOR_TRAIN:
       STAGES:
         - INLET_TEMPERATURE: 30
@@ -77,6 +79,24 @@ MODELS:
           COMPRESSOR_CHART: generic_from_design_point_compressor_chart
         - INLET_TEMPERATURE: 30
           COMPRESSOR_CHART: generic_from_design_point_compressor_chart
+
+  - NAME: trainB
+    TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN
+    FLUID_MODEL: medium_fluid
+    COMPRESSOR_TRAIN:
+      STAGES:
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_variable_speed_compressor_chart
+          CONTROL_MARGIN: 0
+          CONTROL_MARGIN_UNIT: PERCENTAGE
+        - INLET_TEMPERATURE: 30
+          COMPRESSOR_CHART: predefined_variable_speed_compressor_chart
+          CONTROL_MARGIN: 0
+          CONTROL_MARGIN_UNIT: PERCENTAGE
+  - NAME: trainBturbine
+    TYPE: COMPRESSOR_WITH_TURBINE
+    COMPRESSOR_MODEL: trainB
+    TURBINE_MODEL: turbine
 
 VARIABLES:
   hydrocarbon_export_sm3_per_day:
@@ -102,11 +122,27 @@ VARIABLES:
     2030-01-01:
       VALUE: 7000
 
+  pea:
+    VALUE: 0.95 # 0.87
+  peb:
+    VALUE: 0.95
+  gasratea_cd:
+    VALUE: $var.gas_export_rate_sm3_per_day  {*} $var.pea
+  gasrateb_cd:
+    VALUE: $var.gas_export_rate_sm3_per_day  {*} $var.peb
+  winjratea_cd:
+    VALUE: $var.water_injection_rate  {*} $var.pea
+  hcexpa_cd:
+    VALUE: $var.hydrocarbon_export_sm3_per_day {*} $var.pea
+  hcexpb_cd:
+    VALUE: $var.hydrocarbon_export_sm3_per_day {*} $var.peb
+
 INSTALLATIONS:
   - NAME: Installation A
-    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
+    HCEXPORT: $var.hcexpa_cd
     FUEL: fuel_gas
     CATEGORY: FIXED
+    REGULARITY: $var.pea    
     GENERATORSETS:
       - NAME: Generator set A
         CATEGORY: TURBINE-GENERATOR
@@ -117,6 +153,7 @@ INSTALLATIONS:
             ENERGY_USAGE_MODEL:
               TYPE: DIRECT
               LOAD: $var.base_production_load_mw
+              CONSUMPTION_RATE_TYPE: STREAM_DAY # (This is default)
           - NAME: Gas export compressors system A
             CATEGORY: COMPRESSOR
             ENERGY_USAGE_MODEL:
@@ -126,7 +163,7 @@ INSTALLATIONS:
                   COMPRESSOR_MODEL: simplified_compressor_train_model
                 - NAME: train2_A
                   COMPRESSOR_MODEL: simplified_compressor_train_model
-              TOTAL_SYSTEM_RATE: $var.gas_export_rate_sm3_per_day
+              TOTAL_SYSTEM_RATE: $var.gasratea_cd
               OPERATIONAL_SETTINGS:
               - RATE_FRACTIONS: [1.0, 0.0]
                 SUCTION_PRESSURE: 20
@@ -148,7 +185,7 @@ INSTALLATIONS:
                 - NAME: pump4
                   CHART: pump_chart
               FLUID_DENSITY: 1026
-              TOTAL_SYSTEM_RATE: $var.water_injection_rate
+              TOTAL_SYSTEM_RATE: $var.winjratea_cd
               CONDITION: $var.water_injection_condition
               OPERATIONAL_SETTINGS:
                 - RATE_FRACTIONS: [1, 0, 0, 0]
@@ -170,7 +207,7 @@ INSTALLATIONS:
               TYPE: PUMP
               CONDITION: $var.water_injection_condition
               ENERGYFUNCTION: pump_chart
-              RATE: 5000
+              RATE: 5000 {*} $var.pea
               SUCTION_PRESSURE: 3
               DISCHARGE_PRESSURE: 200
               FLUID_DENSITY: 1026
@@ -180,11 +217,13 @@ INSTALLATIONS:
         ENERGY_USAGE_MODEL:
           TYPE: DIRECT
           FUELRATE: $var.flare_a_fuel_rate_sm3_day
+          CONSUMPTION_RATE_TYPE: STREAM_DAY # (This is default)
 
   - NAME: Installation B
-    HCEXPORT: $var.hydrocarbon_export_sm3_per_day
+    HCEXPORT: $var.hcexpb_cd
     FUEL: bad_fuel_gas
     CATEGORY: FIXED
+    REGULARITY: $var.peb    
     GENERATORSETS:
       - NAME: Generator set B
         CATEGORY: TURBINE-GENERATOR
@@ -195,18 +234,40 @@ INSTALLATIONS:
             ENERGY_USAGE_MODEL:
               TYPE: DIRECT
               LOAD: 7.6
+              CONSUMPTION_RATE_TYPE: STREAM_DAY # (This is default)
     FUELCONSUMERS:
       - NAME: Flare B
         CATEGORY: FLARE
         ENERGY_USAGE_MODEL:
           TYPE: DIRECT
           FUELRATE: $var.flare_b_fuel_rate_sm3_day
+          CONSUMPTION_RATE_TYPE: STREAM_DAY # (This is default)
+
       - NAME: Gas export compressors B
-        CATEGORY: COMPRESSOR
+        CATEGORY: GAS-DRIVEN-COMPRESSOR
+        FUEL: fuel_gas
         ENERGY_USAGE_MODEL:
-          TYPE: COMPRESSOR
-          ENERGYFUNCTION: gasexp
-          CONDITION: $var.gas_export_condition
-          RATE: $var.gas_export_rate_sm3_per_day
-          SUCTION_PRESSURE: 20
-          DISCHARGE_PRESSURE: 200
+          TYPE: COMPRESSOR_SYSTEM
+          COMPRESSORS:
+            - NAME: train1_B
+              COMPRESSOR_MODEL: trainBturbine
+            - NAME: train2_B
+              COMPRESSOR_MODEL: trainBturbine
+            - NAME: train3_B
+              COMPRESSOR_MODEL: trainBturbine              
+            - NAME: train4_B
+              COMPRESSOR_MODEL: trainBturbine              
+          TOTAL_SYSTEM_RATE: $var.gasrateb_cd
+          OPERATIONAL_SETTINGS:
+            - RATE_FRACTIONS: [1, 0, 0, 0]
+              SUCTION_PRESSURE: 20
+              DISCHARGE_PRESSURE: 200
+            - RATE_FRACTIONS: [0.5, 0.5, 0, 0]
+              SUCTION_PRESSURE: 20
+              DISCHARGE_PRESSURE: 200     
+            - RATE_FRACTIONS: [0.34, 0.33, 0.33, 0]
+              SUCTION_PRESSURE: 20
+              DISCHARGE_PRESSURE: 200
+            - RATE_FRACTIONS: [0.25, 0.25, 0.25, 0.25]
+              SUCTION_PRESSURE: 20
+              DISCHARGE_PRESSURE: 200              

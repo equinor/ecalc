@@ -1,11 +1,11 @@
 import CodeLinesFromFile from "../../../../src/components/CodeLinesFromFile";
 import CodeBlock from '@theme/CodeBlock';
-import compressorChartCsv from '!!raw-loader!./advanced/compressor_chart.csv';
-import compressorSampledCsv from '!!raw-loader!./advanced/compressor_sampled.csv';
-import genset from '!!raw-loader!./advanced/genset.csv';
-import pumpChart from '!!raw-loader!./advanced/pump_chart.csv';
-import baseProfile from '!!raw-loader!./advanced/base_profile.csv';
-import yamlModel from '!!raw-loader!./advanced/model.yaml';
+import compressorChartCsv from '!!raw-loader!@examples/advanced/compressor_chart.csv';
+import compressorSampledCsv from '!!raw-loader!@examples/advanced/compressor_sampled.csv';
+import genset from '!!raw-loader!@examples/advanced/genset.csv';
+import pumpChart from '!!raw-loader!@examples/advanced/pump_chart.csv';
+import baseProfile from '!!raw-loader!@examples/advanced/base_profile.csv';
+import yamlModel from '!!raw-loader!@examples/advanced/model.yaml';
 
 # Advanced model example
 This is a model very similar to [Simple example](/about/modelling/examples/simple.mdx). The main difference is the use of more advanced
@@ -115,7 +115,7 @@ Here we specify:
 - Gas turbine
 - Simplified compressor train model
 
-<CodeLinesFromFile title="model.yaml" start={41} end={95} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={41} end={99} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 See [MODELS](/about/references/MODELS.md) for further details.
 
@@ -126,7 +126,7 @@ by allowing descriptive variable names and avoid duplications.
 
 For our model, we specify the following variables:
 
-<CodeLinesFromFile title="model.yaml" start={97} end={134} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={101} end={138} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 We reference the [TIME_SERIES](#time_series) `SIM` using the column names from the CSV file.
 
