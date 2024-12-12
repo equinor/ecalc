@@ -18,19 +18,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.consumers.base import BaseConsumer
-from libecalc.core.consumers.legacy_consumer.consumer_function import (
-    ConsumerFunction,
-    ConsumerFunctionResult,
-)
-from libecalc.core.consumers.legacy_consumer.result_mapper import (
-    get_consumer_system_models,
-    get_operational_settings_results_from_consumer_result,
-    get_single_consumer_models,
-)
-from libecalc.core.consumers.legacy_consumer.system import (
-    ConsumerSystemConsumerFunctionResult,
-)
 from libecalc.core.models.results import CompressorTrainResult
 from libecalc.core.result import ConsumerSystemResult, EcalcModelResult
 from libecalc.core.result.results import (
@@ -38,6 +25,19 @@ from libecalc.core.result.results import (
     ConsumerModelResult,
     GenericComponentResult,
     PumpResult,
+)
+from libecalc.domain.infrastructure.energy_components.base import BaseConsumer
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
+    ConsumerFunction,
+    ConsumerFunctionResult,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.result_mapper import (
+    get_consumer_system_models,
+    get_operational_settings_results_from_consumer_result,
+    get_single_consumer_models,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import (
+    ConsumerSystemConsumerFunctionResult,
 )
 from libecalc.expression import Expression
 

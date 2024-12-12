@@ -1,4 +1,4 @@
-from libecalc.core.consumers.legacy_consumer.consumer_function.direct_expression_consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_expression_consumer_function import (
     DirectExpressionConsumerFunction,
 )
 from libecalc.dto import DirectConsumerFunction

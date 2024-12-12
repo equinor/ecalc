@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
-from typing import Annotated, Any, Literal, Optional, TypeVar, Union
+from typing import Annotated, Any, Literal, Optional, TypeVar, Union, overload
 
 import numpy as np
 from pydantic import ConfigDict, Field, field_validator, model_validator
@@ -16,17 +16,35 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.logger import logger
 from libecalc.common.priorities import Priorities
+from libecalc.common.priority_optimizer import PriorityOptimizer
 from libecalc.common.stream_conditions import TimeSeriesStreamConditions
 from libecalc.common.string.string_utils import generate_id
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import (
     RateType,
     TimeSeriesFloat,
+    TimeSeriesInt,
     TimeSeriesStreamDayRate,
+    TimeSeriesString,
 )
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.core.models.compressor import create_compressor_model
+from libecalc.core.models.generator import GeneratorModelSampled
+from libecalc.core.models.pump import create_pump_model
+from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure.energy_components.compressor import Compressor
+from libecalc.domain.infrastructure.energy_components.consumer_system import (
+    ConsumerSystem as ConsumerSystemEnergyComponent,
+)
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
+    Consumer as ConsumerEnergyComponent,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
+from libecalc.domain.infrastructure.energy_components.pump import Pump
 from libecalc.dto.base import (
     EcalcBaseModel,
 )
@@ -170,6 +188,27 @@ class ElectricityConsumer(BaseConsumer, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
+    def evaluate_energy_usage(
+        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
+    ) -> dict[str, EcalcModelResult]:
+        consumer_results: dict[str, EcalcModelResult] = {}
+        consumer = ConsumerEnergyComponent(
+            id=self.id,
+            name=self.name,
+            component_type=self.component_type,
+            regularity=TemporalModel(self.regularity),
+            consumes=self.consumes,
+            energy_usage_model=TemporalModel(
+                {
+                    period: EnergyModelMapper.from_dto_to_domain(model)
+                    for period, model in self.energy_usage_model.items()
+                }
+            ),
+        )
+        consumer_results[self.id] = consumer.evaluate(expression_evaluator=expression_evaluator)
+
+        return consumer_results
+
     @field_validator("energy_usage_model", mode="before")
     @classmethod
     def check_energy_usage_model(cls, energy_usage_model):
@@ -213,6 +252,27 @@ class FuelConsumer(BaseConsumer, Emitter, EnergyComponent):
 
     def get_name(self) -> str:
         return self.name
+
+    def evaluate_energy_usage(
+        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
+    ) -> dict[str, EcalcModelResult]:
+        consumer_results: dict[str, EcalcModelResult] = {}
+        consumer = ConsumerEnergyComponent(
+            id=self.id,
+            name=self.name,
+            component_type=self.component_type,
+            regularity=TemporalModel(self.regularity),
+            consumes=self.consumes,
+            energy_usage_model=TemporalModel(
+                {
+                    period: EnergyModelMapper.from_dto_to_domain(model)
+                    for period, model in self.energy_usage_model.items()
+                }
+            ),
+        )
+        consumer_results[self.id] = consumer.evaluate(expression_evaluator=expression_evaluator)
+
+        return consumer_results
 
     def evaluate_emissions(
         self,
@@ -396,6 +456,85 @@ class ConsumerSystem(BaseConsumer, Emitter, EnergyComponent):
     def get_name(self) -> str:
         return self.name
 
+    def evaluate_energy_usage(
+        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
+    ) -> dict[str, EcalcModelResult]:
+        consumer_results = {}
+        evaluated_stream_conditions = self.evaluate_stream_conditions(
+            expression_evaluator=expression_evaluator,
+        )
+        optimizer = PriorityOptimizer()
+
+        results_per_period: dict[str, dict[Period, ComponentResult]] = defaultdict(dict)
+        priorities_used = []
+        for period in expression_evaluator.get_periods():
+            consumers_for_period = [
+                create_consumer(
+                    consumer=consumer,
+                    period=period,
+                )
+                for consumer in self.consumers
+            ]
+
+            consumer_system = ConsumerSystemEnergyComponent(
+                id=self.id,
+                consumers=consumers_for_period,
+                component_conditions=self.component_conditions,
+            )
+
+            def evaluator(priority: PriorityID):
+                stream_conditions_for_priority = evaluated_stream_conditions[priority]
+                stream_conditions_for_timestep = {
+                    component_id: [stream_condition.for_period(period) for stream_condition in stream_conditions]
+                    for component_id, stream_conditions in stream_conditions_for_priority.items()
+                }
+                return consumer_system.evaluate_consumers(stream_conditions_for_timestep)
+
+            optimizer_result = optimizer.optimize(
+                priorities=list(evaluated_stream_conditions.keys()),
+                evaluator=evaluator,
+            )
+            priorities_used.append(optimizer_result.priority_used)
+            for consumer_result in optimizer_result.priority_results:
+                results_per_period[consumer_result.id][period] = consumer_result
+
+        priorities_used = TimeSeriesString(
+            periods=expression_evaluator.get_periods(),
+            values=priorities_used,
+            unit=Unit.NONE,
+        )
+        # merge consumer results
+        consumer_ids = [consumer.id for consumer in self.consumers]
+        merged_consumer_results = []
+        for consumer_id in consumer_ids:
+            first_result, *rest_results = list(results_per_period[consumer_id].values())
+            merged_consumer_results.append(first_result.merge(*rest_results))
+
+        # Convert to legacy compatible operational_settings_used
+        priorities_to_int_map = {
+            priority_name: index + 1 for index, priority_name in enumerate(evaluated_stream_conditions.keys())
+        }
+        operational_settings_used = TimeSeriesInt(
+            periods=priorities_used.periods,
+            values=[priorities_to_int_map[priority_name] for priority_name in priorities_used.values],
+            unit=priorities_used.unit,
+        )
+
+        system_result = ConsumerSystemEnergyComponent.get_system_result(
+            id=self.id,
+            consumer_results=merged_consumer_results,
+            operational_settings_used=operational_settings_used,
+        )
+        consumer_results[self.id] = system_result
+        for consumer_result in merged_consumer_results:
+            consumer_results[consumer_result.id] = EcalcModelResult(
+                component_result=consumer_result,
+                sub_components=[],
+                models=[],
+            )
+
+        return consumer_results
+
     def evaluate_emissions(
         self,
         energy_context: ComponentEnergyContext,
@@ -507,6 +646,37 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
 
     def get_name(self) -> str:
         return self.name
+
+    def evaluate_energy_usage(
+        self, expression_evaluator: ExpressionEvaluator, context: ComponentEnergyContext
+    ) -> dict[str, EcalcModelResult]:
+        consumer_results: dict[str, EcalcModelResult] = {}
+        fuel_consumer = Genset(
+            id=self.id,
+            name=self.name,
+            temporal_generator_set_model=TemporalModel(
+                {
+                    period: GeneratorModelSampled(
+                        fuel_values=model.fuel_values,
+                        power_values=model.power_values,
+                        energy_usage_adjustment_constant=model.energy_usage_adjustment_constant,
+                        energy_usage_adjustment_factor=model.energy_usage_adjustment_factor,
+                    )
+                    for period, model in self.generator_set_model.items()
+                }
+            ),
+        )
+
+        consumer_results[self.id] = EcalcModelResult(
+            component_result=fuel_consumer.evaluate(
+                expression_evaluator=expression_evaluator,
+                power_requirement=context.get_power_requirement(),
+            ),
+            models=[],
+            sub_components=[],
+        )
+
+        return consumer_results
 
     def evaluate_emissions(
         self,
@@ -799,3 +969,44 @@ class FuelModel:
                         )
 
         return dict(sorted(emissions.items()))
+
+
+@overload
+def create_consumer(consumer: CompressorComponent, period: Period) -> Compressor: ...
+
+
+@overload
+def create_consumer(consumer: PumpComponent, period: Period) -> Pump: ...
+
+
+def create_consumer(
+    consumer: Union[CompressorComponent, PumpComponent],
+    period: Period,
+) -> Union[Compressor, Pump]:
+    periods = consumer.energy_usage_model.keys()
+    energy_usage_models = list(consumer.energy_usage_model.values())
+
+    model_for_period = None
+    for _period, energy_usage_model in zip(periods, energy_usage_models):
+        if period in _period:
+            model_for_period = energy_usage_model
+
+    if model_for_period is None:
+        raise ValueError(f"Could not find model for consumer {consumer.name} at timestep {period}")
+
+    if consumer.component_type == ComponentType.COMPRESSOR:
+        return Compressor(
+            id=consumer.id,
+            compressor_model=create_compressor_model(
+                compressor_model_dto=model_for_period,
+            ),
+        )
+    elif consumer.component_type == ComponentType.PUMP:
+        return Pump(
+            id=consumer.id,
+            pump_model=create_pump_model(
+                pump_model_dto=model_for_period,
+            ),
+        )
+    else:
+        raise TypeError(f"Unknown consumer. Received consumer with type '{consumer.component_type}'")

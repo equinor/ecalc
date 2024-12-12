@@ -26,6 +26,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure import components
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import (
@@ -365,7 +366,7 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
     asset_id = graph_result.graph.root
     asset = graph_result.graph.get_node(asset_id)
 
-    if not isinstance(asset, libecalc.dto.Asset):
+    if not isinstance(asset, components.Asset):
         raise ProgrammingError("Need an asset graph to get asset result")
 
     installation_results = _evaluate_installations(

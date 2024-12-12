@@ -8,8 +8,15 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
+from libecalc.domain.infrastructure.components import (
+    Asset,
+    Consumer,
+    ElectricityConsumer,
+    FuelConsumer,
+    GeneratorSet,
+    Installation,
+)
 from libecalc.dto import ConsumerFunction, FuelType
-from libecalc.dto.components import Asset, Consumer, ElectricityConsumer, FuelConsumer, GeneratorSet, Installation
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService

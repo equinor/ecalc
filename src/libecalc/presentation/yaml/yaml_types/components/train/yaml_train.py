@@ -7,7 +7,7 @@ import libecalc.dto.fuel_type
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period
-from libecalc.dto.components import Stream, TrainComponent
+from libecalc.domain.infrastructure.components import Stream, TrainComponent
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.yaml_types.components.yaml_base import YamlConsumerBase

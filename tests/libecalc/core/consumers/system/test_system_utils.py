@@ -1,14 +1,14 @@
 import numpy as np
 
 from libecalc.common.units import Unit
-from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
 )
-from libecalc.core.consumers.legacy_consumer.system.results import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemComponentResult,
     ConsumerSystemOperationalSettingResult,
 )
-from libecalc.core.consumers.legacy_consumer.system.utils import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.utils import (
     assemble_operational_setting_from_model_result_list,
     get_operational_settings_number_used_from_model_results,
 )

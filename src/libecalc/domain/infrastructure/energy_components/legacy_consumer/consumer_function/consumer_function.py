@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.consumers.legacy_consumer.consumer_function.results import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResult,
 )
 from libecalc.expression import Expression

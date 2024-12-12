@@ -10,8 +10,8 @@ from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import (
     TimeSeriesInt,
 )
-from libecalc.core.consumers.base import BaseConsumerWithoutOperationalSettings
 from libecalc.core.result import ComponentResult, ConsumerSystemResult, EcalcModelResult
+from libecalc.domain.infrastructure.energy_components.base import BaseConsumerWithoutOperationalSettings
 from libecalc.domain.stream_conditions import Rate, StreamConditions
 
 Consumer = TypeVar("Consumer", bound=BaseConsumerWithoutOperationalSettings)

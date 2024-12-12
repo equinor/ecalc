@@ -1,14 +1,14 @@
 from typing import Optional
 
-from libecalc.core.consumers.legacy_consumer.system.consumer_function import (
+from libecalc.core.models.pump import create_pump_model
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     ConsumerSystemConsumerFunction,
     PumpSystemConsumerFunction,
 )
-from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     PumpSystemOperationalSettingExpressions,
 )
-from libecalc.core.consumers.legacy_consumer.system.types import ConsumerSystemComponent
-from libecalc.core.models.pump import create_pump_model
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.dto import PumpSystemConsumerFunction as PumpSystemConsumerFunctionDTO
 from libecalc.dto import PumpSystemOperationalSetting
 from libecalc.expression import Expression

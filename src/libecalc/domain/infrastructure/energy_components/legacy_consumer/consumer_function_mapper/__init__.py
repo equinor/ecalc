@@ -3,7 +3,7 @@ from typing import Any, Union
 
 from libecalc.common.consumer_type import ConsumerType
 from libecalc.common.logger import logger
-from libecalc.core.consumers.legacy_consumer.consumer_function import ConsumerFunction
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.dto import (
     CompressorConsumerFunction,
     CompressorSystemConsumerFunction,

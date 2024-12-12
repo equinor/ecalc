@@ -3,10 +3,10 @@ from numpy.typing import NDArray
 
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
-from libecalc.core.consumers.legacy_consumer.system.operational_setting import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
 )
-from libecalc.core.consumers.legacy_consumer.system.results import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemOperationalSettingResult,
 )
 

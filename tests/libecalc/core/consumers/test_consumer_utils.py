@@ -3,11 +3,11 @@ from dataclasses import dataclass
 import numpy as np
 
 from libecalc.common.string.string_utils import generate_id
-from libecalc.core.consumers.consumer_system import ConsumerSystem
-from libecalc.core.consumers.legacy_consumer.consumer_function.utils import (
+from libecalc.domain.infrastructure.energy_components.consumer_system import ConsumerSystem
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
 )
-from libecalc.dto.components import Crossover
+from libecalc.domain.infrastructure.components import Crossover
 
 
 @dataclass
