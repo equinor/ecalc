@@ -1,17 +1,17 @@
 from typing import Optional
 
 from libecalc.core.models.compressor import create_compressor_model
-from libecalc.dto import CompressorSystemConsumerFunction as CompressorSystemConsumerFunctionDTO
-from libecalc.dto import CompressorSystemOperationalSetting, SystemOperationalSetting
-from libecalc.expression import Expression
-from libecalc.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     ConsumerSystemConsumerFunction,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSettingExpressions,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.dto import CompressorSystemConsumerFunction as CompressorSystemConsumerFunctionDTO
+from libecalc.dto import CompressorSystemOperationalSetting, SystemOperationalSetting
+from libecalc.expression import Expression
 
 
 def _map_operational_settings(

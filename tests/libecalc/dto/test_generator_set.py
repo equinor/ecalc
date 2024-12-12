@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 import libecalc.dto.fuel_type
 from libecalc import dto
-from libecalc.infrastructure import components
+from libecalc.domain.infrastructure import components
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType

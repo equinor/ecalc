@@ -8,17 +8,17 @@ from libecalc.core.models.tabulated import (
     Variable,
     VariableExpression,
 )
-from libecalc.expression import Expression
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.utils import (
     apply_condition,
     apply_power_loss_factor,
     get_condition_from_expression,
     get_power_loss_factor_from_expression,
 )
+from libecalc.expression import Expression
 
 
 class TabulatedConsumerFunction(ConsumerFunction):

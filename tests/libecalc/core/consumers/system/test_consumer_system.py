@@ -8,22 +8,22 @@ import pytest
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.serializable_chart import SingleSpeedChartDTO
 from libecalc.common.variables import VariablesMap
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.pump_consumer_function import (
     PumpConsumerFunction,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.consumer_function import (
     CompressorSystemConsumerFunction,
     ConsumerSystemConsumerFunction,
     PumpSystemConsumerFunction,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     CompressorSystemOperationalSetting,
     CompressorSystemOperationalSettingExpressions,
     ConsumerSystemOperationalSettingExpressions,
     PumpSystemOperationalSetting,
     PumpSystemOperationalSettingExpressions,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.types import ConsumerSystemComponent
 from libecalc.core.models.chart import SingleSpeedChart
 from libecalc.core.models.pump import PumpSingleSpeed
 from libecalc.expression import Expression

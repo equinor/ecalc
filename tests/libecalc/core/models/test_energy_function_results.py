@@ -6,7 +6,7 @@ import libecalc.common.energy_usage_type
 import libecalc.dto as dto
 from libecalc.common.units import Unit
 from libecalc.common.variables import VariablesMap
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.compressor_consumer_function import (
     CompressorConsumerFunction,
 )
 from libecalc.core.models.compressor.sampled import CompressorModelSampled

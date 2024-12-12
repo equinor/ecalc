@@ -26,20 +26,20 @@ from libecalc.core.result.results import (
     GenericComponentResult,
     PumpResult,
 )
-from libecalc.expression import Expression
-from libecalc.infrastructure.energy_components.base import BaseConsumer
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function import (
+from libecalc.domain.infrastructure.energy_components.base import BaseConsumer
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.result_mapper import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.result_mapper import (
     get_consumer_system_models,
     get_operational_settings_results_from_consumer_result,
     get_single_consumer_models,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.system import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import (
     ConsumerSystemConsumerFunctionResult,
 )
+from libecalc.expression import Expression
 
 
 def get_operational_settings_used_from_consumer_result(

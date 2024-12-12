@@ -35,6 +35,16 @@ from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.models.pump import create_pump_model
 from libecalc.core.result import ComponentResult, EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
+from libecalc.domain.infrastructure.energy_components.compressor import Compressor
+from libecalc.domain.infrastructure.energy_components.consumer_system import (
+    ConsumerSystem as ConsumerSystemEnergyComponent,
+)
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
+    Consumer as ConsumerEnergyComponent,
+)
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
+from libecalc.domain.infrastructure.energy_components.pump import Pump
 from libecalc.dto.base import (
     EcalcBaseModel,
 )
@@ -56,12 +66,6 @@ from libecalc.dto.utils.validators import (
     validate_temporal_model,
 )
 from libecalc.expression import Expression
-from libecalc.infrastructure.energy_components.compressor import Compressor
-from libecalc.infrastructure.energy_components.consumer_system import ConsumerSystem as ConsumerSystemEnergyComponent
-from libecalc.infrastructure.energy_components.generator_set.generator_set import Genset
-from libecalc.infrastructure.energy_components.legacy_consumer.component import Consumer as ConsumerEnergyComponent
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
-from libecalc.infrastructure.energy_components.pump import Pump
 from libecalc.presentation.yaml.ltp_validation import (
     validate_generator_set_power_from_shore,
 )

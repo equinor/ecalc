@@ -5,7 +5,7 @@ import pytest
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 from libecalc import dto
-from libecalc.infrastructure import components
+from libecalc.domain.infrastructure import components
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
 from libecalc.expression import Expression

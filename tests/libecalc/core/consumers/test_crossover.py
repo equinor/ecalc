@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
-from libecalc.infrastructure.energy_components.consumer_system import ConsumerSystem
+from libecalc.domain.infrastructure.energy_components.consumer_system import ConsumerSystem
 from libecalc.domain.stream_conditions import Pressure, Rate, StreamConditions
 
 

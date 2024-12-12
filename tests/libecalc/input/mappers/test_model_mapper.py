@@ -5,7 +5,7 @@ import pytest
 from pydantic import TypeAdapter
 
 from libecalc import dto
-from libecalc.infrastructure import components
+from libecalc.domain.infrastructure import components
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.presentation.yaml.mappers.model import ModelMapper
 from libecalc.presentation.yaml.model import YamlModel

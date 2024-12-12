@@ -13,8 +13,8 @@ from libecalc.common.utils.rates import (
 from libecalc.core.models.pump import PumpModel
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result import results as core_results
+from libecalc.domain.infrastructure.energy_components.base import BaseConsumerWithoutOperationalSettings
 from libecalc.domain.stream_conditions import Pressure, StreamConditions
-from libecalc.infrastructure.energy_components.base import BaseConsumerWithoutOperationalSettings
 
 
 class Pump(BaseConsumerWithoutOperationalSettings):

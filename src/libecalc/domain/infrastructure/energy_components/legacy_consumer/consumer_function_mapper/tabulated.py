@@ -6,10 +6,10 @@ from libecalc.core.models.tabulated import (
     Variable,
     VariableExpression,
 )
-from libecalc.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.consumer_tabular_energy_function import (
     TabulatedConsumerFunction,
 )
+from libecalc.dto import TabulatedConsumerFunction as TabulatedConsumerFunctionDTO
 
 
 def _get_column(data: list[list], headers: list[str], header: str) -> list:

@@ -8,10 +8,10 @@ from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesStreamDayRa
 from libecalc.core import result as core_results
 from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
 from libecalc.core.models.results.base import EnergyFunctionResult
-from libecalc.infrastructure.energy_components.legacy_consumer.consumer_function import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunctionResult,
 )
-from libecalc.infrastructure.energy_components.legacy_consumer.system.results import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.results import (
     ConsumerSystemConsumerFunctionResult,
 )
 

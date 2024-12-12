@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from libecalc.common.errors.exceptions import EcalcError
-from libecalc.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
+from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSetting,
     ConsumerSystemOperationalSettingExpressions,
 )
