@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -14,7 +14,7 @@ class EnergyUsageModelCommon(YamlBase):
         title="CONDITION",
         description="Logical condition for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",
     )
-    conditions: List[YamlExpressionType] = Field(
+    conditions: Optional[List[YamlExpressionType]] = Field(
         None,
         title="CONDITIONS",
         description="Logical conditions for the consumer to be used.\n\n$ECALC_DOCS_KEYWORDS_URL/CONDITION",

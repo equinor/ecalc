@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import ConfigDict, Field
 
@@ -27,19 +27,19 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
-    time_series: List[YamlTimeSeriesCollection] = Field(
+    time_series: Optional[List[YamlTimeSeriesCollection]] = Field(
         None,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
     )
-    facility_inputs: List[YamlFacilityModel] = Field(
+    facility_inputs: Optional[List[YamlFacilityModel]] = Field(
         None,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
     )
-    models: List[YamlModel] = Field(
+    models: Optional[List[YamlModel]] = Field(
         None,
         title="MODELS",
         description="Defines input files which characterize various facility elements."

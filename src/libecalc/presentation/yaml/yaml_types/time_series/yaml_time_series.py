@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Literal, Optional, Union
 
 from pydantic import ConfigDict, Field, field_validator
 from typing_extensions import Annotated
@@ -43,7 +43,7 @@ class YamlDefaultTimeSeriesCollection(YamlTimeSeriesCollectionBase):
         description="Defines the type of time series input file.\n\n$ECALC_DOCS_KEYWORDS_URL/TYPE",
     )
 
-    interpolation_type: Literal["RIGHT"] = Field(
+    interpolation_type: Optional[Literal["RIGHT"]] = Field(
         None,
         title="INTERPOLATION_TYPE",
         description="Defines how the time series are interpolated between input time steps.\n\n$ECALC_DOCS_KEYWORDS_URL/INTERPOLATION_TYPE",
