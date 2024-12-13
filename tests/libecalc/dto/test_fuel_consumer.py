@@ -6,7 +6,7 @@ from pydantic import ValidationError
 import libecalc.dto.fuel_type
 import libecalc.dto.types
 from libecalc import dto
-from libecalc.domain.infrastructure import components
+from libecalc.domain.infrastructure import FuelConsumer, Installation
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
@@ -40,7 +40,7 @@ def get_fuel(fuel_name: str, emission_name: str) -> dict[Period, libecalc.dto.fu
     }
 
 
-def get_installation(installation_name: str, fuel_consumer: components.FuelConsumer) -> components.Installation:
+def get_installation(installation_name: str, fuel_consumer: FuelConsumer) -> Installation:
     """
     Generates an installation dto for use in testing
 
@@ -51,7 +51,7 @@ def get_installation(installation_name: str, fuel_consumer: components.FuelConsu
     Returns:
         dto.Installation
     """
-    return components.Installation(
+    return Installation(
         name=installation_name,
         regularity=regularity,
         hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression("sim1;var1")},
@@ -64,7 +64,7 @@ def get_fuel_consumer(
     consumer_name: str,
     fuel_type: dict[Period, libecalc.dto.fuel_type.FuelType],
     category: dict[Period, libecalc.dto.types.ConsumerUserDefinedCategoryType],
-) -> components.FuelConsumer:
+) -> FuelConsumer:
     """
     Generates a fuel consumer dto for use in testing
 
@@ -76,7 +76,7 @@ def get_fuel_consumer(
     Returns:
         dto.FuelConsumer
     """
-    return components.FuelConsumer(
+    return FuelConsumer(
         name=consumer_name,
         fuel=fuel_type,
         component_type=ComponentType.GENERIC,
@@ -94,7 +94,7 @@ def get_fuel_consumer(
 class TestFuelConsumer:
     def test_missing_fuel(self):
         with pytest.raises(ValidationError) as exc_info:
-            components.FuelConsumer(
+            FuelConsumer(
                 name="test",
                 fuel={},
                 component_type=ComponentType.GENERIC,

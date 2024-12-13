@@ -6,7 +6,8 @@ import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 import libecalc.dto.types
 from libecalc import dto
-from libecalc.domain.infrastructure import components
+from libecalc.common.component_type import ComponentType
+from libecalc.domain.infrastructure import Asset, Installation, FuelConsumer
 from libecalc.application.energy_calculator import EnergyCalculator
 from libecalc.application.graph_result import GraphResult
 from libecalc.common.time_utils import Period, Periods
@@ -25,7 +26,7 @@ from libecalc.presentation.json_result.result.emission import PartialEmissionRes
 
 def get_installation(
     name_inst: str, name_consumer: str, name_fuel: str, co2_factor: float, fuel_rate: float
-) -> components.Installation:
+) -> Installation:
     """Creates a simple installation object for use in asset setup
     Args:
         name_inst (str): Name of installation
@@ -38,7 +39,7 @@ def get_installation(
         components.Installation
     """
 
-    inst = components.Installation(
+    inst = Installation(
         name=name_inst,
         regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
         hydrocarbon_export={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
@@ -71,7 +72,7 @@ def fuel(name: str, co2_factor: float) -> libecalc.dto.fuel_type.FuelType:
     )
 
 
-def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate: float) -> components.FuelConsumer:
+def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate: float) -> FuelConsumer:
     """Creates a simple direct fuel consumer object for use in installation setup
     Args:
         name (str): Name of direct fuel consumer
@@ -83,9 +84,9 @@ def direct_fuel_consumer(name: str, name_fuel: str, co2_factor: float, fuel_rate
         components.FuelConsumer
     """
 
-    return components.FuelConsumer(
+    return FuelConsumer(
         name=name,
-        component_type=components.ComponentType.GENERIC,
+        component_type=ComponentType.GENERIC,
         fuel={Period(datetime(2024, 1, 1)): fuel(name=name_fuel, co2_factor=co2_factor)},
         regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
         user_defined_category={
@@ -175,7 +176,7 @@ class TestAggregateEmissions:
             name_inst="INSTB", name_consumer="cons2", name_fuel="fuel2", co2_factor=10, fuel_rate=100
         )
 
-        asset = components.Asset(
+        asset = Asset(
             name="Main asset",
             installations=[inst_a, inst_b],
         )

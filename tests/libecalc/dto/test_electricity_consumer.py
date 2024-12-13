@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from libecalc import dto
-from libecalc.domain.infrastructure import components
+from libecalc.domain.infrastructure import ElectricityConsumer
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
@@ -14,7 +14,7 @@ from libecalc.expression import Expression
 class TestElectricityConsumer:
     def test_invalid_energy_usage(self):
         with pytest.raises(ValidationError) as e:
-            components.ElectricityConsumer(
+            ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
                 user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},
@@ -29,7 +29,7 @@ class TestElectricityConsumer:
 
     def test_valid_electricity_consumer(self):
         # Should not raise ValidationError
-        components.ElectricityConsumer(
+        ElectricityConsumer(
             name="Test",
             component_type=ComponentType.GENERIC,
             user_defined_category={Period(datetime(1900, 1, 1)): "MISCELLANEOUS"},

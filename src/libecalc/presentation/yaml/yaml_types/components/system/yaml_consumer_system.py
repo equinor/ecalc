@@ -6,7 +6,8 @@ from pydantic import ConfigDict, Field, TypeAdapter
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.domain.infrastructure.components import ConsumerSystem, Crossover, SystemComponentConditions
+from libecalc.domain.infrastructure.energy_components.base.component_dto import Crossover, SystemComponentConditions
+from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.dto import FuelType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
