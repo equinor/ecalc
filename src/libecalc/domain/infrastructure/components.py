@@ -41,10 +41,6 @@ from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_s
 )
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
-    Consumer as ConsumerEnergyComponent,
-)
-from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function_mapper import EnergyModelMapper
 from libecalc.domain.infrastructure.energy_components.pump import Pump
 from libecalc.dto.base import (
     EcalcBaseModel,
@@ -53,7 +49,6 @@ from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.models import (
     ConsumerFunction,
-    ElectricEnergyUsageModel,
     GeneratorSetSampled,
 )
 from libecalc.dto.models.compressor import CompressorModel
@@ -148,8 +143,6 @@ class BaseConsumer(BaseEquipment, ABC):
             msg = f"Missing fuel for fuel consumer '{info.data.get('name')}'"
             raise ValueError(msg)
         return fuel
-
-
 
 
 Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]
