@@ -1,11 +1,11 @@
 import CodeLinesFromFile from "../../../../src/components/CodeLinesFromFile";
 import CodeBlock from '@theme/CodeBlock';
-import compressorChartCsv from '!!raw-loader!./advanced/compressor_chart.csv';
-import compressorSampledCsv from '!!raw-loader!./advanced/compressor_sampled.csv';
-import genset from '!!raw-loader!./advanced/genset.csv';
-import pumpChart from '!!raw-loader!./advanced/pump_chart.csv';
-import baseProfile from '!!raw-loader!./advanced/base_profile.csv';
-import yamlModel from '!!raw-loader!./advanced/model.yaml';
+import compressorChartCsv from '!!raw-loader!@examples/advanced/compressor_chart.csv';
+import compressorSampledCsv from '!!raw-loader!@examples/advanced/compressor_sampled.csv';
+import genset from '!!raw-loader!@examples/advanced/genset.csv';
+import pumpChart from '!!raw-loader!@examples/advanced/pump_chart.csv';
+import baseProfile from '!!raw-loader!@examples/advanced/base_profile.csv';
+import yamlModel from '!!raw-loader!@examples/advanced/model.yaml';
 
 # Advanced model example
 This is a model very similar to [Simple example](/about/modelling/examples/simple.mdx). The main difference is the use of more advanced
@@ -115,7 +115,7 @@ Here we specify:
 - Gas turbine
 - Simplified compressor train model
 
-<CodeLinesFromFile title="model.yaml" start={41} end={95} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={41} end={99} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 See [MODELS](/about/references/MODELS.md) for further details.
 
@@ -126,7 +126,7 @@ by allowing descriptive variable names and avoid duplications.
 
 For our model, we specify the following variables:
 
-<CodeLinesFromFile title="model.yaml" start={97} end={134} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={101} end={138} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 We reference the [TIME_SERIES](#time_series) `SIM` using the column names from the CSV file.
 
@@ -259,7 +259,7 @@ We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/a
 
 `Fixed production loads A` has a load of 7.6 MW with additional 4.1 MW when the field gas injection rate is positive:
 
-<CodeLinesFromFile title="model.yaml" start={147} end={152} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile title="model.yaml" start={151} end={156} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Gas export compressor system A` is represented by a consumer system of two simplified compressor train models.
 The system has defined the variable [gasratea_cd](#variables) and will run two different
@@ -270,7 +270,7 @@ setting that returns a valid result for the compressors.
 See [COMPRESSOR_SYSTEM](/about/modelling/setup/installations/compressor_models_in_calculations/compressor_system.md) for further details.
 
 The compressor model is then defined:
-<CodeLinesFromFile start={153} end={169} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile start={157} end={173} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Water injection pump system A` is variable and its energy function is dependent on the field's water
 injection rate (`WATER_INJ`) that is set in the variable [water_injection_rate](#variables) as `SIM;WATER_INJ`.
@@ -280,34 +280,34 @@ is also defined.
 
 This PUMP_SYSTEM behaves much the same as the COMPRESSOR_SYSTEM above.
 See [PUMP_SYSTEM](/about/modelling/setup/installations/pump_models_in_calculations.md#pump_system-energy-usage-model) for further details.
-<CodeLinesFromFile start={170} end={199} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile start={174} end={203} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Single pump A` has an energy function that is dependent on the seawater injection rate, same as the system above.
 It uses the pump_chart defined in [FACILITY_INPUTS](#facility_inputs) above.
 
 The pump model is then defined:
-<CodeLinesFromFile start={200} end={209} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile start={204} end={213} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 The `Flare A` is changing on the 1st of July 2020 and 1st of January 2030. Therefore, we need to use a different constant
 fuel consumption value before and after this date. This is done using the variable [flare_a_fuel_rate_sm3_day](#variables).
 
 The model becomes:
-<CodeLinesFromFile start={211} end={216} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile start={215} end={220} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 `Base production loads B` has a load of 7.6 :
-<CodeLinesFromFile start={228} end={233} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile start={232} end={237} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 The `Flare B` is changing on the 1st of July 2020 and 1st of January 2030. Therefore, we need to use a different constant
 fuel consumption value before and after this date. This is done using the variable [flare_a_fuel_rate_sm3_day](#variables).
 
 The model becomes:
-<CodeLinesFromFile start={235} end={240} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile start={239} end={244} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 The `Gas export compressors B`  is a variable fuel consumer whose energy function depends on the field gas production rate (`GAS_PROD`) defined
 in the variable [gasrateb_cd](#variables) as `SIM;GAS_PROD`, and put to the condition [gas_export_condition](#variables) as `SIM;GAS_PROD > 0`
 
 The model is specified:
-<CodeLinesFromFile start={242} end={269} language="yaml">{yamlModel}</CodeLinesFromFile>
+<CodeLinesFromFile start={246} end={273} language="yaml">{yamlModel}</CodeLinesFromFile>
 
 ## Full eCalc YAML model
 <CodeBlock title="model.yaml" language="yaml">{yamlModel}</CodeBlock>
