@@ -4,7 +4,7 @@ import pytest
 
 import libecalc.common.energy_usage_type
 from libecalc import dto
-from libecalc.domain.infrastructure import components
+from libecalc.domain.infrastructure import ElectricityConsumer, FuelConsumer, GeneratorSet
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.rates import RateType
@@ -31,7 +31,7 @@ def variables_map(methane_values):
 
 
 @pytest.fixture
-def tabulated_fuel_consumer(fuel_gas) -> components.FuelConsumer:
+def tabulated_fuel_consumer(fuel_gas) -> FuelConsumer:
     tabulated = dto.TabulatedConsumerFunction(
         model=dto.TabulatedData(
             headers=["RATE", "FUEL"],
@@ -42,7 +42,7 @@ def tabulated_fuel_consumer(fuel_gas) -> components.FuelConsumer:
         variables=[dto.Variables(name="RATE", expression=Expression.setup_from_expression(value="RATE"))],
         energy_usage_type=libecalc.common.energy_usage_type.EnergyUsageType.FUEL,
     )
-    return components.FuelConsumer(
+    return FuelConsumer(
         name="fuel_consumer",
         component_type=ComponentType.GENERIC,
         fuel=fuel_gas,
@@ -53,8 +53,8 @@ def tabulated_fuel_consumer(fuel_gas) -> components.FuelConsumer:
 
 
 @pytest.fixture
-def direct_el_consumer() -> components.ElectricityConsumer:
-    return components.ElectricityConsumer(
+def direct_el_consumer() -> ElectricityConsumer:
+    return ElectricityConsumer(
         name="direct_consumer",
         component_type=ComponentType.GENERIC,
         user_defined_category={Period(datetime(1900, 1, 1)): "FIXED-PRODUCTION-LOAD"},
@@ -105,8 +105,8 @@ def generator_set_sampled_model_1000mw() -> dto.GeneratorSetSampled:
 
 
 @pytest.fixture
-def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw) -> components.GeneratorSet:
-    return components.GeneratorSet(
+def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw) -> GeneratorSet:
+    return GeneratorSet(
         name="genset",
         user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
         fuel={Period(datetime(1900, 1, 1)): fuel_dto},
@@ -119,10 +119,8 @@ def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw
 
 
 @pytest.fixture
-def genset_1000mw_late_startup_dto(
-    fuel_dto, direct_el_consumer, generator_set_sampled_model_1000mw
-) -> components.GeneratorSet:
-    return components.GeneratorSet(
+def genset_1000mw_late_startup_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_1000mw) -> GeneratorSet:
+    return GeneratorSet(
         name="genset_late_startup",
         user_defined_category={Period(datetime(1900, 1, 1)): "TURBINE-GENERATOR"},
         fuel={Period(datetime(1900, 1, 1)): fuel_dto},

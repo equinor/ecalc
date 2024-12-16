@@ -8,14 +8,16 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_model_type import EnergyModelType
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.domain.infrastructure.components import (
+from libecalc.domain.infrastructure import (
     Asset,
-    Consumer,
-    ElectricityConsumer,
-    FuelConsumer,
-    GeneratorSet,
     Installation,
 )
+from libecalc.domain.infrastructure.energy_components.common import Consumer
+from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
+    ElectricityConsumer,
+)
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
+from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.dto import ConsumerFunction, FuelType
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression import Expression

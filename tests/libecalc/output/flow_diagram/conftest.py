@@ -5,7 +5,8 @@ import pytest
 import libecalc.common.energy_usage_type
 import libecalc.dto.fuel_type
 from libecalc import dto
-from libecalc.domain.infrastructure import components
+from libecalc.domain.infrastructure import FuelConsumer, Asset, Installation
+
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period
 from libecalc.expression import Expression
@@ -59,8 +60,8 @@ def fuel_type_fd() -> libecalc.dto.fuel_type.FuelType:
 
 
 @pytest.fixture
-def compressor_system_consumer_dto_fd(fuel_type_fd) -> components.FuelConsumer:
-    return components.FuelConsumer(
+def compressor_system_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
+    return FuelConsumer(
         name="Compressor system 1",
         component_type=ComponentType.COMPRESSOR_SYSTEM,
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
@@ -143,8 +144,8 @@ def compressor_system_consumer_dto_fd(fuel_type_fd) -> components.FuelConsumer:
 
 
 @pytest.fixture
-def compressor_consumer_dto_fd(fuel_type_fd) -> components.FuelConsumer:
-    return components.FuelConsumer(
+def compressor_consumer_dto_fd(fuel_type_fd) -> FuelConsumer:
+    return FuelConsumer(
         name="Compressor 1",
         component_type=ComponentType.GENERIC,
         user_defined_category={Period(datetime.datetime(1900, 1, 1), datetime.datetime(2021, 1, 1)): "COMPRESSOR"},
@@ -163,13 +164,13 @@ def compressor_consumer_dto_fd(fuel_type_fd) -> components.FuelConsumer:
 
 @pytest.fixture
 def installation_with_dates_dto_fd(
-    compressor_system_consumer_dto_fd: components.FuelConsumer,
-    compressor_consumer_dto_fd: components.FuelConsumer,
-) -> components.Asset:
-    return components.Asset(
+    compressor_system_consumer_dto_fd: FuelConsumer,
+    compressor_consumer_dto_fd: FuelConsumer,
+) -> Asset:
+    return Asset(
         name="installation_with_dates",
         installations=[
-            components.Installation(
+            Installation(
                 name="Installation1",
                 fuel_consumers=[compressor_system_consumer_dto_fd, compressor_consumer_dto_fd],
                 regularity={
