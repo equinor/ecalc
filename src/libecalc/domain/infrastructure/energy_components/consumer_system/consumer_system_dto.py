@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Literal, Optional, Union, overload
+from typing import Literal, Optional, Union
 
 from pydantic import Field
 
@@ -226,14 +226,6 @@ class ConsumerSystem(BaseConsumer, Emitter, EnergyComponent):
                     for stream_name, stream_conditions in streams_conditions.items()
                 ]
         return dict(parsed_priorities)
-
-
-@overload
-def create_consumer(consumer: CompressorComponent, period: Period) -> Compressor: ...
-
-
-@overload
-def create_consumer(consumer: PumpComponent, period: Period) -> Pump: ...
 
 
 def create_consumer(
