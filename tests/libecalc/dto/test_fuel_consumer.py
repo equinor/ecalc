@@ -93,7 +93,7 @@ def get_fuel_consumer(
 
 class TestFuelConsumer:
     def test_missing_fuel(self):
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ValueError) as exc_info:
             FuelConsumer(
                 name="test",
                 fuel={},
