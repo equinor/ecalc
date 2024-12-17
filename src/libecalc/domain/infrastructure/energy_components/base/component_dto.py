@@ -3,8 +3,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-from pydantic_core.core_schema import ValidationInfo
-
 from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
@@ -60,7 +58,7 @@ class BaseEquipment(BaseComponent, ABC):
         max_usage_from_shore: Optional[Expression] = None,
     ):
         super().__init__(name, regularity)
-        self.user_defined_category = self.check_user_defined_category(user_defined_category)
+        self.user_defined_category = self.check_user_defined_category(user_defined_category, name)
         self.energy_usage_model = energy_usage_model
         self.component_type = component_type
         self.fuel = fuel
@@ -74,20 +72,15 @@ class BaseEquipment(BaseComponent, ABC):
         return generate_id(self.name)
 
     @classmethod
-    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo = None):
+    def check_user_defined_category(cls, user_defined_category, name: str):
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
         if isinstance(user_defined_category, dict) and len(user_defined_category.values()) > 0:
             user_defined_category = _convert_keys_in_dictionary_from_str_to_periods(user_defined_category)
             for user_category in user_defined_category.values():
                 if user_category not in list(ConsumerUserDefinedCategoryType):
-                    name_context_str = ""
-                    if (name := info.data.get("name")) is not None:
-                        name_context_str = f"with the name {name}"
-
                     raise ValueError(
-                        f"CATEGORY: {user_category} is not allowed for {cls.__name__} {name_context_str}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                        f"CATEGORY: {user_category} is not allowed for {cls.__name__} with name {name}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
                     )
-
         return user_defined_category
 
 
