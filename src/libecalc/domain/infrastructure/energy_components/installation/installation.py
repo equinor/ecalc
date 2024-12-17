@@ -1,7 +1,5 @@
 from typing import Optional, Union
 
-from pydantic_core.core_schema import ValidationInfo
-
 from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
@@ -75,16 +73,12 @@ class Installation(BaseComponent, EnergyComponent):
         # Implement the conversion logic here
         return convert_expression(data)
 
-    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo = None):
+    def check_user_defined_category(self, user_defined_category):
         # Provide which value and context to make it easier for user to correct wrt mandatory changes.
         if user_defined_category is not None:
             if user_defined_category not in list(InstallationUserDefinedCategoryType):
-                name_context_str = ""
-                if (name := info.data.get("name")) is not None:
-                    name_context_str = f"with the name {name}"
-
                 raise ValueError(
-                    f"CATEGORY: {user_defined_category} is not allowed for {cls.__name__} {name_context_str}. Valid categories are: {[str(installation_user_defined_category.value) for installation_user_defined_category in InstallationUserDefinedCategoryType]}"
+                    f"CATEGORY: {user_defined_category} is not allowed for Installation with name {self.name}. Valid categories are: {[str(installation_user_defined_category.value) for installation_user_defined_category in InstallationUserDefinedCategoryType]}"
                 )
 
         return user_defined_category

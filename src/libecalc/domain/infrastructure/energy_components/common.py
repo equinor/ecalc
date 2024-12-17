@@ -1,6 +1,4 @@
-from typing import Annotated, Literal, Optional, TypeVar, Union
-
-from pydantic import ConfigDict, Field
+from typing import Literal, Optional, TypeVar, Union
 
 from libecalc.common.component_type import ComponentType
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
@@ -14,10 +12,9 @@ from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consume
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.domain.infrastructure.energy_components.pump.component_dto import PumpComponent
-from libecalc.dto.base import EcalcBaseModel
 from libecalc.expression import Expression
 
-Consumer = Annotated[Union[FuelConsumer, ElectricityConsumer], Field(discriminator="consumes")]
+Consumer = Union[FuelConsumer, ElectricityConsumer]
 
 ComponentDTO = Union[
     Asset,
@@ -31,36 +28,46 @@ ComponentDTO = Union[
 ]
 
 
-class CompressorOperationalSettings(EcalcBaseModel):
-    rate: Expression
-    inlet_pressure: Expression
-    outlet_pressure: Expression
+class CompressorOperationalSettings:
+    def __init__(self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression):
+        self.rate = rate
+        self.inlet_pressure = inlet_pressure
+        self.outlet_pressure = outlet_pressure
 
 
-class PumpOperationalSettings(EcalcBaseModel):
-    rate: Expression
-    inlet_pressure: Expression
-    outlet_pressure: Expression
-    fluid_density: Expression
+class PumpOperationalSettings:
+    def __init__(
+        self, rate: Expression, inlet_pressure: Expression, outlet_pressure: Expression, fluid_density: Expression
+    ):
+        self.rate = rate
+        self.inlet_pressure = inlet_pressure
+        self.outlet_pressure = outlet_pressure
+        self.fluid_density = fluid_density
 
 
-class Stream(EcalcBaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    stream_name: Optional[str] = Field(None)
-    from_component_id: str
-    to_component_id: str
+class Stream:
+    def __init__(self, from_component_id: str, to_component_id: str, stream_name: Optional[str] = None):
+        self.stream_name = stream_name
+        self.from_component_id = from_component_id
+        self.to_component_id = to_component_id
 
 
 ConsumerComponent = TypeVar("ConsumerComponent", bound=Union[CompressorComponent, PumpComponent])
 
 
 class TrainComponent(BaseConsumer):
-    component_type: Literal[ComponentType.TRAIN_V2] = Field(
-        ComponentType.TRAIN_V2,
-        title="TYPE",
-        description="The type of the component",
-        alias="TYPE",
-    )
-    stages: list[ConsumerComponent]
-    streams: list[Stream]
+    component_type: Literal[ComponentType.TRAIN_V2] = ComponentType.TRAIN_V2
+
+    def __init__(
+        self,
+        name: str,
+        regularity: dict,
+        consumes,
+        user_defined_category: dict,
+        component_type: ComponentType,
+        stages: list,
+        streams: list,
+    ):
+        super().__init__(name, regularity, consumes, user_defined_category, component_type)
+        self.stages = stages
+        self.streams = streams
