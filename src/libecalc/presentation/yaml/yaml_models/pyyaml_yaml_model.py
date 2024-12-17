@@ -96,7 +96,6 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         internal_datamodel = PyYamlYamlModel.read_yaml(
             main_yaml=main_yaml, resources=resources, base_dir=base_dir, enable_include=enable_include
         )
-
         self = cls(internal_datamodel=internal_datamodel, name=main_yaml.name, instantiated_through_read=True)
         return self
 
