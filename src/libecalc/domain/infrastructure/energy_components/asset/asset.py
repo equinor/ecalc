@@ -6,13 +6,12 @@ from libecalc.common.string.string_utils import generate_id
 from libecalc.domain.infrastructure.energy_components.base.component_dto import Component
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.dto.component_graph import ComponentGraph
-from libecalc.dto.utils.validators import ComponentNameStr
 
 
 class Asset(Component, EnergyComponent):
     def __init__(
         self,
-        name: ComponentNameStr,
+        name: str,
         installations: list[Installation],
         component_type: Literal[ComponentType.ASSET] = ComponentType.ASSET,
     ):
