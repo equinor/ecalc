@@ -446,16 +446,19 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 installation_obj = TypeAdapter(YamlInstallation).validate_python(installation)
 
                 # Validate and convert stream_conditions_priorities within the nested structure (remove when solved problem with nested validation)
-                for generator_set in installation_obj.generator_sets:
-                    for consumer in generator_set.consumers:
-                        print(f"Accessing consumer {consumer.name}")
-                        if isinstance(consumer, YamlConsumerSystem) and hasattr(
-                            consumer, "stream_conditions_priorities"
-                        ):
-                            consumer.stream_conditions_priorities = TypeAdapter(YamlPriorities).validate_python(
-                                consumer.stream_conditions_priorities
-                            )
-                            print(f"Stream conditions priorities: {consumer.stream_conditions_priorities.__str__()}")
+                if installation_obj.generator_sets is not None:
+                    for generator_set in installation_obj.generator_sets:
+                        for consumer in generator_set.consumers:
+                            print(f"Accessing consumer {consumer.name}")
+                            if isinstance(consumer, YamlConsumerSystem) and hasattr(
+                                consumer, "stream_conditions_priorities"
+                            ):
+                                consumer.stream_conditions_priorities = TypeAdapter(YamlPriorities).validate_python(
+                                    consumer.stream_conditions_priorities
+                                )
+                                print(
+                                    f"Stream conditions priorities: {consumer.stream_conditions_priorities.__str__()}"
+                                )
 
                 installations.append(installation_obj)
             except PydanticValidationError as e:
