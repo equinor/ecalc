@@ -1,8 +1,6 @@
 from collections import defaultdict
 from typing import Literal, Optional, Union
 
-from pydantic import Field
-
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_component import EnergyComponent
@@ -41,20 +39,36 @@ from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_s
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.pump import Pump
 from libecalc.domain.infrastructure.energy_components.pump.component_dto import PumpComponent
+from libecalc.dto import FuelType
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 
 
 class ConsumerSystem(BaseConsumer, Emitter, EnergyComponent):
-    component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(
-        ComponentType.CONSUMER_SYSTEM_V2,
-        title="TYPE",
-        description="The type of the component",
-    )
-
-    component_conditions: SystemComponentConditions
-    stream_conditions_priorities: Priorities[SystemStreamConditions]
-    consumers: Union[list[CompressorComponent], list[PumpComponent]]
+    def __init__(
+        self,
+        name: str,
+        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
+        regularity: dict[Period, Expression],
+        consumes: ConsumptionType,
+        component_conditions: SystemComponentConditions,
+        stream_conditions_priorities: Priorities[SystemStreamConditions],
+        consumers: Union[list[CompressorComponent], list[PumpComponent]],
+        fuel: Optional[dict[Period, FuelType]] = None,
+        component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = ComponentType.CONSUMER_SYSTEM_V2,
+    ):
+        super().__init__(
+            component_type=component_type,
+            name=name,
+            user_defined_category=user_defined_category,
+            regularity=regularity,
+            consumes=consumes,
+            fuel=fuel,
+        )
+        self.component_conditions = component_conditions
+        self.stream_conditions_priorities = stream_conditions_priorities
+        self.consumers = consumers
 
     def is_fuel_consumer(self) -> bool:
         return self.consumes == ConsumptionType.FUEL

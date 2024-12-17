@@ -60,6 +60,7 @@ class TestGeneratorSet:
                     emissions=[],
                 )
             },
+            component_type=ComponentType.GENERATOR_SET,
         )
         assert generator_set_dto.generator_set_model == {
             Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
@@ -89,7 +90,7 @@ class TestGeneratorSet:
             regularity={Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)},
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
         )
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             GeneratorSet(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
@@ -97,6 +98,7 @@ class TestGeneratorSet:
                 regularity={},
                 consumers=[fuel_consumer],
                 fuel={},
+                component_type=ComponentType.GENERATOR_SET,
             )
 
     def test_power_from_shore_wrong_category(self):
@@ -114,6 +116,7 @@ class TestGeneratorSet:
                 consumers=[],
                 fuel={},
                 cable_loss=0,
+                component_type=ComponentType.GENERATOR_SET,
             )
 
         assert ("CABLE_LOSS is only valid for the category POWER-FROM-SHORE, not for BOILER") in str(exc_info.value)
@@ -128,6 +131,7 @@ class TestGeneratorSet:
                 consumers=[],
                 fuel={},
                 max_usage_from_shore=20,
+                component_type=ComponentType.GENERATOR_SET,
             )
 
         assert ("MAX_USAGE_FROM_SHORE is only valid for the category POWER-FROM-SHORE, not for BOILER") in str(
@@ -144,6 +148,7 @@ class TestGeneratorSet:
                 fuel={},
                 max_usage_from_shore=20,
                 cable_loss=0,
+                component_type=ComponentType.GENERATOR_SET,
             )
 
         assert (

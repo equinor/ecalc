@@ -115,6 +115,7 @@ def genset_2mw_dto(fuel_dto, direct_el_consumer, generator_set_sampled_model_2mw
         },
         consumers=[direct_el_consumer],
         regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        component_type=ComponentType.GENERATOR_SET,
     )
 
 
@@ -129,4 +130,5 @@ def genset_1000mw_late_startup_dto(fuel_dto, direct_el_consumer, generator_set_s
         },
         consumers=[direct_el_consumer],
         regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
+        component_type=ComponentType.GENERATOR_SET,
     )

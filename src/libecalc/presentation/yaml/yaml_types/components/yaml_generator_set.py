@@ -73,7 +73,6 @@ class YamlGeneratorSet(YamlBase):
         _check_power_from_shore_attributes = validate_generator_set_power_from_shore(
             cable_loss=self.cable_loss,
             max_usage_from_shore=self.max_usage_from_shore,
-            model_fields=self.model_fields,
             category=self.category,
         )
         return self

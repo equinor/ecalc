@@ -1,6 +1,5 @@
-from typing import Annotated, Literal, Optional, Union
+from typing import Optional, Union
 
-from pydantic import Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.application.energy.energy_component import EnergyComponent
@@ -25,17 +24,26 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 
 
 class Installation(BaseComponent, EnergyComponent):
-    component_type: Literal[ComponentType.INSTALLATION] = ComponentType.INSTALLATION
+    def __init__(
+        self,
+        name: str,
+        regularity: dict[Period, Expression],
+        hydrocarbon_export: dict[Period, Expression],
+        fuel_consumers: list[Union[GeneratorSet, FuelConsumer, ConsumerSystem]],
+        venting_emitters: Optional[list[YamlVentingEmitter]] = None,
+        user_defined_category: Optional[InstallationUserDefinedCategoryType] = None,
+    ):
+        super().__init__(name, regularity)
+        self.hydrocarbon_export = self.convert_expression_installation(hydrocarbon_export)
+        self.regularity = self.convert_expression_installation(regularity)
+        self.fuel_consumers = fuel_consumers
+        self.user_defined_category = user_defined_category
+        self.component_type = ComponentType.INSTALLATION
+        self.validate_installation_temporal_model()
 
-    user_defined_category: Optional[InstallationUserDefinedCategoryType] = Field(default=None, validate_default=True)
-    hydrocarbon_export: dict[Period, Expression]
-    fuel_consumers: list[
-        Annotated[
-            Union[GeneratorSet, FuelConsumer, ConsumerSystem],
-            Field(discriminator="component_type"),
-        ]
-    ] = Field(default_factory=list)
-    venting_emitters: list[YamlVentingEmitter] = Field(default_factory=list)
+        if venting_emitters is None:
+            venting_emitters = []
+        self.venting_emitters = venting_emitters
 
     def is_fuel_consumer(self) -> bool:
         return True
@@ -60,14 +68,14 @@ class Installation(BaseComponent, EnergyComponent):
     def id(self) -> str:
         return generate_id(self.name)
 
-    _validate_installation_temporal_model = field_validator("hydrocarbon_export")(validate_temporal_model)
+    def validate_installation_temporal_model(self):
+        return validate_temporal_model(self.hydrocarbon_export)
 
-    _convert_expression_installation = field_validator("regularity", "hydrocarbon_export", mode="before")(
-        convert_expression
-    )
+    def convert_expression_installation(self, data):
+        # Implement the conversion logic here
+        return convert_expression(data)
 
-    @field_validator("user_defined_category", mode="before")
-    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo):
+    def check_user_defined_category(cls, user_defined_category, info: ValidationInfo = None):
         # Provide which value and context to make it easier for user to correct wrt mandatory changes.
         if user_defined_category is not None:
             if user_defined_category not in list(InstallationUserDefinedCategoryType):
@@ -81,7 +89,6 @@ class Installation(BaseComponent, EnergyComponent):
 
         return user_defined_category
 
-    @model_validator(mode="after")
     def check_fuel_consumers_or_venting_emitters_exist(self):
         try:
             if self.fuel_consumers or self.venting_emitters:

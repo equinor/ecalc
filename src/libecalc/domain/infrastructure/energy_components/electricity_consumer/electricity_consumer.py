@@ -1,7 +1,5 @@
 from typing import Literal
 
-from pydantic import field_validator
-
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
@@ -21,28 +19,31 @@ from libecalc.domain.infrastructure.energy_components.utils import (
     check_model_energy_usage_type,
 )
 from libecalc.dto.models import ElectricEnergyUsageModel
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
+from libecalc.expression import Expression
 
 
 class ElectricityConsumer(BaseConsumer, EnergyComponent):
-    component_type: Literal[
-        ComponentType.COMPRESSOR,
-        ComponentType.PUMP,
-        ComponentType.GENERIC,
-        ComponentType.PUMP_SYSTEM,
-        ComponentType.COMPRESSOR_SYSTEM,
-    ]
-    consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY
-    energy_usage_model: dict[
-        Period,
-        ElectricEnergyUsageModel,
-    ]
-
-    _validate_el_consumer_temporal_model = field_validator("energy_usage_model")(validate_temporal_model)
-
-    _check_model_energy_usage = field_validator("energy_usage_model")(
-        lambda data: check_model_energy_usage_type(data, EnergyUsageType.POWER)
-    )
+    def __init__(
+        self,
+        name: str,
+        regularity: dict[Period, Expression],
+        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
+        component_type: Literal[
+            ComponentType.COMPRESSOR,
+            ComponentType.PUMP,
+            ComponentType.GENERIC,
+            ComponentType.PUMP_SYSTEM,
+            ComponentType.COMPRESSOR_SYSTEM,
+        ],
+        energy_usage_model: dict[Period, ElectricEnergyUsageModel],
+        consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
+    ):
+        super().__init__(name, regularity, consumes, user_defined_category, component_type, energy_usage_model, None)
+        self.energy_usage_model = self.check_energy_usage_model(energy_usage_model)
+        self._validate_el_consumer_temporal_model(self.energy_usage_model)
+        self._check_model_energy_usage(self.energy_usage_model)
 
     def is_fuel_consumer(self) -> bool:
         return False
@@ -83,12 +84,19 @@ class ElectricityConsumer(BaseConsumer, EnergyComponent):
 
         return consumer_results
 
-    @field_validator("energy_usage_model", mode="before")
-    @classmethod
-    def check_energy_usage_model(cls, energy_usage_model):
+    @staticmethod
+    def check_energy_usage_model(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
         """
         Make sure that temporal models are converted to Period objects if they are strings
         """
         if isinstance(energy_usage_model, dict) and len(energy_usage_model.values()) > 0:
             energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)
         return energy_usage_model
+
+    @staticmethod
+    def _validate_el_consumer_temporal_model(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
+        validate_temporal_model(energy_usage_model)
+
+    @staticmethod
+    def _check_model_energy_usage(energy_usage_model: dict[Period, ElectricEnergyUsageModel]):
+        check_model_energy_usage_type(energy_usage_model, EnergyUsageType.POWER)

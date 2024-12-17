@@ -152,6 +152,7 @@ class ConsumerMapper:
                     fuel=fuel,
                     energy_usage_model=energy_usage_model,
                     component_type=_get_component_type(energy_usage_model),
+                    consumes=consumes,
                 )
             except ValidationError as e:
                 raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
@@ -166,6 +167,7 @@ class ConsumerMapper:
                     ),
                     energy_usage_model=energy_usage_model,
                     component_type=_get_component_type(energy_usage_model),
+                    consumes=consumes,
                 )
             except ValidationError as e:
                 raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
@@ -226,6 +228,7 @@ class GeneratorSetMapper:
                 user_defined_category=user_defined_category,
                 cable_loss=cable_loss,
                 max_usage_from_shore=max_usage_from_shore,
+                component_type=ComponentType.GENERATOR_SET,  # TODO: Check if this is correct. Why isn´t component_type set for YamlGeneratorSet?
             )
         except ValidationError as e:
             raise DtoValidationError(data=data.model_dump(), validation_error=e) from e
