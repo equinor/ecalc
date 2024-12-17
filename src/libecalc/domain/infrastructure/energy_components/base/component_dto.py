@@ -15,7 +15,6 @@ from libecalc.domain.infrastructure.energy_components.utils import _convert_keys
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import (
-    ComponentNameStr,
     ExpressionType,
     validate_temporal_model,
 )
@@ -31,7 +30,7 @@ class Component(ABC):
 
 
 class BaseComponent(Component, ABC):
-    def __init__(self, name: ComponentNameStr, regularity: dict[Period, Expression]):
+    def __init__(self, name: str, regularity: dict[Period, Expression]):
         self.name = name
         self.regularity = self.check_regularity(regularity)
         validate_temporal_model(self.regularity)
@@ -46,7 +45,7 @@ class BaseComponent(Component, ABC):
 class BaseEquipment(BaseComponent, ABC):
     def __init__(
         self,
-        name: ComponentNameStr,
+        name: str,
         regularity: dict[Period, Expression],
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
         component_type: ComponentType,
@@ -89,7 +88,7 @@ class BaseConsumer(BaseEquipment, ABC):
 
     def __init__(
         self,
-        name: ComponentNameStr,
+        name: str,
         regularity: dict[Period, Expression],
         consumes: ConsumptionType,
         user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
