@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Any, Optional, Self, Union
@@ -160,7 +161,7 @@ class Periods:
 
         return Periods(periods=periods)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Period]:
         return self.periods.__iter__()
 
     def get_period(self, period: Period) -> Optional[Period]:

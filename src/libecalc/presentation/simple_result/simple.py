@@ -4,7 +4,6 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
-from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.time_utils import Period, Periods
@@ -132,11 +131,11 @@ class SimpleComponentResult(SimpleBase):
             delta profile comparisons easier/possible.
 
         Args:
-            component (SimpleComponentResult): The component that should be fitted.
-            periods (Periods): The target periods. The provided periods should all exist in the component.
+            component (SimpleComponentResult): The component that should be fitted (should intersect all periods in the periods list). Can have periods before and after the *periods*. Those will be trimmed.
+            periods (Periods): The target periods. The provided periods should all exist in the component. If the above component are missing periods, we will extrapolate with values from the bigger period
 
         Returns:
-            SimpleComponentResult: The component with the new periods.
+            SimpleComponentResult: The component with the new periods, ie. start and end will be trimmed, and mid-periods will be added if the component has a longer period than the global period.
         """
         power = []
         energy_usage = []
@@ -145,11 +144,17 @@ class SimpleComponentResult(SimpleBase):
             emission.name: SimpleEmissionResult(name=emission.name, rate=[])
             for emission in component.emissions.values()
         }
+        # We loop through a components periods and try to fit it to the common global period.
         for period_index, _period in enumerate(component.periods):
             period = Period.intersection(_period, periods.period)
+            # If the period is not in the global period, we skip it. ie before or after the global common period.
             if period:
                 start = periods.start_dates.index(period.start)
                 end = periods.end_dates.index(period.end)
+
+                # In case we have a longer period in component than the global period, we have to add missing steps/periods
+                # e.g. if the common period has 2022-2023, but the component has 2022-2024, we have to loop twice to extrapolate the missing period with same values as the bigger period.
+                # Usually this will only loop once.
                 for _ in range(start, end + 1):
                     if component.power is not None:
                         power.append(component.power[period_index])
@@ -159,10 +164,9 @@ class SimpleComponentResult(SimpleBase):
                         # Assume index exist if emission exist
                         emission.rate.append(component.emissions[emission.name].rate[period_index])
             else:
-                # This is a developer error, we should provide the correct period.
-                raise ProgrammingError(
-                    f"Provided periods includes period not found in component {component.id}. "
-                    f"Extraneous period: {period}. This should not happen, contact support."
+                # We do not trim extraneous periods in beginning and end for a component. We only try to fit to the common global period.
+                logger.warning(
+                    f"Period {component.periods[period_index]} from {component.name} not in {periods.period}. Skipping."
                 )
 
         return cls(
@@ -256,7 +260,7 @@ class SimpleResultData(SimpleBase):
         cls,
         model: "SimpleResultData",
         periods: Periods,
-    ):
+    ) -> "SimpleResultData":
         """
         Fit result to periods. Only a subset or the same set of periods is supported.
         Args:
@@ -323,7 +327,7 @@ class SimpleResultData(SimpleBase):
         reference_model: "SimpleResultData",
         changed_model: "SimpleResultData",
         exclude: Optional[list[ComponentType]] = None,
-    ):
+    ) -> tuple["SimpleResultData", "SimpleResultData"]:
         if exclude is None:
             exclude = []
 
@@ -367,6 +371,11 @@ class SimpleResultData(SimpleBase):
         changed_model: "SimpleResultData",
     ) -> tuple["SimpleResultData", "SimpleResultData", "SimpleResultData", list[str]]:
         """
+        Calculate delta profile between two models. We will make sure that both models have the same
+        periods and components before calculating the delta profile. Different start and end will be trimmed.
+        This delta-profile methods supports both periods with fixed interval (monthly, yearly) and irregular intervals (data-defined).
+        The resulting delta-profile will have the union of the periods from both models, except differing start and end, that will be trimmed,
+        in order to have same start and end for both models.
 
         Args:
             reference_model:
@@ -379,12 +388,14 @@ class SimpleResultData(SimpleBase):
         first_date = max(changed_model.periods.first_date, reference_model.periods.first_date)
         last_date = min(changed_model.periods.last_date, reference_model.periods.last_date)
 
+        # union of the dates in the 2 models
         all_dates_in_models = sorted(
             {date for date in reference_model.periods.all_dates if first_date <= date <= last_date}.union(
                 {date for date in changed_model.periods.all_dates if first_date <= date <= last_date}
             )
         )
-        # define new periods using all dates in both models
+
+        # define new periods using all dates in both models, skip extra periods before and after
         periods = Periods.create_periods(
             times=all_dates_in_models,
             include_after=False,
@@ -396,6 +407,8 @@ class SimpleResultData(SimpleBase):
             reference_model=reference_model, changed_model=changed_model
         )
 
+        # Now as we have found the union of the dates/periods in the models, and trimming
+        # start end, if they differ, we can fill out missing periods for the models
         changed_model = cls.fit_to_periods(changed_model, periods)
         reference_model = cls.fit_to_periods(reference_model, periods)
 
