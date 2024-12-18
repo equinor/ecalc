@@ -1,12 +1,10 @@
 from typing import Union
 
-from pydantic import BaseModel, ConfigDict
-
 from libecalc.core.models.compressor.base import CompressorModel
 from libecalc.core.models.pump import PumpModel
 
 
-class ConsumerSystemComponent(BaseModel):
-    name: str
-    facility_model: Union[PumpModel, CompressorModel]
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class ConsumerSystemComponent:
+    def __init__(self, name: str, facility_model: Union[PumpModel, CompressorModel]):
+        self.name = name
+        self.facility_model = facility_model

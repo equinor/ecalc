@@ -1,48 +1,93 @@
 from __future__ import annotations
 
+import copy
 from abc import abstractmethod
 from enum import Enum
 from typing import Literal, Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
 from libecalc.core.models.results.base import EnergyFunctionResult
-from libecalc.core.utils.array_type import PydanticNDArray
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.types import (
     ConsumerFunctionType,
 )
 
 
-class ConsumerFunctionResultBase(BaseModel):
+class ConsumerFunctionResultBase:
     """Result object for ConsumerFunction.
 
     Units:
         energy_usage [MW]
     """
 
-    typ: ConsumerFunctionType
-
-    periods: Periods
-    is_valid: PydanticNDArray
-    energy_usage: PydanticNDArray
-    energy_usage_before_power_loss_factor: Optional[PydanticNDArray] = None
-    condition: Optional[PydanticNDArray] = None
-    power_loss_factor: Optional[PydanticNDArray] = None
-    energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None
-
-    # New! to support fuel to power rate...for e.g. compressors emulating turbine
-    power: Optional[PydanticNDArray] = None
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    def __init__(
+        self,
+        typ: ConsumerFunctionType,
+        periods: Periods,
+        is_valid: NDArray,
+        energy_usage: NDArray,
+        energy_usage_before_power_loss_factor: Optional[NDArray] = None,
+        condition: Optional[NDArray] = None,
+        power_loss_factor: Optional[NDArray] = None,
+        energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None,
+        # New! to support fuel to power rate...for e.g. compressors emulating turbine
+        power: Optional[NDArray] = None,
+    ):
+        self.typ = typ
+        self.periods = periods
+        self.is_valid = is_valid
+        self.energy_usage = energy_usage
+        self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
+        self.condition = condition
+        self.power_loss_factor = power_loss_factor
+        self.energy_function_result = energy_function_result
+        self.power = power
 
     @abstractmethod
     def extend(self, other: object) -> ConsumerFunctionResultBase: ...
 
+    def model_copy(self, deep: bool = False) -> ConsumerFunctionResultBase:
+        if deep:
+            return copy.deepcopy(self)
+        return copy.copy(self)
+
 
 class ConsumerFunctionResult(ConsumerFunctionResultBase):
-    typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE  # type: ignore[valid-type]
+    def __init__(
+        self,
+        periods: Periods,
+        is_valid: NDArray,
+        energy_usage: NDArray,
+        typ: Literal[ConsumerFunctionType.SINGLE] = ConsumerFunctionType.SINGLE,  # type: ignore[valid-type]
+        energy_usage_before_power_loss_factor: Optional[NDArray] = None,
+        condition: Optional[NDArray] = None,
+        power_loss_factor: Optional[NDArray] = None,
+        energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None,
+        power: Optional[NDArray] = None,
+    ):
+        super().__init__(
+            typ,
+            periods,
+            is_valid,
+            energy_usage,
+            energy_usage_before_power_loss_factor,
+            condition,
+            power_loss_factor,
+            energy_function_result,
+            power,
+        )
+        self.typ = typ
+        self.periods = periods
+        self.is_valid = is_valid
+        self.energy_usage = energy_usage
+        self.energy_usage_before_power_loss_factor = energy_usage_before_power_loss_factor
+        self.condition = condition
+        self.power_loss_factor = power_loss_factor
+        self.energy_function_result = energy_function_result
+        self.power = power
 
     def extend(self, other) -> ConsumerFunctionResult:
         """This is used when merging different time slots when the energy function of a consumer changes over time."""
