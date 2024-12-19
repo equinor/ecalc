@@ -42,7 +42,7 @@ repos:
         exclude: tests|neqsim|fixtures|conftest
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.81.10
+    rev: v3.87.2
     hooks:
       - id: trufflehog
         stages: ["pre-commit"]
