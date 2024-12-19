@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.4.0](https://github.com/equinor/ecalc/compare/v9.3.0...v9.4.0) (2024-12-19)
+
+
+### Documentation
+
+* update v9.2 and v9.2 changelogs ([ed27c0a](https://github.com/equinor/ecalc/commit/ed27c0aa3ff15a11f2b15193f073d4fdb9753eb8))
+
 ## [9.3.0](https://github.com/equinor/ecalc/compare/v9.2.0...v9.3.0) (2024-12-19)
 
 
