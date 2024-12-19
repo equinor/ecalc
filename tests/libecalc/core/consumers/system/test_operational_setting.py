@@ -23,7 +23,6 @@ def test_consumer_system_operational_settings_expression():
     assert operational_settings_expression.number_of_consumers == number_of_consumers
 
 
-@patch.multiple(ConsumerSystemOperationalSetting, __abstractmethods__=set())
 class TestConsumerSystemOperationalSetting:
     def test_operational_setting(self):
         operational_settings = ConsumerSystemOperationalSetting(

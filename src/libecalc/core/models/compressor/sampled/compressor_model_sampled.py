@@ -167,8 +167,15 @@ class CompressorModelSampled(CompressorModel):
         """
         # subtract an epsilon to make robust comparison.
         if rate is not None:
+            # Ensure rate is a NumPy array
+            rate = np.array(rate, dtype=np.float64)
             # To avoid bringing rate below zero.
             rate = np.where(rate > 0, rate - EPSILON, rate)
+        if suction_pressure is not None:
+            suction_pressure = np.array(suction_pressure, dtype=np.float64)
+
+        if discharge_pressure is not None:
+            discharge_pressure = np.array(discharge_pressure, dtype=np.float64)
 
         number_of_data_points = 0
         if rate is not None:

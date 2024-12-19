@@ -29,12 +29,18 @@ def validate_model_input(
     NDArray[np.float64],
     list[ModelInputFailureStatus],
 ]:
+    # Ensure input is a NumPy array
+    rate = np.array(rate, dtype=np.float64)
+    suction_pressure = np.array(suction_pressure, dtype=np.float64)
+    discharge_pressure = np.array(discharge_pressure, dtype=np.float64)
+
     indices_to_validate = _find_indices_to_validate(rate=rate)
     validated_failure_status = [ModelInputFailureStatus.NO_FAILURE] * len(suction_pressure)
     validated_rate = rate.copy()
     validated_suction_pressure = suction_pressure.copy()
     validated_discharge_pressure = discharge_pressure.copy()
     if intermediate_pressure is not None:
+        intermediate_pressure = np.array(intermediate_pressure, dtype=np.float64)
         validated_intermediate_pressure = intermediate_pressure
     if len(indices_to_validate) >= 1:
         (
@@ -82,6 +88,7 @@ def _find_indices_to_validate(rate: NDArray[np.float64]) -> list[int]:
     For a 1D array, this means returning the indices where rate is positive.
     For a 2D array, this means returning the indices where at least one rate is positive (along 0-axis).
     """
+    rate = np.atleast_1d(rate)  # Ensure rate is at least 1D
     return np.where(np.any(rate != 0, axis=0) if np.ndim(rate) == 2 else rate != 0)[0].tolist()
 
 

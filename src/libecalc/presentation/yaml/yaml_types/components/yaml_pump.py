@@ -52,4 +52,5 @@ class YamlPump(YamlConsumerBase):
                     self.energy_usage_model, target_period=target_period
                 ).items()
             },
+            component_type=self.component_type,
         )

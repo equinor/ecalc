@@ -63,9 +63,13 @@ class PumpModel(BaseModel):
 
     @staticmethod
     def _calculate_head(
-        ps: NDArray[np.float64], pd: NDArray[np.float64], density: Union[NDArray[np.float64], float]
+        ps: Union[NDArray[np.float64], list[float]],
+        pd: Union[NDArray[np.float64], list[float]],
+        density: Union[NDArray[np.float64], float],
     ) -> NDArray[np.float64]:
         """:return: Head in joule per kg [J/kg]"""
+        ps = np.array(ps, dtype=np.float64)
+        pd = np.array(pd, dtype=np.float64)
         return np.array(Unit.BARA.to(Unit.PASCAL)(pd - ps) / density)
 
     @staticmethod
@@ -288,6 +292,10 @@ class PumpSingleSpeed(PumpModel):
         :param discharge_pressures:
         :param fluid_density:
         """
+        # Ensure rate is a NumPy array
+        rate = np.array(rate, dtype=np.float64)
+        fluid_density = np.array(fluid_density, dtype=np.float64)
+
         # Ensure that the pump does not run when rate is <= 0.
         stream_day_rate = np.where(rate > 0, rate, 0)
 

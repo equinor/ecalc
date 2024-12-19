@@ -13,7 +13,7 @@ from libecalc.expression import Expression
 
 class TestElectricityConsumer:
     def test_invalid_energy_usage(self):
-        with pytest.raises(ValidationError) as e:
+        with pytest.raises(ValueError) as e:
             ElectricityConsumer(
                 name="Test",
                 component_type=ComponentType.GENERIC,
