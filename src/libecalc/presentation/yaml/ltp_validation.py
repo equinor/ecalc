@@ -22,7 +22,7 @@ def validate_generator_set_power_from_shore(
 
         if isinstance(category, ConsumerUserDefinedCategoryType):
             if category is not ConsumerUserDefinedCategoryType.POWER_FROM_SHORE:
-                message = f"{feedback_text} for the category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}, not for {category}."
+                message = f"{feedback_text} for the category {ConsumerUserDefinedCategoryType.POWER_FROM_SHORE.value}, not for {category.value}."
                 raise ValueError(message)
         else:
             if ConsumerUserDefinedCategoryType.POWER_FROM_SHORE not in category.values():
