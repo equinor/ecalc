@@ -12,6 +12,10 @@ from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
 from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseEquipment
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
@@ -29,9 +33,6 @@ from libecalc.dto.utils.validators import (
     validate_temporal_model,
 )
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.ltp_validation import (
-    validate_generator_set_power_from_shore,
-)
 
 
 class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
@@ -61,8 +62,6 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
         self.cable_loss = cable_loss
         self.max_usage_from_shore = max_usage_from_shore
         self.component_type = component_type
-        self.check_power_from_shore()
-        self.check_mandatory_category_for_generator_set(user_defined_category)
         self._validate_genset_temporal_models(self.generator_set_model, self.fuel)
         self.check_consumers()
 
@@ -132,16 +131,6 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
         )
 
     @staticmethod
-    def check_mandatory_category_for_generator_set(
-        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
-    ):
-        """This could be handled automatically with Pydantic, but I want to inform the users in a better way, in
-        particular since we introduced a breaking change for this to be mandatory for GeneratorSets in v7.2.
-        """
-        if not isinstance(user_defined_category, dict) or not user_defined_category:
-            raise ValueError("CATEGORY is mandatory and must be set for GeneratorSet")
-
-    @staticmethod
     def _validate_genset_temporal_models(
         generator_set_model: dict[Period, GeneratorSetSampled], fuel: dict[Period, FuelType]
     ):
@@ -164,18 +153,19 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
         return fuel
 
     def check_consumers(self):
+        errors: list[ModelValidationError] = []
         for consumer in self.consumers:
             if isinstance(consumer, FuelConsumer):
-                raise ValueError(
-                    f"Consumer {consumer.name} is not an electricity consumer. Generators can not have fuel consumers."
+                errors.append(
+                    ModelValidationError(
+                        name=consumer.name,
+                        message="The consumer is not an electricity consumer. "
+                        "Generators can not have fuel consumers.",
+                    )
                 )
 
-    def check_power_from_shore(self):
-        validate_generator_set_power_from_shore(
-            cable_loss=self.cable_loss,
-            max_usage_from_shore=self.max_usage_from_shore,
-            category=self.user_defined_category,
-        )
+        if errors:
+            raise ComponentValidationException(errors=errors)
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()

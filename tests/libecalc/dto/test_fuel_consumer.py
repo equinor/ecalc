@@ -10,6 +10,7 @@ from libecalc.domain.infrastructure import FuelConsumer, Installation
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
+from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException
 from libecalc.expression import Expression
 
 regularity = {Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)}
@@ -93,7 +94,7 @@ def get_fuel_consumer(
 
 class TestFuelConsumer:
     def test_missing_fuel(self):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ComponentValidationException) as exc_info:
             FuelConsumer(
                 name="test",
                 fuel={},
@@ -107,4 +108,4 @@ class TestFuelConsumer:
                 regularity=regularity,
                 user_defined_category="category",
             )
-        assert "Missing fuel for fuel consumer 'test'" in str(exc_info.value)
+        assert "Name: test\nMessage: Missing fuel for fuel consumer" in str(exc_info.value.errors()[0])

@@ -31,6 +31,10 @@ from libecalc.domain.infrastructure.energy_components.base.component_dto import 
     SystemComponentConditions,
     SystemStreamConditions,
 )
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.compressor import Compressor
 from libecalc.domain.infrastructure.energy_components.compressor.component_dto import CompressorComponent
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system import (
@@ -261,7 +265,14 @@ def create_consumer(
             model_for_period = energy_usage_model
 
     if model_for_period is None:
-        raise ValueError(f"Could not find model for consumer {consumer.name} at timestep {period}")
+        raise ComponentValidationException(
+            errors=[
+                ModelValidationError(
+                    name=consumer.name,
+                    message=f"Could not find model at timestep {period}",
+                )
+            ]
+        )
 
     if consumer.component_type in {ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_V2}:
         return Compressor(

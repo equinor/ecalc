@@ -10,6 +10,10 @@ from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
 from libecalc.core.models.results import CompressorTrainResult, EnergyFunctionResult, PumpModelResult
 from libecalc.core.result.results import ConsumerModelResult
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
 )
@@ -147,9 +151,16 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
 
     def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
         if not isinstance(self, type(other)):
-            msg = f"{self.__repr_name__()} Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
+            msg = "Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
             logger.warning(msg)
-            raise ValueError(msg)
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=self.__repr_name__(),
+                        message=msg,
+                    )
+                ]
+            )
 
         for attribute, values in self.__dict__.items():
             other_values = other.__getattribute__(attribute)
