@@ -11,6 +11,10 @@ from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
@@ -71,14 +75,27 @@ class BaseEquipment(BaseComponent, ABC):
         return generate_id(self.name)
 
     @classmethod
-    def check_user_defined_category(cls, user_defined_category, name: str):
+    def check_user_defined_category(
+        cls, user_defined_category, name: str
+    ):  # TODO: Check if this is needed. Should be handled in yaml validation
         """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
+
         if isinstance(user_defined_category, dict) and len(user_defined_category.values()) > 0:
             user_defined_category = _convert_keys_in_dictionary_from_str_to_periods(user_defined_category)
             for user_category in user_defined_category.values():
                 if user_category not in list(ConsumerUserDefinedCategoryType):
-                    raise ValueError(
-                        f"CATEGORY: {user_category} is not allowed for {cls.__name__} with name {name}. Valid categories are: {[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                    msg = (
+                        f"CATEGORY: {user_category} is not allowed for {cls.__name__}. Valid categories are: "
+                        f"{[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
+                    )
+
+                    raise ComponentValidationException(
+                        errors=[
+                            ModelValidationError(
+                                name=name,
+                                message=str(msg),
+                            )
+                        ]
                     )
         return user_defined_category
 
@@ -109,8 +126,15 @@ class BaseConsumer(BaseEquipment, ABC):
         if isinstance(fuel, dict) and len(fuel.values()) > 0:
             fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
         if consumes == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
-            msg = f"Missing fuel for fuel consumer '{name}'"
-            raise ValueError(msg)
+            msg = "Missing fuel for fuel consumer"
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=name,
+                        message=str(msg),
+                    )
+                ],
+            )
         return fuel
 
 

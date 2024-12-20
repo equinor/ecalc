@@ -5,6 +5,10 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
 from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseComponent
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
@@ -73,24 +77,20 @@ class Installation(BaseComponent, EnergyComponent):
         # Implement the conversion logic here
         return convert_expression(data)
 
-    def check_user_defined_category(self, user_defined_category):
-        # Provide which value and context to make it easier for user to correct wrt mandatory changes.
-        if user_defined_category is not None:
-            if user_defined_category not in list(InstallationUserDefinedCategoryType):
-                raise ValueError(
-                    f"CATEGORY: {user_defined_category} is not allowed for Installation with name {self.name}. Valid categories are: {[str(installation_user_defined_category.value) for installation_user_defined_category in InstallationUserDefinedCategoryType]}"
-                )
-
-        return user_defined_category
-
     def check_fuel_consumers_or_venting_emitters_exist(self):
         try:
             if self.fuel_consumers or self.venting_emitters:
                 return self
         except AttributeError:
-            raise ValueError(
-                f"Keywords are missing:\n It is required to specify at least one of the keywords "
-                f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or {EcalcYamlKeywords.installation_venting_emitters} in the model.",
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=self.name,
+                        message=f"Keywords are missing:\n It is required to specify at least one of the keywords "
+                        f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or "
+                        f"{EcalcYamlKeywords.installation_venting_emitters} in the model.",
+                    )
+                ]
             ) from None
 
     def get_graph(self) -> ComponentGraph:

@@ -6,6 +6,7 @@ from pydantic import ValidationError
 import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.domain.infrastructure import GeneratorSet, FuelConsumer
+from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException
 from libecalc.dto.models import GeneratorSetSampled
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
@@ -90,7 +91,7 @@ class TestGeneratorSet:
             regularity={Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)},
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ComponentValidationException):
             GeneratorSet(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},

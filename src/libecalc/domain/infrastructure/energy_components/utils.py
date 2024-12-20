@@ -3,13 +3,23 @@ from typing import Any, Union
 
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.dto.models import ConsumerFunction
 
 
 def check_model_energy_usage_type(model_data: dict[Period, ConsumerFunction], energy_type: EnergyUsageType):
     for model in model_data.values():
         if model.energy_usage_type != energy_type:
-            raise ValueError(f"Model does not consume {energy_type.value}")
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        message=f"Model does not consume {energy_type.value}",
+                    )
+                ]
+            )
     return model_data
 
 
