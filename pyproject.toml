@@ -42,7 +42,7 @@ ecalc = 'ecalc_cli.main:main'
 python = ">=3.11,<3.14"
 pydantic = "<3"
 PyYAML = "^6"
-numpy = "~1.26.0"
+numpy = "<3.0.0"
 pandas = "~2"
 scipy = ">= 1.14, < 1.15"
 "ruamel.yaml" = "^0.18"
@@ -81,6 +81,7 @@ addopts = "--import-mode=importlib"
 filterwarnings = [
     "error::DeprecationWarning", # Treat all DeprecationWarnings as errors and ignore explicitly below if needed
     "ignore:Avoid using the dto.*:DeprecationWarning", # Ignore internal deprecation warnings
+    "always:Arrays of 2-dimensional*", # treat numpy 2.0 deprecation on 2-dimensional matrix as warning (not error)
 ]
 markers = [
     "e2e: e2e tests.",
