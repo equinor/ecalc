@@ -15,7 +15,6 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.testing.yaml_builder import YamlGeneratorSetBuilder
 
 
