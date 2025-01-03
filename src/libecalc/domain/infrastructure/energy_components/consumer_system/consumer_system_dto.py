@@ -1,8 +1,6 @@
 from collections import defaultdict
 from typing import Literal, Optional, Union
 
-from pydantic import Field
-
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_component import EnergyComponent
@@ -33,6 +31,10 @@ from libecalc.domain.infrastructure.energy_components.base.component_dto import 
     SystemComponentConditions,
     SystemStreamConditions,
 )
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.compressor import Compressor
 from libecalc.domain.infrastructure.energy_components.compressor.component_dto import CompressorComponent
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system import (
@@ -41,20 +43,36 @@ from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_s
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.pump import Pump
 from libecalc.domain.infrastructure.energy_components.pump.component_dto import PumpComponent
+from libecalc.dto import FuelType
 from libecalc.dto.component_graph import ComponentGraph
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
 
 
 class ConsumerSystem(BaseConsumer, Emitter, EnergyComponent):
-    component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = Field(
-        ComponentType.CONSUMER_SYSTEM_V2,
-        title="TYPE",
-        description="The type of the component",
-    )
-
-    component_conditions: SystemComponentConditions
-    stream_conditions_priorities: Priorities[SystemStreamConditions]
-    consumers: Union[list[CompressorComponent], list[PumpComponent]]
+    def __init__(
+        self,
+        name: str,
+        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
+        regularity: dict[Period, Expression],
+        consumes: ConsumptionType,
+        component_conditions: SystemComponentConditions,
+        stream_conditions_priorities: Priorities[SystemStreamConditions],
+        consumers: Union[list[CompressorComponent], list[PumpComponent]],
+        fuel: Optional[dict[Period, FuelType]] = None,
+        component_type: Literal[ComponentType.CONSUMER_SYSTEM_V2] = ComponentType.CONSUMER_SYSTEM_V2,
+    ):
+        super().__init__(
+            component_type=component_type,
+            name=name,
+            user_defined_category=user_defined_category,
+            regularity=regularity,
+            consumes=consumes,
+            fuel=fuel,
+        )
+        self.component_conditions = component_conditions
+        self.stream_conditions_priorities = stream_conditions_priorities
+        self.consumers = consumers
 
     def is_fuel_consumer(self) -> bool:
         return self.consumes == ConsumptionType.FUEL
@@ -193,34 +211,40 @@ class ConsumerSystem(BaseConsumer, Emitter, EnergyComponent):
                             periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
-                                    Expression.setup_from_expression(stream_conditions.rate.value)
+                                    Expression.setup_from_expression(stream_conditions["rate"].value)
                                 )
                             ),
-                            unit=stream_conditions.rate.unit,
+                            unit=stream_conditions["rate"].unit,
                         )
-                        if stream_conditions.rate is not None
+                        if stream_conditions and "rate" in stream_conditions and stream_conditions["rate"] is not None
                         else None,
                         pressure=TimeSeriesFloat(
                             periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
-                                    expression=Expression.setup_from_expression(stream_conditions.pressure.value)
+                                    expression=Expression.setup_from_expression(stream_conditions["pressure"].value)
                                 )
                             ),
-                            unit=stream_conditions.pressure.unit,
+                            unit=stream_conditions["pressure"].unit,
                         )
-                        if stream_conditions.pressure is not None
+                        if stream_conditions
+                        and "pressure" in stream_conditions
+                        and stream_conditions["pressure"] is not None
                         else None,
                         fluid_density=TimeSeriesFloat(
                             periods=expression_evaluator.get_periods(),
                             values=list(
                                 expression_evaluator.evaluate(
-                                    expression=Expression.setup_from_expression(stream_conditions.fluid_density.value)
+                                    expression=Expression.setup_from_expression(
+                                        stream_conditions["fluid_density"].value
+                                    )
                                 )
                             ),
-                            unit=stream_conditions.fluid_density.unit,
+                            unit=stream_conditions["fluid_density"].unit,
                         )
-                        if stream_conditions.fluid_density is not None
+                        if stream_conditions
+                        and "fluid_density" in stream_conditions
+                        and stream_conditions["fluid_density"] is not None
                         else None,
                     )
                     for stream_name, stream_conditions in streams_conditions.items()
@@ -241,16 +265,23 @@ def create_consumer(
             model_for_period = energy_usage_model
 
     if model_for_period is None:
-        raise ValueError(f"Could not find model for consumer {consumer.name} at timestep {period}")
+        raise ComponentValidationException(
+            errors=[
+                ModelValidationError(
+                    name=consumer.name,
+                    message=f"Could not find model at timestep {period}",
+                )
+            ]
+        )
 
-    if consumer.component_type == ComponentType.COMPRESSOR:
+    if consumer.component_type in {ComponentType.COMPRESSOR, ComponentType.COMPRESSOR_V2}:
         return Compressor(
             id=consumer.id,
             compressor_model=create_compressor_model(
                 compressor_model_dto=model_for_period,
             ),
         )
-    elif consumer.component_type == ComponentType.PUMP:
+    elif consumer.component_type in {ComponentType.PUMP, ComponentType.PUMP_V2}:
         return Pump(
             id=consumer.id,
             pump_model=create_pump_model(

@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.logger import logger
 from libecalc.common.time_utils import Periods
-from libecalc.core.models.results import CompressorTrainResult, PumpModelResult
+from libecalc.core.models.results import CompressorTrainResult, EnergyFunctionResult, PumpModelResult
 from libecalc.core.result.results import ConsumerModelResult
-from libecalc.core.utils.array_type import PydanticNDArray
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.results import (
     ConsumerFunctionResultBase,
 )
@@ -23,16 +25,17 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.ope
 )
 
 
-class ConsumerSystemComponentResult(BaseModel):
-    name: str
-    consumer_model_result: Union[PumpModelResult, CompressorTrainResult]
+class ConsumerSystemComponentResult:
+    def __init__(self, name: str, consumer_model_result: Union[PumpModelResult, CompressorTrainResult]):
+        self.name = name
+        self.consumer_model_result = consumer_model_result
 
     @property
     def energy_usage(self) -> list[Optional[float]]:
         return self.consumer_model_result.energy_usage
 
     @property
-    def power(self) -> PydanticNDArray:
+    def power(self) -> NDArray:
         if self.consumer_model_result.power is not None:
             return np.asarray(self.consumer_model_result.power)
         else:
@@ -44,7 +47,8 @@ class ConsumerSystemComponentResult(BaseModel):
 
 
 class PumpResult(ConsumerSystemComponentResult):
-    consumer_model_result: PumpModelResult
+    def __init__(self, name: str, consumer_model_result: PumpModelResult):
+        super().__init__(name, consumer_model_result)
 
     @property
     def fluid_density(self):
@@ -52,15 +56,16 @@ class PumpResult(ConsumerSystemComponentResult):
 
 
 class CompressorResult(ConsumerSystemComponentResult):
-    consumer_model_result: Union[ConsumerModelResult, CompressorTrainResult]
+    def __init__(self, name: str, consumer_model_result: Union[ConsumerModelResult, CompressorTrainResult]):
+        super().__init__(name, consumer_model_result)
 
 
-class ConsumerSystemOperationalSettingResult(BaseModel):
-    consumer_results: list[ConsumerSystemComponentResult]
-    model_config = ConfigDict(frozen=True)
+class ConsumerSystemOperationalSettingResult:
+    def __init__(self, consumer_results: list[ConsumerSystemComponentResult]):
+        self.consumer_results = consumer_results
 
     @property
-    def total_energy_usage(self) -> PydanticNDArray:
+    def total_energy_usage(self) -> NDArray:
         total_energy_usage = np.sum(
             [np.asarray(result.energy_usage) for result in self.consumer_results],
             axis=0,
@@ -68,7 +73,7 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
         return np.array(total_energy_usage)
 
     @property
-    def total_power(self) -> PydanticNDArray:
+    def total_power(self) -> NDArray:
         total_power = np.sum(
             [np.asarray(result.power) for result in self.consumer_results],
             axis=0,
@@ -76,7 +81,7 @@ class ConsumerSystemOperationalSettingResult(BaseModel):
         return np.array(total_power)
 
     @property
-    def indices_outside_capacity(self) -> PydanticNDArray:
+    def indices_outside_capacity(self) -> NDArray:
         invalid_indices = np.full_like(self.total_energy_usage, fill_value=0)
 
         for result in self.consumer_results:
@@ -110,21 +115,52 @@ class ConsumerSystemConsumerFunctionResult(ConsumerFunctionResultBase):
     data for the energy usage of each consumer in the system in this operational setting.
     """
 
-    typ: Literal[ConsumerFunctionType.SYSTEM] = ConsumerFunctionType.SYSTEM  # type: ignore[valid-type]
-
-    operational_setting_used: PydanticNDArray  # integers in the range of number of operational settings
-    operational_settings: list[list[ConsumerSystemOperationalSetting]]
-    operational_settings_results: list[list[ConsumerSystemOperationalSettingResult]]
-    consumer_results: list[list[ConsumerSystemComponentResult]]
-    cross_over_used: Optional[PydanticNDArray] = (
-        None  # 0 or 1 whether cross over is used for this result (1=True, 0=False)
-    )
+    def __init__(
+        self,
+        operational_setting_used: NDArray,
+        operational_settings: list[list[ConsumerSystemOperationalSetting]],
+        operational_settings_results: list[list[ConsumerSystemOperationalSettingResult]],
+        consumer_results: list[list[ConsumerSystemComponentResult]],
+        cross_over_used: Optional[NDArray] = None,
+        # 0 or 1 whether cross over is used for this result (1=True, 0=False)
+        periods: Periods = None,
+        is_valid: NDArray = None,
+        energy_usage: NDArray = None,
+        energy_usage_before_power_loss_factor: Optional[NDArray] = None,
+        condition: Optional[NDArray] = None,
+        power_loss_factor: Optional[NDArray] = None,
+        energy_function_result: Optional[Union[EnergyFunctionResult, list[EnergyFunctionResult]]] = None,
+        power: Optional[NDArray] = None,
+    ):
+        super().__init__(
+            typ=ConsumerFunctionType.SYSTEM,
+            periods=periods,
+            is_valid=is_valid,
+            energy_usage=energy_usage,
+            energy_usage_before_power_loss_factor=energy_usage_before_power_loss_factor,
+            condition=condition,
+            power_loss_factor=power_loss_factor,
+            energy_function_result=energy_function_result,
+            power=power,
+        )
+        self.operational_setting_used = operational_setting_used
+        self.operational_settings = operational_settings
+        self.operational_settings_results = operational_settings_results
+        self.consumer_results = consumer_results
+        self.cross_over_used = cross_over_used
 
     def extend(self, other) -> ConsumerSystemConsumerFunctionResult:
         if not isinstance(self, type(other)):
-            msg = f"{self.__repr_name__()} Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
+            msg = "Mixing CONSUMER_SYSTEM with non-CONSUMER_SYSTEM is no longer supported."
             logger.warning(msg)
-            raise ValueError(msg)
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=self.__repr_name__(),
+                        message=msg,
+                    )
+                ]
+            )
 
         for attribute, values in self.__dict__.items():
             other_values = other.__getattribute__(attribute)

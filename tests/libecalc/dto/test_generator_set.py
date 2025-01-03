@@ -6,6 +6,7 @@ from pydantic import ValidationError
 import libecalc.dto.fuel_type
 from libecalc import dto
 from libecalc.domain.infrastructure import GeneratorSet, FuelConsumer
+from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException
 from libecalc.dto.models import GeneratorSetSampled
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
@@ -14,6 +15,7 @@ from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.expression import Expression
+from libecalc.testing.yaml_builder import YamlGeneratorSetBuilder
 
 
 class TestGeneratorSetSampled:
@@ -60,6 +62,7 @@ class TestGeneratorSet:
                     emissions=[],
                 )
             },
+            component_type=ComponentType.GENERATOR_SET,
         )
         assert generator_set_dto.generator_set_model == {
             Period(datetime(1900, 1, 1)): dto.GeneratorSetSampled(
@@ -71,6 +74,7 @@ class TestGeneratorSet:
         }
 
     def test_genset_should_fail_with_fuel_consumer(self):
+        """This validation is done in the dto layer"""
         fuel = libecalc.dto.fuel_type.FuelType(
             name="fuel",
             emissions=[],
@@ -89,7 +93,7 @@ class TestGeneratorSet:
             regularity={Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)},
             user_defined_category={Period(datetime(2000, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
         )
-        with pytest.raises(ValidationError):
+        with pytest.raises(ComponentValidationException):
             GeneratorSet(
                 name="Test",
                 user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.MISCELLANEOUS},
@@ -97,54 +101,38 @@ class TestGeneratorSet:
                 regularity={},
                 consumers=[fuel_consumer],
                 fuel={},
+                component_type=ComponentType.GENERATOR_SET,
             )
 
     def test_power_from_shore_wrong_category(self):
         """
         Check that CABLE_LOSS and MAX_USAGE_FROM_SHORE are only allowed if generator set category is POWER-FROM-SHORE
+        This validation is done in the yaml layer.
         """
 
         # Check for CABLE_LOSS
         with pytest.raises(ValueError) as exc_info:
-            GeneratorSet(
-                name="Test",
-                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
-                generator_set_model={},
-                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
-                consumers=[],
-                fuel={},
-                cable_loss=0,
-            )
+            YamlGeneratorSetBuilder().with_test_data().with_category("BOILER").with_cable_loss(0).validate()
 
         assert ("CABLE_LOSS is only valid for the category POWER-FROM-SHORE, not for BOILER") in str(exc_info.value)
 
         # Check for MAX_USAGE_FROM_SHORE
         with pytest.raises(ValueError) as exc_info:
-            GeneratorSet(
-                name="Test",
-                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
-                generator_set_model={},
-                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
-                consumers=[],
-                fuel={},
-                max_usage_from_shore=20,
-            )
+            YamlGeneratorSetBuilder().with_test_data().with_category("BOILER").with_max_usage_from_shore(20).validate()
 
         assert ("MAX_USAGE_FROM_SHORE is only valid for the category POWER-FROM-SHORE, not for BOILER") in str(
             exc_info.value
         )
 
+        # Check for CABLE_LOSS and MAX_USAGE_FROM_SHORE
         with pytest.raises(ValueError) as exc_info:
-            GeneratorSet(
-                name="Test",
-                user_defined_category={Period(datetime(1900, 1, 1)): ConsumerUserDefinedCategoryType.BOILER},
-                generator_set_model={},
-                regularity={Period(datetime(1900, 1, 1)): Expression.setup_from_expression(1)},
-                consumers=[],
-                fuel={},
-                max_usage_from_shore=20,
-                cable_loss=0,
-            )
+            (
+                YamlGeneratorSetBuilder()
+                .with_test_data()
+                .with_category("BOILER")
+                .with_cable_loss(0)
+                .with_max_usage_from_shore(20)
+            ).validate()
 
         assert (
             "CABLE_LOSS and MAX_USAGE_FROM_SHORE are only valid for the category POWER-FROM-SHORE, not for BOILER"

@@ -18,6 +18,10 @@ from libecalc.common.utils.rates import (
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import GeneratorSetResult
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 
 
 class Genset:
@@ -48,7 +52,14 @@ class Genset:
         assert power_requirement.unit == Unit.MEGA_WATT
 
         if not len(power_requirement) == len(expression_evaluator.get_periods()):
-            raise ValueError("length of power_requirement does not match the time vector.")
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=self.name,
+                        message="length of power_requirement does not match the time vector.",
+                    )
+                ]
+            )
 
         # Compute fuel consumption from power rate.
         fuel_rate = self.evaluate_fuel_rate(
