@@ -61,7 +61,7 @@ class BaseEquipment(BaseComponent, ABC):
         max_usage_from_shore: Optional[Expression] = None,
     ):
         super().__init__(name, regularity)
-        self.user_defined_category = self.check_user_defined_category(user_defined_category, name)
+        self.user_defined_category = user_defined_category
         self.energy_usage_model = energy_usage_model
         self.component_type = component_type
         self.fuel = fuel
@@ -73,31 +73,6 @@ class BaseEquipment(BaseComponent, ABC):
     @property
     def id(self) -> str:
         return generate_id(self.name)
-
-    @classmethod
-    def check_user_defined_category(
-        cls, user_defined_category, name: str
-    ):  # TODO: Check if this is needed. Should be handled in yaml validation
-        """Provide which value and context to make it easier for user to correct wrt mandatory changes."""
-
-        if isinstance(user_defined_category, dict) and len(user_defined_category.values()) > 0:
-            user_defined_category = _convert_keys_in_dictionary_from_str_to_periods(user_defined_category)
-            for user_category in user_defined_category.values():
-                if user_category not in list(ConsumerUserDefinedCategoryType):
-                    msg = (
-                        f"CATEGORY: {user_category} is not allowed for {cls.__name__}. Valid categories are: "
-                        f"{[(consumer_user_defined_category.value) for consumer_user_defined_category in ConsumerUserDefinedCategoryType]}"
-                    )
-
-                    raise ComponentValidationException(
-                        errors=[
-                            ModelValidationError(
-                                name=name,
-                                message=str(msg),
-                            )
-                        ]
-                    )
-        return user_defined_category
 
 
 class BaseConsumer(BaseEquipment, ABC):
