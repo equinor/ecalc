@@ -5,10 +5,6 @@ from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
 from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseComponent
-from libecalc.domain.infrastructure.energy_components.component_validation_error import (
-    ComponentValidationException,
-    ModelValidationError,
-)
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
@@ -19,7 +15,6 @@ from libecalc.dto.utils.validators import (
     validate_temporal_model,
 )
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
@@ -76,22 +71,6 @@ class Installation(BaseComponent, EnergyComponent):
     def convert_expression_installation(self, data):
         # Implement the conversion logic here
         return convert_expression(data)
-
-    def check_fuel_consumers_or_venting_emitters_exist(self):
-        try:
-            if self.fuel_consumers or self.venting_emitters:
-                return self
-        except AttributeError:
-            raise ComponentValidationException(
-                errors=[
-                    ModelValidationError(
-                        name=self.name,
-                        message=f"Keywords are missing:\n It is required to specify at least one of the keywords "
-                        f"{EcalcYamlKeywords.fuel_consumers}, {EcalcYamlKeywords.generator_sets} or "
-                        f"{EcalcYamlKeywords.installation_venting_emitters} in the model.",
-                    )
-                ]
-            ) from None
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()
