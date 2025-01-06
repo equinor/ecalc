@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Poetry
-      run: pipx install poetry
+      run: pipx install poetry==1.8.4
 
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -28,7 +28,7 @@ jobs:
 
     - name: Install deps
       run: poetry install --no-interaction
-    
+
     - name: Generate CLI reference
       run: |
         cd src
