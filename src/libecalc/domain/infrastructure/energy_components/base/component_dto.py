@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Optional
 
-from libecalc.application.energy.emitter import Emitter
-from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.string.string_utils import generate_id
@@ -55,20 +53,12 @@ class BaseEquipment(BaseComponent, ABC):
         component_type: ComponentType,
         energy_usage_model: Optional[dict[Period, Expression]] = None,
         fuel: Optional[dict[Period, FuelType]] = None,
-        generator_set_model: Optional[dict[Period, Union[BaseEquipment, Emitter, EnergyComponent]]] = None,
-        consumers: Optional[list[BaseEquipment]] = None,
-        cable_loss: Optional[Expression] = None,
-        max_usage_from_shore: Optional[Expression] = None,
     ):
         super().__init__(name, regularity)
         self.user_defined_category = user_defined_category
         self.energy_usage_model = energy_usage_model
         self.component_type = component_type
         self.fuel = fuel
-        self.generator_set_model = generator_set_model
-        self.consumers = consumers
-        self.cable_loss = cable_loss
-        self.max_usage_from_shore = max_usage_from_shore
 
     @property
     def id(self) -> str:

@@ -52,8 +52,7 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
             name,
             regularity,
             user_defined_category,
-            ComponentType.GENERATOR_SET,
-            generator_set_model=generator_set_model,
+            component_type,
             fuel=fuel,
         )
         self.generator_set_model = self.check_generator_set_model(generator_set_model)
