@@ -293,8 +293,8 @@ class PumpSingleSpeed(PumpModel):
         :param fluid_density:
         """
         # Ensure rate is a NumPy array
-        rate = np.array(rate, dtype=np.float64)
-        fluid_density = np.array(fluid_density, dtype=np.float64)
+        rate = np.asfarray(rate)
+        fluid_density = np.asfarray(fluid_density)
 
         # Ensure that the pump does not run when rate is <= 0.
         stream_day_rate = np.where(rate > 0, rate, 0)

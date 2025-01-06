@@ -1,23 +1,19 @@
-from typing import Literal
-
 from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
-from libecalc.domain.infrastructure.energy_components.base.component_dto import Component
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.dto.component_graph import ComponentGraph
 
 
-class Asset(Component, EnergyComponent):
+class Asset(EnergyComponent):
     def __init__(
         self,
         name: str,
         installations: list[Installation],
-        component_type: Literal[ComponentType.ASSET] = ComponentType.ASSET,
     ):
         self.name = name
         self.installations = installations
-        self.component_type = component_type
+        self.component_type = ComponentType.ASSET
 
     @property
     def id(self):
