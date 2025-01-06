@@ -1,5 +1,4 @@
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
-from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseConsumer
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )

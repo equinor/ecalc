@@ -1,106 +1,10 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from typing import Optional
 
-from libecalc.common.component_type import ComponentType
-from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.string.string_utils import generate_id
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
-from libecalc.domain.infrastructure.energy_components.component_validation_error import (
-    ComponentValidationException,
-    ModelValidationError,
-)
-from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
-from libecalc.dto.fuel_type import FuelType
-from libecalc.dto.types import ConsumerUserDefinedCategoryType
-from libecalc.dto.utils.validators import (
-    ExpressionType,
-    validate_temporal_model,
-)
-from libecalc.expression import Expression
-
-
-class Component(ABC):
-    component_type: ComponentType
-
-    @property
-    @abstractmethod
-    def id(self) -> str: ...
-
-
-class BaseComponent(Component, ABC):
-    def __init__(self, name: str, regularity: dict[Period, Expression]):
-        self.name = name
-        self.regularity = self.check_regularity(regularity)
-        validate_temporal_model(self.regularity)
-
-    @classmethod
-    def check_regularity(cls, regularity):
-        if isinstance(regularity, dict) and len(regularity.values()) > 0:
-            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
-        return regularity
-
-
-class BaseEquipment(BaseComponent, ABC):
-    def __init__(
-        self,
-        name: str,
-        regularity: dict[Period, Expression],
-        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
-        component_type: ComponentType,
-        energy_usage_model: Optional[dict[Period, Expression]] = None,
-        fuel: Optional[dict[Period, FuelType]] = None,
-    ):
-        super().__init__(name, regularity)
-        self.user_defined_category = user_defined_category
-        self.energy_usage_model = energy_usage_model
-        self.component_type = component_type
-        self.fuel = fuel
-
-    @property
-    def id(self) -> str:
-        return generate_id(self.name)
-
-
-class BaseConsumer(BaseEquipment, ABC):
-    """Base class for all consumers."""
-
-    def __init__(
-        self,
-        name: str,
-        regularity: dict[Period, Expression],
-        consumes: ConsumptionType,
-        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
-        component_type: ComponentType,
-        energy_usage_model: Optional[dict[Period, Expression]] = None,
-        fuel: Optional[dict[Period, FuelType]] = None,
-    ):
-        super().__init__(name, regularity, user_defined_category, component_type, energy_usage_model, fuel)
-
-        self.fuel = self.validate_fuel_exist(name=self.name, fuel=fuel, consumes=consumes)
-        self.consumes = consumes
-
-    @classmethod
-    def validate_fuel_exist(cls, name: str, fuel: Optional[dict[Period, FuelType]], consumes: ConsumptionType):
-        """
-        Make sure fuel is set if consumption type is FUEL.
-        """
-        if isinstance(fuel, dict) and len(fuel.values()) > 0:
-            fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
-        if consumes == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
-            msg = "Missing fuel for fuel consumer"
-            raise ComponentValidationException(
-                errors=[
-                    ModelValidationError(
-                        name=name,
-                        message=str(msg),
-                    )
-                ],
-            )
-        return fuel
+from libecalc.dto.utils.validators import ExpressionType
 
 
 class ExpressionTimeSeries:

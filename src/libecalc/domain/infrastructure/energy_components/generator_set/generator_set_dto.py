@@ -5,13 +5,13 @@ from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
+from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseEquipment
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
     ComponentValidationException,
     ModelValidationError,
@@ -35,7 +35,7 @@ from libecalc.dto.utils.validators import (
 from libecalc.expression import Expression
 
 
-class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
+class GeneratorSet(Emitter, EnergyComponent):
     def __init__(
         self,
         name: str,
@@ -48,13 +48,10 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
         max_usage_from_shore: Optional[ExpressionType] = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
-        super().__init__(
-            name,
-            regularity,
-            user_defined_category,
-            component_type,
-            fuel=fuel,
-        )
+        self.name = name
+        self.user_defined_category = user_defined_category
+        self.regularity = self.check_regularity(regularity)
+        validate_temporal_model(self.regularity)
         self.generator_set_model = self.check_generator_set_model(generator_set_model)
         self.fuel = self.check_fuel(fuel)
         self.consumers = consumers if consumers is not None else []
@@ -63,6 +60,16 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
         self.component_type = component_type
         self._validate_genset_temporal_models(self.generator_set_model, self.fuel)
         self.check_consumers()
+
+    @property
+    def id(self) -> str:
+        return generate_id(self.name)
+
+    @staticmethod
+    def check_regularity(regularity):
+        if isinstance(regularity, dict) and len(regularity.values()) > 0:
+            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
+        return regularity
 
     def is_fuel_consumer(self) -> bool:
         return True

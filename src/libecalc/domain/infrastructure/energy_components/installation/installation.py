@@ -4,7 +4,6 @@ from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
 from libecalc.common.time_utils import Period
-from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseComponent
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_dto import GeneratorSet
@@ -20,7 +19,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 )
 
 
-class Installation(BaseComponent, EnergyComponent):
+class Installation(EnergyComponent):
     def __init__(
         self,
         name: str,
@@ -30,7 +29,7 @@ class Installation(BaseComponent, EnergyComponent):
         venting_emitters: Optional[list[YamlVentingEmitter]] = None,
         user_defined_category: Optional[InstallationUserDefinedCategoryType] = None,
     ):
-        super().__init__(name, regularity)
+        self.name = name
         self.hydrocarbon_export = self.convert_expression_installation(hydrocarbon_export)
         self.regularity = self.convert_expression_installation(regularity)
         self.fuel_consumers = fuel_consumers

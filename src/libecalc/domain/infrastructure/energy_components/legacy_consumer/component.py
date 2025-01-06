@@ -26,7 +26,6 @@ from libecalc.core.result.results import (
     GenericComponentResult,
     PumpResult,
 )
-from libecalc.domain.infrastructure.energy_components.base import BaseConsumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
@@ -56,7 +55,7 @@ ConsumerOrSystemFunctionResult = Union[ConsumerSystemConsumerFunctionResult, Con
 ConsumerResult = Union[ConsumerSystemResult, PumpResult, CompressorResult]
 
 
-class Consumer(BaseConsumer):
+class Consumer:
     def __init__(
         self,
         id: str,

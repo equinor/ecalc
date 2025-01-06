@@ -5,11 +5,11 @@ from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
-from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseConsumer
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
 )
@@ -24,7 +24,7 @@ from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
 
 
-class ElectricityConsumer(BaseConsumer, EnergyComponent):
+class ElectricityConsumer(EnergyComponent):
     def __init__(
         self,
         name: str,
@@ -40,10 +40,25 @@ class ElectricityConsumer(BaseConsumer, EnergyComponent):
         energy_usage_model: dict[Period, ElectricEnergyUsageModel],
         consumes: Literal[ConsumptionType.ELECTRICITY] = ConsumptionType.ELECTRICITY,
     ):
-        super().__init__(name, regularity, consumes, user_defined_category, component_type, energy_usage_model, None)
+        self.name = name
+        self.regularity = self.check_regularity(regularity)
+        validate_temporal_model(self.regularity)
+        self.user_defined_category = user_defined_category
         self.energy_usage_model = self.check_energy_usage_model(energy_usage_model)
         self._validate_el_consumer_temporal_model(self.energy_usage_model)
         self._check_model_energy_usage(self.energy_usage_model)
+        self.consumes = consumes
+        self.component_type = component_type
+
+    @property
+    def id(self) -> str:
+        return generate_id(self.name)
+
+    @staticmethod
+    def check_regularity(regularity):
+        if isinstance(regularity, dict) and len(regularity.values()) > 0:
+            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
+        return regularity
 
     def is_fuel_consumer(self) -> bool:
         return False
