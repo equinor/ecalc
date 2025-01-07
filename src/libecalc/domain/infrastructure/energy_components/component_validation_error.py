@@ -51,3 +51,13 @@ class ComponentValidationException(Exception):
 
     def errors(self) -> list[ModelValidationError]:
         return self._errors
+
+
+class ComponentDtoValidationError(Exception):
+    def __init__(self, errors: list[ModelValidationError]):
+        self.errors = errors
+        messages = [str(error) for error in errors]
+        super().__init__("\n".join(messages))
+
+    def error_count(self):
+        return len(self.errors)

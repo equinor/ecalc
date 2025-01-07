@@ -1,17 +1,26 @@
 from datetime import datetime
+from io import StringIO
 
 import pytest
-from pydantic import ValidationError
 
 import libecalc.dto.fuel_type
 import libecalc.dto.types
+from ecalc_cli.types import Frequency
 from libecalc import dto
+from libecalc.application.energy_calculator import EnergyCalculator
+from libecalc.common.variables import VariablesMap
 from libecalc.domain.infrastructure import FuelConsumer, Installation
 from libecalc.common.component_type import ComponentType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.time_utils import Period
-from libecalc.domain.infrastructure.energy_components.component_validation_error import ComponentValidationException
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ComponentDtoValidationError,
+)
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.yaml_entities import ResourceStream
+from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlInstallationBuilder, YamlFuelConsumerBuilder
 
 regularity = {Period(datetime(2000, 1, 1)): Expression.setup_from_expression(1)}
 
@@ -109,3 +118,39 @@ class TestFuelConsumer:
                 user_defined_category="category",
             )
         assert "Name: test\nMessage: Missing fuel for fuel consumer" in str(exc_info.value.errors()[0])
+
+    def test_blank_fuel_name_and_missing_fuel(self, yaml_model_factory, request):
+        time_vector = [datetime(2027, 1, 1), datetime(2028, 1, 1), datetime(2029, 1, 1)]
+        variables = VariablesMap(time_vector=time_vector, variables={})
+
+        fuel_consumer = YamlFuelConsumerBuilder().with_test_data().validate()
+
+        # Setting fuel reference name to blank
+        fuel_consumer.fuel = ""
+
+        installation = (
+            YamlInstallationBuilder().with_name("Installation 1").with_fuel_consumers([fuel_consumer])
+        ).validate()
+
+        # No fuel is set for the asset (means None)
+        asset = (
+            YamlAssetBuilder().with_installations([installation]).with_start(time_vector[0]).with_end(time_vector[-1])
+        ).validate()
+
+        yaml_model_factory = request.getfixturevalue("yaml_model_factory")
+        asset_dict = asset.model_dump(
+            serialize_as_any=True,
+            mode="json",
+            exclude_unset=True,
+            by_alias=True,
+        )
+
+        yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
+        stream = ResourceStream(name="", stream=StringIO(yaml_string))
+
+        asset_yaml = yaml_model_factory(resource_stream=stream, resources={}, frequency=Frequency.YEAR)
+        energy_calculator = EnergyCalculator(energy_model=asset_yaml, expression_evaluator=variables)
+
+        with pytest.raises(ComponentDtoValidationError) as exc_info:
+            energy_calculator.evaluate_energy_usage()
+        assert "Name: flare\nMessage: Missing fuel for fuel consumer" in str(exc_info.value.errors[0])

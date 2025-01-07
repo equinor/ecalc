@@ -8,6 +8,10 @@ from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentDtoValidationError,
+    ComponentValidationException,
+)
 from libecalc.dto import ResultOptions
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.expression import Expression
@@ -20,7 +24,11 @@ from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_vari
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.resource_service import ResourceService
-from libecalc.presentation.yaml.validation_errors import DtoValidationError, Location, ModelValidationError
+from libecalc.presentation.yaml.validation_errors import (
+    DtoValidationError,
+    Location,
+    ModelValidationError,
+)
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_validation_context import (
@@ -104,7 +112,10 @@ class YamlModel(EnergyModel):
             references=self._get_reference_service(),
             target_period=self.period,
         )
-        return model_mapper.from_yaml_to_dto(configuration=self._configuration)
+        try:
+            return model_mapper.from_yaml_to_dto(configuration=self._configuration)
+        except ComponentValidationException as e:
+            raise ComponentDtoValidationError(errors=e.errors()) from e
 
     @property
     def period(self) -> Period:
