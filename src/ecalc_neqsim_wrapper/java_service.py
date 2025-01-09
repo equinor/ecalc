@@ -24,4 +24,4 @@ def start_server():
     import logging
 
     logging.getLogger("py4j").setLevel(logging.ERROR)
-    return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=True)
+    return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=True, javaopts=["-Xmx4G"])
