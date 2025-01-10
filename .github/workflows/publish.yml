@@ -21,8 +21,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - uses: snok/install-poetry@v1.3.4
+      - uses: snok/install-poetry@v1
         with:
+          version: 1.8.4
           virtualenvs-create: true
 
       - name: Check pyproject.toml validity
