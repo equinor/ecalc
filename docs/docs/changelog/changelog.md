@@ -1,5 +1,17 @@
 # Changelog
 
+## [9.6.0](https://github.com/equinor/ecalc/compare/v9.5.0...v9.6.0) (2025-01-10)
+
+
+### Bug Fixes
+
+* poetry in pipeline ([#760](https://github.com/equinor/ecalc/issues/760)) ([f544f2e](https://github.com/equinor/ecalc/commit/f544f2e041aefc13e4d12346bc3f13e9854ea925))
+
+
+### Documentation
+
+* remove reference to internal documents ([#758](https://github.com/equinor/ecalc/issues/758)) ([61c0d2f](https://github.com/equinor/ecalc/commit/61c0d2f490e54a50208d6fd63934b30a5d47af1c))
+
 ## [9.5.0](https://github.com/equinor/ecalc/compare/v9.4.0...v9.5.0) (2025-01-10)
 
 
