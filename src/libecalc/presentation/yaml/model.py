@@ -9,7 +9,6 @@ from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.time_utils import Frequency, Period
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.infrastructure.energy_components.component_validation_error import (
-    ComponentDtoValidationError,
     ComponentValidationException,
 )
 from libecalc.dto import ResultOptions
@@ -112,10 +111,8 @@ class YamlModel(EnergyModel):
             references=self._get_reference_service(),
             target_period=self.period,
         )
-        try:
-            return model_mapper.from_yaml_to_dto(configuration=self._configuration)
-        except ComponentValidationException as e:
-            raise ComponentDtoValidationError(errors=e.errors()) from e
+
+        return model_mapper.from_yaml_to_dto(configuration=self._configuration)
 
     @property
     def period(self) -> Period:
@@ -218,5 +215,5 @@ class YamlModel(EnergyModel):
             # Validate and create the graph used for evaluating the energy model
             self.get_graph()
             return self
-        except DtoValidationError as e:
+        except (DtoValidationError, ComponentValidationException) as e:
             raise ModelValidationException(errors=e.errors()) from e

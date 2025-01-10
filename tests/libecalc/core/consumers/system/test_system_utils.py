@@ -329,9 +329,9 @@ def test_assemble_operational_setting_from_model_result_list():
         operational_settings=operational_settings, setting_number_used_per_timestep=setting_number_used_per_timestep
     )
 
-    assert np.array(result.rates[0]).tolist() == [0, 31, 22, 13, 4]
-    assert np.array(result.rates[1]).tolist() == [0, 31, 22, 13, 4]
-    assert np.array(result.suction_pressures[0]).tolist() == [0, 31, 22, 13, 4]
-    assert np.array(result.suction_pressures[1]).tolist() == [0, 31, 22, 13, 4]
-    assert np.array(result.discharge_pressures[0]).tolist() == [0, 31, 22, 13, 4]
-    assert np.array(result.discharge_pressures[1]).tolist() == [0, 31, 22, 13, 4]
+    assert result.rates[0] == [0, 31, 22, 13, 4]
+    assert result.rates[1] == [0, 31, 22, 13, 4]
+    assert result.suction_pressures[0] == [0, 31, 22, 13, 4]
+    assert result.suction_pressures[1] == [0, 31, 22, 13, 4]
+    assert result.discharge_pressures[0] == [0, 31, 22, 13, 4]
+    assert result.discharge_pressures[1] == [0, 31, 22, 13, 4]
