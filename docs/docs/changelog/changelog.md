@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.5.0](https://github.com/equinor/ecalc/compare/v9.4.0...v9.5.0) (2025-01-10)
+
+
+### Miscellaneous Chores
+
+* increase memory available to neqsim ([#756](https://github.com/equinor/ecalc/issues/756)) ([fd2ee64](https://github.com/equinor/ecalc/commit/fd2ee640818ce2e79c3145944a24ae7c91a5ea86))
+
 ## [9.4.0](https://github.com/equinor/ecalc/compare/v9.3.0...v9.4.0) (2025-01-06)
 
 
