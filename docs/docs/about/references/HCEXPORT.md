@@ -12,7 +12,6 @@ Typically it would be the sum of exported oil and gas in units of oil equivalent
 :::info What is hydrocarbon export?
 Hydrocarbon export is the oil equivalents of what is exported for sale and only these volumes should
 be included here. I.e., it is important to distinguish between *produced gas* and *sales gas*.
-See [GL0093](https://docmap.equinor.com/Docmap/page/doc/dmDocIndex.html?DOCVIEW=FALSE?DOCID=1042144) in Docmap.
 :::
 ## Format
 ~~~~~~~~yaml
