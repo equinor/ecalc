@@ -24,7 +24,6 @@ from libecalc.testing.yaml_builder import (
     YamlGeneratorSetBuilder,
     YamlAssetBuilder,
     YamlInstallationBuilder,
-    YamlFuelConsumerBuilder,
     YamlElectricity2fuelBuilder,
 )
 
