@@ -149,13 +149,23 @@ class GeneratorSet(Emitter, EnergyComponent):
             generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)
         return generator_set_model
 
-    @staticmethod
-    def check_fuel(fuel: dict[Period, FuelType]):
+    def check_fuel(self, fuel: dict[Period, FuelType]):
         """
-        Make sure that temporal models are converted to Period objects if they are strings
+        Make sure that temporal models are converted to Period objects if they are strings,
+        and that fuel is set
         """
         if isinstance(fuel, dict) and len(fuel.values()) > 0:
             fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
+        if self.is_fuel_consumer() and (fuel is None or len(fuel) < 1):
+            msg = "Missing fuel for generator set"
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=self.name,
+                        message=str(msg),
+                    )
+                ],
+            )
         return fuel
 
     def check_consumers(self):
