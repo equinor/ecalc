@@ -1,8 +1,5 @@
 from typing import Literal, Optional
 
-from pydantic import field_validator
-from pydantic_core.core_schema import ValidationInfo
-
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_component import EnergyComponent
@@ -10,12 +7,16 @@ from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseConsumer
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
@@ -27,23 +28,46 @@ from libecalc.domain.infrastructure.energy_components.utils import (
 )
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.models import FuelEnergyUsageModel
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
+from libecalc.expression import Expression
 
 
-class FuelConsumer(BaseConsumer, Emitter, EnergyComponent):
-    component_type: Literal[
-        ComponentType.COMPRESSOR,
-        ComponentType.GENERIC,
-        ComponentType.COMPRESSOR_SYSTEM,
-    ]
-    consumes: Literal[ConsumptionType.FUEL] = ConsumptionType.FUEL
-    fuel: dict[Period, FuelType]
-    energy_usage_model: dict[Period, FuelEnergyUsageModel]
+class FuelConsumer(Emitter, EnergyComponent):
+    def __init__(
+        self,
+        name: str,
+        regularity: dict[Period, Expression],
+        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
+        component_type: Literal[
+            ComponentType.COMPRESSOR,
+            ComponentType.GENERIC,
+            ComponentType.COMPRESSOR_SYSTEM,
+        ],
+        fuel: dict[Period, FuelType],
+        energy_usage_model: dict[Period, FuelEnergyUsageModel],
+        consumes: Literal[ConsumptionType.FUEL] = ConsumptionType.FUEL,
+    ):
+        self.name = name
+        self.regularity = self.check_regularity(regularity)
+        validate_temporal_model(self.regularity)
+        self.user_defined_category = user_defined_category
+        self.energy_usage_model = self.check_energy_usage_model(energy_usage_model)
+        self.fuel = self.validate_fuel_exist(name=self.name, fuel=fuel, consumes=consumes)
+        self._validate_fuel_consumer_temporal_models(self.energy_usage_model, self.fuel)
+        self._check_model_energy_usage(self.energy_usage_model)
+        self.consumes = consumes
+        self.component_type = component_type
 
-    _validate_fuel_consumer_temporal_models = field_validator("energy_usage_model", "fuel")(validate_temporal_model)
-    _check_model_energy_usage = field_validator("energy_usage_model")(
-        lambda data: check_model_energy_usage_type(data, EnergyUsageType.FUEL)
-    )
+    @property
+    def id(self) -> str:
+        return generate_id(self.name)
+
+    @staticmethod
+    def check_regularity(regularity):
+        if isinstance(regularity, dict) and len(regularity.values()) > 0:
+            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
+        return regularity
 
     def is_fuel_consumer(self) -> bool:
         return True
@@ -100,9 +124,8 @@ class FuelConsumer(BaseConsumer, Emitter, EnergyComponent):
             fuel_rate=fuel_usage.values,
         )
 
-    @field_validator("energy_usage_model", mode="before")
-    @classmethod
-    def check_energy_usage_model(cls, energy_usage_model, info: ValidationInfo):
+    @staticmethod
+    def check_energy_usage_model(energy_usage_model: dict[Period, FuelEnergyUsageModel]):
         """
         Make sure that temporal models are converted to Period objects if they are strings
         """
@@ -110,12 +133,33 @@ class FuelConsumer(BaseConsumer, Emitter, EnergyComponent):
             energy_usage_model = _convert_keys_in_dictionary_from_str_to_periods(energy_usage_model)
         return energy_usage_model
 
-    @field_validator("fuel", mode="before")
+    @staticmethod
+    def _validate_fuel_consumer_temporal_models(
+        energy_usage_model: dict[Period, FuelEnergyUsageModel], fuel: dict[Period, FuelType]
+    ):
+        validate_temporal_model(energy_usage_model)
+        validate_temporal_model(fuel)
+
+    @staticmethod
+    def _check_model_energy_usage(energy_usage_model: dict[Period, FuelEnergyUsageModel]):
+        check_model_energy_usage_type(energy_usage_model, EnergyUsageType.FUEL)
+
     @classmethod
-    def check_fuel(cls, fuel):
+    def validate_fuel_exist(cls, name: str, fuel: Optional[dict[Period, FuelType]], consumes: ConsumptionType):
         """
-        Make sure that temporal models are converted to Period objects if they are strings
+        Make sure that temporal models are converted to Period objects if they are strings,
+        and that fuel is set if consumption type is FUEL.
         """
         if isinstance(fuel, dict) and len(fuel.values()) > 0:
             fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
+        if consumes == ConsumptionType.FUEL and (fuel is None or len(fuel) < 1):
+            msg = "Missing fuel for fuel consumer"
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=name,
+                        message=str(msg),
+                    )
+                ],
+            )
         return fuel

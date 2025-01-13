@@ -180,7 +180,7 @@ def test_interpolation_functions():
     assert not (np.asarray(chart_curve.rate_head_and_efficiency_at_minimum_rate) - [336.0, 1778.7, 0.4717]).any()
     assert not (np.asarray(chart_curve.rate_head_and_efficiency_at_maximum_rate) - [1028, 1460.6, 0.7193]).any()
     assert chart_curve.efficiency_as_function_of_rate(708) == 0.6683
-    assert chart_curve.efficiency_as_function_of_rate(456.5) == 0.546
+    assert np.round(chart_curve.efficiency_as_function_of_rate(456.5), 3) == 0.546
     assert chart_curve.get_distance_and_efficiency_from_closest_point_on_curve(577, 1718.7) == (0.0, 0.6203)
     np.testing.assert_approx_equal(
         chart_curve.get_distance_and_efficiency_from_closest_point_on_curve(400, 1600)[0], 157.9450

@@ -1,12 +1,17 @@
 from datetime import datetime
 from typing import Annotated, Generic, Literal, Optional, TypeVar, Union
 
-from pydantic import ConfigDict, Field, TypeAdapter
+from pydantic import ConfigDict, Field
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.priorities import Priorities
 from libecalc.common.time_utils import Period, define_time_model_for_period
-from libecalc.domain.infrastructure.energy_components.base.component_dto import Crossover, SystemComponentConditions
+from libecalc.domain.infrastructure.energy_components.base.component_dto import (
+    Crossover,
+    SystemComponentConditions,
+    SystemStreamConditions,
+)
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.dto import FuelType
 from libecalc.expression import Expression
@@ -68,6 +73,22 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
 
     consumers: list[TYamlConsumer]
 
+    @staticmethod
+    def convert_yaml_priorities(yaml_priorities: YamlPriorities) -> Priorities[SystemStreamConditions]:
+        priorities: Priorities[SystemStreamConditions] = {}
+        for priority_id, consumer_map in yaml_priorities.items():
+            priorities[priority_id] = {}
+            for consumer_id, stream_conditions in consumer_map.items():
+                priorities[priority_id][consumer_id] = {
+                    stream_name: SystemStreamConditions(
+                        rate=stream_conditions.rate,
+                        pressure=stream_conditions.pressure,
+                        fluid_density=stream_conditions.fluid_density,
+                    )
+                    for stream_name, stream_conditions in stream_conditions.items()
+                }
+        return priorities
+
     def to_dto(
         self,
         regularity: dict[datetime, Expression],
@@ -114,7 +135,7 @@ class YamlConsumerSystem(YamlConsumerBase, Generic[TYamlConsumer]):
             regularity=regularity,
             consumes=consumes,
             component_conditions=component_conditions,
-            stream_conditions_priorities=TypeAdapter(YamlPriorities).dump_python(
+            stream_conditions_priorities=self.convert_yaml_priorities(
                 self.stream_conditions_priorities
             ),  # TODO: unnecessary, but we should remove the need to have dto here (two very similar classes)
             consumers=consumers,

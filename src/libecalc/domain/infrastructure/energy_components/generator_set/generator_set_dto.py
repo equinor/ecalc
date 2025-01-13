@@ -1,57 +1,75 @@
-from typing import Annotated, Literal, Optional, Union
-
-from pydantic import Field, field_validator, model_validator
-from pydantic_core.core_schema import ValidationInfo
+from typing import Literal, Optional, Union
 
 from libecalc.application.energy.component_energy_context import ComponentEnergyContext
 from libecalc.application.energy.emitter import Emitter
 from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.application.energy.energy_model import EnergyModel
 from libecalc.common.component_type import ComponentType
+from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.models.generator import GeneratorModelSampled
 from libecalc.core.result import EcalcModelResult
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure.energy_components.base.component_dto import BaseEquipment
+from libecalc.domain.infrastructure.energy_components.component_validation_error import (
+    ComponentValidationException,
+    ModelValidationError,
+)
 from libecalc.domain.infrastructure.energy_components.consumer_system.consumer_system_dto import ConsumerSystem
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
     ElectricityConsumer,
 )
+from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumer
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set import Genset
 from libecalc.domain.infrastructure.energy_components.utils import _convert_keys_in_dictionary_from_str_to_periods
 from libecalc.dto.component_graph import ComponentGraph
 from libecalc.dto.fuel_type import FuelType
 from libecalc.dto.models import GeneratorSetSampled
+from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import (
     ExpressionType,
     validate_temporal_model,
 )
-from libecalc.presentation.yaml.ltp_validation import (
-    validate_generator_set_power_from_shore,
-)
+from libecalc.expression import Expression
 
 
-class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
-    component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET
-    fuel: dict[Period, FuelType]
-    generator_set_model: dict[Period, GeneratorSetSampled]
-    consumers: list[
-        Annotated[
-            Union[ElectricityConsumer, ConsumerSystem],
-            Field(discriminator="component_type"),
-        ]
-    ] = Field(default_factory=list)
-    cable_loss: Optional[ExpressionType] = Field(
-        None,
-        title="CABLE_LOSS",
-        description="Power loss in cables from shore. " "Used to calculate onshore delivery/power supply onshore.",
-    )
-    max_usage_from_shore: Optional[ExpressionType] = Field(
-        None, title="MAX_USAGE_FROM_SHORE", description="The peak load/effect that is expected for one hour, per year."
-    )
+class GeneratorSet(Emitter, EnergyComponent):
+    def __init__(
+        self,
+        name: str,
+        user_defined_category: dict[Period, ConsumerUserDefinedCategoryType],
+        generator_set_model: dict[Period, GeneratorSetSampled],
+        regularity: dict[Period, Expression],
+        consumers: list[Union[ElectricityConsumer, ConsumerSystem]] = None,
+        fuel: dict[Period, FuelType] = None,
+        cable_loss: Optional[ExpressionType] = None,
+        max_usage_from_shore: Optional[ExpressionType] = None,
+        component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
+    ):
+        self.name = name
+        self.user_defined_category = user_defined_category
+        self.regularity = self.check_regularity(regularity)
+        validate_temporal_model(self.regularity)
+        self.generator_set_model = self.check_generator_set_model(generator_set_model)
+        self.fuel = self.check_fuel(fuel)
+        self.consumers = consumers if consumers is not None else []
+        self.cable_loss = cable_loss
+        self.max_usage_from_shore = max_usage_from_shore
+        self.component_type = component_type
+        self._validate_genset_temporal_models(self.generator_set_model, self.fuel)
+        self.check_consumers()
+
+    @property
+    def id(self) -> str:
+        return generate_id(self.name)
+
+    @staticmethod
+    def check_regularity(regularity):
+        if isinstance(regularity, dict) and len(regularity.values()) > 0:
+            regularity = _convert_keys_in_dictionary_from_str_to_periods(regularity)
+        return regularity
 
     def is_fuel_consumer(self) -> bool:
         return True
@@ -118,46 +136,52 @@ class GeneratorSet(BaseEquipment, Emitter, EnergyComponent):
             fuel_rate=fuel_usage.values,
         )
 
-    _validate_genset_temporal_models = field_validator("generator_set_model", "fuel")(validate_temporal_model)
+    @staticmethod
+    def _validate_genset_temporal_models(
+        generator_set_model: dict[Period, GeneratorSetSampled], fuel: dict[Period, FuelType]
+    ):
+        validate_temporal_model(generator_set_model)
+        validate_temporal_model(fuel)
 
-    @field_validator("user_defined_category", mode="before")
-    @classmethod
-    def check_mandatory_category_for_generator_set(cls, user_defined_category, info: ValidationInfo):
-        """This could be handled automatically with Pydantic, but I want to inform the users in a better way, in
-        particular since we introduced a breaking change for this to be mandatory for GeneratorSets in v7.2.
-        """
-        if user_defined_category is None or user_defined_category == "":
-            raise ValueError(f"CATEGORY is mandatory and must be set for '{info.data.get('name', cls.__name__)}'")
-
-        return user_defined_category
-
-    @field_validator("generator_set_model", mode="before")
-    @classmethod
-    def check_generator_set_model(cls, generator_set_model, info: ValidationInfo):
+    @staticmethod
+    def check_generator_set_model(generator_set_model: dict[Period, GeneratorSetSampled]):
         if isinstance(generator_set_model, dict) and len(generator_set_model.values()) > 0:
             generator_set_model = _convert_keys_in_dictionary_from_str_to_periods(generator_set_model)
         return generator_set_model
 
-    @field_validator("fuel", mode="before")
-    @classmethod
-    def check_fuel(cls, fuel, info: ValidationInfo):
+    def check_fuel(self, fuel: dict[Period, FuelType]):
         """
-        Make sure that temporal models are converted to Period objects if they are strings
+        Make sure that temporal models are converted to Period objects if they are strings,
+        and that fuel is set
         """
         if isinstance(fuel, dict) and len(fuel.values()) > 0:
             fuel = _convert_keys_in_dictionary_from_str_to_periods(fuel)
+        if self.is_fuel_consumer() and (fuel is None or len(fuel) < 1):
+            msg = "Missing fuel for generator set"
+            raise ComponentValidationException(
+                errors=[
+                    ModelValidationError(
+                        name=self.name,
+                        message=str(msg),
+                    )
+                ],
+            )
         return fuel
 
-    @model_validator(mode="after")
-    def check_power_from_shore(self):
-        _check_power_from_shore_attributes = validate_generator_set_power_from_shore(
-            cable_loss=self.cable_loss,
-            max_usage_from_shore=self.max_usage_from_shore,
-            model_fields=self.model_fields,
-            category=self.user_defined_category,
-        )
+    def check_consumers(self):
+        errors: list[ModelValidationError] = []
+        for consumer in self.consumers:
+            if isinstance(consumer, FuelConsumer):
+                errors.append(
+                    ModelValidationError(
+                        name=consumer.name,
+                        message="The consumer is not an electricity consumer. "
+                        "Generators can not have fuel consumers.",
+                    )
+                )
 
-        return self
+        if errors:
+            raise ComponentValidationException(errors=errors)
 
     def get_graph(self) -> ComponentGraph:
         graph = ComponentGraph()

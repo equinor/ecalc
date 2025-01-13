@@ -1,25 +1,23 @@
-from typing import Literal
-
-from pydantic import Field
-
 from libecalc.application.energy.energy_component import EnergyComponent
 from libecalc.common.component_type import ComponentType
 from libecalc.common.string.string_utils import generate_id
-from libecalc.domain.infrastructure.energy_components.base.component_dto import Component
 from libecalc.domain.infrastructure.energy_components.installation.installation import Installation
 from libecalc.dto.component_graph import ComponentGraph
-from libecalc.dto.utils.validators import ComponentNameStr
 
 
-class Asset(Component, EnergyComponent):
+class Asset(EnergyComponent):
+    def __init__(
+        self,
+        name: str,
+        installations: list[Installation],
+    ):
+        self.name = name
+        self.installations = installations
+        self.component_type = ComponentType.ASSET
+
     @property
     def id(self):
         return generate_id(self.name)
-
-    name: ComponentNameStr
-
-    installations: list[Installation] = Field(default_factory=list)
-    component_type: Literal[ComponentType.ASSET] = ComponentType.ASSET
 
     def is_fuel_consumer(self) -> bool:
         return True
