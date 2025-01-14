@@ -36,7 +36,18 @@ def _get_position_in_file_message(mark: Mark) -> str:
 
 
 class ValidationError(Exception):
-    pass
+    def __init__(self, message: Optional[str] = None, location: Optional[str] = None):
+        self._location = location
+        self._message = message
+        super().__init__(message)
+
+    @property
+    def location(self) -> Optional[str]:
+        return self._location
+
+    @property
+    def message(self) -> Optional[str]:
+        return self._message
 
 
 def dict_node_representer(dumper: Dumper, data):
@@ -141,7 +152,7 @@ class DataValidationError(ValidationError):
         dump_flow_style: Optional[DumpFlowStyle] = None,
     ):
         super().__init__(message)
-        self.message = message
+        self._message = message
 
         if data is not None and data.get(EcalcYamlKeywords.name) is not None:
             extended_message = f"Validation error in '{data.get(EcalcYamlKeywords.name)}'\n"
