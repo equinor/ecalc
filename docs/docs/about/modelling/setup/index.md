@@ -7,7 +7,15 @@ description: Guide on how to setup an eCalc™ model
 # Set up an eCalc Model
 This section describes how to create your own eCalc™ model file. 
 
-There are six separate sections which make up each model, these being: 
+First some general information about [File formats and syntax](/about/modelling/setup/file_format_and_syntax/index.md),
+with some specific details about writing [Expressions](/about/modelling/setup/file_format_and_syntax/expressions.md)
+in the YAML file.
+
+Then some information about how [eCalc™ interprets the time input](/about/modelling/setup/the_concept_of_time_in_ecalc.md)
+given in various parts of the YAML file.
+
+In the end there are some descriptions of the different sections that the YAML file consists of. There are six separate
+sections: 
 
 | Input                                                              | Function                                                                                                                                                                                          |
 |--------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
