@@ -35,33 +35,6 @@ def _get_position_in_file_message(mark: Mark) -> str:
     return message + "\n"
 
 
-class ValidationError(Exception):
-    pass
-
-
-def dict_node_representer(dumper: Dumper, data):
-    return dumper.represent_dict(dict(data))
-
-
-yaml.add_representer(YamlDict, dict_node_representer)
-
-
-def list_node_representer(dumper: Dumper, data):
-    return dumper.represent_list(list(data))
-
-
-yaml.add_representer(YamlList, list_node_representer)
-
-
-class DumpFlowStyle(enum.Enum):
-    INLINE = True
-    BLOCK = False
-
-
-date_repr_pattern = r"datetime\.date\(([0-9]{4}),\s([0-9]{1,2}),\s([0-9]{1,2})\)"
-date_repr_regex = re.compile(date_repr_pattern)
-
-
 @dataclass
 class Location:
     keys: list[Union[str, int, date]]
@@ -110,6 +83,44 @@ class Location:
         return cls([cls._parse_key(key) for key in loc])
 
 
+class ValidationError(Exception):
+    def __init__(self, message: Optional[str] = None, location: Optional[Location] = None):
+        super().__init__(message)
+        self._location = location
+        self._message = message
+
+    @property
+    def location(self) -> Optional[str]:
+        return self._location
+
+    @property
+    def message(self) -> Optional[str]:
+        return self._message
+
+
+def dict_node_representer(dumper: Dumper, data):
+    return dumper.represent_dict(dict(data))
+
+
+yaml.add_representer(YamlDict, dict_node_representer)
+
+
+def list_node_representer(dumper: Dumper, data):
+    return dumper.represent_list(list(data))
+
+
+yaml.add_representer(YamlList, list_node_representer)
+
+
+class DumpFlowStyle(enum.Enum):
+    INLINE = True
+    BLOCK = False
+
+
+date_repr_pattern = r"datetime\.date\(([0-9]{4}),\s([0-9]{1,2}),\s([0-9]{1,2})\)"
+date_repr_regex = re.compile(date_repr_pattern)
+
+
 def _remove_root_key(error_loc: Location) -> list[Union[int, str, date]]:
     return [key for key in error_loc.keys if key != "__root__"]
 
@@ -141,7 +152,7 @@ class DataValidationError(ValidationError):
         dump_flow_style: Optional[DumpFlowStyle] = None,
     ):
         super().__init__(message)
-        self.message = message
+        # self._message = message
 
         if data is not None and data.get(EcalcYamlKeywords.name) is not None:
             extended_message = f"Validation error in '{data.get(EcalcYamlKeywords.name)}'\n"
