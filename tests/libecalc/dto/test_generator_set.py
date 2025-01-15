@@ -250,6 +250,7 @@ class TestGeneratorSet:
                 resource_stream=asset_data.resource_stream, resources=asset_data.resources, frequency=Frequency.YEAR
             ).validate_for_run()
 
-        assert "Validation error\n\n\tName: DefaultGeneratorSet\n\tMessage: Missing fuel for generator set\n" in str(
-            exc_info.value
-        )
+        assert (
+            "Validation error\n\n\tLocation: DefaultGeneratorSet\n\tName: "
+            "DefaultGeneratorSet\n\tMessage: Missing fuel for generator set\n"
+        ) in str(exc_info.value)
