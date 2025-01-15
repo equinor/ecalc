@@ -66,4 +66,6 @@ class TestFuelConsumer:
         with pytest.raises(ModelValidationException) as exc_info:
             yaml_model_factory(resource_stream=asset_stream, resources={}, frequency=Frequency.YEAR).validate_for_run()
 
-        assert "Validation error\n\n\tName: flare\n\tMessage: Missing fuel for fuel consumer\n" in str(exc_info.value)
+        assert (
+            "Validation error\n\n\tLocation: flare\n\tName: flare\n\t" "Message: Missing fuel for fuel consumer\n"
+        ) in str(exc_info.value)

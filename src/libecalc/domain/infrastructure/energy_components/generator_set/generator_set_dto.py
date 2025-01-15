@@ -33,6 +33,7 @@ from libecalc.dto.utils.validators import (
     validate_temporal_model,
 )
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class GeneratorSet(Emitter, EnergyComponent):
@@ -162,6 +163,7 @@ class GeneratorSet(Emitter, EnergyComponent):
                 errors=[
                     ModelValidationError(
                         name=self.name,
+                        location=Location([self.name]),  # for now, we will use the name as the location
                         message=str(msg),
                     )
                 ],
