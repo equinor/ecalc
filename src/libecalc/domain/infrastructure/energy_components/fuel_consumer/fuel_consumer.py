@@ -31,6 +31,7 @@ from libecalc.dto.models import FuelEnergyUsageModel
 from libecalc.dto.types import ConsumerUserDefinedCategoryType
 from libecalc.dto.utils.validators import validate_temporal_model
 from libecalc.expression import Expression
+from libecalc.presentation.yaml.validation_errors import Location
 
 
 class FuelConsumer(Emitter, EnergyComponent):
@@ -158,6 +159,7 @@ class FuelConsumer(Emitter, EnergyComponent):
                 errors=[
                     ModelValidationError(
                         name=name,
+                        location=Location([name]),  # for now, we will use the name as the location
                         message=str(msg),
                     )
                 ],

@@ -84,18 +84,7 @@ class Location:
 
 
 class ValidationError(Exception):
-    def __init__(self, message: Optional[str] = None, location: Optional[Location] = None):
-        super().__init__(message)
-        self._location = location
-        self._message = message
-
-    @property
-    def location(self) -> Optional[Location]:
-        return self._location
-
-    @property
-    def message(self) -> Optional[str]:
-        return self._message
+    pass
 
 
 def dict_node_representer(dumper: Dumper, data):
