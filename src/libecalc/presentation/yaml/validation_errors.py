@@ -90,7 +90,7 @@ class ValidationError(Exception):
         self._message = message
 
     @property
-    def location(self) -> Optional[str]:
+    def location(self) -> Optional[Location]:
         return self._location
 
     @property
