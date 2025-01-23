@@ -278,52 +278,8 @@ def _evaluate_installations(
     asset = graph_result.graph.get_node(asset_id)
     installation_results = []
     for installation in asset.installations:
-        regularity = installation.evaluate_regularity()
+        installation_results.append(installation.get_installation_result(asset_id))
 
-        hydrocarbon_export_rate = installation.get_hydrocarbon_export_rate()
-
-        sub_components = installation.get_sub_component_results()
-
-        power_electrical = installation.get_aggregated_electrical_power_results()
-        power_mechanical = installation.get_aggregated_mechanical_power_results()
-        power = power_electrical + power_mechanical
-
-        energy_usage = installation.get_energy_usage()
-
-        aggregated_emissions = installation.get_aggregated_emissions()
-
-        installation_results.append(
-            libecalc.presentation.json_result.result.InstallationResult(
-                id=installation.id,
-                name=installation.name,
-                parent=asset.id,
-                component_level=installation.component_level,
-                componentType=installation.component_type.value,
-                periods=expression_evaluator.get_periods(),
-                is_valid=installation.get_is_valid(),
-                power=power,
-                power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
-                power_electrical=power_electrical,
-                power_electrical_cumulative=power_electrical.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
-                power_mechanical=power_mechanical,
-                power_mechanical_cumulative=power_mechanical.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
-                energy_usage=energy_usage.to_calendar_day()
-                if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                else energy_usage.to_stream_day(),
-                energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
-                hydrocarbon_export_rate=hydrocarbon_export_rate,
-                emissions=aggregated_emissions,
-                emission_intensities=_compute_intensity(
-                    hydrocarbon_export_rate=hydrocarbon_export_rate,
-                    emissions=aggregated_emissions,
-                ),
-                regularity=TimeSeriesFloat(
-                    periods=expression_evaluator.get_periods(),
-                    values=regularity.values,
-                    unit=Unit.NONE,
-                ),
-            )
-        ) if sub_components else None
     return installation_results
 
 

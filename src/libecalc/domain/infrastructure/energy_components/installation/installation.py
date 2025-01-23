@@ -12,6 +12,7 @@ from libecalc.common.string.string_utils import generate_id
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
+from libecalc.common.utils.emission_intensity import EmissionIntensity
 from libecalc.common.utils.rates import RateType, TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
@@ -30,7 +31,7 @@ from libecalc.presentation.json_result.aggregators import (
     aggregate_emissions,
     aggregate_is_valid,
 )
-from libecalc.presentation.json_result.result.emission import PartialEmissionResult
+from libecalc.presentation.json_result.result.emission import EmissionIntensityResult, PartialEmissionResult
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlVentingEmitter,
 )
@@ -110,6 +111,57 @@ class Installation(EnergyComponent):
             values=self.expression_evaluator.evaluate(expression=TemporalModel(self.regularity)).tolist(),
             unit=Unit.NONE,
         )
+
+    def get_installation_result(self, asset_id: str):
+        regularity = self.evaluate_regularity()
+
+        hydrocarbon_export_rate = self.get_hydrocarbon_export_rate()
+
+        sub_components = self.get_sub_component_results()
+
+        power_electrical = self.get_aggregated_electrical_power_results()
+        power_mechanical = self.get_aggregated_mechanical_power_results()
+        power = power_electrical + power_mechanical
+
+        energy_usage = self.get_energy_usage()
+
+        aggregated_emissions = self.get_aggregated_emissions()
+
+        installation_result = (
+            libecalc.presentation.json_result.result.InstallationResult(
+                id=self.id,
+                name=self.name,
+                parent=asset_id,
+                component_level=self.component_level,
+                componentType=self.component_type.value,
+                periods=self.expression_evaluator.get_periods(),
+                is_valid=self.get_is_valid(),
+                power=power,
+                power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
+                power_electrical=power_electrical,
+                power_electrical_cumulative=power_electrical.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
+                power_mechanical=power_mechanical,
+                power_mechanical_cumulative=power_mechanical.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
+                energy_usage=energy_usage.to_calendar_day()
+                if energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
+                else energy_usage.to_stream_day(),
+                energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
+                hydrocarbon_export_rate=hydrocarbon_export_rate,
+                emissions=aggregated_emissions,
+                emission_intensities=_compute_intensity(
+                    hydrocarbon_export_rate=hydrocarbon_export_rate,
+                    emissions=aggregated_emissions,
+                ),
+                regularity=TimeSeriesFloat(
+                    periods=self.expression_evaluator.get_periods(),
+                    values=regularity.values,
+                    unit=Unit.NONE,
+                ),
+            )
+            if sub_components
+            else None
+        )
+        return installation_result
 
     def get_hydrocarbon_export_rate(self) -> TimeSeriesRate:
         hydrocarbon_export_rate = self.expression_evaluator.evaluate(expression=TemporalModel(self.hydrocarbon_export))
@@ -292,3 +344,31 @@ class Installation(EnergyComponent):
                 )
 
         return dto_result
+
+
+def _compute_intensity(
+    hydrocarbon_export_rate: TimeSeriesRate,
+    emissions: dict[str, PartialEmissionResult],
+) -> list[EmissionIntensityResult]:
+    hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
+    emission_intensities = []
+    for key in emissions:
+        cumulative_rate_kg = emissions[key].rate.to_volumes().to_unit(Unit.KILO).cumulative()
+        intensity = EmissionIntensity(
+            emission_cumulative=cumulative_rate_kg,
+            hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
+        )
+        intensity_sm3 = intensity.calculate()
+        intensity_yearly_sm3 = intensity.calculate_periods()
+
+        emission_intensities.append(
+            EmissionIntensityResult(
+                name=emissions[key].name,
+                periods=emissions[key].periods,
+                intensity_sm3=intensity_sm3,
+                intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
+                intensity_yearly_sm3=intensity_yearly_sm3,
+                intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
+            )
+        )
+    return emission_intensities
