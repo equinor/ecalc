@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.7.1](https://github.com/equinor/ecalc/compare/v9.7.0...v9.7.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* issue with list when np array is expected ([baf8279](https://github.com/equinor/ecalc/commit/baf8279c9674f25f6b067c6c78682c0125b32c79))
+
 ## [9.7.0](https://github.com/equinor/ecalc/compare/v9.6.0...v9.7.0) (2025-01-15)
 
 
