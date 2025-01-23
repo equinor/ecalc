@@ -665,6 +665,27 @@ class TimeSeriesVolumes(TimeSeries[float]):
             rate_type=RateType.CALENDAR_DAY,
         )
 
+    def __truediv__(self, other: object) -> TimeSeriesCalendarDayRate:
+        if not isinstance(other, TimeSeriesVolumes):
+            raise TypeError(f"Dividing TimeSeriesVolumes by '{str(other.__class__)}' is not supported.")
+
+        if self.unit == Unit.KILO and other.unit == Unit.STANDARD_CUBIC_METER:
+            unit = Unit.KG_SM3
+        else:
+            raise ProgrammingError(
+                f"Unable to divide unit '{self.unit}' by unit '{other.unit}'. Please add unit conversion."
+            )
+        return TimeSeriesCalendarDayRate(
+            periods=self.periods,
+            values=np.divide(
+                self.values,
+                other.values,
+                out=np.full_like(self.values, fill_value=np.nan),
+                where=np.asarray(other.values) != 0.0,
+            ).tolist(),
+            unit=unit,
+        )
+
 
 class TimeSeriesStreamDayRate(TimeSeriesFloat):
     """
@@ -1060,4 +1081,58 @@ class TimeSeriesRate(TimeSeries[float]):
         stream_day_rate = self.to_stream_day()
         return TimeSeriesStreamDayRate(
             periods=stream_day_rate.periods, values=stream_day_rate.values, unit=stream_day_rate.unit
+        )
+
+
+class TimeSeriesIntensity(TimeSeries[float]):
+    @field_validator("values", mode="before")
+    @classmethod
+    def convert_none_to_nan(cls, v: Any) -> list[TimeSeriesValue]:
+        if isinstance(v, list):
+            # convert None to nan
+            return [i if i is not None else math.nan for i in v]
+        return v
+
+    def resample(
+        self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True
+    ) -> TimeSeriesIntensity:
+        """
+        Resample emission intensity according to given frequency.
+        Slinear is used in order to only interpolate, not extrapolate.
+        Args:
+            freq: The frequency the time series should be resampled to
+        Returns:
+            TimeSeriesIntensity resampled to the given frequency
+        """
+        if freq is Frequency.NONE:
+            return self.model_copy()
+
+        ds = pd.Series(index=self.all_dates, data=[0] + self.values)
+
+        new_periods = resample_periods(
+            self.periods, frequency=freq, include_start_date=include_start_date, include_end_date=include_end_date
+        )
+
+        new_dates = new_periods.all_dates
+        if ds.index[-1] not in new_dates:
+            logger.warning(
+                f"The final date in the rate input ({ds.index[-1].strftime('%m/%d/%Y')}) does not "
+                f"correspond to the end of a period with the requested output frequency. There is a "
+                f"possibility that the resampling will drop intensities."
+            )
+        ds_interpolated = ds.reindex(ds.index.union(new_dates)).interpolate("time")
+
+        # New resampled pd.Series
+        resampled: list[float] = ds_interpolated.reindex(new_dates).values.tolist()
+
+        if not include_start_date:
+            dropped_intensity = resampled[0]
+            resampled = [value - dropped_intensity for value in resampled[1:]]
+        else:
+            resampled = resampled[1:]
+
+        return TimeSeriesIntensity(
+            periods=new_periods,
+            values=resampled,
+            unit=self.unit,
         )

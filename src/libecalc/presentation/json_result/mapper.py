@@ -17,6 +17,7 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
+from libecalc.common.utils.emission_intensity import EmissionIntensity
 from libecalc.common.utils.rates import (
     RateType,
     TimeSeriesBoolean,
@@ -26,7 +27,7 @@ from libecalc.common.utils.rates import (
 )
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.core.result.emission import EmissionResult
-from libecalc.domain.infrastructure import Asset
+from libecalc.domain.infrastructure import Asset, Installation
 from libecalc.dto import CompressorSystemConsumerFunction
 from libecalc.expression import Expression
 from libecalc.presentation.json_result.aggregators import (
@@ -34,6 +35,7 @@ from libecalc.presentation.json_result.aggregators import (
     aggregate_is_valid,
 )
 from libecalc.presentation.json_result.result.emission import (
+    EmissionIntensityResult,
     PartialEmissionResult,
 )
 from libecalc.presentation.json_result.result.results import (
@@ -67,7 +69,7 @@ def get_requested_compressor_pressures(
     The pressures are the actual pressures defined by user in input.
 
     Args:
-        energy_usage_model (Dict[Period, Any]): Temporal energy model.
+        energy_usage_model (dict[Period, Any]): Temporal energy model.
         pressure_type (CompressorPressureType): Compressor pressure type, inlet- or outlet.
         name (str): Name of compressor.
         model_periods (Periods): Actual periods in the model.
@@ -129,6 +131,34 @@ def get_requested_compressor_pressures(
             evaluated_temporal_energy_usage_models[period] = pressures
 
     return TemporalModel(evaluated_temporal_energy_usage_models)
+
+
+def _compute_intensity(
+    hydrocarbon_export_rate: TimeSeriesRate,
+    emissions: dict[str, PartialEmissionResult],
+) -> list[EmissionIntensityResult]:
+    hydrocarbon_export_cumulative = hydrocarbon_export_rate.to_volumes().cumulative()
+    emission_intensities = []
+    for key in emissions:
+        cumulative_rate_kg = emissions[key].rate.to_volumes().to_unit(Unit.KILO).cumulative()
+        intensity = EmissionIntensity(
+            emission_cumulative=cumulative_rate_kg,
+            hydrocarbon_export_cumulative=hydrocarbon_export_cumulative,
+        )
+        intensity_sm3 = intensity.calculate()
+        intensity_yearly_sm3 = intensity.calculate_periods()
+
+        emission_intensities.append(
+            EmissionIntensityResult(
+                name=emissions[key].name,
+                periods=emissions[key].periods,
+                intensity_sm3=intensity_sm3,
+                intensity_boe=intensity_sm3.to_unit(Unit.KG_BOE),
+                intensity_yearly_sm3=intensity_yearly_sm3,
+                intensity_yearly_boe=intensity_yearly_sm3.to_unit(Unit.KG_BOE),
+            )
+        )
+    return emission_intensities
 
 
 def _to_full_result(
@@ -217,7 +247,7 @@ def _parse_emissions(
 
 
 def _compute_aggregated_power(
-    graph_result: GraphResult,
+    installation: Installation,
     regularity: TimeSeriesFloat,
     power_components: list,
 ):
@@ -229,8 +259,8 @@ def _compute_aggregated_power(
             if component.power is not None
         ],
         TimeSeriesRate(
-            values=[0.0] * graph_result.variables_map.number_of_periods,
-            periods=graph_result.variables_map.periods,
+            values=[0.0] * installation.expression_evaluator.number_of_periods,
+            periods=installation.expression_evaluator.get_periods(),
             unit=Unit.MEGA_WATT,
             rate_type=RateType.STREAM_DAY,
             regularity=regularity.values,
@@ -248,98 +278,29 @@ def _evaluate_installations(
     asset = graph_result.graph.get_node(asset_id)
     installation_results = []
     for installation in asset.installations:
-        regularity = TimeSeriesFloat(
-            periods=expression_evaluator.get_periods(),
-            values=expression_evaluator.evaluate(expression=TemporalModel(installation.regularity)),
-            unit=Unit.NONE,
-        )
-        hydrocarbon_export_rate = expression_evaluator.evaluate(
-            expression=TemporalModel(installation.hydrocarbon_export)
-        )
+        regularity = installation.evaluate_regularity()
 
-        hydrocarbon_export_rate = TimeSeriesRate(
-            periods=expression_evaluator.get_periods(),
-            values=hydrocarbon_export_rate,
-            unit=Unit.STANDARD_CUBIC_METER_PER_DAY,
-            rate_type=RateType.CALENDAR_DAY,
-            regularity=regularity.values,
-        )
+        hydrocarbon_export_rate = installation.get_hydrocarbon_export_rate()
 
-        sub_components = [
-            graph_result.consumer_results[component_id].component_result
-            for component_id in graph_result.graph.get_successors(installation.id, recursively=True)
-            if component_id in graph_result.consumer_results
-        ]
+        sub_components = installation.get_sub_component_results()
 
-        power_components = [
-            graph_result.consumer_results[component_id].component_result
-            for component_id in graph_result.graph.get_successors(installation.id, recursively=False)
-            if component_id in graph_result.consumer_results
-        ]
-
-        electrical_components = []
-        fuel_components = []
-
-        for component in power_components:
-            if graph_result.graph.get_node_info(component.id).component_type == ComponentType.GENERATOR_SET:
-                electrical_components.append(component)
-            else:
-                fuel_components.append(component)
-
-        installation_node_info = graph_result.graph.get_node_info(installation.id)
-
-        power_electrical = _compute_aggregated_power(
-            graph_result=graph_result,
-            power_components=electrical_components,
-            regularity=regularity,
-        )
-
-        power_mechanical = _compute_aggregated_power(
-            graph_result=graph_result,
-            power_components=fuel_components,
-            regularity=regularity,
-        )
-
+        power_electrical = installation.get_aggregated_electrical_power_results()
+        power_mechanical = installation.get_aggregated_mechanical_power_results()
         power = power_electrical + power_mechanical
 
-        energy_usage = (
-            reduce(
-                operator.add,
-                [
-                    TimeSeriesRate.from_timeseries_stream_day_rate(component.energy_usage, regularity=regularity)
-                    for component in sub_components
-                    if component.energy_usage.unit == Unit.STANDARD_CUBIC_METER_PER_DAY
-                ],
-            )
-            if sub_components
-            else 0
-        )
+        energy_usage = installation.get_energy_usage()
 
-        emission_dto_results = _convert_to_timeseries(
-            graph_result,
-            graph_result.emission_results,
-            regularity,
-        )
-        aggregated_emissions = aggregate_emissions(
-            [
-                emission_dto_results[fuel_consumer_id]
-                for fuel_consumer_id in graph_result.graph.get_successors(installation.id)
-            ]
-        )
+        aggregated_emissions = installation.get_aggregated_emissions()
 
         installation_results.append(
             libecalc.presentation.json_result.result.InstallationResult(
                 id=installation.id,
-                name=installation_node_info.name,
+                name=installation.name,
                 parent=asset.id,
-                component_level=installation_node_info.component_level,
-                componentType=installation_node_info.component_type.value,
+                component_level=installation.component_level,
+                componentType=installation.component_type.value,
                 periods=expression_evaluator.get_periods(),
-                is_valid=TimeSeriesBoolean(
-                    periods=expression_evaluator.get_periods(),
-                    values=aggregate_is_valid(sub_components),
-                    unit=Unit.NONE,
-                ),
+                is_valid=installation.get_is_valid(),
                 power=power,
                 power_cumulative=power.to_volumes().to_unit(Unit.GIGA_WATT_HOURS).cumulative(),
                 power_electrical=power_electrical,
@@ -351,7 +312,11 @@ def _evaluate_installations(
                 else energy_usage.to_stream_day(),
                 energy_usage_cumulative=energy_usage.to_volumes().cumulative(),
                 hydrocarbon_export_rate=hydrocarbon_export_rate,
-                emissions=_to_full_result(aggregated_emissions),
+                emissions=aggregated_emissions,
+                emission_intensities=_compute_intensity(
+                    hydrocarbon_export_rate=hydrocarbon_export_rate,
+                    emissions=aggregated_emissions,
+                ),
                 regularity=TimeSeriesFloat(
                     periods=expression_evaluator.get_periods(),
                     values=regularity.values,
@@ -1425,6 +1390,12 @@ def get_asset_result(graph_result: GraphResult) -> libecalc.presentation.json_re
         energy_usage_cumulative=asset_energy_usage_cumulative,
         hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
         emissions=_to_full_result(asset_aggregated_emissions),
+        emission_intensities=_compute_intensity(
+            hydrocarbon_export_rate=asset_hydrocarbon_export_rate_core,
+            emissions=asset_aggregated_emissions,
+        )
+        if installation_results
+        else [],
     )
 
     return Numbers.format_results_to_precision(

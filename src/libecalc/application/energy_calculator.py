@@ -70,11 +70,7 @@ class EnergyCalculator:
         for energy_component in energy_components:
             if hasattr(energy_component, "evaluate_energy_usage"):
                 context = self._get_context(energy_component.id)
-                self._consumer_results.update(
-                    energy_component.evaluate_energy_usage(
-                        context=context, expression_evaluator=self._expression_evaluator
-                    )
-                )
+                self._consumer_results.update(energy_component.evaluate_energy_usage(context=context))
 
         self._consumer_results = Numbers.format_results_to_precision(self._consumer_results, precision=6)
         return self._consumer_results
@@ -91,7 +87,6 @@ class EnergyCalculator:
                 emission_result = energy_component.evaluate_emissions(
                     energy_context=self._get_context(energy_component.id),
                     energy_model=self._energy_model,
-                    expression_evaluator=self._expression_evaluator,
                 )
 
                 if emission_result is not None:
