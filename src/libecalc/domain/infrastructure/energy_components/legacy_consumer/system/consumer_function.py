@@ -420,10 +420,10 @@ class PumpSystemConsumerFunction(ConsumerSystemConsumerFunction):
             logger.debug(f"Evaluating running pump#{pump_number} out of {self.number_of_consumers} pumps")
 
             pump_model_result = pump.facility_model.evaluate_rate_ps_pd_density(
-                rate=consumer_rates[pump_number],
-                suction_pressures=consumer_suction_pressures[pump_number],
-                discharge_pressures=consumer_discharge_pressures[pump_number],
-                fluid_density=consumer_fluid_densities[pump_number],
+                rate=np.asarray(consumer_rates[pump_number]),
+                suction_pressures=np.asarray(consumer_suction_pressures[pump_number]),
+                discharge_pressures=np.asarray(consumer_discharge_pressures[pump_number]),
+                fluid_density=np.asarray(consumer_fluid_densities[pump_number]),
             )
             pump_result = PumpResult(
                 name=pump.name,
