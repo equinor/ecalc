@@ -246,28 +246,6 @@ def _parse_emissions(
     }
 
 
-def _compute_aggregated_power(
-    installation: Installation,
-    regularity: TimeSeriesFloat,
-    power_components: list,
-):
-    return reduce(
-        operator.add,
-        [
-            TimeSeriesRate.from_timeseries_stream_day_rate(component.power, regularity=regularity)
-            for component in power_components
-            if component.power is not None
-        ],
-        TimeSeriesRate(
-            values=[0.0] * installation.expression_evaluator.number_of_periods,
-            periods=installation.expression_evaluator.get_periods(),
-            unit=Unit.MEGA_WATT,
-            rate_type=RateType.STREAM_DAY,
-            regularity=regularity.values,
-        ),  # Initial value, handle no power output from components
-    )
-
-
 def _evaluate_installations(
     graph_result: GraphResult, expression_evaluator: ExpressionEvaluator
 ) -> list[libecalc.presentation.json_result.result.InstallationResult]:
