@@ -15,6 +15,7 @@ class Emitter(abc.ABC):
     """
 
     expression_evaluator: Optional[ExpressionEvaluator] = Field(default=None, exclude=True)
+    emission_results: Optional[dict[str, EmissionResult]] = Field(default={}, exclude=True)
 
     @property
     @abc.abstractmethod
