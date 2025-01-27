@@ -1,7 +1,10 @@
 from abc import ABC
-from typing import Optional, Self
+from datetime import datetime
+from typing import Annotated, Optional, Self
 
 import pandas as pd
+from pydantic import TypeAdapter, WrapSerializer
+from pydantic_core.core_schema import SerializationInfo
 
 from libecalc.common.time_utils import Frequency, Periods, resample_periods
 from libecalc.common.units import Unit
@@ -15,9 +18,28 @@ from libecalc.common.utils.rates import (
 from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 
 
+def with_timesteps(v: Periods, handler, info: SerializationInfo):
+    context = info.context
+    data = handler(v, info)
+    if context:
+        include_timesteps = context.get("include_timesteps", False)
+        if include_timesteps:
+            start_dates = v.start_dates
+            type_adapter = TypeAdapter(list[datetime])
+            if info.mode == "json":
+                data["timesteps"] = type_adapter.dump_json(start_dates)
+            else:
+                data["timesteps"] = type_adapter.dump_python(start_dates)
+
+    return data
+
+
+PeriodsWithTimesteps = Annotated[Periods, WrapSerializer(with_timesteps)]
+
+
 class TabularTimeSeries(ABC, EcalcResultBaseModel):
     name: str
-    periods: Periods
+    periods: PeriodsWithTimesteps
 
     def to_dataframe(
         self,

@@ -68,7 +68,7 @@ def to_json(result: Union[ComponentResult, EcalcModelResult], simple_output: boo
 
     """
     data_to_dump = SimpleResultData.from_dto(result) if simple_output else result
-    data = data_to_dump.model_dump(exclude_none=True)
+    data = data_to_dump.model_dump(exclude_none=True, context={"include_timesteps": True})
     date_format = DateTimeFormats.get_format(date_format_option)
 
     def default_serializer(x: Any):
